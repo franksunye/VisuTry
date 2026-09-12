@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { generateI18nSEO } from '@/lib/seo'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowLeft, Tag as TagIcon, Calendar, User, ArrowRight } from 'lucide-react'
 import { getAllBlogPosts } from '@/lib/blog'
 

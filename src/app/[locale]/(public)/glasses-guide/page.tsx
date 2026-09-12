@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowRight } from 'lucide-react'
 import { getLocalizedCombinationSearchPages } from '@/config/search-combination-locales'
 import { getGlassesGuideHubCopy } from '@/config/glasses-guide-hub-locales'

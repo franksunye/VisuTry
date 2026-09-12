@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { Glasses, Share2 } from 'lucide-react'
 import BlogTags from '@/components/BlogTags'
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'

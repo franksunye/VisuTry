@@ -1,7 +1,7 @@
 import { cache } from 'react'
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { notFound } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
 import { prisma } from '@/lib/prisma'

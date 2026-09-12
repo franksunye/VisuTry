@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { SITE_CONFIG, generateI18nSEO } from '@/lib/seo'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 import { getAllBlogPosts } from '@/lib/blog'
 import Image from 'next/image'

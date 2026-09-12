@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowLeft, Shield } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { localizedPath } from '@/lib/localized-path'

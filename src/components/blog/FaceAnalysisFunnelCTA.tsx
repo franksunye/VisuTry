@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowRight, Glasses, ScanFace, Sparkles } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 

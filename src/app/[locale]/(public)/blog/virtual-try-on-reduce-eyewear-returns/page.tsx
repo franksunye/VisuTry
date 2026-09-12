@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { BarChart3, CheckCircle2, PackageCheck, ShoppingCart, UserCheck } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'

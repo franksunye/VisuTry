@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { notFound } from 'next/navigation'
 import { ArrowRight, CheckCircle2, Glasses, ScanFace } from 'lucide-react'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
@@ -210,7 +210,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {presets.map((preset, index) => (
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 key={preset.id}
                 href={`/${locale}/try-on/glasses`}
                 sourcePage={pagePath}
@@ -251,7 +251,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
                 {interpolateOrdinaryGlassesCopy(detail.workflowTitle, templateShapeName)}
               </h2>
             </div>
-            <GrowthFunnelLink
+            <GrowthFunnelLink prefetch={false}
               href={`/${locale}/face-analysis`}
               sourcePage={pagePath}
               destination="face-analysis"

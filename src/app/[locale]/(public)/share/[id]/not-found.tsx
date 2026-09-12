@@ -1,7 +1,7 @@
 "use client"
 
 import { AlertCircle, ArrowLeft, Glasses } from "lucide-react"
-import Link from "next/link"
+import Link from '@/components/layout/PublicLink'
 import { useParams } from "next/navigation"
 import { localizedPath } from "@/lib/localized-path"
 

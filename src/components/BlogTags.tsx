@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { Tag } from 'lucide-react'
 
 interface BlogTagsProps {

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowRight, CheckCircle2, Glasses, ScanFace, Sun } from 'lucide-react'
 import { SUNGLASSES_FACE_SHAPE_GUIDES } from '@/config/sunglasses-face-shape-content'
 import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
@@ -61,7 +61,7 @@ export default function SunglassesForFaceShapePage({ params }: SunglassesHubPage
               {copy.sunglasses.intro}
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 href={`/${locale}/face-shape-detector`}
                 sourcePage="sunglasses-for-face-shape"
                 destination="face-shape-detector"
@@ -72,7 +72,7 @@ export default function SunglassesForFaceShapePage({ params }: SunglassesHubPage
                 {copy.sunglasses.detectorCta}
                 <ArrowRight className="h-4 w-4" />
               </GrowthFunnelLink>
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 href={`/${locale}/style-explorer`}
                 sourcePage="sunglasses-for-face-shape"
                 destination="style-explorer"

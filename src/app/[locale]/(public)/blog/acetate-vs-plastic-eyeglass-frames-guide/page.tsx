@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowLeft, Layers, CheckCircle2, XCircle } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'

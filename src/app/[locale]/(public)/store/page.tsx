@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import {
   ArrowRight,
   BarChart3,

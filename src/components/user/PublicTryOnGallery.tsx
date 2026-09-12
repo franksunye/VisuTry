@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { ExternalLink, Calendar, Glasses } from "lucide-react"
-import Link from "next/link"
+import Link from '@/components/layout/PublicLink'
 import { formatDistanceToNow } from "date-fns"
 import { enUS } from "date-fns/locale"
 import { TryOnThumbnail } from "@/components/OptimizedImage"

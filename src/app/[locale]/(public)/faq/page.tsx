@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { Metadata } from 'next'
 import { ArrowRight, Glasses, Grid2X2, ScanFace, Shield, Sparkles } from 'lucide-react'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'

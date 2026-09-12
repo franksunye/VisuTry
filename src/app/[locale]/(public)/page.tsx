@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { Compass, Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole, Sparkles, Store } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
@@ -145,7 +145,7 @@ export default function Home({
       {/* Step 3 and 4 product proof */}
       <section className="max-w-6xl mx-auto mb-16">
         <RouteMessagesProvider namespaces={['marketing.modelTryOnSlides']}>
-          <ModelTryOnSlides locale={locale} mode="home" preloadFirstImage={false} />
+          <ModelTryOnSlides locale={locale} mode="home" preloadFirstImage={false} prefetch={false} />
         </RouteMessagesProvider>
       </section>
 

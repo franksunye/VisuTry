@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowRight, Glasses, Ruler, ScanFace, Scissors } from 'lucide-react'
 import { FACE_SHAPE_CONTENT, FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { FACE_SHAPE_COMPARISONS, FACE_SHAPE_COMPARISON_SLUGS } from '@/config/face-shape-comparisons'

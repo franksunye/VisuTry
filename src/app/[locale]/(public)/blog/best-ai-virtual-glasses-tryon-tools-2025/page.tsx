@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { CheckCircle2, Image as ImageIcon, Shield, Smartphone, Store } from 'lucide-react'
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'

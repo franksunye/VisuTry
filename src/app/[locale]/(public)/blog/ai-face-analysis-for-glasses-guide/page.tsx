@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowRight, CheckCircle2, Eye, Glasses, ScanFace, Sparkles } from 'lucide-react'
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'

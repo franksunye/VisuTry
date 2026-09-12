@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { Camera, Glasses, ScanFace } from 'lucide-react'
 import { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'

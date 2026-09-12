@@ -21,6 +21,8 @@ interface ModelTryOnSlidesProps {
   mode?: ShowcaseMode
   compact?: boolean
   preloadFirstImage?: boolean
+  /** Public pages disable speculative route fetching; app pages keep the default. */
+  prefetch?: boolean
 }
 
 const tryOnSlides: ShowcaseSlide[] = [
@@ -99,6 +101,7 @@ export function ModelTryOnSlides({
   mode = 'home',
   compact = false,
   preloadFirstImage = true,
+  prefetch = true,
 }: ModelTryOnSlidesProps) {
   const t = useTranslations('marketing.modelTryOnSlides')
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -170,6 +173,7 @@ export function ModelTryOnSlides({
               compare: `/${locale}/try-on/glasses/compare`,
               face: `/${locale}/face-analysis`,
             }[mode]}
+            prefetch={prefetch}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700"
           >
             {t(`modes.${mode}.ctaLabel`)}
@@ -182,6 +186,7 @@ export function ModelTryOnSlides({
               compare: `/${locale}/try-on/glasses`,
               face: `/${locale}/try-on/glasses`,
             }[mode]}
+            prefetch={prefetch}
             className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-bold text-gray-700 hover:border-blue-300 hover:text-blue-700"
           >
             {t(`modes.${mode}.secondaryLabel`)}

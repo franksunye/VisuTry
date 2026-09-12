@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import type { VisualSeoAsset as VisualSeoAssetData } from '@/config/visual-seo-assets'
 
 export type VisualSeoRenderableAsset = Omit<VisualSeoAssetData, 'batch'> & {

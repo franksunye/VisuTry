@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, CheckCircle2, Info, Loader2, ShieldCheck, Sparkles } from 'lucide-react'

@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { localizedPath } from '@/lib/localized-path'
 

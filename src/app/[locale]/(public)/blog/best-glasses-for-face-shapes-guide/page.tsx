@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import Image from 'next/image'
 import { generateStructuredData } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'

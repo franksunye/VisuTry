@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { Glasses, Menu, Shield, Sparkles, X } from 'lucide-react'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { useParams, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils/cn'

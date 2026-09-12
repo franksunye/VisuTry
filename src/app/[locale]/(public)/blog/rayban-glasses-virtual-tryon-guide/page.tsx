@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowRight, CheckCircle2, ScanFace } from 'lucide-react'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 import { BRAND_TRY_ON_CONTENT, CURATED_BRAND_SLUGS } from '@/config/brand-try-on-content'
@@ -80,7 +80,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
             <p className="mt-5 text-lg leading-8 text-gray-600">{description}</p>
             <p className="mt-4 leading-7 text-gray-700">Start by comparing clearly different silhouettes. Once one direction feels right, use it to narrow the official catalog by shape and measurements.</p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 href={`/${locale}/try-on/glasses`}
                 sourcePage={pagePath}
                 destination="glasses-try-on"
@@ -90,7 +90,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
                   productPath="virtual_try_on"
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
               >Try glasses on your photo <ArrowRight className="h-4 w-4" /></GrowthFunnelLink>
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 href={`/${locale}/face-shape-detector`}
                 sourcePage={pagePath}
                 destination="face-shape-detector"
@@ -123,7 +123,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
           <h2 className="mt-2 text-2xl font-bold text-gray-950 md:text-3xl">Compare four iconic frame directions</h2>
           <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {styles.map((style, index) => (
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 key={style.name}
                 href={`/${locale}/try-on/glasses`}
                 sourcePage={pagePath}
@@ -143,7 +143,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
           <article className="rounded-xl border border-gray-200 p-6">
             <h2 className="text-xl font-bold text-gray-950">Face shape is a filter, not a rule</h2>
             <p className="mt-4 leading-7 text-gray-700">Angular frames can add definition to round features; curved frames can soften stronger angles. But the better choice is the one whose width, bridge, lens height, and visual weight feel balanced on you.</p>
-            <GrowthFunnelLink href={`/${locale}/glasses-for-face-shape`} sourcePage={pagePath} destination="glasses-for-face-shape" ctaLocation="face-shape-guide" queryCluster="brand-virtual-try-on:ray-ban" className="mt-5 inline-flex items-center gap-2 font-semibold text-blue-700 hover:text-blue-900">Compare glasses by face shape <ArrowRight className="h-4 w-4" /></GrowthFunnelLink>
+            <GrowthFunnelLink prefetch={false} href={`/${locale}/glasses-for-face-shape`} sourcePage={pagePath} destination="glasses-for-face-shape" ctaLocation="face-shape-guide" queryCluster="brand-virtual-try-on:ray-ban" className="mt-5 inline-flex items-center gap-2 font-semibold text-blue-700 hover:text-blue-900">Compare glasses by face shape <ArrowRight className="h-4 w-4" /></GrowthFunnelLink>
           </article>
           <article className="rounded-xl border border-gray-200 p-6">
             <h2 className="text-xl font-bold text-gray-950">Before buying an exact model</h2>

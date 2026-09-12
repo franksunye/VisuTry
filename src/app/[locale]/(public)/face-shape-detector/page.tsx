@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowRight, CheckCircle2, LockKeyhole, ScanFace, ShieldCheck } from 'lucide-react'
 import { FreeFaceShapeDetector } from '@/components/face-shape/FreeFaceShapeDetector'
 import type { Locale } from '@/i18n'

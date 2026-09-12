@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { notFound } from 'next/navigation'
 import { ArrowRight, CheckCircle2, Glasses, ScanFace } from 'lucide-react'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
@@ -120,7 +120,7 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
             <h1 className="text-3xl font-bold leading-tight md:text-5xl">{content.title}</h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">{content.intro}</p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 href={`/${locale}/try-on/glasses`}
                 sourcePage={pagePath}
                 destination="glasses-try-on"
@@ -132,7 +132,7 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
               >
                 Try glasses on your photo <ArrowRight className="h-4 w-4" />
               </GrowthFunnelLink>
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 href={`/${locale}/face-shape-detector`}
                 sourcePage={pagePath}
                 destination="face-shape-detector"
@@ -157,7 +157,7 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
           <p className="mt-3 max-w-3xl leading-7 text-gray-600">These are visual starting points, not exact branded products. Testing distinct silhouettes is more useful than comparing several nearly identical frames.</p>
           <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {content.styles.map((style, index) => (
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 key={style.name}
                 href={`/${locale}/try-on/glasses`}
                 sourcePage={pagePath}
@@ -194,7 +194,7 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
           <article className="rounded-xl bg-blue-50 p-6">
             <h2 className="text-xl font-bold text-gray-950">Fit matters after style</h2>
             <p className="mt-4 leading-7 text-gray-700">{content.shoppingNote}</p>
-            <GrowthFunnelLink
+            <GrowthFunnelLink prefetch={false}
               href={`/${locale}/glasses-for-face-shape`}
               sourcePage={pagePath}
               destination="glasses-for-face-shape"

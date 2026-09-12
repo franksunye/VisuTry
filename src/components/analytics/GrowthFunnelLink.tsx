@@ -17,7 +17,11 @@ interface GrowthFunnelLinkProps {
   children: ReactNode
 }
 
-/** A normal Next.js link with one consistent high-intent SEO funnel event. */
+/**
+ * A normal Next.js link with one consistent high-intent SEO funnel event.
+ * Public callers pass `prefetch={false}`; Consumer App callers may omit it so
+ * their existing navigation policy remains unchanged.
+ */
 export function GrowthFunnelLink({
   href,
   sourcePage,

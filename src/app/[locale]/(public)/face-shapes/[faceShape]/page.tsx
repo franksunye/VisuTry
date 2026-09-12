@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { notFound } from 'next/navigation'
 import { ArrowRight, CheckCircle2, Glasses, Ruler, Scissors } from 'lucide-react'
 import {

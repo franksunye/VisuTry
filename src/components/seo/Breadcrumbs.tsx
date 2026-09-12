@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ChevronRight, Home } from 'lucide-react'
 import { generateStructuredData } from '@/lib/seo'
 
@@ -71,4 +71,3 @@ export function Breadcrumbs({ items, className = '' }: BreadcrumbsProps) {
     </>
   )
 }
-

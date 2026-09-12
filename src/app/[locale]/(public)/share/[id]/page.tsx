@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { Glasses, Download, ArrowLeft } from "lucide-react"
-import Link from "next/link"
+import Link from '@/components/layout/PublicLink'
 import type { Metadata } from "next"
 import { TryOnResultImage } from "@/components/OptimizedImage"
 import { getTryOnConfig, type TryOnType } from "@/config/try-on-types"

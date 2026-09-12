@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowRight, Compass, Glasses, Store } from 'lucide-react'
 import type { DiscoverContent } from '@/modules/store/application/get-discover-content'
 

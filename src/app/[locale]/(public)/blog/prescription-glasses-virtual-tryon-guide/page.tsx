@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import Image from 'next/image'
 import { Metadata } from 'next'
 import { generateStructuredData, generateI18nSEO } from '@/lib/seo'

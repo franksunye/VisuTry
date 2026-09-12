@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { AlertTriangle, ArrowRight, CheckCircle2, Ruler, ScanFace } from 'lucide-react'
 import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'

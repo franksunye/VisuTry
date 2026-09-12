@@ -9,7 +9,7 @@ import {
   slugify,
 } from '@/lib/programmatic-seo'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { ArrowLeft, Glasses, Heart } from 'lucide-react'
 import { localizedPath } from '@/lib/localized-path'
 

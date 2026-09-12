@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/layout/PublicLink'
 import { notFound } from 'next/navigation'
 import { ArrowRight, CheckCircle2, Glasses, Ruler, ShieldCheck, Sun } from 'lucide-react'
 import { getTopPickPresetById, type GlassesPreset } from '@/config/glasses-presets'
@@ -113,7 +113,7 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
               {copy.detail.goalLabel}: {copy.sunglasses.goals[guide.faceShape]}
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 href={`/${locale}/face-shape-detector`}
                 sourcePage={`sunglasses-for/${guide.slug}`}
                 destination="face-shape-detector"
@@ -124,7 +124,7 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
                 {copy.detail.detectorCta}
                 <ArrowRight className="h-4 w-4" />
               </GrowthFunnelLink>
-              <GrowthFunnelLink
+              <GrowthFunnelLink prefetch={false}
                 href={`/${locale}/style-explorer`}
                 sourcePage={`sunglasses-for/${guide.slug}`}
                 destination="style-explorer"
@@ -240,7 +240,7 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
                 {copy.detail.conversionText}
               </p>
             </div>
-            <GrowthFunnelLink
+            <GrowthFunnelLink prefetch={false}
               href={`/${locale}/style-explorer`}
               sourcePage={`sunglasses-for/${guide.slug}`}
               destination="style-explorer"
