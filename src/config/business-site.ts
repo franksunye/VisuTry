@@ -61,8 +61,8 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     metaTitle: 'AI Commerce for Eyewear Brands & Agencies | VisuTry',
     metaDescription: 'Turn eyewear catalogs and campaign traffic into guided AI shopping experiences for brand, commerce, and agency teams with recommendation, virtual try-on, comparison, and measurable shopper intent.',
     eyebrow: 'AI Commerce for Eyewear',
-    title: 'Turn your eyewear catalog into a personalized AI shopping experience.',
-    description: 'Help shoppers narrow the catalog, get recommendations, try frames on, compare finalists, and continue to your product or inquiry flow — while you see which products and journeys create stronger intent.',
+    title: 'Be discovered. Help shoppers decide. Measure what drives intent.',
+    description: 'VisuTry helps eyewear merchants become more discoverable across search and AI, then helps shoppers move from product discovery to recommendation, Virtual Try-On, Compare, and measurable intent.',
     primaryCta: { label: 'Start a Pilot', href: pilotHref },
     secondaryCta: { label: 'Explore Store', href: '/business/store' },
     microcopy: 'Hosted first. Keep your current ecommerce site and product pages.',
@@ -130,7 +130,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     metaDescription: 'Use one merchant catalog to power Store and Campaign Experiences with recommendation, virtual try-on, comparison, and commerce intelligence.',
     eyebrow: 'VisuTry Platform',
     title: 'One decision layer between eyewear traffic and merchant commerce.',
-    description: 'Use one merchant catalog to power Store and Campaign Experiences with recommendation, Virtual Try-On, Compare, intent measurement, and product handoff.',
+    description: 'Use one merchant catalog to support discovery across search and AI, then guide shoppers through Store and Campaign Experiences with recommendation, Virtual Try-On, Compare, intent measurement, and product handoff.',
     primaryCta: { label: 'Start a Pilot', href: pilotHref },
     secondaryCta: { label: 'Explore Store', href: '/business/store' },
     sections: [
@@ -213,7 +213,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     metaDescription: 'Create focused AI shopping experiences for eyewear campaigns, collections, audiences, traffic sources, creator stories, and media briefs while preserving merchant product truth.',
     eyebrow: 'Campaign Experiences',
     title: 'Turn campaign traffic into a focused shopping journey.',
-    description: 'Reuse the same merchant catalog to create focused experiences for collections, audiences, sources, style stories, promotions, and shopping intent.',
+    description: 'Create intent-specific commerce experiences built for traffic from search, AI, paid media, social, email, and QR — guiding shoppers from product discovery to recommendation, Try-On, Compare, and measurable actions.',
     primaryCta: { label: 'Start a Pilot', href: pilotHref },
     secondaryCta: { label: 'See a Campaign Example', href: '/c/akila/statement-frames' },
     sections: [
