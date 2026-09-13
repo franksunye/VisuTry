@@ -2,7 +2,7 @@
 
 **Status:** Active documentation governance registry  
 **Created:** 2026-07-08  
-**Last updated:** 2026-09-12  
+**Last updated:** 2026-09-13
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, and at every major milestone close  
 **Scope:** Authoritative documents, directory lifecycle, exceptions, and cleanup debt. This is intentionally not a file-by-file catalog.
@@ -44,6 +44,7 @@ Architecture governance follows these rules:
 5. Architecture boundaries should be provider-neutral where the implementation supports it. Example: PostgreSQL is the persistence contract; Neon is the current provider.
 6. Historical audits/migration documents are evidence. Merge durable conclusions into an active authority or ADR; do not make the historical file “current” by continual edits.
 7. Avoid file-by-file/page-by-page component inventories in architecture authorities. Those lists drift faster than architectural boundaries and belong in code or generated manifests.
+8. The active architecture authorities must describe the stable P0.5A–P0.5D boundaries—Public Web versus Consumer App runtime, public prefetch behavior, image-delivery classes, intentional ISR, and the transitional D1 cache position—without recording a premature P0.5E result.
 
 ## 4. Directory lifecycle
 
@@ -117,7 +118,7 @@ Use the audit during monthly review and before merging broad documentation-gover
 | P0 | Add repeatable documentation health audit | Done 2026-08-26 |
 | P0 | Establish cross-cutting Observability & Analytics authority | Done 2026-09-04 |
 | P0 | Remove stale active Campaign Intelligence/logging authorities absorbed by current contracts | Done 2026-09-04 |
-| P0 | Architecture documentation governance: rebuild current architecture authority; reconcile Vercel/Cloudflare ownership; make PostgreSQL boundary provider-neutral; move volatile route/cache detail to code | **Done 2026-09-12** |
+| P0 | Architecture documentation governance: rebuild current architecture authority; reconcile Vercel/Cloudflare ownership; make PostgreSQL boundary provider-neutral; move volatile route/cache detail to code; refresh P0.5A–D decisions | **Done 2026-09-13**; P0.5E remains measurement-only |
 | P0 | Reconcile Axiom schema-capacity incident | **Containment done 2026-09-04** — bounded transport allowlist is active; longer-term field ownership/classification and optional Commerce dataset split remain P1/deferred |
 | P1 | Axiom post-containment field ownership / optional Commerce dataset decision | Open; evidence/audit-gated, no split authorized by documentation alone |
 | P1 | GA4 console reconciliation against observed current events/dimensions/key events | Open; operator task, no code change implied |
@@ -160,3 +161,4 @@ At milestone close or monthly review:
 | 2026-08-27 | Registered cross-cutting audits and platform/SaaS architecture evidence. |
 | 2026-09-04 | Registered the Observability & Analytics Contract; narrowed Campaign Intelligence; removed stale analytics/logging active docs; added Axiom governance work. |
 | 2026-09-12 | Added the architecture-documentation contract; consolidated active architecture/hosting authorities; reconciled Axiom cleanup status with the active observability contract. |
+| 2026-09-13 | Refreshed the active architecture authorities for P0.5A–D; preserved P0.5E as an evidence-gated observation and kept D1 removal undecided. |

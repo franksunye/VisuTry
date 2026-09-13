@@ -2,7 +2,7 @@
 
 **Status:** Active operations documentation index  
 **Owner:** Product / Engineering  
-**Last updated:** 2026-09-12
+**Last updated:** 2026-09-13
 
 ## Current production authority
 
@@ -13,6 +13,16 @@
 The frontend-ownership decision is recorded in `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md`.
 
 > Cloudflare must not independently produce production Next HTML/RSC/client assets until the entire Next frontend, including `/_next/static`, is migrated as one self-consistent build/runtime and ADR-011 is superseded.
+
+### Public Web and Consumer App runtime boundary
+
+The Next App Router separates the anonymous Public Web shell from the session-aware Consumer App shell. Public SEO/editorial/marketing pages use a deterministic `PublicHeader` boundary and do not initialize `ConsumerSessionBoundary`, `SessionProvider`, or `PaymentConversionTracker`; an anonymous public load must not request `/api/auth/session`. Consumer App surfaces retain the session-aware runtime for Try-On, Compare, Face Analysis, Style Explorer, Dashboard, payments, and related application flows. Exact route membership remains code-authoritative.
+
+### Public delivery guardrails
+
+- Public high-link-density navigation defaults to no speculative prefetch for both Public-to-Public and Public-to-Consumer links; Consumer App navigation retains normal application behavior.
+- Fixed, repository-owned editorial/SEO assets may use direct delivery when their display size is sufficiently large; mobile, compact, and responsive placements continue through Next Image optimization.
+- User-uploaded, generated, and other runtime images remain on the dynamic/optimized application path.
 
 ## Active source-of-truth documents
 
@@ -57,6 +67,10 @@ These implementation contracts own exact current routes, cache-eligible families
 - `assets.visutry.com` MediaPipe Worker + R2 path
 - governed D1 cache of eligible anonymous Vercel-produced SEO HTML
 
+### Rendering / ISR boundary
+
+Most Public Web content is static-first. Intentional runtime ISR remains for the runtime-mutable dynamic sitemap and public Store merchant / Campaign pages, which may be published between application deployments. Public-discovery writes perform invalidation where implemented, with the time-based interval as a safety net. These surfaces are not authorized for blanket static conversion; exact route and revalidation details remain in code.
+
 ### Shared persistence
 
 - PostgreSQL is the relational source of truth; current production provider is Neon.
@@ -71,6 +85,7 @@ These implementation contracts own exact current routes, cache-eligible families
 5. Unknown/unapproved capabilities remain on the canonical Vercel path.
 6. OpenNext parity/staging evidence does not authorize production Next ownership changes.
 7. Any full Next migration requires a superseding ADR and atomic ownership change across HTML + RSC + client artifacts.
+8. D1 SEO HTML Cache Shield is active for now and transitional; P0.5E observation may change its future classification, but no removal is currently decided.
 
 ## Historical / archived migration documents
 

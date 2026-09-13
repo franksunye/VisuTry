@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for current technical architecture  
 **Owner:** Engineering  
-**Last reviewed:** 2026-09-12  
+**Last reviewed:** 2026-09-13
 **Review cadence:** Monthly, and whenever a runtime, domain, persistence, or deployment boundary materially changes  
 **Scope:** Current system shape, ownership boundaries, shared platform contracts, production runtime topology, persistence, and architectural guardrails.
 
@@ -84,6 +84,15 @@ The Storefront is a delivery surface; Campaign and commerce intelligence build o
 
 Admin is an operator surface over shared application contracts. It must not invent independent business rules, analytics formulas, campaign lifecycle rules, or persistence semantics.
 
+### Public Web and Consumer App runtime boundary
+
+The Next App Router explicitly separates two runtime shells without changing public URLs:
+
+- **Public Web** is the anonymous-first SEO, editorial, guide, and marketing surface. Its layout uses a deterministic public navigation boundary and does not mount `ConsumerSessionBoundary`, `SessionProvider`, or `PaymentConversionTracker`. A normal anonymous Public load therefore does not request `/api/auth/session`.
+- **Consumer App** is the session-aware 2C application surface. Try-On, Compare, Face Analysis, Style Explorer, Dashboard, payments, and related application workflows retain `ConsumerSessionBoundary`, the NextAuth/Auth0 session runtime, the auth-aware header, and payment conversion behavior where required.
+
+Public calls to action can intentionally enter the Consumer App, but the Public Web shell itself remains session-free. Exact route membership is owned by the App Router code and its tests, not by this overview.
+
 ## 4. Shared application contracts
 
 Delivery surfaces must converge on shared application/domain contracts rather than duplicate logic.
@@ -143,6 +152,8 @@ Cloudflare owns DNS/proxy/CDN/WAF/traffic shaping and may own explicitly approve
 
 Cloudflare also has a narrowly governed **D1 SEO HTML Cache Shield** for eligible anonymous document HTML. This caches Vercel-produced HTML; it does **not** make Cloudflare a second Next frontend producer. Exact eligibility, TTL, bypass conditions, purge scope, and deployment verification are owned by `cloudflare-router/d1-cache-governance.ts` and `scripts/d1-cache-governance.ts`.
 
+The D1 shield is **active for now and transitional**. The P0.5E production observation is still evidence collection; no removal decision belongs in this architecture authority until that window closes.
+
 MediaPipe runtime/model assets use the isolated `assets.visutry.com` Cloudflare Worker + R2 delivery path.
 
 ### Heavy/backend capabilities
@@ -150,6 +161,16 @@ MediaPipe runtime/model assets use the isolated `assets.visutry.com` Cloudflare 
 AI orchestration, Stripe fulfillment, Blob workflows, cron/background work, broad Admin behavior, and full MCP/OAuth/source-intake paths remain backend/Vercel-owned unless a separately governed capability is explicitly moved.
 
 Unknown or unclassified production capabilities fail toward the canonical backend path rather than being silently reimplemented at the edge.
+
+### Public delivery guardrails
+
+Public high-link-density navigation defaults to no speculative prefetch for both Public-to-Public and Public-to-Consumer links. Consumer App navigation retains normal application behavior.
+
+Fixed repository-owned editorial/SEO assets may use direct delivery when their display size is sufficiently large. Responsive, mobile, compact, and other size-sensitive placements continue through Next Image optimization. User-uploaded, generated, and other runtime images remain on the dynamic/optimized application path.
+
+### Intentional ISR boundary
+
+Most Public Web content is static-first. The remaining intentional runtime ISR is limited to runtime-mutable discovery surfaces: the dynamic sitemap, public Store merchant pages, and public Campaign pages. Store/Campaign pages can be published between deployments, and successful public-discovery writes invalidate where implemented; the time-based interval is a safety net. These surfaces are not authorized for blanket static conversion. Exact route and revalidation details remain code-authoritative.
 
 ## 7. PostgreSQL and Prisma boundary
 
@@ -270,3 +291,4 @@ Documentation-only implementation details, route counts, model fields, and packa
 | Date | Change |
 | --- | --- |
 | 2026-09-12 | Rebuilt the architecture authority around the current modular-monolith/domain boundaries; corrected PostgreSQL/Prisma provider abstraction; aligned Vercel/Cloudflare ownership with ADR-011 and the D1 cache shield; moved volatile route/event/schema detail back to code and specialized authorities. |
+| 2026-09-13 | Documented the P0.5A Public Web / Consumer App runtime boundary and P0.5B–D delivery/rendering guardrails; kept D1 transitional while P0.5E remains evidence-gated. |

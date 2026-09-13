@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for hosting/runtime ownership  
 **Owner:** Product / Engineering  
-**Last updated:** 2026-09-12  
+**Last updated:** 2026-09-13
 **Review cadence:** When production route ownership, cache ownership, runtime provider, or frontend ownership changes  
 **Scope:** Production responsibility boundary between Vercel, Cloudflare, and shared external services.
 
@@ -88,11 +88,28 @@ The governed rule currently limits caching to approved localized SEO detail fami
 
 The current code also owns the TTL, rule identity/order, purge prefixes, drift verification, and production-deployment proof requirements. Those values must not be duplicated here as permanent architecture constants.
 
+The D1 shield is **active for now and transitional**. The current P0.5E observation window is evidence collection only; it has not decided whether the shield should remain or be removed.
+
 ### D1 invariant
 
 > A Cloudflare cache hit does not change Next frontend ownership. The cached object must originate from the verified Vercel production deployment governed by the cache contract.
 
-## 5. Next frontend guardrail
+## 5. Public Web and Consumer App boundary
+
+The Next App Router has an explicit runtime boundary between:
+
+- **Public Web:** anonymous-first SEO, editorial, guide, and marketing surfaces with a deterministic public shell. These pages do not initialize `ConsumerSessionBoundary`, `SessionProvider`, or `PaymentConversionTracker`, and their normal anonymous load does not request `/api/auth/session`.
+- **Consumer App:** session-aware application surfaces such as Try-On, Compare, Face Analysis, Style Explorer, Dashboard, payments, and related workflows. These retain the established Consumer session runtime and auth-aware navigation.
+
+Public links may still lead to Consumer App functionality after intentional user navigation. The boundary changes runtime ownership, not public URL shape; exact route membership remains code-authoritative.
+
+## 6. Public delivery and rendering guardrails
+
+- Public high-link-density navigation defaults to no speculative prefetch for Public-to-Public and Public-to-Consumer links. Consumer App navigation retains normal application behavior.
+- Fixed, sufficiently large repository-owned editorial/SEO assets may bypass runtime transformation through direct delivery. Mobile, compact, and responsive placements remain on Next Image optimization; user-uploaded and generated assets remain on their dynamic/runtime paths.
+- Most Public Web content is static-first. Intentional runtime ISR remains for the runtime-mutable dynamic sitemap and public Store merchant / Campaign pages, because those surfaces can change between deployments. Successful public-discovery writes invalidate where implemented, while the time-based interval is a safety net. Exact routes and revalidation values remain in code.
+
+## 7. Next frontend guardrail
 
 While ADR-011 is active:
 
@@ -104,7 +121,7 @@ While ADR-011 is active:
 
 OpenNext/Cloudflare builds remain useful for staging, compatibility testing, and future optionality; they are not an independent production Next frontend.
 
-## 6. Capability allocation
+## 8. Capability allocation
 
 | Capability | Current production owner/path |
 | --- | --- |
@@ -124,7 +141,7 @@ OpenNext/Cloudflare builds remain useful for staging, compatibility testing, and
 
 Capability-specific edge adapters may exist, but each must have a single authoritative business contract and explicit production routing classification.
 
-## 7. PostgreSQL boundary
+## 9. PostgreSQL boundary
 
 PostgreSQL is the relational architecture contract. Neon is the current production provider, not a required business-domain dependency.
 
@@ -132,7 +149,7 @@ Canonical backend application access uses Prisma. Runtime connection resolution 
 
 Cloudflare/direct-SQL adapters may be used only for explicitly proven edge capabilities. They must preserve the same tenant isolation and business invariants as the canonical backend path.
 
-## 8. Scale model
+## 10. Scale model
 
 The scale strategy is:
 
@@ -144,7 +161,7 @@ The scale strategy is:
 
 Store/Campaign growth must not automatically imply a second application runtime or duplicate business implementation. High-frequency read/cache paths can be optimized independently from AI/payment/write paths.
 
-## 9. Safety invariants
+## 11. Safety invariants
 
 1. One authoritative runtime/business implementation per capability.
 2. One Next frontend producer.
@@ -155,7 +172,7 @@ Store/Campaign growth must not automatically imply a second application runtime 
 7. Cache invalidation must be tied to verified production deployment state where required by the governed contract.
 8. Provider-specific edge optimizations must not redefine domain semantics.
 
-## 10. Operational authority
+## 12. Operational authority
 
 Read current hosting decisions in this order:
 
@@ -167,7 +184,7 @@ Read current hosting decisions in this order:
 6. ADR-010 for the broader hybrid-edge rationale
 7. historical Cloudflare migration/incident documents only for evidence and rationale
 
-## 11. Historical migration material
+## 13. Historical migration material
 
 The Cloudflare Phase A/B/B4 documents are retained as migration/incident evidence. They do not authorize current production routing when they conflict with ADR-011, this strategy, the generated route manifest, or the D1 cache governance contract.
 
@@ -179,3 +196,4 @@ Do not reintroduce old route-count plans, dual Next builds, or phase-specific to
 | --- | --- |
 | 2026-08-19 | Established Vercel as the sole production Next frontend owner after the dual-client-graph incident. |
 | 2026-09-12 | Consolidated the hosting authority around current ownership; removed obsolete Layer-1/Layer-2 wording that implied Cloudflare could produce production Next HTML/assets; incorporated the governed D1 SEO HTML Cache Shield without changing Vercel frontend ownership; made route/cache detail code-authoritative. |
+| 2026-09-13 | Added the P0.5A Public Web / Consumer App boundary and P0.5B–D delivery/rendering guardrails; kept D1 active but transitional pending P0.5E evidence. |
