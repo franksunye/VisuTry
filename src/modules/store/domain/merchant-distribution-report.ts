@@ -7,6 +7,7 @@ export const MERCHANT_DISTRIBUTION_SOURCE_CLASSES = [
   'gemini',
   'copilot',
   'claude',
+  'internal',
   'organic_search',
   'generic_referral',
   'paid',
@@ -26,6 +27,7 @@ export const MERCHANT_DISTRIBUTION_SOURCE_LABELS: Record<MerchantDistributionSou
   gemini: 'Gemini',
   copilot: 'Copilot',
   claude: 'Claude',
+  internal: 'VisuTry internal',
   organic_search: 'Organic search',
   generic_referral: 'Generic referral',
   paid: 'Paid',
@@ -70,12 +72,17 @@ export type MerchantDistributionReport = {
   experiences: MerchantDistributionExperience[]
 }
 
-type DistributionSession = {
+export type DistributionSession = {
   id: string
   source: string | null
   medium: string | null
   referrer: string | null
   aiAgentSource: string | null
+  acquisitionSurface?: string | null
+  referenceData?: boolean | null
+  merchantReferenceData?: boolean | null
+  merchantPilotType?: string | null
+  merchantClassification?: string | null
   experienceId?: string | null
   merchantSlug?: string | null
   merchantName?: string | null
@@ -108,7 +115,7 @@ type DistributionMetrics = {
   signals: Map<string, MerchantAnalyticsSessionSignals & { triedFrameIds: Set<string> }>
 }
 
-function normalize(value: string | null): string {
+function normalize(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase()
 }
 
@@ -132,7 +139,20 @@ function sourceToken(session: DistributionSession): string {
   return normalize(session.aiAgentSource) || normalize(session.source)
 }
 
+function isVisuTryInternalDiscovery(session: DistributionSession): boolean {
+  return normalize(session.source) === 'visutry' && normalize(session.medium) === 'internal'
+}
+
 export function classifyMerchantDistributionSource(session: DistributionSession): MerchantDistributionSourceClass {
+  const source = normalize(session.source)
+  const medium = normalize(session.medium)
+  const referrer = normalize(session.referrer)
+  const sourceOrReferrer = source || referrer
+
+  // Internal acquisition is an explicit first-party contract. Resolve it
+  // before AI hints so an internal URL can never become external discovery.
+  if (isVisuTryInternalDiscovery(session)) return 'internal'
+
   const aiSource = sourceToken(session)
   if (aiSource === 'chatgpt') return 'chatgpt'
   if (aiSource === 'openai') return 'openai'
@@ -140,11 +160,6 @@ export function classifyMerchantDistributionSource(session: DistributionSession)
   if (aiSource === 'gemini') return 'gemini'
   if (aiSource === 'copilot') return 'copilot'
   if (aiSource === 'claude') return 'claude'
-
-  const source = normalize(session.source)
-  const medium = normalize(session.medium)
-  const referrer = normalize(session.referrer)
-  const sourceOrReferrer = source || referrer
 
   if (/(^|[_-])(cpc|ppc|paid|ads|display|affiliate)([_-]|$)/.test(medium) || medium.includes('paid')) {
     return 'paid'
@@ -179,6 +194,37 @@ export function classifyMerchantDistributionSource(session: DistributionSession)
 
   if (medium === 'referral' || referrer) return 'generic_referral'
   return 'other'
+}
+
+export type MerchantDistributionSessionEligibility =
+  | 'QUALIFYING'
+  | 'INTERNAL'
+  | 'REFERENCE_OR_INTERNAL'
+  | 'TEST_OR_AUTOMATION'
+  | 'SUSPICIOUS'
+  | 'UNSCOPED'
+
+/**
+ * Apply the report's existing Gate A session boundary while keeping
+ * first-party internal discovery available to QA reporting.
+ */
+export function classifyMerchantDistributionSession(session: DistributionSession): MerchantDistributionSessionEligibility {
+  const pilotType = normalize(session.merchantPilotType).toUpperCase()
+  const classification = normalize(session.merchantClassification).toUpperCase()
+  const isReferenceOrInternal = Boolean(
+    session.referenceData
+    || session.merchantReferenceData
+    || pilotType === 'REFERENCE'
+    || pilotType === 'INTERNAL'
+    || classification === 'REFERENCE'
+    || classification === 'INTERNAL',
+  )
+  if (isReferenceOrInternal) return 'REFERENCE_OR_INTERNAL'
+  if (classification === 'TEST' || classification === 'AUTOMATION') return 'TEST_OR_AUTOMATION'
+  if (classification === 'SUSPICIOUS') return 'SUSPICIOUS'
+  if (!session.experienceId || !session.experienceType) return 'UNSCOPED'
+  if (classifyMerchantDistributionSource(session) === 'internal') return 'INTERNAL'
+  return 'QUALIFYING'
 }
 
 function emptySignals(): MerchantAnalyticsSessionSignals & { triedFrameIds: Set<string> } {

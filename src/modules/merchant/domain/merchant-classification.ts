@@ -52,8 +52,15 @@ export const PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON =
 export const AUTOMATED_TEST_MERCHANT_CLASSIFICATION: MerchantClassification = 'AUTOMATION'
 export const AUTOMATED_TEST_MERCHANT_CLASSIFICATION_SOURCE = 'AUTOMATED_TEST'
 
+export const DISCOVERY_CANARY_CLASSIFICATION_SOURCE_PREFIX = 'DISCOVERY_CANARY_'
+export const VISUTRY_OWNED_SPONSORED_USAGE_POLICY_KEY = 'VISUTRY_OWNED'
+
 export type MerchantClassificationCarrier = {
   classification?: string | null
+  classificationSource?: string | null
+  sponsoredUsagePolicyKey?: string | null
+  referenceData?: boolean | null
+  pilotType?: string | null
 }
 
 export function isMerchantClassification(value: unknown): value is MerchantClassification {
@@ -64,12 +71,28 @@ export function normalizeMerchantClassification(value: unknown): MerchantClassif
   return isMerchantClassification(value) ? value : 'UNKNOWN'
 }
 
-/** REAL is the only class admitted to commercial KPIs. Classification never grants access. */
+/**
+ * Discovery Canary identity is a first-party production surface, not a
+ * commercial merchant. Keep the decision in this domain boundary so every
+ * commercial consumer applies the same provenance rule.
+ */
+export function isDiscoveryCanaryMerchant(merchant: MerchantClassificationCarrier | null | undefined): boolean {
+  if (!merchant) return false
+  return Boolean(
+    merchant.classification?.trim().toUpperCase() === 'REAL'
+    && merchant.classificationSource?.trim().toUpperCase().startsWith(DISCOVERY_CANARY_CLASSIFICATION_SOURCE_PREFIX)
+    && merchant.sponsoredUsagePolicyKey?.trim().toUpperCase() === VISUTRY_OWNED_SPONSORED_USAGE_POLICY_KEY
+    && merchant.referenceData === false
+    && merchant.pilotType?.trim().toUpperCase() === 'LIVE',
+  )
+}
+
+/** REAL is the only class admitted to commercial KPIs, except the first-party Discovery Canary. */
 export function isCommercialMerchant(
   merchant: MerchantClassificationCarrier | MerchantClassification | string | null | undefined,
 ): boolean {
-  const value = typeof merchant === 'string' || merchant == null ? merchant : merchant.classification
-  return value === 'REAL'
+  const carrier = typeof merchant === 'string' || merchant == null ? { classification: merchant } : merchant
+  return carrier.classification?.trim().toUpperCase() === 'REAL' && !isDiscoveryCanaryMerchant(carrier)
 }
 
 export function merchantMatchesPortfolioFilter(
@@ -79,7 +102,7 @@ export function merchantMatchesPortfolioFilter(
   const classification = normalizeMerchantClassification(merchant.classification)
   switch (filter) {
     case 'COMMERCIAL':
-      return isCommercialMerchant(classification)
+      return isCommercialMerchant(merchant)
     case 'POSSIBLE_EXTERNAL':
       return classification === 'POSSIBLE_EXTERNAL'
     case 'INTERNAL_TEST':

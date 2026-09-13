@@ -1,6 +1,10 @@
 import 'dotenv/config'
 import { Axiom } from '@axiomhq/js'
-import { buildMerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
+import {
+  buildMerchantDistributionReport,
+  classifyMerchantDistributionSession,
+  type DistributionSession,
+} from '@/modules/store/domain/merchant-distribution-report'
 import { buildConsumerFunnelReport, type ConsumerFunnelReportEvent } from '@/lib/agent-distribution-report'
 import { createPostgresSqlClient } from './lib/postgres-runtime'
 
@@ -133,7 +137,7 @@ async function readMerchantReport(options: CliOptions) {
   const sql = createPostgresSqlClient(requiredEnv('DATABASE_URL'))
   const [sessions, events, intents] = await Promise.all([
     sql`
-      SELECT s."id", s."source", s."medium", s."referrer", s."aiAgentSource", s."referenceData",
+      SELECT s."id", s."source", s."medium", s."referrer", s."aiAgentSource", s."acquisitionSurface", s."referenceData",
         m."slug" AS "merchantSlug", m."name" AS "merchantName",
         m."pilotType" AS "merchantPilotType", m."referenceData" AS "merchantReferenceData",
         m."classification" AS "merchantClassification",
@@ -162,52 +166,54 @@ async function readMerchantReport(options: CliOptions) {
     suspicious: 0,
     unscoped: 0,
   }
+  const reportableSessions: DistributionSession[] = []
+  const internalDiscoverySessions: DistributionSession[] = []
   const qualifying = []
 
   for (const session of sessions) {
-    const pilotType = stringValue(session.merchantPilotType)?.toUpperCase()
-    const classification = stringValue(session.merchantClassification)?.toUpperCase()
-    const isReferenceOrInternal = Boolean(
-      session.referenceData
-      || session.merchantReferenceData
-      || pilotType === 'REFERENCE'
-      || pilotType === 'INTERNAL'
-      || classification === 'REFERENCE'
-      || classification === 'INTERNAL',
-    )
-    const isTestOrAutomation = classification === 'TEST' || classification === 'AUTOMATION'
-    const isSuspicious = classification === 'SUSPICIOUS'
-
-    if (isReferenceOrInternal) {
-      exclusions.referenceOrInternal += 1
-      continue
-    }
-    if (isTestOrAutomation) {
-      exclusions.testOrAutomation += 1
-      continue
-    }
-    if (isSuspicious) {
-      exclusions.suspicious += 1
-      continue
-    }
-    if (!session.experienceId || !session.experienceType) {
-      exclusions.unscoped += 1
-      continue
-    }
-
-    qualifying.push({
+    const reportSession: DistributionSession = {
       id: String(session.id),
       source: session.source == null ? null : String(session.source),
       medium: session.medium == null ? null : String(session.medium),
       referrer: session.referrer == null ? null : String(session.referrer),
       aiAgentSource: session.aiAgentSource == null ? null : String(session.aiAgentSource),
-      experienceId: String(session.experienceId),
+      acquisitionSurface: session.acquisitionSurface == null ? null : String(session.acquisitionSurface),
+      referenceData: Boolean(session.referenceData),
+      merchantReferenceData: Boolean(session.merchantReferenceData),
+      merchantPilotType: stringValue(session.merchantPilotType),
+      merchantClassification: stringValue(session.merchantClassification),
+      experienceId: session.experienceId == null ? null : String(session.experienceId),
       merchantSlug: stringValue(session.merchantSlug),
       merchantName: stringValue(session.merchantName),
       experienceType: stringValue(session.experienceType),
       experienceSlug: stringValue(session.experienceSlug),
       experienceName: stringValue(session.experienceName),
-    })
+    }
+    const eligibility = classifyMerchantDistributionSession(reportSession)
+
+    if (eligibility === 'REFERENCE_OR_INTERNAL') {
+      exclusions.referenceOrInternal += 1
+      continue
+    }
+    if (eligibility === 'TEST_OR_AUTOMATION') {
+      exclusions.testOrAutomation += 1
+      continue
+    }
+    if (eligibility === 'SUSPICIOUS') {
+      exclusions.suspicious += 1
+      continue
+    }
+    if (eligibility === 'UNSCOPED') {
+      exclusions.unscoped += 1
+      continue
+    }
+
+    reportableSessions.push(reportSession)
+    if (eligibility === 'INTERNAL') {
+      internalDiscoverySessions.push(reportSession)
+    } else {
+      qualifying.push(reportSession)
+    }
   }
 
   return {
@@ -218,8 +224,9 @@ async function readMerchantReport(options: CliOptions) {
     excludedSuspiciousSessions: exclusions.suspicious,
     excludedUnscopedSessions: exclusions.unscoped,
     storeCampaignSessions: qualifying.length,
+    internalDiscoverySessions: internalDiscoverySessions.length,
     report: buildMerchantDistributionReport({
-      sessions: qualifying,
+      sessions: reportableSessions,
       events: events.map((event) => ({
         merchantSessionId: event.merchantSessionId == null ? null : String(event.merchantSessionId),
         merchantFrameId: event.merchantFrameId == null ? null : String(event.merchantFrameId),
@@ -232,7 +239,7 @@ async function readMerchantReport(options: CliOptions) {
         count: 1,
       })),
     }),
-    boundary: 'Merchant Store/Campaign report is durable and separately joined by MerchantSession. It is not joined to Consumer funnel events because no shared identifier exists.',
+    boundary: 'Merchant Store/Campaign report is durable and separately joined by MerchantSession. VisuTry internal discovery is retained in the INTERNAL QA bucket but excluded from storeCampaignSessions. It is not joined to Consumer funnel events because no shared identifier exists.',
   }
 }
 
@@ -262,6 +269,7 @@ async function main() {
   console.log(`Consumer Agent sessions: ${report.consumer.agentSessions}`)
   console.log(`Consumer sessions with decision action: ${report.consumer.sessionsWithDecisionAction}`)
   console.log(`Merchant Store/Campaign sessions: ${report.merchant.storeCampaignSessions}`)
+  console.log(`Internal discovery sessions (QA only): ${report.merchant.internalDiscoverySessions}`)
   console.log(`Excluded sessions: ${report.merchant.excludedSessions}`)
   console.log(`Excluded Reference/Internal sessions: ${report.merchant.excludedReferenceOrInternalSessions}`)
   console.log(`Excluded TEST/AUTOMATION sessions: ${report.merchant.excludedTestOrAutomationSessions}`)

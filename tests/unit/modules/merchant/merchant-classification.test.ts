@@ -1,6 +1,7 @@
 import {
   filterMerchantPortfolioRows,
   isCommercialMerchant,
+  isDiscoveryCanaryMerchant,
   classificationForPilotConfig,
   summarizeMerchantPortfolio,
 } from '@/modules/merchant/domain/merchant-classification'
@@ -53,6 +54,23 @@ describe('canonical merchant classification and commercial portfolio metrics', (
     const tenantRow = { merchantId: 'merchant-a', classification: 'REAL' }
     expect(isCommercialMerchant(tenantRow)).toBe(true)
     expect(tenantRow.merchantId).toBe('merchant-a')
+  })
+
+  it('keeps the first-party Discovery Canary eligible for discovery but outside commercial portfolio metrics', () => {
+    const canary = {
+      classification: 'REAL',
+      classificationSource: 'DISCOVERY_CANARY_2026-09-03',
+      sponsoredUsagePolicyKey: 'VISUTRY_OWNED',
+      referenceData: false,
+      pilotType: 'LIVE',
+      status: 'ACTIVE',
+      _count: { experiences: 1, frames: 6, sessions: 4, intents: 1 },
+    }
+
+    expect(isDiscoveryCanaryMerchant(canary)).toBe(true)
+    expect(isCommercialMerchant(canary)).toBe(false)
+    expect(filterMerchantPortfolioRows([canary], 'COMMERCIAL')).toHaveLength(0)
+    expect(filterMerchantPortfolioRows([canary], 'ALL')).toHaveLength(1)
   })
 
   it('classifies delivery-kit seed modes explicitly', () => {

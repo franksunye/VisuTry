@@ -126,7 +126,7 @@ Canonical logical scope:
 traffic_scope = real | reference | test | internal | suspicious
 ```
 
-The current Store/Campaign distribution report must continue to exclude Reference/Internal/TEST/AUTOMATION/SUSPICIOUS evidence from genuine distribution proof according to the implemented contract.
+The current Store/Campaign distribution report must continue to exclude Reference/Internal/TEST/AUTOMATION/SUSPICIOUS evidence from genuine distribution proof according to the implemented contract. First-party `visutry/internal` acquisition is retained in the `INTERNAL` QA bucket, but is excluded from genuine external discovery counts.
 
 ### Reference traffic
 
@@ -159,7 +159,7 @@ Core attribution concepts include:
 - Experience identity for Store/Campaign
 - durable merchant session identity for commerce events/intents
 
-Current supported source classes include known AI sources plus organic search, generic referral, paid, direct, social, Reddit, YouTube, and other. Exact implemented classification remains code-authoritative.
+Current supported source classes include known AI sources plus first-party internal discovery, organic search, generic referral, paid, direct, social, Reddit, YouTube, and other. Exact implemented classification remains code-authoritative.
 
 Do not manufacture `campaign_id` from `utm_campaign`. Human/marketing labels and stable internal identifiers remain separate concepts.
 
@@ -198,6 +198,8 @@ MerchantSession
 with Merchant / Experience context and source attribution where captured.
 
 Current distribution reporting derives source/Experience metrics from this durable path, including Recommendation, Try-On, Compare, Product Click, Inquiry and high-intent signals supported by the implementation.
+
+The first-party Discovery Canary remains eligible for genuine Store/Campaign discovery proof when its session is non-Reference, non-TEST, non-AUTOMATION and non-SUSPICIOUS. Its explicit `DISCOVERY_CANARY_*` provenance plus `VISUTRY_OWNED` policy is excluded from commercial merchant, subscription and revenue KPIs by the shared merchant classification domain helper. This does not change Gate A discovery eligibility.
 
 ### Merchant business questions
 
@@ -468,3 +470,4 @@ When product analytics enums or merchant distribution semantics change, update t
 | 2026-09-04 | Implemented P0 Axiom schema containment with an explicit bounded transport allowlist; prohibited arbitrary production payload expansion; retained temporary legacy `data.*` read compatibility; deferred Commerce dataset split and vacuum/schema-lock. |
 | 2026-09-04 | Added the P0.2 dedicated `visutry-traffic-pro` Consumer evidence plane with a strict flat schema, dual-dataset report read, event-ID deduplication, and unchanged T0 clocks; deferred `visutry-commerce-pro`. |
 | 2026-09-05 | Closed P0/P0.2 production verification after PR #187 merge: verified the bounded live traffic schema, controlled TEST event, legacy/top-level read contract, unchanged exclusion semantics, and preserved T0 clocks; deferred `visutry-commerce-pro`, Vacuum, Trim, and Schema Lock. |
+| 2026-09-13 | Added measurement-safe Merchant Discovery Phase 1 boundaries: retained VisuTry internal acquisition for QA while excluding it from genuine external discovery, and isolated the first-party Discovery Canary from commercial KPIs without changing its discovery eligibility. |

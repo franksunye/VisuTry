@@ -1,4 +1,5 @@
 import { getMerchantPlanDefinition, isMerchantPlanCode, type MerchantPlanCode } from '@/modules/merchant/domain/merchant-commercial-plans'
+import { isCommercialMerchant, type MerchantClassificationCarrier } from './merchant-classification'
 
 export const PILOT_SUCCESSFUL_CHECKOUT_EVENTS = ['checkout.session.completed', 'checkout.session.async_payment_succeeded'] as const
 const pilotSuccessfulCheckoutEvents = new Set<string>(PILOT_SUCCESSFUL_CHECKOUT_EVENTS)
@@ -16,7 +17,7 @@ const ACTIVE_PILOT_STATUSES = new Set([
   'USAGE_EXHAUSTED',
 ])
 
-export type MerchantCommercialKpiRow = {
+export type MerchantCommercialKpiRow = MerchantClassificationCarrier & {
   classification: string
   planCode?: string | null
   commercialStatus?: string | null
@@ -55,6 +56,10 @@ export type MerchantCommercialKpis = {
 
 export type MerchantPilotRevenueEvidence = {
   classification: string
+  classificationSource?: string | null
+  sponsoredUsagePolicyKey?: string | null
+  referenceData?: boolean | null
+  pilotType?: string | null
   stripePriceId: string | null
   status: string
   eventType: string
@@ -72,7 +77,7 @@ export function computeMerchantPilotRevenueCents(input: {
   pilotPriceId: string | null | undefined
 }): number {
   const eligible = input.evidence.filter((row) =>
-    row.classification.trim().toUpperCase() === 'REAL'
+    isCommercialMerchant(row)
     && row.stripePriceId === input.pilotPriceId
     && row.status.trim().toUpperCase() === 'PROCESSED'
     && pilotSuccessfulCheckoutEvents.has(row.eventType),
@@ -105,10 +110,10 @@ function isActiveSubscription(row: MerchantCommercialKpiRow, now: Date): boolean
 /**
  * Compute launch-facing commercial KPIs from already-authorized rows.
  *
- * The REAL classification check is deliberately here, at the domain
+ * The commercial classification check is deliberately here, at the domain
  * boundary, so an Admin caller cannot accidentally include TEST,
- * POSSIBLE_EXTERNAL, INTERNAL, AUTOMATION, or REFERENCE activity by merely
- * changing a query filter.
+ * POSSIBLE_EXTERNAL, INTERNAL, AUTOMATION, REFERENCE, or the first-party
+ * Discovery Canary by merely changing a query filter.
  */
 export function computeMerchantCommercialKpis(input: {
   merchants: readonly MerchantCommercialKpiRow[]
@@ -117,7 +122,7 @@ export function computeMerchantCommercialKpis(input: {
   now?: Date
 }): MerchantCommercialKpis {
   const now = input.now ?? new Date()
-  const real = input.merchants.filter((row) => row.classification.trim().toUpperCase() === 'REAL')
+  const real = input.merchants.filter((row) => isCommercialMerchant(row))
   const pilots = real.filter((row) => isActivePilot(row, now))
   const subscriptions = real.filter((row) => isActiveSubscription(row, now))
   const paid = [...pilots, ...subscriptions]

@@ -11,6 +11,7 @@ describe('G4-C commercial KPI boundary', () => {
       merchants: [
         { classification: 'REAL', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', billingPeriodEnd: new Date('2026-09-01'), catalogItems: 12, shopperSessions: 20, intents: 3, aiCommerceSessions: 4, publishedStore: true, checkoutStarted: true },
         { classification: 'REAL', planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE', billingPeriodEnd: new Date('2026-09-10'), catalogItems: 10, shopperSessions: 8, intents: 1, aiCommerceSessions: 2, publishedStore: true, checkoutStarted: true },
+        { classification: 'REAL', classificationSource: 'DISCOVERY_CANARY_2026-09-03', sponsoredUsagePolicyKey: 'VISUTRY_OWNED', referenceData: false, pilotType: 'LIVE', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', billingPeriodEnd: new Date('2026-09-01'), catalogItems: 6, shopperSessions: 40, intents: 4, aiCommerceSessions: 8, publishedStore: true, checkoutStarted: true },
         { classification: 'TEST', planCode: 'GROWTH', commercialStatus: 'PAID_ACTIVE', billingPeriodEnd: new Date('2026-09-01'), catalogItems: 500, shopperSessions: 999, intents: 999, aiCommerceSessions: 999, publishedStore: true, checkoutStarted: true },
         { classification: 'POSSIBLE_EXTERNAL', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', billingPeriodEnd: new Date('2026-09-01'), catalogItems: 4, shopperSessions: 4, intents: 4, aiCommerceSessions: 4, publishedStore: true, checkoutStarted: true },
       ],
@@ -36,6 +37,7 @@ describe('G4-C commercial KPI boundary', () => {
       pilotPriceId: 'price_founding_pilot',
       pilotRevenueEvidence: [
         { classification: 'REAL', stripePriceId: 'price_founding_pilot', status: 'PROCESSED', eventType: 'checkout.session.completed', providerEventId: 'evt_pilot_1', stripeCheckoutSessionId: 'cs_pilot_1' },
+        { classification: 'REAL', classificationSource: 'DISCOVERY_CANARY_2026-09-03', sponsoredUsagePolicyKey: 'VISUTRY_OWNED', referenceData: false, pilotType: 'LIVE', stripePriceId: 'price_founding_pilot', status: 'PROCESSED', eventType: 'checkout.session.completed', providerEventId: 'evt_canary_pilot', stripeCheckoutSessionId: 'cs_canary_pilot' },
         { classification: 'REAL', stripePriceId: 'price_founding_pilot', status: 'PROCESSED', eventType: 'checkout.session.completed', providerEventId: 'evt_pilot_1', stripeCheckoutSessionId: 'cs_pilot_1' },
         { classification: 'REAL', stripePriceId: 'price_founding_pilot', status: 'IGNORED', eventType: 'checkout.session.async_payment_succeeded', providerEventId: 'evt_pilot_async', stripeCheckoutSessionId: 'cs_pilot_1' },
         { classification: 'TEST', stripePriceId: 'price_founding_pilot', status: 'PROCESSED', eventType: 'checkout.session.completed', providerEventId: 'evt_test_pilot', stripeCheckoutSessionId: 'cs_test_pilot' },

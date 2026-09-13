@@ -18,6 +18,8 @@ import {
   MERCHANT_CLASSIFICATION_LABELS,
   MERCHANT_PORTFOLIO_FILTER_LABELS,
   summarizeMerchantPortfolio,
+  isDiscoveryCanaryMerchant,
+  type MerchantClassificationCarrier,
   type MerchantPortfolioFilter,
 } from '@/modules/merchant/domain/merchant-classification'
 import { computeMerchantCommercialKpis, type MerchantCommercialKpiRow, type MerchantPilotRevenueEvidence } from '@/modules/merchant/domain/merchant-commercial-kpis'
@@ -95,7 +97,9 @@ const classificationBadgeClasses: Record<string, string> = {
   UNKNOWN: 'bg-slate-50 text-slate-500 ring-slate-200',
 }
 
-function merchantClassificationCopy(classification: string): string {
+function merchantClassificationCopy(merchant: MerchantClassificationCarrier): string {
+  if (isDiscoveryCanaryMerchant(merchant)) return 'VisuTry first-party Discovery Canary — excluded from commercial KPIs'
+  const classification = merchant.classification ?? 'UNKNOWN'
   switch (classification) {
     case 'REAL': return 'Included in commercial KPIs'
     case 'POSSIBLE_EXTERNAL': return 'Activation evidence required before commercial KPIs'
@@ -126,6 +130,10 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
       websiteUrl: true,
       status: true,
       classification: true,
+      classificationSource: true,
+      sponsoredUsagePolicyKey: true,
+      referenceData: true,
+      pilotType: true,
       planCode: true,
       commercialStatus: true,
       billingPeriodEnd: true,
@@ -150,7 +158,14 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
         eventType: { in: ['checkout.session.completed', 'checkout.session.async_payment_succeeded'] },
         merchant: { classification: 'REAL' },
       },
-      select: { providerEventId: true, stripePriceId: true, stripeCheckoutSessionId: true, status: true, eventType: true, merchant: { select: { classification: true } } },
+      select: {
+        providerEventId: true,
+        stripePriceId: true,
+        stripeCheckoutSessionId: true,
+        status: true,
+        eventType: true,
+        merchant: { select: { classification: true, classificationSource: true, sponsoredUsagePolicyKey: true, referenceData: true, pilotType: true } },
+      },
     }),
   ])
   const activationReport = await getMerchantActivationReport()
@@ -160,6 +175,10 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
     pilotPriceId,
     pilotRevenueEvidence: pilotBillingEvents.map((event): MerchantPilotRevenueEvidence => ({
       classification: event.merchant?.classification ?? 'UNKNOWN',
+      classificationSource: event.merchant?.classificationSource,
+      sponsoredUsagePolicyKey: event.merchant?.sponsoredUsagePolicyKey,
+      referenceData: event.merchant?.referenceData,
+      pilotType: event.merchant?.pilotType,
       stripePriceId: event.stripePriceId,
       status: event.status,
       eventType: event.eventType,
@@ -168,6 +187,10 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
     })),
     merchants: merchants.map((merchant): MerchantCommercialKpiRow => ({
       classification: merchant.classification,
+      classificationSource: merchant.classificationSource,
+      sponsoredUsagePolicyKey: merchant.sponsoredUsagePolicyKey,
+      referenceData: merchant.referenceData,
+      pilotType: merchant.pilotType,
       planCode: merchant.planCode,
       commercialStatus: merchant.commercialStatus,
       billingPeriodEnd: merchant.billingPeriodEnd,
@@ -239,9 +262,9 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Commercial launch view</p>
             <h2 id="commercial-kpi-heading" className="mt-1 text-xl font-semibold text-slate-950">REAL merchant funnel &amp; revenue</h2>
-            <p className="mt-1 text-sm text-slate-500">Only merchants classified as REAL are included. Test, reference, and possible-external activity stays outside commercial KPIs.</p>
+            <p className="mt-1 text-sm text-slate-500">Only eligible REAL merchants are included. The first-party Discovery Canary, test, reference, and possible-external activity stays outside commercial KPIs.</p>
           </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">REAL only</span>
+          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">Eligible REAL only</span>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {[
@@ -306,7 +329,7 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
         {visibleMerchants.length === 0 ? (
           <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
             <Database className="mx-auto h-8 w-8 text-slate-300" aria-hidden="true" />
-            <p className="mt-3 text-sm text-slate-500">No merchants match this view. Commercial KPIs include only merchants classified as <code>REAL</code>; possible external and non-commercial rows remain available in the other views.</p>
+            <p className="mt-3 text-sm text-slate-500">No merchants match this view. Commercial KPIs include only eligible merchants classified as <code>REAL</code>; the Discovery Canary, possible external, and other non-commercial rows remain available in the other views.</p>
           </div>
         ) : (
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
@@ -321,7 +344,7 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
                       <h3 className="text-lg font-semibold text-slate-950">{merchant.name}</h3>
                       <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 ${classificationBadgeClasses[merchant.classification] ?? classificationBadgeClasses.UNKNOWN}`}>{MERCHANT_CLASSIFICATION_LABELS[merchant.classification] ?? 'Unknown'}</span>
                     </div>
-                    <p className="mt-1 text-sm text-slate-500">{merchantClassificationCopy(merchant.classification)}</p>
+                    <p className="mt-1 text-sm text-slate-500">{merchantClassificationCopy(merchant)}</p>
                   </div>
                 </div>
                 <dl className="mt-5 grid grid-cols-3 divide-x divide-slate-100 rounded-xl bg-slate-50 py-3 text-center">
