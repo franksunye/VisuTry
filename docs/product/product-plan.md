@@ -2,10 +2,10 @@
 
 **Status:** Active source of truth for product execution  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-25
+**Last updated:** 2026-09-13  
 **Owner:** Product  
 **Review cadence:** Weekly  
-**Scope:** Current product focus, Now / Next / Later priorities, current sprint, product initiatives, backlog, decisions needed, and execution board.
+**Scope:** Current product focus, Consumer continuity, Merchant proof priorities, Now / Next / Later sequencing, and explicit non-priorities.
 
 ---
 
@@ -13,93 +13,110 @@
 
 This document defines what VisuTry should build, polish, measure, or validate next.
 
-It translates the commercial strategy into product execution priorities. Strategy explains why VisuTry should move toward an eyewear decision and commerce platform. This product plan defines the current sequence of product work.
+It translates the commercial strategy into execution priority. If a feature is not in this plan or an approved bounded product spec, it should not be treated as current product priority.
 
-Working rule:
-
-> If a feature is not in this plan or an approved product spec, it should not be treated as current product priority.
+This update does **not** create a new Merchant product line. It narrows current Merchant work around discovery proof using the Store / Campaign / Agent-ready Commerce capabilities that already exist.
 
 Related decision: `docs/decisions/ADR-003-product-plan-execution-source-of-truth.md`.
 
 ---
 
-## 2. Source Documents
+## 2. Product North Star
 
-This plan is derived from:
+Canonical company positioning:
 
-| Document | How it informs this plan |
-| --- | --- |
-| `docs/strategy/commercial-strategy.md` | Defines the top-level commercial direction, including Store as an AI Commerce / Campaign Engine. |
-| `docs/strategy/commercial-benchmarks.md` | Provides external references such as Optify, OGI / The Optical Foundry, VTO infrastructure vendors, and DTC eyewear retailers. |
-| `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | Defines the public consumer product path and SEO/GEO page architecture. |
-| `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | Defines B2B merchant/widget roadmap and pilot logic. |
-| `docs/project/seo-backlog.md` | Tracks current SEO/Growth tasks and external acquisition sprint. |
-| `docs/decisions/ADR-004-frame-compare-core-implemented.md` | Confirms Frame Compare core is implemented and next work is productization. |
-| `docs/decisions/ADR-007-store-consumer-stability-boundary.md` | Protects stable Consumer behavior while Store evolves. |
-| `docs/product/specs/visutry-store-landing-page.md` | Defines the first Store market validation asset before full Store engineering. |
-| `docs/product/specs/visutry-store-engineering-foundation.md` | Defines the mandatory Store architecture, tenancy, usage, privacy, idempotency, and test constraints. |
-| `docs/product/specs/visutry-store-sales-demo.md` | Defines the implemented D0 merchant demo workflow and acceptance criteria. |
-| `docs/product/plans/visutry-store-implementation-plan.md` | Defines current Store gates, completed D0 slices, merchant validation, and M1 sequencing. |
-| `docs/ops/store-d0-production-verification-2026-08-05.md` | Records the production D0 evidence baseline and remaining Gate A1 work. |
-| `docs/product/plans/pilot-delivery-factory-plan.md` | Defines the completed five-brand Reference delivery contract and repeatability targets. |
-| `docs/product/plans/market-facing-productization-plan.md` | Historical productization sequence; current pre-outreach execution is governed by `docs/product/plans/product-advantage-gate.md`. |
-| `docs/product/business-website-ia-and-copy.md` | Defines current Business Website product truth, claims, Pilot and CTA baseline. |
-| `docs/product/plans/agent-native-merchant-self-service.md` | Defines implemented Merchant Workspace, MCP Store/Campaign and Commerce Intelligence capabilities. |
-| `docs/product/plans/universal-agent-access.md` | Records production OAuth/MCP evidence and the remaining external-Pilot hardening boundary. |
-| `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md` | Defines the controlled founder-led outreach and evidence loop that may begin only after the Product Advantage Gate passes. |
+> **VisuTry is an AI eyewear decision and commerce platform for both consumers and merchants.**
+
+Canonical North Star:
+
+> **Help people make better eyewear decisions, and help merchants turn those decisions into measurable commerce outcomes.**
+
+Two first-class product faces:
+
+```text
+Consumer: Discovery → Decision
+Merchant: Discovery → Decision → Intent
+```
+
+Consumer remains an independent product surface. Merchant strategy must not weaken Consumer traffic, decision quality, payment, or product-validation work.
 
 ---
 
-## 3. Product North Star
+## 3. Current Product Model
 
-VisuTry should become:
+### Consumer
 
-> **AI commerce infrastructure for eyewear: an intelligence and conversion layer that helps consumers choose frames and helps merchants turn both human and AI-agent traffic into measurable purchase intent and revenue.**
+Consumer path:
 
-The standalone Consumer acquisition / decision path remains:
+> **Face Analysis → Recommendation → Virtual Try-On → Compare**
 
-> Face Shape Detector → Glasses Advisor → Virtual Try-On → Frame Compare
+Consumer responsibilities remain:
 
-The primary B2B shopper path for the active Product Advantage Gate is:
+- SEO / Search / AI discovery;
+- Face Analysis and recommendation;
+- Try-On / Compare;
+- Consumer product validation;
+- Consumer payment / credits;
+- Consumer analytics and traffic growth.
 
-> Discovery / Agent Referral → Store or Campaign Landing → Product Exploration → Recommendation / Try-On / Compare → Product / Inquiry Intent
+### Merchant
 
-The future merchant path is:
+Merchant value statement:
 
-> Traffic / campaign / agent referral → shopper intent → merchant catalog → AI recommendation → try-on → compare → product / inquiry intent → conversion analytics → merchant commerce system.
+> **VisuTry helps eyewear merchants become more discoverable across search and AI, and turns that discovery into measurable shopper intent.**
 
-The hosted merchant Storefront is the first delivery surface. The larger product direction is the **AI Commerce / Campaign Engine**.
+Merchant path:
+
+> **Search / AI Discovery → MerchantSession → Product Decision → Recommendation / Try-On / Compare → Intent**
+
+Merchant Discovery Engine is an internal capability grouping inside the existing Merchant / Store / Campaign / Agent-ready Commerce architecture. It is not a separate product family.
 
 ---
 
 ## 4. Current Product Focus
 
-The next product work should focus on turning VisuTry from a set of useful tools into a coherent eyewear decision and conversion system.
+The immediate execution posture is intentionally narrow:
 
-Current focus:
-
-1. Preserve the stable Consumer decision and Credits flows while 2B work resumes.
-2. Pass the Product Advantage Gate: Consumer Distribution & Proof, Merchant Experience Excellence, and Agent-Native Merchant Operations.
-3. Use the shipped Store, Campaign, Discover, Business Website, Merchant Workspace, Commerce Intelligence, Sponsored Usage, and MCP/OAuth capabilities as one product rather than starting another platform layer.
-4. Close only the minimum operational gaps required by the three gates: Consumer continuation/proof, current Store/Campaign acceptance, authorization lifecycle visibility, expiry cleanup, and current-client Golden Path evidence.
-5. Validate willingness to route a real merchant catalog and real traffic through VisuTry only after the three gates pass, before building Shopify, CRM, revenue attribution, a generalized Campaign Builder, or additional Reference Brands.
+1. **Keep Consumer stable and first-class.** Consumer reliability, SEO/AI discovery, product funnel, payments, and current growth work continue independently.
+2. **Run one Merchant Discovery Proof Sprint.** Use the existing `visutry-demo` Reference Implementation to prove that a merchant commerce surface can be independently discovered by Search / AI and produce merchant-scoped downstream evidence.
+3. **Do not expand Merchant surface area yet.** No generalized Campaign Builder, CRM, Shopify public app, broad merchant UI expansion, or new product line until the proof sequence produces evidence.
+4. **Use existing architecture.** Store, Campaign, Product/catalog, MerchantSession/Event/Intent, Commerce Intelligence, Merchant Workspace, MCP/OAuth, and Agent-ready Commerce remain the foundation.
+5. **Preserve current architecture/observability authorities.** This sprint does not change DB/schema, observability contracts, data-plane ownership, or held migration/event-plane work.
 
 ---
 
-## 5. Execution Status Definitions
+## 5. Current Merchant Bottleneck
 
-| Status | Meaning |
-| --- | --- |
-| Backlog | Useful idea, not ready for execution. |
-| Ready | Ready to start product or engineering work. |
-| In Progress | Currently being worked on. |
-| Review | Built or drafted; needs review before close. |
-| Shipped | Released or completed. |
-| Measuring | Released; needs data review. |
-| Partially implemented | Important foundation exists, but conversion UX, analytics, or acceptance criteria remain incomplete. |
-| Implemented core | Core feature exists; remaining work is polish, exposure, measurement, or enhancement. |
-| Ready for validation | Clear enough to pitch, demo, or test with target users, but not yet ready for full engineering build. |
-| Deferred | Intentionally not current priority. |
+The Merchant question has changed.
+
+The earlier question was:
+
+> Do we have AI traffic at all?
+
+The current evidence says yes at the company/Consumer level.
+
+Current 14-day AI Agent Consumer traffic checkpoint:
+
+| Source | Sessions |
+| --- | ---: |
+| ChatGPT | 53 |
+| Gemini | 3 |
+| Perplexity | 1 |
+| **Total** | **57** |
+
+At the same time:
+
+> **Direct effective Store/Campaign sessions remain 0.**
+
+This means the current bottleneck is no longer the existence of AI discovery demand. It is:
+
+> **How do Merchant Store / Product / selected Campaign surfaces become genuine, independently discoverable public commerce entries that can turn Search / AI discovery into MerchantSession → Decision → Intent?**
+
+Important boundary:
+
+- the 57 AI Agent sessions are useful Consumer/company-level discovery evidence;
+- they are **not** Merchant traffic proof;
+- Merchant proof begins only when traffic lands in a merchant-scoped Store/Product/Campaign context and is observed through merchant-scoped measurement.
 
 ---
 
@@ -109,296 +126,249 @@ Current focus:
 
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
-| P0 | Consumer production stability | 2B work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / guarded by CI |
-| P0 | Product Advantage Gate A/B/C baseline and P0 closure | Structured outreach is gated until the required Consumer, Merchant, and Agent evidence passes under the active Hard Distribution Gate. | In progress — B PASS; Agent-Native Core PASS; A reporting and genuine-distribution evidence remain |
-| P1 | Assisted Pilot operating loop | Intake, catalog review, one Store or Campaign, launch, weekly review, and continuation decision must work without normal shopper actions requiring developer intervention after the gate passes. | Blocked by gate |
-| P1 | Business Website v1.2 | The multi-page `/business` narrative, examples, pricing, integrations, and Pilot offer are live. | Shipped / Measuring |
-| P1 | Store / Campaign / Commerce Intelligence product | Shared Experience runtime, attribution, Sponsored Usage, Reference/Live provenance, Admin insights, and focused Campaign Try-On are live. | Shipped / Measuring |
-| P1 | Agent-native merchant operations | Merchant Workspace, Agent Keys, Remote MCP, OAuth, Store/Campaign tools, and aggregate analytics are implemented; current Codex proves the core and Cursor remains external interoperability validation. | Agent-Native Core PASS / Cursor P1 |
+| P0 | Consumer production stability | Merchant work must not regress Face Analysis, Credits, Try-On, Compare, payment, protected media, SEO/AI acquisition, or Consumer traffic growth. | Continuous |
+| P0 | **Merchant Discovery Proof Sprint** | Prove a real Search/AI → merchant surface → MerchantSession → Decision → Intent chain using `visutry-demo`. | Current focus |
+| P0 | Merchant positioning/docs alignment | Strategy, product boundaries, GTM boundaries, and Merchant object definitions must agree before implementation expansion. | This update |
+| P1 | Existing Agent-ready Merchant operations | Maintain Merchant Workspace, Agent Keys, MCP/OAuth, Store/Campaign operations, and Commerce Intelligence as the operating layer. | Implemented / bounded hardening only |
+| P1 | Existing Product Advantage evidence | Keep prior gate evidence as supporting constraints/evidence; do not treat it as a reason to create a parallel product strategy. | Supporting |
 
-### Next
+### Next — only after discovery proof
 
-| Priority | Workstream | Why it matters | Status |
-| --- | --- | --- | --- |
-| P0 | Product Advantage Gate acceptance | Close the dated A evidence/reporting boundary and keep Gate B and Agent-Native Core evidence current under the active Hard Distribution Gate. | In progress |
-| P1 | OAuth authorization lifecycle UI and cleanup | External agent-native Pilots need connected-authorization visibility, revoke controls, and expired-artifact cleanup. | Backend partially shipped / UI + cleanup ready |
-| P1 | Post-Outreach First Real Merchant validation | After Outreach Ready, one merchant completes catalog intake, Experience launch, declared-source traffic, shopper journey, intent review, and continuation/pricing review. | Not started / intentionally post-outreach |
-| P1 | Second-client MCP compatibility | Complete the external Cursor callback/client validation when the client environment supports it; do not widen the standards-compliant server contract for a client-local failure. | Repository ready / external validation pending |
-| P1 | Controlled Founding Merchant outreach | Durable Pilot intake is available; outreach may start only after Gate A/B/C are all PASS. | Gated |
-| P2 | Merchant-safe Lead Capture / dedicated CTA event | Objective-aware Lead Campaign reporting remains unavailable until a legitimate opt-in runtime and CTA event exist. | Backlog pending merchant demand |
-
-### Later
-
-| Workstream | Reason to defer |
-| --- | --- |
-| Generalized Campaign Builder | First prove that merchants need multiple campaign variants; do not build a marketing automation suite prematurely. |
-| Shopify public app | Requires merchant workflow proof, onboarding, privacy, billing, and support readiness. |
-| WooCommerce plugin | Support complexity is higher due to WordPress/theme variance. |
-| Public API | Should follow repeated technical buyer demand, not lead the go-to-market. |
-| CRM / marketing automation | Use a minimal Pilot tracker until repeated volume justifies a system integration. |
-| Order ingestion / revenue attribution | Current reporting is intentionally limited to observable shopper intent; do not imply ROAS or sales lift without reliable commerce data. |
-| EHR/PMS integration | Valuable long term but too heavy before merchant/practice validation. |
-| Medical-grade PD claims | Requires validation, compliance boundaries, and disclaimers. |
-| Large-scale programmatic SEO | Archived as first-priority strategy; future pages must be intent-specific and workflow-connected. |
-
----
-
-## 7. Current Sprint
-
-**Sprint name:** 2B Product Advantage Gate Readiness
-**Started:** 2026-08-24
-**Exit condition:** Documentation is current, the Product Advantage Gate A/B/C evidence is green, and the assisted Pilot intake/operating path is measurable; no outreach begins while any gate is not PASS.
-**Goal:** Convert the shipped 2B product into a gate-ready operating baseline. Real catalog, real-source shopper activity, and observed-intent review belong to the first post-outreach Merchant Validation gate, not to pre-outreach Gate A/B/C acceptance.
-
-### Sprint outcomes
-
-| Outcome | Acceptance criteria | Status |
+| Priority | Workstream | Entry condition |
 | --- | --- | --- |
-| 2B execution documents agree | Product Plan, documentation index, Factory, Market-Facing, Agent-Native, Universal Agent Access, and Business Website status describe the same current phase. | Shipped |
-| Production foundation remains green | TypeScript, unit/regression, sponsored PostgreSQL, and revenue-critical browser gates remain green while 2B resumes. | Shipped / continuous |
-| Business acquisition surface is credible | `/business`, product pages, examples, pricing, integrations, and Pilot CTA render correctly and make only supported claims. | Shipped / Measuring |
-| Pilot interest is durably recorded | A qualified prospect can submit interest and the team can track source, status, objection, demo, and Pilot outcome without relying only on an email client. | Production write verified / admin review pending |
-| Assisted Pilot can be operated | The supported intake and operating path is defined for a future merchant; its real-catalog acceptance run starts only after Outreach Ready. | Ready / post-outreach validation pending |
-| External agent access is bounded | Connected OAuth authorizations can be listed/revoked, expired artifacts are cleaned, and current Codex proves the core Golden Path; Cursor interoperability is separately tracked. | Agent-Native Core proven / lifecycle UI and Cursor validation pending |
-| Product Advantage Gate passes | Gate B and Agent-Native Core have current reproducible evidence; Gate A separates technical/reporting readiness from genuine distribution evidence, and the hard-vs-soft outreach policy is explicit. | In progress — Gate A reporting readiness is partial and genuine distribution evidence is not proven. See `docs/product/audits/product-advantage-gate-baseline-2026-08-24.md`. |
-| Post-Outreach Merchant Validation is defined | The next-stage evidence sequence is explicit and cannot be counted toward pre-outreach Gate A/B/C. | Defined / not started |
+| P1 | First real Merchant discovery validation | `visutry-demo` produces credible public discovery + merchant-scoped journey evidence |
+| P1 | Merchant catalog + declared source pilot | A real merchant is ready to route a representative catalog and an explicit acquisition source |
+| P1 | Distribution integration selection | Evidence identifies which search/AI distribution mechanism materially improves discoverability or freshness |
+| P1 | Merchant product-page / intent-page refinement | Real discovery evidence shows which canonical entity or intent surface needs improvement |
+
+### Later / evidence-gated
+
+- generalized Campaign Builder;
+- large Merchant Admin/UI expansion;
+- CRM / marketing automation;
+- Shopify public app;
+- WooCommerce plugin;
+- generic public API;
+- broad autonomous agent actions / checkout;
+- EHR/PMS integration;
+- full inventory ERP behavior;
+- multi-brand/agency organization expansion;
+- advanced revenue attribution requiring unavailable commerce data;
+- large-scale programmatic Merchant SEO.
 
 ---
 
-## 8. Execution Board
+## 7. Current Sprint — Merchant Discovery Proof Sprint
 
-| Priority | Initiative | Owner | Status | Next action | Evidence / Source | Target |
-| --- | --- | --- | --- | --- | --- | --- |
-| P0 | Consumer stability boundary | Engineering | Shipped / guarded | Keep Consumer critical tests and revenue browser gate green during every 2B change. | ADR-007, GitHub Quality Gate | Continuous |
-| P0 | Product Advantage Gate baseline | Product / Engineering | In progress | Close dated Gate A/B/C P0s and keep the active gate synchronized after material 2B changes. | `docs/product/plans/product-advantage-gate.md`, dated baseline | Current |
-| P1 | Business Website v1.2 | Product / Growth | Shipped / Measuring | Measure qualified Pilot form starts and submissions by acquisition source. | Business IA, v1.2 brief, PR #121/#125 | Current |
-| P1 | Founding Merchant outreach | Product / Growth | Gated | Prepare no outreach list or messages; begin only after all three gates pass and outreach is explicitly authorized. | Sales readiness audit, Product Advantage Gate | After gate |
-| P1 | Pilot lead and outcome tracker | Product / Growth / Engineering | Production deployed / write verified | Review request `625a1055-ffb0-4ed4-b14a-a7ca6e686c91` through `/admin/business/leads`, close it as a test, then use the board for controlled outreach responses. | Pilot Lead API, admin board, Sales readiness audit §J/§M | Current |
-| P1 | Post-Outreach First Real Merchant validation | Product / Engineering / Growth | Not started | After Outreach Ready, onboard one real 8–50-frame catalog, launch one Experience, route a declared source, and review observed intent plus continuation/pricing evidence. | Store MVP acceptance criteria, dated baseline | Post-outreach validation |
-| P1 | OAuth Pilot hardening | Engineering | Partially implemented | Add authorization list/revoke UI, expired-artifact cleanup, and the selected second-client/DB Golden Path if required by the Pilot. | Universal Agent Access §§15–18 | Next / conditional |
-| P2 | Merchant-safe Lead Campaign runtime | Product / Engineering | Backlog | Define only after a real merchant requires opt-in conversion rather than anonymous intent measurement. | Campaign Conversion Policy | Evidence-gated |
+**Sprint name:** Merchant Discovery Proof Sprint  
+**Started:** 2026-09-13  
+**Reference implementation:** `visutry-demo`  
+**Product scope:** Merchant / Store / Product / selected Campaign discovery and measurement only  
+**Code scope for this documentation change:** none; this commit updates planning/positioning docs only.
+
+### Objective
+
+Prove the smallest complete Merchant chain:
+
+```text
+Search / AI
+→ Merchant Store / Product / PUBLIC_INDEX Campaign
+→ MerchantSession
+→ Product Decision
+→ Recommendation / Try-On / Compare
+→ Intent
+```
+
+The sprint is about **proof**, not product breadth.
+
+### What must be true
+
+1. **Merchant Discovery Surface is real**  
+   `visutry-demo` exposes a canonical public Store and stable merchant commerce entities suitable for discovery.
+
+2. **Product entities are understandable**  
+   Product/frame facts are stable and machine-understandable; product identity does not depend on an opaque SPA grid.
+
+3. **Campaign publication is explicit**  
+   Campaigns distinguish `PUBLIC_INDEX`, `UNLISTED`, and `PRIVATE`; only high-quality intent surfaces belong in public indexing.
+
+4. **Distribution is intentional**  
+   Public merchant entities are reachable through the supported discovery/distribution mechanisms appropriate to the implementation.
+
+5. **Merchant measurement is separate**  
+   A discovered visit can be traced through MerchantSession and merchant-scoped decision/Intent data without borrowing Consumer traffic as proof.
+
+6. **Decision Engine remains the differentiation**  
+   Discovery must lead into Recommendation / Try-On / Compare rather than ending as generic SEO traffic.
+
+### Sprint evidence
+
+The proof package should answer:
+
+- Can Google/Search discover the intended merchant surface?
+- Can AI assistants/agents discover or refer to the intended merchant surface?
+- Which Store/Product/Campaign URL was the entry point?
+- Was a `MerchantSession` created?
+- Did the shopper view/select a product or start a decision flow?
+- Did Recommendation / Try-On / Compare occur?
+- Was an `Intent` recorded?
+- Which source/referrer produced the journey?
+
+The sprint does not require a traffic-volume target. A small number of genuine, attributable journeys is more valuable than a large amount of ambiguous Consumer/referral traffic.
 
 ---
 
-## 9. Product Initiatives
+## 8. Canonical Merchant Objects for Execution
 
-### Initiative 1: Free Detector → Advisor → Try-On Conversion
+### Store
 
-**Goal:** Turn the free detector into a useful first result that naturally continues into glasses advice, try-on, and comparison.
+> **Canonical merchant discovery & decision surface.**
 
-**Why now:** The public product path already depends on Detector → Advisor → Try-On → Compare. This must be clear before paid and merchant workflows can scale.
+Use Store as the merchant's long-lived authority/entry surface, not as a disposable campaign container.
 
-**Current tasks:**
+### Product Page
 
-- Confirm Detector result page has clear continuation CTAs.
-- Route face-shape result into Glasses Advisor where appropriate.
-- Make Try-On and Compare paths visible after the first useful result.
-- Track continuation events.
+> **Canonical commerce entity.**
 
-**Success criteria:**
+Each product/frame should be independently stable and machine-understandable where the current product implementation supports that surface.
 
-- A user can get a free result without unnecessary friction.
-- At least one next-step CTA is visible and relevant.
-- Continuation rate can be measured.
+### Campaign
 
-### Initiative 2: Credits Pack Conversion Loop
+> **Audience / intent-specific experience.**
 
-**Goal:** Make Credits Pack the clearest casual paid product for high-intent try-on and comparison users.
+Publication modes:
 
-**Current implementation:**
+- `PUBLIC_INDEX`;
+- `UNLISTED`;
+- `PRIVATE`.
 
-- Credits Pack pricing and Stripe checkout exist.
-- Webhook updates purchased credits.
-- Quota deduction happens after successful generation.
-- Try-On and Compare have basic insufficient-credit routing.
+Do not turn every Campaign into an SEO page.
 
-**Current tasks:**
+### Decision Engine
 
-- Do not modify Checkout during the baseline observation window without an incident signal.
-- Accumulate at least 14 days and 30–50 unique Checkout Sessions.
-- Compare terminal completion for `face_analysis_report` and `pricing` separately.
-- Reconcile GA Purchase, Payment rows, and Stripe Session status.
-- Reopen generic Try-On / Compare merchandising only if evidence identifies it as the dominant constraint.
+> **Face Analysis / Recommendation / Try-On / Compare.**
 
-**Success criteria:**
+Reuse the existing decision capabilities; do not create a second Merchant-specific decision stack.
 
-- Users understand what is free and what consumes credits.
-- Credits Pack is visible at the right high-intent moments.
-- Credits conversion and paid usage can be measured.
+### Intent
 
-### Initiative 3: Frame Compare Polish / Analytics / Exposure
+> **Measurable commercial outcome.**
 
-**Goal:** Make the implemented Frame Compare core experience visible, measurable, and conversion-ready.
-
-**Current implementation:**
-
-- Standalone route exists: `/try-on/glasses/compare`.
-- Public landing exists for anonymous users.
-- Authenticated users can upload one photo and compare up to 4 preset frames.
-- Compare respects available credits.
-- Generation runs per frame and displays queued / processing / completed / failed states.
-- Failed frames can be retried.
-- Completed outputs save to Dashboard History.
-
-**Current tasks:**
-
-- Ensure Frame Compare is exposed from homepage and relevant product CTAs.
-- Add or map dedicated compare analytics events.
-- Add stronger post-completion Credits Pack CTA.
-- Decide whether comparison-board sharing is required now or later.
-- Decide whether uploaded/custom frames belong in this flow before Studio / Store.
-
-**Success criteria:**
-
-- Users can understand Compare as a separate decision-support feature.
-- Compare is not hidden inside a deep carousel or history flow.
-- Compare actions are measurable.
-- Compare contributes to Credits Pack conversion.
-
-### Initiative 4: Store Landing Page Market Validation
-
-**Goal:** Measure demand through the shipped multi-page Business Website and route qualified prospects into the Founding Merchant Pilot.
-
-**Current status:** Business Website v1.2 shipped / Measuring. The previous `/store` landing page is no longer the complete B2B narrative.
-
-**Validation asset:** `docs/product/specs/visutry-store-landing-page.md`
-
-**Current tasks:**
-
-- Measure `/en/business` and `/en/business/pilot` qualified CTA behavior.
-- Keep the current $149 / 30-day assisted Pilot terms and claims boundary consistent across Business, Sales, and operating documents.
-- Measure the production Pilot request form and lead/outcome tracker; keep email only as an error fallback.
-- Pair the Business Website with controlled merchant / agency outreach and tagged Reference Experience links.
-- Continue to distinguish Reference Pilot / Simulation proof from live customer evidence.
-
-**Success criteria:**
-
-- Store page can explain the hosted recommendation / try-on / compare workflow clearly.
-- The merchant understands that Storefront is a deployment surface, not the entire product category.
-- Qualified visitors can request a sample link, pilot, or demo.
-- Form submissions identify business type, website, frame count, and intent.
-- Store validation has measurable CTA and lead events.
-
-### Initiative 5: VisuTry Store — AI Commerce / Campaign Validation
-
-**Goal:** Prepare the shipped Store / Campaign product for pre-outreach gate proof, then validate it with a real merchant catalog and real traffic only in the first post-outreach Merchant Validation stage. Shopify app, generalized Campaign Builder, CRM, and revenue attribution remain deferred.
-
-**Current status:** Product foundation, Reference Factory, market-facing surfaces, assisted operations, and agent-native core are implemented. Gate B now passes its pre-outreach evidence rule; Gate C Agent-Native Core and standards-based MCP/OAuth pass with Cursor client interoperability tracked separately. Gate A has a durable Store/Campaign source-to-action report, but the core Consumer GA4 join and genuine production Agent referral evidence remain incomplete. Real merchant validation is intentionally post-outreach and has not started.
-
-**Current product model:**
-
-```text
-Traffic / Audience
-→ Merchant Catalog
-→ AI Recommendation
-→ Try-On
-→ Compare
-→ Product / Inquiry Intent
-→ Merchant Conversion Insight
-```
-
-**Strategic product model:**
-
-```text
-Merchant
-→ Campaign / Audience / Intent
-→ Catalog subset
-→ AI decision experience
-→ Conversion metrics
-```
-
-Store and Campaign are now first-class sibling `Experience` types. The bounded Campaign application service and MCP tools are implemented; a generalized visual Campaign Builder remains deferred until merchant evidence justifies it.
-
-**Post-Outreach Merchant Validation gate:**
-
-```text
-First Real Merchant → own catalog → declared traffic source
-→ live shopper activity → intent review → continuation / pricing evidence
-```
-
-This sequence starts only after Outreach Ready. It is not a pre-outreach Gate B
-acceptance criterion and is not run in the current gate-readiness pass.
-
-**Validation package:**
-
-- merchant name / logo;
-- 8-20 frame catalog;
-- hosted advisor / compare link;
-- anonymous shopper upload and try-on;
-- frame comparison;
-- favorites / product click / inquiry;
-- source and campaign/referral context where available;
-- simple conversion-oriented usage report;
-- 30-day pilot offer.
-
-**Current tasks:**
-
-- Use the five-brand Reference portfolio and current Business Website in controlled merchant conversations.
-- Record structured demo feedback and objections.
-- Ask where merchant traffic comes from today: Search, Meta, TikTok, email, social, QR, direct, referral, AI assistants, or other channels.
-- Ask which business metric would justify payment: product click, inquiry, add-to-cart, conversion, appointment, or attributed revenue.
-- Offer the paid/deposit-backed Founding Merchant Pilot, not an unbounded free custom build.
-- After Outreach Ready, onboard one real 8–50-frame catalog through the existing assisted/agent capability boundary.
-- After Outreach Ready, route one declared traffic source and review Experience-level shopper intent with the merchant.
-- Treat lead persistence, authorization lifecycle UI, and OAuth cleanup as bounded Pilot hardening rather than a new platform phase.
-
-**Success criteria:**
-
-- 3 merchants agree to evaluate the hosted workflow; or
-- 1 agency agrees to test with 2-3 relevant merchant clients; or
-- 1 merchant agrees to a paid or deposit-backed pilot; or
-- Product explicitly authorizes a live-data pilot to validate conversion behavior.
-
-The strongest evidence is not that merchants like VTO. It is that they want to route real traffic through VisuTry and measure downstream purchase intent.
-
-### Initiative 6: Agent-Ready Commerce Baseline
-
-**Goal:** Operate and validate the implemented agent-ready merchant capabilities while keeping interoperability work proportional to current Pilot demand.
-
-**Implemented baseline:**
-
-- stable public merchant/store URLs where appropriate;
-- canonical product destination URLs;
-- explicit frame names, SKU, price/currency and descriptive attributes where available;
-- machine-readable structured metadata where appropriate and privacy-safe;
-- source/referrer/UTM persistence into merchant sessions and intents;
-- classify known AI-assistant / agent referrals separately from generic referral traffic;
-- merchant Membership and Workspace boundaries;
-- Agent Keys plus standards-based Remote MCP OAuth;
-- Store/Campaign create, configure, preview, explicit-approval publish, and aggregate Commerce Intelligence tools;
-- current-SHA Codex OAuth/MCP Golden Path proof; Cursor repository readiness and standards compatibility are proven, while real-client callback execution remains external P1 validation.
-
-**Remaining Pilot hardening:**
-
-- Merchant Workspace connected OAuth authorization list/revoke UI;
-- cleanup of expired OAuth authorization requests, codes, and tokens;
-- real database-backed protocol regression coverage;
-- Current-SHA Codex is the Agent-Native Core acceptance path. Cursor remains a bounded second-client interoperability validation; Claude Code remains conditional.
-
-**Deferred until demand:**
-
-- autonomous checkout;
-- broad public agent API;
-- MCP/tool integration solely for novelty;
-- agent-specific duplicate recommendation stack.
-
-**Principle:**
-
-> Agent traffic must use the same Store intelligence and conversion core as human traffic.
+Use the existing merchant intent model and only add/alter intent semantics through the proper product/analytics contract process.
 
 ---
 
-## 10. Change Log
+## 9. Merchant Discovery Engine Scope
+
+The sprint uses the following capability model:
+
+| Capability | Sprint question |
+| --- | --- |
+| Merchant Discovery Surface | Is there a stable public merchant/product/intent entry that Search/AI can discover? |
+| Commerce Graph | Can machines understand merchant, product, frame, offer/destination relationships? |
+| Discovery Distribution | Are public entities exposed through the supported indexing/feed/distribution path? |
+| Decision Engine | Does discovery continue into eyewear decision assistance? |
+| Discovery Intelligence | Can source/referral be connected to MerchantSession and downstream behavior? |
+| Intent Handoff | Does the journey end in a measurable merchant outcome? |
+
+This is existing Merchant architecture made more explicit, not a new platform layer.
+
+---
+
+## 10. Consumer Work Continues Independently
+
+The Merchant sprint does not replace the active Consumer growth strategy in `docs/strategy/analytics/gtm.md`.
+
+Consumer continues to optimize:
+
+- qualified Search traffic;
+- AI discovery;
+- visual discovery;
+- Face Analysis activation;
+- Advisor / Try-On / Compare continuation;
+- Credits/payment conversion;
+- Consumer reliability and capacity.
+
+Consumer success metrics stay Consumer metrics. They can inform Merchant strategy but do not satisfy Merchant proof gates.
+
+---
+
+## 11. Commercial Claim Guardrails
+
+Merchant product work may support claims that VisuTry:
+
+- helps products become easier for Search/AI to understand;
+- creates public discovery surfaces;
+- provides machine-understandable commerce structure;
+- provides supported distribution capability;
+- measures referral → MerchantSession → decision → Intent.
+
+Do not claim or design success criteria around guaranteed:
+
+- Google rankings;
+- ChatGPT citations;
+- Gemini/Perplexity recommendations;
+- fixed discovery traffic;
+- fixed conversion/revenue uplift.
+
+Use **more discoverable** and **discovery opportunity**, not guaranteed visibility.
+
+---
+
+## 12. Execution Board
+
+| Priority | Initiative | Owner | Status | Next action |
+| --- | --- | --- | --- | --- |
+| P0 | Consumer stability boundary | Engineering / Product | Continuous | Keep Consumer critical paths and payments stable during Merchant work |
+| P0 | Merchant Discovery Reference (`visutry-demo`) | Product / Engineering / Growth | Current | Establish/verify discovery → MerchantSession → decision → Intent evidence |
+| P0 | Merchant measurement boundary | Product / Analytics | Current | Use MerchantSession / MerchantEvent / MerchantIntent as proof authority; do not count Consumer traffic |
+| P1 | Discovery distribution evidence | Growth / Engineering | Evidence-gated | Verify supported search/AI discovery mechanisms and observed referrals |
+| P1 | Agent-ready Merchant operations | Engineering | Implemented / bounded hardening | Keep existing MCP/OAuth/Workspace capabilities aligned; no new agent stack |
+| P2 | Merchant expansion features | Product / Engineering | Deferred | Reopen only after discovery proof identifies a real bottleneck |
+
+---
+
+## 13. Relationship to Existing Gates and Plans
+
+The following remain useful and are not deleted by this sprint:
+
+- Product Advantage Gate evidence and audits;
+- Store / Campaign product specs;
+- Merchant activation and commercial entitlement docs;
+- Agent-native Merchant Self-Service plan;
+- Universal Agent Access evidence;
+- Pilot/Reference delivery evidence;
+- current architecture and observability authorities.
+
+Precedence for current execution:
+
+1. `docs/strategy/commercial-strategy.md` — company/commercial direction.
+2. `docs/product/product-system.md` — Consumer/Merchant boundaries and canonical product objects.
+3. `docs/product/product-plan.md` — current execution priority.
+4. relevant bounded product specs / plans — implementation behavior.
+5. dated audits / ops records — evidence only.
+
+No new long-lived Merchant strategy document is required for this positioning upgrade.
+
+---
+
+## 14. Exit Condition
+
+The Merchant Discovery Proof Sprint exits when we can make a defensible evidence-based statement that:
+
+> At least one intended `visutry-demo` Merchant discovery surface is independently discoverable through Search and/or AI, and at least one genuine discovery/referral journey can be attributed through the Merchant data plane into a meaningful product decision or Intent.
+
+If public discovery remains zero, the next decision should focus on why the merchant surface is not selected/discovered — not on adding unrelated Merchant features.
+
+If discovery occurs but Decision/Intent remains zero, the next decision should focus on the merchant landing/decision experience — not on generating more discovery pages by default.
+
+---
+
+## 15. Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created product plan and execution board. |
-| 2026-07-08 | Updated Frame Compare and Credits Pack status after implementation review. |
-| 2026-07-08 | Added Store landing page as first Store market validation step before full MVP engineering. |
-| 2026-08-05 | Promoted Store D0 to production-verified controlled validation; moved the next action to merchant demos and kept Gate A1 / M1 gated. |
-| 2026-08-06 | Reframed Store execution around AI Commerce / Campaign Engine value, kept Storefront as the first delivery surface, added campaign/source attribution and Agent-Ready Commerce as future-facing product baselines without moving generalized campaign builder or public agent API into current scope. |
-| 2026-08-24 | Reconciled the execution plan with the shipped Experience Factory, Discover, Business Website v1.2, Sponsored Usage, Merchant Workspace, MCP/OAuth, and Commerce Intelligence capabilities; moved the active gate to current Product Advantage Gate A/B/C evidence. |
-| 2026-08-24 | Corrected the sequence: Reference / simulation / controlled-fixture proof can unlock Outreach Ready; First Real Merchant catalog, traffic, intent, and continuation/pricing evidence are the separate post-outreach Merchant Validation gate. |
-| 2026-08-24 | Implemented durable, attributable Founding Merchant Pilot intake with privacy-preserving rate limits, idempotent submission, and an admin follow-up/outcome board; deployment and production verification remain. |
-| 2026-08-24 | Activated the Product Advantage Gate A/B/C as the pre-outreach execution rule; structured merchant outreach is gated until current evidence passes all three gates. |
-| 2026-08-24 | Deployed the Pilot intake migration and application through PR #128; production Business browser checks passed and request `625a1055-ffb0-4ed4-b14a-a7ca6e686c91` verified durable public submission and idempotent replay. |
+| 2026-08-06 | Reframed Store around AI Commerce / Campaign Engine value and Agent-ready Commerce. |
+| 2026-08-24 | Reconciled Product Advantage Gate, Business Website, Merchant Workspace, MCP/OAuth, Commerce Intelligence, and post-outreach Merchant validation sequencing. |
+| 2026-09-13 | Replaced broad Merchant expansion priority with the Merchant Discovery Proof Sprint; established `visutry-demo` as the reference implementation, formalized Search/AI → MerchantSession → Decision → Intent proof, preserved Consumer as a first-class product, and deferred Merchant UI/CRM/Shopify/generalized Campaign Builder expansion. |

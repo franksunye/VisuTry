@@ -1,259 +1,441 @@
 # VisuTry Product System
 
-**Status:** Active source of truth for cross-repository product positioning  
+**Status:** Active source of truth for cross-product and cross-repository positioning  
 **Created:** 2026-07-08  
-**Last reviewed:** 2026-08-26
+**Last reviewed:** 2026-09-13  
 **Owner:** Product / Engineering  
-**Review cadence:** Monthly, or when Web, SDK, or Mobile ownership changes  
-**Scope:** Relationship between `VisuTry`, `visutry-tryon-sdk`, and `visutry-mobile`.
+**Review cadence:** Monthly, or when product/repository ownership changes  
+**Scope:** Consumer vs Merchant product boundaries, shared eyewear decision capabilities, Merchant Store/Product/Campaign object definitions, and repository ownership across `VisuTry`, `visutry-tryon-sdk`, and `visutry-mobile`.
 
 ---
 
 ## 1. Purpose
 
-This document defines how the three VisuTry repositories relate to each other.
+This document prevents two classes of drift:
 
-The goal is to prevent duplicated product logic, duplicated commercial systems, and unclear ownership between the main web platform, the reusable try-on SDK, and the mobile experience.
+1. **Product drift** — treating Consumer as a Merchant sub-funnel, or creating duplicate Merchant strategies/products for Store, Campaign, discovery, and agents.
+2. **Repository drift** — duplicating business logic, account/payment systems, decision logic, or commercial ownership across Web, SDK, and Mobile.
 
 Working model:
 
-> One brand. One platform. One reusable capability layer. Multiple product surfaces.
+> **One brand. One platform. Shared Eyewear Decision Intelligence. Two first-class product faces. Multiple delivery surfaces.**
+
+Canonical company positioning:
+
+> **VisuTry is an AI eyewear decision and commerce platform for both consumers and merchants.**
+
+Canonical North Star:
+
+> **Help people make better eyewear decisions, and help merchants turn those decisions into measurable commerce outcomes.**
 
 ---
 
-## 2. Repository Roles
+## 2. Two First-Class Product Faces
+
+### 2.1 Consumer
+
+> **Consumer = Discovery → Decision**
+
+Consumer is an independent product surface, not a Merchant acquisition widget and not a subordinate funnel.
+
+Consumer owns the individual shopper journey around:
+
+- Face Analysis / Face Shape understanding;
+- Recommendation / Glasses Advisor;
+- Virtual Try-On;
+- Compare;
+- Consumer SEO / Search / AI discovery;
+- consumer traffic and product validation;
+- consumer account/history where required;
+- consumer payment / credits conversion.
+
+Canonical Consumer path:
+
+```text
+Discovery
+→ Face Analysis
+→ Recommendation
+→ Virtual Try-On
+→ Compare
+→ Decision / Save / Share / Purchase continuation
+```
+
+Consumer can generate product learning and company-level demand signals, but Consumer sessions are not automatically Merchant traffic or Merchant proof.
+
+### 2.2 Merchant
+
+> **Merchant = Discovery → Decision → Intent**
+
+Merchant serves eyewear merchants, brands, agencies, and the shoppers entering merchant-owned VisuTry experiences.
+
+Canonical Merchant value statement:
+
+> **VisuTry helps eyewear merchants become more discoverable across search and AI, and turns that discovery into measurable shopper intent.**
+
+Canonical Merchant chain:
+
+```text
+Search / AI Discovery
+→ MerchantSession
+→ Product Decision
+→ Recommendation / Try-On / Compare
+→ Intent
+```
+
+Merchant is not a generic storefront, CMS, CRM, inventory ERP, or Shopify replacement. It is a discovery + decision + commerce-intent layer built around merchant catalog data and VisuTry decision intelligence.
+
+---
+
+## 3. Shared Eyewear Decision Intelligence
+
+Consumer and Merchant share the same underlying decision capabilities:
+
+> **Face Understanding + Frame/Product Understanding + Recommendation + Try-On + Compare**
+
+The shared capability layer must not be interpreted as shared product ownership.
+
+| Capability | Consumer role | Merchant role |
+| --- | --- | --- |
+| Face Analysis | Help an individual understand face characteristics relevant to eyewear | Add shopper context to merchant recommendation when used |
+| Recommendation | Recommend useful frame directions | Recommend products from a merchant catalog / selected subset |
+| Virtual Try-On | Validate a specific frame visually | Validate a merchant product visually |
+| Compare | Support a personal shortlist decision | Support product-level decision within merchant experience |
+| Analytics | Consumer acquisition, usage, payment | MerchantSession, MerchantEvent, MerchantIntent, source and commerce outcome |
+
+Rules:
+
+- Do not fork a separate Merchant recommendation/try-on/compare engine if shared application capabilities can serve both safely.
+- Do not force Consumer account, credits, or payment semantics into Merchant shopper flows.
+- Do not count Consumer discovery as Merchant discovery proof without a merchant-scoped session/outcome.
+
+---
+
+## 4. Merchant Discovery Engine
+
+**Merchant Discovery Engine** is a capability grouping inside the existing Merchant / Store / Campaign / Agent-ready Commerce architecture.
+
+It is not a new standalone product or repository.
+
+Its modules are:
+
+| Module | Product responsibility |
+| --- | --- |
+| **Merchant Discovery Surface** | Public Store, Product, and selected Campaign/intent surfaces that can be independently discovered when publication policy permits. |
+| **Commerce Graph** | Stable merchant/product/offer/frame relationships and machine-understandable commerce facts. |
+| **Discovery Distribution** | Supported sitemap, structured-data, feed/indexing/distribution mechanisms. |
+| **Decision Engine** | Face Analysis, Recommendation, Try-On, Compare. |
+| **Discovery Intelligence** | Attribute discovery/referral through MerchantSession and decision behavior. |
+| **Intent Handoff** | Record and route measurable product click, inquiry, appointment, merchant-site/checkout destination, or another modeled commercial outcome. |
+
+This capability grouping extends the existing **AI Commerce / Campaign Engine**; it does not replace it.
+
+---
+
+## 5. Canonical Merchant Objects
+
+### 5.1 Store
+
+> **Store = canonical merchant discovery & decision surface.**
+
+Store is the merchant's long-lived public authority surface when published.
+
+Responsibilities:
+
+- identify the merchant/brand;
+- expose stable merchant commerce context;
+- provide catalog/product exploration;
+- provide entry to the Decision Engine;
+- provide a durable discovery target for humans, Search, and AI;
+- preserve merchant/session attribution into downstream decision and Intent events.
+
+Store is not the unit for every audience or promotion. A merchant normally has one canonical Store per brand/workspace context; campaign variation belongs in Campaign.
+
+### 5.2 Product Page
+
+> **Product Page = canonical commerce entity.**
+
+A Product Page represents one stable product/frame entity with a durable URL and explicit facts where available.
+
+Minimum conceptual responsibilities:
+
+- stable product identity;
+- merchant/brand relationship;
+- canonical product destination;
+- frame attributes used by recommendation where available;
+- price/currency/availability only when merchant-provided or otherwise trustworthy;
+- Decision Engine entry points;
+- machine-understandable structured context.
+
+Product Page is not a claim that VisuTry itself is the seller of record.
+
+### 5.3 Campaign
+
+> **Campaign = audience / intent-specific experience.**
+
+Campaign can be specialized by audience, catalog subset, source, creative, promotion, or shopper intent.
+
+Publication policy is explicit:
+
+- `PUBLIC_INDEX` — intentionally public/indexable and suitable for discovery;
+- `UNLISTED` — accessible by link but not intended for search indexing;
+- `PRIVATE` — restricted/non-public.
+
+Not all Campaigns are SEO pages. Paid media, QR, email, agency/client, temporary promotion, and controlled validation Campaigns may be unlisted/private.
+
+### 5.4 Decision Engine
+
+> **Decision Engine = Face Analysis / Recommendation / Try-On / Compare.**
+
+It is the shared intelligence layer that turns a discovery visit into a better product decision.
+
+### 5.5 Intent
+
+> **Intent = measurable commercial outcome.**
+
+Intent must be a modeled business signal, not generic engagement.
+
+Examples:
+
+- product click / merchant handoff;
+- favorite/save if modeled as merchant value;
+- inquiry;
+- appointment request;
+- checkout/product destination;
+- later attributed transaction where reliable data exists.
+
+---
+
+## 6. Product-Surface Isolation Rules
+
+### Consumer must remain independent
+
+Consumer continues to own:
+
+- its own Search/SEO/AI discovery;
+- its own product navigation and decision journey;
+- its own account/history/payment model;
+- its own conversion and revenue reporting;
+- its own growth experiments and validation.
+
+Do not rewrite Consumer as a Merchant lead-generation funnel.
+
+### Merchant must prove its own value
+
+Merchant commercial proof must be merchant-scoped.
+
+A valid merchant path requires merchant context such as:
+
+```text
+Merchant Store / Product / Campaign
+→ MerchantSession
+→ merchant-scoped decision behavior
+→ MerchantIntent
+```
+
+Consumer pageviews, Consumer AI referrals, and Consumer purchases may be useful company evidence but cannot substitute for MerchantSession / MerchantEvent / MerchantIntent proof.
+
+### Shared capabilities, separate commercial semantics
+
+The same underlying recommendation or generation capability may serve both surfaces, but:
+
+- entitlement can differ;
+- UI can differ;
+- identity/login requirements can differ;
+- source attribution can differ;
+- payment/usage accounting can differ;
+- analytics must preserve the product-surface boundary.
+
+Observability and analytics ownership remains governed by `docs/project/observability-and-analytics-contract.md`.
+
+---
+
+## 7. Repository Roles
 
 | Repository | Role | Primary responsibility |
 | --- | --- | --- |
-| `franksunye/VisuTry` | Product platform and commercial system | Web product, user accounts, credits, payments, SEO/GEO, dashboards, history, admin, product plans, B2B validation. |
-| `franksunye/visutry-tryon-sdk` | Reusable capability layer | Face geometry, face-shape analysis, recommendation, AR try-on, web / WeChat adapters, privacy-first on-device processing. |
-| `franksunye/visutry-mobile` | Mobile experience surface | Camera-first PWA / future mini-program experience built on VisuTry platform APIs and SDK capabilities. |
+| `franksunye/VisuTry` | Product platform and commercial system | Consumer Web, Merchant Store/Campaign, public discovery surfaces, accounts, payments, merchant tenancy, analytics, product/commercial docs, agent-ready commerce runtime. |
+| `franksunye/visutry-tryon-sdk` | Reusable capability layer | Face geometry, face-shape analysis, recommendation primitives, AR/try-on rendering, normalized assets, platform adapters, privacy-first on-device capability. |
+| `franksunye/visutry-mobile` | Mobile experience surface | Camera-first mobile/mini-program experience that consumes platform APIs and reusable SDK capabilities. |
 
 Short version:
 
 ```text
-VisuTry             = product platform and business system
-VisuTry Try-On SDK  = reusable eyewear intelligence and try-on engine
-VisuTry Mobile      = camera-first mobile product surface
+VisuTry             = product platform + business/commercial system
+VisuTry Try-On SDK  = reusable eyewear decision / rendering capability layer
+VisuTry Mobile      = camera-first Consumer delivery surface
 ```
 
 ---
 
-## 3. VisuTry Main Platform
+## 8. Main Platform Ownership
 
-`franksunye/VisuTry` is the product and commercial source of truth.
+`franksunye/VisuTry` owns the product/commercial source of truth for both first-class product faces.
 
-It owns:
+### Consumer-owned platform concerns
 
-- public web product at `visutry.com`;
-- Face Shape Detector;
-- Glasses Advisor;
+- public Consumer web product;
+- Face Analysis / Detector;
+- Glasses Advisor / Recommendation;
 - Virtual Try-On;
 - Frame Compare;
-- account system;
-- credits and Stripe payments;
-- dashboard and history;
-- sharing surfaces;
-- SEO / GEO pages;
-- product documentation;
-- commercial strategy;
-- B2B Store / Studio validation;
-- admin and analytics surfaces.
+- Consumer SEO/GEO and discovery pages;
+- Consumer account/history;
+- credits / Stripe consumer payment;
+- Consumer analytics and growth surfaces.
 
-It should answer:
+### Merchant-owned platform concerns
 
-1. Who is the user?
-2. What is free and what consumes credits?
-3. What was generated and saved?
-4. What converted to payment?
-5. What should be built, measured, or validated next?
-6. What is the current commercial direction?
+- Merchant tenant/workspace;
+- Store;
+- Product / catalog entities and public Product Pages;
+- Campaign;
+- MerchantSession / MerchantEvent / MerchantIntent;
+- Merchant discovery/distribution surfaces;
+- Merchant Commerce Intelligence;
+- Merchant Workspace / Admin control surfaces;
+- Agent Keys, MCP/OAuth and Agent-ready Commerce capabilities;
+- Merchant entitlement and sponsored/merchant usage accounting where implemented.
 
-It should not duplicate low-level SDK internals once those capabilities are stabilized in the SDK.
+The platform should reuse shared application/domain capabilities rather than duplicating Consumer and Merchant engines unnecessarily.
 
 ---
 
-## 4. VisuTry Try-On SDK
+## 9. SDK Ownership
 
-`franksunye/visutry-tryon-sdk` is the reusable capability layer behind the VisuTry product system.
-
-It owns:
+`franksunye/visutry-tryon-sdk` owns reusable low-level decision/rendering capability such as:
 
 - face geometry primitives;
 - MediaPipe / landmark integration;
 - face-shape analysis algorithm;
 - landmark overlays;
-- pose solving;
-- smoothing and quality gating;
-- AR glasses try-on rendering;
-- glasses recommendation logic;
+- pose solving and quality gating;
+- AR / glasses rendering;
+- recommendation primitives where reusable;
 - normalized glasses asset format;
-- platform adapters for Web / H5 and WeChat Mini Program.
-
-It should answer:
-
-1. How is a face analyzed?
-2. How are landmarks transformed into useful geometry?
-3. How is face shape classified?
-4. How are glasses recommended?
-5. How is AR try-on rendered?
-6. How can Web, Mobile, or Mini Program call the same capability consistently?
+- Web / mobile / mini-program adapters.
 
 It should not own:
 
-- Stripe payments;
-- user credits;
-- user accounts;
-- SEO pages;
-- merchant dashboard;
-- B2B lead capture;
-- product roadmap priority;
-- business pricing.
+- Stripe / commercial billing;
+- Consumer credits;
+- Merchant tenancy or entitlement;
+- MerchantSession/Intent analytics;
+- SEO/discovery strategy;
+- Store/Campaign commercial semantics;
+- product roadmap priority.
 
 ---
 
-## 5. VisuTry Mobile
+## 10. Mobile Ownership
 
-`franksunye/visutry-mobile` is the mobile product surface.
+`franksunye/visutry-mobile` is a Consumer-facing mobile delivery surface, not an independent commercial system.
 
-It should provide a camera-first experience for:
+It may provide:
 
-- taking or uploading a face photo;
-- face-shape detection;
-- glasses advice;
-- virtual try-on;
-- frame comparison;
-- saved results;
-- sharing;
-- mobile-first credits / conversion flows where supported by the platform;
-- future WeChat Mini Program evolution.
+- camera/upload-first Face Analysis;
+- recommendation;
+- try-on;
+- compare;
+- saved/shareable Consumer results;
+- mobile account/credits flows through platform APIs where supported;
+- future WeChat Mini Program delivery.
 
-It should call:
-
-- VisuTry platform APIs for user, account, credits, history, payments, and persisted generation tasks;
-- VisuTry Try-On SDK for face analysis and local / on-device capabilities.
-
-It should not become a separate backend or independent commercial system.
+It should not create a separate backend, billing system, merchant system, or product strategy.
 
 ---
 
-## 6. Shared Product Path
+## 11. Agent-Ready Commerce Relationship
 
-The product system should align around the same eyewear decision flow:
+Existing Agent-ready Commerce is a Merchant operating/distribution interface, not a third product face.
+
+The operating principle remains:
+
+> **Agent-first, not Agent-only.**
+
+Merchant Workspace/Admin and external agents must use the same merchant/domain capabilities for:
+
+- catalog;
+- Store;
+- Campaign;
+- publish/preview lifecycle;
+- analytics / Commerce Intelligence;
+- authorization and tenant boundaries.
+
+Merchant Discovery Engine adds a clear discovery contract to this architecture:
 
 ```text
-Face Shape Detector
-→ Glasses Advisor
-→ Virtual Try-On
-→ Frame Compare
-→ Save / Share / Buy / Lead Capture
+Search / AI finds public merchant commerce entity
+→ shopper/agent arrives at Store/Product/Campaign
+→ MerchantSession
+→ shared Decision Engine
+→ MerchantIntent
 ```
 
-Different surfaces may emphasize different parts of the path:
-
-| Surface | Primary emphasis |
-| --- | --- |
-| Web | SEO/GEO acquisition, account, credits, payments, history, B2B validation. |
-| SDK | Face geometry, recommendation, AR try-on, privacy-first local capability. |
-| Mobile | Camera-first upload, fast results, swipeable comparison, save/share, retention. |
-| Future Store / Widget | Merchant-hosted try-on, frame catalog, shopper intent, lead capture, analytics. |
+No duplicate agent commerce stack should be created.
 
 ---
 
-## 7. Ownership Boundaries
+## 12. What Not to Split or Build Yet
 
-### Platform-owned capabilities
+Do not create independent systems/products prematurely for:
 
-These belong primarily in `franksunye/VisuTry`:
+- Consumer vs Merchant decision engines when shared capabilities suffice;
+- a separate Merchant Discovery product line;
+- a separate agent commerce backend;
+- independent Mobile backend/billing;
+- independent SDK commercial billing;
+- generic CRM/marketing automation;
+- generalized Campaign Builder without evidence;
+- Shopify/WooCommerce public app before the Merchant proof sequence justifies it;
+- EHR/PMS or inventory ERP replacement;
+- public agent API solely for positioning.
 
-- Auth / account state;
-- credits and quota;
-- Stripe payments and webhooks;
-- stored TryOnTask history;
-- dashboard;
-- admin;
-- SEO / GEO;
-- merchant validation;
-- product planning and source-of-truth docs.
-
-### SDK-owned capabilities
-
-These belong primarily in `franksunye/visutry-tryon-sdk`:
-
-- face geometry;
-- landmark calculation;
-- face-shape algorithm;
-- AR renderer;
-- recommendation engine;
-- asset standard;
-- platform adapters.
-
-### Mobile-owned capabilities
-
-These belong primarily in `franksunye/visutry-mobile`:
-
-- mobile interaction design;
-- PWA shell;
-- camera-first flow;
-- mobile state management;
-- offline-friendly UI where appropriate;
-- platform adapters for future mobile / mini-program migration.
+The system should evolve by proving user/merchant value first and extracting stable capability second.
 
 ---
 
-## 8. What Not to Split Yet
-
-Do not split the following into independent systems prematurely:
-
-- independent Mobile backend;
-- independent Mobile billing;
-- independent Mobile account system;
-- independent SDK commercial pricing;
-- independent SDK merchant dashboard;
-- separate Store backend before merchant validation;
-- Shopify / WooCommerce public app before hosted workflow validation.
-
-The system should evolve by validating demand first and extracting stable shared capability second.
-
----
-
-## 9. Roadmap Sequencing
+## 13. Roadmap Sequencing
 
 ### Near term
 
-- Keep VisuTry Web as the primary product and commercial validation surface.
-- Keep SDK focused on stable, testable face / try-on / recommendation capabilities.
-- Keep Mobile as a lightweight camera-first PWA surface using platform APIs and SDK.
-- Complete Credits Pack conversion and Frame Compare productization in the main platform.
+- Keep Consumer Discovery → Decision stable and growing.
+- Run the Merchant Discovery Proof Sprint using the existing Store/Campaign/Agent-ready architecture.
+- Establish canonical Store/Product/Campaign discovery semantics and Merchant measurement evidence before expanding Merchant product surface area.
+- Keep SDK focused on stable/testable eyewear intelligence capability.
 
-### Medium term
+### After proof
 
-- Use SDK capabilities consistently across Web and Mobile.
-- Validate VisuTry Store with hosted links before building platform wrappers.
-- Decide whether custom frames and comparison-board sharing should be shared across Web and Mobile.
+- Use Merchant discovery evidence to decide which distribution integrations matter.
+- Validate the first real merchant using a real catalog and declared traffic source.
+- Expand only the Store/Campaign/agent capabilities required by repeated merchant demand.
 
-### Long term
+### Later / evidence-gated
 
-- Package SDK capabilities for external developer / partner use where useful.
-- Extend Mobile toward WeChat Mini Program if market need justifies it.
-- Add merchant widget / Shopify / WooCommerce only after workflow validation.
+- Shopify/WooCommerce wrappers;
+- broader API/agent action surfaces;
+- richer commerce attribution/integration;
+- professional Studio workflows;
+- multi-brand/agency organization layers where needed.
 
 ---
 
-## 10. Related Documents
+## 14. Related Documents
 
-- `docs/product/product-plan.md`
-- `docs/product/specs/frame-compare.md`
-- `docs/product/specs/credits-pack-conversion.md`
-- `docs/product/specs/visutry-store-mvp.md`
 - `docs/strategy/commercial-strategy.md`
-- `docs/decisions/ADR-003-product-plan-execution-source-of-truth.md`
-- `docs/decisions/ADR-004-frame-compare-core-implemented.md`
+- `docs/product/product-plan.md`
+- `docs/strategy/analytics/gtm.md`
+- `docs/product/specs/visutry-store-mvp.md`
+- `docs/product/plans/agent-native-merchant-self-service.md`
+- `docs/product/plans/product-advantage-gate.md`
+- `docs/project/observability-and-analytics-contract.md`
+- `docs/project/architecture.md`
+- `docs/decisions/ADR-007-store-consumer-stability-boundary.md`
 
 ---
 
-## 11. Change Log
+## 15. Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created product system overview for Web, SDK, and Mobile repositories. |
+| 2026-09-13 | Expanded the authority to explicit Consumer/Merchant product boundaries; made Consumer a first-class Discovery → Decision product; formalized Merchant Discovery Engine, Store/Product/Campaign/Decision/Intent definitions, and Merchant Discovery → Decision → Intent measurement while retaining the existing Agent-ready Commerce architecture. |

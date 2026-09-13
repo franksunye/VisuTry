@@ -1,12 +1,12 @@
-# VisuTry GTM v3.3：10× Qualified Traffic Execution Plan
+# VisuTry GTM v3.4：10× Qualified Traffic Execution Plan
 
 **Status:** Active source of truth for GTM execution  
-**Version:** 3.3
-**Last updated:** 2026-08-15
+**Version:** 3.4
+**Last updated:** 2026-09-13
 **Owner:** Growth / Product / Engineering / Analytics  
 **Review cadence:** Weekly  
 **Execution horizon:** 60–90 days  
-**Scope:** Consumer acquisition, SEO, AI discovery, visual discovery, external distribution, funnel conversion, growth engineering, and measurement.
+**Scope:** Consumer acquisition, SEO, AI discovery, visual discovery, external distribution, funnel conversion, growth engineering, measurement, and the boundary between Consumer growth evidence and Merchant proof.
 
 > This is the only active GTM execution plan for VisuTry. Historical SEO, backlink, directory, outreach, GEO, brand-page, and growth-sprint documents remain supporting references or execution history only. They do not create parallel GTM priorities.
 
@@ -34,6 +34,34 @@ The strongest current commercial interpretation is:
 - consumer subscription remains secondary unless future repeat-use data proves otherwise.
 
 The immediate GTM task is therefore not to invent more product surface area. It is to scale the number of qualified users entering this workflow and measure what they do.
+
+### Product boundary — Consumer growth vs Merchant proof
+
+Consumer remains a first-class product surface with its own **Discovery → Decision** growth loop. Consumer SEO, Search, visual discovery, AI discovery, traffic growth, product validation, and payment conversion remain independently valid outcomes.
+
+Consumer traffic must not be counted as Merchant traffic proof merely because the acquisition source is Search or an AI assistant.
+
+The measurement boundary is:
+
+```text
+Consumer
+Search / AI / Visual / External
+→ Consumer session
+→ Face Analysis / Recommendation / Try-On / Compare
+→ Consumer checkout / purchase
+
+Merchant
+Search / AI Discovery
+→ Merchant Store / Product / PUBLIC_INDEX Campaign
+→ MerchantSession
+→ Product Decision
+→ Recommendation / Try-On / Compare
+→ MerchantIntent
+```
+
+Merchant commercial proof must be merchant-scoped and use the Merchant measurement plane governed by the current product/observability authorities. Consumer sessions, Consumer AI referrals, and Consumer purchases may inform company strategy, but they do not satisfy Merchant discovery or Merchant conversion proof.
+
+This boundary supplements the Consumer growth strategy below; it does not replace or weaken it.
 
 ---
 
@@ -381,17 +409,17 @@ This is the authoritative marketing execution scope for the 10× phase.
 
 ### P0 — AI discovery consistency
 
-The canonical public identity is:
+The canonical company-level identity is:
 
-> **VisuTry is an eyewear decision and conversion platform that helps shoppers discover suitable frames, preview them, compare options, and move toward purchase.**
+> **VisuTry is an AI eyewear decision and commerce platform for both consumers and merchants.**
 
-The canonical consumer path is:
+The canonical Consumer path is:
 
 > **Face Shape Detector → Glasses Advisor → Virtual Try-On → Frame Compare**
 
-The canonical merchant position is:
+The canonical Merchant position is:
 
-> **VisuTry Store is an AI Commerce / Campaign Engine for eyewear merchants that turns human and AI-assistant traffic into personalized frame discovery, measurable purchase intent, and conversion signals.**
+> **VisuTry helps eyewear merchants become more discoverable across search and AI, and turns that discovery into measurable shopper intent.**
 
 Execution requirements:
 
@@ -411,17 +439,18 @@ Execution requirements:
    - virtual try-on does not guarantee physical fit, prescription, or comfort.
 5. Do not make model-vendor names part of VisuTry's durable public identity.
 6. Do not describe VisuTry globally as a general clothing, footwear, accessories, or universal fashion try-on platform. Legacy capabilities may remain available without defining the brand.
-7. Describe Store as agent-ready through public facts, stable URLs, structured metadata, and attribution. Do not claim a public agent API, autonomous purchase action, SDK, Shopify app, or WooCommerce plugin before those surfaces exist.
+7. Describe Store as agent-ready through public facts, stable URLs, structured metadata, and attribution. Do not claim guaranteed Google rankings, guaranteed ChatGPT citations, guaranteed Gemini/Perplexity recommendations, a public agent API, autonomous purchase action, SDK, Shopify app, or WooCommerce plugin before those outcomes/surfaces are proven or exist.
 8. Convert recurring concrete eyewear questions into answerable first-party pages.
 9. Track ChatGPT and other identifiable AI landing pages and continuation behavior.
+10. Keep Consumer AI discovery reporting separate from Merchant discovery proof even when the referrer is the same AI assistant.
 
 Acceptance conditions:
 
 - the canonical descriptions above appear without contradictory global claims across machine-readable and primary visible surfaces;
 - `llms.txt` covers both the consumer workflow and merchant product;
-- Organization, WebSite, and Store structured data describe the same eyewear decision / conversion category;
+- Organization, WebSite, and Store structured data describe the same eyewear decision / commerce category without weakening Consumer as a first-class product;
 - global metadata contains no model-vendor positioning and no multi-category try-on identity;
-- all supported locales preserve the four product roles and the same privacy / pricing boundaries;
+- all supported locales preserve the four Consumer product roles and the same privacy / pricing boundaries;
 - the weekly dashboard compares AI Assistant sessions, engaged sessions, engagement rate, continuation events, landing pages, and verified revenue;
 - any AI landing page with rising sessions but falling qualified continuation receives an improve / merge / stop decision.
 
@@ -502,6 +531,22 @@ The current consumer Checkout baseline and reopening conditions are defined in
 observation period: do not change price, Link, payment-method presentation,
 report-unlock copy, or Checkout layout until at least 14 days and 30–50 unique
 Sessions have accumulated, unless a payment-integrity incident is found.
+
+### Merchant proof exclusion
+
+Consumer analytics remain the authority for Consumer GTM only. Do not infer Merchant proof from Consumer GA/source data.
+
+Merchant commercial proof must be measured through the merchant-scoped path:
+
+```text
+source / referral
+→ MerchantSession
+→ merchant product / decision event
+→ Recommendation / Try-On / Compare
+→ MerchantIntent
+```
+
+The exact data-plane ownership and implemented fields remain governed by `docs/project/observability-and-analytics-contract.md` and runtime contracts. This GTM document does not redefine schemas.
 
 ### P0 — Weekly dashboard
 
@@ -738,6 +783,7 @@ No experiment survives repeated weak reviews because effort has already been inv
 | External distribution creates no referral, authority, or question insight | Stop / reduce |
 | Page family remains unindexed or demandless after a reasonable window | Fix, merge, rewrite, or stop |
 | Revenue / 1,000 sessions falls materially as traffic scales | Treat growth as low quality and reallocate effort |
+| Consumer Search/AI traffic grows while Merchant Store/Campaign discovery remains zero | Preserve Consumer growth; diagnose Merchant discovery separately and do not reclassify Consumer traffic as Merchant proof |
 
 ---
 
@@ -755,7 +801,8 @@ During the current 60–90-day phase, do not create independent initiatives for:
 - 1,000+ page programmatic SEO;
 - large paid-acquisition campaigns intended to manufacture traction;
 - large consumer features unrelated to the funnel;
-- large B2B implementation before merchant validation.
+- large B2B implementation before merchant validation;
+- counting Consumer traffic as Merchant traffic proof.
 
 ---
 
@@ -781,6 +828,8 @@ SEO/GEO architecture, keyword research, backlink ledgers, YouTube/Reddit history
 
 If another document conflicts with this document on current GTM priority, this document wins unless explicitly replaced by a later source-of-truth version.
 
+Merchant proof follows `docs/product/product-system.md`, `docs/product/product-plan.md`, and the observability/data authorities; it is not created by relabeling Consumer GTM metrics.
+
 ---
 
 ## 17. One-line decision standard
@@ -797,6 +846,7 @@ And every weekly review ends with:
 
 | Version | Date | Change |
 | --- | --- | --- |
+| 3.4 | 2026-09-13 | Preserved the Consumer 10× growth strategy while making the product boundary explicit: Consumer SEO/AI discovery remains independently valid, but Consumer traffic cannot count as Merchant proof; Merchant value must be demonstrated through merchant-scoped MerchantSession/Event/Intent outcomes. Aligned company and Merchant positioning without changing the Consumer growth objective. |
 | 3.3 | 2026-08-15 | Added the latest GA checkpoint: +32.43% weekly sessions, +118.82% AI Assistant sessions, current 28-day and seven-day run rates, the 3,000–5,000 milestone status, and the weekly-versus-monthly growth measurement rule. |
 | 3.2 | 2026-08-10 | Froze the consumer and merchant AI-facing message contract; added the AI traffic-quality baseline and claim boundaries; closed the current Checkout optimization round with a server-side lifecycle observation protocol and evidence-based reopening conditions. |
 | 3.1 | 2026-08-03 | Split the 10× qualified-traffic plan into Engineering, Growth, and Product / Analytics execution backlogs. |
