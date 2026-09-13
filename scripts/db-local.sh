@@ -62,21 +62,8 @@ case "$ACTION" in
   migrate)
     refuse_remote
     "$0" up >/dev/null
-    if [[ "$(psql "$LOCAL_URL" -Atc "SELECT to_regclass('_prisma_migrations') IS NULL")" == "t" ]]; then
-      echo "→ Bootstrapping the historical baseline migrations in dependency order"
-      psql "$LOCAL_URL" -f prisma/migrations/20250918030414_init/migration.sql >/dev/null
-      psql "$LOCAL_URL" -f prisma/migrations/20250116_add_premium_usage_count/migration.sql >/dev/null
-      psql "$LOCAL_URL" -f prisma/migrations/20250118_add_promo_product_types/migration.sql >/dev/null
-      DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma migrate resolve --applied 20250918030414_init
-      DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma migrate resolve --applied 20250116_add_premium_usage_count
-      DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma migrate resolve --applied 20250118_add_promo_product_types
-    fi
+    echo "→ Applying the canonical active migration path"
     DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma migrate deploy
-    # The historical repository contains fields that were resolved into the
-    # production baseline without a replayable migration. Keep Local usable
-    # from an empty cluster by reconciling the schema after the migration run;
-    # this path is never used by Vercel/Production.
-    DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma db push --accept-data-loss >/dev/null
     APP_ENV=local VISUTRY_DATABASE_IDENTITY="$VISUTRY_DATABASE_IDENTITY" DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx tsx scripts/db-environment.ts register
     ;;
   seed)
