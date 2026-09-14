@@ -28,6 +28,13 @@ VisuTry focuses on eyewear decisions. It should not be described as a general-pu
 - Store is designed to understand traffic from both people and AI assistants or agents through stable public URLs, explicit product facts, structured metadata, and source attribution.
 - VisuTry does not currently claim a public agent action API, public SDK, Shopify app, or WooCommerce plugin.
 
+## First-party discovery canary
+
+- [VisuTry Demo Store](https://www.visutry.com/en/store/visutry-demo): a first-party, non-commercial demo surface for evaluating frame discovery, virtual try-on, comparison, and shopper decision flows.
+- [VisuTry Demo Everyday Fit Campaign](https://www.visutry.com/en/c/visutry-demo/everyday-fit): a first-party demo campaign for guided frame discovery.
+- Demo frame detail pages: [Round](https://www.visutry.com/en/demo/frames/round), [Rectangle](https://www.visutry.com/en/demo/frames/rectangle), [Oval](https://www.visutry.com/en/demo/frames/oval), [Browline](https://www.visutry.com/en/demo/frames/browline), [Aviator](https://www.visutry.com/en/demo/frames/aviator), and [Cat-Eye](https://www.visutry.com/en/demo/frames/cat-eye).
+- Demo frames are first-party demonstration inventory and are not offered for sale; this surface does not imply an external merchant, customer, or partner relationship.
+
 ## Stable product facts
 
 - The Face Shape Detector is free, requires no login, and processes the selected photo in browser memory without uploading it to VisuTry.
