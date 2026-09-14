@@ -104,6 +104,7 @@
     "version:bump": "npm version --no-git-tag-version",
     "seo:check": "echo 'Checking SEO configuration...' && node -e \"console.log('Site URL:', process.env.NEXT_PUBLIC_SITE_URL || 'Not set')\"",
     "report:agent-distribution": "tsx scripts/agent-distribution-report.ts",
+    "discovery:indexnow": "tsx scripts/discovery-indexnow.ts",
     "analyze": "ANALYZE=true next build",
     "analyze:server": "BUNDLE_ANALYZE=server next build",
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
