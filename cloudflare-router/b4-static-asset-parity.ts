@@ -24,7 +24,7 @@
  * Forensic sequence:
  *   1. `CI=1 npm run build:ci`
  *   2. `npm run b4:snapshot-vercel-next`  → `.artifacts/b4/vercel-next`
- *   3. `npm run build:cloudflare`
+ *   3. `npm run build:cloudflare:opennext`
  *   4. `npm run b4:asset-parity`
  *
  * Exit: 0 pass, 1 fail, 2 skipped (snapshot or OpenNext assets missing)
@@ -172,7 +172,7 @@ export function hashedStaticParityGate(options?: {
   if (!fs.existsSync(vercelStaticRoot) || !marker) {
     return withIds(
       'skipped',
-      `Vercel Next snapshot missing at ${vercelNextDir} (need ${B4_VERCEL_NEXT_SNAPSHOT_MARKER}). Run \`npm run b4:snapshot-vercel-next\` after \`npm run build:ci\` and before \`npm run build:cloudflare\`. Live .next is not a valid Vercel artifact after a Cloudflare build.`,
+      `Vercel Next snapshot missing at ${vercelNextDir} (need ${B4_VERCEL_NEXT_SNAPSHOT_MARKER}). Run \`npm run b4:snapshot-vercel-next\` after \`npm run build:ci\` and before \`npm run build:cloudflare:opennext\`. Live .next is not a valid Vercel artifact after an OpenNext research build.`,
       { cloudflareBuildId: readBuildId(path.join(process.cwd(), '.next')) },
     )
   }

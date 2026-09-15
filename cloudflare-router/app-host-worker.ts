@@ -1,10 +1,8 @@
-import app from '../.open-next/worker.js'
 import { handleApprovedEdgeApi, isApprovedEdgeApi } from './approved-edge-api'
 import {
   classifyStagingPublicSlice,
   fallbackRequest,
   forceVercelForNextFrontend,
-  resolveOpenNextAppWorker,
   rewriteFallbackLocation,
   routerLogFields,
   sanitizeWorkerException,
@@ -13,6 +11,9 @@ import {
 
 interface Env {
   VERCEL_ORIGIN: string
+  ASSETS: {
+    fetch(request: Request): Promise<Response>
+  }
   PUBLIC_HOST?: string
   NODE_ENV?: string
   ROUTER_ENV?: string
@@ -22,12 +23,6 @@ interface RouterExecutionContext {
   waitUntil(promise: Promise<unknown>): void
   passThroughOnException(): void
 }
-
-interface AppWorker {
-  fetch(request: Request, env: unknown, ctx: RouterExecutionContext): Promise<Response>
-}
-
-const appWorker = resolveOpenNextAppWorker(app) as unknown as AppWorker
 
 export default {
   async fetch(request: Request, env: Env, ctx: RouterExecutionContext): Promise<Response> {
@@ -41,7 +36,10 @@ export default {
       try {
         const response = isApprovedEdgeApi(request)
           ? await handleApprovedEdgeApi(request, env)
-          : await appWorker.fetch(request, env, ctx)
+          // Production Cloudflare owns only non-Next static assets and the
+          // explicitly approved edge APIs. A missing Static Asset is a 404;
+          // Next HTML/RSC and all other application work go to Vercel below.
+          : await env.ASSETS.fetch(request)
         const latencyMs = Date.now() - startedAt
         console.log(JSON.stringify(routerLogFields(request, decision, response.status, latencyMs)))
         return withB4RouterHeaders(response, decision, latencyMs)

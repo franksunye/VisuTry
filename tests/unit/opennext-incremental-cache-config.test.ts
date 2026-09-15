@@ -37,11 +37,27 @@ describe('OpenNext static-assets incremental cache production config', () => {
 
   it('wires populate into the production Cloudflare build path', () => {
     const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')) as { scripts: Record<string, string> }
-    expect(pkg.scripts['build:cloudflare']).toMatch(/populate-opennext-static-assets-cache\.mjs/)
+    expect(pkg.scripts['build:cloudflare:opennext']).toMatch(/populate-opennext-static-assets-cache\.mjs/)
     expect(fs.existsSync(POPULATE_SCRIPT)).toBe(true)
     const populate = fs.readFileSync(POPULATE_SCRIPT, 'utf8')
     expect(populate).toMatch(/cdn-cgi\/_next_cache/)
     expect(populate).toMatch(/\.open-next\/cache/)
+  })
+
+  it('keeps the production Cloudflare build on the traffic-layer asset path', () => {
+    const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')) as { scripts: Record<string, string> }
+    expect(pkg.scripts['build:cloudflare']).toBe('node scripts/prepare-cloudflare-assets.mjs')
+    expect(pkg.scripts['ci:cloudflare:build']).toBe('npm run build:cloudflare')
+    expect(pkg.scripts['build:cloudflare']).not.toMatch(/prisma|next build|opennext/i)
+
+    const worker = fs.readFileSync(path.join(ROOT, 'cloudflare-router/app-host-worker.ts'), 'utf8')
+    expect(worker).not.toMatch(/\.open-next\/worker\.js|resolveOpenNextAppWorker|appWorker\.fetch/)
+    expect(worker).toMatch(/env\.ASSETS\.fetch\(request\)/)
+
+    const prepare = path.join(ROOT, 'scripts/prepare-cloudflare-assets.mjs')
+    expect(fs.existsSync(prepare)).toBe(true)
+    expect(fs.readFileSync(prepare, 'utf8')).toMatch(/path\.join\(root, 'public'\)/)
+    expect(fs.readFileSync(prepare, 'utf8')).toMatch(/rmSync\(outputRoot/)
   })
 
   const compiledPath = path.join(ROOT, '.open-next', '.build', 'open-next.config.mjs')

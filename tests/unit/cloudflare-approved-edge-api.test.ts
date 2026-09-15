@@ -162,7 +162,7 @@ describe('approved edge API OpenNext bypass', () => {
     expect(incrementalSet).not.toHaveBeenCalled()
   })
 
-  it('does not import OpenNext incremental cache and dispatches before appWorker.fetch', () => {
+  it('does not import OpenNext incremental cache and dispatches before Static Assets', () => {
     const handler = fs.readFileSync(path.join(__dirname, '../../cloudflare-router/approved-edge-api.ts'), 'utf8')
     const imports = handler.split('\n').filter((line) => line.startsWith('import '))
     expect(imports.join('\n')).not.toMatch(/@opennextjs|\.open-next|incremental-cache/)
@@ -173,11 +173,11 @@ describe('approved edge API OpenNext bypass', () => {
 
     const worker = fs.readFileSync(path.join(__dirname, '../../cloudflare-router/app-host-worker.ts'), 'utf8')
     const dispatchAt = worker.indexOf('handleApprovedEdgeApi')
-    const openNextAt = worker.indexOf('appWorker.fetch')
+    const assetsAt = worker.indexOf('env.ASSETS.fetch')
     expect(worker).toMatch(/isApprovedEdgeApi\(request\)/)
     expect(dispatchAt).toBeGreaterThan(-1)
-    expect(openNextAt).toBeGreaterThan(dispatchAt)
-    expect(worker.match(/appWorker\.fetch/g)).toHaveLength(1)
+    expect(assetsAt).toBeGreaterThan(dispatchAt)
+    expect(worker).not.toMatch(/\.open-next\/worker|appWorker\.fetch|resolveOpenNextAppWorker/)
   })
 
   it('keeps the Next frontend guardrail: /_next and RSC stay Vercel, approved APIs stay Cloudflare', () => {

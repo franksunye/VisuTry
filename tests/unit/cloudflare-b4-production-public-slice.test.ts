@@ -260,7 +260,7 @@ describe('B4.2 first production public slice', () => {
     expect(B4_OPENNEXT_ASSET_AUDIT.wranglerRunWorkerFirst).toBe(false)
   })
 
-  it('proves locale/SEO HTML is absent from OpenNext Static Assets when the build is present', () => {
+  it('proves production traffic-layer assets contain no Next HTML or client graph', () => {
     const assetsRoot = path.join(__dirname, '../../.open-next/assets')
     if (!fs.existsSync(assetsRoot)) return
     expect(fs.existsSync(path.join(assetsRoot, 'en.html'))).toBe(false)
@@ -271,7 +271,8 @@ describe('B4.2 first production public slice', () => {
     expect(fs.existsSync(path.join(assetsRoot, 'robots.txt'))).toBe(true)
     expect(fs.existsSync(path.join(assetsRoot, 'llms.txt'))).toBe(true)
     expect(fs.existsSync(path.join(assetsRoot, 'favicon.ico'))).toBe(true)
-    expect(fs.existsSync(path.join(assetsRoot, '_next/static'))).toBe(true)
+    expect(fs.existsSync(path.join(assetsRoot, '_next/static'))).toBe(false)
+    expect(fs.existsSync(path.join(__dirname, '../../.open-next/worker.js'))).toBe(false)
   })
 
   it('keeps first-cutover manifest rows limited to NON-Next static assets and APIs', () => {
