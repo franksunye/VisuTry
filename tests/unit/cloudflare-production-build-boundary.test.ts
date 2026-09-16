@@ -38,11 +38,18 @@ describe('Cloudflare production build boundary', () => {
       scripts: Record<string, string>
     }
     expect(pkg.scripts['deploy:cloudflare:production']).toContain(
-      'OPEN_NEXT_DEPLOY=true wrangler deploy --env production --keep-vars',
+      'OPEN_NEXT_DEPLOY=true npx wrangler deploy --config wrangler.production-traffic-layer.jsonc --env production --keep-vars',
     )
     expect(pkg.scripts['ci:cloudflare:deploy:production']).toBe(
-      'OPEN_NEXT_DEPLOY=true wrangler deploy --env production --keep-vars',
+      'OPEN_NEXT_DEPLOY=true npx wrangler deploy --config wrangler.production-traffic-layer.jsonc --env production --keep-vars',
     )
+  })
+
+  it('keeps the production config pinned to the traffic-layer entrypoint', () => {
+    const config = fs.readFileSync(path.join(ROOT, 'wrangler.production-traffic-layer.jsonc'), 'utf8')
+    expect(config).toMatch(/"main"\s*:\s*"cloudflare-router\/app-host-worker\.ts"/)
+    expect(config).toMatch(/"name"\s*:\s*"visutry-cf-production"/)
+    expect(config).not.toMatch(/\.open-next\/worker\.js/)
   })
 
   afterEach(() => {
