@@ -92,7 +92,7 @@ Neon PostgreSQL where relational data is required
 
 ### Layer 1 — Cloudflare Static Assets
 
-Served from the Workers Static Assets directory (OpenNext `.open-next/assets`) when `run_worker_first` is `false` and the URL is an exact asset match.
+Served from the Workers Static Assets directory (`.open-next/assets`) when `run_worker_first` is `false` and the URL is an exact asset match. In the production traffic-layer build, this directory is populated from `public/`; the OpenNext output is reserved for staging/full-migration research.
 
 - Hashed `/_next/static/*` assets
 - Proven public static assets (favicon, `/images/*`, `/home/*`, `/experience-heroes/*`, other non-hashed public prefixes present in the asset output)
@@ -107,13 +107,16 @@ Next.js `force-static` HTML is **not** Layer 1 merely because Next labeled the r
 
 The Worker runs only for routes that miss Layer 1 and actually require routing or runtime execution.
 
-- Worker-served Next/OpenNext HTML
-- Locale and root routing
-- Redirects
 - Lightweight public APIs
 - Direct-Neon capabilities where proven
 - Capability classification (`cf-ready` vs `vercel-required` vs `unknown-fallback`)
+- Proxy routing for `vercel-required` and unknown requests to Vercel
 - These requests **count against** the Worker request quota
+
+The production Worker does not build or execute a peer Next/OpenNext frontend.
+Vercel remains responsible for Next HTML, RSC/Flight, redirects, sitemaps, and
+business/page-data execution. OpenNext remains available only through the
+explicit staging/research commands.
 
 Layer 2 must not be used as a quota offload via Workers Caching. Cache hits still count as Worker requests and can bill otherwise-free Layer 1 assets.
 

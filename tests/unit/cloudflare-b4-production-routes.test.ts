@@ -53,7 +53,8 @@ describe('B4.2B scoped production Worker Routes', () => {
     expect(wrangler).toMatch(/deploy:cloudflare remains staging-only|visutry-cf-staging/)
     const pkg = fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8')
     expect(pkg).toMatch(/opennextjs-cloudflare deploy --env staging/)
-    expect(pkg).toMatch(/opennextjs-cloudflare deploy --env production/)
+    expect(pkg).toMatch(/deploy:cloudflare:production.*wrangler deploy --env production --keep-vars/)
+    expect(pkg).not.toMatch(/deploy:cloudflare:production.*opennextjs-cloudflare/)
   })
 
   it('generates a finite NON-Next scoped set with no catch-all and no Next client-graph route', () => {

@@ -30,7 +30,10 @@
   // Workers Builds: connect Git to visutry-cf-staging or visutry-cf-production
   // separately. Dashboard Worker name must match wrangler env name. Never add
   // www routes here. Production deploy command must use --env production
-  // --keep-vars so existing P0 Routes and secrets are not rewritten.
+  // --keep-vars so existing P0 Routes and secrets are not rewritten. The
+  // production CI build stages only public/ into this directory; OpenNext is
+  // reserved for staging/full-migration research and is not a second
+  // production Next runtime.
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",

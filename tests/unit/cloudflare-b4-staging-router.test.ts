@@ -252,9 +252,9 @@ describe('B4.2A staging public slice router', () => {
     const workerSource = fs.readFileSync(path.join(__dirname, '../../cloudflare-router/app-host-worker.ts'), 'utf8')
     expect(workerSource).not.toMatch(/retry|fallbackRequest\(.*\).*fallbackRequest/i)
     expect(workerSource.match(/await fetch\(fallbackRequest/g)).toHaveLength(1)
-    expect(workerSource.match(/appWorker\.fetch/g)).toHaveLength(1)
+    expect(workerSource.match(/env\.ASSETS\.fetch/g)).toHaveLength(1)
     expect(workerSource.indexOf('handleApprovedEdgeApi')).toBeGreaterThan(-1)
-    expect(workerSource.indexOf('handleApprovedEdgeApi')).toBeLessThan(workerSource.indexOf('appWorker.fetch'))
+    expect(workerSource.indexOf('handleApprovedEdgeApi')).toBeLessThan(workerSource.indexOf('env.ASSETS.fetch'))
   })
 
   it('redacts secrets from Worker exception logs and resolves OpenNext default export', () => {
