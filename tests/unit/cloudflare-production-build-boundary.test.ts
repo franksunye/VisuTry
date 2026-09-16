@@ -6,7 +6,6 @@ import os from 'node:os'
 import path from 'node:path'
 
 const ROOT = path.join(__dirname, '../..')
-const WRANGLER = path.join(ROOT, 'node_modules/.bin/wrangler')
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 
 const productionBuildEnv = { ...process.env }
@@ -34,6 +33,18 @@ for (const key of [
 describe('Cloudflare production build boundary', () => {
   let bundleDir: string
 
+  it('pins production deployment to the traffic-layer Wrangler entrypoint', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')) as {
+      scripts: Record<string, string>
+    }
+    expect(pkg.scripts['deploy:cloudflare:production']).toContain(
+      'OPEN_NEXT_DEPLOY=true wrangler deploy --env production --keep-vars',
+    )
+    expect(pkg.scripts['ci:cloudflare:deploy:production']).toBe(
+      'OPEN_NEXT_DEPLOY=true wrangler deploy --env production --keep-vars',
+    )
+  })
+
   afterEach(() => {
     if (bundleDir) fs.rmSync(bundleDir, { recursive: true, force: true })
   })
@@ -47,11 +58,11 @@ describe('Cloudflare production build boundary', () => {
     expect(buildOutput).toMatch(/Prepared Cloudflare traffic-layer assets/)
 
     bundleDir = fs.mkdtempSync(path.join(os.tmpdir(), 'visutry-cloudflare-production-'))
-    execFileSync(WRANGLER, [
-      'deploy',
+    execFileSync(NPM, [
+      'run',
+      'ci:cloudflare:deploy:production',
+      '--',
       '--dry-run',
-      '--env',
-      'production',
       '--outdir',
       bundleDir,
       '--metafile',
