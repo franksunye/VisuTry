@@ -33,6 +33,24 @@
     "production": {
       "name": "visutry-cf-production",
       "workers_dev": true,
+      // REPO-MANAGED PRODUCTION CONTRACT: keep this exact, reviewed set in
+      // sync with the live zone routes. Dashboard edits are emergency-only and
+      // must be reconciled here immediately. Vercel remains the sole producer
+      // of the Next.js HTML, RSC/Flight, and client asset graph.
+      "routes": [
+        { "pattern": "www.visutry.com/blog-covers/*", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/assets/*", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/images/*", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/home/*", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/experience-heroes/*", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/favicon.ico", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/robots.txt", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/llms.txt", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/api/health", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/api/glasses/brands", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/api/glasses/categories", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/api/glasses/face-shapes", "zone_name": "visutry.com" }
+      ],
       "vars": {
         "ROUTER_ENV": "production",
         "NEXTAUTH_URL": "https://www.visutry.com",
