@@ -1,0 +1,44 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // This is the production traffic-layer entrypoint. It is intentionally
+  // separate from wrangler.jsonc so a repository OpenNext project cannot
+  // change the production Worker selected by the deploy command.
+  "name": "visutry-cf-staging",
+  "main": "cloudflare-router/app-host-worker.ts",
+  "compatibility_date": "2026-08-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+    "run_worker_first": false,
+    "not_found_handling": "none"
+  },
+  "env": {
+    "production": {
+      "name": "visutry-cf-production",
+      "workers_dev": true,
+      "vars": {
+        "ROUTER_ENV": "production",
+        "NEXTAUTH_URL": "https://www.visutry.com",
+        "VERCEL_ORIGIN": "https://visutry.vercel.app",
+        "PUBLIC_HOST": "www.visutry.com"
+      }
+    }
+  }
+}

@@ -6,7 +6,6 @@ import os from 'node:os'
 import path from 'node:path'
 
 const ROOT = path.join(__dirname, '../..')
-const WRANGLER = path.join(ROOT, 'node_modules/.bin/wrangler')
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 
 const productionBuildEnv = { ...process.env }
@@ -34,6 +33,25 @@ for (const key of [
 describe('Cloudflare production build boundary', () => {
   let bundleDir: string
 
+  it('pins production deployment to the traffic-layer Wrangler entrypoint', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')) as {
+      scripts: Record<string, string>
+    }
+    expect(pkg.scripts['deploy:cloudflare:production']).toContain(
+      'OPEN_NEXT_DEPLOY=true npx wrangler deploy --config wrangler.production-traffic-layer.jsonc --env production --keep-vars',
+    )
+    expect(pkg.scripts['ci:cloudflare:deploy:production']).toBe(
+      'OPEN_NEXT_DEPLOY=true npx wrangler deploy --config wrangler.production-traffic-layer.jsonc --env production --keep-vars',
+    )
+  })
+
+  it('keeps the production config pinned to the traffic-layer entrypoint', () => {
+    const config = fs.readFileSync(path.join(ROOT, 'wrangler.production-traffic-layer.jsonc'), 'utf8')
+    expect(config).toMatch(/"main"\s*:\s*"cloudflare-router\/app-host-worker\.ts"/)
+    expect(config).toMatch(/"name"\s*:\s*"visutry-cf-production"/)
+    expect(config).not.toMatch(/\.open-next\/worker\.js/)
+  })
+
   afterEach(() => {
     if (bundleDir) fs.rmSync(bundleDir, { recursive: true, force: true })
   })
@@ -47,11 +65,11 @@ describe('Cloudflare production build boundary', () => {
     expect(buildOutput).toMatch(/Prepared Cloudflare traffic-layer assets/)
 
     bundleDir = fs.mkdtempSync(path.join(os.tmpdir(), 'visutry-cloudflare-production-'))
-    execFileSync(WRANGLER, [
-      'deploy',
+    execFileSync(NPM, [
+      'run',
+      'ci:cloudflare:deploy:production',
+      '--',
       '--dry-run',
-      '--env',
-      'production',
       '--outdir',
       bundleDir,
       '--metafile',
