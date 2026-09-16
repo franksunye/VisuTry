@@ -10,6 +10,8 @@
 
 **Cloudflare owns:** DNS/proxy/CDN/WAF, approved non-Next public static assets, and the 4 approved lightweight edge APIs. Current production Worker Routes are exactly 12 non-Next routes.
 
+**Worker Routes ownership: REPO-MANAGED.** The canonical deployment declaration is [`wrangler.production-traffic-layer.jsonc`](../../wrangler.production-traffic-layer.jsonc). Production route changes require Git review; Dashboard edits are emergency-only and must be reconciled into Git immediately. The read-only `npm run cf:routes:check` check detects local/live divergence.
+
 MediaPipe runtime/model binaries are served separately through the isolated `assets.visutry.com` Worker + R2 path. This hostname is separate from the 12 approved `www.visutry.com` production Worker Routes.
 
 The architectural decision is recorded in `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md`.

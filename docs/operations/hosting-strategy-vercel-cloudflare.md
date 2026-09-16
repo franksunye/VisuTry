@@ -31,6 +31,8 @@ The objective is no longer to answer "Vercel or Cloudflare?" as a provider-selec
 
 The `/_next/static` shared namespace must have exactly one producer. Serving a second (`CLOUDFLARE_BUILD=1` + OpenNext) client graph from it caused the 2026-08-19 production `ChunkLoadError`. The `www.visutry.com/_next/static/*` Worker Route is **FORBIDDEN** and hard-blocked in code (`cloudflare-router/b4-production-routes.ts`, `cloudflare-router/b4-production-public-slice.ts`).
 
+Production Worker Routes are **REPO-MANAGED** in [`wrangler.production-traffic-layer.jsonc`](../../wrangler.production-traffic-layer.jsonc). Route changes require Git review; emergency Dashboard edits must be reconciled immediately. `npm run cf:routes:check` performs a read-only local-versus-live route drift check.
+
 > Cloudflare must not serve production Next HTML until the entire Next frontend, including `/_next/static`, is migrated as one self-consistent build/runtime.
 
 Enforcement:
