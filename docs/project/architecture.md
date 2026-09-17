@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for current technical architecture  
 **Owner:** Engineering  
-**Last reviewed:** 2026-09-13
+**Last reviewed:** 2026-09-17
 **Review cadence:** Monthly, and whenever a runtime, domain, persistence, or deployment boundary materially changes  
 **Scope:** Current system shape, ownership boundaries, shared platform contracts, production runtime topology, persistence, and architectural guardrails.
 
@@ -80,6 +80,22 @@ The Storefront is a delivery surface; Campaign and commerce intelligence build o
 
 `src/modules/business` is a narrow business-site / merchant-prospect boundary. It does not own merchant commerce runtime behavior.
 
+### Discovery and Merchant activation
+
+Public Store/Campaign discovery is a bounded capability, not a claim that every
+public page or referral is genuine merchant distribution. The first-party
+Discovery Canary and its constrained IndexNow submission path provide explicit
+discovery evidence while keeping internal/reference/test traffic separate from
+commercial KPI reporting. Detailed eligibility and exclusion rules remain in
+`docs/project/observability-and-analytics-contract.md` and the current runtime
+contracts.
+
+Self-service Merchant activation is measured from durable
+`MerchantActivationEvent` milestones in PostgreSQL. GA4/dataLayer observes the
+UX and acquisition funnel, Axiom observes runtime behavior, and neither may be
+used to fabricate durable activation facts or historical cohort joins. The
+activation event contract is maintained in `docs/merchant-activation-v1.md`.
+
 ### Admin
 
 Admin is an operator surface over shared application contracts. It must not invent independent business rules, analytics formulas, campaign lifecycle rules, or persistence semantics.
@@ -152,7 +168,9 @@ Cloudflare owns DNS/proxy/CDN/WAF/traffic shaping and may own explicitly approve
 
 Cloudflare also has a narrowly governed **D1 SEO HTML Cache Shield** for eligible anonymous document HTML. This caches Vercel-produced HTML; it does **not** make Cloudflare a second Next frontend producer. Exact eligibility, TTL, bypass conditions, purge scope, and deployment verification are owned by `cloudflare-router/d1-cache-governance.ts` and `scripts/d1-cache-governance.ts`.
 
-The D1 shield is **active for now and transitional**. The P0.5E production observation is still evidence collection; no removal decision belongs in this architecture authority until that window closes.
+The D1 shield remains **active and transitional** pending an explicit recorded
+P0.5E decision. This architecture authority does not infer removal from
+transient metrics or from an unrecorded observation result.
 
 MediaPipe runtime/model assets use the isolated `assets.visutry.com` Cloudflare Worker + R2 delivery path.
 
@@ -292,3 +310,4 @@ Documentation-only implementation details, route counts, model fields, and packa
 | --- | --- |
 | 2026-09-12 | Rebuilt the architecture authority around the current modular-monolith/domain boundaries; corrected PostgreSQL/Prisma provider abstraction; aligned Vercel/Cloudflare ownership with ADR-011 and the D1 cache shield; moved volatile route/event/schema detail back to code and specialized authorities. |
 | 2026-09-13 | Documented the P0.5A Public Web / Consumer App runtime boundary and P0.5B–D delivery/rendering guardrails; kept D1 transitional while P0.5E remains evidence-gated. |
+| 2026-09-17 | Reconciled the architecture overview with current Merchant Discovery/Activation boundaries and Cloudflare production traffic-layer governance; retained D1 without inferring an unrecorded P0.5E removal decision. |

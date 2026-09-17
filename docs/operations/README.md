@@ -2,7 +2,7 @@
 
 **Status:** Active operations documentation index  
 **Owner:** Product / Engineering  
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-17
 
 ## Current production authority
 
@@ -12,7 +12,7 @@
 
 **Worker Routes ownership: REPO-MANAGED.** The canonical deployment declaration is [`wrangler.production-traffic-layer.jsonc`](../../wrangler.production-traffic-layer.jsonc). Production route changes require Git review; Dashboard edits are emergency-only and must be reconciled into Git immediately. The read-only `npm run cf:routes:check` check detects local/live divergence.
 
-MediaPipe runtime/model binaries are served separately through the isolated `assets.visutry.com` Worker + R2 path. This hostname is separate from the 12 approved `www.visutry.com` production Worker Routes.
+MediaPipe runtime/model binaries are served separately through the isolated `assets.visutry.com` Worker + R2 path. This hostname is separate from the approved `www.visutry.com` production Worker Routes.
 The frontend-ownership decision is recorded in `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md`.
 
 > Cloudflare must not independently produce production Next HTML/RSC/client assets until the entire Next frontend, including `/_next/static`, is migrated as one self-consistent build/runtime and ADR-011 is superseded.
@@ -88,7 +88,7 @@ Most Public Web content is static-first. Intentional runtime ISR remains for the
 5. Unknown/unapproved capabilities remain on the canonical Vercel path.
 6. OpenNext parity/staging evidence does not authorize production Next ownership changes.
 7. Any full Next migration requires a superseding ADR and atomic ownership change across HTML + RSC + client artifacts.
-8. D1 SEO HTML Cache Shield is active for now and transitional; P0.5E observation may change its future classification, but no removal is currently decided.
+8. D1 SEO HTML Cache Shield remains active and transitional pending an explicit recorded P0.5E decision; no removal is inferred from transient or unavailable observation evidence.
 
 ## Historical / archived migration documents
 

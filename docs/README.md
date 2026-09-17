@@ -2,7 +2,7 @@
 
 **Status:** Active documentation entry point  
 **Created:** 2026-07-08  
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-17
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, or whenever product direction / production architecture materially changes.
 
@@ -51,7 +51,8 @@ Active architecture docs should describe **stable ownership and contracts**, not
 - Historical audits/migrations stay immutable unless a factual correction is required; durable conclusions move into an active authority or ADR.
 - The Public Web / Consumer App layout boundary is an active runtime contract: public pages use a deterministic anonymous shell, while Consumer App pages retain the session-aware runtime. Exact route membership remains code-authoritative.
 - Public prefetch and image-delivery rules are architectural guardrails, not a copied implementation inventory: public navigation defaults to no speculative prefetch, fixed sufficiently large editorial assets may use direct delivery, and responsive or dynamic assets remain on optimized/runtime paths.
-- Public content is static-first; intentional runtime ISR remains limited to runtime-mutable discovery surfaces. The active D1 cache shield remains transitional while the P0.5E observation window collects evidence.
+- Public content is static-first; intentional runtime ISR remains limited to runtime-mutable discovery surfaces. The active D1 cache shield remains transitional pending an explicit recorded P0.5E decision.
+- Merchant Discovery and Activation facts belong in the architecture overview only as durable ownership boundaries; detailed eligibility, attribution, milestone, and canary rules remain in the observability and activation authorities.
 
 ## 4. Dated evidence is not a phase tracker
 
@@ -160,3 +161,4 @@ See `docs/document-inventory.md` for lifecycle and cleanup governance.
 | --- | --- |
 | 2026-09-12 | Tightened architecture documentation precedence; made volatile routing/cache/schema detail code-authoritative; removed the documentation index as a perpetual observation-phase tracker. |
 | 2026-09-13 | Refreshed the active documentation contract for the P0.5A Public Web / Consumer App boundary, P0.5B prefetch guardrail, P0.5C image-delivery boundary, P0.5D intentional ISR boundary, and transitional D1 position; no P0.5E conclusion was added. |
+| 2026-09-17 | Reconciled the documentation governance contract with current Merchant Discovery/Activation and Cloudflare traffic-layer changes; no P0.5E conclusion was inferred without a recorded final result. |

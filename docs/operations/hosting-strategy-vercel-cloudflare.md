@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for hosting/runtime ownership
 **Owner:** Product / Engineering
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-17
 **Review cadence:** When production route ownership, cache ownership, runtime provider, or frontend ownership changes
 **Scope:** Production responsibility boundary between Vercel, Cloudflare, and shared external services.
 
@@ -36,12 +36,17 @@ The `/_next/static` shared namespace must have exactly one producer. Serving a s
 
 Production Worker Routes are **REPO-MANAGED** in [`wrangler.production-traffic-layer.jsonc`](../../wrangler.production-traffic-layer.jsonc). Route changes require Git review; emergency Dashboard edits must be reconciled immediately. `npm run cf:routes:check` performs a read-only local-versus-live route drift check.
 
+The production traffic-layer build/deploy explicitly selects
+`cloudflare-router/app-host-worker.ts` through the dedicated Wrangler config;
+it does not select an OpenNext Worker or a Next/Prisma application runtime.
+The production boundary guard and CI run on this explicit configuration.
+
 > Cloudflare must not serve production Next HTML until the entire Next frontend, including `/_next/static`, is migrated as one self-consistent build/runtime.
 
 Enforcement:
 
 - Classifier `classifyB4ProductionPublicSlice` marks all Next HTML / RSC / `/_next/static` as `vercel-required`; the Worker (`app-host-worker.ts`) additionally hard-guards `/_next/*` and RSC to Vercel via `forceVercelForNextFrontend`.
-- The production route generator emits only the 12 approved non-Next routes; `assertSafeB4ProductionRoutes` fails on any `/_next/*` route.
+- The production route generator emits only the approved non-Next routes; `assertSafeB4ProductionRoutes` fails on any `/_next/*` route.
 - `scripts/production-smoke.mjs` fails the release on any Cloudflare-owned Next HTML/static/RSC, or any referenced `/_next/static` asset that 404s.
 - `cloudflare-router/b4-static-asset-parity.ts` is now a forensic/regression guard only — a PASS does NOT authorize enabling Cloudflare `/_next/static`.
 
@@ -160,7 +165,9 @@ The governed rule currently limits caching to approved localized SEO detail fami
 
 The current code also owns the TTL, rule identity/order, purge prefixes, drift verification, and production-deployment proof requirements. Those values must not be duplicated here as permanent architecture constants.
 
-The D1 shield is **active for now and transitional**. The current P0.5E observation window is evidence collection only; it has not decided whether the shield should remain or be removed.
+The D1 shield remains **active and transitional** pending an explicit recorded
+P0.5E decision. This document does not infer removal from transient metrics or
+from an unrecorded observation result.
 
 ### D1 invariant
 
@@ -354,3 +361,4 @@ Routine implementation work should not reopen the architecture decision.
 | 2026-08-19 | Established Vercel as the sole production Next frontend owner after the dual-client-graph incident. |
 | 2026-09-12 | Consolidated the hosting authority around current ownership; removed obsolete Layer-1/Layer-2 wording that implied Cloudflare could produce production Next HTML/assets; incorporated the governed D1 SEO HTML Cache Shield without changing Vercel frontend ownership; made route/cache detail code-authoritative. |
 | 2026-09-13 | Added the P0.5A Public Web / Consumer App boundary and P0.5B–D delivery/rendering guardrails; kept D1 active but transitional pending P0.5E evidence. |
+| 2026-09-17 | Reconciled current production traffic-layer build/route governance and retained the D1 ownership boundary without inferring an unrecorded P0.5E removal decision. |

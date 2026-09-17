@@ -2,7 +2,7 @@
 
 **Status:** Active documentation governance registry  
 **Created:** 2026-07-08  
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-17
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, and at every major milestone close  
 **Scope:** Authoritative documents, directory lifecycle, exceptions, and cleanup debt. This is intentionally not a file-by-file catalog.
@@ -44,7 +44,7 @@ Architecture governance follows these rules:
 5. Architecture boundaries should be provider-neutral where the implementation supports it. Example: PostgreSQL is the persistence contract; Neon is the current provider.
 6. Historical audits/migration documents are evidence. Merge durable conclusions into an active authority or ADR; do not make the historical file “current” by continual edits.
 7. Avoid file-by-file/page-by-page component inventories in architecture authorities. Those lists drift faster than architectural boundaries and belong in code or generated manifests.
-8. The active architecture authorities must describe the stable P0.5A–P0.5D boundaries—Public Web versus Consumer App runtime, public prefetch behavior, image-delivery classes, intentional ISR, and the transitional D1 cache position—without recording a premature P0.5E result.
+8. The active architecture authorities must describe the stable P0.5A–P0.5D boundaries—Public Web versus Consumer App runtime, public prefetch behavior, image-delivery classes, intentional ISR, and the transitional D1 cache position—without inferring an unrecorded P0.5E result.
 
 ## 4. Directory lifecycle
 
@@ -162,3 +162,4 @@ At milestone close or monthly review:
 | 2026-09-04 | Registered the Observability & Analytics Contract; narrowed Campaign Intelligence; removed stale analytics/logging active docs; added Axiom governance work. |
 | 2026-09-12 | Added the architecture-documentation contract; consolidated active architecture/hosting authorities; reconciled Axiom cleanup status with the active observability contract. |
 | 2026-09-13 | Refreshed the active architecture authorities for P0.5A–D; preserved P0.5E as an evidence-gated observation and kept D1 removal undecided. |
+| 2026-09-17 | Reconciled the governance registry with current Merchant Discovery/Activation and Cloudflare production traffic-layer changes; retained the D1 position without inferring an unrecorded P0.5E result. |
