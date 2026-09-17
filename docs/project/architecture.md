@@ -1,9 +1,9 @@
 # VisuTry Project Architecture
 
-**Status:** Active source of truth for current technical architecture  
+**Status:** Active source of truth for current technical architecture
 **Owner:** Engineering  
 **Last reviewed:** 2026-09-17
-**Review cadence:** Monthly, and whenever a runtime, domain, persistence, or deployment boundary materially changes  
+**Review cadence:** Monthly, and whenever a runtime, domain, persistence, or deployment boundary materially changes
 **Scope:** Current system shape, ownership boundaries, shared platform contracts, production runtime topology, persistence, and architectural guardrails.
 
 ## 1. Authority and scope
