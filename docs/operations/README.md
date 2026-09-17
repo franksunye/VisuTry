@@ -33,6 +33,7 @@ The Next App Router separates the anonymous Public Web shell from the session-aw
 | --- | --- | --- |
 | `hosting-strategy-vercel-cloudflare.md` | **Canonical / Active** | Current hybrid architecture and Vercel/Cloudflare responsibility boundary. |
 | `../project/observability-and-analytics-contract.md` | **Canonical / Active** | Operational telemetry, GA4, business-truth, attribution, and dataset ownership. |
+| `infra-daily-watch.md` | **Active / Observation evidence** | Dated production infrastructure checks, including the P0.5E observation conclusion; it does not replace architecture authorities. |
 | `hybrid-performance-benchmark.md` | **Active / Long-term baseline** | Performance discipline for Cloudflare proxy/cache/edge and Vercel paths. |
 | `production-route-migration-performance-protocol.md` | **Active / Scoped** | Protocol for future **non-Next capability** migrations. It does not authorize Next ownership changes while ADR-011 is active. |
 | `vercel-quota-emergency-reduction.md` | **Active playbook** | Emergency Vercel quota/resource reduction actions. |
@@ -88,7 +89,7 @@ Most Public Web content is static-first. Intentional runtime ISR remains for the
 5. Unknown/unapproved capabilities remain on the canonical Vercel path.
 6. OpenNext parity/staging evidence does not authorize production Next ownership changes.
 7. Any full Next migration requires a superseding ADR and atomic ownership change across HTML + RSC + client artifacts.
-8. D1 SEO HTML Cache Shield remains active and transitional pending an explicit recorded P0.5E decision; no removal is inferred from transient or unavailable observation evidence.
+8. D1 SEO HTML Cache Shield remains active and transitional with P0.5E recorded as unresolved and `KEEP_FOR_NOW`; no removal is inferred until a clean observation window supports a separate decision.
 
 ## Historical / archived migration documents
 
@@ -113,6 +114,7 @@ Use:
 
 - `hybrid-performance-benchmark.md` for the long-term benchmark model.
 - `production-route-migration-performance-protocol.md` for non-Next route/capability experiments.
+- `infra-daily-watch.md` for dated production evidence and observation decisions; it does not replace the active architecture authorities.
 - `hosting-strategy-vercel-cloudflare.md` for the architecture being measured.
 
 Do not infer architecture quality from a single Lighthouse run, provider dashboard metric, or stale migration milestone.

@@ -165,9 +165,13 @@ The governed rule currently limits caching to approved localized SEO detail fami
 
 The current code also owns the TTL, rule identity/order, purge prefixes, drift verification, and production-deployment proof requirements. Those values must not be duplicated here as permanent architecture constants.
 
-The D1 shield remains **active and transitional** pending an explicit recorded
-P0.5E decision. This document does not infer removal from transient metrics or
-from an unrecorded observation result.
+The D1 shield remains **active and transitional** with the final P0.5E decision
+`KEEP_FOR_NOW`. P0.5E did not prove the historical ISR/FOT root cause because
+the observation window was contaminated by production changes and lacked
+sufficiently comparable project- and route-level Vercel evidence. This does
+not claim that current Public behavior is unhealthy; it means the historical
+cause remains unproven. Removal requires a separate evidence-backed decision
+after a clean production observation window.
 
 ### D1 invariant
 
@@ -361,4 +365,4 @@ Routine implementation work should not reopen the architecture decision.
 | 2026-08-19 | Established Vercel as the sole production Next frontend owner after the dual-client-graph incident. |
 | 2026-09-12 | Consolidated the hosting authority around current ownership; removed obsolete Layer-1/Layer-2 wording that implied Cloudflare could produce production Next HTML/assets; incorporated the governed D1 SEO HTML Cache Shield without changing Vercel frontend ownership; made route/cache detail code-authoritative. |
 | 2026-09-13 | Added the P0.5A Public Web / Consumer App boundary and P0.5B–D delivery/rendering guardrails; kept D1 active but transitional pending P0.5E evidence. |
-| 2026-09-17 | Reconciled current production traffic-layer build/route governance and retained the D1 ownership boundary without inferring an unrecorded P0.5E removal decision. |
+| 2026-09-17 | Reconciled current production traffic-layer build/route governance; recorded P0.5E as unresolved and retained the D1 ownership boundary as `KEEP_FOR_NOW` pending a clean observation window. |
