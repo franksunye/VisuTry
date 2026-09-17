@@ -491,3 +491,49 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 - Documentation only. No production configuration or business-code change is authorized. The immediate priority is restoring the observability loop, not optimizing from stale evidence.
 
 **Production changes made by review:** NONE
+
+## 2026-09-17 — P0.5E 72h Observation Closure
+
+### Final status
+
+**P0.5E: UNRESOLVED**
+
+The observation window ran from 2026-09-13T04:23:35Z to
+2026-09-16T04:23:35Z.
+
+The window was not clean enough to prove or disprove the historical ISR/FOT
+root cause because production changed four times during the window and exact
+project-/route-level Vercel ISR/FOT metrics were not available.
+
+### Durable conclusions
+
+- P0.5A Public/Consumer runtime boundary remained stable.
+- P0.5B Public speculative-prefetch containment remained stable.
+- P0.5C image-delivery governance remained stable.
+- P0.5D intentional ISR inventory remained valid.
+- No root-cause resolution is claimed.
+- D1 SEO HTML Cache Shield remains `KEEP_FOR_NOW`.
+- A new clean 72h production observation is required before any D1 removal or
+  historical ISR/FOT resolution claim.
+
+### Observation integrity
+
+Production changes during the original window included:
+
+- merchant discovery copy change;
+- merchant discovery measurement-boundary change;
+- IndexNow discovery activation;
+- `llms.txt` canary exposure.
+
+These changes make the original window unsuitable for strict causal
+attribution.
+
+### Decision
+
+**HOLD** infrastructure architecture steady.
+
+Do not remove D1. Do not introduce another ISR/FOT optimization based on this
+contaminated window.
+
+Next step: start a new clean 72h observation only after production/runtime
+configuration is stable.
