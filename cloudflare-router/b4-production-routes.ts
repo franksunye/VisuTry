@@ -1,10 +1,10 @@
 /**
  * Production Worker Routes for www.visutry.com.
  *
- * Vercel is the sole Next frontend owner (B4_NEXT_FRONTEND_OWNER === 'vercel').
- * This generator emits ONLY approved NON-Next capabilities: non-Next public static
- * assets, control files, and read-only edge APIs. It never emits Next HTML routes
- * and never emits `/_next/static/*` — those are FORBIDDEN (see
+ * Vercel is the canonical Next frontend producer (B4_NEXT_FRONTEND_OWNER === 'vercel').
+ * This generator emits approved non-Next capabilities plus the one exact reviewed
+ * public HTML offload route. It never emits other Next HTML routes and never emits
+ * `/_next/static/*` — those are FORBIDDEN (see
  * B4_FORBIDDEN_PRODUCTION_ROUTE_PATTERNS). A future full migration of the entire
  * Next frontend (including /_next/static) to Cloudflare is the only thing that may
  * change this. `npm run deploy:cloudflare` uses `--env staging` only.
@@ -34,6 +34,7 @@ import {
   B4_LOCALES,
   B4_NEXT_FRONTEND_OWNER,
 } from './b4-production-public-slice'
+import { PUBLIC_HTML_OFFLOAD_ROUTES } from './public-html-offload'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -117,13 +118,13 @@ export function isForbiddenNextClientGraphRoute(pattern: string): boolean {
 /**
  * Production Worker Routes for www.visutry.com.
  *
- * Vercel is the sole Next frontend owner, so this generator emits ONLY approved
- * NON-Next capabilities: non-Next public static assets (favicon, /images, /home,
+ * Vercel is the canonical Next frontend producer, so this generator emits approved
+ * non-Next capabilities plus one exact public HTML exception: non-Next public static assets (favicon, /images, /home,
  * /experience-heroes, /blog-covers, /assets), control files (robots/llms), and the
  * approved read-only edge APIs (health + glasses catalog). It intentionally emits
- * NO Next HTML routes, NO locale homes, NO marketing/SEO HTML, NO Next sitemaps,
- * and NO `/_next/static/*`. `assertSafeB4ProductionRoutes` fails if any forbidden
- * Next client-graph or Next HTML route ever reappears.
+ * no other Next HTML routes, no locale homes, no marketing/SEO HTML, no Next sitemaps,
+ * and no `/_next/static/*`. `assertSafeB4ProductionRoutes` fails if any forbidden
+ * client-graph route or unreviewed HTML route reappears.
  */
 export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
   const routes: B4ProductionWorkerRoute[] = []
@@ -186,6 +187,20 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
       workerQuota: true,
       reason: 'approved GET/HEAD non-Next public API; exact so /api/glasses/frames cannot match',
       excludedConflicts: ['/api/glasses/frames', '/api/auth/*', '/api/glasses/*'],
+      rollbackClass: 'delete-route',
+      priority: 'P0',
+      feasibility: 'A',
+    })
+  }
+
+  for (const route of PUBLIC_HTML_OFFLOAD_ROUTES) {
+    push({
+      pattern: hostPattern(route.path),
+      layer: 'layer2-worker',
+      expectedExecution: 'worker',
+      workerQuota: true,
+      reason: 'exact anonymous force-static public HTML offload; Vercel remains the canonical Next producer',
+      excludedConflicts: ['RSC/Flight', 'query variants', 'Cookie/Authorization', '/_next/*'],
       rollbackClass: 'delete-route',
       priority: 'P0',
       feasibility: 'A',
@@ -440,6 +455,7 @@ export const B4_POSITIVE_PATHS = [
   '/experience-heroes/demo.webp',
   '/blog-covers/cover.jpg',
   '/assets/logo.png',
+  '/en/blog/ai-face-analysis-for-glasses-guide',
 ] as const
 
 export function assertSafeB4ProductionRoutes(routes = generateB4ProductionWorkerRoutes()): string[] {

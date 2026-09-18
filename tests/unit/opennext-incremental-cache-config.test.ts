@@ -72,11 +72,11 @@ describe('OpenNext static-assets incremental cache production config', () => {
     },
   )
 
-  it('keeps the 12 non-Next P0 routes and classifies Glasses Guide as Vercel-owned', () => {
+  it('keeps the 12 non-Next P0 routes plus the exact public HTML route', () => {
     const all = generateB4ProductionWorkerRoutes()
     const existingP0 = routesForPriority('P0', all)
 
-    expect(existingP0).toHaveLength(12)
+    expect(existingP0).toHaveLength(13)
     // Glasses Guide HTML is part of the Next frontend → Vercel owns it.
     expect(classify('/en/glasses-guide')).toMatchObject({ backend: 'vercel', routeClass: 'vercel-required' })
     expect(classify('/de/glasses-guide/best-rectangle-glasses-for-round-face')).toMatchObject({
@@ -86,7 +86,8 @@ describe('OpenNext static-assets incremental cache production config', () => {
     expect(wwwWorkerRouteMatch('/api/health', '', existingP0)?.pattern).toBe(
       `${B4_PRODUCTION_PUBLIC_HOST}/api/health`,
     )
-    expect(existingP0.some((row) => row.pattern.includes('glasses-guide'))).toBe(false)
+    expect(existingP0.some((row) => row.pattern === `${B4_PRODUCTION_PUBLIC_HOST}/en/blog/ai-face-analysis-for-glasses-guide`)).toBe(true)
+    expect(existingP0.some((row) => row.pattern === `${B4_PRODUCTION_PUBLIC_HOST}/en/glasses-guide/*`)).toBe(false)
   })
 
   it('does not promote P0-F2 SEO routes into the P0 slice (face-shapes, sunglasses-for, hairstyles-for, style, blog)', () => {

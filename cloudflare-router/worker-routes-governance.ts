@@ -3,7 +3,7 @@ import path from 'node:path'
 import stripJsonComments from 'strip-json-comments'
 
 export const PRODUCTION_TRAFFIC_LAYER_CONFIG = 'wrangler.production-traffic-layer.jsonc'
-export const PRODUCTION_ROUTE_COUNT = 12
+export const PRODUCTION_ROUTE_COUNT = 13
 export const PRODUCTION_WORKER_NAME = 'visutry-cf-production'
 export const PRODUCTION_ZONE_NAME = 'visutry.com'
 export const PRODUCTION_HOST_PREFIX = 'www.visutry.com/'
