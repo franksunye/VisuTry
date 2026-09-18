@@ -4,6 +4,7 @@ import worker from '../../cloudflare-router/app-host-worker'
 import type { PublicHtmlOffloadCache } from '../../cloudflare-router/public-html-offload'
 
 const TARGET = '/en/blog/ai-face-analysis-for-glasses-guide'
+const BRAND_TARGET = '/en/brand/gentle-monster'
 
 function memoryCache(): PublicHtmlOffloadCache {
   const entries = new Map<string, Response>()
@@ -68,6 +69,30 @@ describe('production traffic-layer exact public HTML offload', () => {
     await expect(second.text()).resolves.toContain('<h1>origin</h1>')
     expect(origin).toHaveBeenCalledTimes(1)
     expect(productionEnv.ASSETS.fetch).not.toHaveBeenCalled()
+  })
+
+  it('applies the same exact offload contract to the curated Gentle Monster page', async () => {
+    const cache = memoryCache()
+    ;(globalThis as unknown as { caches: { default: PublicHtmlOffloadCache } }).caches = { default: cache }
+    const origin = jest.fn(async () => new Response('<html><h1>Gentle Monster</h1></html>', {
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    }))
+    globalThis.fetch = origin as typeof fetch
+    const waitUntilPromises: Promise<unknown>[] = []
+    const context = {
+      waitUntil: (promise: Promise<unknown>) => waitUntilPromises.push(promise),
+      passThroughOnException: jest.fn(),
+    }
+    const productionEnv = env()
+
+    const first = await worker.fetch(new Request(`https://www.visutry.com${BRAND_TARGET}`), productionEnv, context)
+    await Promise.all(waitUntilPromises)
+    const second = await worker.fetch(new Request(`https://www.visutry.com${BRAND_TARGET}`), productionEnv, context)
+
+    expect(first.headers.get('x-visutry-edge-cache')).toBe('MISS')
+    expect(second.headers.get('x-visutry-edge-cache')).toBe('HIT')
+    expect(origin).toHaveBeenCalledTimes(1)
   })
 
   it('keeps other HTML on Vercel, bypasses unsafe target requests, and keeps staging on Vercel', async () => {

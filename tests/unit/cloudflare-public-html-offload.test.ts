@@ -15,6 +15,7 @@ import {
 } from '../../cloudflare-router/b4-production-routes'
 
 const TARGET = '/en/blog/ai-face-analysis-for-glasses-guide'
+const BRAND_TARGET = '/en/brand/gentle-monster'
 
 function request(path = TARGET, method = 'GET', headers: Record<string, string> = {}) {
   return new Request(`https://www.visutry.com${path}`, { method, headers })
@@ -51,14 +52,20 @@ describe('public HTML offload allowlist and cache safety', () => {
     expect(isPublicHtmlOffloadPath(TARGET)).toBe(true)
     expect(isPublicHtmlOffloadPath('/en/what-glasses-suit-my-face')).toBe(false)
     expect(isPublicHtmlOffloadPath('/en')).toBe(false)
-    expect(isPublicHtmlOffloadPath('/en/brand/gentle-monster')).toBe(false)
+    expect(isPublicHtmlOffloadPath(BRAND_TARGET)).toBe(true)
+    expect(isPublicHtmlOffloadPath('/en/brand/gentle-monster/')).toBe(false)
+    expect(isPublicHtmlOffloadPath('/en/brand/gentle-monster?ref=home')).toBe(false)
+    expect(isPublicHtmlOffloadPath('/en/brand/ray-ban')).toBe(false)
     expect(isPublicHtmlOffloadPath('/en/face-shape-detector')).toBe(false)
     expect(isPublicHtmlOffloadPath('/en/face-analysis')).toBe(false)
     expect(isPublicHtmlOffloadPath('/en/try-on/glasses')).toBe(false)
     expect(isPublicHtmlOffloadPath('/id/blog/ai-face-analysis-for-glasses-guide')).toBe(false)
     expect(isPublicHtmlOffloadPath(`${TARGET}/`)).toBe(false)
     expect(isPublicHtmlOffloadPath('/_next/static/chunks/app.js')).toBe(false)
-    expect(PUBLIC_HTML_OFFLOAD_PURGE_URLS).toEqual([`https://www.visutry.com${TARGET}`])
+    expect(PUBLIC_HTML_OFFLOAD_PURGE_URLS).toEqual([
+      `https://www.visutry.com${TARGET}`,
+      `https://www.visutry.com${BRAND_TARGET}`,
+    ])
   })
 
   it('classifies the target as public HTML offload and all named neighbours to Vercel', () => {
@@ -76,7 +83,7 @@ describe('public HTML offload allowlist and cache safety', () => {
     for (const path of [
       '/en/what-glasses-suit-my-face',
       '/en',
-      '/en/brand/gentle-monster',
+      '/en/brand/ray-ban',
       '/en/face-shape-detector',
       '/en/face-analysis',
       '/en/try-on/glasses',
@@ -94,9 +101,11 @@ describe('public HTML offload allowlist and cache safety', () => {
 
   it('keeps the Worker route set exact with no wildcard HTML route', () => {
     const routes = generateB4ProductionWorkerRoutes()
-    expect(routes).toHaveLength(13)
+    expect(routes).toHaveLength(14)
     expect(wwwWorkerRouteMatch(TARGET, '', routes)?.pattern).toBe(`www.visutry.com${TARGET}`)
+    expect(wwwWorkerRouteMatch(BRAND_TARGET, '', routes)?.pattern).toBe(`www.visutry.com${BRAND_TARGET}`)
     expect(wwwWorkerRouteMatch(`${TARGET}/child`, '', routes)).toBeNull()
+    expect(wwwWorkerRouteMatch(`${BRAND_TARGET}/child`, '', routes)).toBeNull()
     expect(routes.some((route) => route.pattern === 'www.visutry.com/*')).toBe(false)
     expect(routes.some((route) => route.pattern.includes('/_next/'))).toBe(false)
   })

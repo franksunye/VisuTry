@@ -4,7 +4,8 @@
  * Vercel remains the canonical Next producer. This module only lets the
  * app-host Worker cache a small, reviewed allowlist of anonymous HTML
  * responses after fetching the response from Vercel. Adding another page is
- * a configuration review: add one exact path here and one exact Worker Route.
+ * a configuration review: add one exact path here and one exact Worker Route
+ * per approved page.
  * There is no wildcard or locale-family matching.
  *
  * Invalidation is URL-scoped: after a verified production deployment, purge
@@ -22,6 +23,12 @@ export const PUBLIC_HTML_OFFLOAD_ROUTES = [
     path: '/en/blog/ai-face-analysis-for-glasses-guide',
     methods: ['GET', 'HEAD'],
     source: 'src/app/[locale]/(public)/blog/ai-face-analysis-for-glasses-guide/page.tsx',
+    purge: 'exact-url',
+  },
+  {
+    path: '/en/brand/gentle-monster',
+    methods: ['GET', 'HEAD'],
+    source: 'src/app/[locale]/(public)/brand/[brand]/page.tsx',
     purge: 'exact-url',
   },
 ] as const

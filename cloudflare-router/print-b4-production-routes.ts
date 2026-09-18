@@ -59,7 +59,7 @@ const summary = {
   safetyErrors: errors,
   wranglerSnippetPreview: proposedWranglerProductionRoutes(priority).slice(0, 3),
   apiPayloadPreview: proposedCloudflareRouteApiPayload(priority).slice(0, 1),
-  note: 'Vercel is the canonical Next producer. This set contains approved non-Next capabilities plus one exact public HTML offload route; all other Next HTML, RSC, and /_next/static remain Vercel-owned. deploy:cloudflare uses --env staging only. Remote fail-open must match the exact ungated P0 www set.',
+  note: 'Vercel is the canonical Next producer. This set contains approved non-Next capabilities plus exact reviewed public HTML offload routes; all other Next HTML, RSC, and /_next/static remain Vercel-owned. deploy:cloudflare uses --env staging only. Remote fail-open must match the exact ungated P0 www set.',
 }
 
 const payload = { summary, routes: selected }

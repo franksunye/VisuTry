@@ -22,6 +22,7 @@ const EXPECTED_UNGATED_P0 = [
   `${B4_PRODUCTION_PUBLIC_HOST}/api/glasses/categories`,
   `${B4_PRODUCTION_PUBLIC_HOST}/api/glasses/face-shapes`,
   `${B4_PRODUCTION_PUBLIC_HOST}/en/blog/ai-face-analysis-for-glasses-guide`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/en/brand/gentle-monster`,
 ] as const
 
 describe('B4.2D active ungated P0 production routes', () => {
@@ -29,18 +30,18 @@ describe('B4.2D active ungated P0 production routes', () => {
   const active = routesForPriority('P0', all)
   const payload = proposedCloudflareRouteApiPayload('P0')
 
-  it('activates exactly 12 non-Next routes plus one exact public HTML route', () => {
-    // Vercel owns the Next frontend; the only HTML exception is the reviewed
-    // exact allowlist route. /_next/static is never generated.
-    expect(all).toHaveLength(13)
-    expect(all.filter((row) => row.priority === 'P0')).toHaveLength(13)
-    expect(active).toHaveLength(13)
+  it('activates exactly 12 non-Next routes plus two exact public HTML routes', () => {
+    // Vercel owns the Next frontend; HTML exceptions are limited to the
+    // reviewed exact allowlist routes. /_next/static is never generated.
+    expect(all).toHaveLength(14)
+    expect(all.filter((row) => row.priority === 'P0')).toHaveLength(14)
+    expect(active).toHaveLength(14)
     expect(active.map((row) => row.pattern)).toEqual([...EXPECTED_UNGATED_P0])
     expect(active.every((row) => row.priority === 'P0')).toBe(true)
     expect(active.every((row) => row.activationGate === 'none')).toBe(true)
     expect(all.some((row) => row.pattern.includes('/_next/static'))).toBe(false)
     expect(all.some((row) => row.pattern.includes('/_next/'))).toBe(false)
-    expect(payload).toHaveLength(13)
+    expect(payload).toHaveLength(14)
     expect(payload.every((row) => row.script === 'visutry-cf-production')).toBe(true)
     expect(payload.every((row) => row.request_limit_fail_open === true)).toBe(true)
   })

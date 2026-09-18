@@ -26,10 +26,10 @@ describe('B4.2C Phase A DNS zone diff', () => {
       '0 issue "pki.goog"',
       '0 issue "sectigo.com"',
     ].sort())
-    // Vercel owns the Next frontend except for the one exact reviewed public
-    // HTML offload route; /_next/static remains Vercel-owned.
-    expect(generateB4ProductionWorkerRoutes().length).toBe(13)
-    expect(routesForPriority('P0').length).toBe(13)
+    // Vercel owns the Next frontend except for the exact reviewed public HTML
+    // offload routes; /_next/static remains Vercel-owned.
+    expect(generateB4ProductionWorkerRoutes().length).toBe(14)
+    expect(routesForPriority('P0').length).toBe(14)
   })
 
   it('skips when the Cloudflare dump is empty', () => {

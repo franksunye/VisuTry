@@ -2,7 +2,7 @@
  * Production Worker Routes for www.visutry.com.
  *
  * Vercel is the canonical Next frontend producer (B4_NEXT_FRONTEND_OWNER === 'vercel').
- * This generator emits approved non-Next capabilities plus the one exact reviewed
+ * This generator emits approved non-Next capabilities plus the exact reviewed
  * public HTML offload route. It never emits other Next HTML routes and never emits
  * `/_next/static/*` — those are FORBIDDEN (see
  * B4_FORBIDDEN_PRODUCTION_ROUTE_PATTERNS). A future full migration of the entire
@@ -119,7 +119,7 @@ export function isForbiddenNextClientGraphRoute(pattern: string): boolean {
  * Production Worker Routes for www.visutry.com.
  *
  * Vercel is the canonical Next frontend producer, so this generator emits approved
- * non-Next capabilities plus one exact public HTML exception: non-Next public static assets (favicon, /images, /home,
+ * non-Next capabilities plus exact public HTML exceptions: non-Next public static assets (favicon, /images, /home,
  * /experience-heroes, /blog-covers, /assets), control files (robots/llms), and the
  * approved read-only edge APIs (health + glasses catalog). It intentionally emits
  * no other Next HTML routes, no locale homes, no marketing/SEO HTML, no Next sitemaps,
@@ -456,6 +456,7 @@ export const B4_POSITIVE_PATHS = [
   '/blog-covers/cover.jpg',
   '/assets/logo.png',
   '/en/blog/ai-face-analysis-for-glasses-guide',
+  '/en/brand/gentle-monster',
 ] as const
 
 export function assertSafeB4ProductionRoutes(routes = generateB4ProductionWorkerRoutes()): string[] {

@@ -113,7 +113,10 @@ describe('B4.2B scoped production Worker Routes', () => {
 
   it('hard-blocks /_next/static from every priority and gate (Vercel owns the client graph)', () => {
     const p0 = routesForPriority('P0', routes)
-    expect(p0.every((row) => row.layer === 'layer1-static-asset' || row.pattern.includes('/api/') || row.pattern === 'www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide')).toBe(true)
+    expect(p0.every((row) => row.layer === 'layer1-static-asset' || row.pattern.includes('/api/') || [
+      'www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide',
+      'www.visutry.com/en/brand/gentle-monster',
+    ].includes(row.pattern))).toBe(true)
     expect(p0.every((row) => row.activationGate === 'none')).toBe(true)
     expect(wwwWorkerRouteMatch('/en', '', p0)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/store', '', p0)).toBeNull()

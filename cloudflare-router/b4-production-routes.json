@@ -7,17 +7,17 @@
   "generatedFrom": "cloudflare-router/b4-production-routes.ts",
   "note": "Do not paste into wrangler.jsonc. Do not deploy. Review only.",
   "summary": {
-    "total": 13,
+    "total": 14,
     "byLayer": {
       "layer1-static-asset": 8,
-      "layer2-worker": 5
+      "layer2-worker": 6
     },
     "byPriority": {
-      "P0": 13,
+      "P0": 14,
       "P1": 0,
       "P2": 0
     },
-    "activationP0": 13,
+    "activationP0": 14,
     "parityGated": 0,
     "requestLimitFailOpenRequired": true,
     "wwwDnsTargetFrozen": true,
@@ -198,6 +198,24 @@
     },
     {
       "pattern": "www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "exact anonymous force-static public HTML offload; Vercel remains the canonical Next producer",
+      "excludedConflicts": [
+        "RSC/Flight",
+        "query variants",
+        "Cookie/Authorization",
+        "/_next/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/en/brand/gentle-monster",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
       "workerQuota": true,
