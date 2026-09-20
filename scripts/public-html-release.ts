@@ -137,6 +137,7 @@ async function verifyVercel() {
     deploymentId: proof.id,
     projectId: proof.projectId,
     teamId: proof.teamId,
+    vercelOrigin: proof.originUrl,
     target: proof.target,
     readyState: proof.readyState,
     gitSha: proof.gitSha,
@@ -221,11 +222,19 @@ async function purge() {
 }
 
 async function warm() {
-  const observations = await warmAndVerifyPublicHtml(PUBLIC_HTML_OFFLOAD_PURGE_URLS)
+  const allowCloudflareChallenge = process.env.PUBLIC_HTML_RELEASE_ALLOW_SECURITY_CHALLENGE === '1'
+  const observations = await warmAndVerifyPublicHtml(PUBLIC_HTML_OFFLOAD_PURGE_URLS, fetch, {
+    allowCloudflareChallenge,
+  })
+  const securityChallengeSkips = observations.filter((observation) => observation.outcome === 'SECURITY_CHALLENGE_SKIP')
   console.log(JSON.stringify({
     event: 'public_html_release_cache_verified',
     productionMutation: true,
     urlCount: observations.length,
+    githubRunnerProbe: securityChallengeSkips.length > 0 ? 'SECURITY_CHALLENGE_SKIP' : 'PASS',
+    authoritative: securityChallengeSkips.length === 0,
+    trustedLocalHitEvidenceRequired: securityChallengeSkips.length > 0,
+    securityChallengeSkipCount: securityChallengeSkips.length,
     observations,
   }, null, 2))
 }

@@ -19,10 +19,24 @@ export interface VercelDeploymentProof {
   id: string
   projectId: string
   teamId: string
+  originUrl: string
   target: string | null
   readyState: string | null
   gitSha: string | null
   aliases: readonly string[]
+}
+
+/** Accept only the deployment hostname returned by Vercel as a direct origin. */
+export function normalizeVercelDeploymentOrigin(value: unknown): string | null {
+  if (typeof value !== 'string' || value.trim() === '') return null
+  try {
+    const url = new URL(value.startsWith('https://') ? value : `https://${value}`)
+    if (url.protocol !== 'https:' || !url.hostname.endsWith('.vercel.app')) return null
+    if (url.pathname !== '/' || url.search !== '' || url.hash !== '') return null
+    return url.origin
+  } catch {
+    return null
+  }
 }
 
 export function readVercelVerificationConfig(
@@ -52,6 +66,7 @@ export function isVercelProductionDeploymentProofValid(
   return proof.id === config.deploymentId
     && proof.projectId === config.projectId
     && proof.teamId === config.teamId
+    && proof.originUrl !== ''
     && proof.target === 'production'
     && proof.readyState === 'READY'
     && proof.gitSha === config.expectedGitSha
@@ -89,6 +104,7 @@ export function deploymentProofFromApi(
     teamId: typeof deployment.teamId === 'string'
       ? deployment.teamId
       : typeof deployment.ownerId === 'string' ? deployment.ownerId : '',
+    originUrl: normalizeVercelDeploymentOrigin(deployment.url) ?? '',
     target: typeof deployment.target === 'string' ? deployment.target : null,
     readyState: typeof deployment.readyState === 'string' ? deployment.readyState : null,
     gitSha: typeof meta.githubCommitSha === 'string'

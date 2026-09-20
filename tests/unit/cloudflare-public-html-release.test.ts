@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import {
   classifyCloudflareDeployment,
+  isCloudflareChallengeResponse,
   PUBLIC_HTML_RELEASE_USER_AGENT,
   publicHtmlReleasePurgeRequestBody,
   releaseContractErrors,
@@ -18,6 +19,7 @@ import {
 import {
   fetchVercelProductionDeploymentProof,
   isVercelProductionDeploymentProofValid,
+  normalizeVercelDeploymentOrigin,
 } from '../../cloudflare-router/vercel-production-proof'
 
 const ROOT = path.join(__dirname, '../..')
@@ -171,6 +173,56 @@ describe('Public HTML release control plane', () => {
     })).rejects.toThrow('no cache HIT observed')
   })
 
+  it('classifies only an explicit Cloudflare challenge signal as an expected security skip', async () => {
+    const challenged = new Response('<html><body>challenge</body></html>', {
+      status: 403,
+      headers: {
+        'content-type': 'text/html',
+        'cf-mitigated': 'challenge',
+      },
+    })
+    expect(isCloudflareChallengeResponse(challenged)).toBe(true)
+
+    const ordinary403 = new Response('<html><body>forbidden</body></html>', { status: 403 })
+    expect(isCloudflareChallengeResponse(ordinary403)).toBe(false)
+
+    const fetchMock: typeof fetch = async () => challenged
+    const observations = await warmAndVerifyPublicHtml([PUBLIC_HTML_OFFLOAD_PURGE_URLS[0]], fetchMock, {
+      allowCloudflareChallenge: true,
+      delayMs: 0,
+      sleep: async () => undefined,
+    })
+    expect(observations).toEqual([expect.objectContaining({
+      outcome: 'SECURITY_CHALLENGE_SKIP',
+      securitySignal: 'cf-mitigated: challenge',
+      status: 403,
+    })])
+
+    await expect(warmAndVerifyPublicHtml([PUBLIC_HTML_OFFLOAD_PURGE_URLS[0]], fetchMock, {
+      delayMs: 0,
+      sleep: async () => undefined,
+    })).rejects.toThrow('cf-mitigated: challenge')
+  })
+
+  it('does not downgrade an ordinary HTTP 403 into an expected security skip', async () => {
+    const fetchMock: typeof fetch = async () => new Response('<html><body>forbidden</body></html>', { status: 403 })
+    await expect(warmAndVerifyPublicHtml([PUBLIC_HTML_OFFLOAD_PURGE_URLS[0]], fetchMock, {
+      allowCloudflareChallenge: true,
+      delayMs: 0,
+      sleep: async () => undefined,
+    })).rejects.toThrow('HTTP 403')
+  })
+
+  it('keeps Production Smoke hard-gated after the non-authoritative Runner probe', () => {
+    const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/public-html-release.yml'), 'utf8')
+    expect(workflow).toContain("PUBLIC_HTML_RELEASE_ALLOW_SECURITY_CHALLENGE: '1'")
+    expect(workflow).toContain('run: npm run test:smoke:production')
+    expect(workflow).toContain('Trusted local Public HTML HIT evidence: required when Runner probe is challenged')
+    expect(workflow).toContain('SMOKE_TARGET: vercel-origin')
+    expect(workflow).toContain('SMOKE_BASE_URL: ${{ steps.vercel-proof.outputs.origin_url }}')
+    expect(workflow).toContain("echo '- Producer smoke: verified Vercel origin only")
+  })
+
   it('independently verifies the Vercel deployment and alias through both API reads', async () => {
     const fetchMock: typeof fetch = async (input) => {
       const url = String(input)
@@ -183,6 +235,7 @@ describe('Public HTML release control plane', () => {
         teamId: 'team_visutry',
         target: 'production',
         readyState: 'READY',
+        url: 'visutry-release.vercel.app',
         meta: { githubCommitSha: 'a'.repeat(40) },
       }), { status: 200 })
     }
@@ -196,5 +249,12 @@ describe('Public HTML release control plane', () => {
     }
     const proof = await fetchVercelProductionDeploymentProof(config, fetchMock)
     expect(isVercelProductionDeploymentProofValid(proof, config)).toBe(true)
+    expect(proof.originUrl).toBe('https://visutry-release.vercel.app')
+  })
+
+  it('accepts only a bare HTTPS Vercel deployment hostname as a producer smoke origin', () => {
+    expect(normalizeVercelDeploymentOrigin('visutry-release.vercel.app')).toBe('https://visutry-release.vercel.app')
+    expect(normalizeVercelDeploymentOrigin('https://evil.example.com')).toBeNull()
+    expect(normalizeVercelDeploymentOrigin('https://visutry-release.vercel.app/path')).toBeNull()
   })
 })
