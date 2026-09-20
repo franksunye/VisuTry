@@ -1,8 +1,32 @@
-# PHASE B3.1 RESULT
+# Historical Phase B3.1 Result
 
-**Result: PASS for bundle-drift diagnosis and the production boundary definition. Production migration: NO.**
+**Historical result:** PASS for bundle-drift diagnosis and the production
+boundary definition. At the time of this Phase B3.1 record, production
+migration was `NO`.
 
-This document is the route/capability boundary for a future hybrid deployment. It does not create production routes, change DNS, move providers, add dependencies, or change the database schema.
+## Current production status — 2026-09-20
+
+This document is historical evidence, not the current production routing
+instruction. The bounded EN Store/Campaign Public Edge is now **PRODUCTION
+PASS**. Eligible anonymous final HTML may be delivered from Cloudflare after
+Vercel produces it; Vercel remains the sole Next producer. Unsafe,
+authenticated, personalized, RSC/Flight, prefetch, and unknown variants remain
+on the canonical Vercel path. Current exact route ownership is maintained by
+the code/generated manifest and the active hosting/release authorities:
+
+- [`hosting-strategy-vercel-cloudflare.md`](./hosting-strategy-vercel-cloudflare.md)
+- [`public-html-release-pipeline.md`](./public-html-release-pipeline.md)
+- [`ADR-011`](../decisions/ADR-011-vercel-sole-next-frontend-owner.md)
+- `cloudflare-router/b4-production-routes.ts` and its generated manifest
+
+The historical `NOT_YET_VERIFIED` classifications below remain useful as
+dated staging evidence. They must not be read as a rollback of the current
+bounded Store/Campaign public-edge capability; unsupported capabilities still
+follow the Vercel-required boundary.
+
+This document records the route/capability boundary used during the historical
+hybrid-deployment phase. It does not create production routes, change DNS, move
+providers, add dependencies, or change the database schema.
 
 Evidence is taken from the current branch, the actual route/module graph, and real staging evidence recorded in:
 

@@ -3,7 +3,7 @@
 **Status:** Active source of truth  
 **Owner:** Product / Engineering / Growth  
 **Created:** 2026-09-04  
-**Last reviewed:** 2026-09-04  
+**Last reviewed:** 2026-09-20
 **Review cadence:** Monthly, after a material telemetry/data-plane change, or after an observation gate closes.  
 **Scope:** Production operational telemetry, product/acquisition analytics, merchant-commerce behavioral truth, attribution, test/reference exclusion, dataset/schema governance, and reporting ownership across Consumer and Merchant surfaces.
 
@@ -213,6 +213,22 @@ The first-party Discovery Canary remains eligible for genuine Store/Campaign dis
 | Aggregate acquisition exploration | GA4 may support it, but does not replace merchant business truth |
 
 Consumer anonymous funnel telemetry and MerchantSession identifiers are currently separate evidence planes. **Do not claim a cross-system per-user join that does not exist.**
+
+### Public edge invalidation observability
+
+Store/Campaign Cache-Tag invalidation is production-proven. The validated
+write path refreshes the public HTML object and leaves no production residue;
+this is a functional cache result, not an Axiom assertion.
+
+The successful `public_html_invalidation` event currently does not enter the
+standard `src/lib/logger.ts` → Axiom path because the purge client emits its
+operational result through a raw console call. This is a **non-blocking
+observability gap**, not a Cache-Tag functional failure. A follow-up change
+will route the bounded success/failure event through the canonical logger
+contract without changing purge, retry, write, or fail-open semantics. That
+follow-up must reuse existing bounded fields and must not expand `visutry-pro`
+with arbitrary payload keys. No additional production Campaign write proof is
+required for this documentation state.
 
 ## 8. Merchant operator analytics
 
@@ -471,3 +487,4 @@ When product analytics enums or merchant distribution semantics change, update t
 | 2026-09-04 | Added the P0.2 dedicated `visutry-traffic-pro` Consumer evidence plane with a strict flat schema, dual-dataset report read, event-ID deduplication, and unchanged T0 clocks; deferred `visutry-commerce-pro`. |
 | 2026-09-05 | Closed P0/P0.2 production verification after PR #187 merge: verified the bounded live traffic schema, controlled TEST event, legacy/top-level read contract, unchanged exclusion semantics, and preserved T0 clocks; deferred `visutry-commerce-pro`, Vacuum, Trim, and Schema Lock. |
 | 2026-09-13 | Added measurement-safe Merchant Discovery Phase 1 boundaries: retained VisuTry internal acquisition for QA while excluding it from genuine external discovery, and isolated the first-party Discovery Canary from commercial KPIs without changing its discovery eligibility. |
+| 2026-09-20 | Recorded Store/Campaign Cache-Tag functional invalidation and UTM Store Session attribution as production-proven; recorded the raw-console `public_html_invalidation` Axiom delivery gap as non-blocking and follow-up-only. |
