@@ -82,8 +82,8 @@ function verifyMainSha() {
 
 function mode(): PublicHtmlReleaseMode {
   const raw = process.env.CLOUDFLARE_DEPLOY_MODE ?? 'auto'
-  if (raw !== 'auto' && raw !== 'force' && raw !== 'skip') {
-    fail(`CLOUDFLARE_DEPLOY_MODE must be auto, force, or skip; received ${raw}`)
+  if (raw !== 'auto' && raw !== 'force') {
+    fail(`CLOUDFLARE_DEPLOY_MODE must be auto or force; received ${raw}`)
   }
   return raw
 }
@@ -110,7 +110,6 @@ function printPlan() {
     publicHtmlUrls: PUBLIC_HTML_OFFLOAD_PURGE_URLS,
     cloudflareDeployRequired: plan.decision.deployRequired,
     cloudflareDeployMode: plan.decision.mode,
-    unsafeSkip: plan.decision.unsafeSkip,
     cloudflareDecisionReasons: plan.decision.reasons,
     matchingChangedFiles: plan.decision.matchingFiles,
     changedFiles: plan.changedFiles,
@@ -155,7 +154,6 @@ function detectCloudflareDeploy() {
     releaseSha: plan.target,
     deployRequired: plan.decision.deployRequired,
     mode: plan.decision.mode,
-    unsafeSkip: plan.decision.unsafeSkip,
     matchingFiles: plan.decision.matchingFiles,
     reasons: plan.decision.reasons,
     changedFiles: plan.changedFiles,

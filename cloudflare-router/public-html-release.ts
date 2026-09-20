@@ -9,7 +9,7 @@ import {
 } from './worker-routes-governance'
 import { proposedWranglerProductionRoutes } from './b4-production-routes'
 
-export const PUBLIC_HTML_RELEASE_MODE_VALUES = ['auto', 'force', 'skip'] as const
+export const PUBLIC_HTML_RELEASE_MODE_VALUES = ['auto', 'force'] as const
 export type PublicHtmlReleaseMode = (typeof PUBLIC_HTML_RELEASE_MODE_VALUES)[number]
 
 export const PUBLIC_HTML_RELEASE_ROUTE_COUNT = PUBLIC_HTML_OFFLOAD_ROUTES.length
@@ -28,7 +28,6 @@ export const CLOUDFLARE_ARTIFACT_CHANGE_RULES = [
 export interface CloudflareDeployDecision {
   deployRequired: boolean
   mode: PublicHtmlReleaseMode
-  unsafeSkip: boolean
   matchingFiles: string[]
   reasons: string[]
 }
@@ -82,7 +81,6 @@ export function classifyCloudflareDeployment(
     return {
       deployRequired: true,
       mode,
-      unsafeSkip: false,
       matchingFiles: [],
       reasons: ['changed-file comparison is unavailable; failing closed'],
     }
@@ -94,27 +92,13 @@ export function classifyCloudflareDeployment(
     return {
       deployRequired: true,
       mode,
-      unsafeSkip: false,
       matchingFiles,
       reasons: ['manual force override requested', ...(detected ? ['artifact-affecting files also changed'] : [])],
-    }
-  }
-  if (mode === 'skip') {
-    return {
-      deployRequired: false,
-      mode,
-      unsafeSkip: detected,
-      matchingFiles,
-      reasons: [
-        'manual skip override requested',
-        ...(detected ? ['artifact-affecting files changed; Cloudflare deploy was explicitly skipped'] : []),
-      ],
     }
   }
   return {
     deployRequired: detected,
     mode,
-    unsafeSkip: false,
     matchingFiles,
     reasons: detected
       ? ['artifact-affecting files changed']

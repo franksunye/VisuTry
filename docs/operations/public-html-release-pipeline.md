@@ -30,7 +30,7 @@ When required, the order is:
 
 `Vercel proof → Cloudflare artifact build/deploy → live 19-route verification → exact seven-file purge → warm/HIT verification → Production Smoke`.
 
-Ordinary application page copy, React components, APIs, Merchant logic, and database changes do not require a Cloudflare Worker deploy because Vercel remains their producer. If the changed-file comparison cannot be established, the classifier fails closed. Manual `force` and `skip` modes are explicit; an unsafe `skip` is reported in the release evidence.
+Ordinary application page copy, React components, APIs, Merchant logic, and database changes do not require a Cloudflare Worker deploy because Vercel remains their producer. If the changed-file comparison cannot be established, the classifier fails closed and requires a deploy. Manual `force` remains available for an explicit conservative deploy; there is no skip mode.
 
 ## Workflow and credentials
 

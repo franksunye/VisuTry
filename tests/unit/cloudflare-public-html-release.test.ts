@@ -99,16 +99,12 @@ describe('Public HTML release control plane', () => {
     expect(() => validateCurrentMainSha(sha, 'b'.repeat(40))).toThrow('not the current origin/main SHA')
   })
 
-  it('makes force and skip overrides visible, including unsafe skip', () => {
+  it('supports only auto and force overrides and rejects skip', () => {
     expect(classifyCloudflareDeployment(['src/app/page.tsx'], 'force')).toMatchObject({
       deployRequired: true,
-      unsafeSkip: false,
     })
-    expect(classifyCloudflareDeployment(['cloudflare-router/app-host-worker.ts'], 'skip')).toMatchObject({
-      deployRequired: false,
-      unsafeSkip: true,
-      reasons: ['manual skip override requested', 'artifact-affecting files changed; Cloudflare deploy was explicitly skipped'],
-    })
+    expect(() => classifyCloudflareDeployment(['cloudflare-router/app-host-worker.ts'], 'skip' as never))
+      .toThrow('unsupported Cloudflare deployment mode: skip')
   })
 
   it('keeps the frozen 19-route Worker contract and seven-route HTML contract', () => {

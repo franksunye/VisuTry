@@ -19,7 +19,6 @@ on:
         options:
           - auto
           - force
-          - skip
 
 permissions:
   contents: read
@@ -51,7 +50,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -74,7 +73,7 @@ jobs:
         run: |
           npx tsx scripts/public-html-release.ts --detect-cloudflare-deploy > "$RUNNER_TEMP/public-html-cloudflare-decision.json"
           cat "$RUNNER_TEMP/public-html-cloudflare-decision.json"
-          node -e 'const fs=require("fs"); const d=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/public-html-cloudflare-decision.json","utf8")); console.log(`deploy_required=${d.deployRequired}`); console.log(`unsafe_skip=${d.unsafeSkip}`); console.log(`matching_files=${d.matchingFiles.join(",")}`)' >> "$GITHUB_OUTPUT"
+          node -e 'const fs=require("fs"); const d=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/public-html-cloudflare-decision.json","utf8")); console.log(`deploy_required=${d.deployRequired}`); console.log(`matching_files=${d.matchingFiles.join(",")}`)' >> "$GITHUB_OUTPUT"
 
       - name: Build Cloudflare traffic-layer artifact
         if: steps.cloudflare-decision.outputs.deploy_required == 'true'
@@ -119,7 +118,6 @@ jobs:
             echo '- Vercel proof: required before mutation'
             echo "- Cloudflare deploy required: \`${{ steps.cloudflare-decision.outputs.deploy_required }}\`"
             echo "- Cloudflare mode: \`${{ inputs.cloudflare_mode }}\`"
-            echo "- Unsafe skip override: \`${{ steps.cloudflare-decision.outputs.unsafe_skip }}\`"
             echo '- Public HTML purge: exact files only, count 7'
             echo '- Production smoke: see the step above'
           } >> "$GITHUB_STEP_SUMMARY"
