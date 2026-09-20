@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof MerchantProvisioningError) {
       const message = error.code === 'INVALID_MERCHANT_NAME'
-        ? 'Please enter a business or brand name with at least 2 characters.'
+        ? 'Please enter your business, brand, or store name (at least 2 characters).'
         : error.code === 'INVALID_WEBSITE_URL'
           ? 'Please enter a valid http(s) website URL.'
           : 'That workspace name is currently unavailable. Please try another name.'

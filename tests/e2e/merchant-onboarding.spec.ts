@@ -45,7 +45,7 @@ test.describe('Human Merchant Onboarding G1', () => {
     await page.getByText(/add workspace details/i).click()
     await page.getByLabel(/brand or store name/i).fill('G1 Local Human Merchant')
     await page.getByLabel(/^website$/i).fill('https://g1-local.example')
-    await page.getByRole('button', { name: /create workspace/i }).click()
+    await page.getByRole('button', { name: /create merchant workspace/i }).click()
 
     await expect(page).toHaveURL(/\/en\/merchant\?merchantId=[^&]+&onboarding=created/)
     await expect(page.getByRole('status')).toContainText('Merchant workspace created successfully')

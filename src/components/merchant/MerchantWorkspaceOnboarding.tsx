@@ -2,7 +2,8 @@
 
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Check, ChevronDown, Store } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowRight, Check, Store } from 'lucide-react'
 import { analytics, getAcquisitionContext } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 import { getCampaignAnalyticsContext } from '@/lib/analytics-v2'
@@ -38,6 +39,10 @@ export function MerchantWorkspaceOnboarding({ locale, commercialIntent }: Props)
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (submitInFlight.current) return
+    if (!name.trim()) {
+      setError('Please enter your business, brand, or store name.')
+      return
+    }
     submitInFlight.current = true
     setBusy(true)
     setError(null)
@@ -103,31 +108,28 @@ export function MerchantWorkspaceOnboarding({ locale, commercialIntent }: Props)
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white"><Check className="h-3 w-3" aria-hidden="true" /></span>
           Merchant setup · 1 of 1
         </div>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">Create your merchant workspace</h1>
-        <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">Create a workspace in one click. You do not need a brand name or website to get started — both can be added later.</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">Set up VisuTry for your business</h1>
+        <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">Create a business workspace for your catalog, Store, and commerce experience.</p>
 
         <form className="mt-8 space-y-5" onSubmit={submit}>
-          <details className="group rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-700 [&::-webkit-details-marker]:hidden">
-              <span className="flex items-center gap-2"><Store className="h-4 w-4 text-slate-400" aria-hidden="true" />Add workspace details <span className="font-normal text-slate-400">(optional)</span></span>
-              <ChevronDown className="h-4 w-4 text-slate-400 transition group-open:rotate-180" aria-hidden="true" />
-            </summary>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="text-xs font-semibold text-slate-700" htmlFor="merchant-name">Brand or store name</label>
-                <input id="merchant-name" name="name" minLength={2} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="e.g. North Star Eyewear" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-700" htmlFor="merchant-website">Website</label>
-                <input id="merchant-website" name="websiteUrl" type="url" maxLength={2000} value={websiteUrl} onChange={(event) => setWebsiteUrl(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="https://your-store.example" />
-              </div>
+          <div className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:grid-cols-2">
+            <div>
+              <label className="text-xs font-semibold text-slate-700" htmlFor="merchant-name">Business, brand, or store name <span aria-hidden="true">*</span></label>
+              <input id="merchant-name" name="name" required minLength={2} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="e.g. North Star Eyewear" />
             </div>
-          </details>
+            <div>
+              <label className="text-xs font-semibold text-slate-700" htmlFor="merchant-website">Website <span className="font-normal text-slate-400">(optional)</span></label>
+              <input id="merchant-website" name="websiteUrl" type="url" maxLength={2000} value={websiteUrl} onChange={(event) => setWebsiteUrl(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="https://your-store.example" />
+            </div>
+          </div>
           {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
-          <button type="submit" aria-label="Create workspace" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
-            {busy ? 'Creating workspace…' : 'Create workspace'}
+          <button type="submit" aria-label="Create Merchant Workspace" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
+            {busy ? 'Creating workspace…' : 'Create Merchant Workspace'}
             {!busy ? <ArrowRight className="h-4 w-4" aria-hidden="true" /> : null}
           </button>
+          <p className="text-center text-sm text-slate-600">
+            Not setting up a business? <Link href={`/${locale}`} className="font-semibold text-blue-700 underline underline-offset-4 hover:text-blue-900">Go to the VisuTry shopper experience</Link>
+          </p>
         </form>
       </section>
     </main>

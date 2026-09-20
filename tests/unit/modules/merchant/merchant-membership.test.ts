@@ -367,6 +367,51 @@ describe('Merchant human membership foundation', () => {
     expect(tx.merchant.create).not.toHaveBeenCalled()
   })
 
+  it('returns the existing workspace when a legacy retry omits the business name', async () => {
+    const existing = {
+      id: 'membership-existing',
+      userId: 'user-a',
+      merchantId: 'merchant-existing',
+      role: 'OWNER' as const,
+      createdAt: new Date('2026-08-12T00:00:00.000Z'),
+      updatedAt: new Date('2026-08-12T00:00:00.000Z'),
+      merchant: { id: 'merchant-existing', slug: 'existing', name: 'Existing' },
+    }
+    const tx = {
+      user: { update: jest.fn() },
+      merchant: { create: jest.fn() },
+      merchantMembership: { findFirst: jest.fn().mockResolvedValue(existing), create: jest.fn() },
+    }
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
+
+    await expect(createMerchantWithOwner({ userId: 'user-a' })).resolves.toMatchObject({
+      merchant: existing.merchant,
+      created: false,
+    })
+    expect(tx.user.update).not.toHaveBeenCalled()
+    expect(tx.merchant.create).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['missing', undefined],
+    ['blank', '   '],
+    ['one character', 'A'],
+    ['too long', 'A'.repeat(121)],
+    ['slugless', '!!!'],
+  ])('rejects a new workspace name that is %s before any write', async (_label, name) => {
+    const tx = {
+      user: { update: jest.fn() },
+      merchant: { create: jest.fn() },
+      merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn() },
+    }
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
+
+    await expect(createMerchantWithOwner({ userId: 'new-user', name })).rejects.toMatchObject({ code: 'INVALID_MERCHANT_NAME' })
+    expect(tx.user.update).not.toHaveBeenCalled()
+    expect(tx.merchant.create).not.toHaveBeenCalled()
+    expect(tx.merchantMembership.create).not.toHaveBeenCalled()
+  })
+
   it('validates unsafe website input before opening a transaction', async () => {
     await expect(createMerchantWithOwner({ userId: 'user-a', name: 'Valid Name', websiteUrl: 'javascript:alert(1)' })).rejects.toMatchObject({ code: 'INVALID_WEBSITE_URL' })
     expect(prisma.$transaction).not.toHaveBeenCalled()

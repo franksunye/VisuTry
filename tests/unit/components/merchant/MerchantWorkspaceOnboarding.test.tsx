@@ -27,9 +27,9 @@ describe('MerchantWorkspaceOnboarding', () => {
 
   it('submits the workspace form and redirects to the created merchant', async () => {
     render(<MerchantWorkspaceOnboarding locale="en" />)
-    fireEvent.change(screen.getByLabelText(/brand or store name/i), { target: { value: 'Golden Path Test' } })
-    fireEvent.change(screen.getByLabelText(/^website$/i), { target: { value: 'https://example.test' } })
-    fireEvent.click(screen.getByRole('button', { name: /create workspace/i }))
+    fireEvent.change(screen.getByLabelText(/business, brand, or store name/i), { target: { value: 'Golden Path Test' } })
+    fireEvent.change(screen.getByLabelText(/website/i), { target: { value: 'https://example.test' } })
+    fireEvent.click(screen.getByRole('button', { name: /create merchant workspace/i }))
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/api/merchant/workspaces', expect.objectContaining({ method: 'POST' })))
     expect(JSON.parse(((global.fetch as jest.Mock).mock.calls[0][1] as RequestInit).body as string)).toEqual(expect.objectContaining({
@@ -50,7 +50,8 @@ describe('MerchantWorkspaceOnboarding', () => {
 
   it('continues a paid pricing intent to the canonical purchase summary after creation', async () => {
     render(<MerchantWorkspaceOnboarding locale="en" commercialIntent="FOUNDING_PILOT" />)
-    fireEvent.click(screen.getByRole('button', { name: /create workspace/i }))
+    fireEvent.change(screen.getByLabelText(/business, brand, or store name/i), { target: { value: 'Pilot Eyewear' } })
+    fireEvent.click(screen.getByRole('button', { name: /create merchant workspace/i }))
 
     await waitFor(() => expect(router.push).toHaveBeenCalledWith('/en/merchant/purchase?merchantId=merchant-new&commercialIntent=FOUNDING_PILOT'))
     expect(analytics.trackCustomEvent).toHaveBeenCalledWith('merchant_workspace_created', expect.objectContaining({ commercial_intent: 'FOUNDING_PILOT' }))
@@ -59,8 +60,8 @@ describe('MerchantWorkspaceOnboarding', () => {
   it('shows a safe error and does not redirect when provisioning fails', async () => {
     ;(global.fetch as jest.Mock).mockResolvedValue({ ok: false, json: async () => ({ code: 'INVALID_WEBSITE_URL', error: 'Please enter a valid http(s) website URL.' }) })
     render(<MerchantWorkspaceOnboarding locale="en" />)
-    fireEvent.change(screen.getByLabelText(/brand or store name/i), { target: { value: 'Golden Path Test' } })
-    fireEvent.click(screen.getByRole('button', { name: /create workspace/i }))
+    fireEvent.change(screen.getByLabelText(/business, brand, or store name/i), { target: { value: 'Golden Path Test' } })
+    fireEvent.click(screen.getByRole('button', { name: /create merchant workspace/i }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Please enter a valid http(s) website URL.')
     expect(router.push).not.toHaveBeenCalled()
@@ -70,12 +71,25 @@ describe('MerchantWorkspaceOnboarding', () => {
     let resolveRequest: ((value: unknown) => void) | undefined
     ;(global.fetch as jest.Mock).mockReturnValue(new Promise((resolve) => { resolveRequest = resolve }))
     render(<MerchantWorkspaceOnboarding locale="en" />)
-    fireEvent.change(screen.getByLabelText(/brand or store name/i), { target: { value: 'Golden Path Test' } })
-    fireEvent.click(screen.getByRole('button', { name: /create workspace/i }))
-    fireEvent.click(screen.getByRole('button', { name: /create workspace/i }))
+    fireEvent.change(screen.getByLabelText(/business, brand, or store name/i), { target: { value: 'Golden Path Test' } })
+    fireEvent.click(screen.getByRole('button', { name: /create merchant workspace/i }))
+    fireEvent.click(screen.getByRole('button', { name: /create merchant workspace/i }))
 
     expect(global.fetch).toHaveBeenCalledTimes(1)
     resolveRequest?.({ ok: true, json: async () => ({ data: { created: true, merchant: { id: 'merchant-new' } } }) })
     await waitFor(() => expect(router.push).toHaveBeenCalledWith('/en/merchant?merchantId=merchant-new&onboarding=created'))
+  })
+
+  it('does not post a blank business identity and offers a shopper escape', async () => {
+    render(<MerchantWorkspaceOnboarding locale="en" />)
+
+    expect(screen.getByLabelText(/business, brand, or store name/i)).toBeRequired()
+    expect(screen.getByLabelText(/website/i)).not.toBeRequired()
+    expect(screen.getByRole('link', { name: /visutry shopper experience/i })).toHaveAttribute('href', '/en')
+
+    fireEvent.submit(screen.getByRole('button', { name: /create merchant workspace/i }).closest('form') as HTMLFormElement)
+
+    expect(global.fetch).not.toHaveBeenCalled()
+    expect(await screen.findByRole('alert')).toHaveTextContent(/business, brand, or store name/i)
   })
 })

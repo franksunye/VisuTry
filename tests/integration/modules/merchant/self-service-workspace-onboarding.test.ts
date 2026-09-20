@@ -38,6 +38,9 @@ describe('Merchant self-service Golden Path integration', () => {
         findFirst: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockResolvedValue(createdMembership),
       },
+      merchantActivationEvent: {
+        createMany: jest.fn().mockResolvedValue({ count: 1 }),
+      },
     }
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
     ;(prisma.merchantMembership.findUnique as jest.Mock).mockResolvedValue(createdMembership)
@@ -58,22 +61,23 @@ describe('Merchant self-service Golden Path integration', () => {
     expect(tx.merchantMembership.create).toHaveBeenCalledTimes(1)
   })
 
-  it('accepts an omitted or whitespace-only name with a neutral display name', async () => {
+  it('rejects an omitted or whitespace-only name without mutating the workspace', async () => {
     const tx = {
       user: { update: jest.fn().mockResolvedValue({ id: 'blank-user' }) },
       merchant: {
-        create: jest.fn().mockResolvedValue({ id: 'merchant-blank', slug: 'my-store', name: 'My Store' }),
+        create: jest.fn(),
       },
       merchantMembership: {
         findFirst: jest.fn().mockResolvedValue(null),
-        create: jest.fn().mockResolvedValue({ id: 'membership-blank', userId: 'blank-user', merchantId: 'merchant-blank', role: 'OWNER', createdAt: new Date(), updatedAt: new Date() }),
+        create: jest.fn(),
       },
     }
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
 
-    const result = await createMerchantWithOwner({ userId: 'blank-user', name: '   ' })
+    await expect(createMerchantWithOwner({ userId: 'blank-user', name: '   ' })).rejects.toMatchObject({ code: 'INVALID_MERCHANT_NAME' })
 
-    expect(result.merchant).toMatchObject({ id: 'merchant-blank', name: 'My Store' })
-    expect(tx.merchant.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ name: 'My Store' }) }))
+    expect(tx.user.update).not.toHaveBeenCalled()
+    expect(tx.merchant.create).not.toHaveBeenCalled()
+    expect(tx.merchantMembership.create).not.toHaveBeenCalled()
   })
 })

@@ -49,14 +49,10 @@ function newRecordId(): string {
 }
 
 function normalizeInput(input: CreateMerchantWithOwnerInput) {
-  // Keep the build-time Cloudflare adapter semantically aligned with the
-  // canonical Vercel implementation: empty optional input gets a neutral
-  // display name and slug uniqueness remains independent.
-  const name = input.name?.trim() || 'My Store'
-  if (name.length < 2 || name.length > 120) {
-    throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must be between 2 and 120 characters.')
-  }
-
+  // Name validation is performed only after the existing-owner lookup. This
+  // preserves first-workspace idempotency for old retries while making a new
+  // workspace require an explicit business identity.
+  const name = input.name?.trim() || null
   const websiteUrl = input.websiteUrl?.trim() || null
   if (websiteUrl) {
     try {
@@ -67,15 +63,23 @@ function normalizeInput(input: CreateMerchantWithOwnerInput) {
     }
   }
 
-  const baseSlug = slugify(input.slug?.trim() || name).slice(0, 180).replace(/-+$/u, '')
-  if (!baseSlug) {
-    throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must contain letters or numbers.')
-  }
+  const baseSlug = name
+    ? slugify(input.slug?.trim() || name).slice(0, 180).replace(/-+$/u, '') || null
+    : null
 
   const source = input.source?.trim().slice(0, 200) || null
   const campaign = input.campaign?.trim().slice(0, 200) || null
 
   return { name, websiteUrl, baseSlug, source, campaign }
+}
+
+function assertNewMerchantIdentity(normalized: ReturnType<typeof normalizeInput>): asserts normalized is ReturnType<typeof normalizeInput> & { name: string; baseSlug: string } {
+  if (!normalized.name || normalized.name.length < 2 || normalized.name.length > 120) {
+    throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must be between 2 and 120 characters.')
+  }
+  if (!normalized.baseSlug) {
+    throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must contain letters or numbers.')
+  }
 }
 
 async function createMerchantWithOwnerAttempt(
@@ -141,12 +145,16 @@ async function createMerchantWithOwnerAttempt(
   ], { isolationLevel: 'Serializable' })
 
   const existing = results[0]?.[0] as Record<string, unknown> | undefined
+  const inserted = results[2]?.[0] as Record<string, unknown> | undefined
   const selected = results[5]?.[0] as Record<string, unknown> | undefined
   // The first membership is the idempotency record for this user's self-service
   // workspace. Returning it keeps retries and callback replays side-effect free.
   if (existing && selected) return mapMerchantWithOwner(selected, false)
   if (!selected) return null
-  return mapMerchantWithOwner(selected, true)
+  // A concurrent transaction may have created the membership after this
+  // transaction's initial read. Only the INSERT ... RETURNING row proves that
+  // this invocation created the workspace.
+  return mapMerchantWithOwner(selected, Boolean(inserted))
 }
 
 function mapMerchantWithOwner(row: Record<string, unknown>, created: boolean): MerchantWithOwner {
@@ -172,6 +180,21 @@ function mapMerchantWithOwner(row: Record<string, unknown>, created: boolean): M
 
 export async function createMerchantWithOwner(input: CreateMerchantWithOwnerInput): Promise<MerchantWithOwner> {
   const normalized = normalizeInput(input)
+  const sql = getCloudflareSql()
+  const existing = await sql`
+    SELECT mm."id" AS "membershipId", mm."userId", mm."merchantId", mm."role",
+      mm."createdAt" AS "membershipCreatedAt", mm."updatedAt" AS "membershipUpdatedAt",
+      m."slug", m."name"
+    FROM "MerchantMembership" mm
+    JOIN "Merchant" m ON m."id" = mm."merchantId"
+    WHERE mm."userId" = ${input.userId}
+    ORDER BY mm."createdAt" ASC
+    LIMIT 1
+  `
+  const existingRow = Array.isArray(existing) ? existing[0] as Record<string, unknown> | undefined : undefined
+  if (existingRow) return mapMerchantWithOwner(existingRow, false)
+
+  assertNewMerchantIdentity(normalized)
   for (let slugAttempt = 0; slugAttempt < MAX_SLUG_ATTEMPTS; slugAttempt += 1) {
     const slug = merchantSlugForAttempt(normalized.baseSlug, slugAttempt)
     const result = await createMerchantWithOwnerAttempt(input, normalized, slug)
