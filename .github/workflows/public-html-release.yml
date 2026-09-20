@@ -1,0 +1,125 @@
+name: Release Public HTML Offload
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_id:
+        description: Vercel Production deployment ID to independently verify
+        required: true
+        type: string
+      git_sha:
+        description: Full SHA of the intended current origin/main release
+        required: true
+        type: string
+      cloudflare_mode:
+        description: Cloudflare deployment decision override
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - force
+          - skip
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-public-html-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_GIT_SHA: ${{ inputs.git_sha }}
+      CLOUDFLARE_DEPLOY_MODE: ${{ inputs.cloudflare_mode }}
+      CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
+      VERCEL_API_TOKEN: ${{ secrets.VERCEL_D1_DEPLOYMENT_READ_TOKEN }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+      VERCEL_PRODUCTION_ALIAS: www.visutry.com
+      VERCEL_PRODUCTION_SHA: ${{ inputs.git_sha }}
+      VERCEL_PRODUCTION_DEPLOYMENT_ID: ${{ inputs.deployment_id }}
+    steps:
+      - name: Checkout the requested main SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_sha }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Fetch the current main ref
+        run: git fetch --no-tags origin main:refs/remotes/origin/main
+
+      - name: Verify target SHA is current main
+        run: npx tsx scripts/public-html-release.ts --verify-main
+
+      - name: Independently verify Vercel Production
+        run: npx tsx scripts/public-html-release.ts --verify-vercel
+
+      - name: Generate non-mutating release plan
+        run: npx tsx scripts/public-html-release.ts --plan | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Detect Cloudflare deployment requirement
+        id: cloudflare-decision
+        run: |
+          npx tsx scripts/public-html-release.ts --detect-cloudflare-deploy > "$RUNNER_TEMP/public-html-cloudflare-decision.json"
+          cat "$RUNNER_TEMP/public-html-cloudflare-decision.json"
+          node -e 'const fs=require("fs"); const d=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/public-html-cloudflare-decision.json","utf8")); console.log(`deploy_required=${d.deployRequired}`); console.log(`unsafe_skip=${d.unsafeSkip}`); console.log(`matching_files=${d.matchingFiles.join(",")}`)' >> "$GITHUB_OUTPUT"
+
+      - name: Build Cloudflare traffic-layer artifact
+        if: steps.cloudflare-decision.outputs.deploy_required == 'true'
+        run: npm run ci:cloudflare:build
+
+      - name: Deploy Cloudflare production traffic layer
+        if: steps.cloudflare-decision.outputs.deploy_required == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PUBLIC_HTML_WORKER_DEPLOY_TOKEN }}
+        run: npm run ci:cloudflare:deploy:production
+
+      - name: Verify Cloudflare production Worker Routes
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PUBLIC_HTML_WORKER_DEPLOY_TOKEN }}
+        run: npx tsx scripts/public-html-release.ts --verify-routes
+
+      - name: Open exact purge gate after Vercel proof
+        run: echo 'PUBLIC_HTML_RELEASE_PURGE_APPROVED=1' >> "$GITHUB_ENV"
+
+      - name: Purge exactly the seven Public HTML URLs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_CACHE_PURGE_TOKEN }}
+        run: npx tsx scripts/public-html-release.ts --purge
+
+      - name: Warm and verify Public HTML cache HIT
+        run: npx tsx scripts/public-html-release.ts --warm
+
+      - name: Run Production Smoke and Next ownership gate
+        env:
+          SMOKE_ATTEMPTS: 3
+          SMOKE_DELAY_MS: 5000
+        run: npm run test:smoke:production
+
+      - name: Publish release result
+        if: always()
+        run: |
+          {
+            echo '## Public HTML Release Evidence'
+            echo
+            echo "- Release SHA: \`$RELEASE_GIT_SHA\`"
+            echo "- Vercel deployment ID: \`${{ inputs.deployment_id }}\`"
+            echo '- Vercel proof: required before mutation'
+            echo "- Cloudflare deploy required: \`${{ steps.cloudflare-decision.outputs.deploy_required }}\`"
+            echo "- Cloudflare mode: \`${{ inputs.cloudflare_mode }}\`"
+            echo "- Unsafe skip override: \`${{ steps.cloudflare-decision.outputs.unsafe_skip }}\`"
+            echo '- Public HTML purge: exact files only, count 7'
+            echo '- Production smoke: see the step above'
+          } >> "$GITHUB_STEP_SUMMARY"

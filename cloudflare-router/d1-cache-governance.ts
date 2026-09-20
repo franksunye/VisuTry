@@ -9,6 +9,16 @@
  * for the three explicitly approved localized SEO families.
  */
 
+export {
+  deploymentProofFromApi,
+  fetchVercelProductionDeploymentProof,
+  isVercelProductionDeploymentProofValid,
+  normalizeVercelAliases,
+  readVercelVerificationConfig,
+  type VercelDeploymentProof,
+  type VercelVerificationConfig,
+} from './vercel-production-proof'
+
 export const D1_CACHE_RULE_NAME = 'VisuTry D1 - SEO HTML Cache Shield' as const
 export const D1_CACHE_RULE_ID = '95eee5c32435422686aa759e231b8b13' as const
 export const D1_PRODUCTION_HOST = 'www.visutry.com' as const
@@ -37,25 +47,6 @@ export interface D1CacheRuleApiRule {
     browser_ttl: { mode: 'bypass_by_default' }
   }
   enabled: true
-}
-
-export interface D1VercelVerificationConfig {
-  apiToken: string
-  projectId: string
-  teamId: string
-  deploymentId: string
-  expectedGitSha: string
-  productionAlias: string
-}
-
-export interface D1VercelDeploymentProof {
-  id: string
-  projectId: string
-  teamId: string
-  target: string | null
-  readyState: string | null
-  gitSha: string | null
-  aliases: readonly string[]
 }
 
 export interface D1CloudflarePurgePayload {
@@ -198,39 +189,6 @@ export function d1CachePurgePlan() {
 
 export function isCloudflarePurgeSuccessful(status: number, payload: D1CloudflarePurgePayload): boolean {
   return status >= 200 && status < 300 && payload.success === true
-}
-
-export function readVercelVerificationConfig(
-  env: Record<string, string | undefined>,
-): D1VercelVerificationConfig {
-  const values = {
-    apiToken: env.VERCEL_API_TOKEN,
-    projectId: env.VERCEL_PROJECT_ID,
-    teamId: env.VERCEL_TEAM_ID,
-    deploymentId: env.VERCEL_PRODUCTION_DEPLOYMENT_ID,
-    expectedGitSha: env.VERCEL_PRODUCTION_SHA,
-    productionAlias: env.VERCEL_PRODUCTION_ALIAS ?? D1_PRODUCTION_HOST,
-  }
-  const missing = Object.entries(values)
-    .filter(([, value]) => !value)
-    .map(([key]) => key)
-  if (missing.length > 0) {
-    throw new Error(`missing Vercel verification configuration: ${missing.join(', ')}`)
-  }
-  return values as D1VercelVerificationConfig
-}
-
-export function isVercelProductionDeploymentProofValid(
-  proof: D1VercelDeploymentProof,
-  config: Pick<D1VercelVerificationConfig, 'projectId' | 'teamId' | 'deploymentId' | 'expectedGitSha' | 'productionAlias'>,
-): boolean {
-  return proof.id === config.deploymentId
-    && proof.projectId === config.projectId
-    && proof.teamId === config.teamId
-    && proof.target === 'production'
-    && proof.readyState === 'READY'
-    && proof.gitSha === config.expectedGitSha
-    && proof.aliases.includes(config.productionAlias)
 }
 
 export function compareD1LiveRule(actual: D1LiveRuleSnapshot | null): D1RuleDriftReport {
