@@ -2,20 +2,26 @@
 
 **Status:** Active operations documentation index  
 **Owner:** Product / Engineering  
-**Last updated:** 2026-09-17
+**Last updated:** 2026-09-20
 
 ## Current production authority
 
 **Next frontend owner: Vercel.** Vercel is the sole producer of Next HTML, RSC/Flight, the Next client artifact graph, and `/_next/static`.
 
-**Cloudflare owns the governed edge boundary:** DNS/proxy/CDN/WAF, approved non-Next public assets/lightweight edge APIs, the isolated MediaPipe asset path, and the bounded D1 SEO HTML cache rule. A D1 cache hit serves Vercel-produced HTML and does not transfer Next frontend ownership to Cloudflare.
+**Cloudflare owns the governed edge boundary:** DNS/proxy/CDN/WAF, approved non-Next public assets/lightweight edge APIs, the isolated MediaPipe asset path, and bounded caches of Vercel-produced anonymous HTML. A cache hit serves a final Vercel-produced response and does not transfer Next frontend ownership to Cloudflare.
 
 **Worker Routes ownership: REPO-MANAGED.** The canonical deployment declaration is [`wrangler.production-traffic-layer.jsonc`](../../wrangler.production-traffic-layer.jsonc). Production route changes require Git review; Dashboard edits are emergency-only and must be reconciled into Git immediately. The read-only `npm run cf:routes:check` check detects local/live divergence.
 
 MediaPipe runtime/model binaries are served separately through the isolated `assets.visutry.com` Worker + R2 path. This hostname is separate from the approved `www.visutry.com` production Worker Routes.
 The frontend-ownership decision is recorded in `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md`.
 
-> Cloudflare must not independently produce production Next HTML/RSC/client assets until the entire Next frontend, including `/_next/static`, is migrated as one self-consistent build/runtime and ADR-011 is superseded.
+> Cloudflare must not independently render or produce production Next HTML/RSC/client assets. It may serve cached final anonymous HTML produced by Vercel for the exact reviewed Public HTML Offload allowlist. A second Next/OpenNext build graph remains forbidden until a superseding ADR moves the complete frontend boundary atomically.
+
+### Current production state — 2026-09-20
+
+Consumer Public HTML Offload is **PRODUCTION PASS** on main SHA `5da5385552f52890f43b40ac629a0e7db75fa578`. Worker `visutry-cf-production` version `0b673843-dbdc-40f5-a4b1-2306c7eb6518` serves the 19-route production contract and the seven exact code-authoritative Public HTML Offload URLs. All seven were purged and observed with HTTP 200 and valid `MISS → HIT` behavior; cache hits reported `x-visutry-edge-cache: HIT` and `CF-Cache-Status: HIT`. Browser smoke passed for all seven Public pages, and Try-On, Face Analysis, and Dashboard remained healthy. No Vercel config, DNS, D1, or unrelated Cloudflare rule changes were made.
+
+Keep this 19-route / 7-HTML-route data plane stable while Release Engineering v1 is reviewed and manually validated. V1 remains manual-only and fail-closed; automatic triggers, Store/Campaign offload, additional locales, wildcard HTML caching, and dependency-aware invalidation are later work only when justified.
 
 ### Public Web and Consumer App runtime boundary
 
@@ -32,6 +38,7 @@ The Next App Router separates the anonymous Public Web shell from the session-aw
 | Document | Status | Purpose |
 | --- | --- | --- |
 | `hosting-strategy-vercel-cloudflare.md` | **Canonical / Active** | Current hybrid architecture and Vercel/Cloudflare responsibility boundary. |
+| `public-html-release-pipeline.md` | **Active / Manual release control** | Release Engineering v1 verification, optional traffic-layer deploy, exact purge, warm/HIT, smoke, and evidence flow. |
 | `../project/observability-and-analytics-contract.md` | **Canonical / Active** | Operational telemetry, GA4, business-truth, attribution, and dataset ownership. |
 | `infra-daily-watch.md` | **Active / Observation evidence** | Dated production infrastructure checks, including the P0.5E observation conclusion; it does not replace architecture authorities. |
 | `hybrid-performance-benchmark.md` | **Active / Long-term baseline** | Performance discipline for Cloudflare proxy/cache/edge and Vercel paths. |
@@ -69,6 +76,7 @@ These implementation contracts own exact current routes, cache-eligible families
 - DNS/proxy/CDN/WAF/traffic shaping
 - approved non-Next assets and lightweight edge APIs
 - `assets.visutry.com` MediaPipe Worker + R2 path
+- exact Public HTML Offload cache for the reviewed anonymous Vercel-produced HTML allowlist
 - governed D1 cache of eligible anonymous Vercel-produced SEO HTML
 
 ### Rendering / ISR boundary
@@ -84,7 +92,7 @@ Most Public Web content is static-first. Intentional runtime ISR remains for the
 
 1. `www.visutry.com/_next/static/*` is forbidden as a Cloudflare Worker Route while ADR-011 is active.
 2. Production Next HTML/RSC/client artifacts have one producer: Vercel.
-3. D1 caching does not make Cloudflare an HTML producer.
+3. D1 or Public HTML Offload caching does not make Cloudflare an HTML producer.
 4. Private/authenticated/RSC/prefetch/otherwise ineligible traffic must bypass the D1 cache according to the repository-owned contract.
 5. Unknown/unapproved capabilities remain on the canonical Vercel path.
 6. OpenNext parity/staging evidence does not authorize production Next ownership changes.

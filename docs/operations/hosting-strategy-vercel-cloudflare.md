@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for hosting/runtime ownership
 **Owner:** Product / Engineering
-**Last updated:** 2026-09-17
+**Last updated:** 2026-09-20
 **Review cadence:** When production route ownership, cache ownership, runtime provider, or frontend ownership changes
 **Scope:** Production responsibility boundary between Vercel, Cloudflare, and shared external services.
 
@@ -31,6 +31,7 @@ The objective is no longer to answer "Vercel or Cloudflare?" as a provider-selec
 - approved lightweight edge APIs (`/api/health`, `/api/glasses/brands|categories|face-shapes`)
 - public / direct-Neon lightweight reads
 - proxy / CDN / WAF / traffic shaping
+- cached final anonymous HTML responses produced by Vercel, but only for the exact reviewed Public HTML Offload allowlist
 
 The `/_next/static` shared namespace must have exactly one producer. Serving a second (`CLOUDFLARE_BUILD=1` + OpenNext) client graph from it caused the 2026-08-19 production `ChunkLoadError`. The `www.visutry.com/_next/static/*` Worker Route is **FORBIDDEN** and hard-blocked in code (`cloudflare-router/b4-production-routes.ts`, `cloudflare-router/b4-production-public-slice.ts`).
 
@@ -41,7 +42,7 @@ The production traffic-layer build/deploy explicitly selects
 it does not select an OpenNext Worker or a Next/Prisma application runtime.
 The production boundary guard and CI run on this explicit configuration.
 
-> Cloudflare must not serve production Next HTML until the entire Next frontend, including `/_next/static`, is migrated as one self-consistent build/runtime.
+> Cloudflare must not independently render or produce production Next HTML, RSC/Flight, or client artifacts. It may serve a cached final anonymous HTML response produced by the canonical Vercel deployment for the exact reviewed Public HTML Offload allowlist.
 
 Enforcement:
 
@@ -73,6 +74,12 @@ This strategy is formalized by:
 ADR-009 remains the historical decision that initiated and justified Cloudflare optionality work.
 
 ADR-010 remains valid at the architectural-principle level (Cloudflare for traffic scale; backend for compute complexity; Neon as relational source of truth). This document defines how that principle is executed as three traffic layers. It does not rewrite ADR-010.
+
+## Current production state (2026-09-20)
+
+The Consumer Public HTML Offload is **PRODUCTION PASS** on main SHA `5da5385552f52890f43b40ac629a0e7db75fa578`. The validated Worker is `visutry-cf-production`, version `0b673843-dbdc-40f5-a4b1-2306c7eb6518`, with 19 production routes and seven exact Public HTML Offload URLs. All seven URLs were purged and observed to transition from valid `MISS` to `HIT` with HTTP 200; cache hits exposed both `x-visutry-edge-cache: HIT` and `CF-Cache-Status: HIT`. Browser smoke passed for the seven Public pages, while Try-On, Face Analysis, and Dashboard remained healthy.
+
+This validation changed no Vercel configuration, DNS, D1 data, or unrelated Cloudflare rules. The exact seven-route inventory remains code-authoritative in `cloudflare-router/public-html-offload.ts`.
 
 ## Three-Layer Traffic Execution Model
 
@@ -138,7 +145,7 @@ Cloudflare provides:
 
 Layer 2 must not be used as a quota offload via Workers Caching. Cache hits still count as Worker requests and can bill otherwise-free Layer 1 assets.
 
-The production traffic layer does not build or execute a peer Next/OpenNext frontend. Vercel remains responsible for Next HTML, RSC/Flight, redirects, sitemaps, and business/page-data execution. OpenNext remains available only through explicit staging/research commands.
+The production traffic layer does not build or execute a peer Next/OpenNext frontend. Vercel remains responsible for producing Next HTML, RSC/Flight, redirects, sitemaps, and business/page-data execution; Cloudflare may only deliver the reviewed cached final HTML copy. OpenNext remains available only through explicit staging/research commands.
 
 Exact production Worker route intent is code-authoritative in:
 
@@ -291,6 +298,8 @@ Move only individually proven public/static/read-heavy routes to Cloudflare owne
 
 Keep the existing backend as the fallback/origin for unsupported capabilities.
 
+The current seven-route Consumer Public HTML Offload is the validated bounded slice. Keep its 19-route / 7-HTML-route data plane stable while the manual Release Engineering v1 workflow is reviewed and validated.
+
 ### Stage 3 — Authenticated-read slice
 
 Move already-proven Auth0/JWT and direct-Neon protected reads after production routing/cookie behavior is validated.
@@ -306,6 +315,8 @@ Keep Stripe, Blob, AI, cron/background, full MCP OAuth/source intake, and broad 
 ### Stage 6 — Scale Store / Campaign deliberately
 
 As Store/Campaign traffic grows, prioritize edge delivery, caching, lightweight reads, attribution/session/event paths, and bounded request execution so traffic growth does not translate directly into heavyweight backend cost.
+
+Near-term work is limited to completing and manually validating Release Engineering v1. Later work may consider a verified Vercel Production trigger, Store/Campaign edge offload, additional locales, and more granular invalidation only when production evidence justifies it.
 
 ## Production Migration Gate
 

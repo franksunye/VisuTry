@@ -6,16 +6,16 @@ import {
   D1_CACHE_RULE_NAME,
   D1_CLOUDFLARE_CACHE_RULE_ENTRYPOINT_PATH,
   D1_EXPECTED_RULE_ORDER,
-  D1VercelDeploymentProof,
-  D1VercelVerificationConfig,
   compareD1LiveRule,
   d1CachePurgePlan,
   d1CachePurgeRequestBody,
   extractD1LiveRuleFromEntrypoint,
   isCloudflarePurgeSuccessful,
-  isVercelProductionDeploymentProofValid,
-  readVercelVerificationConfig,
 } from '../cloudflare-router/d1-cache-governance'
+import {
+  fetchVercelProductionDeploymentProof,
+  readVercelVerificationConfig,
+} from '../cloudflare-router/vercel-production-proof'
 
 const args = new Set(process.argv.slice(2))
 
@@ -53,62 +53,9 @@ function cloudflareHeaders(apiToken: string) {
   }
 }
 
-function normalizeAliases(payload: unknown): string[] {
-  const values = Array.isArray(payload)
-    ? payload
-    : (payload && typeof payload === 'object' && 'aliases' in payload && Array.isArray(payload.aliases))
-      ? payload.aliases
-      : []
-  return values.flatMap((value) => {
-    if (typeof value === 'string') return [value]
-    if (value && typeof value === 'object' && 'alias' in value && typeof value.alias === 'string') {
-      return [value.alias]
-    }
-    return []
-  })
-}
-
-function deploymentProofFromApi(deployment: Record<string, unknown>, aliases: string[]): D1VercelDeploymentProof {
-  const meta = deployment.meta && typeof deployment.meta === 'object'
-    ? deployment.meta as Record<string, unknown>
-    : {}
-  const gitSource = deployment.gitSource && typeof deployment.gitSource === 'object'
-    ? deployment.gitSource as Record<string, unknown>
-    : {}
-  return {
-    id: typeof deployment.id === 'string' ? deployment.id : '',
-    projectId: typeof deployment.projectId === 'string' ? deployment.projectId : '',
-    teamId: typeof deployment.teamId === 'string' ? deployment.teamId : '',
-    target: typeof deployment.target === 'string' ? deployment.target : null,
-    readyState: typeof deployment.readyState === 'string' ? deployment.readyState : null,
-    gitSha: typeof meta.githubCommitSha === 'string'
-      ? meta.githubCommitSha
-      : typeof gitSource.sha === 'string' ? gitSource.sha : null,
-    aliases,
-  }
-}
-
-async function fetchVercelProductionDeploymentProof(config: D1VercelVerificationConfig) {
-  const teamQuery = `?teamId=${encodeURIComponent(config.teamId)}`
-  const headers = { Authorization: `Bearer ${config.apiToken}` }
-  const deploymentResponse = await fetch(
-    `https://api.vercel.com/v13/deployments/${encodeURIComponent(config.deploymentId)}${teamQuery}`,
-    { headers },
-  )
-  if (!deploymentResponse.ok) fail(`Vercel deployment lookup failed with HTTP ${deploymentResponse.status}`)
-  const deploymentPayload = await readJson(deploymentResponse)
-  if (!deploymentPayload || typeof deploymentPayload !== 'object') fail('Vercel deployment response was not an object')
-
-  const aliasesResponse = await fetch(
-    `https://api.vercel.com/v2/deployments/${encodeURIComponent(config.deploymentId)}/aliases${teamQuery}`,
-    { headers },
-  )
-  if (!aliasesResponse.ok) fail(`Vercel deployment alias lookup failed with HTTP ${aliasesResponse.status}`)
-  const aliasesPayload = await readJson(aliasesResponse)
-  const aliases = normalizeAliases(aliasesPayload)
-  const proof = deploymentProofFromApi(deploymentPayload as Record<string, unknown>, aliases)
-  const valid = isVercelProductionDeploymentProofValid(proof, config)
-
+async function verifyVercelProduction() {
+  const config = readVercelVerificationConfig(process.env)
+  const proof = await fetchVercelProductionDeploymentProof(config)
   console.log(JSON.stringify({
     event: 'vercel_production_deployment_verification',
     productionMutation: false,
@@ -121,16 +68,8 @@ async function fetchVercelProductionDeploymentProof(config: D1VercelVerification
     expectedGitSha: config.expectedGitSha,
     productionAlias: config.productionAlias,
     aliasPresent: proof.aliases.includes(config.productionAlias),
-    verified: valid,
+    verified: true,
   }))
-
-  if (!valid) fail('Vercel deployment proof did not establish the expected production deployment')
-  return proof
-}
-
-async function verifyVercelProduction() {
-  const config = readVercelVerificationConfig(process.env)
-  await fetchVercelProductionDeploymentProof(config)
 }
 
 async function purgeAfterPromotion() {

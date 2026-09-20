@@ -33,6 +33,7 @@
     "b4:dns:diff": "tsx cloudflare-router/b4-dns-zone-diff.ts",
     "cf:routes:check": "tsx scripts/check-cloudflare-worker-routes.ts",
     "d1:cache:governance": "tsx scripts/d1-cache-governance.ts",
+    "public-html:release": "tsx scripts/public-html-release.ts",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
