@@ -34,6 +34,9 @@ describe('auth boundary', () => {
       expect(markup).toContain('data-shopper-callback="/en"')
       expect(markup).not.toContain('Create a merchant workspace')
       expect(markup).not.toContain('data-merchant-callback')
+      expect(markup).not.toContain('Need a merchant workspace')
+      expect(markup).not.toContain('Use merchant access')
+      expect(markup).not.toContain('return to the page you were viewing')
     }
   })
 
@@ -49,6 +52,7 @@ describe('auth boundary', () => {
 
     expect(merchantMarkup).toContain('data-auth-surface="merchant-admin"')
     expect(merchantMarkup).toContain('data-merchant-callback="/en/merchant"')
+    expect(merchantMarkup).toContain('shopper experience')
     expect(unsafeMarkup).toContain('data-auth-surface="consumer"')
     expect(unsafeMarkup).toContain('data-shopper-callback="/en"')
     expect(unsafeMarkup).not.toContain('data-merchant-callback')
@@ -64,6 +68,8 @@ describe('auth boundary', () => {
     expect(markup).toContain('data-auth-surface="shopper"')
     expect(markup).toContain('data-shopper-callback="/en/store/ello-sunglasses"')
     expect(markup).not.toContain('data-merchant-callback')
+    expect(markup).not.toContain('Need a merchant workspace')
+    expect(markup).not.toContain('Use merchant access')
   })
 
   it('keeps a paid plan intent in the merchant Auth0 callback', async () => {

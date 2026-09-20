@@ -20,6 +20,9 @@ test.describe('P0-M1 Merchant acquisition/auth boundary', () => {
       await expect(page.locator('[data-auth-surface="consumer"]')).toBeVisible()
       await expect(page.getByRole('button', { name: /create shopper account/i })).toBeVisible()
       await expect(page.getByText('Create merchant account')).toHaveCount(0)
+      await expect(page.getByText('Need a merchant workspace')).toHaveCount(0)
+      await expect(page.getByText('Use merchant access')).toHaveCount(0)
+      await expect(page.getByText('return to the page you were viewing')).toHaveCount(0)
     }
   })
 
@@ -31,6 +34,8 @@ test.describe('P0-M1 Merchant acquisition/auth boundary', () => {
     await openSignIn(page, '/en/c/visutry-demo/everyday-fit')
     await expect(page.locator('[data-auth-surface="shopper"]')).toBeVisible()
     await expect(page.getByRole('button', { name: /create shopper account/i })).toBeVisible()
+    await expect(page.getByText('Need a merchant workspace')).toHaveCount(0)
+    await expect(page.getByText('Use merchant access')).toHaveCount(0)
   })
 
   test('invalid external callbacks fail closed to localized Consumer home', async ({ page }) => {
@@ -39,6 +44,7 @@ test.describe('P0-M1 Merchant acquisition/auth boundary', () => {
     await expect(page.locator('[data-auth-surface="consumer"]')).toBeVisible()
     await expect(page.locator('body')).not.toContainText('evil.example')
     await expect(page.locator('body')).not.toContainText('Create merchant account')
+    await expect(page.getByText('Need a merchant workspace')).toHaveCount(0)
   })
 
   test('Business Merchant Sign In remains an explicit Merchant entry', async ({ page }) => {
@@ -49,5 +55,6 @@ test.describe('P0-M1 Merchant acquisition/auth boundary', () => {
     await expect.poll(() => new URL(page.url()).pathname).toBe('/en/auth/signin')
     expect(new URL(page.url()).searchParams.get('callbackUrl')).toBe('/en/merchant')
     await expect(page.locator('[data-auth-surface="merchant-admin"]')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'shopper experience' })).toBeVisible()
   })
 })
