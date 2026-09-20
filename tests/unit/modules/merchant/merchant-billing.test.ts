@@ -10,11 +10,21 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
+jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
+  withPublicDiscoveryInvalidation: jest.fn(async (input: { mutation: () => Promise<unknown> }) => input.mutation()),
+}))
+
+jest.mock('@/modules/store/application/public-edge-paths-server', () => ({
+  getPublicEdgeTagsForMerchant: jest.fn().mockResolvedValue(['store-tag', 'campaign-tag']),
+}))
+
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 import { createMerchantCheckoutSession, processMerchantStripeEvent, updateMerchantSubscription } from '@/modules/merchant/application/merchant-billing'
 import { merchantFoundingPilotReceiptPriceIds, merchantStripePriceForPlan, merchantStripePriceMap } from '@/modules/merchant/application/merchant-billing-shared'
 import { compareBillingEvent } from '@/modules/merchant/domain/merchant-billing'
+import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import { getPublicEdgeTagsForMerchant } from '@/modules/store/application/public-edge-paths-server'
 
 type TestBillingAccount = {
   id: string
@@ -68,7 +78,7 @@ describe('Merchant Stripe billing boundary', () => {
     persistedAccount = { ...account }
     persistedMerchant = { planCode: null, commercialStatus: null, billingPeriodEnd: null }
     eventLedger.clear(); retrieveSubscription.mockReset()
-    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear' })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', slug: 'merchant-1' })
     ;(prisma.merchantBillingAccount.findUnique as jest.Mock).mockResolvedValue(account)
     ;(prisma.merchantBillingAccount.create as jest.Mock).mockResolvedValue(account)
     ;(prisma.merchantBillingEvent.findUnique as jest.Mock).mockImplementation(async (input: any) => {
@@ -315,9 +325,19 @@ describe('Merchant Stripe billing boundary', () => {
     const first = await processMerchantStripeEvent(event)
     expect(first).toMatchObject({ handled: true, duplicate: false, merchantId: 'merchant-1' })
     expect(tx.merchant.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' }) }))
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
+      target: { kind: 'merchant', merchantSlug: 'merchant-1' },
+      edgeTags: expect.objectContaining({ before: ['store-tag', 'campaign-tag'] }),
+      invalidate: expect.any(Function),
+    }))
+    const invalidation = (withPublicDiscoveryInvalidation as jest.Mock).mock.calls[0][0]
+    expect(invalidation.invalidate({ handled: true, duplicate: false, stateChanged: true })).toBe(true)
+    await expect(invalidation.edgeTags.after()).resolves.toEqual(['store-tag', 'campaign-tag'])
 
     const second = await processMerchantStripeEvent(event)
     expect(second).toMatchObject({ handled: true, duplicate: true })
+    const duplicateInvalidation = (withPublicDiscoveryInvalidation as jest.Mock).mock.calls[1][0]
+    expect(duplicateInvalidation.invalidate({ handled: true, duplicate: true, stateChanged: false })).toBe(false)
     expect(tx.merchant.update).toHaveBeenCalledTimes(1)
   })
 

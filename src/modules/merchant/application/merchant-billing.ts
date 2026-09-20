@@ -10,6 +10,8 @@ import { resolveMerchantBillingPolicy, type MerchantBillingPolicy, type Merchant
 import { normalizeMerchantBillingState, type MerchantBillingState } from '../domain/merchant-billing-state'
 import { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isMerchantBillingMetadata, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantFoundingPilotReceiptPriceIds, merchantStripePriceForPlan, metadataRecord, resolveMerchantStripePrice, stripeId, unixDate } from './merchant-billing-shared'
 import { readVerifiedMerchantSubscription, verifyMerchantSubscription } from './merchant-billing-provider'
+import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import { getPublicEdgeTagsForMerchant } from '@/modules/store/application/public-edge-paths-server'
 
 export { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantFoundingPilotReceiptPriceIds, merchantStripePriceMap, merchantStripePriceForPlan, resolveMerchantStripePrice } from './merchant-billing-shared'
 export type { MerchantStripePrice } from './merchant-billing-shared'
@@ -293,6 +295,23 @@ async function findAccount(event: Stripe.Event, database: MerchantBillingDatabas
   return null
 }
 
+async function merchantPublicEdgeSlug(database: MerchantBillingDatabase, merchantId: string): Promise<string | null> {
+  try {
+    const merchant = await database.merchant.findUnique({ where: { id: merchantId }, select: { slug: true } })
+    return typeof merchant?.slug === 'string' && merchant.slug.length > 0 ? merchant.slug : null
+  } catch (error) {
+    // Public invalidation is auxiliary to the committed billing state. The
+    // billing event must remain retryable if this read model lookup is down.
+    console.warn(JSON.stringify({
+      event: 'public_html_invalidation',
+      phase: 'billing_merchant_lookup',
+      success: false,
+      reason: error instanceof Error ? error.name : 'merchant_lookup_failed',
+    }))
+    return null
+  }
+}
+
 async function recordRejectedEvent(event: Stripe.Event, account: BillingAccountRow, object: Record<string, unknown>, error: MerchantBillingError, database: MerchantBillingDatabase = prisma) {
   const data = {
     provider: MERCHANT_BILLING_PROVIDER,
@@ -357,6 +376,7 @@ export function isMerchantStripeEventCandidate(event: Stripe.Event) { return sup
 export type MerchantBillingEventResult = { handled: boolean; duplicate: boolean; merchantId?: string; eventType?: string }
 
 type PreparedMerchantBillingEvent = { subscription: Stripe.Subscription | null }
+type AppliedMerchantBillingEvent = MerchantBillingEventResult & { stateChanged: boolean }
 
 async function prepareMerchantBillingEvent(event: Stripe.Event, account: BillingAccountRow, object: Record<string, unknown>): Promise<PreparedMerchantBillingEvent> {
   if (event.type.startsWith('checkout.session.') && (object.payment_status === 'paid' || object.payment_status === 'no_payment_required')) {
@@ -431,7 +451,9 @@ export async function processMerchantStripeEvent(event: Stripe.Event, database: 
     // Stripe provider reads happen before the database transaction. This
     // keeps the account/ledger critical section deterministic and short.
     const prepared = await prepareMerchantBillingEvent(event, account, object)
-    const result = await runBillingTransaction(database, async (tx) => {
+    const merchantSlug = await merchantPublicEdgeSlug(database, account.merchantId)
+    const edgeTagsBefore = merchantSlug ? await getPublicEdgeTagsForMerchant(merchantSlug) : []
+    const runMutation = () => runBillingTransaction(database, async (tx): Promise<AppliedMerchantBillingEvent> => {
       // Every Merchant billing event transaction acquires the same account row
       // lock before touching the event ledger. The FK write therefore cannot
       // participate in the prior deadlock cycle.
@@ -441,7 +463,7 @@ export async function processMerchantStripeEvent(event: Stripe.Event, database: 
       if (existing) {
         if (existing.status !== 'REJECTED' || !isRetryableMerchantBillingErrorCode(existing.processingReason)) {
           await tx.merchantBillingEvent.update({ where: { id: existing.id }, data: { duplicateCount: { increment: 1 }, lastDuplicateAt: new Date() } })
-          return { handled: true, duplicate: true }
+          return { handled: true, duplicate: true, stateChanged: false }
         }
         ledgerId = existing.id
         const planCode = eventPlanCode(object, event.type)
@@ -456,9 +478,25 @@ export async function processMerchantStripeEvent(event: Stripe.Event, database: 
       else applied = await applyInvoice(tx, locked, object as unknown as Stripe.Invoice, event, prepared.subscription)
       const reason = applied ? null : !isNewerBillingEvent(locked, event) ? 'OUT_OF_ORDER' : event.type.startsWith('checkout.session.') ? 'PAYMENT_NOT_CONFIRMED' : 'NO_STATE_CHANGE'
       await tx.merchantBillingEvent.update({ where: { id: ledgerId }, data: { status: applied ? 'PROCESSED' : 'IGNORED', processingReason: reason, processedAt: new Date() } })
-      return { handled: true, duplicate: false }
+      return { handled: true, duplicate: false, stateChanged: applied }
     })
-    return { ...result, merchantId: account.merchantId, eventType: event.type }
+    const result = merchantSlug
+      ? await withPublicDiscoveryInvalidation({
+        target: { kind: 'merchant', merchantSlug },
+        edgeTags: {
+          before: edgeTagsBefore,
+          after: () => getPublicEdgeTagsForMerchant(merchantSlug),
+        },
+        invalidate: (billingResult: AppliedMerchantBillingEvent) => billingResult.stateChanged,
+        mutation: runMutation,
+      })
+      : await runMutation()
+    return {
+      handled: result.handled,
+      duplicate: result.duplicate,
+      merchantId: account.merchantId,
+      eventType: event.type,
+    }
   } catch (error) {
     // Keep a small operational record for rejected provider events without
     // allowing a rejected event to mutate the canonical billing state.
