@@ -1,12 +1,14 @@
 /** @jest-environment node */
 
 import { publicHtmlPurgeUrls, purgePublicHtmlTags, purgePublicHtmlUrls } from '@/lib/cloudflare-public-html-purge'
+import { logger } from '@/lib/logger'
 
 describe('exact Store/Campaign public HTML purge client', () => {
   const originalZone = process.env.CLOUDFLARE_ZONE_ID
   const originalToken = process.env.CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN
 
   afterEach(() => {
+    jest.restoreAllMocks()
     if (originalZone === undefined) delete process.env.CLOUDFLARE_ZONE_ID
     else process.env.CLOUDFLARE_ZONE_ID = originalZone
     if (originalToken === undefined) delete process.env.CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN
@@ -36,6 +38,48 @@ describe('exact Store/Campaign public HTML purge client', () => {
     expect(String(calls[0].body)).not.toContain('purge_everything')
   })
 
+  it('emits a bounded canonical event for successful file purges without secrets', async () => {
+    process.env.CLOUDFLARE_ZONE_ID = 'secret-zone'
+    process.env.CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN = 'secret-token'
+    const info = jest.spyOn(logger, 'info').mockImplementation(() => undefined)
+    const fetchMock: typeof fetch = async () => new Response(JSON.stringify({ success: true }), { status: 200 })
+
+    await expect(purgePublicHtmlUrls(['/en/store/luna-optical'], fetchMock)).resolves.toMatchObject({
+      attempted: true,
+      success: true,
+      urlCount: 1,
+    })
+
+    expect(info).toHaveBeenCalledWith('store', 'Public HTML invalidation', {
+      event: 'public_html_invalidation',
+      type: 'files',
+      status: 'success',
+      source: 'cloudflare',
+    })
+    expect(JSON.stringify(info.mock.calls)).not.toContain('secret-zone')
+    expect(JSON.stringify(info.mock.calls)).not.toContain('secret-token')
+  })
+
+  it('emits a bounded canonical event for successful tag purges', async () => {
+    process.env.CLOUDFLARE_ZONE_ID = 'secret-zone'
+    process.env.CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN = 'secret-token'
+    const info = jest.spyOn(logger, 'info').mockImplementation(() => undefined)
+    const fetchMock: typeof fetch = async () => new Response(JSON.stringify({ success: true }), { status: 200 })
+
+    await expect(purgePublicHtmlTags(['visutry:public-html:campaign:en:merchant:petite-fit'], fetchMock)).resolves.toMatchObject({
+      attempted: true,
+      success: true,
+      tagCount: 1,
+    })
+
+    expect(info).toHaveBeenCalledWith('store', 'Public HTML invalidation', {
+      event: 'public_html_invalidation',
+      type: 'tags',
+      status: 'success',
+      source: 'cloudflare',
+    })
+  })
+
   it('batches every file without truncating beyond the Cloudflare batch limit', async () => {
     process.env.CLOUDFLARE_ZONE_ID = 'zone'
     process.env.CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN = 'token'
@@ -62,6 +106,7 @@ describe('exact Store/Campaign public HTML purge client', () => {
   it('purges canonical Store/Campaign Cache-Tags in batches and reports partial failure', async () => {
     process.env.CLOUDFLARE_ZONE_ID = 'zone'
     process.env.CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN = 'token'
+    const error = jest.spyOn(logger, 'error').mockImplementation(() => undefined)
     const calls: RequestInit[] = []
     const fetchMock: typeof fetch = async (_input, init) => {
       calls.push(init ?? {})
@@ -78,6 +123,53 @@ describe('exact Store/Campaign public HTML purge client', () => {
     })
     expect(calls).toHaveLength(3)
     expect(calls.every((call) => (JSON.parse(String(call.body)).tags as string[]).length <= 100)).toBe(true)
+    expect(error).toHaveBeenCalledWith('store', 'Public HTML invalidation', expect.any(Error), {
+      event: 'public_html_invalidation',
+      type: 'tags',
+      status: 'failed',
+      source: 'cloudflare',
+      failureReason: 'cloudflare_purge_partial_failure',
+    })
+  })
+
+  it('emits a bounded warning when credentials are missing', async () => {
+    delete process.env.CLOUDFLARE_ZONE_ID
+    delete process.env.CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN
+    const warn = jest.spyOn(logger, 'warn').mockImplementation(() => undefined)
+
+    await expect(purgePublicHtmlTags(['visutry:public-html:campaign:en:merchant:petite-fit'])).resolves.toMatchObject({
+      attempted: false,
+      success: false,
+      reason: 'purge_credentials_not_configured',
+    })
+
+    expect(warn).toHaveBeenCalledWith('store', 'Public HTML invalidation', {
+      event: 'public_html_invalidation',
+      type: 'tags',
+      status: 'not_attempted',
+      source: 'cloudflare',
+      failureReason: 'purge_credentials_not_configured',
+    })
+  })
+
+  it('keeps the purge result when canonical logging throws', async () => {
+    process.env.CLOUDFLARE_ZONE_ID = 'zone'
+    process.env.CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN = 'token'
+    jest.spyOn(logger, 'info').mockImplementation(() => {
+      throw new Error('logger unavailable')
+    })
+    let requestCount = 0
+    const fetchMock: typeof fetch = async () => {
+      requestCount += 1
+      return new Response(JSON.stringify({ success: true }), { status: 200 })
+    }
+
+    await expect(purgePublicHtmlTags(['visutry:public-html:campaign:en:merchant:petite-fit'], fetchMock)).resolves.toMatchObject({
+      attempted: true,
+      success: true,
+      tagCount: 1,
+    })
+    expect(requestCount).toBe(1)
   })
 
   it('does not fail the caller when credentials are absent', async () => {

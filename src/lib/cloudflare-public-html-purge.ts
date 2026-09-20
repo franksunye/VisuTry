@@ -1,13 +1,10 @@
 import 'server-only'
+import { logger } from '@/lib/logger'
 
 const CLOUDFLARE_API = 'https://api.cloudflare.com/client/v4'
 const PUBLIC_HOST = 'www.visutry.com'
 const MAX_PURGE_BATCH_SIZE = 100
 const TIMEOUT_MS = 5000
-
-function safePurgePaths(urls: readonly string[]): string[] {
-  return urls.map((url) => new URL(url).pathname)
-}
 
 export type PublicHtmlPurgeResult = {
   attempted: boolean
@@ -17,6 +14,43 @@ export type PublicHtmlPurgeResult = {
   batchCount?: number
   failedBatchCount?: number
   reason?: string
+}
+
+type PublicHtmlPurgeKind = 'files' | 'tags'
+type PublicHtmlInvalidationStatus = 'success' | 'failed' | 'not_attempted'
+
+/**
+ * Emit bounded public-edge telemetry without allowing observability to alter
+ * the post-commit purge result or introduce another network request.
+ */
+function emitPublicHtmlInvalidationTelemetry(input: {
+  kind: PublicHtmlPurgeKind
+  status: PublicHtmlInvalidationStatus
+  failureReason?: string
+  level: 'info' | 'warn' | 'error'
+}): void {
+  // `status` is the existing schema-approved outcome field. Do not add
+  // success/count columns here: the full counts remain in the return value.
+  const data = {
+    event: 'public_html_invalidation',
+    type: input.kind,
+    status: input.status,
+    source: 'cloudflare',
+    ...(input.failureReason ? { failureReason: input.failureReason } : {}),
+  }
+
+  try {
+    if (input.level === 'info') {
+      logger.info('store', 'Public HTML invalidation', data)
+    } else if (input.level === 'warn') {
+      logger.warn('store', 'Public HTML invalidation', data)
+    } else {
+      logger.error('store', 'Public HTML invalidation', new Error(input.failureReason ?? 'public_html_invalidation_failed'), data)
+    }
+  } catch {
+    // Logging is best effort. A logger/Axiom failure must not affect the
+    // already-committed mutation or the purge result returned to its caller.
+  }
 }
 
 function exactPublicUrl(pathname: string): string | null {
@@ -96,23 +130,37 @@ export async function purgePublicHtmlUrls(
   const urls = publicHtmlPurgeUrls(paths)
   if (urls.length === 0) return { attempted: false, success: true, urlCount: 0, reason: 'no-safe-urls' }
   if (!process.env.CLOUDFLARE_ZONE_ID || !process.env.CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN) {
-    console.warn(JSON.stringify({ event: 'public_html_invalidation', resourceType: 'files', success: false, urlCount: urls.length, batchCount: Math.ceil(urls.length / MAX_PURGE_BATCH_SIZE), paths: safePurgePaths(urls), reason: 'purge_credentials_not_configured' }))
+    emitPublicHtmlInvalidationTelemetry({
+      kind: 'files',
+      status: 'not_attempted',
+      failureReason: 'purge_credentials_not_configured',
+      level: 'warn',
+    })
     return { attempted: false, success: false, urlCount: urls.length, reason: 'purge_credentials_not_configured' }
   }
 
   const requestFetch = fetchImpl ?? globalThis.fetch
   if (typeof requestFetch !== 'function') {
-    console.warn(JSON.stringify({ event: 'public_html_invalidation', resourceType: 'files', success: false, urlCount: urls.length, batchCount: Math.ceil(urls.length / MAX_PURGE_BATCH_SIZE), paths: safePurgePaths(urls), reason: 'fetch_unavailable' }))
+    emitPublicHtmlInvalidationTelemetry({
+      kind: 'files',
+      status: 'not_attempted',
+      failureReason: 'fetch_unavailable',
+      level: 'warn',
+    })
     return { attempted: false, success: false, urlCount: urls.length, reason: 'fetch_unavailable' }
   }
 
   const outcome = await purgeBatches(urls, 'files', requestFetch)
   const success = outcome.failedBatchCount === 0
-  const payload = { event: 'public_html_invalidation', resourceType: 'files', success, urlCount: urls.length, ...outcome, paths: safePurgePaths(urls) }
   if (success) {
-    console.info(JSON.stringify(payload))
+    emitPublicHtmlInvalidationTelemetry({ kind: 'files', status: 'success', level: 'info' })
   } else {
-    console.error(JSON.stringify({ ...payload, reason: 'cloudflare_purge_partial_failure' }))
+    emitPublicHtmlInvalidationTelemetry({
+      kind: 'files',
+      status: 'failed',
+      failureReason: 'cloudflare_purge_partial_failure',
+      level: 'error',
+    })
   }
   return { attempted: true, success, urlCount: urls.length, ...outcome, ...(success ? {} : { reason: 'cloudflare_purge_partial_failure' }) }
 }
@@ -124,23 +172,37 @@ export async function purgePublicHtmlTags(
   const safeTags = [...new Set(tags.filter((tag) => /^[\x21-\x7E]+$/u.test(tag) && tag.length <= 1024))]
   if (safeTags.length === 0) return { attempted: false, success: true, urlCount: 0, tagCount: 0, reason: 'no-safe-tags' }
   if (!process.env.CLOUDFLARE_ZONE_ID || !process.env.CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN) {
-    console.warn(JSON.stringify({ event: 'public_html_invalidation', resourceType: 'tags', success: false, tagCount: safeTags.length, batchCount: Math.ceil(safeTags.length / MAX_PURGE_BATCH_SIZE), reason: 'purge_credentials_not_configured' }))
+    emitPublicHtmlInvalidationTelemetry({
+      kind: 'tags',
+      status: 'not_attempted',
+      failureReason: 'purge_credentials_not_configured',
+      level: 'warn',
+    })
     return { attempted: false, success: false, urlCount: 0, tagCount: safeTags.length, reason: 'purge_credentials_not_configured' }
   }
 
   const requestFetch = fetchImpl ?? globalThis.fetch
   if (typeof requestFetch !== 'function') {
-    console.warn(JSON.stringify({ event: 'public_html_invalidation', resourceType: 'tags', success: false, tagCount: safeTags.length, batchCount: Math.ceil(safeTags.length / MAX_PURGE_BATCH_SIZE), reason: 'fetch_unavailable' }))
+    emitPublicHtmlInvalidationTelemetry({
+      kind: 'tags',
+      status: 'not_attempted',
+      failureReason: 'fetch_unavailable',
+      level: 'warn',
+    })
     return { attempted: false, success: false, urlCount: 0, tagCount: safeTags.length, reason: 'fetch_unavailable' }
   }
 
   const outcome = await purgeBatches(safeTags, 'tags', requestFetch)
   const success = outcome.failedBatchCount === 0
-  const payload = { event: 'public_html_invalidation', resourceType: 'tags', success, tagCount: safeTags.length, ...outcome }
   if (success) {
-    console.info(JSON.stringify(payload))
+    emitPublicHtmlInvalidationTelemetry({ kind: 'tags', status: 'success', level: 'info' })
   } else {
-    console.error(JSON.stringify({ ...payload, reason: 'cloudflare_purge_partial_failure' }))
+    emitPublicHtmlInvalidationTelemetry({
+      kind: 'tags',
+      status: 'failed',
+      failureReason: 'cloudflare_purge_partial_failure',
+      level: 'error',
+    })
   }
   return { attempted: true, success, urlCount: 0, tagCount: safeTags.length, ...outcome, ...(success ? {} : { reason: 'cloudflare_purge_partial_failure' }) }
 }

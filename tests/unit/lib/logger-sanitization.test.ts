@@ -152,4 +152,30 @@ describe('normalizeLogData', () => {
     expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.size).toBe(182)
     expect([...AXIOM_SERIALIZED_KEY_ALLOWLIST].filter((key) => !VISUTRY_PRO_FIELDS.has(key))).toEqual([])
   })
+
+  it('keeps public HTML invalidation telemetry inside the existing schema', () => {
+    const serialized = serializeAxiomRecord({
+      id: 'log-public-html-1',
+      timestamp: '2026-09-20T00:00:00.000Z',
+      level: 'info',
+      category: 'store',
+      message: 'Public HTML invalidation',
+      data: {
+        event: 'public_html_invalidation',
+        type: 'tags',
+        status: 'success',
+        source: 'cloudflare',
+      },
+    })
+
+    const keys = collectSerializedKeys(serialized)
+    expect(keys.every((key) => AXIOM_SERIALIZED_KEY_ALLOWLIST.has(key))).toBe(true)
+    expect(keys.every((key) => VISUTRY_PRO_FIELDS.has(key))).toBe(true)
+    expect(serialized.data).toEqual({
+      event: 'public_html_invalidation',
+      type: 'tags',
+      status: 'success',
+      source: 'cloudflare',
+    })
+  })
 })
