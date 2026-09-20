@@ -51,8 +51,9 @@ Asset audit completed 2026-09-20 against valid production HTML samples `/en/stor
 1. Vercel creates the Production deployment.
 2. The release workflow independently verifies the deployment ID, project ID, team ID, `target=production`, `readyState=READY`, expected Git SHA, and `www.visutry.com` alias through the Vercel API.
 3. The target SHA must equal the current fetched `origin/main` SHA. Dispatch inputs are not proof.
-4. The workflow purges the seven exact Public HTML URLs, warms them with anonymous HTML requests, and requires an eventual `x-visutry-edge-cache: HIT` for every URL.
-5. The existing `scripts/production-smoke.mjs` verifies Vercel ownership of Next HTML, RSC/Flight, and `/_next/static`, plus protected application guards.
+4. The workflow purges the seven exact Consumer Public HTML URLs, warms them, and classifies the response. An explicit `cf-mitigated: challenge` is classified as `SECURITY_CHALLENGE_SKIP`; ordinary 403/5xx responses remain failures.
+5. The existing `scripts/production-smoke.mjs` runs against the independently verified Vercel Production origin and verifies Vercel ownership of Next HTML, RSC/Flight, and `/_next/static`, plus protected application guards.
+6. When the GitHub-hosted probe is challenged, trusted local/Chrome validation is the authoritative evidence for public-domain Edge HIT, canonical delivery, and hydration. The Runner is not treated as the authoritative Edge HIT observer in that case.
 
 ## Cloudflare-affecting release
 
@@ -66,7 +67,7 @@ The workflow classifies the first-parent change set of the target main commit. A
 
 When required, the order is:
 
-`Vercel proof → Cloudflare artifact build/deploy → live route verification (derived contract) → exact seven-file Consumer purge → warm/HIT verification → Production Smoke`.
+`Vercel proof → Cloudflare artifact build/deploy → live route verification (derived contract) → exact seven-file Consumer purge → warm/classify → Vercel-origin producer smoke → trusted Edge evidence where required`.
 
 Ordinary application page copy, React components, APIs, Merchant logic, and database changes do not require a Cloudflare Worker deploy because Vercel remains their producer. If the changed-file comparison cannot be established, the classifier fails closed and requires a deploy. Manual `force` remains available for an explicit conservative deploy; there is no skip mode.
 
@@ -74,14 +75,24 @@ Ordinary application page copy, React components, APIs, Merchant logic, and data
 
 `.github/workflows/public-html-release.yml` is intentionally `workflow_dispatch` only. It has no push, schedule, or automatic `repository_dispatch` trigger. It uses `contents: read` and a non-canceling production concurrency group.
 
-Existing contracts reused:
+### GitHub Release Control Plane
 
-- `VERCEL_PROJECT_ID` and `VERCEL_TEAM_ID` repository Variables
-- `VERCEL_D1_DEPLOYMENT_READ_TOKEN` repository Secret for read-only Vercel proof
-- `CLOUDFLARE_ZONE_ID` repository Variable
-- `CLOUDFLARE_D1_CACHE_PURGE_TOKEN` repository Secret for exact URL cache purge
+- `CLOUDFLARE_D1_CACHE_PURGE_TOKEN` for the existing exact Consumer purge path
+- `CLOUDFLARE_PUBLIC_HTML_WORKER_DEPLOY_TOKEN` for an explicitly required traffic-layer deploy and live route verification
+- the Vercel deployment-read credential (`VERCEL_D1_DEPLOYMENT_READ_TOKEN`), with `VERCEL_PROJECT_ID` and `VERCEL_TEAM_ID` repository Variables
 
-Activation prerequisite for the optional Worker deployment and live route read is a separate least-privilege repository Secret:
+The Cloudflare zone identifier is non-secret workflow configuration when needed
+for control-plane addressing; it is not a purge credential.
+
+### Vercel Production Runtime
+
+- `CLOUDFLARE_ZONE_ID`
+- `CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN`
+
+The runtime purge token is least privilege: it is scoped to the `visutry.com`
+zone with Cache Purge only. No credential value is documented here.
+
+The Worker deployment credential is separate from the runtime purge token:
 
 `CLOUDFLARE_PUBLIC_HTML_WORKER_DEPLOY_TOKEN`
 
@@ -91,15 +102,15 @@ It must be scoped to this zone/account for Worker deployment and Worker Route re
 
 - Roll back application code through Vercel.
 - Roll back the traffic Worker separately through the Cloudflare Worker version mechanism.
-- After either rollback, purge and warm the same seven exact Public HTML URLs.
+- After either rollback, purge and revalidate the same seven exact Public HTML URLs through warm/classify and trusted Edge evidence where required.
 - Never restore a second Next.js build graph in Cloudflare or broaden the Worker route set.
 
 The D1 cache invalidation workflow remains in place. It is a separate governance path for the existing D1 rule and is not silently replaced by this release pipeline.
 
 ## Scope and roadmap
 
-Release Engineering v1 is intentionally manual-only: `workflow_dispatch` verifies the current main SHA and Vercel Production deployment, determines whether a Cloudflare traffic-layer deploy is required, optionally deploys Cloudflare, verifies the live derived route contract, purges the exact seven Consumer URLs, warms them to an eventual HIT, runs the existing Production Smoke, and publishes fail-closed release evidence. Store/Campaign URLs are not added to that deploy-time seven-URL release purge list; their freshness is mutation-driven.
+Release Engineering v1 is intentionally manual-only: `workflow_dispatch` verifies the current main SHA and Vercel Production deployment, determines whether a Cloudflare traffic-layer deploy is required, optionally deploys Cloudflare, verifies the live derived route contract, purges the exact seven Consumer URLs, warms/classifies them, runs Producer Smoke against the verified Vercel Production origin, and publishes fail-closed release evidence. If the Runner is challenged, trusted local/Chrome evidence covers the public-domain Edge HIT/canonical/hydration gate. Store/Campaign URLs are not added to that deploy-time seven-URL release purge list; their freshness is mutation-driven.
 
-The current release workflow's seven-URL purge/warm contract does not include Store/Campaign offload. The reviewed Store/Campaign branch uses write-driven exact invalidation instead. Neither path adds automatic release triggers, additional locales, wildcard HTML caching, or dependency-aware invalidation.
+The current release workflow's seven-URL purge/warm contract does not include Store/Campaign offload. The live Store/Campaign contract uses write-driven exact invalidation instead. Neither path adds automatic release triggers, additional locales, wildcard HTML caching, or dependency-aware invalidation.
 
 The operating posture is to keep the current Consumer and bounded EN Store/Campaign data planes stable while observing resource usage, cache correctness, freshness, and interactive attribution. Additional locales, wildcard HTML caching, and broader edge ownership remain out of scope.
