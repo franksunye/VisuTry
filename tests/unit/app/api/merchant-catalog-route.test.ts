@@ -1,14 +1,14 @@
 /** @jest-environment node */
 
 jest.mock('@/lib/api-auth-runtime', () => ({ requireAuth: jest.fn() }))
-jest.mock('@/modules/merchant/application/merchant-access-cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-access', () => ({
   requireMerchantMembership: jest.fn(),
   MerchantAccessError: class MerchantAccessError extends Error {
     readonly code = 'MERCHANT_ACCESS_NOT_FOUND'
     readonly httpStatus = 404
   },
 }))
-jest.mock('@/modules/merchant/application/merchant-onboarding-cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-onboarding', () => ({
   MAX_CATALOG_IMPORT: 1000,
   listMerchantFrames: jest.fn(),
   importMerchantFrames: jest.fn(),
@@ -20,8 +20,8 @@ jest.mock('@/modules/merchant/application/merchant-onboarding-cloudflare', () =>
 
 import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access-cloudflare'
-import { importMerchantFrames, listMerchantFrames } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
+import { importMerchantFrames, listMerchantFrames } from '@/modules/merchant/application/merchant-onboarding'
 import { GET, POST } from '@/app/api/merchant/[merchantId]/catalog/route'
 
 const mockAuth = requireAuth as jest.Mock

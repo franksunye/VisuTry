@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
-import { MerchantOnboardingError } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
+import { MerchantOnboardingError } from '@/modules/merchant/application/merchant-onboarding'
 
 export function storeErrorResponse(error: unknown): NextResponse {
   if (error instanceof MerchantAccessError) {

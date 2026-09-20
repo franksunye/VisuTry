@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { resolveAppEnvironment } from '@/lib/app-environment'
 import { slugify } from '@/lib/programmatic-seo'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import {
@@ -96,6 +97,12 @@ async function createMerchantWithOwnerAttempt(
   slug: string,
 ): Promise<MerchantProvisioningAttemptResult> {
   return prisma.$transaction(async (tx) => {
+    const isLocalQa = resolveAppEnvironment() === 'local'
+    const classification = isLocalQa ? 'TEST' : PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION
+    const classificationSource = isLocalQa ? 'LOCAL_QA' : PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE
+    const classificationReason = isLocalQa
+      ? 'Created by the Local Merchant Growth Lab QA fixture.'
+      : PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON
     const existingMembership = await tx.merchantMembership.findFirst({
       where: { userId: input.userId },
       orderBy: { createdAt: 'asc' },
@@ -175,9 +182,9 @@ async function createMerchantWithOwnerAttempt(
         websiteUrl: normalized.websiteUrl,
         defaultSource: normalized.source,
         defaultCampaign: normalized.campaign,
-        classification: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION,
-        classificationSource: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
-        classificationReason: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON,
+        classification,
+        classificationSource,
+        classificationReason,
         planCode: 'FREE',
         pricingVersion: 'v1',
         entitlementVersion: 'v1',
@@ -209,8 +216,8 @@ async function createMerchantWithOwnerAttempt(
       attribution: input.attribution,
       intent: input.commercialIntent,
       metadata: {
-        classification: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION,
-        classification_source: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
+        classification,
+        classification_source: classificationSource,
         commercial_intent: input.commercialIntent,
       },
     })

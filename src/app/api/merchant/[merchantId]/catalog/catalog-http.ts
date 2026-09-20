@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
-import { MerchantOnboardingError, type CatalogFrameInput } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
+import { MerchantOnboardingError, type CatalogFrameInput } from '@/modules/merchant/application/merchant-onboarding'
 import { MerchantSourceIntakeError } from '@/modules/merchant/application/merchant-catalog-source-shared'
 
 export const catalogFrameInputSchema = z.object({

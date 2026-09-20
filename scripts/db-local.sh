@@ -12,12 +12,13 @@ export APP_ENV=local
 export VISUTRY_DATABASE_IDENTITY="local:127.0.0.1:${PGPORT}/${PGDATABASE}"
 
 refuse_remote() {
-  case "${DATABASE_URL:-}" in
-    *ep-wandering-union-ad43rx1s*|*ep-old-frog-adgzp23w*)
-      echo "❌ Refusing a known remote Neon URL in Local Postgres command." >&2
+  for candidate in "${DATABASE_URL:-}" "${DATABASE_URL_UNPOOLED:-}"; do
+    [[ -z "$candidate" ]] && continue
+    if ! node -e 'const u = new URL(process.argv[1]); const h = u.hostname.toLowerCase().replace(/^\[|\]$/g, ""); if (!["127.0.0.1", "localhost", "::1"].includes(h)) process.exit(1)' "$candidate" >/dev/null 2>&1; then
+      echo "❌ Refusing a non-loopback PostgreSQL URL in Local Postgres command." >&2
       exit 1
-      ;;
-  esac
+    fi
+  done
 }
 
 refuse_unsafe_pgdata() {

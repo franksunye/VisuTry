@@ -3,7 +3,7 @@ import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
-import { mockUsers, isMockMode } from "./index"
+import { LOCAL_QA_IDENTITIES, mockModeEnabled, mockUsers, isMockMode } from "./index"
 
 // Mock Twitter Provider for testing
 const MockTwitterProvider = {
@@ -37,13 +37,19 @@ const MockCredentialsProvider = CredentialsProvider({
   name: "Mock Login",
   credentials: {
     email: { label: "Email", type: "email", placeholder: "test@example.com" },
-    type: { label: "User Type", type: "select", options: ["free", "premium", "admin"] }
+    type: { label: "User Type", type: "select", options: ["free", "premium", "admin"] },
+    qaIdentity: { label: "Local QA identity", type: "text" },
   },
   async authorize(credentials) {
     if (!credentials?.email) return null
 
-    const userType = credentials.type || "free"
-    const mockUser = userType === "admin" ? mockUsers[2] : userType === "premium" ? mockUsers[1] : mockUsers[0]
+    const qaIdentity = typeof credentials.qaIdentity === 'string' ? credentials.qaIdentity : ''
+    const mockUser = qaIdentity && qaIdentity in LOCAL_QA_IDENTITIES
+      ? LOCAL_QA_IDENTITIES[qaIdentity as keyof typeof LOCAL_QA_IDENTITIES]
+      : (() => {
+          const userType = credentials.type || "free"
+          return userType === "admin" ? mockUsers[2] : userType === "premium" ? mockUsers[1] : mockUsers[0]
+        })()
 
     // Credentials auth does not call the NextAuth adapter's createUser hook.
     // Persist the fixed mock identity through the test-only auth path so APIs
@@ -83,7 +89,7 @@ const MockCredentialsProvider = CredentialsProvider({
 
     return {
       id: mockUser.id,
-      email: credentials.email,
+      email: mockUser.email,
       name: mockUser.name,
       image: mockUser.image,
       username: mockUser.username,
@@ -139,3 +145,4 @@ export function getMockAuthOptions(): NextAuthOptions {
 
 // Export the providers for use in auth.ts
 export { MockCredentialsProvider, isMockMode }
+export { mockModeEnabled }

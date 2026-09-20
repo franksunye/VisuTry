@@ -9,10 +9,23 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) })
 
 async function main() {
   if (requireExplicitAppEnvironment() !== 'local') throw new Error('Local seed requires APP_ENV=local.')
+  const identities = [
+    { id: 'local-consumer', email: 'local-consumer@local.test', name: 'Local Consumer', username: 'local-consumer', role: 'USER' as const },
+    { id: 'mock-user-2', email: 'premium@example.com', name: 'Local QA Clean Merchant', username: 'premiumuser', role: 'USER' as const },
+    { id: 'mock-user-1', email: 'test@example.com', name: 'Local QA Existing Merchant', username: 'local-qa-existing', role: 'USER' as const },
+    { id: 'mock-user-admin', email: 'admin@example.com', name: 'Local QA Admin', username: 'adminuser', role: 'ADMIN' as const },
+  ]
+  for (const identity of identities) {
+    await prisma.user.upsert({
+      where: { id: identity.id },
+      create: identity,
+      update: { email: identity.email, name: identity.name, username: identity.username, role: identity.role },
+    })
+  }
   const user = await prisma.user.upsert({
     where: { id: 'mock-user-1' },
-    create: { id: 'mock-user-1', email: 'mock-user-1@local.test', name: 'Local QA User', username: 'local-qa-user' },
-    update: { name: 'Local QA User' },
+    create: { id: 'mock-user-1', email: 'test@example.com', name: 'Local QA Existing Merchant', username: 'local-qa-existing' },
+    update: { name: 'Local QA Existing Merchant' },
   })
   for (const [alias, planCode] of [['QA-FREE', 'FREE'], ['QA-PILOT', 'FOUNDING_PILOT'], ['QA-SUBSCRIPTION', 'LAUNCH'], ['QA-USAGE', 'GROWTH']] as const) {
     const slug = `local-${alias.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`

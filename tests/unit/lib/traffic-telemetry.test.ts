@@ -77,6 +77,7 @@ describe('traffic telemetry contract', () => {
     } as NodeJS.ProcessEnv)).toEqual({ dataset: 'visutry-ppe', token: 'preview-token' })
 
     expect(resolveTrafficTelemetryDestination({ NODE_ENV: 'development' } as NodeJS.ProcessEnv)).toBeNull()
+    expect(resolveTrafficTelemetryDestination({ APP_ENV: 'local', NODE_ENV: 'production', VERCEL_ENV: 'preview', AXIOM_TOKEN: 'must-not-send' } as NodeJS.ProcessEnv)).toBeNull()
   })
 
   it('preserves symbolic destination values used by analytics callers', () => {

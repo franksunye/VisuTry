@@ -272,7 +272,7 @@ class Logger {
   private logs: LogEntry[] = []
   private maxLogs = 1000 // 最多保存1000条日志
   private isDevelopment = process.env.NODE_ENV === 'development'
-  private isProduction = process.env.NODE_ENV === 'production'
+  private isProduction = process.env.NODE_ENV === 'production' && process.env.APP_ENV !== 'local'
   private axiom: Axiom | null = null
 
   constructor() {

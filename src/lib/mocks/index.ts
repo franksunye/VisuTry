@@ -3,7 +3,15 @@
 
 import { UserRole } from '@prisma/client'
 
-export const isMockMode = process.env.ENABLE_MOCKS === 'true' || process.env.NODE_ENV === 'test'
+export function mockModeEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  const requested = env.ENABLE_MOCKS === 'true' || env.NODE_ENV === 'test'
+  if (!requested) return false
+  if (env.APP_ENV === 'preview' || env.APP_ENV === 'production') return false
+  if (env.VERCEL_ENV === 'preview' || env.VERCEL_ENV === 'production') return false
+  return env.APP_ENV === 'local' || env.NODE_ENV === 'test'
+}
+
+export const isMockMode = mockModeEnabled()
 
 // Mock data for testing
 export const mockUsers = [
@@ -51,8 +59,30 @@ export const mockUsers = [
     isPremium: true,
     premiumExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
     currentSubscriptionType: 'PREMIUM_YEARLY' as string | null,
-  }
+  },
+  {
+    id: 'local-consumer',
+    email: 'local-consumer@local.test',
+    name: 'Local Consumer',
+    image: null,
+    username: 'local-consumer',
+    role: 'USER' as UserRole,
+    freeTrialsUsed: 0,
+    creditsPurchased: 0,
+    creditsUsed: 0,
+    premiumUsageCount: 0,
+    isPremium: false,
+    premiumExpiresAt: null,
+    currentSubscriptionType: null,
+  },
 ]
+
+export const LOCAL_QA_IDENTITIES = {
+  consumer: mockUsers[3],
+  clean: mockUsers[1],
+  existing: mockUsers[0],
+  admin: mockUsers[2],
+} as const
 
 export const mockGlassesFrames = [
   {

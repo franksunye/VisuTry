@@ -6,7 +6,28 @@ export function resolveAppEnvironment(env: Record<string, string | undefined> = 
   if (explicit && (APP_ENVIRONMENTS as readonly string[]).includes(explicit)) return explicit as AppEnvironment
   if (env.VERCEL_ENV?.trim().toLowerCase() === 'production') return 'production'
   if (env.VERCEL_ENV?.trim().toLowerCase() === 'preview') return 'preview'
-  return 'local'
+  // A missing VERCEL_ENV is not proof that a process is local. Local runtime
+  // selection is deliberately opt-in through APP_ENV=local; unknown/build
+  // contexts stay on the safer Neon/default application path.
+  return 'production'
+}
+
+export function isLoopbackDatabaseUrl(value: string | undefined): boolean {
+  if (!value?.trim()) return false
+  try {
+    const hostname = new URL(value).hostname.toLowerCase().replace(/^\[|\]$/g, '')
+    return hostname === '127.0.0.1' || hostname === 'localhost' || hostname === '::1'
+  } catch {
+    return false
+  }
+}
+
+export function assertLocalDatabaseUrl(value: string | undefined): string {
+  if (!value?.trim()) throw new Error('Local PostgreSQL requires DATABASE_URL.')
+  if (!isLoopbackDatabaseUrl(value)) {
+    throw new Error('APP_ENV=local requires a loopback PostgreSQL DATABASE_URL; refusing a remote database.')
+  }
+  return value
 }
 
 export function requireExplicitAppEnvironment(env: Record<string, string | undefined> = process.env): AppEnvironment {

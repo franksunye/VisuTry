@@ -1,7 +1,7 @@
 # VisuTry Development Guide
 
 **Status:** Active operating guide  
-**Last reviewed:** 2026-08-29
+**Last reviewed:** 2026-09-21
 **Owner:** Engineering  
 **Review cadence:** Monthly, or whenever environment variables, auth, payment, database, or deployment flow changes  
 **Scope:** Local setup, environment variables, development workflow, testing, deployment, and troubleshooting.  
@@ -30,7 +30,7 @@ Before you begin, ensure you have accounts or access for the following services:
 Clone the repository and create a `.env.local` file from the example file:
 
 ```bash
-cp .env.example .env.local
+cp .env.local.example .env.local
 ```
 
 Then, fill in the required environment variables. Keep `.env.example` as the source of truth for the current variable list.
@@ -45,7 +45,7 @@ DATABASE_URL="postgresql://visutry_local@127.0.0.1:5433/visutry_local"
 DATABASE_URL_UNPOOLED="postgresql://visutry_local@127.0.0.1:5433/visutry_local"
 
 # NextAuth.js
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://127.0.0.1:3001"
 NEXTAUTH_SECRET="your-secret-key-here"
 
 # Auth0 OAuth
@@ -123,7 +123,7 @@ Notes:
 3. **Set up environment variables**:
 
    ```bash
-   cp .env.example .env.local
+   cp .env.local.example .env.local
    # Edit .env.local with your credentials
    ```
 
@@ -136,15 +136,13 @@ Notes:
 5. **Start and migrate the repository-local database**:
 
    ```bash
-   npm run db:local:up
-   npm run db:local:migrate
-   npm run db:local:seed
+   npm run merchant:local:bootstrap
    ```
 
 6. **Start the development server**:
 
    ```bash
-   npm run dev
+   npm run merchant:local:dev
    ```
 
 Alternative local script where configured:
@@ -152,6 +150,26 @@ Alternative local script where configured:
 ```bash
 npm run dev:local
 ```
+
+### Local Merchant Growth Lab
+
+The fixed Local workflow is the primary Merchant development and QA path. It
+does not use Preview or Production data:
+
+```bash
+# Terminal A
+npm run merchant:local:bootstrap
+npm run merchant:local:dev
+
+# Terminal B
+npm run merchant:local:e2e
+```
+
+Open `http://127.0.0.1:3001/en/business` for the human journey. Use the
+Local QA controls for Clean Merchant, Existing Merchant, Consumer, or Admin.
+To repeat a fresh first-run journey, run `npm run merchant:local:reset-clean`
+and then start the server again. The fixed Playwright path stops after private
+Store Preview; it does not publish or pay.
 
 ### Database Operations
 

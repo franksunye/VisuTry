@@ -155,6 +155,7 @@ export type TrafficTelemetryDestination = {
 }
 
 export function resolveTrafficTelemetryDestination(env: NodeJS.ProcessEnv = process.env): TrafficTelemetryDestination | null {
+  if (env.APP_ENV?.trim().toLowerCase() === 'local') return null
   const environment = (env.VERCEL_ENV || env.NODE_ENV || '').trim().toLowerCase()
   if (environment === 'production') {
     const token = env.AXIOM_TRAFFIC_TOKEN?.trim()

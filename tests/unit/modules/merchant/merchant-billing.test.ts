@@ -21,7 +21,7 @@ jest.mock('@/modules/store/application/public-edge-paths-server', () => ({
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 import { createMerchantCheckoutSession, processMerchantStripeEvent, updateMerchantSubscription } from '@/modules/merchant/application/merchant-billing'
-import { merchantFoundingPilotReceiptPriceIds, merchantStripePriceForPlan, merchantStripePriceMap } from '@/modules/merchant/application/merchant-billing-shared'
+import { assertMerchantStripeEnvironment, merchantFoundingPilotReceiptPriceIds, merchantStripePriceForPlan, merchantStripePriceMap } from '@/modules/merchant/application/merchant-billing-shared'
 import { compareBillingEvent } from '@/modules/merchant/domain/merchant-billing'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { getPublicEdgeTagsForMerchant } from '@/modules/store/application/public-edge-paths-server'
@@ -65,6 +65,7 @@ const createCheckout = jest.spyOn((stripe as any).checkout.sessions, 'create')
 function configurePrices() {
   process.env.APP_ENV = 'local'
   process.env.STRIPE_MERCHANT_BILLING_MODE = 'test'
+  process.env.STRIPE_SECRET_KEY = 'sk_test_local_fixture'
   process.env.STRIPE_MERCHANT_LAUNCH_MONTHLY_PRICE_ID = 'price_merchant_launch'
   process.env.STRIPE_MERCHANT_GROWTH_MONTHLY_PRICE_ID = 'price_merchant_growth'
   process.env.STRIPE_MERCHANT_SCALE_MONTHLY_PRICE_ID = 'price_merchant_scale'
@@ -157,6 +158,16 @@ describe('Merchant Stripe billing boundary', () => {
     expect(result.url).toContain('/mock/checkout/')
   })
 
+  it.each([
+    ['live billing mode', { STRIPE_MERCHANT_BILLING_MODE: 'live', STRIPE_SECRET_KEY: 'sk_live_local_fixture' }],
+    ['live secret key', { STRIPE_MERCHANT_BILLING_MODE: 'test', STRIPE_SECRET_KEY: 'sk_live_local_fixture' }],
+  ])('fails closed for Local %s', (_label, overrides) => {
+    expect(() => assertMerchantStripeEnvironment({
+      APP_ENV: 'local',
+      ...overrides,
+    })).toThrow()
+  })
+
   it('does not fall back to a new Checkout when an existing subscription is missing at the provider', async () => {
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', classification: 'REAL', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
     ;(prisma.merchantBillingAccount.findUnique as jest.Mock).mockResolvedValue({ ...account, stripeSubscriptionId: 'sub_missing', subscriptionStatus: 'active' })
@@ -180,6 +191,7 @@ describe('Merchant Stripe billing boundary', () => {
   it('rejects a subscription returned from the wrong Stripe mode before any update', async () => {
     process.env.APP_ENV = 'production'
     process.env.STRIPE_MERCHANT_BILLING_MODE = 'live'
+    process.env.STRIPE_SECRET_KEY = 'sk_live_local_fixture'
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', classification: 'REAL', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
     ;(prisma.merchantBillingAccount.findUnique as jest.Mock).mockResolvedValue({ ...account, stripeSubscriptionId: 'sub_test_mode', subscriptionStatus: 'active' })
     retrieveSubscription.mockResolvedValue({ ...subscriptionEvent({ id: 'provider-subscription' }).data.object, livemode: false })

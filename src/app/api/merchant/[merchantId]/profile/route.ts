@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { requireMerchantMembership, getMerchantProfile, MerchantProfileError, updateMerchantProfile } from '@/modules/merchant/cloudflare'
-import { merchantAgentErrorResponse } from '@/modules/merchant/application/merchant-agent-http-cloudflare'
+import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
+import { getMerchantProfile } from '@/modules/merchant/application/get-merchant-profile'
+import { MerchantProfileError, updateMerchantProfile } from '@/modules/merchant/application/update-merchant-profile'
+import { merchantAgentErrorResponse } from '@/modules/merchant/application/merchant-agent-http'
 
 export const dynamic = 'force-dynamic'
 

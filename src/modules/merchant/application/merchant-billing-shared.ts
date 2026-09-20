@@ -1,4 +1,4 @@
-import { isMockMode } from '@/lib/mocks'
+import { mockModeEnabled } from '@/lib/mocks'
 import { billingTypeForMerchantPlan, merchantPlanCodeFromUnknown, type MerchantBillablePlanCode } from '../domain/merchant-billing'
 
 export const MERCHANT_BILLING_PROVIDER = 'STRIPE' as const
@@ -100,9 +100,12 @@ export function merchantStripePriceForPlan(planCode: unknown, env: Env = process
 }
 
 export function assertMerchantStripeEnvironment(env: Env = process.env): void {
-  if (isMockMode) return
+  if (mockModeEnabled(env) && !env.STRIPE_MERCHANT_BILLING_MODE && !env.STRIPE_SECRET_KEY) return
   const mode = env.STRIPE_MERCHANT_BILLING_MODE?.trim().toLowerCase()
   if (mode !== 'test' && mode !== 'live') throw new MerchantBillingError('BILLING_MODE_NOT_CONFIGURED', 'Merchant billing is not configured for this environment.', 503)
+  if (env.APP_ENV?.trim().toLowerCase() === 'local' && mode !== 'test') {
+    throw new MerchantBillingError('STRIPE_ENVIRONMENT_MISMATCH', 'Local Merchant billing requires Stripe TEST mode.', 503)
+  }
   const expected = mode === 'live' ? 'sk_live_' : 'sk_test_'
   if (!(env.STRIPE_SECRET_KEY?.trim() ?? '').startsWith(expected)) throw new MerchantBillingError('STRIPE_ENVIRONMENT_MISMATCH', 'Merchant billing is not available in this Stripe environment.', 503)
   if (env.VERCEL_ENV === 'production' && mode !== 'live') throw new MerchantBillingError('STRIPE_ENVIRONMENT_MISMATCH', 'Production Merchant billing requires live Stripe configuration.', 503)

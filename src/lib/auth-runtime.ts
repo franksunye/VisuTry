@@ -1,9 +1,7 @@
-import type { NextAuthOptions } from 'next-auth'
+import { authOptions } from './auth'
 
-type AuthModule = { authOptions: NextAuthOptions }
-
-const runtimeAuth = (process.env.CLOUDFLARE_BUILD === '1'
-  ? require('./auth-cloudflare')
-  : require('./auth')) as AuthModule
-
-export const authOptions = runtimeAuth.authOptions
+// Cloudflare/OpenNext replaces this module at the build boundary through the
+// explicit next.config alias. Node/Vercel/Local therefore use a static import
+// here; the old runtime require could produce an undefined options object in
+// the Next App Router development handler.
+export { authOptions }
