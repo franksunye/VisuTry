@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import {
   classifyCloudflareDeployment,
+  PUBLIC_HTML_RELEASE_USER_AGENT,
   publicHtmlReleasePurgeRequestBody,
   releaseContractErrors,
   validateCurrentMainSha,
@@ -118,8 +119,10 @@ describe('Public HTML release control plane', () => {
 
   it('retries a MISS and accepts an eventual HIT for every URL', async () => {
     const calls = new Map<string, number>()
-    const fetchMock: typeof fetch = async (input) => {
+    const requestInits: RequestInit[] = []
+    const fetchMock: typeof fetch = async (input, init) => {
       const url = String(input)
+      requestInits.push(init ?? {})
       const count = (calls.get(url) ?? 0) + 1
       calls.set(url, count)
       const pathname = new URL(url).pathname
@@ -134,6 +137,14 @@ describe('Public HTML release control plane', () => {
     expect(observations.every((observation) => observation.firstCacheStatus === 'MISS')).toBe(true)
     expect(observations.every((observation) => observation.finalCacheStatus === 'HIT')).toBe(true)
     expect(observations.every((observation) => observation.attempts === 2)).toBe(true)
+    expect(requestInits[0]).toMatchObject({
+      method: 'GET',
+      redirect: 'manual',
+      headers: {
+        accept: 'text/html,application/xhtml+xml',
+        'user-agent': PUBLIC_HTML_RELEASE_USER_AGENT,
+      },
+    })
   })
 
   it('accepts a first-attempt HIT without requiring a fragile MISS', async () => {

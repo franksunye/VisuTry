@@ -1,11 +1,24 @@
 const baseUrl = (process.env.SMOKE_BASE_URL || 'https://www.visutry.com').replace(/\/$/, '');
 
-// Next frontend pages that MUST be served by Vercel (the sole Next frontend owner).
-// Each page's referenced /_next/static/*.{js,css} assets must all return 200 from the
-// same origin — never a Cloudflare Worker (which would serve a peer client graph).
-const nextHtmlRoutes = [
-  { path: '/', expectedPath: '/en' },
+// These are the only exact final HTML documents currently allowed to be served
+// by the Cloudflare traffic layer. Vercel remains the sole Next.js producer;
+// the Worker may only serve a cached response fetched from that Vercel origin.
+// Keep this list aligned with PUBLIC_HTML_OFFLOAD_ROUTES in
+// cloudflare-router/public-html-offload.ts.
+const cloudflareHtmlRoutes = [
   { path: '/en' },
+  { path: '/en/face-shape-detector' },
+  { path: '/en/what-glasses-suit-my-face' },
+  { path: '/en/ai-glasses-advisor' },
+  { path: '/en/virtual-glasses-try-on' },
+  { path: '/en/blog/ai-face-analysis-for-glasses-guide' },
+  { path: '/en/brand/gentle-monster' },
+];
+
+// Application documents that are not in the exact public offload allowlist must
+// continue to prove Vercel ownership. Their referenced /_next/static assets must
+// also be 200 and Vercel-owned — never a Cloudflare Worker client graph.
+const nextHtmlRoutes = [
   { path: '/en/glasses-guide' },
   { path: '/en/glasses-guide/best-rectangle-glasses-for-round-face' },
   { path: '/en/face-analysis', bodyMarker: /AI Glasses Advisor/i },
@@ -64,6 +77,15 @@ function assertVercelOwnership(headers, label) {
     /vercel/i.test(headers.get('server') || '');
   if (!hasVercelEvidence) {
     throw new Error(`${label}: no Vercel origin evidence (expected x-vercel-id / x-vercel-cache or x-visutry-router-backend: vercel)`);
+  }
+}
+
+function assertCloudflarePublicHtmlOwnership(headers, label) {
+  if (headers.get('x-visutry-router-backend') !== 'cloudflare') {
+    throw new Error(`${label}: expected the reviewed Cloudflare public HTML traffic layer`);
+  }
+  if (headers.get('x-visutry-router-cache') !== 'public-html-offload') {
+    throw new Error(`${label}: expected the public-html-offload cache contract`);
   }
 }
 
@@ -129,6 +151,63 @@ async function checkNextHtmlAndAssets({ path, expectedPath = path, bodyMarker })
   }
 
   return { status: response.status, finalUrl: response.url, assetCount: assets.length };
+}
+
+async function checkCloudflareHtmlAndAssets({ path, bodyMarker }) {
+  const url = `${baseUrl}${path}`;
+  const response = await fetch(url, {
+    redirect: 'follow',
+    headers: { 'user-agent': userAgent },
+  });
+
+  if (!response.ok) {
+    throw new Error(`${url} returned ${response.status}`);
+  }
+  if (new URL(response.url).pathname !== path) {
+    throw new Error(`${url} resolved to unexpected URL ${response.url}`);
+  }
+
+  // The Worker is allowed to serve this final HTML, but Vercel remains its
+  // canonical producer. The response must carry the exact reviewed edge marker.
+  assertCloudflarePublicHtmlOwnership(response.headers, `HTML ${path}`);
+
+  const body = await response.text();
+  if (!body || body.length < 100 || !/<html\b/i.test(body) || !/<head\b/i.test(body)) {
+    throw new Error(`${url} returned an unexpectedly small or non-HTML response body`);
+  }
+  if (/application error|internal server error/i.test(body)) {
+    throw new Error(`${url} rendered an application/server error marker`);
+  }
+  if (bodyMarker && !bodyMarker.test(body)) {
+    throw new Error(`${url} did not contain its expected product marker`);
+  }
+
+  const assets = extractNextStaticAssets(body);
+  if (assets.length === 0) {
+    throw new Error(`${url} referenced no /_next/static assets; Next HTML is expected to load a client graph`);
+  }
+  for (const assetPath of assets) {
+    await verifyAsset(assetPath, `HTML ${path}`);
+  }
+
+  return { status: response.status, finalUrl: response.url, assetCount: assets.length };
+}
+
+async function checkLocaleRedirect() {
+  const url = `${baseUrl}/`;
+  const response = await fetch(url, {
+    redirect: 'manual',
+    headers: { 'user-agent': userAgent },
+  });
+  if (response.status < 300 || response.status >= 400) {
+    throw new Error(`${url} returned ${response.status}; expected a locale redirect`);
+  }
+  const location = response.headers.get('location');
+  if (!location || new URL(location, url).pathname !== '/en') {
+    throw new Error(`${url} redirected to ${location || '<missing location>'}; expected /en`);
+  }
+  assertVercelOwnership(response.headers, 'locale redirect /');
+  return { status: response.status, finalUrl: location };
 }
 
 async function checkRscOwnership(path) {
@@ -206,7 +285,13 @@ async function retry(label, check) {
 
 async function run() {
   console.log(`Production smoke target: ${baseUrl}`);
-  console.log('Next frontend owner: Vercel. Asset 404 or Cloudflare ownership of Next HTML/static/RSC fails the release.');
+  console.log('Vercel is the sole Next.js producer. Exact reviewed public HTML may be served by Cloudflare; static assets and RSC remain Vercel-owned.');
+
+  await retry('locale redirect /', checkLocaleRedirect);
+
+  for (const route of cloudflareHtmlRoutes) {
+    await retry(`Cloudflare HTML+assets ${route.path}`, () => checkCloudflareHtmlAndAssets(route));
+  }
 
   for (const route of nextHtmlRoutes) {
     await retry(`HTML+assets ${route.path}`, () => checkNextHtmlAndAssets(route));
@@ -221,7 +306,7 @@ async function run() {
   }
 
   console.log(
-    'Production smoke passed. All Next HTML + /_next/static + RSC are Vercel-owned with 200 assets; unauthenticated guards verified; no authenticated AI generation, credit deduction, or Stripe checkout was invoked.',
+    'Production smoke passed. Reviewed public HTML is served by the allowed Cloudflare layer, application HTML/static/RSC are Vercel-owned with 200 assets, and unauthenticated guards were verified; no authenticated AI generation, credit deduction, or Stripe checkout was invoked.',
   );
 }
 

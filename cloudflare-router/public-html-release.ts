@@ -15,6 +15,7 @@ export type PublicHtmlReleaseMode = (typeof PUBLIC_HTML_RELEASE_MODE_VALUES)[num
 export const PUBLIC_HTML_RELEASE_ROUTE_COUNT = PUBLIC_HTML_OFFLOAD_ROUTES.length
 export const PUBLIC_HTML_RELEASE_EXPECTED_ROUTE_COUNT = 7
 export const PUBLIC_HTML_RELEASE_EXPECTED_WORKER_ROUTE_COUNT = PRODUCTION_ROUTE_COUNT
+export const PUBLIC_HTML_RELEASE_USER_AGENT = 'VisuTry-Production-Release/1.0'
 
 export const CLOUDFLARE_ARTIFACT_CHANGE_RULES = [
   'cloudflare-router/**',
@@ -197,7 +198,10 @@ export async function warmAndVerifyPublicHtml(
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       const response = await fetchImpl(url, {
         method: 'GET',
-        headers: { accept: 'text/html' },
+        headers: {
+          accept: 'text/html,application/xhtml+xml',
+          'user-agent': PUBLIC_HTML_RELEASE_USER_AGENT,
+        },
         redirect: 'manual',
       })
       const body = await response.text()
