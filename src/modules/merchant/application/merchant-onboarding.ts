@@ -8,7 +8,7 @@ import { requireAgentScope, type MerchantActorContext } from '../domain/actor'
 import {
   withPublicDiscoveryInvalidation,
 } from '@/modules/store/application/public-discovery-invalidation'
-import { getPublicEdgePathsForMerchant } from '@/modules/store/application/public-edge-paths-server'
+import { getPublicEdgeTagsForMerchant } from '@/modules/store/application/public-edge-paths-server'
 import {
   resolveMerchantFrameEnrichmentStatus,
   validateMerchantFrameReadiness,
@@ -185,12 +185,12 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
 
   const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true, planCode: true, commercialStatus: true } })
   if (!merchant) throw new MerchantAccessError()
-  const edgePathsBefore = await getPublicEdgePathsForMerchant(merchant.slug)
+  const edgeTagsBefore = await getPublicEdgeTagsForMerchant(merchant.slug)
   const result = await withPublicDiscoveryInvalidation({
     target: { kind: 'catalog', merchantSlug: merchant.slug },
-    edgePaths: {
-      before: edgePathsBefore,
-      after: () => getPublicEdgePathsForMerchant(merchant.slug),
+    edgeTags: {
+      before: edgeTagsBefore,
+      after: () => getPublicEdgeTagsForMerchant(merchant.slug),
     },
     mutation: () => prisma.$transaction(async (tx) => {
       const ids: string[] = []

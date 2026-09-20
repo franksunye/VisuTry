@@ -8,9 +8,9 @@ import { withPublicDiscoveryInvalidation } from '@/modules/store/application/pub
 import { revalidatePath, revalidateTag } from 'next/cache'
 
 jest.mock('@/lib/cloudflare-public-html-purge', () => ({
-  purgePublicHtmlUrls: jest.fn(async (paths: readonly string[]) => ({ attempted: true, success: true, urlCount: paths.length })),
+  purgePublicHtmlTags: jest.fn(async (tags: readonly string[]) => ({ attempted: true, success: true, urlCount: 0, tagCount: tags.length })),
 }))
-import { purgePublicHtmlUrls } from '@/lib/cloudflare-public-html-purge'
+import { purgePublicHtmlTags } from '@/lib/cloudflare-public-html-purge'
 import { publicEdgePathsForRouteMembership } from '@/modules/store/application/public-edge-paths'
 
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn(), revalidateTag: jest.fn() }))
@@ -115,37 +115,37 @@ describe('public discovery cache contract', () => {
     expect(revalidatePath).not.toHaveBeenCalled()
   })
 
-  it('unions before/after exact Store/Campaign URLs after a committed write', async () => {
+  it('unions before/after exact Store/Campaign Cache-Tags after a committed write', async () => {
     jest.clearAllMocks()
     await withPublicDiscoveryInvalidation({
       target: { kind: 'catalog', merchantSlug: 'luna-optical' },
-      edgePaths: {
-        before: ['/en/store/luna-optical', '/en/c/luna-optical/old-campaign'],
-        after: ['/en/store/luna-optical', '/en/c/luna-optical/new-campaign'],
+      edgeTags: {
+        before: ['visutry:public-html:store:en:luna-optical', 'visutry:public-html:campaign:en:luna-optical:old-campaign'],
+        after: ['visutry:public-html:store:en:luna-optical', 'visutry:public-html:campaign:en:luna-optical:new-campaign'],
       },
       mutation: async () => 'catalog-updated',
     })
-    expect(purgePublicHtmlUrls).toHaveBeenCalledWith([
-      '/en/store/luna-optical',
-      '/en/c/luna-optical/old-campaign',
-      '/en/c/luna-optical/new-campaign',
+    expect(purgePublicHtmlTags).toHaveBeenCalledWith([
+      'visutry:public-html:store:en:luna-optical',
+      'visutry:public-html:campaign:en:luna-optical:old-campaign',
+      'visutry:public-html:campaign:en:luna-optical:new-campaign',
     ])
   })
 
-  it('purges caller-supplied before and after public route membership', async () => {
+  it('purges caller-supplied before and after public route membership tags', async () => {
     jest.clearAllMocks()
     await withPublicDiscoveryInvalidation({
       target: { kind: 'catalog', merchantSlug: 'luna-optical' },
-      edgePaths: {
-        before: ['/en/store/luna-optical', '/en/c/luna-optical/old-campaign'],
-        after: ['/en/store/luna-optical', '/en/c/luna-optical/new-campaign'],
+      edgeTags: {
+        before: ['visutry:public-html:store:en:luna-optical', 'visutry:public-html:campaign:en:luna-optical:old-campaign'],
+        after: ['visutry:public-html:store:en:luna-optical', 'visutry:public-html:campaign:en:luna-optical:new-campaign'],
       },
       mutation: async () => 'catalog-updated',
     })
-    expect(purgePublicHtmlUrls).toHaveBeenCalledWith([
-      '/en/store/luna-optical',
-      '/en/c/luna-optical/old-campaign',
-      '/en/c/luna-optical/new-campaign',
+    expect(purgePublicHtmlTags).toHaveBeenCalledWith([
+      'visutry:public-html:store:en:luna-optical',
+      'visutry:public-html:campaign:en:luna-optical:old-campaign',
+      'visutry:public-html:campaign:en:luna-optical:new-campaign',
     ])
   })
 
@@ -165,9 +165,20 @@ describe('public discovery cache contract', () => {
       target: { kind: 'experience', merchantSlug: 'luna-optical', experienceSlug: 'old-campaign' },
       mutation: async () => ({ slug: 'new-campaign' }),
     })
-    expect(purgePublicHtmlUrls).toHaveBeenCalledWith([
-      '/en/c/luna-optical/old-campaign',
-      '/en/c/luna-optical/new-campaign',
+    expect(purgePublicHtmlTags).toHaveBeenCalledWith([
+      'visutry:public-html:campaign:en:luna-optical:old-campaign',
+      'visutry:public-html:campaign:en:luna-optical:new-campaign',
+    ])
+  })
+
+  it('does not construct a Campaign tag for a Store result slug', async () => {
+    jest.clearAllMocks()
+    await withPublicDiscoveryInvalidation({
+      target: { kind: 'experience', merchantSlug: 'luna-optical', experienceSlug: null },
+      mutation: async () => ({ slug: 'store' }),
+    })
+    expect(purgePublicHtmlTags).toHaveBeenCalledWith([
+      'visutry:public-html:store:en:luna-optical',
     ])
   })
 })

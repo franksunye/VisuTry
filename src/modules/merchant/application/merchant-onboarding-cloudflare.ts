@@ -1,6 +1,6 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
-import { getPublicEdgePathsForCloudflareMerchant } from '@/modules/store/application/public-edge-paths-cloudflare'
+import { getPublicEdgeTagsForCloudflareMerchant } from '@/modules/store/application/public-edge-paths-cloudflare'
 import { getMerchantProfile } from './get-merchant-profile-cloudflare'
 import { MerchantAccessError } from './merchant-access-cloudflare'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials-cloudflare'
@@ -275,7 +275,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
   // Preserve the existing mutation error path when the merchant read is
   // empty; an empty slug simply produces no purge candidate.
   const merchantSlug = merchantRow?.slug == null ? '' : String(merchantRow.slug)
-  const edgePathsBefore = merchantSlug ? await getPublicEdgePathsForCloudflareMerchant(merchantSlug) : []
+  const edgeTagsBefore = merchantSlug ? await getPublicEdgeTagsForCloudflareMerchant(merchantSlug) : []
   const canonicalPlan = isCanonicalMerchantCommercialFields({
     planCode: merchantRow?.planCode == null ? null : String(merchantRow.planCode),
     commercialStatus: merchantRow?.commercialStatus == null ? null : String(merchantRow.commercialStatus),
@@ -348,9 +348,9 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
   }
   const results = await withPublicDiscoveryInvalidation({
     target: { kind: 'catalog', merchantSlug },
-    edgePaths: {
-      before: edgePathsBefore,
-      after: () => merchantSlug ? getPublicEdgePathsForCloudflareMerchant(merchantSlug) : [],
+    edgeTags: {
+      before: edgeTagsBefore,
+      after: () => merchantSlug ? getPublicEdgeTagsForCloudflareMerchant(merchantSlug) : [],
     },
     mutation: () => sql.transaction(statements, { isolationLevel: 'Serializable' }),
   })

@@ -7,6 +7,7 @@ import {
 import {
   isStoreCampaignPublicHtmlPath,
   isStoreCampaignPublicHtmlEligible,
+  storeCampaignPublicHtmlCacheTag,
   storeCampaignPublicHtmlCacheKey,
   storeCampaignPublicHtmlRoute,
   STORE_CAMPAIGN_PUBLIC_HTML_CACHE_TTL_SECONDS,
@@ -72,6 +73,7 @@ export default {
         }, storeCampaignOffloadPath ? {
           isEligible: isStoreCampaignPublicHtmlEligible,
           cacheKey: storeCampaignPublicHtmlCacheKey,
+          cacheTag: storeCampaignPublicHtmlCacheTag,
           ttlSeconds: STORE_CAMPAIGN_PUBLIC_HTML_CACHE_TTL_SECONDS,
         } : undefined)
         const latencyMs = Date.now() - startedAt

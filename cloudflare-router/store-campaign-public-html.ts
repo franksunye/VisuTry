@@ -9,28 +9,30 @@ import {
   hasRscOrPrefetchSignal,
   headerHasValue,
 } from './public-html-offload'
+import {
+  STORE_CAMPAIGN_EDGE_LOCALES,
+  STORE_CAMPAIGN_MAX_EXPERIENCE_SLUG_LENGTH,
+  STORE_CAMPAIGN_MAX_MERCHANT_SLUG_LENGTH,
+  STORE_CAMPAIGN_PUBLIC_HTML_CACHE_TTL_SECONDS,
+  publicCampaignEdgeCacheTag,
+  publicStoreEdgeCacheTag,
+  storeCampaignEdgeRoute,
+  type StoreCampaignEdgeRoute,
+} from '../src/modules/store/application/public-edge-contract'
 
-export const STORE_CAMPAIGN_EDGE_LOCALES = ['en'] as const
-export const STORE_CAMPAIGN_PUBLIC_HTML_CACHE_TTL_SECONDS = 3600
 export const STORE_CAMPAIGN_PUBLIC_HTML_HOST = 'www.visutry.com'
-
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u
-const MAX_MERCHANT_SLUG_LENGTH = 180
-const MAX_EXPERIENCE_SLUG_LENGTH = 240
 const SAFE_QUERY_KEYS = new Set([
   'gclid', 'gbraid', 'wbraid', 'fbclid', 'ttclid', 'msclkid',
   'source', 'medium', 'surface', 'campaign', 'merchantContinuation',
 ])
 
-export type StoreCampaignPublicHtmlRoute = {
-  surface: 'STORE' | 'CAMPAIGN'
-  locale: 'en'
-  merchantSlug: string
-  experienceSlug?: string
-}
+export type StoreCampaignPublicHtmlRoute = StoreCampaignEdgeRoute
 
-function isSlug(value: string, maxLength: number): boolean {
-  return value.length > 0 && value.length <= maxLength && SLUG.test(value)
+export {
+  STORE_CAMPAIGN_EDGE_LOCALES,
+  STORE_CAMPAIGN_MAX_EXPERIENCE_SLUG_LENGTH,
+  STORE_CAMPAIGN_MAX_MERCHANT_SLUG_LENGTH,
+  STORE_CAMPAIGN_PUBLIC_HTML_CACHE_TTL_SECONDS,
 }
 
 function isSafeQueryKey(key: string): boolean {
@@ -47,23 +49,7 @@ export function isSafeStoreCampaignQuery(url: URL): boolean {
 }
 
 export function storeCampaignPublicHtmlRoute(pathname: string): StoreCampaignPublicHtmlRoute | null {
-  const segments = pathname.split('/').filter(Boolean)
-  if (segments[0] !== 'en') return null
-
-  if (segments.length === 3 && segments[1] === 'store' && isSlug(segments[2], MAX_MERCHANT_SLUG_LENGTH)) {
-    return { surface: 'STORE', locale: 'en', merchantSlug: segments[2] }
-  }
-
-  if (
-    segments.length === 4
-    && segments[1] === 'c'
-    && isSlug(segments[2], MAX_MERCHANT_SLUG_LENGTH)
-    && isSlug(segments[3], MAX_EXPERIENCE_SLUG_LENGTH)
-  ) {
-    return { surface: 'CAMPAIGN', locale: 'en', merchantSlug: segments[2], experienceSlug: segments[3] }
-  }
-
-  return null
+  return storeCampaignEdgeRoute(pathname)
 }
 
 export function isStoreCampaignPublicHtmlPath(pathname: string): boolean {
@@ -91,4 +77,18 @@ export function storeCampaignPublicHtmlCacheKey(request: Request): Request {
   url.search = ''
   url.hash = ''
   return new Request(url.toString(), { method: 'GET' })
+}
+
+/**
+ * Cache-Tag is attached to the cached Vercel response, not exposed as a
+ * client-facing header. It gives writes a globally purgeable identity even
+ * though safe attribution query strings intentionally share one Cache API key.
+ */
+export function storeCampaignPublicHtmlCacheTag(request: Request): string | null {
+  const route = storeCampaignPublicHtmlRoute(new URL(request.url).pathname)
+  return route?.surface === 'STORE'
+    ? publicStoreEdgeCacheTag(route.merchantSlug)
+    : route?.surface === 'CAMPAIGN'
+      ? publicCampaignEdgeCacheTag(route.merchantSlug, route.experienceSlug)
+      : null
 }

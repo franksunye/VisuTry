@@ -4,6 +4,7 @@ import {
   isSafeStoreCampaignQuery,
   isStoreCampaignPublicHtmlEligible,
   isStoreCampaignPublicHtmlPath,
+  storeCampaignPublicHtmlCacheTag,
   storeCampaignPublicHtmlCacheKey,
   storeCampaignPublicHtmlRoute,
 } from '../../cloudflare-router/store-campaign-public-html'
@@ -47,13 +48,21 @@ describe('Store/Campaign public HTML edge gate', () => {
     const policy = {
       isEligible: isStoreCampaignPublicHtmlEligible,
       cacheKey: storeCampaignPublicHtmlCacheKey,
+      cacheTag: storeCampaignPublicHtmlCacheTag,
       ttlSeconds: 3600,
     }
     const first = await handlePublicHtmlOffload(request('/en/store/luna-optical?utm_source=guide'), { cache, fetchOrigin: origin }, policy)
     const second = await handlePublicHtmlOffload(request('/en/store/luna-optical?campaign=launch'), { cache, fetchOrigin: origin }, policy)
     expect(first.status).toBe('MISS')
     expect(second.status).toBe('HIT')
+    expect(first.response.headers.get('Cache-Tag')).toBeNull()
     expect(origin).toHaveBeenCalledTimes(1)
+    expect(cache.put).toHaveBeenCalledWith(
+      expect.any(Request),
+      expect.objectContaining({ headers: expect.any(Headers) }),
+    )
+    const storedResponse = cache.put.mock.calls[0][1] as Response
+    expect(storedResponse.headers.get('Cache-Tag')).toBe('visutry:public-html:store:en:luna-optical')
     expect(storeCampaignPublicHtmlCacheKey(request('/en/store/luna-optical?utm_source=guide')).url).toBe('https://www.visutry.com/en/store/luna-optical')
   })
 })

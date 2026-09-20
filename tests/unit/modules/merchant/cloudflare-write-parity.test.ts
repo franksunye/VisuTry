@@ -7,7 +7,7 @@ jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
 }))
 
 jest.mock('@/modules/store/application/public-edge-paths-cloudflare', () => ({
-  getPublicEdgePathsForCloudflareMerchant: jest.fn(async () => []),
+  getPublicEdgeTagsForCloudflareMerchant: jest.fn(async () => []),
 }))
 
 import { getCloudflareSql } from '@/data/neon-cloudflare'

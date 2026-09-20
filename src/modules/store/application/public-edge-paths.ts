@@ -1,26 +1,24 @@
-export const STORE_CAMPAIGN_EDGE_LOCALES = ['en'] as const
+export {
+  STORE_CAMPAIGN_EDGE_LOCALES,
+  STORE_CAMPAIGN_MAX_EXPERIENCE_SLUG_LENGTH,
+  STORE_CAMPAIGN_MAX_MERCHANT_SLUG_LENGTH,
+  STORE_CAMPAIGN_PUBLIC_HTML_CACHE_TTL_SECONDS,
+  STORE_CAMPAIGN_PUBLIC_SLUG_PATTERN,
+  isStoreCampaignExperienceSlug,
+  isStoreCampaignMerchantSlug,
+  isStoreCampaignPublicSlug,
+  publicCampaignEdgeCacheTag,
+  publicCampaignEdgePath,
+  publicEdgeCacheTagsForRouteMembership,
+  publicStoreEdgeCacheTag,
+  publicStoreEdgePath,
+} from './public-edge-contract'
+import { publicEdgePathsForRouteMembership as mapPublicEdgePathsForRouteMembership } from './public-edge-contract'
+import { publicEdgeCacheTagsForRouteMembership as mapPublicEdgeCacheTagsForRouteMembership } from './public-edge-contract'
 
 export type PublicEdgeRouteMembership = {
   store: boolean
   campaigns: readonly string[]
-}
-
-function safeSegment(value: string | null | undefined): string | null {
-  return value && /^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(value) ? value : null
-}
-
-export function publicStoreEdgePath(merchantSlug: string | null | undefined): string | null {
-  const merchant = safeSegment(merchantSlug)
-  return merchant ? `/en/store/${merchant}` : null
-}
-
-export function publicCampaignEdgePath(
-  merchantSlug: string | null | undefined,
-  experienceSlug: string | null | undefined,
-): string | null {
-  const merchant = safeSegment(merchantSlug)
-  const experience = safeSegment(experienceSlug)
-  return merchant && experience ? `/en/c/${merchant}/${experience}` : null
 }
 
 /**
@@ -32,9 +30,12 @@ export function publicEdgePathsForRouteMembership(
   merchantSlug: string,
   membership: PublicEdgeRouteMembership | undefined,
 ): string[] {
-  if (!membership) return []
-  return [
-    ...(membership.store ? [publicStoreEdgePath(merchantSlug)] : []),
-    ...membership.campaigns.map((campaignSlug) => publicCampaignEdgePath(merchantSlug, campaignSlug)),
-  ].filter((path): path is string => Boolean(path))
+  return mapPublicEdgePathsForRouteMembership(merchantSlug, membership)
+}
+
+export function publicEdgeTagsForRouteMembership(
+  merchantSlug: string,
+  membership: PublicEdgeRouteMembership | undefined,
+): string[] {
+  return mapPublicEdgeCacheTagsForRouteMembership(merchantSlug, membership)
 }

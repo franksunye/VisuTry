@@ -83,6 +83,7 @@ export type PublicHtmlOffloadRuntime = {
 export type PublicHtmlOffloadPolicy = {
   isEligible: (request: Request) => boolean
   cacheKey: (request: Request) => Request
+  cacheTag?: (request: Request) => string | null
   ttlSeconds?: number
 }
 
@@ -191,6 +192,10 @@ function responseWithCacheStatus(
 ): Response {
   const headers = new Headers(response.headers)
   headers.set(PUBLIC_HTML_OFFLOAD_CACHE_HEADER, status)
+  // Cache-Tag is an edge purge index, not a client-facing application header.
+  // Cloudflare strips it at the network boundary; delete it here as well so
+  // local tests and alternate runtimes preserve the same contract.
+  headers.delete('Cache-Tag')
   if (status === 'HIT') {
     headers.set(
       'Cache-Control',
@@ -268,6 +273,8 @@ export async function handlePublicHtmlOffload(
     `public, s-maxage=${ttlSeconds}, max-age=0, must-revalidate`,
   )
   storedHeaders.delete(PUBLIC_HTML_OFFLOAD_CACHE_HEADER)
+  const cacheTag = policy.cacheTag?.(request)
+  if (cacheTag) storedHeaders.set('Cache-Tag', cacheTag)
   const storedResponse = new Response(stored.body, {
     status: stored.status,
     statusText: stored.statusText,
