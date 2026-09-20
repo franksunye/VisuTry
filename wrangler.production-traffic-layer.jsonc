@@ -50,6 +50,11 @@
         { "pattern": "www.visutry.com/api/glasses/brands", "zone_name": "visutry.com" },
         { "pattern": "www.visutry.com/api/glasses/categories", "zone_name": "visutry.com" },
         { "pattern": "www.visutry.com/api/glasses/face-shapes", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/en", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/en/face-shape-detector", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/en/what-glasses-suit-my-face", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/en/ai-glasses-advisor", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/en/virtual-glasses-try-on", "zone_name": "visutry.com" },
         { "pattern": "www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide", "zone_name": "visutry.com" },
         { "pattern": "www.visutry.com/en/brand/gentle-monster", "zone_name": "visutry.com" }
       ],

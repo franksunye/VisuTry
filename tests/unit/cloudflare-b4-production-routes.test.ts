@@ -82,8 +82,13 @@ describe('B4.2B scoped production Worker Routes', () => {
       expect(wwwWorkerRouteMatch(pathname, '', routes)?.pattern).toBeTruthy()
     }
     for (const locale of B4_LOCALES) {
-      // Next HTML (locale home, marketing pages) is Vercel-owned → no Worker route.
-      expect(wwwWorkerRouteMatch(`/${locale}`, '', routes)).toBeNull()
+      // Only the exact English home is an approved HTML offload; other locale
+      // homes remain Vercel-owned.
+      if (locale === 'en') {
+        expect(wwwWorkerRouteMatch('/en', '', routes)?.pattern).toBe('www.visutry.com/en')
+      } else {
+        expect(wwwWorkerRouteMatch(`/${locale}`, '', routes)).toBeNull()
+      }
       expect(wwwWorkerRouteMatch(`/${locale}/store`, '', routes)).toBeNull()
       expect(wwwWorkerRouteMatch(`/${locale}/blog`, '', routes)).toBeNull()
       expect(wwwWorkerRouteMatch(`/${locale}/try-on/glasses`, '', routes)).toBeNull()
@@ -114,11 +119,16 @@ describe('B4.2B scoped production Worker Routes', () => {
   it('hard-blocks /_next/static from every priority and gate (Vercel owns the client graph)', () => {
     const p0 = routesForPriority('P0', routes)
     expect(p0.every((row) => row.layer === 'layer1-static-asset' || row.pattern.includes('/api/') || [
+      'www.visutry.com/en',
+      'www.visutry.com/en/face-shape-detector',
+      'www.visutry.com/en/what-glasses-suit-my-face',
+      'www.visutry.com/en/ai-glasses-advisor',
+      'www.visutry.com/en/virtual-glasses-try-on',
       'www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide',
       'www.visutry.com/en/brand/gentle-monster',
     ].includes(row.pattern))).toBe(true)
     expect(p0.every((row) => row.activationGate === 'none')).toBe(true)
-    expect(wwwWorkerRouteMatch('/en', '', p0)).toBeNull()
+    expect(wwwWorkerRouteMatch('/en', '', p0)?.pattern).toBe('www.visutry.com/en')
     expect(wwwWorkerRouteMatch('/en/store', '', p0)).toBeNull()
     expect(wwwWorkerRouteMatch('/api/health', '', p0)?.priority).toBe('P0')
     // /_next/static is never generated at any priority or gate.
@@ -196,7 +206,7 @@ describe('B4.2B scoped production Worker Routes', () => {
       expect(wwwWorkerRouteMatch(pathname, '', routes)).toBeTruthy()
     }
     // Next frontend + deferred/auth/image: classifier says vercel AND no Worker route.
-    for (const pathname of ['/', '/en', '/en/store', '/en/brand/warby-parker', '/en/store/ello-sunglasses', '/en/c/foo/bar', '/api/glasses/frames', '/api/auth/session', '/_next/image', '/_next/static/chunks/app.js']) {
+    for (const pathname of ['/', '/id', '/en/store', '/en/brand/warby-parker', '/en/store/ello-sunglasses', '/en/c/foo/bar', '/api/glasses/frames', '/api/auth/session', '/_next/image', '/_next/static/chunks/app.js']) {
       expect(classifyB4ProductionPublicSlice(getRequest(pathname)).backend).toBe('vercel')
       expect(wwwWorkerRouteMatch(pathname, '', routes)).toBeNull()
     }

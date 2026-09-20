@@ -14,10 +14,19 @@ import {
   wwwWorkerRouteMatch,
 } from '../../cloudflare-router/b4-production-routes'
 
-const TARGET = '/en/blog/ai-face-analysis-for-glasses-guide'
-const BRAND_TARGET = '/en/brand/gentle-monster'
+const OFFLOAD_ROUTES = [
+  '/en',
+  '/en/face-shape-detector',
+  '/en/what-glasses-suit-my-face',
+  '/en/ai-glasses-advisor',
+  '/en/virtual-glasses-try-on',
+  '/en/blog/ai-face-analysis-for-glasses-guide',
+  '/en/brand/gentle-monster',
+] as const
+const TARGET = OFFLOAD_ROUTES[5]
+const BRAND_TARGET = OFFLOAD_ROUTES[6]
 
-function request(path = TARGET, method = 'GET', headers: Record<string, string> = {}) {
+function request(path: string = TARGET, method = 'GET', headers: Record<string, string> = {}) {
   return new Request(`https://www.visutry.com${path}`, { method, headers })
 }
 
@@ -48,43 +57,42 @@ async function runWithOrigin(
 }
 
 describe('public HTML offload allowlist and cache safety', () => {
-  it('enables only the corrected exact English blog route', () => {
-    expect(isPublicHtmlOffloadPath(TARGET)).toBe(true)
-    expect(isPublicHtmlOffloadPath('/en/what-glasses-suit-my-face')).toBe(false)
-    expect(isPublicHtmlOffloadPath('/en')).toBe(false)
-    expect(isPublicHtmlOffloadPath(BRAND_TARGET)).toBe(true)
+  it('enables only the seven reviewed exact English routes', () => {
+    expect(OFFLOAD_ROUTES).toHaveLength(7)
+    expect(PUBLIC_HTML_OFFLOAD_PURGE_URLS).toHaveLength(7)
+    for (const path of OFFLOAD_ROUTES) expect(isPublicHtmlOffloadPath(path)).toBe(true)
     expect(isPublicHtmlOffloadPath('/en/brand/gentle-monster/')).toBe(false)
     expect(isPublicHtmlOffloadPath('/en/brand/gentle-monster?ref=home')).toBe(false)
     expect(isPublicHtmlOffloadPath('/en/brand/ray-ban')).toBe(false)
-    expect(isPublicHtmlOffloadPath('/en/face-shape-detector')).toBe(false)
     expect(isPublicHtmlOffloadPath('/en/face-analysis')).toBe(false)
     expect(isPublicHtmlOffloadPath('/en/try-on/glasses')).toBe(false)
+    expect(isPublicHtmlOffloadPath('/')).toBe(false)
+    expect(isPublicHtmlOffloadPath('/id')).toBe(false)
+    expect(isPublicHtmlOffloadPath('/de')).toBe(false)
+    expect(isPublicHtmlOffloadPath('/en/face-analysis')).toBe(false)
+    expect(isPublicHtmlOffloadPath('/en/try-on/glasses/compare')).toBe(false)
     expect(isPublicHtmlOffloadPath('/id/blog/ai-face-analysis-for-glasses-guide')).toBe(false)
     expect(isPublicHtmlOffloadPath(`${TARGET}/`)).toBe(false)
     expect(isPublicHtmlOffloadPath('/_next/static/chunks/app.js')).toBe(false)
-    expect(PUBLIC_HTML_OFFLOAD_PURGE_URLS).toEqual([
-      `https://www.visutry.com${TARGET}`,
-      `https://www.visutry.com${BRAND_TARGET}`,
-    ])
+    expect(PUBLIC_HTML_OFFLOAD_PURGE_URLS).toEqual(OFFLOAD_ROUTES.map((path) => `https://www.visutry.com${path}`))
   })
 
   it('classifies the target as public HTML offload and all named neighbours to Vercel', () => {
-    expect(classifyB4ProductionPublicSlice(request())).toMatchObject({
-      backend: 'cloudflare',
-      routeClass: 'public-html-offload',
-      cacheClass: PUBLIC_HTML_OFFLOAD_CACHE_CLASS,
-      invocation: 'worker',
-    })
-    expect(classifyB4ProductionPublicSlice(request(TARGET, 'GET', { cookie: 'session=1' }))).toMatchObject({
-      backend: 'vercel',
-      routeClass: 'public-html-offload',
-      cacheClass: PUBLIC_HTML_OFFLOAD_CACHE_CLASS,
-    })
+    for (const path of OFFLOAD_ROUTES) {
+      expect(classifyB4ProductionPublicSlice(request(path))).toMatchObject({
+        backend: 'cloudflare',
+        routeClass: 'public-html-offload',
+        cacheClass: PUBLIC_HTML_OFFLOAD_CACHE_CLASS,
+        invocation: 'worker',
+      })
+      expect(classifyB4ProductionPublicSlice(request(path, 'GET', { cookie: 'session=1' }))).toMatchObject({
+        backend: 'vercel',
+        routeClass: 'public-html-offload',
+        cacheClass: PUBLIC_HTML_OFFLOAD_CACHE_CLASS,
+      })
+    }
     for (const path of [
-      '/en/what-glasses-suit-my-face',
-      '/en',
       '/en/brand/ray-ban',
-      '/en/face-shape-detector',
       '/en/face-analysis',
       '/en/try-on/glasses',
       '/id/blog/ai-face-analysis-for-glasses-guide',
@@ -101,7 +109,10 @@ describe('public HTML offload allowlist and cache safety', () => {
 
   it('keeps the Worker route set exact with no wildcard HTML route', () => {
     const routes = generateB4ProductionWorkerRoutes()
-    expect(routes).toHaveLength(14)
+    expect(routes).toHaveLength(19)
+    for (const path of OFFLOAD_ROUTES) {
+      expect(wwwWorkerRouteMatch(path, '', routes)?.pattern).toBe(`www.visutry.com${path}`)
+    }
     expect(wwwWorkerRouteMatch(TARGET, '', routes)?.pattern).toBe(`www.visutry.com${TARGET}`)
     expect(wwwWorkerRouteMatch(BRAND_TARGET, '', routes)?.pattern).toBe(`www.visutry.com${BRAND_TARGET}`)
     expect(wwwWorkerRouteMatch(`${TARGET}/child`, '', routes)).toBeNull()
@@ -111,48 +122,75 @@ describe('public HTML offload allowlist and cache safety', () => {
   })
 
   it('rejects RSC, _rsc, auth, preview, personalized, non-document, and query variants', () => {
-    const unsafe = [
-      request(TARGET, 'GET', { rsc: '1' }),
-      request(`${TARGET}?_rsc=abc`),
-      request(TARGET, 'GET', { authorization: 'Bearer token' }),
-      request(TARGET, 'GET', { cookie: 'next-auth.session-token=token' }),
-      request(TARGET, 'GET', { 'x-preview': '1' }),
-      request(TARGET, 'GET', { 'x-personalized': '1' }),
-      request(TARGET, 'GET', { 'sec-fetch-dest': 'empty' }),
-      request(TARGET, 'GET', { accept: 'text/x-component' }),
-      request(TARGET, 'POST'),
-    ]
-    for (const input of unsafe) expect(isPublicHtmlOffloadEligible(input)).toBe(false)
-    expect(isPublicHtmlOffloadEligible(request())).toBe(true)
-    expect(isPublicHtmlOffloadEligible(request(TARGET, 'HEAD'))).toBe(true)
+    for (const path of OFFLOAD_ROUTES) {
+      const unsafe = [
+        request(path, 'GET', { rsc: '1' }),
+        request(`${path}?_rsc=abc`),
+        request(path, 'GET', { authorization: 'Bearer token' }),
+        request(path, 'GET', { cookie: 'next-auth.session-token=token' }),
+        request(path, 'GET', { 'x-preview': '1' }),
+        request(path, 'GET', { 'x-personalized': '1' }),
+        request(path, 'GET', { 'sec-fetch-dest': 'empty' }),
+        request(path, 'GET', { accept: 'text/x-component' }),
+        request(path, 'POST'),
+      ]
+      for (const input of unsafe) expect(isPublicHtmlOffloadEligible(input)).toBe(false)
+      expect(isPublicHtmlOffloadEligible(request(path))).toBe(true)
+      expect(isPublicHtmlOffloadEligible(request(path, 'HEAD'))).toBe(true)
+    }
   })
 
   it('fetches and stores a safe HTML response on MISS, then serves HIT without origin', async () => {
-    const { cache } = createCache()
-    const pending: Promise<unknown>[] = []
-    const origin = jest.fn(async () => new Response('<html>ok</html>', {
-      status: 200,
-      headers: { 'content-type': 'text/html; charset=utf-8' },
-    }))
-    const first = await handlePublicHtmlOffload(request(), {
-      cache,
-      fetchOrigin: origin,
-      waitUntil: (promise) => pending.push(promise),
-    })
-    expect(first.status).toBe('MISS')
-    expect(first.response.headers.get('x-visutry-edge-cache')).toBe('MISS')
-    await expect(first.response.text()).resolves.toBe('<html>ok</html>')
-    await Promise.all(pending)
-    expect(cache.put).toHaveBeenCalledTimes(1)
+    for (const path of OFFLOAD_ROUTES) {
+      const { cache } = createCache()
+      const pending: Promise<unknown>[] = []
+      const origin = jest.fn(async () => new Response(`<html>${path}</html>`, {
+        status: 200,
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+      }))
+      const first = await handlePublicHtmlOffload(request(path), {
+        cache,
+        fetchOrigin: origin,
+        waitUntil: (promise) => pending.push(promise),
+      })
+      expect(first.status).toBe('MISS')
+      expect(first.response.headers.get('x-visutry-edge-cache')).toBe('MISS')
+      await expect(first.response.text()).resolves.toBe(`<html>${path}</html>`)
+      await Promise.all(pending)
+      expect(cache.put).toHaveBeenCalledTimes(1)
 
-    const second = await handlePublicHtmlOffload(request(), {
-      cache,
-      fetchOrigin: origin,
-    })
-    expect(second.status).toBe('HIT')
-    expect(second.response.headers.get('x-visutry-edge-cache')).toBe('HIT')
-    await expect(second.response.text()).resolves.toBe('<html>ok</html>')
-    expect(origin).toHaveBeenCalledTimes(1)
+      const second = await handlePublicHtmlOffload(request(path), {
+        cache,
+        fetchOrigin: origin,
+      })
+      expect(second.status).toBe('HIT')
+      expect(second.response.headers.get('x-visutry-edge-cache')).toBe('HIT')
+      await expect(second.response.text()).resolves.toBe(`<html>${path}</html>`)
+      expect(origin).toHaveBeenCalledTimes(1)
+    }
+  })
+
+  it('serves HEAD as a bodyless MISS then HIT for every offloaded route', async () => {
+    for (const path of OFFLOAD_ROUTES) {
+      const { cache } = createCache()
+      const pending: Promise<unknown>[] = []
+      const origin = jest.fn(async () => new Response('<html>ok</html>', {
+        status: 200,
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+      }))
+      const first = await handlePublicHtmlOffload(request(path, 'HEAD'), {
+        cache,
+        fetchOrigin: origin,
+        waitUntil: (promise) => pending.push(promise),
+      })
+      expect(first.status).toBe('MISS')
+      expect(first.response.body).toBeNull()
+      await Promise.all(pending)
+      const second = await handlePublicHtmlOffload(request(path, 'HEAD'), { cache, fetchOrigin: origin })
+      expect(second.status).toBe('HIT')
+      expect(second.response.body).toBeNull()
+      expect(origin).toHaveBeenCalledTimes(1)
+    }
   })
 
   it('bypasses and never stores redirects, errors, JSON, or Set-Cookie responses', async () => {
