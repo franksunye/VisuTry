@@ -95,6 +95,29 @@ describe('production traffic-layer exact public HTML offload', () => {
     expect(origin).toHaveBeenCalledTimes(1)
   })
 
+  it('caches a valid EN Store detail through the shared engine while bypassing unknown queries', async () => {
+    const cache = memoryCache()
+    ;(globalThis as unknown as { caches: { default: PublicHtmlOffloadCache } }).caches = { default: cache }
+    const origin = jest.fn(async (input: Request) => new Response(`<html>${new URL(input.url).pathname}</html>`, {
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    }))
+    globalThis.fetch = origin as typeof fetch
+    const pending: Promise<unknown>[] = []
+    const context = { waitUntil: (promise: Promise<unknown>) => pending.push(promise), passThroughOnException: jest.fn() }
+    const productionEnv = env()
+
+    const first = await worker.fetch(new Request('https://www.visutry.com/en/store/luna-optical?utm_source=guide'), productionEnv, context)
+    await Promise.all(pending.splice(0))
+    const second = await worker.fetch(new Request('https://www.visutry.com/en/store/luna-optical?campaign=launch'), productionEnv, context)
+    const unsafe = await worker.fetch(new Request('https://www.visutry.com/en/store/luna-optical?unknown=1'), productionEnv, context)
+
+    expect(first.headers.get('x-visutry-edge-cache')).toBe('MISS')
+    expect(second.headers.get('x-visutry-edge-cache')).toBe('HIT')
+    expect(unsafe.headers.get('x-visutry-edge-cache')).toBe('BYPASS')
+    expect(origin).toHaveBeenCalledTimes(2)
+  })
+
   it('keeps other HTML on Vercel, bypasses unsafe target requests, and keeps staging on Vercel', async () => {
     const cache = memoryCache()
     ;(globalThis as unknown as { caches: { default: PublicHtmlOffloadCache } }).caches = { default: cache }

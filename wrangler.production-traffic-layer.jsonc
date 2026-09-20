@@ -56,7 +56,9 @@
         { "pattern": "www.visutry.com/en/ai-glasses-advisor", "zone_name": "visutry.com" },
         { "pattern": "www.visutry.com/en/virtual-glasses-try-on", "zone_name": "visutry.com" },
         { "pattern": "www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide", "zone_name": "visutry.com" },
-        { "pattern": "www.visutry.com/en/brand/gentle-monster", "zone_name": "visutry.com" }
+        { "pattern": "www.visutry.com/en/brand/gentle-monster", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/en/store/*", "zone_name": "visutry.com" },
+        { "pattern": "www.visutry.com/en/c/*", "zone_name": "visutry.com" }
       ],
       "vars": {
         "ROUTER_ENV": "production",

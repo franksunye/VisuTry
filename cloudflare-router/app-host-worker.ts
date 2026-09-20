@@ -5,6 +5,13 @@ import {
   markPublicHtmlOffloadCacheStatus,
 } from './public-html-offload'
 import {
+  isStoreCampaignPublicHtmlPath,
+  isStoreCampaignPublicHtmlEligible,
+  storeCampaignPublicHtmlCacheKey,
+  storeCampaignPublicHtmlRoute,
+  STORE_CAMPAIGN_PUBLIC_HTML_CACHE_TTL_SECONDS,
+} from './store-campaign-public-html'
+import {
   classifyStagingPublicSlice,
   fallbackRequest,
   forceVercelForNextFrontend,
@@ -36,7 +43,11 @@ export default {
     let decision = forceVercelForNextFrontend(request, classifyStagingPublicSlice(request))
     const startedAt = Date.now()
     const publicHost = env.PUBLIC_HOST || new URL(request.url).host
-    const publicHtmlOffloadPath = isPublicHtmlOffloadPath(new URL(request.url).pathname)
+    const pathname = new URL(request.url).pathname
+    const publicHtmlOffloadPath = isPublicHtmlOffloadPath(pathname) || isStoreCampaignPublicHtmlPath(pathname)
+    const storeCampaignOffloadPath = isStoreCampaignPublicHtmlPath(pathname)
+    const storeCampaignRoute = storeCampaignPublicHtmlRoute(pathname)
+    const publicHtmlSurface = storeCampaignRoute?.surface || (isPublicHtmlOffloadPath(pathname) ? 'CONSUMER' : null)
     const productionPublicHtmlOffload = env.ROUTER_ENV === 'production' && publicHtmlOffloadPath
 
     // The allowlist is production-only. A staging Worker must proxy the exact
@@ -58,9 +69,16 @@ export default {
         const result = await handlePublicHtmlOffload(request, {
           fetchOrigin: (originRequest) => fetch(fallbackRequest(originRequest, env.VERCEL_ORIGIN)),
           waitUntil: (promise) => ctx.waitUntil(promise),
-        })
+        }, storeCampaignOffloadPath ? {
+          isEligible: isStoreCampaignPublicHtmlEligible,
+          cacheKey: storeCampaignPublicHtmlCacheKey,
+          ttlSeconds: STORE_CAMPAIGN_PUBLIC_HTML_CACHE_TTL_SECONDS,
+        } : undefined)
         const latencyMs = Date.now() - startedAt
-        console.log(JSON.stringify(routerLogFields(request, decision, result.response.status, latencyMs)))
+        console.log(JSON.stringify({
+          ...routerLogFields(request, decision, result.response.status, latencyMs),
+          ...(publicHtmlSurface ? { surface: publicHtmlSurface, edgeCache: result.status, origin: 'vercel' } : {}),
+        }))
         return withB4RouterHeaders(result.response, decision, latencyMs)
       } catch (error) {
         const latencyMs = Date.now() - startedAt
@@ -127,7 +145,10 @@ export default {
     try {
       const response = await fetch(fallbackRequest(request, env.VERCEL_ORIGIN))
       const latencyMs = Date.now() - startedAt
-      console.log(JSON.stringify(routerLogFields(request, decision, response.status, latencyMs)))
+      console.log(JSON.stringify({
+        ...routerLogFields(request, decision, response.status, latencyMs),
+        ...(publicHtmlSurface ? { surface: publicHtmlSurface, edgeCache: 'BYPASS', origin: 'vercel' } : {}),
+      }))
       const responseWithOffloadStatus = productionPublicHtmlOffload
         ? markPublicHtmlOffloadCacheStatus(request, response, 'BYPASS')
         : response

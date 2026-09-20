@@ -6,6 +6,10 @@ jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
   withPublicDiscoveryInvalidation: jest.fn(async <T>(input: { mutation: () => Promise<T> }) => input.mutation()),
 }))
 
+jest.mock('@/modules/store/application/public-edge-paths-cloudflare', () => ({
+  getPublicEdgePathsForCloudflareMerchant: jest.fn(async () => []),
+}))
+
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'

@@ -80,17 +80,23 @@ export type PublicHtmlOffloadRuntime = {
   waitUntil?(promise: Promise<unknown>): void
 }
 
+export type PublicHtmlOffloadPolicy = {
+  isEligible: (request: Request) => boolean
+  cacheKey: (request: Request) => Request
+  ttlSeconds?: number
+}
+
 export type PublicHtmlOffloadResult = {
   response: Response
   status: PublicHtmlOffloadCacheStatus
 }
 
-function headerHasValue(request: Request, name: string): boolean {
+export function headerHasValue(request: Request, name: string): boolean {
   const value = request.headers.get(name)
   return value != null && value.trim() !== ''
 }
 
-function hasRscOrPrefetchSignal(request: Request): boolean {
+export function hasRscOrPrefetchSignal(request: Request): boolean {
   const url = new URL(request.url)
   if (url.searchParams.has('_rsc')) return true
   if (headerHasValue(request, 'rsc')) return true
@@ -105,7 +111,7 @@ function hasRscOrPrefetchSignal(request: Request): boolean {
   return purpose.includes('prefetch')
 }
 
-function hasPreviewOrPersonalizationSignal(request: Request): boolean {
+export function hasPreviewOrPersonalizationSignal(request: Request): boolean {
   return [
     'x-vercel-protection-bypass',
     'x-middleware-subrequest',
@@ -181,13 +187,14 @@ function responseWithCacheStatus(
   request: Request,
   response: Response,
   status: PublicHtmlOffloadCacheStatus,
+  ttlSeconds: number,
 ): Response {
   const headers = new Headers(response.headers)
   headers.set(PUBLIC_HTML_OFFLOAD_CACHE_HEADER, status)
   if (status === 'HIT') {
     headers.set(
       'Cache-Control',
-      `public, s-maxage=${PUBLIC_HTML_OFFLOAD_CACHE_TTL_SECONDS}, max-age=0, must-revalidate`,
+      `public, s-maxage=${ttlSeconds}, max-age=0, must-revalidate`,
     )
   }
   return new Response(request.method === 'HEAD' ? null : response.body, {
@@ -205,10 +212,11 @@ function originRequestForCacheFill(request: Request): Request {
 async function fetchBypass(
   request: Request,
   runtime: PublicHtmlOffloadRuntime,
+  ttlSeconds: number,
 ): Promise<PublicHtmlOffloadResult> {
   const origin = await runtime.fetchOrigin(originRequestForCacheFill(request))
   return {
-    response: responseWithCacheStatus(request, origin, 'BYPASS'),
+    response: responseWithCacheStatus(request, origin, 'BYPASS', ttlSeconds),
     status: 'BYPASS',
   }
 }
@@ -220,29 +228,35 @@ async function fetchBypass(
 export async function handlePublicHtmlOffload(
   request: Request,
   runtime: PublicHtmlOffloadRuntime,
+  policy: PublicHtmlOffloadPolicy = {
+    isEligible: isPublicHtmlOffloadEligible,
+    cacheKey: publicHtmlOffloadCacheKey,
+    ttlSeconds: PUBLIC_HTML_OFFLOAD_CACHE_TTL_SECONDS,
+  },
 ): Promise<PublicHtmlOffloadResult> {
-  if (!isPublicHtmlOffloadEligible(request)) return fetchBypass(request, runtime)
+  const ttlSeconds = policy.ttlSeconds ?? PUBLIC_HTML_OFFLOAD_CACHE_TTL_SECONDS
+  if (!policy.isEligible(request)) return fetchBypass(request, runtime, ttlSeconds)
 
   const cache = runtime.cache === undefined ? getPublicHtmlOffloadCache() : runtime.cache
-  if (!cache) return fetchBypass(request, runtime)
+  if (!cache) return fetchBypass(request, runtime, ttlSeconds)
 
-  const key = publicHtmlOffloadCacheKey(request)
+  const key = policy.cacheKey(request)
   try {
     const cached = await cache.match(key)
     if (cached) {
       return {
-        response: responseWithCacheStatus(request, cached, 'HIT'),
+        response: responseWithCacheStatus(request, cached, 'HIT', ttlSeconds),
         status: 'HIT',
       }
     }
   } catch {
-    return fetchBypass(request, runtime)
+    return fetchBypass(request, runtime, ttlSeconds)
   }
 
   const origin = await runtime.fetchOrigin(originRequestForCacheFill(request))
   if (!isCacheablePublicHtmlResponse(origin)) {
     return {
-      response: responseWithCacheStatus(request, origin, 'BYPASS'),
+      response: responseWithCacheStatus(request, origin, 'BYPASS', ttlSeconds),
       status: 'BYPASS',
     }
   }
@@ -251,7 +265,7 @@ export async function handlePublicHtmlOffload(
   const storedHeaders = new Headers(stored.headers)
   storedHeaders.set(
     'Cache-Control',
-    `public, s-maxage=${PUBLIC_HTML_OFFLOAD_CACHE_TTL_SECONDS}, max-age=0, must-revalidate`,
+    `public, s-maxage=${ttlSeconds}, max-age=0, must-revalidate`,
   )
   storedHeaders.delete(PUBLIC_HTML_OFFLOAD_CACHE_HEADER)
   const storedResponse = new Response(stored.body, {
@@ -263,7 +277,7 @@ export async function handlePublicHtmlOffload(
   if (runtime.waitUntil) runtime.waitUntil(store)
 
   return {
-    response: responseWithCacheStatus(request, origin, 'MISS'),
+    response: responseWithCacheStatus(request, origin, 'MISS', ttlSeconds),
     status: 'MISS',
   }
 }
@@ -273,5 +287,5 @@ export function markPublicHtmlOffloadCacheStatus(
   response: Response,
   status: PublicHtmlOffloadCacheStatus,
 ): Response {
-  return responseWithCacheStatus(request, response, status)
+  return responseWithCacheStatus(request, response, status, PUBLIC_HTML_OFFLOAD_CACHE_TTL_SECONDS)
 }

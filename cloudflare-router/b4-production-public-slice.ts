@@ -17,6 +17,10 @@ import {
   isPublicHtmlOffloadPath,
   PUBLIC_HTML_OFFLOAD_CACHE_CLASS,
 } from './public-html-offload'
+import {
+  isStoreCampaignPublicHtmlEligible,
+  isStoreCampaignPublicHtmlPath,
+} from './store-campaign-public-html'
 
 export type B4Backend = 'cloudflare' | 'vercel'
 export type B4RouteClass = 'cf-ready' | 'public-html-offload' | 'vercel-required' | 'unknown-fallback'
@@ -30,6 +34,8 @@ export type B4RouteClass = 'cf-ready' | 'public-html-offload' | 'vercel-required
  * shared namespace must have exactly one producer; a second (CLOUDFLARE_BUILD=1 +
  * OpenNext) graph caused the 2026-08-19 production ChunkLoadError incident.
  * Cloudflare must NOT serve any other production Next HTML/RSC/client asset.
+ * The approved Store/Campaign exception is only a cache of final HTML already
+ * produced by Vercel; it is not a second Next producer.
  * Only a future migration of the ENTIRE Next frontend (including /_next/static)
  * as one self-consistent build/runtime may change this.
  */
@@ -293,12 +299,12 @@ export const B4_CACHE_POLICIES: Record<B4CacheClass, {
   'public-html-offload': {
     browserCacheControl: 'public, max-age=0, must-revalidate',
     cloudflareTtl: 's-maxage=3600; exact allowlisted URL only',
-    cacheKey: 'scheme + host + exact path (no query)',
-    queryString: 'bypass when present',
+    cacheKey: 'scheme + host + exact path; approved attribution query is ignored',
+    queryString: 'allowlisted attribution only; unknown/RSC query bypasses',
     cookieBypass: 'bypass when Cookie is present',
     authorizationBypass: 'bypass when Authorization is present',
     stale: 'none',
-    purge: 'exact URL purge after verified production deployment',
+    purge: 'exact URL purge after verified production deployment; Store/Campaign writes purge exact affected URLs',
     negativeCache: 'never cache redirects, errors, JSON, RSC, or Set-Cookie',
   },
   health: {
@@ -343,8 +349,9 @@ export const B4_PRODUCTION_PUBLIC_SLICE_MANIFEST: B4ManifestRow[] = [
   { route: '/sitemap.xml, /sitemaps/core.xml, /sitemaps/blog.xml', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next sitemap routes are Next runtime output; owned by Vercel', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
   { route: 'GET /api/health', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'health', invocation: 'worker', auth: 'none', reason: 'proven CF public read; not cacheable', rollbackClass: 'origin-fallback', cutoverClass: 'first' },
   { route: 'GET /api/glasses/brands|categories|face-shapes', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-catalog-api', invocation: 'worker', auth: 'none', reason: 'anonymous catalog lists via glasses data layer', rollbackClass: 'origin-fallback', cutoverClass: 'first' },
-  { route: '/:locale/store/:merchantSlug', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'on-demand ISR + Neon admission; CF cache cannot use revalidateTag', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
-  { route: '/:locale/c/:merchantSlug/:experienceSlug', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Campaign ISR + publish invalidation stays on Vercel', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
+  { route: '/en/store/:merchantSlug', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-html-offload', invocation: 'worker', auth: 'none', reason: 'EN public Store HTML is produced by Vercel and cached only after strict anonymous-document checks; writes purge the exact Store URL', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/en/c/:merchantSlug/:experienceSlug', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-html-offload', invocation: 'worker', auth: 'none', reason: 'EN public Campaign HTML is produced by Vercel and cached only after strict anonymous-document checks; writes purge the exact Campaign URL', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/:locale/store/:merchantSlug and /:locale/c/:merchantSlug/:experienceSlug (non-en)', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Only STORE_CAMPAIGN_EDGE_LOCALES are in the first edge slice; other locales remain Vercel-owned', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
   { route: '/:locale/category/*, /:locale/try/*', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'PROGRAMMATIC_SEO off; Vercel dynamicParams=false 404s all slugs', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
   { route: '/:locale/discover, /:locale/style-explorer', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'force-dynamic', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
   { route: '/api/auth/*, protected reads, merchant writes, MCP', methods: '*', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'session', reason: 'first slice excludes authenticated traffic', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
@@ -575,6 +582,16 @@ export function classifyB4ProductionPublicSlice(request: Request): B4RouteDecisi
     return decision('vercel', 'public-html-offload', 'vercel', PUBLIC_HTML_OFFLOAD_CACHE_CLASS)
   }
 
+  // Cloudflare invokes the EN Store/Campaign wildcard routes, but this strict
+  // classifier rejects roots, siblings, malformed slugs and unsafe variants.
+  // Valid anonymous HTML is still Vercel-produced and only cached by the Worker.
+  if (isStoreCampaignPublicHtmlPath(path)) {
+    if (isStoreCampaignPublicHtmlEligible(request)) {
+      return decision('cloudflare', 'public-html-offload', 'first', PUBLIC_HTML_OFFLOAD_CACHE_CLASS)
+    }
+    return decision('vercel', 'public-html-offload', 'vercel', PUBLIC_HTML_OFFLOAD_CACHE_CLASS)
+  }
+
   // --- Approved Cloudflare NON-Next capabilities ---
   // Non-Next public static files (favicon, /images, /home, /experience-heroes,
   // /blog-covers, /assets) and control files (robots/llms) served as Static Assets.
@@ -604,7 +621,7 @@ export function classifyB4ProductionPublicSlice(request: Request): B4RouteDecisi
 
 export function shouldBypassPublicCache(request: Request, decision: B4RouteDecision): boolean {
   if (decision.cacheClass === PUBLIC_HTML_OFFLOAD_CACHE_CLASS) {
-    return !isPublicHtmlOffloadEligible(request)
+    return !(isPublicHtmlOffloadEligible(request) || isStoreCampaignPublicHtmlEligible(request))
   }
   if (decision.cacheClass === 'none' || decision.cacheClass === 'root-locale-detect' || decision.cacheClass === 'health') {
     return true

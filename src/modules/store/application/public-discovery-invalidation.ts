@@ -1,6 +1,8 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { PUBLIC_DISCOVERY_CACHE } from '@/lib/store-discovery-cache'
 import { locales } from '@/i18n'
+import { purgePublicHtmlUrls } from '@/lib/cloudflare-public-html-purge'
+import { publicCampaignEdgePath, publicStoreEdgePath } from './public-edge-paths'
 
 export type PublicDiscoveryMutationTarget =
   | { kind: 'merchant'; merchantSlug: string }
@@ -8,6 +10,11 @@ export type PublicDiscoveryMutationTarget =
   | { kind: 'experience'; merchantSlug: string; experienceSlug: string | null }
 
 type InvalidationDecision<T> = boolean | ((result: T) => boolean)
+
+type EdgePaths<T> = {
+  before?: readonly string[]
+  after?: readonly string[] | ((result: T) => readonly string[] | Promise<readonly string[]>)
+}
 
 /**
  * The single application boundary for public Store/Campaign discovery writes.
@@ -18,6 +25,7 @@ export async function withPublicDiscoveryInvalidation<T>(input: {
   target: PublicDiscoveryMutationTarget
   mutation: () => Promise<T>
   invalidate?: InvalidationDecision<T>
+  edgePaths?: EdgePaths<T>
 }): Promise<T> {
   const result = await input.mutation()
   const shouldInvalidate = typeof input.invalidate === 'function'
@@ -62,5 +70,34 @@ export async function withPublicDiscoveryInvalidation<T>(input: {
   // The dynamic sitemap is a route-level ISR artifact in addition to its
   // tagged merchant read model. Revalidate it only after a successful write.
   revalidatePath('/sitemaps/dynamic.xml')
+
+  const defaultPath = input.target.kind === 'experience'
+    ? input.target.experienceSlug
+      ? publicCampaignEdgePath(input.target.merchantSlug, input.target.experienceSlug)
+      : publicStoreEdgePath(input.target.merchantSlug)
+    : publicStoreEdgePath(input.target.merchantSlug)
+  const resultSlug = input.target.kind === 'experience'
+    && result !== null
+    && typeof result === 'object'
+    && 'slug' in result
+    && typeof result.slug === 'string'
+    ? result.slug
+    : null
+  const resultPath = input.target.kind === 'experience' && resultSlug
+    ? publicCampaignEdgePath(input.target.merchantSlug, resultSlug)
+    : null
+  const after = typeof input.edgePaths?.after === 'function'
+    ? await input.edgePaths.after(result)
+    : input.edgePaths?.after ?? []
+  const edgePaths = [
+    ...(input.edgePaths?.before ?? []),
+    ...(defaultPath ? [defaultPath] : []),
+    ...(resultPath ? [resultPath] : []),
+    ...after,
+  ]
+  // This is intentionally after the database mutation and Next invalidation.
+  // A Cloudflare outage is observable but cannot turn a committed write into a
+  // false rollback.
+  await purgePublicHtmlUrls([...new Set(edgePaths)])
   return result
 }

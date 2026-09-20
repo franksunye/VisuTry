@@ -1,5 +1,6 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import { getPublicEdgePathsForCloudflareMerchant } from '@/modules/store/application/public-edge-paths-cloudflare'
 import { getMerchantProfile } from './get-merchant-profile-cloudflare'
 import { MerchantAccessError } from './merchant-access-cloudflare'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials-cloudflare'
@@ -256,7 +257,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
   }
   const sql = getCloudflareSql()
   const [merchantRows, countRows, existingRows] = await Promise.all([
-    sql`SELECT "planCode", "commercialStatus" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`,
+    sql`SELECT "slug", "planCode", "commercialStatus" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`,
     sql`SELECT count(*)::int AS "count" FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId}`,
     Promise.all(normalized.map((frame) => sql`
       SELECT "id" FROM "MerchantFrame"
@@ -271,6 +272,10 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     `)),
   ])
   const merchantRow = merchantRows[0]
+  // Preserve the existing mutation error path when the merchant read is
+  // empty; an empty slug simply produces no purge candidate.
+  const merchantSlug = merchantRow?.slug == null ? '' : String(merchantRow.slug)
+  const edgePathsBefore = merchantSlug ? await getPublicEdgePathsForCloudflareMerchant(merchantSlug) : []
   const canonicalPlan = isCanonicalMerchantCommercialFields({
     planCode: merchantRow?.planCode == null ? null : String(merchantRow.planCode),
     commercialStatus: merchantRow?.commercialStatus == null ? null : String(merchantRow.commercialStatus),
@@ -341,7 +346,14 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
       metadata: activation.metadata,
     }))
   }
-  const results = await sql.transaction(statements, { isolationLevel: 'Serializable' })
+  const results = await withPublicDiscoveryInvalidation({
+    target: { kind: 'catalog', merchantSlug },
+    edgePaths: {
+      before: edgePathsBefore,
+      after: () => merchantSlug ? getPublicEdgePathsForCloudflareMerchant(merchantSlug) : [],
+    },
+    mutation: () => sql.transaction(statements, { isolationLevel: 'Serializable' }),
+  })
   const frameResults = results.slice(0, normalized.length)
   const ids = frameResults.flatMap((result) => result.map((row) => String(row.id)))
   const created = frameResults.flatMap((result) => result).filter((row) => Boolean(row.created)).length

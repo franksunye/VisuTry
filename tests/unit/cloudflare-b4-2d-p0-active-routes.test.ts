@@ -28,6 +28,8 @@ const EXPECTED_UNGATED_P0 = [
   `${B4_PRODUCTION_PUBLIC_HOST}/en/virtual-glasses-try-on`,
   `${B4_PRODUCTION_PUBLIC_HOST}/en/blog/ai-face-analysis-for-glasses-guide`,
   `${B4_PRODUCTION_PUBLIC_HOST}/en/brand/gentle-monster`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/en/store/*`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/en/c/*`,
 ] as const
 
 describe('B4.2D active ungated P0 production routes', () => {
@@ -35,29 +37,30 @@ describe('B4.2D active ungated P0 production routes', () => {
   const active = routesForPriority('P0', all)
   const payload = proposedCloudflareRouteApiPayload('P0')
 
-  it('activates exactly 12 non-Next routes plus seven exact public HTML routes', () => {
+  it('activates exactly 12 non-Next routes, seven Consumer HTML routes, and two bounded Store/Campaign routes', () => {
     // Vercel owns the Next frontend; HTML exceptions are limited to the
     // reviewed exact allowlist routes. /_next/static is never generated.
-    expect(all).toHaveLength(19)
-    expect(all.filter((row) => row.priority === 'P0')).toHaveLength(19)
-    expect(active).toHaveLength(19)
+    expect(all).toHaveLength(21)
+    expect(all.filter((row) => row.priority === 'P0')).toHaveLength(21)
+    expect(active).toHaveLength(21)
     expect(active.map((row) => row.pattern)).toEqual([...EXPECTED_UNGATED_P0])
     expect(active.every((row) => row.priority === 'P0')).toBe(true)
     expect(active.every((row) => row.activationGate === 'none')).toBe(true)
     expect(all.some((row) => row.pattern.includes('/_next/static'))).toBe(false)
     expect(all.some((row) => row.pattern.includes('/_next/'))).toBe(false)
-    expect(payload).toHaveLength(19)
+    expect(payload).toHaveLength(21)
     expect(payload.every((row) => row.script === 'visutry-cf-production')).toBe(true)
     expect(payload.every((row) => row.request_limit_fail_open === true)).toBe(true)
   })
 
-  it('keeps P1, P2, catch-all, Store detail, Campaign, Auth, image, and frames off the active set', () => {
+  it('keeps P1, P2, roots, non-EN Store/Campaign, Auth, image, and frames off the active set', () => {
     expect(active.some((row) => row.priority === 'P1' || row.priority === 'P2')).toBe(false)
     expect(wwwWorkerRouteMatch('/', '', active)).toBeNull()
     expect(wwwWorkerRouteMatch('/en', '', active)?.pattern).toBe(`${B4_PRODUCTION_PUBLIC_HOST}/en`)
     expect(wwwWorkerRouteMatch('/en/store', '', active)).toBeNull()
-    expect(wwwWorkerRouteMatch('/en/store/ello-sunglasses', '', active)).toBeNull()
-    expect(wwwWorkerRouteMatch('/en/c/ello-sunglasses/petite-fit', '', active)).toBeNull()
+    expect(wwwWorkerRouteMatch('/en/store/ello-sunglasses', '', active)?.pattern).toBe(`${B4_PRODUCTION_PUBLIC_HOST}/en/store/*`)
+    expect(wwwWorkerRouteMatch('/en/c/ello-sunglasses/petite-fit', '', active)?.pattern).toBe(`${B4_PRODUCTION_PUBLIC_HOST}/en/c/*`)
+    expect(wwwWorkerRouteMatch('/de/store/ello-sunglasses', '', active)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/try-on', '', active)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/face-analysis', '', active)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/pricing', '', active)).toBeNull()

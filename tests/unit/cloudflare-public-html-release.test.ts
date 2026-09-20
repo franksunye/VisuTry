@@ -107,7 +107,7 @@ describe('Public HTML release control plane', () => {
       .toThrow('unsupported Cloudflare deployment mode: skip')
   })
 
-  it('keeps the frozen 19-route Worker contract and seven-route HTML contract', () => {
+  it('keeps the frozen 21-route Worker contract and seven-route release HTML contract', () => {
     const source = fs.readFileSync(path.join(ROOT, 'wrangler.production-traffic-layer.jsonc'), 'utf8')
     const config = parseProductionTrafficLayerConfig(source)
     expect(config.routes).toHaveLength(PRODUCTION_ROUTE_COUNT)

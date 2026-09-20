@@ -35,6 +35,7 @@ import {
   B4_NEXT_FRONTEND_OWNER,
 } from './b4-production-public-slice'
 import { PUBLIC_HTML_OFFLOAD_ROUTES } from './public-html-offload'
+import { STORE_CAMPAIGN_EDGE_LOCALES } from './store-campaign-public-html'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -119,7 +120,8 @@ export function isForbiddenNextClientGraphRoute(pattern: string): boolean {
  * Production Worker Routes for www.visutry.com.
  *
  * Vercel is the canonical Next frontend producer, so this generator emits approved
- * non-Next capabilities plus seven exact public HTML exceptions: non-Next public static assets (favicon, /images, /home,
+ * non-Next capabilities plus seven exact Consumer HTML exceptions and two
+ * bounded EN Store/Campaign traffic-layer routes: non-Next public static assets (favicon, /images, /home,
  * /experience-heroes, /blog-covers, /assets), control files (robots/llms), and the
  * approved read-only edge APIs (health + glasses catalog). It intentionally emits
  * no other Next HTML routes, no other locale homes, no other marketing/SEO HTML, no Next sitemaps,
@@ -205,6 +207,26 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
       priority: 'P0',
       feasibility: 'A',
     })
+  }
+
+  // The route wildcard is deliberately broader than the Worker classifier.
+  // Only the EN semantic Store/Campaign detail shapes can enter the shared
+  // public HTML cache; roots, malformed slugs, RSC and unsafe variants proxy
+  // to Vercel. No wildcard host or /_next route is introduced.
+  for (const locale of STORE_CAMPAIGN_EDGE_LOCALES) {
+    for (const pathPrefix of [`/${locale}/store/`, `/${locale}/c/`]) {
+      push({
+        pattern: hostPattern(prefixToWildcard(pathPrefix)),
+        layer: 'layer2-worker',
+        expectedExecution: 'worker',
+        workerQuota: true,
+        reason: 'bounded EN Store/Campaign traffic-layer invocation; strict semantic classifier caches only final Vercel HTML',
+        excludedConflicts: ['RSC/Flight', 'Cookie/Authorization', 'unknown query variants', '/_next/*'],
+        rollbackClass: 'delete-route',
+        priority: 'P0',
+        feasibility: 'A',
+      })
+    }
   }
 
   return routes
@@ -409,10 +431,6 @@ export const B4_NEGATIVE_PATHS = [
   '/api/glasses/frames',
   '/api/frames',
   '/_next/image',
-  '/en/store/ello-sunglasses',
-  '/en/store/luna-optical',
-  '/en/c/foo/bar',
-  '/en/c/luna-optical/petite-fit',
   '/en/category/foo',
   '/en/try/foo',
   '/en/try/round-glasses',
@@ -524,7 +542,7 @@ export function assertSafeB4ProductionRoutes(routes = generateB4ProductionWorker
     if (match) errors.push(`${path} matched ${match.pattern}`)
   }
 
-  for (const locale of B4_LOCALES) {
+  for (const locale of B4_LOCALES.filter((candidate) => candidate !== 'en')) {
     const detail = wwwWorkerRouteMatch(`/${locale}/store/ello-sunglasses`, '', routes)
     if (detail) errors.push(`/${locale}/store/:slug matched ${detail.pattern}`)
     const campaign = wwwWorkerRouteMatch(`/${locale}/c/merchant/campaign`, '', routes)

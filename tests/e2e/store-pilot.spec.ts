@@ -1,6 +1,41 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Request } from '@playwright/test';
 
 test.describe('@critical Store Pilot Flow', () => {
+  test('public Store and Campaign first load does not start application runtime work', async ({ page }) => {
+    const routes = [
+      '/en/store/ello-sunglasses',
+      '/en/c/ello-sunglasses/petite-fit',
+    ]
+    const applicationRuntimePaths = [
+      /^\/api\/auth\/session(?:$|\?)/,
+      /^\/api\/store\/sessions(?:$|\/|\?)/,
+      /^\/api\/upload(?:$|\/|\?)/,
+      /^\/api\/try-on(?:$|\/|\?)/,
+      /^\/api\/face-analysis(?:$|\/|\?)/,
+      /^\/api\/ai(?:$|\/|\?)/,
+      /^\/api\/quota(?:$|\/|\?)/,
+    ]
+
+    for (const route of routes) {
+      const requests: string[] = []
+      const onRequest = (request: Request) => {
+        const url = new URL(request.url())
+        if (applicationRuntimePaths.some((pattern) => pattern.test(url.pathname + url.search))) {
+          requests.push(url.pathname + url.search)
+        }
+      }
+      page.on('request', onRequest)
+      const response = await page.goto(route, { waitUntil: 'networkidle' })
+      await expect(response).not.toBeNull()
+      expect(response!.status()).toBeLessThan(400)
+      await expect(page.locator('body')).toBeVisible()
+      await page.waitForTimeout(500)
+      page.off('request', onRequest)
+
+      expect(requests, `${route} started application runtime requests`).toEqual([])
+    }
+  })
+
   test('merchant Store entry point renders without an application error', async ({ page }) => {
     const response = await page.goto('/en/store', { waitUntil: 'domcontentloaded' });
 

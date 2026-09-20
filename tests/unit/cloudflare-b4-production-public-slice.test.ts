@@ -106,10 +106,22 @@ describe('B4.2 first production public slice', () => {
     ).toMatchObject({ backend: 'vercel' })
   })
 
-  it('keeps Store/Campaign, closed programmatic SEO, and dynamic pages on Vercel', () => {
+  it('keeps malformed/non-EN Store/Campaign and dynamic pages on Vercel', () => {
+    expect(classifyB4ProductionPublicSlice(request('/en/store/luna-optical'))).toMatchObject({
+      backend: 'cloudflare',
+      routeClass: 'public-html-offload',
+      invocation: 'worker',
+    })
+    expect(classifyB4ProductionPublicSlice(request('/en/c/luna-optical/petite-fit'))).toMatchObject({
+      backend: 'cloudflare',
+      routeClass: 'public-html-offload',
+      invocation: 'worker',
+    })
     const vercel: string[] = [
-      '/en/store/luna-optical',
-      '/en/c/luna-optical/petite-fit',
+      '/en/store',
+      '/en/c/luna-optical/petite-fit/extra',
+      '/de/store/luna-optical',
+      '/de/c/luna-optical/petite-fit',
       '/en/category/aviator',
       '/en/try/some-frame-slug',
       '/en/discover',
@@ -123,6 +135,14 @@ describe('B4.2 first production public slice', () => {
     for (const path of vercel) {
       expect(classifyB4ProductionPublicSlice(request(path))).toMatchObject({ backend: 'vercel' })
     }
+  })
+
+  it('keeps Store/Campaign cache strict while allowing only attribution queries', () => {
+    expect(classifyB4ProductionPublicSlice(request('/en/store/luna-optical?utm_source=guide'))).toMatchObject({ backend: 'cloudflare' })
+    expect(classifyB4ProductionPublicSlice(request('/en/c/luna-optical/petite-fit?merchantContinuation=bounded'))).toMatchObject({ backend: 'cloudflare' })
+    expect(classifyB4ProductionPublicSlice(request('/en/store/luna-optical?unknown=1'))).toMatchObject({ backend: 'vercel' })
+    expect(classifyB4ProductionPublicSlice(request('/en/store/luna-optical?_rsc=1'))).toMatchObject({ backend: 'vercel', routeClass: 'vercel-required' })
+    expect(classifyB4ProductionPublicSlice(request('/en/store/luna-optical', 'GET', { cookie: 'session=1' }))).toMatchObject({ backend: 'vercel' })
   })
 
   it('does not treat Cookie as identity for public classification', () => {

@@ -7,6 +7,12 @@ import {
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { revalidatePath, revalidateTag } from 'next/cache'
 
+jest.mock('@/lib/cloudflare-public-html-purge', () => ({
+  purgePublicHtmlUrls: jest.fn(async (paths: readonly string[]) => ({ attempted: true, success: true, urlCount: paths.length })),
+}))
+import { purgePublicHtmlUrls } from '@/lib/cloudflare-public-html-purge'
+import { publicEdgePathsForRouteMembership } from '@/modules/store/application/public-edge-paths'
+
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn(), revalidateTag: jest.fn() }))
 
 describe('public discovery cache contract', () => {
@@ -107,5 +113,61 @@ describe('public discovery cache contract', () => {
     })
     expect(revalidateTag).not.toHaveBeenCalled()
     expect(revalidatePath).not.toHaveBeenCalled()
+  })
+
+  it('unions before/after exact Store/Campaign URLs after a committed write', async () => {
+    jest.clearAllMocks()
+    await withPublicDiscoveryInvalidation({
+      target: { kind: 'catalog', merchantSlug: 'luna-optical' },
+      edgePaths: {
+        before: ['/en/store/luna-optical', '/en/c/luna-optical/old-campaign'],
+        after: ['/en/store/luna-optical', '/en/c/luna-optical/new-campaign'],
+      },
+      mutation: async () => 'catalog-updated',
+    })
+    expect(purgePublicHtmlUrls).toHaveBeenCalledWith([
+      '/en/store/luna-optical',
+      '/en/c/luna-optical/old-campaign',
+      '/en/c/luna-optical/new-campaign',
+    ])
+  })
+
+  it('purges caller-supplied before and after public route membership', async () => {
+    jest.clearAllMocks()
+    await withPublicDiscoveryInvalidation({
+      target: { kind: 'catalog', merchantSlug: 'luna-optical' },
+      edgePaths: {
+        before: ['/en/store/luna-optical', '/en/c/luna-optical/old-campaign'],
+        after: ['/en/store/luna-optical', '/en/c/luna-optical/new-campaign'],
+      },
+      mutation: async () => 'catalog-updated',
+    })
+    expect(purgePublicHtmlUrls).toHaveBeenCalledWith([
+      '/en/store/luna-optical',
+      '/en/c/luna-optical/old-campaign',
+      '/en/c/luna-optical/new-campaign',
+    ])
+  })
+
+  it('maps only admitted Store/Campaign members to exact EN edge paths', () => {
+    expect(publicEdgePathsForRouteMembership('luna-optical', {
+      store: true,
+      campaigns: ['petite-fit', 'invalid_slug'],
+    })).toEqual([
+      '/en/store/luna-optical',
+      '/en/c/luna-optical/petite-fit',
+    ])
+  })
+
+  it('purges both old and new Campaign URLs when a slug changes', async () => {
+    jest.clearAllMocks()
+    await withPublicDiscoveryInvalidation({
+      target: { kind: 'experience', merchantSlug: 'luna-optical', experienceSlug: 'old-campaign' },
+      mutation: async () => ({ slug: 'new-campaign' }),
+    })
+    expect(purgePublicHtmlUrls).toHaveBeenCalledWith([
+      '/en/c/luna-optical/old-campaign',
+      '/en/c/luna-optical/new-campaign',
+    ])
   })
 })
