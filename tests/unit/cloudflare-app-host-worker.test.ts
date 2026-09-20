@@ -106,7 +106,7 @@ describe('production traffic-layer exact public HTML offload', () => {
     const context = { waitUntil: jest.fn(), passThroughOnException: jest.fn() }
     const productionEnv = env()
 
-    const otherPage = await worker.fetch(new Request('https://www.visutry.com/en/face-shape-detector'), productionEnv, context)
+    const otherPage = await worker.fetch(new Request('https://www.visutry.com/en/face-analysis'), productionEnv, context)
     const unsafeTarget = await worker.fetch(new Request(`https://www.visutry.com${TARGET}`, {
       headers: { cookie: 'next-auth.session-token=present' },
     }), productionEnv, context)

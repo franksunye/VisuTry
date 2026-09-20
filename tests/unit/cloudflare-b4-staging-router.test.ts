@@ -115,6 +115,12 @@ describe('B4.2A staging public slice router', () => {
     const nextHtml: string[] = [
       '/',
       '/en',
+      '/en/face-shape-detector',
+      '/en/what-glasses-suit-my-face',
+      '/en/ai-glasses-advisor',
+      '/en/virtual-glasses-try-on',
+      '/en/blog/ai-face-analysis-for-glasses-guide',
+      '/en/brand/gentle-monster',
       '/en/brand/warby-parker',
       '/en/blog',
       '/en/store',
@@ -128,7 +134,16 @@ describe('B4.2A staging public slice router', () => {
     for (const pathName of nextHtml) {
       const decision = classifyStagingPublicSlice(request(pathName))
       expect(decision.backend).toBe('vercel')
-      expect(decision.routeClass).toBe('vercel-required')
+      const isPublicHtmlOffload = [
+        '/en',
+        '/en/face-shape-detector',
+        '/en/what-glasses-suit-my-face',
+        '/en/ai-glasses-advisor',
+        '/en/virtual-glasses-try-on',
+        '/en/blog/ai-face-analysis-for-glasses-guide',
+        '/en/brand/gentle-monster',
+      ].includes(pathName)
+      expect(decision.routeClass).toBe(isPublicHtmlOffload ? 'public-html-offload' : 'vercel-required')
       expect(b4Layer(decision)).toBe('layer3-vercel')
     }
   })

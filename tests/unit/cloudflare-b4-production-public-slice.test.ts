@@ -62,9 +62,9 @@ describe('B4.2 first production public slice', () => {
   it('routes ALL Next HTML, RSC, and /_next/static to Vercel (single Next frontend owner)', () => {
     const nextFrontend: string[] = [
       '/',
-      '/en',
       '/id',
-      '/en/face-shape-detector',
+      '/id',
+      '/de/face-shape-detector',
       '/en/blog',
       '/en/blog/how-to-choose-glasses-for-your-face',
       '/en/brand/warby-parker',
@@ -238,14 +238,29 @@ describe('B4.2 first production public slice', () => {
   })
 
   it('routes Next force-static HTML, sitemaps, and root to Vercel (not the CF Worker)', () => {
-    for (const path of ['/en', '/en/blog', '/en/brand/warby-parker', '/sitemap.xml', '/sitemaps/core.xml', '/']) {
+    for (const path of ['/id', '/en/blog', '/en/brand/warby-parker', '/sitemap.xml', '/sitemaps/core.xml', '/']) {
       expect(classifyB4ProductionPublicSlice(request(path))).toMatchObject({
         backend: 'vercel',
         invocation: 'vercel',
         cacheClass: 'none',
       })
     }
-    // Approved non-Next API is the only remaining CF Worker invocation.
+    for (const path of [
+      '/en',
+      '/en/face-shape-detector',
+      '/en/what-glasses-suit-my-face',
+      '/en/ai-glasses-advisor',
+      '/en/virtual-glasses-try-on',
+      '/en/blog/ai-face-analysis-for-glasses-guide',
+      '/en/brand/gentle-monster',
+    ]) {
+      expect(classifyB4ProductionPublicSlice(request(path))).toMatchObject({
+        backend: 'cloudflare',
+        routeClass: 'public-html-offload',
+        invocation: 'worker',
+      })
+    }
+    // Approved non-Next API is the only other CF Worker invocation.
     expect(classifyB4ProductionPublicSlice(request('/api/health'))).toMatchObject({
       backend: 'cloudflare',
       invocation: 'worker',

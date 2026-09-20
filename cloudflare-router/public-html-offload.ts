@@ -5,7 +5,7 @@
  * app-host Worker cache a small, reviewed allowlist of anonymous HTML
  * responses after fetching the response from Vercel. Adding another page is
  * a configuration review: add one exact path here and one exact Worker Route
- * per approved page.
+ * per approved page. The allowlist is intentionally small and finite.
  * There is no wildcard or locale-family matching.
  *
  * Invalidation is URL-scoped: after a verified production deployment, purge
@@ -19,6 +19,36 @@ export const PUBLIC_HTML_OFFLOAD_CACHE_TTL_SECONDS = 3600
 export const PUBLIC_HTML_OFFLOAD_PUBLIC_HOST = 'www.visutry.com'
 
 export const PUBLIC_HTML_OFFLOAD_ROUTES = [
+  {
+    path: '/en',
+    methods: ['GET', 'HEAD'],
+    source: 'src/app/[locale]/(public)/page.tsx',
+    purge: 'exact-url',
+  },
+  {
+    path: '/en/face-shape-detector',
+    methods: ['GET', 'HEAD'],
+    source: 'src/app/[locale]/(public)/face-shape-detector/page.tsx',
+    purge: 'exact-url',
+  },
+  {
+    path: '/en/what-glasses-suit-my-face',
+    methods: ['GET', 'HEAD'],
+    source: 'src/app/[locale]/(public)/what-glasses-suit-my-face/page.tsx',
+    purge: 'exact-url',
+  },
+  {
+    path: '/en/ai-glasses-advisor',
+    methods: ['GET', 'HEAD'],
+    source: 'src/app/[locale]/(public)/ai-glasses-advisor/page.tsx',
+    purge: 'exact-url',
+  },
+  {
+    path: '/en/virtual-glasses-try-on',
+    methods: ['GET', 'HEAD'],
+    source: 'src/app/[locale]/(public)/virtual-glasses-try-on/page.tsx',
+    purge: 'exact-url',
+  },
   {
     path: '/en/blog/ai-face-analysis-for-glasses-guide',
     methods: ['GET', 'HEAD'],

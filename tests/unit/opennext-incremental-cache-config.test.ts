@@ -72,11 +72,11 @@ describe('OpenNext static-assets incremental cache production config', () => {
     },
   )
 
-  it('keeps the 12 non-Next P0 routes plus the exact public HTML route', () => {
+  it('keeps the 12 non-Next P0 routes plus the seven exact public HTML routes', () => {
     const all = generateB4ProductionWorkerRoutes()
     const existingP0 = routesForPriority('P0', all)
 
-    expect(existingP0).toHaveLength(14)
+    expect(existingP0).toHaveLength(19)
     // Glasses Guide HTML is part of the Next frontend → Vercel owns it.
     expect(classify('/en/glasses-guide')).toMatchObject({ backend: 'vercel', routeClass: 'vercel-required' })
     expect(classify('/de/glasses-guide/best-rectangle-glasses-for-round-face')).toMatchObject({
@@ -86,8 +86,17 @@ describe('OpenNext static-assets incremental cache production config', () => {
     expect(wwwWorkerRouteMatch('/api/health', '', existingP0)?.pattern).toBe(
       `${B4_PRODUCTION_PUBLIC_HOST}/api/health`,
     )
-    expect(existingP0.some((row) => row.pattern === `${B4_PRODUCTION_PUBLIC_HOST}/en/blog/ai-face-analysis-for-glasses-guide`)).toBe(true)
-    expect(existingP0.some((row) => row.pattern === `${B4_PRODUCTION_PUBLIC_HOST}/en/brand/gentle-monster`)).toBe(true)
+    for (const path of [
+      '/en',
+      '/en/face-shape-detector',
+      '/en/what-glasses-suit-my-face',
+      '/en/ai-glasses-advisor',
+      '/en/virtual-glasses-try-on',
+      '/en/blog/ai-face-analysis-for-glasses-guide',
+      '/en/brand/gentle-monster',
+    ]) {
+      expect(existingP0.some((row) => row.pattern === `${B4_PRODUCTION_PUBLIC_HOST}${path}`)).toBe(true)
+    }
     expect(existingP0.some((row) => row.pattern === `${B4_PRODUCTION_PUBLIC_HOST}/en/glasses-guide/*`)).toBe(false)
   })
 

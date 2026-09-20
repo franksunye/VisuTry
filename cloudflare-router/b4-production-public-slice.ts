@@ -25,8 +25,8 @@ export type B4RouteClass = 'cf-ready' | 'public-html-offload' | 'vercel-required
  * VisuTry production Next frontend owner.
  *
  * Vercel is the canonical producer of Next HTML, RSC/Flight, the Next client
- * artifact graph, and `/_next/static/*`. One exact reviewed anonymous HTML
- * response may be cached by the Worker after Vercel produces it. The `/_next/static`
+ * artifact graph, and `/_next/static/*`. A small exact reviewed anonymous HTML
+ * allowlist may be cached by the Worker after Vercel produces it. The `/_next/static`
  * shared namespace must have exactly one producer; a second (CLOUDFLARE_BUILD=1 +
  * OpenNext) graph caused the 2026-08-19 production ChunkLoadError incident.
  * Cloudflare must NOT serve any other production Next HTML/RSC/client asset.
@@ -327,10 +327,15 @@ export const B4_CACHE_POLICIES: Record<B4CacheClass, {
 
 export const B4_PRODUCTION_PUBLIC_SLICE_MANIFEST: B4ManifestRow[] = [
   { route: '/', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next frontend owner = Vercel; root locale redirect is Next runtime HTML', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
-  { route: '/:locale', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next HTML/RSC/client graph is owned by Vercel (single /_next/static producer)', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
+  { route: '/:locale', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Only the exact approved /en home is offloaded; all other locale homes remain Vercel-owned (single /_next/static producer)', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
   { route: '/:locale/{marketing,blog,brand,guide,face-shape,try-on landing}', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next HTML references the Vercel client graph; CF must not emit a peer graph', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
   { route: 'locale-less marketing/SEO URLs', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next config 308 redirects are Next runtime; owned by Vercel', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
   { route: '/_next/static/*', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'FORBIDDEN on Cloudflare: the Next client artifact graph has one producer (Vercel). Serving CF-built /_next/static breaks Vercel-owned HTML (ChunkLoadError 2026-08-19)', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
+  { route: '/en', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-html-offload', invocation: 'worker', auth: 'none', reason: 'exact force-static public HTML allowlist; Vercel remains the canonical producer and Cloudflare caches only the final anonymous 200 HTML', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/en/face-shape-detector', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-html-offload', invocation: 'worker', auth: 'none', reason: 'exact force-static public HTML allowlist; Vercel remains the canonical producer and Cloudflare caches only the final anonymous 200 HTML', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/en/what-glasses-suit-my-face', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-html-offload', invocation: 'worker', auth: 'none', reason: 'exact force-static public HTML allowlist; Vercel remains the canonical producer and Cloudflare caches only the final anonymous 200 HTML', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/en/ai-glasses-advisor', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-html-offload', invocation: 'worker', auth: 'none', reason: 'exact force-static public HTML allowlist; Vercel remains the canonical producer and Cloudflare caches only the final anonymous 200 HTML', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/en/virtual-glasses-try-on', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-html-offload', invocation: 'worker', auth: 'none', reason: 'exact force-static public HTML allowlist; Vercel remains the canonical producer and Cloudflare caches only the final anonymous 200 HTML', rollbackClass: 'public-cdn', cutoverClass: 'first' },
   { route: '/en/blog/ai-face-analysis-for-glasses-guide', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-html-offload', invocation: 'worker', auth: 'none', reason: 'exact force-static public HTML allowlist; Vercel remains the canonical producer and Cloudflare caches only the final anonymous 200 HTML', rollbackClass: 'public-cdn', cutoverClass: 'first' },
   { route: '/en/brand/gentle-monster', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-html-offload', invocation: 'worker', auth: 'none', reason: 'exact curated force-static public HTML allowlist; Vercel remains the canonical producer and Cloudflare caches only the final anonymous 200 HTML', rollbackClass: 'public-cdn', cutoverClass: 'first' },
   { route: '/favicon.ico, /images/*, /home/*, /experience-heroes/*, /blog-covers/*, /assets/*', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-public-asset', invocation: 'static-asset', auth: 'none', reason: 'non-Next public files in .open-next/assets; finite TTL, not immutable', rollbackClass: 'public-cdn', cutoverClass: 'first' },
@@ -560,7 +565,7 @@ export function classifyB4ProductionPublicSlice(request: Request): B4RouteDecisi
     return decision('vercel', 'unknown-fallback', 'vercel', 'none')
   }
 
-  // One exact, reviewed force-static public page is temporarily eligible for
+  // Only the small exact, reviewed force-static public allowlist is eligible for
   // Worker Cache API offload. Unsafe variants fail open to Vercel; RSC/Flight
   // already returned above and never enter this capability.
   if (isPublicHtmlOffloadPath(path)) {

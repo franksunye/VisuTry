@@ -119,10 +119,10 @@ export function isForbiddenNextClientGraphRoute(pattern: string): boolean {
  * Production Worker Routes for www.visutry.com.
  *
  * Vercel is the canonical Next frontend producer, so this generator emits approved
- * non-Next capabilities plus exact public HTML exceptions: non-Next public static assets (favicon, /images, /home,
+ * non-Next capabilities plus seven exact public HTML exceptions: non-Next public static assets (favicon, /images, /home,
  * /experience-heroes, /blog-covers, /assets), control files (robots/llms), and the
  * approved read-only edge APIs (health + glasses catalog). It intentionally emits
- * no other Next HTML routes, no locale homes, no marketing/SEO HTML, no Next sitemaps,
+ * no other Next HTML routes, no other locale homes, no other marketing/SEO HTML, no Next sitemaps,
  * and no `/_next/static/*`. `assertSafeB4ProductionRoutes` fails if any forbidden
  * client-graph route or unreviewed HTML route reappears.
  */
@@ -385,7 +385,6 @@ export const B4_NEGATIVE_PATHS = [
   // Next frontend (HTML / RSC / client graph) is owned by Vercel and must never
   // match a production Worker route.
   '/',
-  '/en',
   '/id',
   '/en/store',
   '/store',
@@ -400,7 +399,6 @@ export const B4_NEGATIVE_PATHS = [
   '/en/style/round-face',
   '/en/try-on/glasses',
   '/en/face-analysis',
-  '/en/face-shape-detector',
   '/_next/static/chunks/app.js',
   '/_next/static/css/app.css',
   '/sitemap.xml',
@@ -455,6 +453,11 @@ export const B4_POSITIVE_PATHS = [
   '/experience-heroes/demo.webp',
   '/blog-covers/cover.jpg',
   '/assets/logo.png',
+  '/en',
+  '/en/face-shape-detector',
+  '/en/what-glasses-suit-my-face',
+  '/en/ai-glasses-advisor',
+  '/en/virtual-glasses-try-on',
   '/en/blog/ai-face-analysis-for-glasses-guide',
   '/en/brand/gentle-monster',
 ] as const
