@@ -19,6 +19,7 @@ import {
 import {
   fetchVercelProductionDeploymentProof,
   isVercelProductionDeploymentProofValid,
+  normalizeVercelDeploymentOrigin,
 } from '../../cloudflare-router/vercel-production-proof'
 
 const ROOT = path.join(__dirname, '../..')
@@ -192,7 +193,7 @@ describe('Public HTML release control plane', () => {
       sleep: async () => undefined,
     })
     expect(observations).toEqual([expect.objectContaining({
-      outcome: 'SECURITY_EXPECTED_SKIP',
+      outcome: 'SECURITY_CHALLENGE_SKIP',
       securitySignal: 'cf-mitigated: challenge',
       status: 403,
     })])
@@ -217,6 +218,9 @@ describe('Public HTML release control plane', () => {
     expect(workflow).toContain("PUBLIC_HTML_RELEASE_ALLOW_SECURITY_CHALLENGE: '1'")
     expect(workflow).toContain('run: npm run test:smoke:production')
     expect(workflow).toContain('Trusted local Public HTML HIT evidence: required when Runner probe is challenged')
+    expect(workflow).toContain('SMOKE_TARGET: vercel-origin')
+    expect(workflow).toContain('SMOKE_BASE_URL: ${{ steps.vercel-proof.outputs.origin_url }}')
+    expect(workflow).toContain("echo '- Producer smoke: verified Vercel origin only")
   })
 
   it('independently verifies the Vercel deployment and alias through both API reads', async () => {
@@ -231,6 +235,7 @@ describe('Public HTML release control plane', () => {
         teamId: 'team_visutry',
         target: 'production',
         readyState: 'READY',
+        url: 'visutry-release.vercel.app',
         meta: { githubCommitSha: 'a'.repeat(40) },
       }), { status: 200 })
     }
@@ -244,5 +249,12 @@ describe('Public HTML release control plane', () => {
     }
     const proof = await fetchVercelProductionDeploymentProof(config, fetchMock)
     expect(isVercelProductionDeploymentProofValid(proof, config)).toBe(true)
+    expect(proof.originUrl).toBe('https://visutry-release.vercel.app')
+  })
+
+  it('accepts only a bare HTTPS Vercel deployment hostname as a producer smoke origin', () => {
+    expect(normalizeVercelDeploymentOrigin('visutry-release.vercel.app')).toBe('https://visutry-release.vercel.app')
+    expect(normalizeVercelDeploymentOrigin('https://evil.example.com')).toBeNull()
+    expect(normalizeVercelDeploymentOrigin('https://visutry-release.vercel.app/path')).toBeNull()
   })
 })

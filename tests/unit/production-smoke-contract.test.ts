@@ -30,4 +30,11 @@ describe('production smoke ownership contract', () => {
     expect(smoke).toContain("assertVercelOwnership(response.headers, `${label} asset ${assetPath}`)")
     expect(smoke).toContain("x-visutry-router-cache') !== 'public-html-offload'")
   })
+
+  it('supports a distinct verified Vercel-origin producer smoke target', () => {
+    expect(smoke).toContain("const smokeTarget = process.env.SMOKE_TARGET || 'public-edge';")
+    expect(smoke).toContain("smokeTarget === 'vercel-origin'")
+    expect(smoke).toContain('checkNextHtmlAndAssets(route)')
+    expect(smoke).toContain('SMOKE_BASE_URL')
+  })
 })

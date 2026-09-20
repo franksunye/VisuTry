@@ -63,7 +63,20 @@ jobs:
         run: npx tsx scripts/public-html-release.ts --verify-main
 
       - name: Independently verify Vercel Production
-        run: npx tsx scripts/public-html-release.ts --verify-vercel
+        id: vercel-proof
+        run: |
+          npx tsx scripts/public-html-release.ts --verify-vercel | tee "$RUNNER_TEMP/vercel-production-proof.jsonl"
+          node <<'NODE'
+          const fs = require('fs')
+          const lines = fs.readFileSync(`${process.env.RUNNER_TEMP}/vercel-production-proof.jsonl`, 'utf8').trim().split('\n')
+          const proof = [...lines].reverse().map((line) => {
+            try { return JSON.parse(line) } catch { return null }
+          }).find((value) => value && value.event === 'public_html_release_vercel_verified')
+          if (!proof || typeof proof.vercelOrigin !== 'string' || !proof.vercelOrigin.endsWith('.vercel.app')) {
+            throw new Error('Vercel proof did not provide a verified deployment origin')
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `origin_url=${proof.vercelOrigin}\n`)
+          NODE
 
       - name: Generate non-mutating release plan
         run: npx tsx scripts/public-html-release.ts --plan | tee -a "$GITHUB_STEP_SUMMARY"
@@ -108,8 +121,10 @@ jobs:
           PUBLIC_HTML_RELEASE_ALLOW_SECURITY_CHALLENGE: '1'
         run: npx tsx scripts/public-html-release.ts --warm
 
-      - name: Run Production Smoke and Next ownership gate
+      - name: Run Producer Smoke against verified Vercel origin
         env:
+          SMOKE_BASE_URL: ${{ steps.vercel-proof.outputs.origin_url }}
+          SMOKE_TARGET: vercel-origin
           SMOKE_ATTEMPTS: 3
           SMOKE_DELAY_MS: 5000
         run: npm run test:smoke:production
@@ -126,7 +141,7 @@ jobs:
             echo "- Cloudflare deploy required: \`${{ steps.cloudflare-decision.outputs.deploy_required }}\`"
             echo "- Cloudflare mode: \`${{ inputs.cloudflare_mode }}\`"
             echo '- Public HTML purge: exact files only, count 7'
-            echo '- GitHub warm probe: PASS or SECURITY_EXPECTED_SKIP only when cf-mitigated: challenge is present'
+            echo '- GitHub warm probe: PASS or SECURITY_CHALLENGE_SKIP only when cf-mitigated: challenge is present'
             echo '- Trusted local Public HTML HIT evidence: required when Runner probe is challenged'
-            echo '- Production smoke: see the step above'
+            echo '- Producer smoke: verified Vercel origin only; trusted local/browser probe remains authoritative for www.visutry.com Edge delivery'
           } >> "$GITHUB_STEP_SUMMARY"

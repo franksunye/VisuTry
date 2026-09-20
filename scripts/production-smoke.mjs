@@ -1,4 +1,8 @@
 const baseUrl = (process.env.SMOKE_BASE_URL || 'https://www.visutry.com').replace(/\/$/, '');
+const smokeTarget = process.env.SMOKE_TARGET || 'public-edge';
+if (smokeTarget !== 'public-edge' && smokeTarget !== 'vercel-origin') {
+  throw new Error(`Unsupported SMOKE_TARGET: ${smokeTarget}`);
+}
 
 // These are the only exact final HTML documents currently allowed to be served
 // by the Cloudflare traffic layer. Vercel remains the sole Next.js producer;
@@ -284,13 +288,19 @@ async function retry(label, check) {
 }
 
 async function run() {
-  console.log(`Production smoke target: ${baseUrl}`);
-  console.log('Vercel is the sole Next.js producer. Exact reviewed public HTML may be served by Cloudflare; static assets and RSC remain Vercel-owned.');
+  console.log(`Production smoke target: ${baseUrl} (${smokeTarget})`);
+  console.log(smokeTarget === 'vercel-origin'
+    ? 'Producer smoke: verified Vercel Production origin; HTML, static assets, RSC, and protected APIs must pass directly.'
+    : 'Edge smoke: Vercel is the sole Next.js producer. Exact reviewed public HTML may be served by Cloudflare; static assets and RSC remain Vercel-owned.');
 
   await retry('locale redirect /', checkLocaleRedirect);
 
   for (const route of cloudflareHtmlRoutes) {
-    await retry(`Cloudflare HTML+assets ${route.path}`, () => checkCloudflareHtmlAndAssets(route));
+    if (smokeTarget === 'vercel-origin') {
+      await retry(`Vercel HTML+assets ${route.path}`, () => checkNextHtmlAndAssets(route));
+    } else {
+      await retry(`Cloudflare HTML+assets ${route.path}`, () => checkCloudflareHtmlAndAssets(route));
+    }
   }
 
   for (const route of nextHtmlRoutes) {
@@ -306,7 +316,9 @@ async function run() {
   }
 
   console.log(
-    'Production smoke passed. Reviewed public HTML is served by the allowed Cloudflare layer, application HTML/static/RSC are Vercel-owned with 200 assets, and unauthenticated guards were verified; no authenticated AI generation, credit deduction, or Stripe checkout was invoked.',
+    smokeTarget === 'vercel-origin'
+      ? 'Producer smoke passed. Verified Vercel Production served the application HTML/static/RSC with 200 responses and protected APIs enforced unauthenticated guards; no authenticated AI generation, credit deduction, or Stripe checkout was invoked.'
+      : 'Production smoke passed. Reviewed public HTML is served by the allowed Cloudflare layer, application HTML/static/RSC are Vercel-owned with 200 assets, and unauthenticated guards were verified; no authenticated AI generation, credit deduction, or Stripe checkout was invoked.',
   );
 }
 

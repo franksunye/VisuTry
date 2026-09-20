@@ -41,7 +41,7 @@ export interface PublicHtmlCacheObservation {
   finalCacheStatus: string
   attempts: number
   cfCacheStatus: string | null
-  outcome: 'PASS' | 'SECURITY_EXPECTED_SKIP'
+  outcome: 'PASS' | 'SECURITY_CHALLENGE_SKIP'
   securitySignal?: 'cf-mitigated: challenge'
 }
 
@@ -229,7 +229,7 @@ export async function warmAndVerifyPublicHtml(
           finalCacheStatus: 'CHALLENGE',
           attempts: attempt,
           cfCacheStatus: response.headers.get('cf-cache-status'),
-          outcome: 'SECURITY_EXPECTED_SKIP',
+          outcome: 'SECURITY_CHALLENGE_SKIP',
           securitySignal: 'cf-mitigated: challenge',
         }
         last = observation
@@ -262,7 +262,7 @@ export async function warmAndVerifyPublicHtml(
       }
       if (attempt < maxAttempts) await wait(delayMs)
     }
-    if (!last || (last.outcome !== 'SECURITY_EXPECTED_SKIP' && last.finalCacheStatus !== 'HIT')) {
+    if (!last || (last.outcome !== 'SECURITY_CHALLENGE_SKIP' && last.finalCacheStatus !== 'HIT')) {
       throw new Error(`${url}: no cache HIT observed within ${maxAttempts} attempts`)
     }
   }

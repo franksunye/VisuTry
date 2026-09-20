@@ -166,6 +166,7 @@ describe('D1 production HTML cache governance contract', () => {
       id: 'dpl_expected',
       projectId: 'prj_visutry',
       teamId: 'team_visutry',
+      originUrl: 'https://visutry-release.vercel.app',
       target: 'production',
       readyState: 'READY',
       gitSha: 'sha_expected',

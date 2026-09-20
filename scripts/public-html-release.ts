@@ -137,6 +137,7 @@ async function verifyVercel() {
     deploymentId: proof.id,
     projectId: proof.projectId,
     teamId: proof.teamId,
+    vercelOrigin: proof.originUrl,
     target: proof.target,
     readyState: proof.readyState,
     gitSha: proof.gitSha,
@@ -225,15 +226,15 @@ async function warm() {
   const observations = await warmAndVerifyPublicHtml(PUBLIC_HTML_OFFLOAD_PURGE_URLS, fetch, {
     allowCloudflareChallenge,
   })
-  const securityExpectedSkips = observations.filter((observation) => observation.outcome === 'SECURITY_EXPECTED_SKIP')
+  const securityChallengeSkips = observations.filter((observation) => observation.outcome === 'SECURITY_CHALLENGE_SKIP')
   console.log(JSON.stringify({
     event: 'public_html_release_cache_verified',
     productionMutation: true,
     urlCount: observations.length,
-    githubRunnerProbe: securityExpectedSkips.length > 0 ? 'SECURITY_EXPECTED_SKIP' : 'PASS',
-    authoritative: securityExpectedSkips.length === 0,
-    trustedLocalHitEvidenceRequired: securityExpectedSkips.length > 0,
-    securityExpectedSkipCount: securityExpectedSkips.length,
+    githubRunnerProbe: securityChallengeSkips.length > 0 ? 'SECURITY_CHALLENGE_SKIP' : 'PASS',
+    authoritative: securityChallengeSkips.length === 0,
+    trustedLocalHitEvidenceRequired: securityChallengeSkips.length > 0,
+    securityChallengeSkipCount: securityChallengeSkips.length,
     observations,
   }, null, 2))
 }
