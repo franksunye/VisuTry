@@ -57,14 +57,10 @@ export class MerchantProvisioningError extends Error {
 }
 
 function normalizeInput(input: CreateMerchantWithOwnerInput) {
-  // The onboarding form intentionally makes the name optional. Treat an
-  // omitted, empty, or whitespace-only value the same way so a blank form
-  // cannot fall into the slug/name validation path.
-  const name = input.name?.trim() || 'My Store'
-  if (name.length < 2 || name.length > 120) {
-    throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must be between 2 and 120 characters.')
-  }
-
+  // Name validation is intentionally deferred until after the existing-owner
+  // lookup inside the transaction. An existing owner retry must return its
+  // current workspace idempotently, even if an old replay omitted `name`.
+  const name = input.name?.trim() || null
   const websiteUrl = input.websiteUrl?.trim() || null
   if (websiteUrl) {
     try {
@@ -75,15 +71,23 @@ function normalizeInput(input: CreateMerchantWithOwnerInput) {
     }
   }
 
-  const baseSlug = slugify(input.slug?.trim() || name).slice(0, 180).replace(/-+$/u, '')
-  if (!baseSlug) {
-    throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must contain letters or numbers.')
-  }
+  const baseSlug = name
+    ? slugify(input.slug?.trim() || name).slice(0, 180).replace(/-+$/u, '') || null
+    : null
 
   const source = input.source?.trim().slice(0, 200) || null
   const campaign = input.campaign?.trim().slice(0, 200) || null
 
   return { name, websiteUrl, baseSlug, source, campaign }
+}
+
+function assertNewMerchantIdentity(normalized: ReturnType<typeof normalizeInput>): asserts normalized is ReturnType<typeof normalizeInput> & { name: string; baseSlug: string } {
+  if (!normalized.name || normalized.name.length < 2 || normalized.name.length > 120) {
+    throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must be between 2 and 120 characters.')
+  }
+  if (!normalized.baseSlug) {
+    throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must contain letters or numbers.')
+  }
 }
 
 async function createMerchantWithOwnerAttempt(
@@ -92,13 +96,6 @@ async function createMerchantWithOwnerAttempt(
   slug: string,
 ): Promise<MerchantProvisioningAttemptResult> {
   return prisma.$transaction(async (tx) => {
-    // Serialize first-workspace creation for this user without changing User.role.
-    await tx.user.update({
-      where: { id: input.userId },
-      data: { updatedAt: new Date() },
-      select: { id: true },
-    })
-
     const existingMembership = await tx.merchantMembership.findFirst({
       where: { userId: input.userId },
       orderBy: { createdAt: 'asc' },
@@ -125,6 +122,47 @@ async function createMerchantWithOwnerAttempt(
           role: existingMembership.role,
           createdAt: existingMembership.createdAt,
           updatedAt: existingMembership.updatedAt,
+        },
+        created: false,
+      }
+    }
+
+    // Do not mutate User, Merchant, Membership, or the activation ledger until
+    // the new-workspace identity has passed the server-side gate.
+    assertNewMerchantIdentity(normalized)
+
+    // Serialize first-workspace creation for this user without changing
+    // User.role, then re-check membership after the lock for concurrent
+    // requests that started with the same empty state.
+    await tx.user.update({
+      where: { id: input.userId },
+      data: { updatedAt: new Date() },
+      select: { id: true },
+    })
+
+    const existingMembershipAfterLock = await tx.merchantMembership.findFirst({
+      where: { userId: input.userId },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        userId: true,
+        merchantId: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+        merchant: { select: { id: true, slug: true, name: true } },
+      },
+    })
+    if (existingMembershipAfterLock) {
+      return {
+        merchant: existingMembershipAfterLock.merchant,
+        membership: {
+          id: existingMembershipAfterLock.id,
+          userId: existingMembershipAfterLock.userId,
+          merchantId: existingMembershipAfterLock.merchantId,
+          role: existingMembershipAfterLock.role,
+          createdAt: existingMembershipAfterLock.createdAt,
+          updatedAt: existingMembershipAfterLock.updatedAt,
         },
         created: false,
       }
@@ -189,7 +227,10 @@ export async function createMerchantWithOwner(
   let serializationRetries = 0
   while (slugAttempt < MAX_SLUG_ATTEMPTS && serializationRetries < 5) {
     try {
-      const slug = merchantSlugForAttempt(normalized.baseSlug, slugAttempt)
+      // An invalid identity still enters the transaction so an existing
+      // membership can be returned idempotently; the attempt asserts it only
+      // after confirming that no workspace exists.
+      const slug = merchantSlugForAttempt(normalized.baseSlug ?? '', slugAttempt)
       const result = await withPublicDiscoveryInvalidation({
         target: { kind: 'merchant', merchantSlug: slug },
         invalidate: (attempt) => attempt.created,

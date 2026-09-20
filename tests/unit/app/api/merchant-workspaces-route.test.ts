@@ -14,7 +14,7 @@ jest.mock('@/modules/merchant/cloudflare', () => ({
 
 import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { createMerchantWithOwner } from '@/modules/merchant/cloudflare'
+import { MerchantProvisioningError, createMerchantWithOwner } from '@/modules/merchant/cloudflare'
 import { POST } from '@/app/api/merchant/workspaces/route'
 
 const auth = requireAuth as jest.Mock
@@ -55,10 +55,17 @@ describe('merchant workspace creation route', () => {
     expect(provision).not.toHaveBeenCalled()
   })
 
-  it('allows a first workspace without a brand name', async () => {
+  it('returns a stable validation error when a new workspace has no business name', async () => {
+    provision.mockRejectedValue(new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'missing business name'))
     const response = await POST(request({}))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({ success: false, code: 'INVALID_MERCHANT_NAME' })
+  })
+
+  it('keeps website optional when the business name is supplied', async () => {
+    const response = await POST(request({ name: 'North Star Eyewear' }))
     expect(response.status).toBe(201)
-    expect(provision).toHaveBeenCalledWith({ userId: 'session-user', name: undefined, websiteUrl: undefined })
+    expect(provision).toHaveBeenCalledWith({ userId: 'session-user', name: 'North Star Eyewear', websiteUrl: undefined })
   })
 
   it('returns 200 for an idempotent retry of an existing workspace', async () => {

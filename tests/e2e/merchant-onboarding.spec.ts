@@ -39,13 +39,20 @@ test.describe('Human Merchant Onboarding G1', () => {
     const callbackUrl = new URL(page.url()).searchParams.get('callbackUrl')
     expect(callbackUrl).toBe('/en/merchant')
 
-    await loginWithMock(request, context, 'free')
+    // The local QA seed gives mock-user-1 the four reusable QA Merchants.
+    // Use mock-user-2 as the clean new-workspace identity, then use the same
+    // identity again to prove the existing-workspace path is idempotent.
+    await loginWithMock(request, context, 'premium')
     await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByRole('heading', { name: /create your merchant workspace/i })).toBeVisible()
-    await page.getByText(/add workspace details/i).click()
-    await page.getByLabel(/brand or store name/i).fill('G1 Local Human Merchant')
-    await page.getByLabel(/^website$/i).fill('https://g1-local.example')
-    await page.getByRole('button', { name: /create workspace/i }).click()
+    await expect(page.getByRole('heading', { name: /set up visutry for your business/i })).toBeVisible()
+    const nameField = page.getByLabel(/business, brand, or store name/i)
+    const websiteField = page.getByLabel(/website/i)
+    await expect(nameField).toBeVisible()
+    await expect(nameField).toHaveAttribute('required', '')
+    await expect(websiteField).toBeVisible()
+    await nameField.fill('G1 Local Human Merchant')
+    await websiteField.fill('https://g1-local.example')
+    await page.getByRole('button', { name: /create merchant workspace/i }).click()
 
     await expect(page).toHaveURL(/\/en\/merchant\?merchantId=[^&]+&onboarding=created/)
     await expect(page.getByRole('status')).toContainText('Merchant workspace created successfully')
@@ -77,14 +84,14 @@ test.describe('Human Merchant Onboarding G1', () => {
     }, csrfToken)
     await context.clearCookies()
 
-    await loginWithMock(request, context, 'free')
+    await loginWithMock(request, context, 'premium')
     await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('heading', { name: /bring your eyewear catalog to life/i })).toBeVisible()
     await expect(page.locator('body')).toContainText('G1 Local Human Merchant')
     await expect(page.getByText(/create your merchant workspace/i)).not.toBeVisible()
 
     await context.clearCookies()
-    await loginWithMock(request, context, 'premium')
+    await loginWithMock(request, context, 'free')
     const denied = await page.evaluate(async (id) => {
       const response = await fetch(`/api/merchant/${id}/profile`)
       return response.status
