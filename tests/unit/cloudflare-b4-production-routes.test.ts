@@ -68,7 +68,8 @@ describe('B4.2B scoped production Worker Routes', () => {
     for (const forbidden of B4_FORBIDDEN_WRANGLER_SHAPES) {
       expect(routes.some((row) => row.pattern.includes(forbidden) && forbidden !== 'custom_domain')).toBe(false)
     }
-    // Vercel owns the Next frontend: no /_next/* and no Next HTML routes exist.
+    // Vercel owns the Next frontend; only the reviewed cached HTML exceptions
+    // and the bounded EN Store/Campaign invocation routes are generated.
     expect(routes.some((row) => row.pattern.includes('/_next/'))).toBe(false)
     expect(proposedWranglerProductionRoutes('P0').every((row) => row.zone_name === 'visutry.com')).toBe(true)
     expect(proposedWranglerProductionRoutes('P0').some((row) => row.pattern.includes('/_next/static'))).toBe(false)
@@ -104,8 +105,8 @@ describe('B4.2B scoped production Worker Routes', () => {
     for (const pathname of B4_NEGATIVE_PATHS) {
       expect(wwwWorkerRouteMatch(pathname, '', routes)).toBeNull()
     }
-    expect(wwwWorkerRouteMatch('/en/store/ello-sunglasses', '', routes)).toBeNull()
-    expect(wwwWorkerRouteMatch('/en/c/foo/bar', '', routes)).toBeNull()
+    expect(wwwWorkerRouteMatch('/en/store/ello-sunglasses', '', routes)?.pattern).toBe('www.visutry.com/en/store/*')
+    expect(wwwWorkerRouteMatch('/en/c/foo/bar', '', routes)?.pattern).toBe('www.visutry.com/en/c/*')
     expect(wwwWorkerRouteMatch('/en/category/foo', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/try/foo', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/discover', '', routes)).toBeNull()
@@ -126,6 +127,8 @@ describe('B4.2B scoped production Worker Routes', () => {
       'www.visutry.com/en/virtual-glasses-try-on',
       'www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide',
       'www.visutry.com/en/brand/gentle-monster',
+      'www.visutry.com/en/store/*',
+      'www.visutry.com/en/c/*',
     ].includes(row.pattern))).toBe(true)
     expect(p0.every((row) => row.activationGate === 'none')).toBe(true)
     expect(wwwWorkerRouteMatch('/en', '', p0)?.pattern).toBe('www.visutry.com/en')
@@ -192,7 +195,7 @@ describe('B4.2B scoped production Worker Routes', () => {
 
   it('distinguishes brands vs frames and keeps Next HTML off the Worker', () => {
     expect(wwwWorkerRouteMatch('/en/store', '', routes)).toBeNull()
-    expect(wwwWorkerRouteMatch('/en/store/ello-sunglasses', '', routes)).toBeNull()
+    expect(wwwWorkerRouteMatch('/en/store/ello-sunglasses', '', routes)?.pattern).toBe('www.visutry.com/en/store/*')
     expect(wwwWorkerRouteMatch('/api/glasses/brands', '', routes)?.pattern).toBe('www.visutry.com/api/glasses/brands')
     expect(wwwWorkerRouteMatch('/api/glasses/frames', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/try-on/glasses', '', routes)).toBeNull()
@@ -205,8 +208,10 @@ describe('B4.2B scoped production Worker Routes', () => {
       expect(classifyB4ProductionPublicSlice(getRequest(pathname)).backend).toBe('cloudflare')
       expect(wwwWorkerRouteMatch(pathname, '', routes)).toBeTruthy()
     }
-    // Next frontend + deferred/auth/image: classifier says vercel AND no Worker route.
-    for (const pathname of ['/', '/id', '/en/store', '/en/brand/warby-parker', '/en/store/ello-sunglasses', '/en/c/foo/bar', '/api/glasses/frames', '/api/auth/session', '/_next/image', '/_next/static/chunks/app.js']) {
+    // Next frontend + deferred/auth/image: classifier says vercel. The two
+    // valid EN Store/Campaign paths are intentionally invoked by the Worker;
+    // their strict classifier decides whether they may enter the cache.
+    for (const pathname of ['/', '/id', '/en/store', '/en/brand/warby-parker', '/api/glasses/frames', '/api/auth/session', '/_next/image', '/_next/static/chunks/app.js']) {
       expect(classifyB4ProductionPublicSlice(getRequest(pathname)).backend).toBe('vercel')
       expect(wwwWorkerRouteMatch(pathname, '', routes)).toBeNull()
     }

@@ -2,11 +2,14 @@ import { unstable_cache } from 'next/cache'
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { resolveExperienceSearchVisibility } from '../domain/experience-search-visibility'
 import { PUBLIC_DISCOVERY_CACHE, publicDiscoveryCacheNamespace } from '@/lib/store-discovery-cache'
+import {
+  STORE_CAMPAIGN_MAX_EXPERIENCE_SLUG_LENGTH,
+  STORE_CAMPAIGN_MAX_MERCHANT_SLUG_LENGTH,
+  isStoreCampaignPublicSlug,
+} from './public-edge-contract'
 
-export const PUBLIC_MERCHANT_SLUG_MAX_LENGTH = 180
-export const PUBLIC_EXPERIENCE_SLUG_MAX_LENGTH = 240
-
-const PUBLIC_ROUTE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u
+export const PUBLIC_MERCHANT_SLUG_MAX_LENGTH = STORE_CAMPAIGN_MAX_MERCHANT_SLUG_LENGTH
+export const PUBLIC_EXPERIENCE_SLUG_MAX_LENGTH = STORE_CAMPAIGN_MAX_EXPERIENCE_SLUG_LENGTH
 
 export type PublicRouteAdmission = { store: boolean; campaigns: string[] }
 export type PublicRouteAdmissionIndex = Record<string, PublicRouteAdmission>
@@ -60,10 +63,7 @@ function latestExperience(experiences: AdmissionExperience[]): AdmissionExperien
 }
 
 export function isPublicRouteSlug(value: unknown, maxLength: number): value is string {
-  return typeof value === 'string'
-    && value.length > 0
-    && value.length <= maxLength
-    && PUBLIC_ROUTE_SLUG_PATTERN.test(value)
+  return isStoreCampaignPublicSlug(value, maxLength)
 }
 
 export function isPublicMerchantSlug(value: unknown): value is string {

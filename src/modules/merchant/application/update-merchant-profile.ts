@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { requireMerchantMembership } from './merchant-access'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import { getPublicEdgeTagsForMerchant } from '@/modules/store/application/public-edge-paths-server'
 import { MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
 import { recordMerchantActivationEventWithClient } from './merchant-activation'
 
@@ -42,8 +43,13 @@ export async function updateMerchantProfile(input: {
   if (name.length < 2 || name.length > 120) throw new MerchantProfileError('INVALID_MERCHANT_NAME', 'Merchant name must be between 2 and 120 characters.')
   const websiteUrl = normalizeWebsite(input.websiteUrl)
   const meaningfulChange = name !== current.name || (websiteUrl !== undefined && websiteUrl !== current.websiteUrl)
+  const edgeTagsBefore = await getPublicEdgeTagsForMerchant(current.slug)
   const updated = await withPublicDiscoveryInvalidation({
     target: { kind: 'merchant', merchantSlug: current.slug },
+    edgeTags: {
+      before: edgeTagsBefore,
+      after: () => getPublicEdgeTagsForMerchant(current.slug),
+    },
     mutation: () => prisma.$transaction(async (tx) => {
       const result = await tx.merchant.update({
         where: { id: input.merchantId },

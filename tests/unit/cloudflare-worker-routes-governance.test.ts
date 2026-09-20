@@ -22,7 +22,7 @@ const configSource = fs.readFileSync(path.join(ROOT, 'wrangler.production-traffi
 describe('Cloudflare production Worker Routes ownership', () => {
   const config = parseProductionTrafficLayerConfig(configSource)
 
-  it('declares exactly the current 19-route production contract', () => {
+  it('declares exactly the current 21-route production contract', () => {
     expect(config.main).toBe(PRODUCTION_WORKER_ENTRYPOINT)
     expect(config.workerName).toBe(PRODUCTION_WORKER_NAME)
     expect(config.routes).toHaveLength(PRODUCTION_ROUTE_COUNT)
@@ -56,8 +56,8 @@ describe('Cloudflare production Worker Routes ownership', () => {
       .map((route, index) => ({ id: `route-${index}`, ...route, script: PRODUCTION_WORKER_NAME }))
     expect(compareWorkerRoutes(config.routes, remote, PRODUCTION_WORKER_NAME)).toMatchObject({
       matches: true,
-      localRouteCount: 19,
-      remoteRouteCount: 19,
+      localRouteCount: 21,
+      remoteRouteCount: 21,
       missingLocally: [],
       missingRemotely: [],
       changedTargets: [],

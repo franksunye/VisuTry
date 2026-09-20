@@ -81,6 +81,8 @@ The Consumer Public HTML Offload is **PRODUCTION PASS** on main SHA `5da5385552f
 
 This validation changed no Vercel configuration, DNS, D1 data, or unrelated Cloudflare rules. The exact seven-route inventory remains code-authoritative in `cloudflare-router/public-html-offload.ts`.
 
+The current production data plane is still the validated 19-route / seven-URL Consumer slice. The reviewed Store/Campaign v1 implementation on the feature branch proposes two additional bounded EN Worker invocation routes (`/en/store/*` and `/en/c/*`). These routes do not create a second Next producer: Vercel continues to produce canonical HTML, while the Worker may cache only safe final anonymous HTML and proxies every unsafe or unknown variant to Vercel. Store/Campaign freshness is write-driven through deterministic per-document Cache-Tag invalidation, not the seven-URL release warm-up list. The edge query contract allows only attribution and bounded client continuation keys whose values do not affect server HTML; unknown keys, RSC/Flight, cookies, authorization, preview, and personalization bypass to Vercel.
+
 ## Three-Layer Traffic Execution Model
 
 This is the canonical production traffic model. “Cloudflare traffic” does **not** mean every request invokes a Worker.
@@ -298,7 +300,7 @@ Move only individually proven public/static/read-heavy routes to Cloudflare owne
 
 Keep the existing backend as the fallback/origin for unsupported capabilities.
 
-The current seven-route Consumer Public HTML Offload is the validated bounded slice. Keep its 19-route / 7-HTML-route data plane stable while the manual Release Engineering v1 workflow is reviewed and validated.
+The current seven-route Consumer Public HTML Offload is the validated bounded slice. Keep the production 19-route / 7-HTML-route data plane stable until the reviewed Store/Campaign v1 branch is explicitly cut over. The proposed branch derives a 21-route contract and does not change additional locales, `/_next`, RSC, API, or interactive ownership.
 
 ### Stage 3 — Authenticated-read slice
 

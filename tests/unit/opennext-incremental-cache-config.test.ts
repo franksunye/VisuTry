@@ -72,11 +72,11 @@ describe('OpenNext static-assets incremental cache production config', () => {
     },
   )
 
-  it('keeps the 12 non-Next P0 routes plus the seven exact public HTML routes', () => {
+  it('keeps the 12 non-Next P0 routes, seven Consumer HTML routes, and two bounded Store/Campaign routes', () => {
     const all = generateB4ProductionWorkerRoutes()
     const existingP0 = routesForPriority('P0', all)
 
-    expect(existingP0).toHaveLength(19)
+    expect(existingP0).toHaveLength(21)
     // Glasses Guide HTML is part of the Next frontend → Vercel owns it.
     expect(classify('/en/glasses-guide')).toMatchObject({ backend: 'vercel', routeClass: 'vercel-required' })
     expect(classify('/de/glasses-guide/best-rectangle-glasses-for-round-face')).toMatchObject({

@@ -1,9 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import stripJsonComments from 'strip-json-comments'
+import { generateB4ProductionWorkerRoutes } from './b4-production-routes'
 
 export const PRODUCTION_TRAFFIC_LAYER_CONFIG = 'wrangler.production-traffic-layer.jsonc'
-export const PRODUCTION_ROUTE_COUNT = 19
+/** Derived from the canonical route declaration; do not maintain a second count. */
+export const PRODUCTION_ROUTE_COUNT = generateB4ProductionWorkerRoutes().length
 export const PRODUCTION_WORKER_NAME = 'visutry-cf-production'
 export const PRODUCTION_ZONE_NAME = 'visutry.com'
 export const PRODUCTION_HOST_PREFIX = 'www.visutry.com/'

@@ -107,9 +107,9 @@ describe('public HTML offload allowlist and cache safety', () => {
     })
   })
 
-  it('keeps the Worker route set exact with no wildcard HTML route', () => {
+  it('keeps the Worker route set finite with only bounded Store/Campaign wildcards', () => {
     const routes = generateB4ProductionWorkerRoutes()
-    expect(routes).toHaveLength(19)
+    expect(routes).toHaveLength(21)
     for (const path of OFFLOAD_ROUTES) {
       expect(wwwWorkerRouteMatch(path, '', routes)?.pattern).toBe(`www.visutry.com${path}`)
     }
@@ -117,6 +117,8 @@ describe('public HTML offload allowlist and cache safety', () => {
     expect(wwwWorkerRouteMatch(BRAND_TARGET, '', routes)?.pattern).toBe(`www.visutry.com${BRAND_TARGET}`)
     expect(wwwWorkerRouteMatch(`${TARGET}/child`, '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch(`${BRAND_TARGET}/child`, '', routes)).toBeNull()
+    expect(wwwWorkerRouteMatch('/en/store/luna-optical', '', routes)?.pattern).toBe('www.visutry.com/en/store/*')
+    expect(wwwWorkerRouteMatch('/en/c/luna-optical/petite-fit', '', routes)?.pattern).toBe('www.visutry.com/en/c/*')
     expect(routes.some((route) => route.pattern === 'www.visutry.com/*')).toBe(false)
     expect(routes.some((route) => route.pattern.includes('/_next/'))).toBe(false)
   })

@@ -28,8 +28,8 @@ describe('B4.2C Phase A DNS zone diff', () => {
     ].sort())
     // Vercel owns the Next frontend except for the exact reviewed public HTML
     // offload routes; /_next/static remains Vercel-owned.
-    expect(generateB4ProductionWorkerRoutes().length).toBe(19)
-    expect(routesForPriority('P0').length).toBe(19)
+    expect(generateB4ProductionWorkerRoutes().length).toBe(21)
+    expect(routesForPriority('P0').length).toBe(21)
   })
 
   it('skips when the Cloudflare dump is empty', () => {

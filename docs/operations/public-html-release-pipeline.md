@@ -8,7 +8,7 @@ VisuTry keeps the hosting boundary explicit:
 - Vercel is the canonical producer of Next HTML, RSC/Flight, `/_next/static/*`, application runtime, APIs, auth, payments, Face Analysis, Try-On, and AI runtime.
 - Cloudflare is the public delivery/cache layer for the reviewed traffic Worker and its non-Next Static Assets. It may serve a cached final anonymous HTML response produced by Vercel for the exact reviewed Public HTML Offload allowlist.
 - Cloudflare does not independently render, build, or produce a second Next.js frontend or client artifact graph.
-- The current Cloudflare production contract remains 19 exact Worker Routes and seven exact Public HTML Offload routes.
+- Production remains on the validated 19-route / seven-URL Consumer contract until this Store/Campaign branch is reviewed and deployed. The proposed next contract is 21 Worker Routes: the same seven Consumer HTML routes plus two bounded EN Store/Campaign invocation routes.
 
 ## Current production state
 
@@ -22,6 +22,18 @@ Consumer Public HTML Offload is **PRODUCTION PASS**.
 - No Vercel configuration, DNS, D1, or unrelated Cloudflare rule changes were made for this validation.
 
 The seven-route inventory remains authoritative in `cloudflare-router/public-html-offload.ts`; this document intentionally does not duplicate it.
+
+## Store/Campaign public HTML v1 (this branch; not production yet)
+
+The implementation adds `www.visutry.com/en/store/*` and `www.visutry.com/en/c/*` as two bounded Worker invocation routes. The Worker classifier is stricter than the Cloudflare wildcard: only exact semantic detail shapes with valid slugs can enter the shared anonymous HTML cache. Roots, malformed/extra segments, non-EN locales, RSC/Flight, cookies/authorization, preview/personalized requests, and unknown query parameters fail open to Vercel.
+
+The Store/Campaign query contract is deliberately allowlisted. `utm_*`, `gclid`, `gbraid`, `wbraid`, `fbclid`, `ttclid`, `msclkid`, `source`, `medium`, `surface`, `campaign`, and the bounded client-only `merchantContinuation` context are ignored in the HTML cache key because they do not change server-rendered discovery HTML. The browser URL is preserved. Unknown parameters remain a Vercel bypass, and the existing seven Consumer routes retain their separate exact no-query contract.
+
+Vercel remains the sole Next.js producer. Cloudflare only caches final 200 anonymous HTML fetched from Vercel. The existing seven Consumer purge URLs and release warm-up contract remain unchanged. Store/Campaign freshness is write-driven through deterministic per-document `Cache-Tag` values and the server-only purge client using `CLOUDFLARE_PUBLIC_HTML_PURGE_TOKEN` and `CLOUDFLARE_ZONE_ID`; safe attribution query variants therefore share one canonical cache object without relying on purge-by-URL for Worker custom Cache API keys. Purges are processed in batches of at most 100 and never truncate the derived set. The Store/Campaign cutover gate must not be opened until those narrowly scoped production credentials are provisioned. This branch has not changed production routes or performed a purge.
+
+Successful public-discovery writes invalidate Next tags/paths first and then purge the exact affected Store/Campaign document tags. Merchant and catalog writes pass the before/after public-admission membership so publish, unpublish, deactivation, removal, and slug changes purge both old and new tags. Purge failure is logged with resource type, batch counts, and partial-failure state; it does not falsely roll back a committed database write, and writes never warm the edge.
+
+Asset audit completed 2026-09-20 against valid production HTML samples `/en/store/ello-sunglasses`, `/en/c/ello-sunglasses/petite-fit`, and `/en/c/visutry-demo/everyday-fit`: HTTP 200 responses contained stable public asset URLs and no observed `X-Amz-*`, `signature`, `token`, `expires`, `/signed/`, or `/private/` markers. The runtime `PRIVATE_SIGNED` policy is not made public by this branch. This is a bounded sample gate, not a storage-policy change; any future production sample containing an expiring signed asset URL blocks Store/Campaign edge cutover. `/_next/image` and `/_next/static/*` remain Vercel-owned.
 
 ## Normal release
 
@@ -43,7 +55,7 @@ The workflow classifies the first-parent change set of the target main commit. A
 
 When required, the order is:
 
-`Vercel proof → Cloudflare artifact build/deploy → live 19-route verification → exact seven-file purge → warm/HIT verification → Production Smoke`.
+`Vercel proof → Cloudflare artifact build/deploy → live route verification (derived contract) → exact seven-file Consumer purge → warm/HIT verification → Production Smoke`.
 
 Ordinary application page copy, React components, APIs, Merchant logic, and database changes do not require a Cloudflare Worker deploy because Vercel remains their producer. If the changed-file comparison cannot be established, the classifier fails closed and requires a deploy. Manual `force` remains available for an explicit conservative deploy; there is no skip mode.
 
@@ -75,8 +87,8 @@ The D1 cache invalidation workflow remains in place. It is a separate governance
 
 ## Scope and roadmap
 
-Release Engineering v1 is intentionally manual-only: `workflow_dispatch` verifies the current main SHA and Vercel Production deployment, determines whether a Cloudflare traffic-layer deploy is required, optionally deploys Cloudflare, verifies the live 19-route contract, purges the exact seven URLs, warms them to an eventual HIT, runs the existing Production Smoke, and publishes fail-closed release evidence.
+Release Engineering v1 is intentionally manual-only: `workflow_dispatch` verifies the current main SHA and Vercel Production deployment, determines whether a Cloudflare traffic-layer deploy is required, optionally deploys Cloudflare, verifies the live derived route contract, purges the exact seven Consumer URLs, warms them to an eventual HIT, runs the existing Production Smoke, and publishes fail-closed release evidence. Store/Campaign URLs are not added to that deploy-time seven-URL release purge list; their freshness is mutation-driven.
 
-V1 does not include automatic release triggers, Store/Campaign offload, additional locales, wildcard HTML caching, or dependency-aware invalidation.
+The current release workflow's seven-URL purge/warm contract does not include Store/Campaign offload. The reviewed Store/Campaign branch uses write-driven exact invalidation instead. Neither path adds automatic release triggers, additional locales, wildcard HTML caching, or dependency-aware invalidation.
 
-The operating posture is to keep the 19-route / 7-HTML-route production data plane stable while observing Vercel and Cloudflare usage/resource changes. The near-term next step is to finish review and manually validate Release Engineering v1. Only later, when justified by evidence, should the team consider a verified Vercel Production trigger, Store/Campaign edge offload, additional locales, or more granular invalidation.
+The operating posture is to keep the production data plane stable while reviewing this bounded Store/Campaign v1 change. The next step after human review is a controlled production cutover with route verification, smoke, and write-invalidation evidence. Additional locales, wildcard HTML caching, and broader edge ownership remain out of scope.
