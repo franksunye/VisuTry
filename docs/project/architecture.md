@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for current technical architecture
 **Owner:** Engineering  
-**Last reviewed:** 2026-09-17
+**Last reviewed:** 2026-09-20
 **Review cadence:** Monthly, and whenever a runtime, domain, persistence, or deployment boundary materially changes
 **Scope:** Current system shape, ownership boundaries, shared platform contracts, production runtime topology, persistence, and architectural guardrails.
 
@@ -30,7 +30,10 @@ Human / Agent traffic
         |
         v
 Cloudflare edge
-DNS / proxy / CDN / WAF / bounded cache / approved non-Next capabilities
+DNS / proxy / CDN / WAF / governed cache / approved non-Next capabilities
+        |
+        +--> eligible anonymous final HTML cache
+        |      (HTML produced by Vercel)
         |
         v
 Vercel Next.js application
@@ -178,6 +181,19 @@ required before removing D1 or declaring that historical issue resolved; the
 dated evidence and procedure belong in the operations authorities, not here.
 
 MediaPipe runtime/model assets use the isolated `assets.visutry.com` Cloudflare Worker + R2 delivery path.
+
+### Current Store/Campaign public edge state
+
+The bounded EN Store/Campaign public edge is **PRODUCTION PASS**. Eligible
+anonymous discovery HTML may be served from Cloudflare after Vercel produces
+the canonical response; this is delivery caching, not a second Next frontend.
+Unsafe or personalized requests, including authenticated, RSC/Flight,
+prefetch, and unknown query variants, remain on Vercel. Public interaction is
+lazy and intent-driven: passive discovery does not create a Store Session, the
+explicit privacy/interaction boundary does, and attribution from the browser
+URL reaches the canonical MerchantSession path. Write-driven Cache-Tag
+invalidation keeps published Store/Campaign HTML fresh. Exact routes and
+eligibility remain code-authoritative.
 
 ### Heavy/backend capabilities
 

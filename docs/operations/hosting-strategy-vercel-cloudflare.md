@@ -77,11 +77,26 @@ ADR-010 remains valid at the architectural-principle level (Cloudflare for traff
 
 ## Current production state (2026-09-20)
 
-The Consumer Public HTML Offload is **PRODUCTION PASS** on main SHA `5da5385552f52890f43b40ac629a0e7db75fa578`. The validated Worker is `visutry-cf-production`, version `0b673843-dbdc-40f5-a4b1-2306c7eb6518`, with 19 production routes and seven exact Public HTML Offload URLs. All seven URLs were purged and observed to transition from valid `MISS` to `HIT` with HTTP 200; cache hits exposed both `x-visutry-edge-cache: HIT` and `CF-Cache-Status: HIT`. Browser smoke passed for the seven Public pages, while Try-On, Face Analysis, and Dashboard remained healthy.
+The Consumer Public HTML Offload is **PRODUCTION PASS**. The active production
+deployment identity and Worker version are verified by the release control
+plane; exact route inventory remains code-authoritative. Seven exact Public
+HTML URLs were purged and observed to transition from valid `MISS` to `HIT`
+with HTTP 200; cache hits exposed both `x-visutry-edge-cache: HIT` and
+`CF-Cache-Status: HIT`. Browser smoke passed for the seven Public pages, while
+Try-On, Face Analysis, and Dashboard remained healthy.
 
 This validation changed no Vercel configuration, DNS, D1 data, or unrelated Cloudflare rules. The exact seven-route inventory remains code-authoritative in `cloudflare-router/public-html-offload.ts`.
 
-The current production data plane is still the validated 19-route / seven-URL Consumer slice. The reviewed Store/Campaign v1 implementation on the feature branch proposes two additional bounded EN Worker invocation routes (`/en/store/*` and `/en/c/*`). These routes do not create a second Next producer: Vercel continues to produce canonical HTML, while the Worker may cache only safe final anonymous HTML and proxies every unsafe or unknown variant to Vercel. Store/Campaign freshness is write-driven through deterministic per-document Cache-Tag invalidation, not the seven-URL release warm-up list. The edge query contract allows only attribution and bounded client continuation keys whose values do not affect server HTML; unknown keys, RSC/Flight, cookies, authorization, preview, and personalization bypass to Vercel.
+Store/Campaign Public Edge is now **PRODUCTION PASS** for the bounded EN `/store/*` and `/c/*` public families. These routes do not create a second Next producer: Vercel continues to produce canonical HTML, while Cloudflare may cache only safe final anonymous HTML and proxies every unsafe or unknown variant to Vercel. Store/Campaign freshness is write-driven through deterministic per-document Cache-Tag invalidation, not the Consumer seven-URL release warm-up list. The edge query contract allows only attribution and bounded client continuation keys whose values do not affect server HTML; unknown keys, RSC/Flight, cookies, authorization, preview, and personalization bypass to Vercel.
+
+The production proof covered anonymous HTML `MISS → HIT`, canonical delivery,
+hydration, query-variant coherence, and write-driven invalidation followed by
+exact restoration. The public-to-interactive boundary is intentional: passive
+delivery does not create a Store Session; the explicit privacy/interaction
+boundary creates exactly the session required by the canonical application path,
+with UTM attribution preserved. No image upload, AI, quota, or payment side
+effect was part of the cutover proof. Exact route inventory remains owned by
+the current code/generated manifest rather than this document.
 
 ## Three-Layer Traffic Execution Model
 
@@ -300,7 +315,10 @@ Move only individually proven public/static/read-heavy routes to Cloudflare owne
 
 Keep the existing backend as the fallback/origin for unsupported capabilities.
 
-The current seven-route Consumer Public HTML Offload is the validated bounded slice. Keep the production 19-route / 7-HTML-route data plane stable until the reviewed Store/Campaign v1 branch is explicitly cut over. The proposed branch derives a 21-route contract and does not change additional locales, `/_next`, RSC, API, or interactive ownership.
+The Consumer Public HTML Offload and bounded EN Store/Campaign public edge are
+the validated public-read production slices. Keep them stable while observing
+cache correctness, freshness, attribution, and resource behavior. This does
+not change additional locales, `/_next`, RSC, API, or interactive ownership.
 
 ### Stage 3 — Authenticated-read slice
 
@@ -318,7 +336,11 @@ Keep Stripe, Blob, AI, cron/background, full MCP OAuth/source intake, and broad 
 
 As Store/Campaign traffic grows, prioritize edge delivery, caching, lightweight reads, attribution/session/event paths, and bounded request execution so traffic growth does not translate directly into heavyweight backend cost.
 
-Near-term work is limited to completing and manually validating Release Engineering v1. Later work may consider a verified Vercel Production trigger, Store/Campaign edge offload, additional locales, and more granular invalidation only when production evidence justifies it.
+Near-term work is limited to operating and reviewing Release Engineering v1 and
+the live bounded public-edge contracts. Later work may consider a verified
+Vercel Production trigger, additional locales, and more granular invalidation
+only when production evidence justifies it. Store/Campaign offload itself is
+no longer a future or proposed capability.
 
 ## Production Migration Gate
 
@@ -379,3 +401,4 @@ Routine implementation work should not reopen the architecture decision.
 | 2026-09-12 | Consolidated the hosting authority around current ownership; removed obsolete Layer-1/Layer-2 wording that implied Cloudflare could produce production Next HTML/assets; incorporated the governed D1 SEO HTML Cache Shield without changing Vercel frontend ownership; made route/cache detail code-authoritative. |
 | 2026-09-13 | Added the P0.5A Public Web / Consumer App boundary and P0.5B–D delivery/rendering guardrails; kept D1 active but transitional pending P0.5E evidence. |
 | 2026-09-17 | Reconciled current production traffic-layer build/route governance; recorded P0.5E as unresolved and retained the D1 ownership boundary as `KEEP_FOR_NOW` pending a clean observation window. |
+| 2026-09-20 | Recorded the bounded EN Store/Campaign Public Edge as `PRODUCTION PASS`; preserved Vercel as sole Next producer and documented write-driven Cache-Tag freshness plus the public-to-interactive session boundary. |

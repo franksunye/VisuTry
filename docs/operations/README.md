@@ -19,9 +19,26 @@ The frontend-ownership decision is recorded in `docs/decisions/ADR-011-vercel-so
 
 ### Current production state — 2026-09-20
 
-Consumer Public HTML Offload is **PRODUCTION PASS** on main SHA `5da5385552f52890f43b40ac629a0e7db75fa578`. Worker `visutry-cf-production` version `0b673843-dbdc-40f5-a4b1-2306c7eb6518` serves the 19-route production contract and the seven exact code-authoritative Public HTML Offload URLs. All seven were purged and observed with HTTP 200 and valid `MISS → HIT` behavior; cache hits reported `x-visutry-edge-cache: HIT` and `CF-Cache-Status: HIT`. Browser smoke passed for all seven Public pages, and Try-On, Face Analysis, and Dashboard remained healthy. No Vercel config, DNS, D1, or unrelated Cloudflare rule changes were made.
+Consumer Public HTML Offload is **PRODUCTION PASS**. The release control plane
+verifies the active production deployment and Worker version; exact route and
+URL inventories remain code-authoritative. All seven Consumer URLs were
+purged and observed with HTTP 200 and valid `MISS → HIT` behavior; cache hits
+reported `x-visutry-edge-cache: HIT` and `CF-Cache-Status: HIT`. Browser smoke
+passed for all seven Public pages, and Try-On, Face Analysis, and Dashboard
+remained healthy. No Vercel config, DNS, D1, or unrelated Cloudflare rule
+changes were made.
 
-The current production data plane remains 19 routes / 7 Consumer HTML URLs. The reviewed Store/Campaign v1 branch proposes a derived 21-route contract with only bounded EN `/store/*` and `/c/*` Worker invocations; it is not production until separately reviewed and deployed. Vercel remains the sole Next producer, while write-driven per-document Cache-Tag invalidation governs Store/Campaign freshness. Automatic triggers, additional locales, and wildcard HTML caching remain out of scope. The proposed edge cache accepts only the reviewed attribution/continuation query allowlist; unknown or interactive variants stay on Vercel.
+Store/Campaign Public Edge is also **PRODUCTION PASS** for the bounded EN
+`/store/*` and `/c/*` public families. Vercel remains the sole Next producer;
+Cloudflare may serve eligible anonymous final HTML produced by Vercel, while
+unknown, authenticated, personalized, RSC, prefetch, and interactive variants
+remain on the canonical Vercel path. Write-driven per-document Cache-Tag
+invalidation governs freshness, and the explicit public-to-interactive boundary
+creates a Store Session only after privacy/interaction intent. UTM attribution
+was verified on the canonical session path without image upload, AI, quota, or
+payment side effects. Exact route inventory remains code/generated-manifest
+authority. Additional locales, wildcard HTML caching, and broader edge
+ownership remain out of scope.
 
 ### Public Web and Consumer App runtime boundary
 
@@ -38,7 +55,7 @@ The Next App Router separates the anonymous Public Web shell from the session-aw
 | Document | Status | Purpose |
 | --- | --- | --- |
 | `hosting-strategy-vercel-cloudflare.md` | **Canonical / Active** | Current hybrid architecture and Vercel/Cloudflare responsibility boundary. |
-| `public-html-release-pipeline.md` | **Active / Manual release control** | Release Engineering v1 verification, optional traffic-layer deploy, exact purge, warm/HIT, smoke, and evidence flow. |
+| `public-html-release-pipeline.md` | **Active / Manual release control** | Release Engineering v1 verification, traffic-layer deploy when required, Consumer purge/warm/HIT, Store/Campaign freshness, smoke, and evidence flow. |
 | `../project/observability-and-analytics-contract.md` | **Canonical / Active** | Operational telemetry, GA4, business-truth, attribution, and dataset ownership. |
 | `infra-daily-watch.md` | **Active / Observation evidence** | Dated production infrastructure checks, including the P0.5E observation conclusion; it does not replace architecture authorities. |
 | `hybrid-performance-benchmark.md` | **Active / Long-term baseline** | Performance discipline for Cloudflare proxy/cache/edge and Vercel paths. |

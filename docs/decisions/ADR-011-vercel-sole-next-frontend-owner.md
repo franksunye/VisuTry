@@ -31,7 +31,7 @@ Cloudflare remains the traffic-scale edge layer and may own only explicitly appr
 
 The shared `/_next/static/*` namespace must have exactly one producer.
 
-`www.visutry.com/_next/static/*` is forbidden as a production Cloudflare Worker Route while this ADR is active. Cloudflare must not serve production Next HTML/RSC/client assets unless the entire Next frontend is migrated as one self-consistent build/runtime and this ADR is superseded.
+`www.visutry.com/_next/static/*` is forbidden as a production Cloudflare Worker Route while this ADR is active. Cloudflare must not independently render, build, or produce production Next HTML/RSC/client artifacts. It may cache and deliver a final anonymous HTML response produced by the canonical Vercel deployment when that response is covered by a separately reviewed edge contract. Such delivery caching does not transfer Next frontend ownership to Cloudflare. `/_next/static/*`, RSC/Flight, and all independently produced Next/client artifacts remain Vercel-owned. A full Cloudflare frontend migration would still require one self-consistent build/runtime and supersession of this ADR.
 
 ## Consequences
 
