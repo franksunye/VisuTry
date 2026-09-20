@@ -221,11 +221,19 @@ async function purge() {
 }
 
 async function warm() {
-  const observations = await warmAndVerifyPublicHtml(PUBLIC_HTML_OFFLOAD_PURGE_URLS)
+  const allowCloudflareChallenge = process.env.PUBLIC_HTML_RELEASE_ALLOW_SECURITY_CHALLENGE === '1'
+  const observations = await warmAndVerifyPublicHtml(PUBLIC_HTML_OFFLOAD_PURGE_URLS, fetch, {
+    allowCloudflareChallenge,
+  })
+  const securityExpectedSkips = observations.filter((observation) => observation.outcome === 'SECURITY_EXPECTED_SKIP')
   console.log(JSON.stringify({
     event: 'public_html_release_cache_verified',
     productionMutation: true,
     urlCount: observations.length,
+    githubRunnerProbe: securityExpectedSkips.length > 0 ? 'SECURITY_EXPECTED_SKIP' : 'PASS',
+    authoritative: securityExpectedSkips.length === 0,
+    trustedLocalHitEvidenceRequired: securityExpectedSkips.length > 0,
+    securityExpectedSkipCount: securityExpectedSkips.length,
     observations,
   }, null, 2))
 }

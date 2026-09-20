@@ -98,7 +98,14 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_CACHE_PURGE_TOKEN }}
         run: npx tsx scripts/public-html-release.ts --purge
 
-      - name: Warm and verify Public HTML cache HIT
+      - name: Warm and classify Public HTML cache probe
+        env:
+          # GitHub-hosted Runner traffic is challenged by the zone's Bot Fight
+          # Mode. The release probe may classify only a response carrying
+          # Cloudflare's cf-mitigated: challenge signal; ordinary HTTP failures
+          # remain hard failures. A trusted local/browser probe is authoritative
+          # when this non-authoritative Runner probe is challenged.
+          PUBLIC_HTML_RELEASE_ALLOW_SECURITY_CHALLENGE: '1'
         run: npx tsx scripts/public-html-release.ts --warm
 
       - name: Run Production Smoke and Next ownership gate
@@ -119,5 +126,7 @@ jobs:
             echo "- Cloudflare deploy required: \`${{ steps.cloudflare-decision.outputs.deploy_required }}\`"
             echo "- Cloudflare mode: \`${{ inputs.cloudflare_mode }}\`"
             echo '- Public HTML purge: exact files only, count 7'
+            echo '- GitHub warm probe: PASS or SECURITY_EXPECTED_SKIP only when cf-mitigated: challenge is present'
+            echo '- Trusted local Public HTML HIT evidence: required when Runner probe is challenged'
             echo '- Production smoke: see the step above'
           } >> "$GITHUB_STEP_SUMMARY"

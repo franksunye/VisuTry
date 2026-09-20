@@ -41,12 +41,15 @@ export interface PublicHtmlCacheObservation {
   finalCacheStatus: string
   attempts: number
   cfCacheStatus: string | null
+  outcome: 'PASS' | 'SECURITY_EXPECTED_SKIP'
+  securitySignal?: 'cf-mitigated: challenge'
 }
 
 export interface PublicHtmlWarmOptions {
   maxAttempts?: number
   delayMs?: number
   sleep?: (milliseconds: number) => Promise<void>
+  allowCloudflareChallenge?: boolean
 }
 
 export function validateCurrentMainSha(target: string, currentMain: string): void {
@@ -180,6 +183,15 @@ function sleep(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds))
 }
 
+/**
+ * Cloudflare documents `cf-mitigated: challenge` as the deterministic signal
+ * that a response is a Challenge Page. A status code alone is never enough to
+ * classify a GitHub Runner response as an expected security challenge.
+ */
+export function isCloudflareChallengeResponse(response: Response): boolean {
+  return response.headers.get('cf-mitigated')?.toLowerCase() === 'challenge'
+}
+
 export async function warmAndVerifyPublicHtml(
   urls: readonly string[] = PUBLIC_HTML_OFFLOAD_PURGE_URLS,
   fetchImpl: typeof fetch = fetch,
@@ -188,6 +200,7 @@ export async function warmAndVerifyPublicHtml(
   const maxAttempts = options.maxAttempts ?? 3
   const delayMs = options.delayMs ?? 1000
   const wait = options.sleep ?? sleep
+  const allowCloudflareChallenge = options.allowCloudflareChallenge ?? false
   if (maxAttempts < 1) throw new Error('warm retry policy requires at least one attempt')
 
   const observations: PublicHtmlCacheObservation[] = []
@@ -204,6 +217,26 @@ export async function warmAndVerifyPublicHtml(
         },
         redirect: 'manual',
       })
+      if (isCloudflareChallengeResponse(response)) {
+        if (!allowCloudflareChallenge) {
+          throw new Error(`${url}: Cloudflare Challenge Page detected (cf-mitigated: challenge)`)
+        }
+        const observation: PublicHtmlCacheObservation = {
+          url,
+          status: response.status,
+          contentType: response.headers.get('content-type') ?? '',
+          firstCacheStatus: 'CHALLENGE',
+          finalCacheStatus: 'CHALLENGE',
+          attempts: attempt,
+          cfCacheStatus: response.headers.get('cf-cache-status'),
+          outcome: 'SECURITY_EXPECTED_SKIP',
+          securitySignal: 'cf-mitigated: challenge',
+        }
+        last = observation
+        observations.push(observation)
+        break
+      }
+
       const body = await response.text()
       const documentErrors = validatePublicHtmlDocument(path, response, body)
       if (documentErrors.length > 0) throw new Error(`${url}: ${documentErrors.join('; ')}`)
@@ -221,6 +254,7 @@ export async function warmAndVerifyPublicHtml(
         finalCacheStatus: edgeCacheStatus,
         attempts: attempt,
         cfCacheStatus: response.headers.get('cf-cache-status'),
+        outcome: 'PASS',
       }
       if (edgeCacheStatus === 'HIT') {
         observations.push(last)
@@ -228,7 +262,7 @@ export async function warmAndVerifyPublicHtml(
       }
       if (attempt < maxAttempts) await wait(delayMs)
     }
-    if (!last || last.finalCacheStatus !== 'HIT') {
+    if (!last || (last.outcome !== 'SECURITY_EXPECTED_SKIP' && last.finalCacheStatus !== 'HIT')) {
       throw new Error(`${url}: no cache HIT observed within ${maxAttempts} attempts`)
     }
   }
