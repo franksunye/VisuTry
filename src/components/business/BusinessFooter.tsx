@@ -43,7 +43,7 @@ export function BusinessFooter() {
       links: [
         ['Pricing', '/business/pricing'],
         ['Start a Pilot', '/business/pilot'],
-        ['Create Merchant Workspace', '/merchant'],
+        ['Merchant Sign In', '/merchant'],
       ],
     },
     {
@@ -82,7 +82,7 @@ export function BusinessFooter() {
               <ul className="mt-4 space-y-2.5">
                 {column.links.map(([label, href]) => (
                   <li key={href}>
-                    <Link href={businessHref(locale, href)} prefetch={false} onClick={label === 'Create Merchant Workspace' ? trackMerchantEntry : undefined} className="text-sm text-slate-500 transition hover:text-slate-950">
+                    <Link href={businessHref(locale, href)} prefetch={false} onClick={label === 'Merchant Sign In' ? trackMerchantEntry : undefined} className="text-sm text-slate-500 transition hover:text-slate-950">
                       {label}
                     </Link>
                   </li>

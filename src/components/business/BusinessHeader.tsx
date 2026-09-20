@@ -63,7 +63,7 @@ export function BusinessHeader() {
 
           <div className="flex shrink-0 items-center gap-2.5">
             <Link href={`/${locale}/merchant`} prefetch={false} data-merchant-entry="header" onClick={trackMerchantEntry} className="hidden text-sm font-semibold text-slate-600 transition hover:text-slate-950 lg:inline-flex">
-              Create Merchant Workspace
+              Merchant Sign In
             </Link>
             <Link
               href={businessHref(locale, '/business/pilot')}
@@ -107,7 +107,7 @@ export function BusinessHeader() {
             })}
             <div className="my-2 border-t border-slate-200" />
             <Link href={`/${locale}/merchant`} prefetch={false} data-merchant-entry="header" onClick={() => { trackMerchantEntry(); setOpen(false) }} className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
-              Create Merchant Workspace
+              Merchant Sign In
             </Link>
             <Link href={businessHref(locale, '/business/pilot')} prefetch={false} onClick={() => setOpen(false)} className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">
               Start a Pilot

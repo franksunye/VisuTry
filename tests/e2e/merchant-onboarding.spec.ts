@@ -34,7 +34,7 @@ test.describe('Human Merchant Onboarding G1', () => {
     test.skip(!isLocalMockRun, 'Run with NODE_ENV=test ENABLE_MOCKS=true TEST_MODE=true G1_MERCHANT_ONBOARDING_E2E=true against the local test server.')
 
     await page.goto('/en/business', { waitUntil: 'domcontentloaded' })
-    await page.getByRole('link', { name: 'Create Merchant Workspace' }).first().click()
+    await page.getByRole('link', { name: 'Merchant Sign In' }).first().click()
     await expect(page).toHaveURL(/\/en\/auth\/signin/)
     const callbackUrl = new URL(page.url()).searchParams.get('callbackUrl')
     expect(callbackUrl).toBe('/en/merchant')

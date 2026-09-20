@@ -7,12 +7,12 @@ test.describe('@critical Business market-facing narrative', () => {
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
     await expect(page).toHaveTitle(/AI Commerce for Eyewear Brands & Agencies \| VisuTry/);
-    await expect(page.getByRole('heading', { name: /Turn your eyewear catalog into a personalized AI shopping experience/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Be discovered\. Help shoppers decide\. Measure what drives intent\./i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Store for continuity\. Campaigns for focus/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /One workspace to operate Store, Campaigns, and the signals around them/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /See what shoppers actually do before the product click/i })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Start a Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot');
-    await expect(page.getByRole('link', { name: 'Create Merchant Workspace' }).first()).toHaveAttribute('href', '/en/merchant');
+    await expect(page.getByRole('link', { name: 'Merchant Sign In' }).first()).toHaveAttribute('href', '/en/merchant');
     await expect(page.getByRole('link', { name: 'Explore Store' }).first()).toHaveAttribute('href', '/en/business/store');
     await expect(page.locator('a[href="/admin/store"]')).toHaveCount(0);
     await expect(page.getByAltText(/VisuTry Commerce Intelligence visual with shopper engagement and intent signals/i)).toBeVisible();
@@ -21,7 +21,7 @@ test.describe('@critical Business market-facing narrative', () => {
 
   test('public Merchant CTA preserves the anonymous authentication continuation', async ({ page }) => {
     await page.goto('/en/business', { waitUntil: 'domcontentloaded' });
-    await page.getByRole('link', { name: 'Create Merchant Workspace' }).first().click();
+    await page.getByRole('link', { name: 'Merchant Sign In' }).first().click();
     await expect(page).toHaveURL(/\/en\/auth\/signin/);
     expect(new URL(page.url()).searchParams.get('callbackUrl')).toBe('/en/merchant');
     await expect(page.getByRole('button', { name: /create merchant account/i })).toBeVisible();
@@ -36,7 +36,7 @@ test.describe('@critical Business market-facing narrative', () => {
       expect(response!.status()).toBeLessThan(400);
       await expect(page).toHaveURL('/en/business');
       await expect(page).toHaveTitle(/AI Commerce for Eyewear Brands & Agencies \| VisuTry/);
-      await expect(page.getByRole('heading', { name: /Turn your eyewear catalog into a personalized AI shopping experience/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Be discovered\. Help shoppers decide\. Measure what drives intent\./i })).toBeVisible();
       await expect(page.getByRole('link', { name: 'Start a Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot');
       await expect(page.locator('a[href="/admin/store"]')).toHaveCount(0);
     });
