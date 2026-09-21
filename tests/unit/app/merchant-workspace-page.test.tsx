@@ -7,10 +7,16 @@ jest.mock('next/navigation', () => ({
   redirect: jest.fn((url: string) => { throw new Error(`REDIRECT:${url}`) }),
 }))
 jest.mock('@/lib/auth-runtime', () => ({ authOptions: {} }))
-jest.mock('@/modules/merchant/cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-memberships', () => ({
   listMerchantsForUser: jest.fn(),
+}))
+jest.mock('@/modules/merchant/application/merchant-agent-credentials', () => ({
   listMerchantAgentCredentials: jest.fn(),
+}))
+jest.mock('@/modules/merchant/application/merchant-control-center', () => ({
   getMerchantControlCenter: jest.fn(),
+}))
+jest.mock('@/modules/merchant/application/merchant-access', () => ({
   requireMerchantMembership: jest.fn(),
 }))
 jest.mock('@/components/merchant/MerchantControlCenter', () => ({
@@ -23,12 +29,10 @@ jest.mock('@/components/merchant/MerchantWorkspaceOnboarding', () => ({
 }))
 
 import { getServerSession } from 'next-auth'
-import {
-  listMerchantsForUser,
-  listMerchantAgentCredentials,
-  getMerchantControlCenter,
-  requireMerchantMembership,
-} from '@/modules/merchant/cloudflare'
+import { listMerchantsForUser } from '@/modules/merchant/application/merchant-memberships'
+import { listMerchantAgentCredentials } from '@/modules/merchant/application/merchant-agent-credentials'
+import { getMerchantControlCenter } from '@/modules/merchant/application/merchant-control-center'
+import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import MerchantWorkspacePage from '@/app/[locale]/merchant/page'
 
 const session = getServerSession as jest.Mock

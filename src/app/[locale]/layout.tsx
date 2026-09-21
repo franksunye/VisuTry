@@ -86,6 +86,7 @@ export default async function LocaleLayout(props: Props) {
   const analytics = resolvePublicAnalyticsBootstrap({
     gtmId: process.env.NEXT_PUBLIC_GTM_ID,
     gaId: process.env.NEXT_PUBLIC_GA_ID,
+    appEnv: process.env.APP_ENV,
   })
 
   const direction = localeDirections[locale as Locale]

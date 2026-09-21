@@ -79,4 +79,28 @@ describe('auth boundary', () => {
     }))
     expect(markup).toContain('data-merchant-callback="/en/merchant?commercialIntent=GROWTH"')
   })
+
+  it('shows bounded Local QA identities only in explicit Local mock mode', async () => {
+    const original = { APP_ENV: process.env.APP_ENV, ENABLE_MOCKS: process.env.ENABLE_MOCKS, VERCEL_ENV: process.env.VERCEL_ENV }
+    process.env.APP_ENV = 'local'
+    process.env.ENABLE_MOCKS = 'true'
+    delete process.env.VERCEL_ENV
+    const localMarkup = renderToStaticMarkup(await SignInPage({
+      params: Promise.resolve({ locale: 'en' }),
+      searchParams: Promise.resolve({ callbackUrl: '/en/merchant' }),
+    }))
+    expect(localMarkup).toContain('Local QA')
+    expect(localMarkup).toContain('Clean Merchant')
+
+    process.env.APP_ENV = 'preview'
+    process.env.VERCEL_ENV = 'preview'
+    const previewMarkup = renderToStaticMarkup(await SignInPage({
+      params: Promise.resolve({ locale: 'en' }),
+      searchParams: Promise.resolve({ callbackUrl: '/en/merchant' }),
+    }))
+    expect(previewMarkup).not.toContain('Clean Merchant')
+    if (original.APP_ENV === undefined) delete process.env.APP_ENV; else process.env.APP_ENV = original.APP_ENV
+    if (original.ENABLE_MOCKS === undefined) delete process.env.ENABLE_MOCKS; else process.env.ENABLE_MOCKS = original.ENABLE_MOCKS
+    if (original.VERCEL_ENV === undefined) delete process.env.VERCEL_ENV; else process.env.VERCEL_ENV = original.VERCEL_ENV
+  })
 })

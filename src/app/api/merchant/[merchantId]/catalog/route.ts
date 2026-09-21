@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access-cloudflare'
-import { importMerchantFrames, listMerchantFrames, MAX_CATALOG_IMPORT, type CatalogFrameInput } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
+import { importMerchantFrames, listMerchantFrames, MAX_CATALOG_IMPORT, type CatalogFrameInput } from '@/modules/merchant/application/merchant-onboarding'
 import { catalogErrorResponse, isRecord, parseFrameInputs } from './catalog-http'
 
 export const dynamic = 'force-dynamic'

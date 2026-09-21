@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { MerchantProvisioningError, createMerchantWithOwner } from '@/modules/merchant/cloudflare'
+import { MerchantProvisioningError, createMerchantWithOwner } from '@/modules/merchant/application/merchant-provisioning'
 
 export const dynamic = 'force-dynamic'
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access-cloudflare'
+import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { inspectHumanMerchantCatalogSource } from '@/modules/merchant/application/merchant-catalog-source-intake-runtime'
 import { MAX_SOURCE_PRODUCTS, MAX_SOURCE_URLS } from '@/modules/merchant/application/merchant-catalog-source-shared'
 import { catalogErrorResponse, isRecord, parseFrameInputs } from '../catalog-http'

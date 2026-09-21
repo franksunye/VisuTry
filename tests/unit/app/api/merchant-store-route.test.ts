@@ -1,14 +1,14 @@
 /** @jest-environment node */
 
 jest.mock('@/lib/api-auth-runtime', () => ({ requireAuth: jest.fn() }))
-jest.mock('@/modules/merchant/application/merchant-access-cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-access', () => ({
   requireMerchantMembership: jest.fn(),
   MerchantAccessError: class MerchantAccessError extends Error {
     readonly code = 'MERCHANT_ACCESS_NOT_FOUND'
     readonly httpStatus = 404
   },
 }))
-jest.mock('@/modules/merchant/application/merchant-onboarding-cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-onboarding', () => ({
   createMerchantStore: jest.fn(),
   getMerchantStoreWorkspace: jest.fn(),
   setMerchantStoreFrames: jest.fn(),
@@ -23,14 +23,14 @@ jest.mock('@/modules/merchant/application/merchant-onboarding-cloudflare', () =>
 
 import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access-cloudflare'
+import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import {
   createMerchantStore,
   getMerchantStoreWorkspace,
   publishMerchantStore,
   setMerchantStoreFrames,
   updateMerchantStore,
-} from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+} from '@/modules/merchant/application/merchant-onboarding'
 import { GET, PATCH, POST, PUT } from '@/app/api/merchant/[merchantId]/store/route'
 import { POST as preview } from '@/app/api/merchant/[merchantId]/store/preview/route'
 import { POST as publish } from '@/app/api/merchant/[merchantId]/store/publish/route'

@@ -6,6 +6,7 @@ import { generateI18nSEO } from '@/lib/seo'
 import { Locale } from '@/i18n'
 import { localizedPath } from '@/lib/localized-path'
 import { getSafeMerchantAuthCallbackUrl, getSafeShopperAuthCallbackUrl } from '@/lib/commerce-handoff/merchant-continuation'
+import { LocalQaActions } from '@/components/auth/LocalQaActions'
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -39,6 +40,7 @@ export default async function SignInPage(props: Props) {
   const callbackUrl = shopperCallback || merchantCallback || localizedPath(params.locale, '/')
   const isShopperContinuation = authMode === 'shopper'
   const isMerchantAcquisition = authMode === 'merchant'
+  const showLocalQa = process.env.APP_ENV === 'local' && process.env.ENABLE_MOCKS === 'true' && !process.env.VERCEL_ENV
 
   return (
     <main data-auth-surface={isShopperContinuation ? 'shopper' : isMerchantAcquisition ? 'merchant-admin' : 'consumer'} className="min-h-screen bg-[#f7f8fb] px-4 py-10 text-slate-950 sm:px-6 sm:py-16 lg:px-8">
@@ -57,6 +59,7 @@ export default async function SignInPage(props: Props) {
           <h2 className="mt-5 text-2xl font-semibold tracking-tight text-slate-950">{isShopperContinuation ? 'Continue to your Store' : isMerchantAcquisition ? 'Start your merchant setup' : 'Sign in to continue'}</h2>
           <p className="mt-3 text-sm leading-6 text-slate-600">{isShopperContinuation ? 'Your sign-in will return you to the Store or Campaign that started this journey.' : isMerchantAcquisition ? 'Use a work email for your brand. New accounts go straight to Merchant setup; existing VisuTry accounts can sign in and choose a workspace.' : 'Use your VisuTry account to continue to the shopper experience.'}</p>
           <div className="mt-8">{isMerchantAcquisition ? <MerchantAuthActions callbackUrl={callbackUrl} /> : <ShopperAuthActions callbackUrl={callbackUrl} />}</div>
+          {showLocalQa ? <LocalQaActions callbackUrl={callbackUrl} /> : null}
           <div className="mt-8 rounded-2xl border border-blue-100 bg-blue-50/60 p-4"><div className="flex items-start gap-3"><KeyRound className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" aria-hidden="true" /><p className="text-sm leading-6 text-slate-700"><span className="font-semibold text-slate-900">What happens next?</span><br />{isShopperContinuation ? 'After sign-in, your Store or Campaign context remains available for the next step.' : isMerchantAcquisition ? 'Create your key; VisuTry copies the Key + Skill setup, ready to paste into your agent chat.' : 'After sign-in, VisuTry returns you to the safe Consumer destination.'}</p></div></div>
           <p className="mt-8 text-center text-xs leading-5 text-slate-500">By continuing, you agree to our <a href={localizedPath(params.locale, '/terms')} className="text-blue-700 hover:underline">Terms</a> and <a href={localizedPath(params.locale, '/privacy')} className="text-blue-700 hover:underline">Privacy Policy</a>.</p>
         </section>

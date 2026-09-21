@@ -1,7 +1,7 @@
 /** @jest-environment node */
 
 jest.mock('@/lib/api-auth-runtime', () => ({ requireAuth: jest.fn() }))
-jest.mock('@/modules/merchant/cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-provisioning', () => ({
   createMerchantWithOwner: jest.fn(),
   MerchantProvisioningError: class MerchantProvisioningError extends Error {
     code: string
@@ -14,7 +14,7 @@ jest.mock('@/modules/merchant/cloudflare', () => ({
 
 import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { MerchantProvisioningError, createMerchantWithOwner } from '@/modules/merchant/cloudflare'
+import { MerchantProvisioningError, createMerchantWithOwner } from '@/modules/merchant/application/merchant-provisioning'
 import { POST } from '@/app/api/merchant/workspaces/route'
 
 const auth = requireAuth as jest.Mock

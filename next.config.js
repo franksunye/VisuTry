@@ -8,6 +8,13 @@ const withNextIntl = require('next-intl/plugin')(
   './src/i18n/request.ts'
 )
 
+const localImagePatterns = process.env.APP_ENV === 'local'
+  ? [
+      { protocol: 'http', hostname: '127.0.0.1', port: '3001' },
+      { protocol: 'http', hostname: 'localhost', port: '3001' },
+    ]
+  : []
+
 // Locale-less public URLs are redirected at the routing layer (before
 // middleware) so crawler/user hits do not invoke Edge middleware.
 const localeLessMarketingRedirects = [
@@ -47,6 +54,7 @@ const localeLessMarketingRedirects = [
 const nextConfig = {
   images: {
     remotePatterns: [
+      ...localImagePatterns,
       {
         protocol: 'https',
         hostname: '**.public.blob.vercel-storage.com',

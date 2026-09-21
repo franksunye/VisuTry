@@ -28,4 +28,25 @@ describe('resolvePublicAnalyticsBootstrap', () => {
       gaId: 'not-an-id',
     })).toEqual({ mode: 'none' })
   })
+
+  it('disables GA bootstrap in Local even when a valid measurement ID is present', () => {
+    expect(resolvePublicAnalyticsBootstrap({
+      appEnv: 'local',
+      gaId: 'G-LOCALSHOULDNOTSEND',
+    })).toEqual({ mode: 'none' })
+  })
+
+  it('disables GTM bootstrap in Local even when a valid container ID is present', () => {
+    expect(resolvePublicAnalyticsBootstrap({
+      appEnv: 'local',
+      gtmId: 'GTM-LOCALSHOULDNOTSEND',
+    })).toEqual({ mode: 'none' })
+  })
+
+  it('preserves remote bootstrap behavior for Production and Preview', () => {
+    expect(resolvePublicAnalyticsBootstrap({ appEnv: 'production', gaId: 'G-PRODUCTION' })).toEqual({ mode: 'gtag', gaId: 'G-PRODUCTION' })
+    expect(resolvePublicAnalyticsBootstrap({ appEnv: 'production', gtmId: 'GTM-PRODUCTION' })).toEqual({ mode: 'gtm', gtmId: 'GTM-PRODUCTION' })
+    expect(resolvePublicAnalyticsBootstrap({ appEnv: 'preview', gaId: 'G-PREVIEW' })).toEqual({ mode: 'gtag', gaId: 'G-PREVIEW' })
+    expect(resolvePublicAnalyticsBootstrap({ appEnv: 'preview', gtmId: 'GTM-PREVIEW' })).toEqual({ mode: 'gtm', gtmId: 'GTM-PREVIEW' })
+  })
 })

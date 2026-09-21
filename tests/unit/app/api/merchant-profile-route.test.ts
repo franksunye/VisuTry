@@ -1,9 +1,13 @@
 /** @jest-environment node */
 
 jest.mock('@/lib/api-auth-runtime', () => ({ requireAuth: jest.fn() }))
-jest.mock('@/modules/merchant/cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-access', () => ({
   requireMerchantMembership: jest.fn(),
+}))
+jest.mock('@/modules/merchant/application/get-merchant-profile', () => ({
   getMerchantProfile: jest.fn(),
+}))
+jest.mock('@/modules/merchant/application/update-merchant-profile', () => ({
   updateMerchantProfile: jest.fn(),
   MerchantProfileError: class MerchantProfileError extends Error {
     code: string
@@ -13,13 +17,13 @@ jest.mock('@/modules/merchant/cloudflare', () => ({
     }
   },
 }))
-jest.mock('@/modules/merchant/application/merchant-agent-http-cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-agent-http', () => ({
   merchantAgentErrorResponse: jest.fn(() => new Response('error', { status: 500 })),
 }))
 
 import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { updateMerchantProfile } from '@/modules/merchant/cloudflare'
+import { updateMerchantProfile } from '@/modules/merchant/application/update-merchant-profile'
 import { PATCH } from '@/app/api/merchant/[merchantId]/profile/route'
 
 const auth = requireAuth as jest.Mock

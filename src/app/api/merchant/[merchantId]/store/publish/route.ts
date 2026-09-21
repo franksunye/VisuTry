@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access-cloudflare'
-import { publishMerchantStore } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
+import { publishMerchantStore } from '@/modules/merchant/application/merchant-onboarding'
 import { storeErrorResponse } from '../store-http'
 
 export const dynamic = 'force-dynamic'

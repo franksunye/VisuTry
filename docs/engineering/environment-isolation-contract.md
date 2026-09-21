@@ -1,7 +1,7 @@
 # VisuTry Environment Isolation Contract
 
 **Status:** Active source of truth
-**Last reviewed:** 2026-08-29
+**Last reviewed:** 2026-09-21
 **Owner:** Engineering
 **Scope:** Local development, Vercel Preview, Production, database identity, payment mode, and QA data ownership.
 
@@ -25,7 +25,9 @@ environment marker before a bounded mutation.
 
 ### Local
 
-Local database operations are provided by the repository scripts:
+Local database operations are provided by the repository scripts. The
+canonical application configuration is `.env.local`; `.env` is not required
+for the Local Merchant Lab:
 
 ```bash
 npm run db:local:up
@@ -33,14 +35,17 @@ npm run db:local:migrate
 npm run db:local:seed
 npm run db:local:status
 npm run db:local:down
+npm run merchant:local:preflight
+npm run merchant:local:bootstrap
+npm run merchant:local:dev
 ```
 
 `npm run db:local:reset` is destructive only to the repository-local
 `.local/postgres` cluster. The script refuses known Neon endpoints and keeps
 the local data identity separate from Preview and Production.
 
-Do not point Local `DATABASE_URL` at Neon. Set the Local connection and
-identity in `.env` before starting the app, for example:
+Do not point Local `DATABASE_URL` at Neon. Copy `.env.local.example` to
+`.env.local` and use the Local connection and identity, for example:
 
 ```text
 APP_ENV=local
@@ -49,11 +54,27 @@ DATABASE_URL=postgresql://visutry_local@127.0.0.1:5433/visutry_local
 DATABASE_URL_UNPOOLED=postgresql://visutry_local@127.0.0.1:5433/visutry_local
 ```
 
-`npm run dev:local` starts Next.js using the existing `.env`; it does not
-select a remote database for you. The `db:local:*` scripts supply the local
-connection for their own migration, seed, and status operations. Use
-`npx prisma` directly only when the command is deliberately scoped to the
-local connection.
+`npm run merchant:local:dev` starts the fixed Local Merchant Lab at
+`http://127.0.0.1:3001`; it sets `APP_ENV=local`, enables the guarded mock
+provider, and never falls back to a remote database. The `db:local:*` scripts
+supply the local connection for their own migration, seed, and status
+operations. Use `npx prisma` directly only when the command is deliberately
+scoped to the local connection.
+
+Local QA identities are deterministic and disposable:
+
+| Identity | Purpose |
+| --- | --- |
+| `Clean Merchant` | `LOCAL-MERCHANT-CLEAN`, no Merchant workspace |
+| `Existing Merchant` | `LOCAL-MERCHANT-EXISTING`, seeded TEST QA Merchants |
+| `Consumer` | `LOCAL-CONSUMER`, no Merchant membership |
+| `Admin` | `LOCAL-ADMIN`, internal QA access |
+
+The Local sign-in page exposes these controls only when `APP_ENV=local` and
+`ENABLE_MOCKS=true`. Preview and Production reject the mock provider even if a
+mock flag is accidentally present. `npm run merchant:local:reset-clean`
+rebuilds only the repository-local PostgreSQL cluster and verifies the marker
+before and after the destructive reset.
 
 ### Preview
 
