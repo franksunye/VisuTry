@@ -30,6 +30,9 @@ describe('MerchantWorkspaceShell', () => {
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/en/merchant?merchantId=merchant-a')
     expect(screen.getByRole('link', { name: 'Catalog' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByText('More')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Integrations' })).toHaveClass('block', 'whitespace-nowrap')
+    expect(screen.getByRole('link', { name: 'Plan & Usage' })).toHaveClass('block', 'whitespace-nowrap')
+    expect(screen.getByRole('link', { name: 'Settings' })).toHaveClass('block', 'whitespace-nowrap')
     expect(screen.getByRole('combobox', { name: 'Active merchant' })).toHaveValue('merchant-a')
   })
 
