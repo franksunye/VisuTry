@@ -5,6 +5,7 @@ import type { MerchantControlCenter } from "@/modules/merchant/application/merch
 
 type Props = {
   control: MerchantControlCenter;
+  firstValueAchieved?: boolean;
 };
 
 type Step = {
@@ -19,8 +20,9 @@ type Step = {
  * server-provided Catalog and Store facts; it is intentionally not a second
  * checklist data model.
  */
-export function MerchantActivationChecklist({ control }: Props) {
+export function MerchantActivationChecklist({ control, firstValueAchieved = false }: Props) {
   if (control.store?.status === "ACTIVE") return null;
+  if (firstValueAchieved) return null;
 
   const hasAnyCatalog = control.catalog.total > 0;
   const hasReadyCatalog = control.catalog.valid > 0;
@@ -46,13 +48,9 @@ export function MerchantActivationChecklist({ control }: Props) {
       title: "Preview your Store",
       body: hasPreviewableStore
         ? "Review the Store presentation before it is public."
-        : "Choose the product you want shoppers to see.",
-      complete: false,
-    },
-    {
-      number: "3",
-      title: "Publish when ready",
-      body: "You stay in control of when the Store becomes public.",
+        : hasStore
+          ? "Choose the product you want shoppers to see, then preview it privately."
+          : "Create a Store draft, then preview it privately.",
       complete: false,
     },
   ];
@@ -60,9 +58,11 @@ export function MerchantActivationChecklist({ control }: Props) {
   const target = !hasReadyCatalog ? "catalog" : "store";
   const actionLabel = !hasAnyCatalog
     ? "Add your first product"
-    : hasReadyCatalog
-      ? "Preview your Store"
-      : "Open Catalog";
+    : !hasReadyCatalog
+      ? "Open Catalog"
+      : !hasStore
+        ? "Create your Store"
+        : "Preview your Store";
 
   return (
     <section
@@ -73,12 +73,12 @@ export function MerchantActivationChecklist({ control }: Props) {
     >
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">First Store success</p>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">First value</p>
           <h2 id="merchant-activation-heading" className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-            Get your Store ready
+            Reach your first Store preview
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Start with one real product, review the Store, then publish when it looks right.
+            Add one real product, then review it privately in your Store.
           </p>
         </div>
         <a
@@ -89,7 +89,7 @@ export function MerchantActivationChecklist({ control }: Props) {
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </a>
       </div>
-      <ol className="mt-6 grid gap-3 md:grid-cols-3">
+      <ol className="mt-6 grid gap-3 md:grid-cols-2">
         {steps.map((step) => (
           <li key={step.number} className="rounded-2xl border border-slate-200 bg-white/85 p-4">
             <div className="flex items-start gap-3">

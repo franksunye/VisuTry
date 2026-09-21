@@ -181,7 +181,7 @@ async function readResponse<T>(response: Response): Promise<T> {
   return body.data;
 }
 
-export function MerchantStoreSelfService({ merchantId, initialCatalogCount, catalogAvailable = false, onStoreChanged }: { merchantId: string; initialCatalogCount: number; catalogAvailable?: boolean; onStoreChanged?: () => void }) {
+export function MerchantStoreSelfService({ merchantId, initialCatalogCount, catalogAvailable = false, onStoreChanged, onFirstValueAchieved }: { merchantId: string; initialCatalogCount: number; catalogAvailable?: boolean; onStoreChanged?: () => void; onFirstValueAchieved?: () => void }) {
   const hasCatalog = initialCatalogCount > 0 || catalogAvailable;
   const apiBase = `/api/merchant/${encodeURIComponent(merchantId)}/store`;
   const [workspace, setWorkspace] = useState<StoreWorkspace | null>(null);
@@ -245,9 +245,15 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
     setBusy(true); setError(null); setNotice(null);
     try {
       const response = await fetch(apiBase, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: name.trim() || undefined, headline: headline.trim() || undefined, description: description.trim() || undefined }) });
-      const data = await readResponse<{ created: boolean }>(response);
+      const data = await readResponse<{ created: boolean; id: string }>(response);
       if (data.created) analytics.trackCustomEvent(AnalyticsEvent.MerchantStoreCreated, { merchant_id: merchantId, source_journey: "merchant_workspace_store" });
-      setNotice("Your Store draft is ready. Select the products you want to display.");
+      const eligibleFrames = catalog.filter((frame) => frame.storeReadiness.storeEligible);
+      if (data.created && eligibleFrames.length === 1) {
+        await readResponse(await fetch(apiBase, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ storeId: data.id, frameIds: [eligibleFrames[0].id] }) }));
+        setNotice("Your Store draft is ready with your first product selected.");
+      } else {
+        setNotice("Your Store draft is ready. Choose the products you want to display.");
+      }
       await loadWorkspace();
       onStoreChanged?.();
     } catch (requestError) {
@@ -301,6 +307,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
       }).catch(() => {
         // Activation telemetry must never block a private Store preview.
       });
+      onFirstValueAchieved?.();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to preview your Store.");
     } finally { setBusy(false); }
@@ -363,13 +370,16 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
       {!loading && !workspace?.store ? (
         <div className="mt-7 rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
           <h3 className="font-semibold text-slate-900">1. Create a Store draft</h3>
-          <p className="mt-1 text-sm text-slate-600">Store name is optional. You can use the default name and add details later.</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <input aria-label="Store name" value={name} onChange={(event) => setName(event.target.value)} maxLength={120} placeholder="Store name (optional)" className="rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
-            <input aria-label="Store headline" value={headline} onChange={(event) => setHeadline(event.target.value)} maxLength={240} placeholder="Headline (optional)" className="rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
-          </div>
-          <textarea aria-label="Store description" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={5000} placeholder="Description (optional)" rows={3} className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
-          <button type="button" onClick={createStore} disabled={busy} className={`${buttonClass} mt-4 bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Store className="h-4 w-4" aria-hidden="true" />} Create Store</button>
+          <p className="mt-1 text-sm text-slate-600">Start with the default Store details. You can add a headline and description after you see your first product in the private preview.</p>
+          <details className="mt-4 rounded-xl border border-blue-100 bg-white px-3 py-2">
+            <summary className="cursor-pointer text-sm font-semibold text-slate-700">Add Store details (optional)</summary>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <label className="block text-sm font-medium text-slate-700">Store name<input aria-label="Store name" value={name} onChange={(event) => setName(event.target.value)} maxLength={120} placeholder="Optional Store name" className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /></label>
+              <label className="block text-sm font-medium text-slate-700">Store headline<input aria-label="Store headline" value={headline} onChange={(event) => setHeadline(event.target.value)} maxLength={240} placeholder="Optional headline" className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /></label>
+            </div>
+            <label className="mt-3 block text-sm font-medium text-slate-700">Store description<textarea aria-label="Store description" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={5000} placeholder="Optional description" rows={3} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /></label>
+          </details>
+          <button type="button" onClick={createStore} disabled={busy} className={`${buttonClass} mt-4 bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Store className="h-4 w-4" aria-hidden="true" />} Create Store draft</button>
         </div>
       ) : null}
 
@@ -411,7 +421,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
           </div>
 
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h3 className="font-semibold text-slate-900">3. Preview & publish</h3><p className="mt-1 text-sm text-slate-600">Preview is private. Publishing is the explicit step that makes this Store public.</p></div><button type="button" onClick={previewStore} disabled={busy || selectedCount === 0 || hasUnsavedChanges} className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}><Eye className="h-4 w-4" aria-hidden="true" /> Preview Store</button></div>
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h3 className="font-semibold text-slate-900">3. Preview your Store</h3><p className="mt-1 text-sm text-slate-600">Your preview is private. Publishing is the separate step that makes this Store public.</p></div><button type="button" onClick={previewStore} disabled={busy || selectedCount === 0 || hasUnsavedChanges} className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}><Eye className="h-4 w-4" aria-hidden="true" /> Preview your Store</button></div>
             {hasUnsavedChanges ? <p role="status" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-800">Save your changes before previewing.</p> : null}
             {preview ? <MerchantStoreDraftPreview preview={preview} /> : null}
             {preview ? <div className="rounded-2xl border border-white bg-white p-4"><p className={`font-semibold ${preview.readiness.ready ? "text-emerald-700" : "text-amber-700"}`}>{preview.readiness.ready ? "Ready to publish" : "A few products need attention"}</p><p className="mt-1 text-sm text-slate-600">{preview.readiness.ready ? `${preview.frameCount} product${preview.frameCount === 1 ? "" : "s"} will appear in your Store.` : preview.readiness.blockingIssues.map((issue) => `${issue.frameId === "unknown" ? "Some products" : "A product"}: ${issue.issues.map(friendlyIssue).join(", ")}`).join(" · ")}</p>{preview.readiness.ready ? <><label className="mt-5 flex items-start gap-2 text-sm text-slate-700"><input aria-label="I confirm this Store is ready to publish publicly" type="checkbox" checked={publishApproved} onChange={(event) => setPublishApproved(event.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-600" /> <span>I confirm this Store is ready to publish publicly.</span></label><button type="button" onClick={publishStore} disabled={busy || hasUnsavedChanges || !publishApproved} className={`${buttonClass} mt-4 bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />} {workspace.store.status === "ACTIVE" ? "Keep Store live" : "Publish Store"}</button></> : null}</div> : null}

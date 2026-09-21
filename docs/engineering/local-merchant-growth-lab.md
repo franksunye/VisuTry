@@ -25,6 +25,8 @@ npm run merchant:local:reset-clean
 npm run merchant:local:dev
 # in another terminal
 npm run merchant:local:e2e
+# P1-M1 first-value journey (same guarded Local path)
+npm run merchant:local:p1-m1:e2e
 ```
 
 The golden path is:
@@ -37,7 +39,62 @@ Business → Local QA Clean Merchant → name gate → workspace
 It stops before Publish and before payment. All Merchant, Catalog, Store, and
 activation writes use the real local application and local PostgreSQL. The
 deterministic product image is repository-owned at
-`/glasses-presets/large-round-classic.jpg`.
+`/assets/glasses-presets/large-round-classic.jpg`.
+
+## P1-M1 First Value validation
+
+P1-M1 defines First Value as a private Store Preview that visibly contains the
+Merchant's own first product. The local validation path intentionally stops
+before Publish and payment:
+
+```text
+Clean Merchant
+→ Add your first product
+→ product name + image + SKU or product URL
+→ Review product → Approve and import
+→ Create Store draft
+→ when exactly one eligible product exists, it is selected automatically
+→ when multiple products exist, select products → Save products
+→ Preview your Store
+```
+
+The first-use path deliberately stops at the private Preview. Publish, Store
+customization, additional products, and Agent connection remain available as
+follow-up actions after First Value; they are not prerequisites for it. The
+Merchant workspace surfaces the human action first and keeps Agent connection
+as a secondary accelerator.
+
+The workspace has two lifecycle modes. Before `merchant_store_previewed`, the
+visual order is activation-first: Checklist, Catalog, and Store. After that
+durable milestone, the layout returns to operating-first: Overview, status and
+attention surfaces, then Catalog and Store for ongoing management. Sticky
+navigation follows the same rule: activation mode shows Overview, Catalog, and
+Store; operating mode restores Insights, Setup, Status, Catalog, and Store.
+Switching Merchants remounts the keyed client workspace so lifecycle and local
+control state cannot leak between Merchant contexts.
+
+The first-product form keeps the minimum identity fields visible and moves
+shape, brand, and price into optional details. After the first import, the
+success state links directly to Store setup. The Store draft uses its default
+details until the Merchant chooses to add copy, so the next action remains
+clear. Preview is private and must show the imported product; it must not start
+a shopper session or publish the Store.
+
+The canonical activation events remain the source of truth and should be
+observed in this order where the domain state supports them:
+
+```text
+merchant_workspace_created
+→ merchant_first_item_added
+→ merchant_catalog_ready
+→ merchant_store_configured
+→ merchant_store_previewed
+```
+
+Run the same reset/bootstrap loop before measuring a fresh journey. Record
+time-to-first-value from the first workspace view to the successful private
+preview, plus the number of required fields, clicks, and screens. Historical
+activation data is not backfilled by this procedure.
 
 To verify the analytics fail-closed guard with intentionally fake valid GA/GTM
 IDs, run:

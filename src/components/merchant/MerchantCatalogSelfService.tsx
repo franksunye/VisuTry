@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, Edit3, FileUp, Globe2, Loader2, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Edit3, FileUp, Globe2, Loader2, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
 import { recordMerchantActivationClientEvent } from "@/lib/merchant-activation-client";
@@ -76,6 +76,16 @@ type CatalogItem = {
 };
 type ManualRow = { sku: string; name: string; shape: string; imageUrl: string; brand: string; price: string; productUrl: string };
 
+const manualFieldMeta: Array<{ key: keyof ManualRow; label: string; placeholder: string; required?: boolean }> = [
+  { key: "name", label: "Product name", placeholder: "e.g. North Star Round", required: true },
+  { key: "imageUrl", label: "Product image URL", placeholder: "https://your-store.example/frame.jpg", required: true },
+  { key: "sku", label: "Merchant SKU", placeholder: "Optional if you provide a product URL" },
+  { key: "productUrl", label: "Product page URL", placeholder: "Optional if you provide a merchant SKU" },
+  { key: "shape", label: "Frame shape", placeholder: "Optional, e.g. round" },
+  { key: "brand", label: "Brand", placeholder: "Optional" },
+  { key: "price", label: "Price (USD)", placeholder: "Optional" },
+];
+
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
 const emptyManualRow = (): ManualRow => ({ sku: "", name: "", shape: "", imageUrl: "", brand: "", price: "", productUrl: "" });
 function maxLengthForField(key: keyof ManualRow) {
@@ -117,6 +127,13 @@ function readinessClass(readiness: Candidate["readiness"]) {
   return "bg-amber-50 text-amber-800";
 }
 
+function readinessLabel(readiness: Candidate["readiness"]) {
+  if (readiness === "RECOMMENDATION_READY") return "Ready for recommendations";
+  if (readiness === "IMPORT_READY") return "Ready to add";
+  if (readiness === "NEEDS_REVIEW") return "Needs a quick review";
+  return "Cannot add yet";
+}
+
 function identityLabel(candidate: Candidate) {
   if (!candidate.identity) return "No stable identity";
   if (candidate.identity.type === "MERCHANT_SKU") return `Merchant SKU: ${candidate.identity.value}`;
@@ -152,6 +169,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
+  const [firstProductAdded, setFirstProductAdded] = useState(false);
   const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingRow, setEditingRow] = useState<ManualRow | null>(null);
@@ -195,6 +213,12 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
     if (!needle) return catalogItems;
     return catalogItems.filter((item) => [item.sku, item.name, item.brand, item.shape].filter(Boolean).join(" ").toLowerCase().includes(needle));
   }, [catalogItems, query]);
+
+  const manualReady = useMemo(() => manualRows.every((row) => (
+    row.name.trim().length > 0
+    && row.imageUrl.trim().length > 0
+    && (row.sku.trim().length > 0 || row.productUrl.trim().length > 0)
+  )), [manualRows]);
 
   function updateManualRow(index: number, key: keyof ManualRow, value: string) {
     setManualRows((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: value } : row));
@@ -255,6 +279,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
       const addedFirstProduct = !hadCatalogAtMount.current && (body.data.created ?? 0) > 0;
       if (addedFirstProduct) {
         setSuccessNotice("Your first product is in the Catalog.");
+        setFirstProductAdded(true);
       } else {
         setSuccessNotice("Catalog updated successfully.");
       }
@@ -316,7 +341,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
         ))}
       </div>
 
-      {successNotice ? <p role="status" className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{successNotice}</p> : null}
+      {successNotice ? <div role="status" className="mt-4 flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 sm:flex-row sm:items-center sm:justify-between"><span>{successNotice}</span>{firstProductAdded ? <a href="#store" className="inline-flex items-center gap-1 font-semibold text-emerald-900 underline underline-offset-4">Create your Store <ArrowRight className="h-4 w-4" aria-hidden="true" /></a> : null}</div> : null}
 
       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
         {sourceType === "url" ? <>
@@ -330,29 +355,42 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
           <p className="mt-2 text-xs leading-5 text-slate-500">Required: <code>name</code> and a usable <code>imageUrl</code>. Recommended: <code>sku</code>, <code>shape</code>, <code>productUrl</code>, <code>price</code>, <code>brand</code>. A product URL or externalId can identify rows when a merchant SKU is unavailable.</p>
         </> : null}
         {sourceType === "manual" ? <div className="space-y-3">
-          <p className="text-xs leading-5 text-slate-500">Required: product name and a usable image URL, plus a merchant SKU or product URL for stable identity. Shape can be added later if it is not known yet.</p>
+          <p className="text-sm leading-6 text-slate-600">For your first product, add a name, a usable image, and either a merchant SKU or product page URL. Shape and other details can be added later.</p>
           {manualRows.map((row, index) => <div key={index} className="rounded-xl border border-slate-200 bg-white p-3">
-            <div className="mb-2 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Product {index + 1}</span>{manualRows.length > 1 ? <button type="button" aria-label={`Remove product ${index + 1}`} onClick={() => setManualRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index))} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" aria-hidden="true" /></button> : null}</div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {(["sku", "name", "shape", "imageUrl", "brand", "price", "productUrl"] as (keyof ManualRow)[]).map((key) => <input key={key} aria-label={`${key} for product ${index + 1}`} value={row[key]} onChange={(event) => updateManualRow(index, key, event.target.value)} placeholder={key === "imageUrl" ? "Image URL" : key === "productUrl" ? "Product URL" : key === "price" ? "Price (USD)" : key[0].toUpperCase() + key.slice(1)} type={key === "price" ? "number" : key.endsWith("Url") ? "url" : "text"} maxLength={maxLengthForField(key)} step={key === "price" ? "0.01" : undefined} className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />)}
+            <div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Product {index + 1}</span>{manualRows.length > 1 ? <button type="button" aria-label={`Remove product ${index + 1}`} onClick={() => setManualRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index))} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" aria-hidden="true" /></button> : null}</div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {manualFieldMeta.slice(0, 4).map(({ key, label, placeholder, required }) => <label key={key} className="block text-sm font-medium text-slate-700">
+                {label}{required ? " *" : ""}
+                <input aria-label={`${label} for product ${index + 1}`} required={required} value={row[key]} onChange={(event) => updateManualRow(index, key, event.target.value)} placeholder={placeholder} type={key === "price" ? "number" : key.endsWith("Url") ? "url" : "text"} maxLength={maxLengthForField(key)} step={key === "price" ? "0.01" : undefined} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
+              </label>)}
             </div>
+            <details className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <summary className="cursor-pointer text-sm font-semibold text-slate-700">Optional product details</summary>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {manualFieldMeta.slice(4).map(({ key, label, placeholder }) => <label key={key} className="block text-sm font-medium text-slate-700">
+                  {label}
+                  <input aria-label={`${label} for product ${index + 1}`} value={row[key]} onChange={(event) => updateManualRow(index, key, event.target.value)} placeholder={placeholder} type={key === "price" ? "number" : key.endsWith("Url") ? "url" : "text"} maxLength={maxLengthForField(key)} step={key === "price" ? "0.01" : undefined} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
+                </label>)}
+              </div>
+            </details>
           </div>)}
           <button type="button" onClick={() => setManualRows((rows) => [...rows, emptyManualRow()])} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><Plus className="h-4 w-4" aria-hidden="true" />Add another product</button>
+          {!manualReady ? <p className="text-xs leading-5 text-slate-500">Add a product name, image URL, and either a merchant SKU or product page URL to continue.</p> : null}
         </div> : null}
         {error ? <p className="mt-3 text-sm text-red-700" role="alert">{error}</p> : null}
-        <button type="button" onClick={() => void inspect()} disabled={busy} className={`${buttonClass} mt-4 w-full bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}>
+        <button type="button" onClick={() => void inspect()} disabled={busy || (sourceType === "manual" && !manualReady)} className={`${buttonClass} mt-4 w-full bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-4 w-4" aria-hidden="true" />}
-          {busy ? "Inspecting…" : "Inspect and preview"}
+          {busy ? "Checking product…" : sourceType === "manual" ? "Review product" : "Inspect and preview"}
         </button>
       </div>
 
       {proposal ? <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 sm:p-5">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-          <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">Review before import</p><h3 className="mt-1 text-lg font-semibold text-emerald-950">FOUND {proposal.sourceSummary.foundCount} · IMPORT_READY {proposal.sourceSummary.importReady} · RECOMMENDATION_READY {proposal.sourceSummary.recommendationReady} · NEEDS_REVIEW {proposal.sourceSummary.needsReview} · INVALID {proposal.sourceSummary.invalid}</h3><p className="mt-1 text-sm text-emerald-900/80">{proposal.sourceSummary.foundCount} product{proposal.sourceSummary.foundCount === 1 ? "" : "s"} found across {proposal.sourceSummary.fetchedPageCount} inspected page{proposal.sourceSummary.fetchedPageCount === 1 ? "" : "s"}. Import readiness only needs safe identity, name, image, and URL facts; recommendation readiness additionally needs confident frame attributes.</p>{Object.keys(proposal.sourceSummary.reasonDistribution).length > 0 ? <p className="mt-1 text-xs text-emerald-900/75">Review signals: {Object.entries(proposal.sourceSummary.reasonDistribution).map(([reason, count]) => `${friendlyIssue(reason)} (${count})`).join(" · ")}</p> : null}</div>
+          <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">Review before import</p><h3 className="mt-1 text-lg font-semibold text-emerald-950">{proposal.sourceSummary.importReady === 1 ? "1 product is ready to add" : `${proposal.sourceSummary.importReady} products are ready to add`}</h3><p className="mt-1 text-sm text-emerald-900/80">We found {proposal.sourceSummary.foundCount} product{proposal.sourceSummary.foundCount === 1 ? "" : "s"}. Review the details, then add the ready products to your Catalog.</p><details className="mt-2 text-xs text-emerald-900/75"><summary className="cursor-pointer font-semibold">View inspection details</summary><p className="mt-1">FOUND {proposal.sourceSummary.foundCount} · IMPORT_READY {proposal.sourceSummary.importReady} · RECOMMENDATION_READY {proposal.sourceSummary.recommendationReady} · NEEDS_REVIEW {proposal.sourceSummary.needsReview} · INVALID {proposal.sourceSummary.invalid}</p>{Object.keys(proposal.sourceSummary.reasonDistribution).length > 0 ? <p className="mt-1">Review signals: {Object.entries(proposal.sourceSummary.reasonDistribution).map(([reason, count]) => `${friendlyIssue(reason)} (${count})`).join(" · ")}</p> : null}</details></div>
           {proposal.sourceSummary.platforms?.length ? <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-800">Detected: {proposal.sourceSummary.platforms.join(", ")}</span> : null}
         </div>
         {proposal.sourceSummary.sourceIssues.length > 0 ? <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900"><p className="font-semibold">Some source data needs attention</p><ul className="mt-1 list-disc space-y-1 pl-5 text-xs">{proposal.sourceSummary.sourceIssues.slice(0, 5).map((item, index) => <li key={`${item.code}-${index}`}>{item.message}</li>)}</ul><p className="mt-2 text-xs font-semibold">You can still import the valid subset. If this is a JavaScript-heavy store, switch to one of the fallback paths:</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); setProposal(null); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}><FileUp className="h-4 w-4" aria-hidden="true" />Upload CSV</button><button type="button" onClick={() => { setSourceType("manual"); setProposal(null); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}><Plus className="h-4 w-4" aria-hidden="true" />Add manually</button></div></div> : null}
-        <div className="mt-4 grid gap-2">{proposal.candidates.map((candidate, index) => <article key={`${candidate.identity?.value ?? "row"}-${index}`} className="rounded-xl border border-white bg-white p-3"><div className="flex items-start gap-3"><div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">{candidate.imageUrl ? <img src={candidate.imageUrl} alt="" className="h-full w-full object-cover" /> : null}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h4 className="truncate text-sm font-semibold text-slate-950">{candidate.name || "Unnamed product"}</h4><span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${readinessClass(candidate.readiness)}`}>{candidate.readiness.replace(/_/g, " ")}</span>{candidate.dedupeStatus !== "NEW" ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">{candidate.dedupeStatus.replace(/_/g, " ")}</span> : null}</div><p className="mt-1 text-xs text-slate-500">{identityLabel(candidate)}{candidate.brand ? ` · ${candidate.brand}` : ""}{candidate.shape ? ` · ${candidate.shape}` : ""}{priceLabel(candidate.price, candidate.currency) ? ` · ${priceLabel(candidate.price, candidate.currency)}` : ""}</p>{candidate.issues.length > 0 ? <p className="mt-1 text-xs text-amber-800">{candidate.issues.map(friendlyIssue).join(" · ")}</p> : null}{candidate.recommendationIssues.length > 0 ? <p className="mt-1 text-xs text-slate-500">Recommendation enrichment: {candidate.recommendationIssues.map(friendlyIssue).join(" · ")}</p> : null}</div></div></article>)}</div>
+        <div className="mt-4 grid gap-2">{proposal.candidates.map((candidate, index) => <article key={`${candidate.identity?.value ?? "row"}-${index}`} className="rounded-xl border border-white bg-white p-3"><div className="flex items-start gap-3"><div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">{candidate.imageUrl ? <img src={candidate.imageUrl} alt="" className="h-full w-full object-cover" /> : null}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h4 className="truncate text-sm font-semibold text-slate-950">{candidate.name || "Unnamed product"}</h4><span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${readinessClass(candidate.readiness)}`}>{readinessLabel(candidate.readiness)}</span>{candidate.dedupeStatus !== "NEW" ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">Already in catalog</span> : null}</div><p className="mt-1 text-xs text-slate-500">{identityLabel(candidate)}{candidate.brand ? ` · ${candidate.brand}` : ""}{candidate.shape ? ` · ${candidate.shape}` : ""}{priceLabel(candidate.price, candidate.currency) ? ` · ${priceLabel(candidate.price, candidate.currency)}` : ""}</p>{candidate.issues.length > 0 ? <p className="mt-1 text-xs text-amber-800">{candidate.issues.map(friendlyIssue).join(" · ")}</p> : null}{candidate.recommendationIssues.length > 0 ? <p className="mt-1 text-xs text-slate-500">Recommendation enrichment: {candidate.recommendationIssues.map(friendlyIssue).join(" · ")}</p> : null}</div></div></article>)}</div>
         <div className="mt-4 flex flex-col justify-between gap-3 border-t border-emerald-200 pt-4 sm:flex-row sm:items-center"><p className="text-xs text-emerald-900/75">Nothing has been written yet. Approval imports only the {proposal.importReady.length} safe, non-duplicate row{proposal.importReady.length === 1 ? "" : "s"}; recommendation enrichment can continue afterward.</p><button type="button" disabled={busy || proposal.importReady.length === 0} onClick={() => void approveImport()} className={`${buttonClass} bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50`}><Check className="h-4 w-4" aria-hidden="true" />Approve and import {proposal.importReady.length}</button></div>
       </div> : null}
 
@@ -360,7 +398,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Catalog review</p><h3 className="mt-1 text-lg font-semibold text-slate-950">Review and correct products</h3></div><div className="flex gap-2"><input aria-label="Search catalog" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search SKU or name" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:w-56" /><button type="button" onClick={() => void loadCatalog(false)} aria-label="Refresh catalog" className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><RefreshCw className="h-4 w-4" aria-hidden="true" /></button></div></div>
         {catalogError ? <p className="mt-3 text-sm text-red-700" role="alert">{catalogError}</p> : null}
         {visibleItems.length === 0 && !catalogLoading ? <p className="mt-4 rounded-xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500">{query ? "No matching products in the loaded catalog." : "No products yet. Start with your store URL, a CSV, or one manual row above."}</p> : null}
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">{visibleItems.map((item) => <article key={item.id} className="rounded-xl border border-slate-200 bg-white p-3"><div className="flex gap-3"><div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">{item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : null}</div><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div><h4 className="truncate text-sm font-semibold text-slate-950">{item.name}</h4><p className="mt-1 text-xs text-slate-500">{item.sku || "No merchant SKU"}{item.brand ? ` · ${item.brand}` : ""}{priceLabel(item.price, item.currency) ? ` · ${priceLabel(item.price, item.currency)}` : ""}</p></div><button type="button" aria-label={`Edit ${item.name}`} onClick={() => { setEditingId(item.id); setEditingRow(emptyInput(item)); }} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-700"><Edit3 className="h-4 w-4" aria-hidden="true" /></button></div><div className="mt-2 flex flex-wrap gap-1.5 text-[11px]"><span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">{item.source}</span><span className={`rounded-full px-2 py-1 ${item.validation.recommendationReady ?? item.validation.valid ? "bg-emerald-50 text-emerald-700" : item.validation.importReady ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-800"}`}>{item.validation.recommendationReady ?? item.validation.valid ? "Recommendation ready" : item.validation.importReady ? "Import ready" : "Needs attention"}</span></div></div></div>{editingId === item.id && editingRow ? <div className="mt-3 space-y-2 border-t border-slate-100 pt-3"><div className="grid gap-2 sm:grid-cols-2">{(["sku", "name", "shape", "imageUrl", "brand", "price", "productUrl"] as (keyof ManualRow)[]).map((key) => <input key={key} aria-label={`Edit ${key}`} value={editingRow[key]} onChange={(event) => setEditingRow((row) => row ? { ...row, [key]: event.target.value } : row)} placeholder={key === "price" ? "Price (USD)" : key} type={key === "price" ? "number" : key.endsWith("Url") ? "url" : "text"} maxLength={maxLengthForField(key)} className="rounded-lg border border-slate-300 px-3 py-2 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />)}</div><div className="flex justify-end gap-2"><button type="button" onClick={() => { setEditingId(null); setEditingRow(null); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-600`}>Cancel</button><button type="button" disabled={busy} onClick={() => void saveCorrection(item)} className={`${buttonClass} bg-slate-950 text-white disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" />Save correction</button></div></div> : null}</article>)}</div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">{visibleItems.map((item) => <article key={item.id} className="rounded-xl border border-slate-200 bg-white p-3"><div className="flex gap-3"><div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">{item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : null}</div><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div><h4 className="truncate text-sm font-semibold text-slate-950">{item.name}</h4><p className="mt-1 text-xs text-slate-500">{item.sku || "No merchant SKU"}{item.brand ? ` · ${item.brand}` : ""}{priceLabel(item.price, item.currency) ? ` · ${priceLabel(item.price, item.currency)}` : ""}</p></div><button type="button" aria-label={`Edit ${item.name}`} onClick={() => { setEditingId(item.id); setEditingRow(emptyInput(item)); }} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-700"><Edit3 className="h-4 w-4" aria-hidden="true" /></button></div><div className="mt-2 flex flex-wrap gap-1.5 text-[11px]"><span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">{item.source}</span><span className={`rounded-full px-2 py-1 ${item.validation.recommendationReady ?? item.validation.valid ? "bg-emerald-50 text-emerald-700" : item.validation.importReady ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-800"}`}>{item.validation.recommendationReady ?? item.validation.valid ? "Recommendation ready" : item.validation.importReady ? "Import ready" : "Needs attention"}</span></div></div></div>{editingId === item.id && editingRow ? <div className="mt-3 space-y-2 border-t border-slate-100 pt-3"><div className="grid gap-2 sm:grid-cols-2">{manualFieldMeta.map(({ key, label, placeholder }) => <label key={key} className="block text-xs font-medium text-slate-700">{label}<input aria-label={`Edit ${label}`} value={editingRow[key]} onChange={(event) => setEditingRow((row) => row ? { ...row, [key]: event.target.value } : row)} placeholder={placeholder} type={key === "price" ? "number" : key.endsWith("Url") ? "url" : "text"} maxLength={maxLengthForField(key)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /></label>)}</div><div className="flex justify-end gap-2"><button type="button" onClick={() => { setEditingId(null); setEditingRow(null); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-600`}>Cancel</button><button type="button" disabled={busy} onClick={() => void saveCorrection(item)} className={`${buttonClass} bg-slate-950 text-white disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" />Save correction</button></div></div> : null}</article>)}</div>
         {catalogCursor ? <button type="button" disabled={catalogLoading} onClick={() => void loadCatalog(true)} className={`${buttonClass} mt-4 w-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50`}>{catalogLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />}Load more products</button> : null}
       </div>
     </section>

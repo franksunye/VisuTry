@@ -27,6 +27,7 @@ describe('MerchantControlCenter', () => {
   it('renders the three-step connection surface and mobile-safe stacked sections', () => {
     render(<MerchantControlCenter {...baseProps} />)
     expect(screen.getByText('https://www.visutry.com/api/mcp')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add your first product' })).toBeInTheDocument()
     expect(screen.getByText('Connect your Agent')).toBeInTheDocument()
     expect(screen.getByText('Copy the Agent prompt')).toBeInTheDocument()
     expect(screen.getByText('Talk to your Agent')).toBeInTheDocument()
@@ -40,6 +41,44 @@ describe('MerchantControlCenter', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Merchant workspace created successfully')
     expect(screen.getByRole('link', { name: /next: add your eyewear catalog/i })).toHaveAttribute('href', '#catalog')
     expect(analytics.trackCustomEvent).toHaveBeenCalledWith('merchant_workspace_entered', expect.objectContaining({ merchant_id: 'merchant-a', entry_point: 'b2b' }))
+  })
+
+  it('switches lifecycle mode and resets merchant-local state with the selected Merchant', async () => {
+    const merchants = [
+      ...baseProps.merchants,
+      { id: 'merchant-b', slug: 'bravo', name: 'Bravo', role: 'OWNER' },
+    ]
+    const { rerender } = render(
+      <MerchantControlCenter
+        {...baseProps}
+        merchants={merchants}
+        control={{ ...baseProps.control, activation: { storePreviewedAt: '2026-09-21T00:00:00.000Z' } }}
+      />,
+    )
+
+    expect(screen.getByRole('link', { name: 'Insights' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Reach your first Store preview' })).not.toBeInTheDocument()
+    expect(document.querySelector('#overview')?.parentElement).toHaveClass('order-1')
+    expect(document.querySelector('#catalog')?.parentElement).toHaveClass('order-7')
+
+    rerender(
+      <MerchantControlCenter
+        {...baseProps}
+        selectedMerchantId="merchant-b"
+        merchants={merchants}
+        control={{
+          ...baseProps.control,
+          merchant: { ...baseProps.control.merchant, id: 'merchant-b', slug: 'bravo', name: 'Bravo' },
+          activation: { storePreviewedAt: null },
+        }}
+      />,
+    )
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInTheDocument())
+    expect(screen.queryByRole('link', { name: 'Insights' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add your first product' })).toBeInTheDocument()
+    expect(document.querySelector('#overview')?.parentElement).toHaveClass('order-4')
+    expect(document.querySelector('#catalog')?.parentElement).toHaveClass('order-2')
   })
 
   it('renders merchant-readable Commerce Intelligence when controlled activity exists', () => {
