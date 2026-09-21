@@ -1,67 +1,90 @@
 import Link from 'next/link'
-import { ArrowRight, KeyRound } from 'lucide-react'
-import type { MerchantControlCenter } from '@/modules/merchant/application/merchant-control-center'
+import { ArrowRight } from 'lucide-react'
 import { merchantWorkspaceHref } from '@/modules/merchant/application/merchant-workspace-routes'
+import { resolveMerchantHomePresentation, type MerchantOperatingHomeReadModel } from '@/modules/merchant/domain/merchant-operating-home'
 
-function statusLabel(status: string) {
-  return status.charAt(0) + status.slice(1).toLowerCase()
+function number(value: number) {
+  return new Intl.NumberFormat('en-US').format(value)
 }
 
 export function MerchantOperatingHome({
   locale,
   merchantId,
-  control,
+  home,
 }: {
   locale: string
   merchantId: string
-  control: MerchantControlCenter
+  home: MerchantOperatingHomeReadModel
 }) {
-  const nextSection = !control.catalog.total ? 'catalog' : 'store'
-  const nextLabel = !control.catalog.total ? 'Open Catalog' : control.store?.status === 'DRAFT' ? 'Open Store' : 'Review Store'
-  const href = (section: 'catalog' | 'store' | 'integrations') => merchantWorkspaceHref({ locale, section, merchantId })
-  const campaignCount = control.experiences.filter((experience) => experience.type === 'CAMPAIGN').length
-  const activeCampaignCount = control.activeCampaignCount
-  const draftCampaignCount = control.experiences.filter((experience) => experience.type === 'CAMPAIGN' && experience.status === 'DRAFT').length
-  const archivedCampaignCount = control.experiences.filter((experience) => experience.type === 'CAMPAIGN' && experience.status === 'ARCHIVED').length
-  const campaignBody = campaignCount === 0
-    ? 'No campaigns yet'
-    : `${activeCampaignCount} active${draftCampaignCount ? ` · ${draftCampaignCount} draft` : ''}${archivedCampaignCount ? ` · ${archivedCampaignCount} archived` : ''}`
-  const summary = [
-    ['Store', control.store ? statusLabel(control.store.status) : 'Not created'],
-    ['Catalog', String(control.catalog.total)],
-    ['Campaigns', String(campaignCount)],
-    ['Shopper activity', control.shopperActivityAvailable ? 'Available' : 'No activity yet'],
-  ]
-  const cards = [
-    { title: 'Store', value: control.store ? statusLabel(control.store.status) : 'Not created', body: control.store ? `${control.store.frameCount} selected product${control.store.frameCount === 1 ? '' : 's'}` : 'Create a draft Store when your catalog is ready.', href: href('store'), label: 'Open Store' },
-    { title: 'Catalog', value: `${control.catalog.total} product${control.catalog.total === 1 ? '' : 's'}`, body: `${control.catalog.valid} ready for Store use`, href: href('catalog'), label: 'Manage Catalog' },
-    { title: 'Campaigns', value: String(campaignCount), body: campaignBody, href: merchantWorkspaceHref({ locale, section: 'campaigns', merchantId }), label: 'View Campaigns' },
-    { title: 'Shopper activity', value: control.shopperActivityAvailable ? 'Available' : 'No data yet', body: control.shopperActivityAvailable ? 'Review performance in Analytics.' : 'Activity appears after shoppers interact.', href: merchantWorkspaceHref({ locale, section: 'analytics', merchantId }), label: 'Open Analytics' },
-  ]
+  const presentation = resolveMerchantHomePresentation(home)
+  const href = (section: Parameters<typeof merchantWorkspaceHref>[0]['section']) => merchantWorkspaceHref({ locale, section, merchantId })
+
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Merchant workspace</p>
             <h1 className="mt-1.5 text-2xl font-semibold tracking-[-0.035em] text-slate-950 sm:text-3xl">Workspace overview</h1>
-            <p className="mt-1.5 text-sm text-slate-600">A concise view of your Store, catalog, campaigns, and shopper activity.</p>
+            <p className="mt-1.5 text-sm text-slate-600">A focused view of what needs attention and how your Store is performing.</p>
           </div>
-          <Link href={merchantWorkspaceHref({ locale, section: nextSection, merchantId })} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />{nextLabel}
+          <Link href={href(presentation.recommendedAction.section)} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">
+            {presentation.recommendedAction.label}<ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
-          {summary.map(([label, value]) => <span key={label} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">{label} · {value}</span>)}
+        <p className="mt-3 text-xs text-slate-500">{presentation.recommendedAction.reason}</p>
+      </section>
+
+      {presentation.attention.length > 0 && (
+        <section aria-labelledby="merchant-home-attention" className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="merchant-home-attention" className="text-sm font-semibold text-amber-950">Attention</h2>
+            <span className="text-xs font-medium text-amber-800">{presentation.attention.length} item{presentation.attention.length === 1 ? '' : 's'}</span>
+          </div>
+          <div className="mt-3 divide-y divide-amber-200/80">
+            {presentation.attention.map((item) => (
+              <div key={item.title} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-950">{item.title}</p>
+                  <p className="mt-0.5 text-sm text-slate-700">{item.body}</p>
+                </div>
+                <Link href={href(item.section)} className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-amber-950 hover:text-amber-700">{item.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section aria-labelledby="merchant-home-outcomes" className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 id="merchant-home-outcomes" className="text-sm font-semibold text-slate-950">Shopper outcomes</h2>
+            <p className="mt-0.5 text-xs text-slate-500">{presentation.outcome.periodLabel}</p>
+          </div>
+          {presentation.outcome.kind === 'ACTIVITY' && <Link href={href('analytics')} className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:text-blue-900">View Analytics<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>}
         </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Link href={href('catalog')} className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 hover:border-blue-300">Manage Catalog</Link>
-          <Link href={href('integrations')} className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-blue-800 hover:border-blue-400"><KeyRound className="h-4 w-4" aria-hidden="true" />{control.credentialUsage.active ? 'Open Integrations' : 'Connect your Agent'}</Link>
+        {presentation.outcome.kind === 'ACTIVITY' ? (
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {presentation.outcome.metrics.map((metric) => <div key={metric.label} className="rounded-lg bg-slate-50 px-3 py-3"><p className="text-xl font-semibold tracking-tight text-slate-950">{number(metric.value)}</p><p className="mt-1 text-xs text-slate-500">{metric.label}</p></div>)}
+          </div>
+        ) : (
+          <div className="mt-3 rounded-lg bg-slate-50 px-4 py-3"><p className="text-sm font-semibold text-slate-900">No shopper activity yet</p><p className="mt-1 text-sm text-slate-600">Shopper signals will appear after people interact with your Store or Campaigns.</p></div>
+        )}
+      </section>
+
+      <section aria-labelledby="merchant-home-current-work">
+        <div className="flex items-center justify-between gap-3"><h2 id="merchant-home-current-work" className="text-sm font-semibold text-slate-950">Current work</h2><span className="text-xs text-slate-500">Store, Catalog, Campaigns</span></div>
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          {[presentation.currentWork.store, presentation.currentWork.catalog, presentation.currentWork.campaigns].map((item) => (
+            <article key={item.section} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{item.section === 'store' ? 'Store' : item.section === 'catalog' ? 'Catalog' : 'Campaigns'}</p>
+              <p className="mt-2 text-lg font-semibold text-slate-950">{item.status}</p>
+              <p className="mt-1 min-h-5 text-sm text-slate-600">{item.detail}</p>
+              <Link href={href(item.section)} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:text-blue-900">{item.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>
+            </article>
+          ))}
         </div>
       </section>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) => <article key={card.title} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-sm font-medium text-slate-500">{card.title}</p><p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{card.value}</p><p className="mt-2 min-h-10 text-xs leading-5 text-slate-500">{card.body}</p><Link href={card.href} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:text-blue-900">{card.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link></article>)}
-      </div>
     </div>
   )
 }

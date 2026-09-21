@@ -7,6 +7,8 @@ import { requireMerchantMembership } from '@/modules/merchant/application/mercha
 import { listMerchantsForUser } from '@/modules/merchant/application/merchant-memberships'
 import { listMerchantAgentCredentials } from '@/modules/merchant/application/merchant-agent-credentials'
 import { getMerchantControlCenter } from '@/modules/merchant/application/merchant-control-center'
+import { getMerchantOperatingActivation } from '@/modules/merchant/application/merchant-operating-reads'
+import { getMerchantOperatingHome } from '@/modules/merchant/application/merchant-operating-home'
 import { MerchantControlCenter } from '@/components/merchant/MerchantControlCenter'
 import { MerchantWorkspaceOnboarding } from '@/components/merchant/MerchantWorkspaceOnboarding'
 import { MerchantOperatingHome } from '@/components/merchant/MerchantOperatingHome'
@@ -55,16 +57,19 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
     redirect(`/${params.locale}/merchant/purchase?merchantId=${encodeURIComponent(selected.merchant.id)}&commercialIntent=${purchaseIntent}`)
   }
   await requireMerchantMembership({ userId: session.user.id, merchantId: selected.merchant.id, roles: ['OWNER', 'ADMIN'] })
-  const control = await getMerchantControlCenter({ merchantId: selected.merchant.id })
-  if (!control) notFound()
   const navigationMerchants = merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role }))
-  if (control.activation?.storePreviewedAt) {
+  const activation = await getMerchantOperatingActivation({ merchantId: selected.merchant.id })
+  if (activation.storePreviewedAt) {
+    const home = await getMerchantOperatingHome({ merchantId: selected.merchant.id })
+    if (!home) notFound()
     return (
       <MerchantWorkspaceShell locale={params.locale} merchants={navigationMerchants} selectedMerchantId={selected.merchant.id}>
-        <MerchantOperatingHome locale={params.locale} merchantId={selected.merchant.id} control={control} />
+        <MerchantOperatingHome locale={params.locale} merchantId={selected.merchant.id} home={home} />
       </MerchantWorkspaceShell>
     )
   }
+  const control = await getMerchantControlCenter({ merchantId: selected.merchant.id })
+  if (!control) notFound()
   const credentials = await listMerchantAgentCredentials({ userId: session.user.id, merchantId: selected.merchant.id })
   const origin = requestOrigin()
   const skills = [

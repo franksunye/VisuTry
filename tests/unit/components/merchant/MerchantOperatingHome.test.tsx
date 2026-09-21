@@ -1,40 +1,58 @@
 import { render, screen } from '@testing-library/react'
 import { MerchantOperatingHome } from '@/components/merchant/MerchantOperatingHome'
+import type { MerchantOperatingHomeReadModel } from '@/modules/merchant/domain/merchant-operating-home'
+
+function home(overrides: Partial<MerchantOperatingHomeReadModel> = {}): MerchantOperatingHomeReadModel {
+  return {
+    merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha' },
+    store: { exists: true, status: 'DRAFT', selectedProductCount: 1, eligibleProductCount: 1, readiness: 'READY' },
+    catalog: { total: 1, ready: 1, issueCount: 0 },
+    campaigns: { total: 0, active: 0, draft: 0, archived: 0, needsAttention: 0 },
+    shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 0 }] },
+    commercial: { status: 'FREE', planName: 'Free', attention: false },
+    ...overrides,
+  }
+}
 
 describe('MerchantOperatingHome', () => {
-  it('keeps the operating home compact and links to workspace areas', () => {
-    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" control={{
-      merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', websiteUrl: null, status: 'ACTIVE', referenceData: false },
-      activation: { storePreviewedAt: '2026-09-21T00:00:00.000Z' },
-      store: { id: 'store-a', type: 'STORE', name: 'Alpha Store', slug: 'alpha', status: 'DRAFT', frameCount: 1, referenceData: false, publicPath: '/en/store/alpha', headline: null, description: null, primaryCtaLabel: null, startAt: null, endAt: null, selectedFrames: [], readiness: { status: 'VALID', validCount: 1, invalidCount: 0, issues: [] }, lastOperation: null, policy: { objective: null, gate: null, presentation: 'PRODUCT_FIRST' }, updatedAt: '2026-09-21T00:00:00.000Z' },
-      catalog: { total: 1, active: 1, valid: 1, invalid: 0, sourceCounts: [] }, experiences: [], activeCampaignCount: 0, shopperActivityAvailable: false, credentialUsage: { active: 0 },
-    }} />)
+  it('shows one Store recommendation and a truthful empty activity state', () => {
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home()} />)
     expect(screen.getByRole('heading', { name: 'Workspace overview' })).toBeInTheDocument()
-    expect(screen.getByText('Store · Draft')).toBeInTheDocument()
-    expect(screen.getByText('Catalog · 1')).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: 'Open Store' })[0]).toHaveAttribute('href', '/en/merchant/store?merchantId=merchant-a')
-    expect(screen.getAllByRole('link', { name: 'Manage Catalog' })[0]).toHaveAttribute('href', '/en/merchant/catalog?merchantId=merchant-a')
+    expect(screen.getByRole('link', { name: 'Review Store' })).toHaveAttribute('href', '/en/merchant/store?merchantId=merchant-a')
+    expect(screen.getByText('No shopper activity yet')).toBeInTheDocument()
+    expect(screen.queryByText('Connect your Agent')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Attention' })).not.toBeInTheDocument()
   })
 
-  it('shows total Campaigns and distinguishes active, draft, and archived work', () => {
-    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" control={{
-      merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', websiteUrl: null, status: 'ACTIVE', referenceData: false },
-      activation: { storePreviewedAt: '2026-09-21T00:00:00.000Z' }, store: null,
-      catalog: { total: 1, active: 1, valid: 1, invalid: 0, sourceCounts: [] },
-      experiences: [{
-        id: 'campaign-draft', type: 'CAMPAIGN', name: 'Draft campaign', slug: 'draft-campaign', status: 'DRAFT', frameCount: 0,
-        referenceData: false, publicPath: '/en/c/alpha/draft-campaign', headline: null, description: null, primaryCtaLabel: null,
-        startAt: null, endAt: null, selectedFrames: [], readiness: { status: 'INCOMPLETE', validCount: 0, invalidCount: 0, issues: [] },
-        lastOperation: null, policy: { objective: null, gate: null, presentation: 'EDITORIAL_FIRST' }, updatedAt: '2026-09-21T00:00:00.000Z',
-      }, {
-        id: 'campaign-archived', type: 'CAMPAIGN', name: 'Archived campaign', slug: 'archived-campaign', status: 'ARCHIVED', frameCount: 0,
-        referenceData: false, publicPath: '/en/c/alpha/archived-campaign', headline: null, description: null, primaryCtaLabel: null,
-        startAt: null, endAt: null, selectedFrames: [], readiness: { status: 'INCOMPLETE', validCount: 0, invalidCount: 0, issues: [] },
-        lastOperation: null, policy: { objective: null, gate: null, presentation: 'EDITORIAL_FIRST' }, updatedAt: '2026-09-21T00:00:00.000Z',
-      }],
-      activeCampaignCount: 0, shopperActivityAvailable: false, credentialUsage: { active: 0 },
-    }} />)
-    expect(screen.getByText('Campaigns · 2')).toBeInTheDocument()
+  it('surfaces Catalog attention before Store work', () => {
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({ catalog: { total: 2, ready: 1, issueCount: 1 } })} />)
+    expect(screen.getAllByRole('link', { name: 'Review Catalog' })).toHaveLength(2)
+    expect(screen.getByText('Catalog needs review')).toBeInTheDocument()
+  })
+
+  it('shows real shopper outcomes and routes to Analytics', () => {
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({
+      store: { exists: true, status: 'ACTIVE', selectedProductCount: 2, eligibleProductCount: 2, readiness: 'READY' },
+      shopper: { hasActivity: true, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 12 }, { label: 'High-intent shoppers', value: 3 }] },
+    })} />)
+    expect(screen.getByRole('link', { name: 'Review Analytics' })).toHaveAttribute('href', '/en/merchant/analytics?merchantId=merchant-a')
+    expect(screen.getByText('12')).toBeInTheDocument()
+    expect(screen.queryByText('No shopper activity yet')).not.toBeInTheDocument()
+  })
+
+  it('does not treat Agent absence or archived Campaigns as Home attention', () => {
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({
+      campaigns: { total: 2, active: 0, draft: 1, archived: 1, needsAttention: 0 },
+    })} />)
     expect(screen.getByText('0 active · 1 draft · 1 archived')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Attention' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Connect your Agent')).not.toBeInTheDocument()
+  })
+
+  it('shows commercial attention without offering a billing mutation', () => {
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({ commercial: { status: 'PAST_DUE', planName: 'Growth', attention: true } })} />)
+    expect(screen.getByText('Plan & Usage needs attention')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Review Plan & Usage' })).toHaveAttribute('href', '/en/merchant/plan?merchantId=merchant-a')
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })

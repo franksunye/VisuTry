@@ -16,6 +16,12 @@ jest.mock('@/modules/merchant/application/merchant-agent-credentials', () => ({
 jest.mock('@/modules/merchant/application/merchant-control-center', () => ({
   getMerchantControlCenter: jest.fn(),
 }))
+jest.mock('@/modules/merchant/application/merchant-operating-reads', () => ({
+  getMerchantOperatingActivation: jest.fn(),
+}))
+jest.mock('@/modules/merchant/application/merchant-operating-home', () => ({
+  getMerchantOperatingHome: jest.fn(),
+}))
 jest.mock('@/modules/merchant/application/merchant-access', () => ({
   requireMerchantMembership: jest.fn(),
 }))
@@ -32,6 +38,7 @@ import { getServerSession } from 'next-auth'
 import { listMerchantsForUser } from '@/modules/merchant/application/merchant-memberships'
 import { listMerchantAgentCredentials } from '@/modules/merchant/application/merchant-agent-credentials'
 import { getMerchantControlCenter } from '@/modules/merchant/application/merchant-control-center'
+import { getMerchantOperatingActivation } from '@/modules/merchant/application/merchant-operating-reads'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import MerchantWorkspacePage from '@/app/[locale]/merchant/page'
 
@@ -39,6 +46,7 @@ const session = getServerSession as jest.Mock
 const merchants = listMerchantsForUser as jest.Mock
 const credentials = listMerchantAgentCredentials as jest.Mock
 const control = getMerchantControlCenter as jest.Mock
+const activation = getMerchantOperatingActivation as jest.Mock
 const membership = requireMerchantMembership as jest.Mock
 
 describe('Merchant workspace authorization', () => {
@@ -50,6 +58,7 @@ describe('Merchant workspace authorization', () => {
       { merchant: { id: 'merchant-b', slug: 'beta', name: 'Beta', status: 'ACTIVE' }, membership: { role: 'ADMIN' } },
     ])
     credentials.mockResolvedValue([])
+    activation.mockResolvedValue({ storePreviewedAt: null })
     control.mockResolvedValue({
       merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', websiteUrl: null, status: 'ACTIVE', referenceData: false },
       store: null,
