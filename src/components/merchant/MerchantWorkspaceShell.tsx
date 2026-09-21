@@ -47,6 +47,14 @@ export function MerchantWorkspaceShell({
   const selected = merchants.find((merchant) => merchant.id === selectedMerchantId)
 
   useEffect(() => {
+    const entryKey = `visutry_merchant_workspace_entered:${selectedMerchantId}`
+    try {
+      if (window.sessionStorage.getItem(entryKey) === '1') return
+      window.sessionStorage.setItem(entryKey, '1')
+    } catch {
+      // If session storage is unavailable, the durable activation endpoint
+      // still applies its own dedupe boundary.
+    }
     const { signupCorrelationId } = getMerchantActivationContext()
     analytics.trackCustomEvent(AnalyticsEvent.MerchantWorkspaceEntered, {
       merchant_id: selectedMerchantId,
@@ -108,8 +116,10 @@ export function MerchantWorkspaceShell({
               <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-slate-400 sm:right-3 sm:top-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
             </label>
           </div>
-          <nav className="-mx-1 flex gap-0.5 overflow-x-auto pb-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:gap-1 sm:overflow-visible sm:pb-2" aria-label="Merchant workspace">
-            {primary.map(({ section, label }) => navLink(section, label))}
+          <nav className="-mx-1 flex min-w-0 gap-0.5 pb-1.5 sm:mx-0 sm:gap-1 sm:pb-2" aria-label="Merchant workspace">
+            <div className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1">
+              {primary.map(({ section, label }) => navLink(section, label))}
+            </div>
             <details className="relative ml-auto shrink-0 sm:ml-2">
               <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg px-2.5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
                 More <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />

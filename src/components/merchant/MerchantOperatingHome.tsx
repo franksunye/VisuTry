@@ -19,16 +19,22 @@ export function MerchantOperatingHome({
   const nextSection = !control.catalog.total ? 'catalog' : 'store'
   const nextLabel = !control.catalog.total ? 'Open Catalog' : control.store?.status === 'DRAFT' ? 'Open Store' : 'Review Store'
   const href = (section: 'catalog' | 'store' | 'integrations') => merchantWorkspaceHref({ locale, section, merchantId })
+  const campaignCount = control.experiences.filter((experience) => experience.type === 'CAMPAIGN').length
+  const activeCampaignCount = control.activeCampaignCount
+  const draftCampaignCount = Math.max(0, campaignCount - activeCampaignCount)
+  const campaignBody = campaignCount === 0
+    ? 'No campaigns yet'
+    : `${activeCampaignCount} active${draftCampaignCount ? ` · ${draftCampaignCount} draft` : ''}`
   const summary = [
     ['Store', control.store ? statusLabel(control.store.status) : 'Not created'],
     ['Catalog', String(control.catalog.total)],
-    ['Campaigns', String(control.activeCampaignCount)],
+    ['Campaigns', String(campaignCount)],
     ['Shopper activity', control.shopperActivityAvailable ? 'Available' : 'No activity yet'],
   ]
   const cards = [
     { title: 'Store', value: control.store ? statusLabel(control.store.status) : 'Not created', body: control.store ? `${control.store.frameCount} selected product${control.store.frameCount === 1 ? '' : 's'}` : 'Create a draft Store when your catalog is ready.', href: href('store'), label: 'Open Store' },
     { title: 'Catalog', value: `${control.catalog.total} product${control.catalog.total === 1 ? '' : 's'}`, body: `${control.catalog.valid} ready for Store use`, href: href('catalog'), label: 'Manage Catalog' },
-    { title: 'Campaigns', value: String(control.activeCampaignCount), body: control.activeCampaignCount ? 'Active campaigns' : 'No active campaigns yet', href: merchantWorkspaceHref({ locale, section: 'campaigns', merchantId }), label: 'View Campaigns' },
+    { title: 'Campaigns', value: String(campaignCount), body: campaignBody, href: merchantWorkspaceHref({ locale, section: 'campaigns', merchantId }), label: 'View Campaigns' },
     { title: 'Shopper activity', value: control.shopperActivityAvailable ? 'Available' : 'No data yet', body: control.shopperActivityAvailable ? 'Review performance in Analytics.' : 'Activity appears after shoppers interact.', href: merchantWorkspaceHref({ locale, section: 'analytics', merchantId }), label: 'Open Analytics' },
   ]
   return (
