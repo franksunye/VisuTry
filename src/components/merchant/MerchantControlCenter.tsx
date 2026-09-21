@@ -598,9 +598,11 @@ function CommerceIntelligence({
     document
       .getElementById("agent-access")
       ?.scrollIntoView({ behavior: "smooth" }),
+  agentHref,
 }: {
   insights?: MerchantCommerceIntelligence;
   onAgentAccess?: () => void;
+  agentHref?: string;
 }) {
   if (!insights) return null;
   const windowLabel = insightWindowLabel(insights.period);
@@ -673,13 +675,19 @@ function CommerceIntelligence({
           </div>
         </div>
         <div className="flex items-start gap-3">
-          <button
-            type="button"
-            className={`${buttonClass} border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100`}
-            onClick={onAgentAccess}
-          >
-            Continue with Agent
-          </button>
+          {agentHref ? (
+            <a href={agentHref} className={`${buttonClass} border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100`}>
+              Continue with Agent
+            </a>
+          ) : (
+            <button
+              type="button"
+              className={`${buttonClass} border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100`}
+              onClick={onAgentAccess}
+            >
+              Continue with Agent
+            </button>
+          )}
           <BarChart3
             className="mt-1 h-7 w-7 shrink-0 text-blue-600"
             aria-hidden="true"
@@ -957,7 +965,7 @@ function AgentAccess({
   endpoint: string;
   skills: SkillCard[];
   initialCredentials: MerchantAgentCredentialMetadata[];
-  onCredentialsChanged: (
+  onCredentialsChanged?: (
     credentials: MerchantAgentCredentialMetadata[],
   ) => void;
 }) {
@@ -981,7 +989,7 @@ function AgentAccess({
       data: { credentials: MerchantAgentCredentialMetadata[] };
     };
     setCredentials(body.data.credentials);
-    onCredentialsChanged(body.data.credentials);
+    onCredentialsChanged?.(body.data.credentials);
     return body.data.credentials;
   };
   const createKey = async () => {
@@ -1729,3 +1737,11 @@ function MerchantControlCenterView({
 export function MerchantControlCenter(props: Props) {
   return <MerchantControlCenterView key={props.selectedMerchantId} {...props} />;
 }
+
+// These focused exports let route-scoped operating pages reuse the approved
+// surfaces without making the shell depend on the legacy all-in-one view.
+export {
+  AgentAccess as MerchantAgentAccess,
+  CommerceIntelligence as MerchantCommerceIntelligence,
+  WorkspaceDetails as MerchantWorkspaceDetails,
+};
