@@ -38,7 +38,8 @@ describe('MerchantControlCenter', () => {
 
   it('shows the post-creation next step and records workspace entry', () => {
     render(<MerchantControlCenter {...baseProps} onboardingState="created" />)
-    expect(screen.getByRole('status')).toHaveTextContent('Merchant workspace created successfully')
+    expect(screen.getByRole('status')).toHaveTextContent('Workspace created')
+    expect(screen.getByRole('status')).toHaveTextContent('Your workspace is ready for its first product.')
     expect(screen.getByRole('link', { name: /next: add your eyewear catalog/i })).toHaveAttribute('href', '#catalog')
     expect(analytics.trackCustomEvent).toHaveBeenCalledWith('merchant_workspace_entered', expect.objectContaining({ merchant_id: 'merchant-a', entry_point: 'b2b' }))
   })

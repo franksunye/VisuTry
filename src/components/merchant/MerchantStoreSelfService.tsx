@@ -113,7 +113,7 @@ function MerchantStoreDraftPreview({ preview }: { preview: Preview }) {
       name: preview.store.name,
       headline: preview.store.headline,
       description: preview.store.description,
-      heroAssetUrl: null,
+      heroAssetUrl: safeImageUrl(preview.frames[0]?.imageUrl ?? null),
     },
   };
 
@@ -221,6 +221,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
   const eligibleCount = catalog.filter((frame) => frame.storeReadiness.storeEligible).length;
   const recommendationReadyCount = catalog.filter((frame) => frame.validation.recommendationReady).length;
   const selectedCount = selectedFrameIds.length;
+  const selectedEligibleFrames = catalog.filter((frame) => frame.storeReadiness.storeEligible && selectedFrameIds.includes(frame.id));
   const publicUrl = workspace?.store ? `${window.location.origin}${workspace.store.publicPath}` : "";
   const detailsDirty = workspace?.store
     ? name.trim() !== workspace.store.name
@@ -229,6 +230,13 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
     : false;
   const productsDirty = workspace?.store ? !sameIds(selectedFrameIds, workspace.store.selectedFrameIds) : false;
   const hasUnsavedChanges = detailsDirty || productsDirty;
+  const firstValuePreviewReady = Boolean(
+    workspace?.store
+      && eligibleCount === 1
+      && selectedCount === 1
+      && selectedEligibleFrames.length === 1
+      && !hasUnsavedChanges,
+  );
 
   function clearPreview() {
     setPreview(null);
@@ -343,7 +351,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
 
   if (!hasCatalog) {
     return (
-      <section id="store" className="scroll-mt-44 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <section id="store" className="scroll-mt-44 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Store</p>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight">Add your eyewear catalog first</h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Once your catalog has products, you can select what shoppers see in your Store.</p>
@@ -353,7 +361,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
   }
 
   return (
-    <section id="store" className="scroll-mt-44 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <section id="store" className="scroll-mt-44 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-700"><Store className="h-4 w-4" aria-hidden="true" /> Store</div>
@@ -368,7 +376,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
       {loading ? <div className="mt-8 flex items-center gap-2 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading Store setup…</div> : null}
 
       {!loading && !workspace?.store ? (
-        <div className="mt-7 rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
+        <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50/60 p-4">
           <h3 className="font-semibold text-slate-900">1. Create a Store draft</h3>
           <p className="mt-1 text-sm text-slate-600">Start with the default Store details. You can add a headline and description after you see your first product in the private preview.</p>
           <details className="mt-4 rounded-xl border border-blue-100 bg-white px-3 py-2">
@@ -379,34 +387,59 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
             </div>
             <label className="mt-3 block text-sm font-medium text-slate-700">Store description<textarea aria-label="Store description" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={5000} placeholder="Optional description" rows={3} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /></label>
           </details>
-          <button type="button" onClick={createStore} disabled={busy} className={`${buttonClass} mt-4 bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Store className="h-4 w-4" aria-hidden="true" />} Create Store draft</button>
+          <button type="button" onClick={createStore} disabled={busy} className={`${buttonClass} mt-4 bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:opacity-100`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Store className="h-4 w-4" aria-hidden="true" />} Create Store draft</button>
         </div>
       ) : null}
 
       {!loading && workspace?.store ? (
         <>
-          <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-            <div className="rounded-2xl border border-slate-200 p-5">
+          {firstValuePreviewReady ? (
+            <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50/60 p-4 sm:p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white bg-white shadow-sm">
+                    {safeImageUrl(selectedEligibleFrames[0]?.imageUrl ?? null) ? <img src={safeImageUrl(selectedEligibleFrames[0]?.imageUrl ?? null) ?? undefined} alt="" className="h-full w-full object-contain p-1.5" /> : null}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">First value</p>
+                    <h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">Your Store is ready to preview</h3>
+                    <p className="mt-1 truncate text-sm text-slate-600">{selectedEligibleFrames[0]?.name} is selected for your private Store preview.</p>
+                  </div>
+                </div>
+                <button type="button" onClick={previewStore} disabled={busy} className={`${buttonClass} shrink-0 bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}><Eye className="h-4 w-4" aria-hidden="true" /> Preview your Store</button>
+              </div>
+            </div>
+          ) : null}
+
+          <details open={!firstValuePreviewReady} className="group mt-5 rounded-xl border border-slate-200 bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-semibold text-slate-800 [&::-webkit-details-marker]:hidden">
+              <span>Store details and products</span>
+              <span className="text-xs font-medium text-slate-500 group-open:hidden">Edit after preview</span>
+              <span className="hidden text-xs font-medium text-slate-500 group-open:inline">Collapse</span>
+            </summary>
+            <div className="border-t border-slate-100 px-4 pb-4 pt-4">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+            <div className="rounded-xl border border-slate-200 p-4">
               <h3 className="font-semibold text-slate-900">1. Store details</h3>
               <div className="mt-4 space-y-3">
                 <input aria-label="Store name" value={name} onChange={(event) => { setName(event.target.value); clearPreview(); }} maxLength={120} placeholder="Store name" className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
                 <input aria-label="Store headline" value={headline} onChange={(event) => { setHeadline(event.target.value); clearPreview(); }} maxLength={240} placeholder="Headline (optional)" className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
                 <textarea aria-label="Store description" value={description} onChange={(event) => { setDescription(event.target.value); clearPreview(); }} maxLength={5000} placeholder="Description (optional)" rows={5} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
-                <button type="button" onClick={saveDetails} disabled={busy} className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" /> Save details</button>
+                {detailsDirty ? <button type="button" onClick={saveDetails} disabled={busy} className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" /> Save details</button> : <p className="text-xs font-medium text-slate-500">Details saved</p>}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 p-5">
+            <div className="rounded-xl border border-slate-200 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div><h3 className="font-semibold text-slate-900">2. Products</h3><p className="mt-1 text-sm text-slate-500">{selectedCount} selected · {eligibleCount} available · {recommendationReadyCount} recommendation-ready</p></div>
-                <button type="button" onClick={saveProducts} disabled={busy} className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" /> Save products</button>
+                {productsDirty ? <button type="button" onClick={saveProducts} disabled={busy} className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" /> Save products</button> : <span className="text-xs font-medium text-slate-500">Selection saved</span>}
               </div>
               <div className="mt-4 grid max-h-[34rem] gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
                 {catalog.map((frame) => {
                   const isSelected = selectedFrameIds.includes(frame.id);
                   const isEligible = frame.storeReadiness.storeEligible;
                   const recommendationPending = !frame.validation.recommendationReady;
-                  return <label key={frame.id} className={`relative rounded-2xl border p-3 transition ${isSelected ? "border-blue-500 bg-blue-50/50" : "border-slate-200 bg-white"} ${!isEligible && !isSelected ? "opacity-60" : ""}`}>
+                  return <label key={frame.id} className={`relative rounded-xl border p-3 transition ${isSelected ? "border-blue-500 bg-blue-50/50" : "border-slate-200 bg-white"} ${!isEligible && !isSelected ? "opacity-60" : ""}`}>
                     <input type="checkbox" className="absolute right-3 top-3 h-4 w-4 accent-blue-600" checked={isSelected} disabled={!isEligible && !isSelected} onChange={() => toggleFrame(frame)} />
                     <div className="flex gap-3 pr-6">
                       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100">{safeImageUrl(frame.imageUrl) ? <img src={safeImageUrl(frame.imageUrl) ?? undefined} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[10px] text-slate-400">No image</div>}</div>
@@ -419,13 +452,17 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
               </div>
             </div>
           </div>
+            </div>
+          </details>
 
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h3 className="font-semibold text-slate-900">3. Preview your Store</h3><p className="mt-1 text-sm text-slate-600">Your preview is private. Publishing is the separate step that makes this Store public.</p></div><button type="button" onClick={previewStore} disabled={busy || selectedCount === 0 || hasUnsavedChanges} className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}><Eye className="h-4 w-4" aria-hidden="true" /> Preview your Store</button></div>
-            {hasUnsavedChanges ? <p role="status" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-800">Save your changes before previewing.</p> : null}
-            {preview ? <MerchantStoreDraftPreview preview={preview} /> : null}
-            {preview ? <div className="rounded-2xl border border-white bg-white p-4"><p className={`font-semibold ${preview.readiness.ready ? "text-emerald-700" : "text-amber-700"}`}>{preview.readiness.ready ? "Ready to publish" : "A few products need attention"}</p><p className="mt-1 text-sm text-slate-600">{preview.readiness.ready ? `${preview.frameCount} product${preview.frameCount === 1 ? "" : "s"} will appear in your Store.` : preview.readiness.blockingIssues.map((issue) => `${issue.frameId === "unknown" ? "Some products" : "A product"}: ${issue.issues.map(friendlyIssue).join(", ")}`).join(" · ")}</p>{preview.readiness.ready ? <><label className="mt-5 flex items-start gap-2 text-sm text-slate-700"><input aria-label="I confirm this Store is ready to publish publicly" type="checkbox" checked={publishApproved} onChange={(event) => setPublishApproved(event.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-600" /> <span>I confirm this Store is ready to publish publicly.</span></label><button type="button" onClick={publishStore} disabled={busy || hasUnsavedChanges || !publishApproved} className={`${buttonClass} mt-4 bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />} {workspace.store.status === "ACTIVE" ? "Keep Store live" : "Publish Store"}</button></> : null}</div> : null}
-          </div>
+          {(preview || !firstValuePreviewReady) ? (
+            <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h3 className="font-semibold text-slate-900">3. Preview your Store</h3><p className="mt-1 text-sm text-slate-600">Your preview is private. Publishing is the separate step that makes this Store public.</p></div><button type="button" onClick={previewStore} disabled={busy || selectedCount === 0 || hasUnsavedChanges} className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}><Eye className="h-4 w-4" aria-hidden="true" /> Preview your Store</button></div>
+              {hasUnsavedChanges ? <p role="status" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-800">Save your changes before previewing.</p> : null}
+              {preview ? <MerchantStoreDraftPreview preview={preview} /> : null}
+              {preview ? <div className="rounded-2xl border border-white bg-white p-4"><p className={`font-semibold ${preview.readiness.ready ? "text-emerald-700" : "text-amber-700"}`}>{preview.readiness.ready ? "Ready to publish" : "A few products need attention"}</p><p className="mt-1 text-sm text-slate-600">{preview.readiness.ready ? `${preview.frameCount} product${preview.frameCount === 1 ? "" : "s"} will appear in your Store.` : preview.readiness.blockingIssues.map((issue) => `${issue.frameId === "unknown" ? "Some products" : "A product"}: ${issue.issues.map(friendlyIssue).join(", ")}`).join(" · ")}</p>{preview.readiness.ready ? <><label className="mt-5 flex items-start gap-2 text-sm text-slate-700"><input aria-label="I confirm this Store is ready to publish publicly" type="checkbox" checked={publishApproved} onChange={(event) => setPublishApproved(event.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-600" /> <span>I confirm this Store is ready to publish publicly.</span></label><button type="button" onClick={publishStore} disabled={busy || hasUnsavedChanges || !publishApproved} className={`${buttonClass} mt-4 bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />} {workspace.store.status === "ACTIVE" ? "Keep Store live" : "Publish Store"}</button></> : null}</div> : null}
+            </div>
+          ) : null}
 
           {workspace.store.status === "ACTIVE" ? <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-semibold text-emerald-900">Your Store is live</p><p className="mt-1 break-all text-sm text-emerald-800">{publicUrl}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => void copyStoreLink()} className={`${buttonClass} border border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-100`}><Copy className="h-4 w-4" aria-hidden="true" /> Copy Store link</button><a href={workspace.store.publicPath} target="_blank" rel="noreferrer" className={`${buttonClass} bg-emerald-700 text-white hover:bg-emerald-800`}><ExternalLink className="h-4 w-4" aria-hidden="true" /> View Store</a></div></div> : null}
         </>

@@ -68,30 +68,30 @@ export function MerchantActivationChecklist({ control, firstValueAchieved = fals
     <section
       id="activation-checklist"
       data-testid="merchant-activation-checklist"
-      className="rounded-[2rem] border border-blue-200 bg-[linear-gradient(135deg,#eff6ff,#ffffff)] p-6 shadow-sm sm:p-8"
+      className="rounded-2xl border border-blue-200 bg-[linear-gradient(135deg,#f4f8ff,#ffffff)] p-4 shadow-sm sm:p-5"
       aria-labelledby="merchant-activation-heading"
     >
-      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">First value</p>
-          <h2 id="merchant-activation-heading" className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+          <h2 id="merchant-activation-heading" className="mt-1.5 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
             Reach your first Store preview
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">
             Add one real product, then review it privately in your Store.
           </p>
         </div>
         <a
           href={`#${target}`}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-950 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
         >
           {actionLabel}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </a>
       </div>
-      <ol className="mt-6 grid gap-3 md:grid-cols-2">
+      <ol className="mt-4 grid gap-2 md:grid-cols-2">
         {steps.map((step) => (
-          <li key={step.number} className="rounded-2xl border border-slate-200 bg-white/85 p-4">
+          <li key={step.number} className="rounded-xl border border-slate-200 bg-white/85 p-3">
             <div className="flex items-start gap-3">
               <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step.complete ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
                 {step.complete ? <Check className="h-4 w-4" aria-hidden="true" /> : step.number}

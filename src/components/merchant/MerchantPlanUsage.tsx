@@ -7,7 +7,7 @@ import { MerchantBillingActions } from "@/components/merchant/MerchantBillingAct
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
 
-type Props = { commercial: MerchantCommercialPresentation; merchantId?: string; locale?: string };
+type Props = { commercial: MerchantCommercialPresentation; merchantId?: string; locale?: string; storeStatus?: string | null };
 
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
 
@@ -16,9 +16,13 @@ function dateLabel(value: string | null) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(value));
 }
 
-function statusCopy(commercial: MerchantCommercialPresentation) {
+function statusCopy(commercial: MerchantCommercialPresentation, storeStatus?: string | null) {
   if (commercial.status === "LEGACY_UNMIGRATED") return "This Store is still using its existing access while you choose a current plan.";
-  if (commercial.status === "FREE") return "Your Store is live on the Free plan.";
+  if (commercial.status === "FREE") {
+    if (storeStatus === "DRAFT") return "Your Store is in draft on the Free plan.";
+    if (storeStatus === "ACTIVE") return "Your Store is live on the Free plan.";
+    return "Your Store access is on the Free plan.";
+  }
   if (commercial.status === "PILOT_ACTIVE") {
     const days = commercial.daysRemaining;
     if (days !== null && days <= 3) return `Your Founding Pilot ends in ${days} day${days === 1 ? "" : "s"}. Choose how to continue.`;
@@ -61,7 +65,7 @@ function actionLabel(action: MerchantCommercialPresentation["primaryAction"]) {
   }
 }
 
-export function MerchantPlanUsage({ commercial, merchantId, locale = "en" }: Props) {
+export function MerchantPlanUsage({ commercial, merchantId, locale = "en", storeStatus = null }: Props) {
   useEffect(() => {
     analytics.trackCustomEvent(AnalyticsEvent.MerchantCommercialOfferViewed, {
       merchant_id: merchantId,
@@ -92,7 +96,7 @@ export function MerchantPlanUsage({ commercial, merchantId, locale = "en" }: Pro
           </div>
           <p className="mt-1 text-sm text-slate-500">{periodText}</p>
         </div>
-        <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${statusTone(commercial.status, commercial.threshold)}`}>{statusCopy(commercial)}</span>
+        <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${statusTone(commercial.status, commercial.threshold)}`}>{statusCopy(commercial, storeStatus)}</span>
       </div>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">

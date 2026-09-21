@@ -205,19 +205,21 @@ function Overview({
   ];
   return (
     <section id="overview" className="scroll-mt-44 sm:scroll-mt-24">
-      <div className="rounded-[2rem] border border-slate-200 bg-[radial-gradient(circle_at_80%_0%,rgba(191,219,254,0.45),transparent_34%),linear-gradient(135deg,#ffffff,#f7fbff)] p-6 shadow-[0_25px_80px_-55px_rgba(15,23,42,0.55)] sm:p-9">
+      <div className={firstValueAchieved
+        ? "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+        : "rounded-2xl border border-blue-100 bg-[linear-gradient(135deg,#ffffff,#f8fbff)] p-5 shadow-sm sm:p-7"}>
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">
           Merchant workspace
         </p>
-        <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">
+        <h1 className={`mt-2 max-w-2xl font-semibold tracking-[-0.04em] text-slate-950 ${firstValueAchieved ? "text-3xl sm:text-4xl" : "text-3xl sm:text-5xl"}`}>
           Bring your eyewear catalog to life.
         </h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+        <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
           Start with your store URL, a CSV, or a few products manually. Review
           what VisuTry found, approve the valid rows, and keep your catalog in
           your own merchant workspace.
         </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
             className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`}
@@ -243,11 +245,11 @@ function Overview({
           </button> : null}
         </div>
       </div>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
           <article
             key={card.label}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
           >
             <p className="text-sm font-medium text-slate-500">{card.label}</p>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
@@ -1448,31 +1450,31 @@ function MerchantControlCenterView({
     );
   return (
     <main className="min-h-screen bg-[#f7f8fb] text-slate-950">
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
-          <a href="#overview" className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white">
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 sm:flex-nowrap sm:justify-between sm:gap-4 sm:px-6 sm:py-3.5 lg:px-8">
+          <a href="#overview" className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none sm:gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white sm:h-10 sm:w-10 sm:rounded-2xl">
               <Sparkles className="h-5 w-5" aria-hidden="true" />
             </span>
-            <span>
-              <span className="block text-sm font-semibold tracking-tight">
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold tracking-tight">
                 VisuTry Merchant
               </span>
-              <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">
+              <span className="hidden text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400 sm:block">
                 Your AI workspace
               </span>
             </span>
           </a>
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <div className="contents sm:flex sm:w-auto sm:items-center sm:gap-3">
             <label className="sr-only" htmlFor="merchant-switcher">
               Active merchant
             </label>
-            <div className="relative">
+            <div className="relative shrink-0">
               <select
                 id="merchant-switcher"
                 value={selectedMerchantId}
                 onChange={(event) => switchMerchant(event.target.value)}
-                className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3.5 pr-9 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:w-56"
+                className="w-[calc(100vw-5.5rem)] max-w-56 appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:w-56 sm:py-2.5 sm:pl-3.5 sm:pr-9"
               >
                 <option value={selectedMerchantId}>
                   {selectedMerchant?.name ?? control.merchant.name}
@@ -1491,7 +1493,7 @@ function MerchantControlCenterView({
               />
             </div>
             <nav
-              className="flex flex-wrap gap-1 text-sm font-semibold text-slate-600"
+              className="order-3 flex min-w-0 w-full gap-0.5 overflow-x-auto whitespace-nowrap text-sm font-semibold text-slate-600 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:order-none sm:w-auto sm:gap-1 sm:overflow-visible"
               aria-label="Merchant workspace"
             >
               <a
@@ -1565,28 +1567,27 @@ function MerchantControlCenterView({
           <section
             data-onboarding-state={onboardingState}
             role="status"
-            className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-5 text-emerald-950 sm:px-6"
+            className="flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-950 sm:flex-row sm:items-center sm:justify-between sm:px-5"
           >
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
-              {onboardingState === "created" ? "Merchant workspace created successfully" : "Merchant workspace ready"}
-            </p>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight">
-              Your workspace is ready.
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-emerald-900/80">
-              {onboardingState === "created"
-                ? "You are the owner of this workspace. Your next step is to add your eyewear catalog."
-                : "You are back in your existing workspace. Your next step is to add your eyewear catalog."}
-            </p>
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">
+                {onboardingState === "created" ? "Workspace created" : "Workspace ready"}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-emerald-950">
+                {onboardingState === "created"
+                  ? "Your workspace is ready for its first product."
+                  : "Your existing workspace is ready for its next product."}
+              </p>
+            </div>
             <a
               href="#catalog"
-              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-950"
+              className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-emerald-800 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-950"
             >
               Next: add your eyewear catalog <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>
           </section>
         ) : null}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           <div className={firstValueAchieved ? "order-8" : "order-1"}>
             <MerchantActivationChecklist control={control} firstValueAchieved={firstValueAchieved} />
           </div>
@@ -1639,7 +1640,7 @@ function MerchantControlCenterView({
             />
           </div>
           <div className={firstValueAchieved ? "order-3" : "order-6"}>
-            {control.commercial ? <MerchantPlanUsage commercial={control.commercial} merchantId={control.merchant.id} locale={locale} /> : null}
+            {control.commercial ? <MerchantPlanUsage commercial={control.commercial} merchantId={control.merchant.id} locale={locale} storeStatus={control.store?.status ?? null} /> : null}
           </div>
           <div className={firstValueAchieved ? "order-4" : "order-7"}>
             <CommerceIntelligence insights={control.commerceIntelligence} />
