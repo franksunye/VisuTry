@@ -236,6 +236,7 @@ const nextConfig = {
         '@/modules/merchant/mcp/server$': path.resolve(__dirname, 'src/modules/merchant/mcp/server-cloudflare.ts'),
         '@/modules/store/application/campaign-service$': path.resolve(__dirname, 'src/modules/store/application/campaign-service-cloudflare.ts'),
         '@/modules/merchant/application/merchant-control-center$': path.resolve(__dirname, 'src/modules/merchant/application/merchant-control-center-cloudflare.ts'),
+        '@/modules/merchant/application/merchant-operating-reads$': path.resolve(__dirname, 'src/modules/merchant/application/merchant-operating-reads-cloudflare.ts'),
         '@/modules/merchant/application/merchant-activation$': path.resolve(__dirname, 'src/modules/merchant/application/merchant-activation-cloudflare.ts'),
         '@/modules/merchant/cloudflare$': path.resolve(__dirname, 'src/modules/merchant/cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/store/application/public-read-runtime.ts')]: path.resolve(__dirname, 'src/modules/store/application/public-read-runtime-cloudflare.ts'),
@@ -252,6 +253,7 @@ const nextConfig = {
         [path.resolve(__dirname, 'src/modules/merchant/mcp/server.ts')]: path.resolve(__dirname, 'src/modules/merchant/mcp/server-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/store/application/campaign-service.ts')]: path.resolve(__dirname, 'src/modules/store/application/campaign-service-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/merchant/application/merchant-control-center.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-control-center-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/modules/merchant/application/merchant-operating-reads.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-operating-reads-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/merchant/application/merchant-activation.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-activation-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/merchant/cloudflare.ts')]: path.resolve(__dirname, 'src/modules/merchant/cloudflare.ts'),
       }

@@ -9,6 +9,8 @@ import { listMerchantAgentCredentials } from '@/modules/merchant/application/mer
 import { getMerchantControlCenter } from '@/modules/merchant/application/merchant-control-center'
 import { MerchantControlCenter } from '@/components/merchant/MerchantControlCenter'
 import { MerchantWorkspaceOnboarding } from '@/components/merchant/MerchantWorkspaceOnboarding'
+import { MerchantOperatingHome } from '@/components/merchant/MerchantOperatingHome'
+import { MerchantWorkspaceShell } from '@/components/merchant/MerchantWorkspaceShell'
 import type { MerchantBillablePlanCode } from '@/modules/merchant/domain/merchant-billing'
 import { parseMerchantPurchaseIntent } from '@/modules/merchant/domain/merchant-purchase-intent'
 
@@ -55,6 +57,14 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
   await requireMerchantMembership({ userId: session.user.id, merchantId: selected.merchant.id, roles: ['OWNER', 'ADMIN'] })
   const control = await getMerchantControlCenter({ merchantId: selected.merchant.id })
   if (!control) notFound()
+  const navigationMerchants = merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role }))
+  if (control.activation?.storePreviewedAt) {
+    return (
+      <MerchantWorkspaceShell locale={params.locale} merchants={navigationMerchants} selectedMerchantId={selected.merchant.id}>
+        <MerchantOperatingHome locale={params.locale} merchantId={selected.merchant.id} control={control} />
+      </MerchantWorkspaceShell>
+    )
+  }
   const credentials = await listMerchantAgentCredentials({ userId: session.user.id, merchantId: selected.merchant.id })
   const origin = requestOrigin()
   const skills = [
@@ -66,5 +76,5 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
   const billingState = searchParams?.billing === 'processing' || searchParams?.billing === 'cancelled'
     ? searchParams.billing
     : undefined
-  return <MerchantControlCenter locale={params.locale} merchants={merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role }))} selectedMerchantId={selected.merchant.id} control={control} credentials={credentials} endpoint={`${origin}/api/mcp`} skills={skills} onboardingState={onboardingState} billingState={billingState} billingPlan={billingPlan(searchParams?.plan)} />
+  return <MerchantControlCenter locale={params.locale} merchants={navigationMerchants} selectedMerchantId={selected.merchant.id} control={control} credentials={credentials} endpoint={`${origin}/api/mcp`} skills={skills} onboardingState={onboardingState} billingState={billingState} billingPlan={billingPlan(searchParams?.plan)} />
 }

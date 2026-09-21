@@ -325,7 +325,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
     <section id="catalog" className="scroll-mt-44 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:scroll-mt-24 sm:p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Human catalog</p>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Catalog</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Add your eyewear catalog</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">URL First means you usually only need your store URL. We inspect product facts progressively, show a reviewable preview, and write nothing until you approve.</p>
         </div>

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { mkdirSync } from 'node:fs'
 
 const isLocalLabRun = process.env.NODE_ENV === 'test'
   && process.env.APP_ENV === 'local'
@@ -20,6 +21,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     page.on('response', (response) => {
       if (response.status() >= 500) serverErrors.push(response.status())
     })
+    await page.setViewportSize({ width: 1440, height: 900 })
 
     await page.goto('/en/business', { waitUntil: 'domcontentloaded' })
     await page.getByRole('link', { name: 'Merchant Sign In' }).first().click()
@@ -71,7 +73,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByRole('heading', { name: 'Create your Store' })).toBeVisible()
     await expect(page.locator('#catalog').getByRole('link', { name: 'Create your Store' })).toBeVisible()
     await expect(page.getByText('Add Store details (optional)')).toBeVisible()
-    await page.getByRole('button', { name: 'Create Store draft' }).click()
+    await page.locator('#store').getByRole('button', { name: 'Create your Store' }).click()
     await expect(page.getByRole('heading', { name: 'Set up your Store' })).toBeVisible()
     await expect(page.getByText('Your Store draft is ready with your first product selected.', { exact: true })).toBeVisible()
     await expect(page.locator('#store').getByRole('button', { name: 'Preview your Store' }).first()).toBeEnabled()
@@ -80,6 +82,75 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByText('Private draft preview', { exact: true })).toBeVisible()
     await expect(page.getByText('DRAFT · not public')).toBeVisible()
     await expect(page.getByRole('checkbox', { name: /confirm this store is ready/i })).not.toBeChecked()
+    const activationPageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
+
+    // Operating-shell route QA starts only after the real First Value event.
+    // Screenshots stay outside the repository so this remains evidence, not
+    // a product fixture or a tracked visual baseline.
+    const evidenceDir = '/tmp/visutry-p1-m2-1-operating-shell'
+    mkdirSync(evidenceDir, { recursive: true })
+    await page.goto('/en/merchant', { waitUntil: 'networkidle' })
+    await page.screenshot({ path: `${evidenceDir}/home-desktop.png`, fullPage: true })
+    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeVisible()
+    const catalogLink = page.getByRole('link', { name: 'Catalog' }).first()
+    const storeLink = page.getByRole('link', { name: 'Store' }).first()
+    const analyticsLink = page.getByRole('link', { name: 'Analytics' }).first()
+    await expect(catalogLink).toHaveAttribute('href', /\/en\/merchant\/catalog\?merchantId=/)
+    await expect(storeLink).toHaveAttribute('href', /\/en\/merchant\/store\?merchantId=/)
+    await expect(analyticsLink).toHaveAttribute('href', /\/en\/merchant\/analytics\?merchantId=/)
+    await catalogLink.click()
+    await expect(page).toHaveURL(/\/en\/merchant\/catalog\?merchantId=/)
+    await page.goto('/en/merchant', { waitUntil: 'networkidle' })
+    await storeLink.click()
+    await expect(page).toHaveURL(/\/en\/merchant\/store\?merchantId=/)
+    await page.goto('/en/merchant', { waitUntil: 'networkidle' })
+    await analyticsLink.click()
+    await expect(page).toHaveURL(/\/en\/merchant\/analytics\?merchantId=/)
+    await page.goto('/en/merchant', { waitUntil: 'networkidle' })
+    const operatingPageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
+    console.log(JSON.stringify({ activationPageHeight, operatingPageHeight }))
+    await page.goto('/en/merchant/catalog', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Add your eyewear catalog' })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/catalog-desktop.png`, fullPage: true })
+    await page.goto('/en/merchant/store', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: /Set up your Store|Store — Live/ })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/store-desktop.png`, fullPage: true })
+    await page.goto('/en/merchant/campaigns', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Campaigns' })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/campaigns-desktop.png`, fullPage: true })
+    await page.goto('/en/merchant/analytics', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Understand shopper intent' })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/analytics-desktop.png`, fullPage: true })
+    await page.goto('/en/merchant/integrations', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: /Connect your Agent/ })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/integrations-desktop.png`, fullPage: true })
+    await page.goto('/en/merchant/plan', { waitUntil: 'networkidle' })
+    await expect(page.locator('main').getByText('Plan & Usage').last()).toBeVisible()
+    await page.goto('/en/merchant/settings', { waitUntil: 'networkidle' })
+    await expect(page.getByText('Workspace details')).toBeVisible()
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/en/merchant', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Catalog' }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Store' }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Analytics' }).first()).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/home-mobile.png`, fullPage: true })
+    await page.getByText('More', { exact: true }).click()
+    await expect(page.getByRole('link', { name: 'Plan & Usage' })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/utilities-mobile.png`, fullPage: false })
+    const mobileMetrics = await page.evaluate(() => ({
+      headerHeight: document.querySelector('header')?.getBoundingClientRect().height ?? null,
+      horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
+    }))
+    console.log(JSON.stringify({ mobileMetrics }))
+    await page.goto('/en/merchant/catalog', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Add your eyewear catalog' })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/catalog-mobile.png`, fullPage: true })
+    await page.goto('/en/merchant/store', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: /Set up your Store|Store — Live/ })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/store-mobile.png`, fullPage: true })
+
     expect(browserErrors).toEqual([])
     expect(serverErrors).toEqual([])
   })

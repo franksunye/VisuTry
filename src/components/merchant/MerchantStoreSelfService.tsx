@@ -377,7 +377,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
 
       {!loading && !workspace?.store ? (
         <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50/60 p-4">
-          <h3 className="font-semibold text-slate-900">1. Create a Store draft</h3>
+          <h3 className="font-semibold text-slate-900">1. Create your Store</h3>
           <p className="mt-1 text-sm text-slate-600">Start with the default Store details. You can add a headline and description after you see your first product in the private preview.</p>
           <details className="mt-4 rounded-xl border border-blue-100 bg-white px-3 py-2">
             <summary className="cursor-pointer text-sm font-semibold text-slate-700">Add Store details (optional)</summary>
@@ -387,7 +387,8 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
             </div>
             <label className="mt-3 block text-sm font-medium text-slate-700">Store description<textarea aria-label="Store description" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={5000} placeholder="Optional description" rows={3} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /></label>
           </details>
-          <button type="button" onClick={createStore} disabled={busy} className={`${buttonClass} mt-4 bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:opacity-100`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Store className="h-4 w-4" aria-hidden="true" />} Create Store draft</button>
+          <p className="mt-1 text-sm text-slate-500">This starts a private draft. You decide separately when to publish it.</p>
+          <button type="button" onClick={createStore} disabled={busy} className={`${buttonClass} mt-4 bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:opacity-100`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Store className="h-4 w-4" aria-hidden="true" />} Create your Store</button>
         </div>
       ) : null}
 
