@@ -6,6 +6,7 @@ import type { MerchantControlCenter } from "@/modules/merchant/application/merch
 type Props = {
   control: MerchantControlCenter;
   firstValueAchieved?: boolean;
+  catalogState?: { hasAny: boolean; hasReady: boolean };
 };
 
 type Step = {
@@ -20,12 +21,12 @@ type Step = {
  * server-provided Catalog and Store facts; it is intentionally not a second
  * checklist data model.
  */
-export function MerchantActivationChecklist({ control, firstValueAchieved = false }: Props) {
+export function MerchantActivationChecklist({ control, firstValueAchieved = false, catalogState }: Props) {
   if (control.store?.status === "ACTIVE") return null;
   if (firstValueAchieved) return null;
 
-  const hasAnyCatalog = control.catalog.total > 0;
-  const hasReadyCatalog = control.catalog.valid > 0;
+  const hasAnyCatalog = catalogState?.hasAny ?? control.catalog.total > 0;
+  const hasReadyCatalog = catalogState?.hasReady ?? control.catalog.valid > 0;
   const hasCatalog = hasReadyCatalog;
   const hasStore = Boolean(control.store);
   const hasPreviewableStore = hasStore && control.store?.frameCount

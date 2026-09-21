@@ -205,46 +205,101 @@ function Overview({
   ];
   return (
     <section id="overview" className="scroll-mt-44 sm:scroll-mt-24">
-      <div className={firstValueAchieved
-        ? "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
-        : "rounded-2xl border border-blue-100 bg-[linear-gradient(135deg,#ffffff,#f8fbff)] p-5 shadow-sm sm:p-7"}>
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">
-          Merchant workspace
-        </p>
-        <h1 className={`mt-2 max-w-2xl font-semibold tracking-[-0.04em] text-slate-950 ${firstValueAchieved ? "text-3xl sm:text-4xl" : "text-3xl sm:text-5xl"}`}>
-          Bring your eyewear catalog to life.
-        </h1>
-        <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-          Start with your store URL, a CSV, or a few products manually. Review
-          what VisuTry found, approve the valid rows, and keep your catalog in
-          your own merchant workspace.
-        </p>
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-          <button
-            type="button"
-            className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`}
-            onClick={nextAction.onClick}
-          >
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            {nextAction.label}
-          </button>
-          <button
-            type="button"
-            className={`${buttonClass} border border-blue-200 bg-white text-blue-800 hover:border-blue-400`}
-            onClick={onAgentAccess}
-          >
-            <KeyRound className="h-4 w-4" aria-hidden="true" />
-            {agentReady ? "Open agent connection" : "Connect your Agent"}
-          </button>
-          {control.catalog.total > 0 ? <button
-            type="button"
-            className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:border-blue-300`}
-            onClick={onCatalog}
-          >
-            Manage catalog
-          </button> : null}
+      {firstValueAchieved ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                Merchant workspace
+              </p>
+              <h1 className="mt-1.5 text-2xl font-semibold tracking-[-0.035em] text-slate-950 sm:text-3xl">
+                Workspace overview
+              </h1>
+              <p className="mt-1.5 text-sm text-slate-600">
+                Your Store is ready for day-to-day setup and shopper activity.
+              </p>
+            </div>
+            <button
+              type="button"
+              className={`${buttonClass} shrink-0 bg-slate-950 text-white hover:bg-slate-800`}
+              onClick={nextAction.onClick}
+            >
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              {nextAction.label}
+            </button>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+              Store · {control.store ? statusLabel(control.store.status) : "Not created"}
+            </span>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+              Catalog · {control.catalog.total}
+            </span>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+              Campaigns · {control.activeCampaignCount}
+            </span>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+              {control.shopperActivityAvailable ? "Shopper activity available" : "No shopper activity"}
+            </span>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:border-blue-300`}
+              onClick={onCatalog}
+            >
+              Manage catalog
+            </button>
+            <button
+              type="button"
+              className={`${buttonClass} border border-blue-200 bg-white text-blue-800 hover:border-blue-400`}
+              onClick={onAgentAccess}
+            >
+              <KeyRound className="h-4 w-4" aria-hidden="true" />
+              {agentReady ? "Open agent connection" : "Connect your Agent"}
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="rounded-2xl border border-blue-100 bg-[linear-gradient(135deg,#ffffff,#f8fbff)] p-5 shadow-sm sm:p-7">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">
+            Merchant workspace
+          </p>
+          <h1 className="mt-2 max-w-2xl text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">
+            Bring your eyewear catalog to life.
+          </h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+            Start with your store URL, a CSV, or a few products manually. Review
+            what VisuTry found, approve the valid rows, and keep your catalog in
+            your own merchant workspace.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`}
+              onClick={nextAction.onClick}
+            >
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              {nextAction.label}
+            </button>
+            <button
+              type="button"
+              className={`${buttonClass} border border-blue-200 bg-white text-blue-800 hover:border-blue-400`}
+              onClick={onAgentAccess}
+            >
+              <KeyRound className="h-4 w-4" aria-hidden="true" />
+              {agentReady ? "Open agent connection" : "Connect your Agent"}
+            </button>
+            {control.catalog.total > 0 ? <button
+              type="button"
+              className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:border-blue-300`}
+              onClick={onCatalog}
+            >
+              Manage catalog
+            </button> : null}
+          </div>
+        </div>
+      )}
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
           <article
@@ -1418,7 +1473,7 @@ function MerchantControlCenterView({
     control.credentialUsage.active > 0 ||
       credentials.some((credential) => credential.status === "ACTIVE"),
   );
-  const [catalogAvailable, setCatalogAvailable] = useState(control.catalog.total > 0);
+  const [catalogState, setCatalogState] = useState({ hasAny: control.catalog.total > 0, hasReady: control.catalog.valid > 0 });
   const [firstValueAchieved, setFirstValueAchieved] = useState(control.activation?.storePreviewedAt != null);
   useEffect(() => {
     const { signupCorrelationId } = getMerchantActivationContext();
@@ -1563,7 +1618,7 @@ function MerchantControlCenterView({
             <p className="mt-2 text-sm leading-6 text-slate-700">You can choose a plan whenever you’re ready. Your current Store and access remain unchanged.</p>
           </section>
         ) : null}
-        {onboardingState ? (
+        {onboardingState && !catalogState.hasAny ? (
           <section
             data-onboarding-state={onboardingState}
             role="status"
@@ -1589,14 +1644,14 @@ function MerchantControlCenterView({
         ) : null}
         <div className="flex flex-col gap-4">
           <div className={firstValueAchieved ? "order-8" : "order-1"}>
-            <MerchantActivationChecklist control={control} firstValueAchieved={firstValueAchieved} />
+            <MerchantActivationChecklist control={control} firstValueAchieved={firstValueAchieved} catalogState={catalogState} />
           </div>
           <div className={firstValueAchieved ? "order-7" : "order-2"}>
             <MerchantCatalogSelfService
               merchantId={control.merchant.id}
               initialTotal={control.catalog.total}
-              onCatalogChanged={() => {
-                setCatalogAvailable(true)
+              onCatalogChanged={(state) => {
+                setCatalogState(state)
                 router.refresh()
               }}
             />
@@ -1605,7 +1660,7 @@ function MerchantControlCenterView({
             <MerchantStoreSelfService
               merchantId={control.merchant.id}
               initialCatalogCount={control.catalog.total}
-              catalogAvailable={catalogAvailable}
+              catalogAvailable={catalogState.hasAny}
               onFirstValueAchieved={() => setFirstValueAchieved(true)}
               onStoreChanged={() => router.refresh()}
             />

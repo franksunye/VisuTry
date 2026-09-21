@@ -44,6 +44,22 @@ describe('MerchantControlCenter', () => {
     expect(analytics.trackCustomEvent).toHaveBeenCalledWith('merchant_workspace_entered', expect.objectContaining({ merchant_id: 'merchant-a', entry_point: 'b2b' }))
   })
 
+  it('removes the stale creation banner once the catalog has a product', () => {
+    render(<MerchantControlCenter {...baseProps} onboardingState="created" control={{ ...baseProps.control, catalog: { total: 1, active: 1, valid: 1, invalid: 0, sourceCounts: [] } }} />)
+    expect(screen.queryByText('Your workspace is ready for its first product.')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInTheDocument()
+  })
+
+  it('uses a compact operating overview after First Value', () => {
+    render(<MerchantControlCenter {...baseProps} control={{ ...baseProps.control, catalog: { total: 1, active: 1, valid: 1, invalid: 0, sourceCounts: [] }, activation: { storePreviewedAt: '2026-09-21T00:00:00.000Z' } }} />)
+    expect(screen.getByRole('heading', { name: 'Workspace overview' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Bring your eyewear catalog to life.' })).not.toBeInTheDocument()
+    expect(screen.getByText('Store · Not created')).toBeInTheDocument()
+    expect(screen.getByText('Catalog · 1')).toBeInTheDocument()
+    expect(screen.getByText('Campaigns · 0')).toBeInTheDocument()
+    expect(screen.getByText('No shopper activity')).toBeInTheDocument()
+  })
+
   it('switches lifecycle mode and resets merchant-local state with the selected Merchant', async () => {
     const merchants = [
       ...baseProps.merchants,

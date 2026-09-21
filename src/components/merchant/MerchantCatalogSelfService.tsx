@@ -153,7 +153,7 @@ function emptyInput(item: CatalogItem): ManualRow {
   };
 }
 
-export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalogChanged }: { merchantId: string; initialTotal: number; onCatalogChanged?: () => void }) {
+export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalogChanged }: { merchantId: string; initialTotal: number; onCatalogChanged?: (state: { hasAny: boolean; hasReady: boolean }) => void }) {
   // Manual entry is the shortest guaranteed first-success path for an empty
   // catalog. Existing catalogs keep the URL-first import default.
   const [sourceType, setSourceType] = useState<SourceType>(initialTotal === 0 ? "manual" : "url");
@@ -286,7 +286,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
       if ((body.data.created ?? 0) > 0) hadCatalogAtMount.current = true;
       setProposal(null);
       await loadCatalog(false);
-      onCatalogChanged?.();
+      onCatalogChanged?.({ hasAny: (body.data.created ?? 0) > 0, hasReady: proposal.importReady.length > 0 });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to import catalog.");
     } finally {
@@ -313,7 +313,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
       setEditingId(null);
       setEditingRow(null);
       await loadCatalog(false);
-      onCatalogChanged?.();
+      onCatalogChanged?.({ hasAny: true, hasReady: true });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to save correction.");
     } finally {
