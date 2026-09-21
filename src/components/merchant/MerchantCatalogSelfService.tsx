@@ -62,6 +62,7 @@ type CatalogItem = {
   variant?: string | null;
   imageUrl: string | null;
   productUrl?: string | null;
+  externalId?: string | null;
   price?: number | null;
   currency?: string | null;
   shape?: string | null;
@@ -73,6 +74,7 @@ type CatalogItem = {
   source: string;
   status: string;
   validation: { valid: boolean; importReady?: boolean; recommendationReady?: boolean; issues: string[]; warnings: string[] };
+  presentation?: { state: "READY" | "NEEDS_REVIEW" | "NEEDS_ATTENTION"; label: string; issueSummary: string | null };
 };
 type ManualRow = { sku: string; name: string; shape: string; imageUrl: string; brand: string; price: string; productUrl: string };
 
@@ -153,7 +155,7 @@ function emptyInput(item: CatalogItem): ManualRow {
   };
 }
 
-export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalogChanged }: { merchantId: string; initialTotal: number; onCatalogChanged?: (state: { hasAny: boolean; hasReady: boolean }) => void }) {
+export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalogChanged, showResourceList = true }: { merchantId: string; initialTotal: number; onCatalogChanged?: (state: { hasAny: boolean; hasReady: boolean }) => void; showResourceList?: boolean }) {
   // Manual entry is the shortest guaranteed first-success path for an empty
   // catalog. Existing catalogs keep the URL-first import default.
   const [sourceType, setSourceType] = useState<SourceType>(initialTotal === 0 ? "manual" : "url");
@@ -171,18 +173,20 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
   const [firstProductAdded, setFirstProductAdded] = useState(false);
   const [query, setQuery] = useState("");
+  const [appliedQuery, setAppliedQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingRow, setEditingRow] = useState<ManualRow | null>(null);
   const entered = useRef(false);
   const hadCatalogAtMount = useRef(initialTotal > 0);
 
   const apiBase = `/api/merchant/${encodeURIComponent(merchantId)}/catalog`;
-  const loadCatalog = useCallback(async (append = false) => {
+  const loadCatalog = useCallback(async (append = false, requestedSearch = appliedQuery) => {
     setCatalogLoading(true);
     setCatalogError(null);
     try {
       const params = new URLSearchParams({ limit: "50" });
       if (append && catalogCursorRef.current) params.set("cursor", catalogCursorRef.current);
+      if (requestedSearch.trim()) params.set("search", requestedSearch.trim());
       const response = await fetch(`${apiBase}?${params.toString()}`, { cache: "no-store" });
       const body = await response.json() as { success?: boolean; data?: { items?: CatalogItem[]; nextCursor?: string | null }; message?: string };
       if (!response.ok || !body.success || !body.data) throw new Error(body.message || "Unable to load catalog.");
@@ -195,7 +199,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
     } finally {
       setCatalogLoading(false);
     }
-  }, [apiBase]);
+  }, [apiBase, appliedQuery]);
 
   useEffect(() => {
     if (!entered.current) {
@@ -207,12 +211,6 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
     }
     void loadCatalog(false);
   }, [loadCatalog, merchantId]);
-
-  const visibleItems = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return catalogItems;
-    return catalogItems.filter((item) => [item.sku, item.name, item.brand, item.shape].filter(Boolean).join(" ").toLowerCase().includes(needle));
-  }, [catalogItems, query]);
 
   const manualReady = useMemo(() => manualRows.every((row) => (
     row.name.trim().length > 0
@@ -295,18 +293,18 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
   }
 
   async function saveCorrection(item: CatalogItem) {
-    if (!editingRow || busy || !editingRow.sku.trim()) return;
+    if (!editingRow || busy) return;
     setBusy(true);
     setError(null);
     try {
       const frame = {
-        sku: editingRow.sku.trim(), name: editingRow.name.trim(), shape: editingRow.shape.trim(), imageUrl: editingRow.imageUrl.trim() || null,
+        sku: editingRow.sku.trim() || null, name: editingRow.name.trim(), shape: editingRow.shape.trim() || null, imageUrl: editingRow.imageUrl.trim() || null,
         brand: editingRow.brand.trim() || null, productUrl: editingRow.productUrl.trim() || null,
         price: editingRow.price.trim() ? Math.round(Number(editingRow.price) * 100) : null, currency: item.currency ?? "USD",
         variant: item.variant ?? null, material: item.material ?? null, color: item.color ?? null, widthClass: item.widthClass ?? null,
-        styleTags: item.styleTags ?? [], collectionTags: item.collectionTags ?? [], source: "MANUAL" as const, externalId: item.id, sourceNotes: "Human catalog correction",
+        styleTags: item.styleTags ?? [], collectionTags: item.collectionTags ?? [], externalId: item.externalId ?? null, sourceNotes: "Human catalog correction",
       };
-      const response = await fetch(apiBase, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ approved: true, sourceType: "manual", frames: [frame] }) });
+      const response = await fetch(`${apiBase}/${encodeURIComponent(item.id)}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ frame }) });
       const body = await response.json() as { success?: boolean; message?: string };
       if (!response.ok || !body.success) throw new Error(body.message || "Unable to save correction.");
       analytics.trackCustomEvent(AnalyticsEvent.MerchantCatalogCorrectionSaved, { merchant_id: merchantId, correction_type: "catalog_frame" });
@@ -394,13 +392,13 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
         <div className="mt-4 flex flex-col justify-between gap-3 border-t border-emerald-200 pt-4 sm:flex-row sm:items-center"><p className="text-xs text-emerald-900/75">Nothing has been written yet. Approval imports only the {proposal.importReady.length} safe, non-duplicate row{proposal.importReady.length === 1 ? "" : "s"}; recommendation enrichment can continue afterward.</p><button type="button" disabled={busy || proposal.importReady.length === 0} onClick={() => void approveImport()} className={`${buttonClass} bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50`}><Check className="h-4 w-4" aria-hidden="true" />Approve and import {proposal.importReady.length}</button></div>
       </div> : null}
 
-      <div className="mt-8 border-t border-slate-200 pt-6">
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Catalog review</p><h3 className="mt-1 text-lg font-semibold text-slate-950">Review and correct products</h3></div><div className="flex gap-2"><input aria-label="Search catalog" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search SKU or name" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:w-56" /><button type="button" onClick={() => void loadCatalog(false)} aria-label="Refresh catalog" className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><RefreshCw className="h-4 w-4" aria-hidden="true" /></button></div></div>
+      {showResourceList ? <div className="mt-8 border-t border-slate-200 pt-6">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Catalog review</p><h3 className="mt-1 text-lg font-semibold text-slate-950">Review and correct products</h3></div><form className="flex gap-2" onSubmit={(event) => { event.preventDefault(); const normalized = query.trim(); setAppliedQuery(normalized); void loadCatalog(false, normalized); }}><input aria-label="Search catalog" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search the full catalog" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:w-56" /><button type="submit" className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>Search</button><button type="button" onClick={() => void loadCatalog(false)} aria-label="Refresh catalog" className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><RefreshCw className="h-4 w-4" aria-hidden="true" /></button></form></div>
         {catalogError ? <p className="mt-3 text-sm text-red-700" role="alert">{catalogError}</p> : null}
-        {visibleItems.length === 0 && !catalogLoading ? <p className="mt-4 rounded-xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500">{query ? "No matching products in the loaded catalog." : "No products yet. Start with your store URL, a CSV, or one manual row above."}</p> : null}
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">{visibleItems.map((item) => <article key={item.id} className="rounded-xl border border-slate-200 bg-white p-3"><div className="flex gap-3"><div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">{item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : null}</div><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div><h4 className="truncate text-sm font-semibold text-slate-950">{item.name}</h4><p className="mt-1 text-xs text-slate-500">{item.sku || "No merchant SKU"}{item.brand ? ` · ${item.brand}` : ""}{priceLabel(item.price, item.currency) ? ` · ${priceLabel(item.price, item.currency)}` : ""}</p></div><button type="button" aria-label={`Edit ${item.name}`} onClick={() => { setEditingId(item.id); setEditingRow(emptyInput(item)); }} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-700"><Edit3 className="h-4 w-4" aria-hidden="true" /></button></div><div className="mt-2 flex flex-wrap gap-1.5 text-[11px]"><span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">{item.source}</span><span className={`rounded-full px-2 py-1 ${item.validation.recommendationReady ?? item.validation.valid ? "bg-emerald-50 text-emerald-700" : item.validation.importReady ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-800"}`}>{item.validation.recommendationReady ?? item.validation.valid ? "Recommendation ready" : item.validation.importReady ? "Import ready" : "Needs attention"}</span></div></div></div>{editingId === item.id && editingRow ? <div className="mt-3 space-y-2 border-t border-slate-100 pt-3"><div className="grid gap-2 sm:grid-cols-2">{manualFieldMeta.map(({ key, label, placeholder }) => <label key={key} className="block text-xs font-medium text-slate-700">{label}<input aria-label={`Edit ${label}`} value={editingRow[key]} onChange={(event) => setEditingRow((row) => row ? { ...row, [key]: event.target.value } : row)} placeholder={placeholder} type={key === "price" ? "number" : key.endsWith("Url") ? "url" : "text"} maxLength={maxLengthForField(key)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /></label>)}</div><div className="flex justify-end gap-2"><button type="button" onClick={() => { setEditingId(null); setEditingRow(null); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-600`}>Cancel</button><button type="button" disabled={busy} onClick={() => void saveCorrection(item)} className={`${buttonClass} bg-slate-950 text-white disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" />Save correction</button></div></div> : null}</article>)}</div>
+        {catalogItems.length === 0 && !catalogLoading ? <p className="mt-4 rounded-xl border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500">{appliedQuery ? "No matching products in the catalog." : "No products yet. Start with your store URL, a CSV, or one manual row above."}</p> : null}
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">{catalogItems.map((item) => <article key={item.id} className="rounded-xl border border-slate-200 bg-white p-3"><div className="flex gap-3"><div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">{item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : null}</div><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div><h4 className="truncate text-sm font-semibold text-slate-950">{item.name}</h4><p className="mt-1 text-xs text-slate-500">{item.sku || item.productUrl || "No stable product identity"}{item.brand ? ` · ${item.brand}` : ""}{priceLabel(item.price, item.currency) ? ` · ${priceLabel(item.price, item.currency)}` : ""}</p></div><button type="button" aria-label={`Edit ${item.name}`} onClick={() => { setEditingId(item.id); setEditingRow(emptyInput(item)); }} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-700"><Edit3 className="h-4 w-4" aria-hidden="true" /></button></div><div className="mt-2 flex flex-wrap gap-1.5 text-[11px]"><span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">{item.source}</span><span className={`rounded-full px-2 py-1 ${item.presentation?.state === "READY" ? "bg-emerald-50 text-emerald-700" : item.presentation?.state === "NEEDS_REVIEW" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-800"}`}>{item.presentation?.label ?? (item.validation.recommendationReady ?? item.validation.valid ? "Ready" : item.validation.importReady ? "Needs enrichment" : "Needs attention")}</span>{item.presentation?.issueSummary ? <span className="text-amber-800">{item.presentation.issueSummary}</span> : null}</div></div></div>{editingId === item.id && editingRow ? <div className="mt-3 space-y-2 border-t border-slate-100 pt-3"><div className="grid gap-2 sm:grid-cols-2">{manualFieldMeta.map(({ key, label, placeholder }) => <label key={key} className="block text-xs font-medium text-slate-700">{label}<input aria-label={`Edit ${label}`} value={editingRow[key]} onChange={(event) => setEditingRow((row) => row ? { ...row, [key]: event.target.value } : row)} placeholder={placeholder} type={key === "price" ? "number" : key.endsWith("Url") ? "url" : "text"} maxLength={maxLengthForField(key)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /></label>)}</div><div className="flex justify-end gap-2"><button type="button" onClick={() => { setEditingId(null); setEditingRow(null); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-600`}>Cancel</button><button type="button" disabled={busy} onClick={() => void saveCorrection(item)} className={`${buttonClass} bg-slate-950 text-white disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" />Save correction</button></div></div> : null}</article>)}</div>
         {catalogCursor ? <button type="button" disabled={catalogLoading} onClick={() => void loadCatalog(true)} className={`${buttonClass} mt-4 w-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50`}>{catalogLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />}Load more products</button> : null}
-      </div>
+      </div> : null}
     </section>
   );
 }

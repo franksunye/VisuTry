@@ -1,7 +1,7 @@
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchant: { findUnique: jest.fn() },
-    merchantFrame: { count: jest.fn(), findMany: jest.fn() },
+    merchantFrame: { count: jest.fn(), findMany: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
     experience: { findFirst: jest.fn(), update: jest.fn() },
     experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
     merchantOperationAudit: { create: jest.fn() },
@@ -42,6 +42,58 @@ describe('merchant onboarding catalog validation', () => {
     expect(validateCatalogFrame({
       id: 'frame-a', sku: null, name: 'A', imageUrl: null, shape: '', widthClass: null, status: 'DRAFT',
     })).toEqual({ valid: false, importReady: false, recommendationReady: false, enrichmentStatus: 'PENDING', issues: ['MISSING_STABLE_IDENTITY', 'MISSING_IMAGE_URL', 'MISSING_SHAPE', 'ENRICHMENT_PENDING'], importIssues: ['MISSING_STABLE_IDENTITY', 'MISSING_IMAGE_URL'], recommendationIssues: ['MISSING_SHAPE', 'ENRICHMENT_PENDING'], warnings: ['FRAME_NOT_ACTIVE'] })
+  })
+
+  it('searches the complete Catalog and returns canonical health summaries', async () => {
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([
+      frame('frame-1'),
+      frame('frame-2', { name: 'Far beyond the first page' }),
+    ])
+
+    const result = await merchantOnboarding.getMerchantCatalogWorkspace({ actor: { ...actor, scopes: ['catalog:read'] }, limit: 1, search: 'beyond' })
+
+    expect(result.items).toHaveLength(1)
+    expect(result.items[0]).toMatchObject({ id: 'frame-2', name: 'Far beyond the first page', presentation: { state: 'READY' } })
+    expect(result.summary).toEqual({ total: 2, ready: 2, needsReview: 0, needsAttention: 0 })
+    expect(result.nextCursor).toBeNull()
+  })
+
+  it('updates a Catalog resource by id without requiring a merchant SKU', async () => {
+    const existing = {
+      ...frame('frame-url', { sku: null }),
+      externalId: 'external-frame-url',
+      productUrl: 'https://shop.example.test/products/frame-url',
+      source: 'EXTERNAL' as const,
+      enrichmentStatus: 'PENDING' as const,
+      brand: null,
+      variant: null,
+      price: null,
+      currency: null,
+      material: null,
+      color: null,
+      styleTags: [],
+      collectionTags: [],
+      sourceNotes: null,
+    }
+    const updated = { ...existing, shape: 'round', enrichmentStatus: 'APPROVED' as const }
+    const update = jest.fn().mockResolvedValue(updated)
+    ;(prisma.merchantFrame.findFirst as jest.Mock)
+      .mockResolvedValueOnce(existing)
+      .mockResolvedValueOnce(null)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      merchantFrame: { update },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    }))
+
+    const result = await merchantOnboarding.updateMerchantFrame({
+      actor: { ...actor, scopes: ['catalog:write'] },
+      frameId: 'frame-url',
+      frame: { name: 'Corrected frame', shape: 'round', imageUrl: existing.imageUrl, productUrl: existing.productUrl, externalId: existing.externalId, source: 'EXTERNAL' },
+    })
+
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'frame-url' }, data: expect.objectContaining({ sku: null, shape: 'round', externalId: existing.externalId }) }))
+    expect(result.presentation.state).toBe('READY')
   })
 
   it('rejects a Store belonging to another tenant before touching frames', async () => {

@@ -19,6 +19,7 @@ import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/me
 import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merchant-commercial-state'
 import { merchantCatalogItemIsReady, MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
 import { recordMerchantActivationEventWithClient } from './merchant-activation'
+import { resolveMerchantCatalogPresentation, type MerchantCatalogPresentationState } from '../domain/merchant-catalog-presentation'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
@@ -120,6 +121,7 @@ function normalizeFrameInput(frame: CatalogFrameInput): Required<Pick<CatalogFra
 
 function publicFrame(frame: MerchantFrame) {
   const validation = validateCatalogFrame(frame)
+  const presentation = resolveMerchantCatalogPresentation(frame)
   return {
     id: frame.id,
     sku: frame.sku,
@@ -141,21 +143,130 @@ function publicFrame(frame: MerchantFrame) {
     status: frame.status,
     enrichmentStatus: frame.enrichmentStatus,
     validation,
+    presentation: {
+      state: presentation.state,
+      label: presentation.label,
+      issueCodes: presentation.issueCodes,
+      issueSummary: presentation.issueSummary,
+    },
   }
 }
 
-export async function listMerchantFrames(input: { actor: MerchantActorContext; cursor?: string; limit?: number }) {
+type CatalogWorkspaceQuery = {
+  actor: MerchantActorContext
+  cursor?: string
+  limit?: number
+  search?: string
+  readiness?: 'all' | MerchantCatalogPresentationState
+}
+
+function matchesCatalogSearch(frame: ReturnType<typeof publicFrame>, search?: string) {
+  const needle = search?.trim().toLocaleLowerCase()
+  if (!needle) return true
+  return [frame.sku, frame.name, frame.brand, frame.shape, frame.productUrl, frame.externalId]
+    .filter(Boolean)
+    .join(' ')
+    .toLocaleLowerCase()
+    .includes(needle)
+}
+
+export async function getMerchantCatalogWorkspace(input: CatalogWorkspaceQuery) {
   requireAgentScope(input.actor, 'catalog:read')
   const limit = Math.min(Math.max(input.limit ?? 50, 1), 100)
   const rows = await prisma.merchantFrame.findMany({
     where: { merchantId: input.actor.merchantId },
     orderBy: { id: 'asc' },
-    ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
-    take: limit + 1,
   })
-  const hasNext = rows.length > limit
-  const items = rows.slice(0, limit).map(publicFrame)
-  return { items, nextCursor: hasNext ? items.at(-1)?.id ?? null : null }
+  const allItems = rows.map(publicFrame)
+  const summary = {
+    total: allItems.length,
+    ready: allItems.filter((item) => item.presentation.state === 'READY').length,
+    needsReview: allItems.filter((item) => item.presentation.state === 'NEEDS_REVIEW').length,
+    needsAttention: allItems.filter((item) => item.presentation.state === 'NEEDS_ATTENTION').length,
+  }
+  const filtered = allItems.filter((item) => matchesCatalogSearch(item, input.search))
+    .filter((item) => !input.readiness || input.readiness === 'all' || item.presentation.state === input.readiness)
+  const start = input.cursor ? Math.max(filtered.findIndex((item) => item.id === input.cursor) + 1, 0) : 0
+  const items = filtered.slice(start, start + limit)
+  return { items, nextCursor: start + limit < filtered.length ? items.at(-1)?.id ?? null : null, summary }
+}
+
+export async function listMerchantFrames(input: CatalogWorkspaceQuery) {
+  return getMerchantCatalogWorkspace(input)
+}
+
+function identityFilters(frame: CatalogFrameInput) {
+  return [
+    ...(frame.sku ? [{ sku: frame.sku }] : []),
+    ...(frame.externalId ? [{ source: frame.source, externalId: frame.externalId }] : []),
+    ...(frame.productUrl ? [{ productUrl: frame.productUrl }] : []),
+  ]
+}
+
+export async function updateMerchantFrame(input: { actor: MerchantActorContext; frameId: string; frame: CatalogFrameInput }) {
+  requireAgentScope(input.actor, 'catalog:write')
+  const existing = await prisma.merchantFrame.findFirst({ where: { id: input.frameId, merchantId: input.actor.merchantId } })
+  if (!existing) throw new MerchantAccessError()
+  const normalized = normalizeFrameInput({
+    ...existing,
+    ...input.frame,
+    sku: input.frame.sku === undefined ? existing.sku : input.frame.sku,
+    productUrl: input.frame.productUrl === undefined ? existing.productUrl : input.frame.productUrl,
+    externalId: input.frame.externalId === undefined ? existing.externalId : input.frame.externalId,
+    source: input.frame.source === undefined
+      ? (existing.source === 'CSV' || existing.source === 'EXTERNAL' || existing.source === 'MANUAL' ? existing.source : 'MANUAL')
+      : input.frame.source,
+    sourceNotes: input.frame.sourceNotes === undefined ? existing.sourceNotes : input.frame.sourceNotes,
+  })
+  const duplicate = await prisma.merchantFrame.findFirst({
+    where: { merchantId: input.actor.merchantId, id: { not: input.frameId }, OR: identityFilters(normalized) },
+    select: { id: true },
+  })
+  if (duplicate) throw new MerchantOnboardingError('DUPLICATE_CATALOG_IDENTITY', 'That product identity already belongs to another Catalog item.', 409)
+  const persistedSource = input.frame.source ?? existing.source
+  const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true } })
+  if (!merchant) throw new MerchantAccessError()
+  const updated = await withPublicDiscoveryInvalidation({
+    target: { kind: 'catalog', merchantSlug: merchant.slug },
+    edgeTags: { before: await getPublicEdgeTagsForMerchant(merchant.slug), after: () => getPublicEdgeTagsForMerchant(merchant.slug) },
+    mutation: () => prisma.$transaction(async (tx) => {
+      const row = await tx.merchantFrame.update({
+        where: { id: input.frameId },
+        data: {
+          sku: normalized.sku,
+          name: normalized.name,
+          brand: normalized.brand,
+          variant: normalized.variant,
+          imageUrl: normalized.imageUrl,
+          productUrl: normalized.productUrl,
+          price: normalized.price,
+          currency: normalized.currency,
+          shape: normalized.shape ?? '',
+          material: normalized.material,
+          color: normalized.color,
+          widthClass: normalized.widthClass,
+          styleTags: normalized.styleTags,
+          collectionTags: normalized.collectionTags,
+          source: persistedSource,
+          externalId: normalized.externalId,
+          sourceNotes: normalized.sourceNotes,
+          enrichmentStatus: normalized.enrichmentStatus,
+        },
+      })
+      if (merchantCatalogItemIsReady(row)) {
+        await recordMerchantActivationEventWithClient(tx, {
+          merchantId: input.actor.merchantId,
+          eventType: MERCHANT_ACTIVATION_EVENT.CATALOG_READY,
+          source: 'SERVER',
+          resourceId: row.id,
+          metadata: { frame_id: row.id, ready: true },
+        })
+      }
+      return row
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+  })
+  await recordMerchantAgentOperation({ actor: input.actor, action: 'catalog.corrected', resourceType: 'MerchantFrame', resourceId: input.frameId, result: 'SUCCESS' })
+  return publicFrame(updated)
 }
 
 export async function validateMerchantCatalog(input: { actor: MerchantActorContext }) {
@@ -542,4 +653,4 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
   return { id: published.id, status: published.status, publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }
 }
 
-export const merchantOnboarding = { getMerchant, getOnboardingStatus, listMerchantFrames, validateMerchantCatalog, importMerchantFrames, getMerchantStoreWorkspace, createMerchantStore, updateMerchantStore, setMerchantStoreFrames, previewMerchantStore, publishMerchantStore }
+export const merchantOnboarding = { getMerchant, getOnboardingStatus, listMerchantFrames, getMerchantCatalogWorkspace, validateMerchantCatalog, importMerchantFrames, updateMerchantFrame, getMerchantStoreWorkspace, createMerchantStore, updateMerchantStore, setMerchantStoreFrames, previewMerchantStore, publishMerchantStore }

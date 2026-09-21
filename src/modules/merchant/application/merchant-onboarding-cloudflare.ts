@@ -14,6 +14,7 @@ import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-st
 import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/merchant/domain/merchant-commercial-plans'
 import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merchant-commercial-state'
 import { merchantCatalogItemIsReady, MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
+import { resolveMerchantCatalogPresentation, type MerchantCatalogPresentationState } from '../domain/merchant-catalog-presentation'
 import {
   logMerchantActivationEventIfInserted,
   merchantActivationEventInsertStatement,
@@ -124,7 +125,17 @@ function mapFrame(row: Row) {
   const frame = {
     id: String(row.id), sku: row.sku == null ? null : String(row.sku), name: String(row.name), brand: row.brand == null ? null : String(row.brand), variant: row.variant == null ? null : String(row.variant), imageUrl: row.imageUrl == null ? null : String(row.imageUrl), productUrl: row.productUrl == null ? null : String(row.productUrl), price: row.price == null ? null : Number(row.price), currency: row.currency == null ? null : String(row.currency), shape: String(row.shape), material: row.material == null ? null : String(row.material), color: row.color == null ? null : String(row.color), widthClass: row.widthClass == null ? null : String(row.widthClass), styleTags: Array.isArray(row.styleTags) ? row.styleTags.map(String) : [], collectionTags: Array.isArray(row.collectionTags) ? row.collectionTags.map(String) : [], source: row.source == null ? null : String(row.source), externalId: row.externalId == null ? null : String(row.externalId), enrichmentStatus: row.enrichmentStatus == null ? null : String(row.enrichmentStatus), status: String(row.status),
   }
-  return { ...frame, validation: validateCatalogFrame(frame) }
+  const presentation = resolveMerchantCatalogPresentation(frame)
+  return {
+    ...frame,
+    validation: presentation.readiness,
+    presentation: {
+      state: presentation.state,
+      label: presentation.label,
+      issueCodes: presentation.issueCodes,
+      issueSummary: presentation.issueSummary,
+    },
+  }
 }
 
 function storeReadiness(frames: FrameForValidation[], expectedCount = frames.length) {
@@ -222,15 +233,134 @@ export async function getMerchant(input: { actor: MerchantActorContext }) {
   return getMerchantProfile({ actor: input.actor })
 }
 
-export async function listMerchantFrames(input: { actor: MerchantActorContext; cursor?: string; limit?: number }) {
+type CatalogWorkspaceQuery = {
+  actor: MerchantActorContext
+  cursor?: string
+  limit?: number
+  search?: string
+  readiness?: 'all' | MerchantCatalogPresentationState
+}
+
+function matchesCatalogSearch(frame: ReturnType<typeof mapFrame>, search?: string) {
+  const needle = search?.trim().toLocaleLowerCase()
+  if (!needle) return true
+  return [frame.sku, frame.name, frame.brand, frame.shape, frame.productUrl, frame.externalId]
+    .filter(Boolean)
+    .join(' ')
+    .toLocaleLowerCase()
+    .includes(needle)
+}
+
+export async function getMerchantCatalogWorkspace(input: CatalogWorkspaceQuery) {
   requireAgentScope(input.actor, 'catalog:read')
   const limit = Math.min(Math.max(input.limit ?? 50, 1), 100)
   const sql = getCloudflareSql()
-  const rows = input.cursor
-    ? await sql`SELECT * FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId} AND "id" > ${input.cursor} ORDER BY "id" ASC LIMIT ${limit + 1}`
-    : await sql`SELECT * FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId} ORDER BY "id" ASC LIMIT ${limit + 1}`
-  const items = rows.slice(0, limit).map(mapFrame)
-  return { items, nextCursor: rows.length > limit ? items.at(-1)?.id ?? null : null }
+  const rows = await sql`SELECT * FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId} ORDER BY "id" ASC`
+  const allItems = rows.map(mapFrame)
+  const summary = {
+    total: allItems.length,
+    ready: allItems.filter((item) => item.presentation.state === 'READY').length,
+    needsReview: allItems.filter((item) => item.presentation.state === 'NEEDS_REVIEW').length,
+    needsAttention: allItems.filter((item) => item.presentation.state === 'NEEDS_ATTENTION').length,
+  }
+  const filtered = allItems.filter((item) => matchesCatalogSearch(item, input.search))
+    .filter((item) => !input.readiness || input.readiness === 'all' || item.presentation.state === input.readiness)
+  const start = input.cursor ? Math.max(filtered.findIndex((item) => item.id === input.cursor) + 1, 0) : 0
+  const items = filtered.slice(start, start + limit)
+  return { items, nextCursor: start + limit < filtered.length ? items.at(-1)?.id ?? null : null, summary }
+}
+
+export async function listMerchantFrames(input: CatalogWorkspaceQuery) {
+  return getMerchantCatalogWorkspace(input)
+}
+
+function identityFilters(frame: CatalogFrameInput) {
+  return [
+    ...(frame.sku ? [{ sku: frame.sku }] : []),
+    ...(frame.externalId ? [{ source: frame.source, externalId: frame.externalId }] : []),
+    ...(frame.productUrl ? [{ productUrl: frame.productUrl }] : []),
+  ]
+}
+
+export async function updateMerchantFrame(input: { actor: MerchantActorContext; frameId: string; frame: CatalogFrameInput }) {
+  requireAgentScope(input.actor, 'catalog:write')
+  const sql = getCloudflareSql()
+  const existingRows = await sql`SELECT * FROM "MerchantFrame" WHERE "id" = ${input.frameId} AND "merchantId" = ${input.actor.merchantId} LIMIT 1`
+  const existing = existingRows[0]
+  if (!existing) throw new MerchantAccessError()
+  const existingMapped = mapFrame(existing)
+  const normalized = normalizeFrameInput({
+    ...existingMapped,
+    ...input.frame,
+    sku: input.frame.sku === undefined ? existingMapped.sku : input.frame.sku,
+    productUrl: input.frame.productUrl === undefined ? existingMapped.productUrl : input.frame.productUrl,
+    externalId: input.frame.externalId === undefined ? existingMapped.externalId : input.frame.externalId,
+    source: input.frame.source === undefined
+      ? (existingMapped.source === 'CSV' || existingMapped.source === 'EXTERNAL' || existingMapped.source === 'MANUAL' ? existingMapped.source : 'MANUAL')
+      : input.frame.source,
+    sourceNotes: input.frame.sourceNotes === undefined ? (existing.sourceNotes == null ? null : String(existing.sourceNotes)) : input.frame.sourceNotes,
+    enrichmentStatus: input.frame.enrichmentStatus === undefined
+      ? existingMapped.enrichmentStatus as MerchantFrameEnrichmentStatus | undefined
+      : input.frame.enrichmentStatus,
+  })
+  const duplicateRows = await sql`
+    SELECT "id" FROM "MerchantFrame"
+    WHERE "merchantId" = ${input.actor.merchantId} AND "id" <> ${input.frameId}
+      AND (
+        (${normalized.sku} IS NOT NULL AND "sku" = ${normalized.sku})
+        OR (${normalized.externalId} IS NOT NULL AND "source" = ${normalized.source} AND "externalId" = ${normalized.externalId})
+        OR (${normalized.productUrl} IS NOT NULL AND "productUrl" = ${normalized.productUrl})
+      )
+    LIMIT 1
+  `
+  if (duplicateRows[0]) throw new MerchantOnboardingError('DUPLICATE_CATALOG_IDENTITY', 'That product identity already belongs to another Catalog item.', 409)
+  const persistedSource = input.frame.source ?? String(existing.source)
+  const merchantRows = await sql`SELECT "slug" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`
+  const merchantSlug = merchantRows[0]?.slug == null ? '' : String(merchantRows[0].slug)
+  if (!merchantSlug) throw new MerchantAccessError()
+  const activationInput = {
+    merchantId: input.actor.merchantId,
+    eventType: MERCHANT_ACTIVATION_EVENT.CATALOG_READY,
+    source: 'SERVER' as const,
+    resourceId: input.frameId,
+    metadata: { frame_id: input.frameId, ready: true },
+  }
+  const shouldRecordReady = merchantCatalogItemIsReady({
+    id: input.frameId,
+    sku: normalized.sku,
+    externalId: normalized.externalId,
+    productUrl: normalized.productUrl,
+    name: normalized.name,
+    imageUrl: normalized.imageUrl,
+    shape: normalized.shape,
+    source: normalized.source,
+    status: String(existing.status),
+    enrichmentStatus: normalized.enrichmentStatus,
+  })
+  const updated = await withPublicDiscoveryInvalidation({
+    target: { kind: 'catalog', merchantSlug },
+    edgeTags: { before: await getPublicEdgeTagsForCloudflareMerchant(merchantSlug), after: () => getPublicEdgeTagsForCloudflareMerchant(merchantSlug) },
+    mutation: async () => {
+      const statements = [sql`
+        UPDATE "MerchantFrame" SET
+          "sku" = ${normalized.sku}, "name" = ${normalized.name}, "brand" = ${normalized.brand}, "variant" = ${normalized.variant},
+          "imageUrl" = ${normalized.imageUrl}, "productUrl" = ${normalized.productUrl}, "price" = ${normalized.price}, "currency" = ${normalized.currency},
+          "shape" = ${normalized.shape ?? ''}, "material" = ${normalized.material}, "color" = ${normalized.color}, "widthClass" = ${normalized.widthClass},
+          "styleTags" = ${normalized.styleTags}, "collectionTags" = ${normalized.collectionTags}, "source" = ${persistedSource},
+          "externalId" = ${normalized.externalId}, "sourceNotes" = ${normalized.sourceNotes}, "enrichmentStatus" = ${normalized.enrichmentStatus}, "updatedAt" = NOW()
+        WHERE "id" = ${input.frameId} AND "merchantId" = ${input.actor.merchantId}
+        RETURNING *
+      `]
+      if (shouldRecordReady) statements.push(merchantActivationEventInsertStatement(sql, activationInput))
+      const results = await sql.transaction(statements, { isolationLevel: 'Serializable' })
+      const rows = results[0] ?? []
+      if (!rows[0]) throw new MerchantAccessError()
+      if (shouldRecordReady) logMerchantActivationEventIfInserted(activationInput, results[1])
+      return rows[0]
+    },
+  })
+  await audit(input.actor, 'catalog.corrected', input.frameId)
+  return mapFrame(updated)
 }
 
 export async function validateMerchantCatalog(input: { actor: MerchantActorContext }) {
@@ -552,4 +682,4 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
   return { id: String((published as Row).id), status: String((published as Row).status), publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }
 }
 
-export const merchantOnboarding = { getMerchant, getOnboardingStatus, listMerchantFrames, validateMerchantCatalog, importMerchantFrames, getMerchantStoreWorkspace, createMerchantStore, updateMerchantStore, setMerchantStoreFrames, previewMerchantStore, publishMerchantStore }
+export const merchantOnboarding = { getMerchant, getOnboardingStatus, listMerchantFrames, getMerchantCatalogWorkspace, validateMerchantCatalog, importMerchantFrames, updateMerchantFrame, getMerchantStoreWorkspace, createMerchantStore, updateMerchantStore, setMerchantStoreFrames, previewMerchantStore, publishMerchantStore }

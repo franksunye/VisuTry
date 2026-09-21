@@ -57,6 +57,8 @@ module.exports = {
   BarChart3: createIcon('bar-chart-3'),
   Globe2: createIcon('globe-2'),
   FileUp: createIcon('file-up'),
+  FilePlus2: createIcon('file-plus-2'),
+  Search: createIcon('search'),
   Edit3: createIcon('edit-3'),
   Save: createIcon('save'),
   Plus: createIcon('plus'),
