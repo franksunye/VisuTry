@@ -34,7 +34,16 @@ export function isGaMeasurementId(value: string | null | undefined): boolean {
 export function resolvePublicAnalyticsBootstrap(input: {
   gtmId?: string | null
   gaId?: string | null
+  appEnv?: string | null
 }): PublicAnalyticsBootstrap {
+  // Local development and QA must never send public telemetry to a remote
+  // Google property, even when a developer's shell accidentally provides real
+  // public IDs. Keep this policy at the bootstrap boundary so every locale
+  // route receives the same fail-closed behavior.
+  if (input.appEnv?.trim().toLowerCase() === 'local') {
+    return { mode: 'none' }
+  }
+
   const gtmId = normalizeId(input.gtmId)
   const gaId = normalizeId(input.gaId)
 

@@ -39,6 +39,18 @@ activation writes use the real local application and local PostgreSQL. The
 deterministic product image is repository-owned at
 `/glasses-presets/large-round-classic.jpg`.
 
+To verify the analytics fail-closed guard with intentionally fake valid GA/GTM
+IDs, run:
+
+```bash
+npm run merchant:local:analytics:e2e
+```
+
+This starts a temporary Local server with `G-LOCALSHOULDNOTSEND` and
+`GTM-LOCALSHOULDNOTSEND`, then proves that neither bootstrap nor remote request
+is emitted. Local GA/GTM remains disabled even if real public IDs are present
+in a developer shell.
+
 For later local billing work, keep Stripe in TEST mode and forward the Stripe
 CLI webhook to the fixed local port:
 
