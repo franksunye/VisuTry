@@ -32,10 +32,16 @@ describe('MerchantPlanUsage', () => {
   })
 
   it('keeps Free language focused on value and the upgrade path', () => {
-    render(<MerchantPlanUsage commercial={commercial({ planCode: 'FREE', planName: 'Free', priceLabel: '$0', status: 'FREE', periodStart: null, periodEnd: null, daysRemaining: null, limits: { catalogItems: 50, activeCampaigns: 0, aiCommerceSessions: null, standardTryOnGenerations: null, normalStoreTraffic: 'unlimited' }, usage: { aiCommerceSessions: 0, activeCampaigns: 0, catalogItems: 4, standardTryOnGenerations: 0 }, aiCommerceSessionLimit: null, aiCommerceSessionRemaining: null, aiCommerceSessionPercentage: null, threshold: null, features: { STORE: true, CATALOG: true, CAMPAIGN: false, RECOMMENDATION: true, GENERATIVE_TRY_ON: false, COMPARE: false, BASIC_ANALYTICS: true, ADVANCED_ANALYTICS: false }, primaryAction: 'UNLOCK_AI_TRY_ON' })} />)
+    render(<MerchantPlanUsage commercial={commercial({ planCode: 'FREE', planName: 'Free', priceLabel: '$0', status: 'FREE', periodStart: null, periodEnd: null, daysRemaining: null, limits: { catalogItems: 50, activeCampaigns: 0, aiCommerceSessions: null, standardTryOnGenerations: null, normalStoreTraffic: 'unlimited' }, usage: { aiCommerceSessions: 0, activeCampaigns: 0, catalogItems: 4, standardTryOnGenerations: 0 }, aiCommerceSessionLimit: null, aiCommerceSessionRemaining: null, aiCommerceSessionPercentage: null, threshold: null, features: { STORE: true, CATALOG: true, CAMPAIGN: false, RECOMMENDATION: true, GENERATIVE_TRY_ON: false, COMPARE: false, BASIC_ANALYTICS: true, ADVANCED_ANALYTICS: false }, primaryAction: 'UNLOCK_AI_TRY_ON' })} storeStatus="ACTIVE" />)
     expect(screen.getByText('Your Store is live on the Free plan.')).toBeInTheDocument()
     expect(screen.getByText('Not included on Free')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /unlock ai try-on/i })).toBeInTheDocument()
+  })
+
+  it('does not describe a draft Store as publicly live', () => {
+    render(<MerchantPlanUsage commercial={commercial({ planCode: 'FREE', planName: 'Free', priceLabel: '$0', status: 'FREE', periodStart: null, periodEnd: null, daysRemaining: null, limits: { catalogItems: 50, activeCampaigns: 0, aiCommerceSessions: null, standardTryOnGenerations: null, normalStoreTraffic: 'unlimited' }, usage: { aiCommerceSessions: 0, activeCampaigns: 0, catalogItems: 0, standardTryOnGenerations: 0 }, aiCommerceSessionLimit: null, aiCommerceSessionRemaining: null, aiCommerceSessionPercentage: null, threshold: null, features: { STORE: true, CATALOG: true, CAMPAIGN: false, RECOMMENDATION: true, GENERATIVE_TRY_ON: false, COMPARE: false, BASIC_ANALYTICS: true, ADVANCED_ANALYTICS: false }, primaryAction: 'UNLOCK_AI_TRY_ON' })} storeStatus="DRAFT" />)
+    expect(screen.getByText('Your Store is in draft on the Free plan.')).toBeInTheDocument()
+    expect(screen.queryByText('Your Store is live on the Free plan.')).not.toBeInTheDocument()
   })
 
   it('offers the fixed Founding Pilot directly from the Free workspace', () => {

@@ -153,7 +153,7 @@ function emptyInput(item: CatalogItem): ManualRow {
   };
 }
 
-export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalogChanged }: { merchantId: string; initialTotal: number; onCatalogChanged?: () => void }) {
+export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalogChanged }: { merchantId: string; initialTotal: number; onCatalogChanged?: (state: { hasAny: boolean; hasReady: boolean }) => void }) {
   // Manual entry is the shortest guaranteed first-success path for an empty
   // catalog. Existing catalogs keep the URL-first import default.
   const [sourceType, setSourceType] = useState<SourceType>(initialTotal === 0 ? "manual" : "url");
@@ -286,7 +286,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
       if ((body.data.created ?? 0) > 0) hadCatalogAtMount.current = true;
       setProposal(null);
       await loadCatalog(false);
-      onCatalogChanged?.();
+      onCatalogChanged?.({ hasAny: (body.data.created ?? 0) > 0, hasReady: proposal.importReady.length > 0 });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to import catalog.");
     } finally {
@@ -313,7 +313,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
       setEditingId(null);
       setEditingRow(null);
       await loadCatalog(false);
-      onCatalogChanged?.();
+      onCatalogChanged?.({ hasAny: true, hasReady: true });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to save correction.");
     } finally {
@@ -322,7 +322,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
   }
 
   return (
-    <section id="catalog" className="scroll-mt-44 rounded-[2rem] border border-blue-100 bg-white p-6 shadow-sm sm:scroll-mt-24 sm:p-8">
+    <section id="catalog" className="scroll-mt-44 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:scroll-mt-24 sm:p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Human catalog</p>
@@ -343,7 +343,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
 
       {successNotice ? <div role="status" className="mt-4 flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 sm:flex-row sm:items-center sm:justify-between"><span>{successNotice}</span>{firstProductAdded ? <a href="#store" className="inline-flex items-center gap-1 font-semibold text-emerald-900 underline underline-offset-4">Create your Store <ArrowRight className="h-4 w-4" aria-hidden="true" /></a> : null}</div> : null}
 
-      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4">
         {sourceType === "url" ? <>
           <label htmlFor="merchant-catalog-url" className="text-sm font-semibold text-slate-800">Store or product URL</label>
           <input id="merchant-catalog-url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://your-store.example" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
@@ -356,7 +356,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
         </> : null}
         {sourceType === "manual" ? <div className="space-y-3">
           <p className="text-sm leading-6 text-slate-600">For your first product, add a name, a usable image, and either a merchant SKU or product page URL. Shape and other details can be added later.</p>
-          {manualRows.map((row, index) => <div key={index} className="rounded-xl border border-slate-200 bg-white p-3">
+          {manualRows.map((row, index) => <div key={index} className="rounded-lg border border-slate-200 bg-white p-3">
             <div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Product {index + 1}</span>{manualRows.length > 1 ? <button type="button" aria-label={`Remove product ${index + 1}`} onClick={() => setManualRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index))} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" aria-hidden="true" /></button> : null}</div>
             <div className="grid gap-3 sm:grid-cols-2">
               {manualFieldMeta.slice(0, 4).map(({ key, label, placeholder, required }) => <label key={key} className="block text-sm font-medium text-slate-700">
@@ -378,13 +378,13 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
           {!manualReady ? <p className="text-xs leading-5 text-slate-500">Add a product name, image URL, and either a merchant SKU or product page URL to continue.</p> : null}
         </div> : null}
         {error ? <p className="mt-3 text-sm text-red-700" role="alert">{error}</p> : null}
-        <button type="button" onClick={() => void inspect()} disabled={busy || (sourceType === "manual" && !manualReady)} className={`${buttonClass} mt-4 w-full bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}>
+        <button type="button" onClick={() => void inspect()} disabled={busy || (sourceType === "manual" && !manualReady)} className={`${buttonClass} mt-4 w-full bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:opacity-100`}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-4 w-4" aria-hidden="true" />}
           {busy ? "Checking product…" : sourceType === "manual" ? "Review product" : "Inspect and preview"}
         </button>
       </div>
 
-      {proposal ? <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 sm:p-5">
+      {proposal ? <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 sm:p-5">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
           <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">Review before import</p><h3 className="mt-1 text-lg font-semibold text-emerald-950">{proposal.sourceSummary.importReady === 1 ? "1 product is ready to add" : `${proposal.sourceSummary.importReady} products are ready to add`}</h3><p className="mt-1 text-sm text-emerald-900/80">We found {proposal.sourceSummary.foundCount} product{proposal.sourceSummary.foundCount === 1 ? "" : "s"}. Review the details, then add the ready products to your Catalog.</p><details className="mt-2 text-xs text-emerald-900/75"><summary className="cursor-pointer font-semibold">View inspection details</summary><p className="mt-1">FOUND {proposal.sourceSummary.foundCount} · IMPORT_READY {proposal.sourceSummary.importReady} · RECOMMENDATION_READY {proposal.sourceSummary.recommendationReady} · NEEDS_REVIEW {proposal.sourceSummary.needsReview} · INVALID {proposal.sourceSummary.invalid}</p>{Object.keys(proposal.sourceSummary.reasonDistribution).length > 0 ? <p className="mt-1">Review signals: {Object.entries(proposal.sourceSummary.reasonDistribution).map(([reason, count]) => `${friendlyIssue(reason)} (${count})`).join(" · ")}</p> : null}</details></div>
           {proposal.sourceSummary.platforms?.length ? <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-800">Detected: {proposal.sourceSummary.platforms.join(", ")}</span> : null}
