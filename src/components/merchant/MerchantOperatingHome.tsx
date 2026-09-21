@@ -21,10 +21,11 @@ export function MerchantOperatingHome({
   const href = (section: 'catalog' | 'store' | 'integrations') => merchantWorkspaceHref({ locale, section, merchantId })
   const campaignCount = control.experiences.filter((experience) => experience.type === 'CAMPAIGN').length
   const activeCampaignCount = control.activeCampaignCount
-  const draftCampaignCount = Math.max(0, campaignCount - activeCampaignCount)
+  const draftCampaignCount = control.experiences.filter((experience) => experience.type === 'CAMPAIGN' && experience.status === 'DRAFT').length
+  const archivedCampaignCount = control.experiences.filter((experience) => experience.type === 'CAMPAIGN' && experience.status === 'ARCHIVED').length
   const campaignBody = campaignCount === 0
     ? 'No campaigns yet'
-    : `${activeCampaignCount} active${draftCampaignCount ? ` · ${draftCampaignCount} draft` : ''}`
+    : `${activeCampaignCount} active${draftCampaignCount ? ` · ${draftCampaignCount} draft` : ''}${archivedCampaignCount ? ` · ${archivedCampaignCount} archived` : ''}`
   const summary = [
     ['Store', control.store ? statusLabel(control.store.status) : 'Not created'],
     ['Catalog', String(control.catalog.total)],
