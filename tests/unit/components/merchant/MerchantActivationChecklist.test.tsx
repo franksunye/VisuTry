@@ -19,9 +19,10 @@ describe('MerchantActivationChecklist', () => {
   it('shows the first-product CTA for a new empty Merchant', () => {
     render(<MerchantActivationChecklist control={control()} />)
 
-    expect(screen.getByRole('heading', { name: 'Get your Store ready' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /add your first product/i })).toHaveAttribute('href', '#catalog')
     expect(screen.getByText('Start with one eyewear product to see the activation path.')).toBeInTheDocument()
+    expect(screen.queryByText('Publish when ready')).not.toBeInTheDocument()
   })
 
   it('keeps an invalid or pending item in the first-product step', () => {
@@ -45,6 +46,12 @@ describe('MerchantActivationChecklist', () => {
 
   it('does not take over an already active Store workspace', () => {
     const { container } = render(<MerchantActivationChecklist control={control({ store: { id: 'store-a', type: 'STORE', name: 'Store', slug: 'store', status: 'ACTIVE', frameCount: 1, referenceData: false, publicPath: '/en/store/merchant-a', headline: null, description: null, primaryCtaLabel: null, startAt: null, endAt: null, selectedFrames: [], readiness: { status: 'VALID', validCount: 1, invalidCount: 0, issues: [] }, lastOperation: null, policy: { objective: null, gate: null, presentation: 'PRODUCT_FIRST' }, updatedAt: '2026-09-07T00:00:00.000Z' } })} />)
+
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('ends the first-use checklist after the private Store Preview milestone', () => {
+    const { container } = render(<MerchantActivationChecklist control={control()} firstValueAchieved />)
 
     expect(container).toBeEmptyDOMElement()
   })

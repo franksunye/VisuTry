@@ -27,6 +27,7 @@ describe('MerchantControlCenter', () => {
   it('renders the three-step connection surface and mobile-safe stacked sections', () => {
     render(<MerchantControlCenter {...baseProps} />)
     expect(screen.getByText('https://www.visutry.com/api/mcp')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add your first product' })).toBeInTheDocument()
     expect(screen.getByText('Connect your Agent')).toBeInTheDocument()
     expect(screen.getByText('Copy the Agent prompt')).toBeInTheDocument()
     expect(screen.getByText('Talk to your Agent')).toBeInTheDocument()

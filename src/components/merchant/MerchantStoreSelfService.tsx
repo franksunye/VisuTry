@@ -181,7 +181,7 @@ async function readResponse<T>(response: Response): Promise<T> {
   return body.data;
 }
 
-export function MerchantStoreSelfService({ merchantId, initialCatalogCount, catalogAvailable = false, onStoreChanged }: { merchantId: string; initialCatalogCount: number; catalogAvailable?: boolean; onStoreChanged?: () => void }) {
+export function MerchantStoreSelfService({ merchantId, initialCatalogCount, catalogAvailable = false, onStoreChanged, onFirstValueAchieved }: { merchantId: string; initialCatalogCount: number; catalogAvailable?: boolean; onStoreChanged?: () => void; onFirstValueAchieved?: () => void }) {
   const hasCatalog = initialCatalogCount > 0 || catalogAvailable;
   const apiBase = `/api/merchant/${encodeURIComponent(merchantId)}/store`;
   const [workspace, setWorkspace] = useState<StoreWorkspace | null>(null);
@@ -245,9 +245,15 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
     setBusy(true); setError(null); setNotice(null);
     try {
       const response = await fetch(apiBase, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: name.trim() || undefined, headline: headline.trim() || undefined, description: description.trim() || undefined }) });
-      const data = await readResponse<{ created: boolean }>(response);
+      const data = await readResponse<{ created: boolean; id: string }>(response);
       if (data.created) analytics.trackCustomEvent(AnalyticsEvent.MerchantStoreCreated, { merchant_id: merchantId, source_journey: "merchant_workspace_store" });
-      setNotice("Your Store draft is ready. Select the products you want to display.");
+      const eligibleFrames = catalog.filter((frame) => frame.storeReadiness.storeEligible);
+      if (data.created && eligibleFrames.length === 1) {
+        await readResponse(await fetch(apiBase, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ storeId: data.id, frameIds: [eligibleFrames[0].id] }) }));
+        setNotice("Your Store draft is ready with your first product selected.");
+      } else {
+        setNotice("Your Store draft is ready. Choose the products you want to display.");
+      }
       await loadWorkspace();
       onStoreChanged?.();
     } catch (requestError) {
@@ -301,6 +307,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
       }).catch(() => {
         // Activation telemetry must never block a private Store preview.
       });
+      onFirstValueAchieved?.();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to preview your Store.");
     } finally { setBusy(false); }

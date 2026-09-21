@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchant: { findUnique: jest.fn() },
+    merchantActivationEvent: { findFirst: jest.fn() },
     experience: { findMany: jest.fn(), count: jest.fn() },
     merchantSession: { count: jest.fn() },
     merchantAgentCredential: { count: jest.fn() },
@@ -30,6 +31,7 @@ jest.mock('@/modules/merchant/application/merchant-commerce-intelligence', () =>
 
 const db = prisma as unknown as {
   merchant: { findUnique: jest.Mock }
+  merchantActivationEvent: { findFirst: jest.Mock }
   experience: { findMany: jest.Mock; count: jest.Mock }
   merchantSession: { count: jest.Mock }
   merchantAgentCredential: { count: jest.Mock }
@@ -42,6 +44,7 @@ describe('merchant control center read model', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     db.merchant.findUnique.mockResolvedValue({ id: 'merchant-a', slug: 'alpha', name: 'Alpha', status: 'ACTIVE', referenceData: false })
+    db.merchantActivationEvent.findFirst.mockResolvedValue(null)
     db.experience.findMany.mockResolvedValue([
       { id: 'store-a', type: 'STORE', name: 'Alpha Store', slug: 'alpha', status: 'ACTIVE', headline: null, description: null, primaryCtaLabel: null, startAt: null, endAt: null, campaignObjective: null, campaignGate: null, presentationMode: null, referenceData: false, updatedAt: new Date('2026-08-01'), frames: [{ merchantFrameId: 'frame-a', merchantFrame: { id: 'frame-a', sku: 'A-1', name: 'Frame A', brand: 'Alpha', imageUrl: 'https://example.com/a.jpg', shape: 'ROUND', widthClass: null, source: 'MANUAL', status: 'ACTIVE', enrichmentStatus: 'APPROVED' } }] },
       { id: 'campaign-a', type: 'CAMPAIGN', name: 'Historical Campaign', slug: 'historical', status: 'ACTIVE', headline: null, description: null, primaryCtaLabel: null, startAt: null, endAt: null, campaignObjective: null, campaignGate: null, presentationMode: null, referenceData: false, updatedAt: new Date('2026-08-02'), frames: [] },

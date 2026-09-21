@@ -185,12 +185,12 @@ test.describe('Human Merchant Store G3', () => {
     ])
     expect(inspectResponse.ok()).toBeTruthy()
     await expect(page.getByText('Review before import', { exact: true })).toBeVisible()
-    await expect(page.getByText(/FOUND 4 · IMPORT_READY 4 · RECOMMENDATION_READY 3 · NEEDS_REVIEW 1/i)).toBeVisible()
+    await expect(page.getByRole('heading', { name: '4 products are ready to add' })).toBeVisible()
     await page.getByRole('button', { name: /approve and import 4/i }).click()
     await expect(page.getByText('G3 Shape-Pending Frame')).toBeVisible()
 
     await expect(page.getByRole('heading', { name: /create your store/i })).toBeVisible()
-    await page.getByRole('button', { name: /^create store$/i }).click()
+    await page.getByRole('button', { name: /^create store draft$/i }).click()
     await expect(page.getByRole('heading', { name: /set up your store/i })).toBeVisible()
     await expect(page.getByText('Available in Store · Recommendation enrichment pending')).toBeVisible()
     expect(createCalls).toBe(1)
@@ -215,7 +215,7 @@ test.describe('Human Merchant Store G3', () => {
     await expect(page.getByText('Store products saved.')).toBeVisible()
     const [previewResponse] = await Promise.all([
       page.waitForResponse((response) => response.url().includes('/store/preview')),
-      page.getByRole('button', { name: /preview store/i }).click(),
+      page.getByRole('button', { name: /preview your store/i }).click(),
     ])
     expect(previewResponse.ok()).toBeTruthy()
     await expect(page.getByTestId('store-draft-preview')).toContainText('G3 Preview Collection')

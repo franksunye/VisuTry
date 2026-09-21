@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign-policy'
 import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/modules/store/domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
+import { MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
 import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import type { MerchantFrameReadiness } from '../domain/merchant-frame-readiness'
@@ -60,6 +61,7 @@ export type MerchantControlExperience = {
 
 export type MerchantControlCenter = {
   merchant: { id: string; slug: string; name: string; websiteUrl: string | null; status: string; referenceData: boolean }
+  activation?: { storePreviewedAt: string | null }
   store: MerchantControlExperience | null
   catalog: MerchantCatalogSummary
   experiences: MerchantControlExperience[]
@@ -105,7 +107,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
   })
   if (!merchant) return null
 
-  const [experiences, shopperSessions, activeCredentials, catalogFrames, commerceIntelligence, commercialState] = await Promise.all([
+  const [experiences, shopperSessions, activeCredentials, catalogFrames, commerceIntelligence, commercialState, storePreviewEvent] = await Promise.all([
     prisma.experience.findMany({
       where: { merchantId: merchant.id },
       orderBy: { updatedAt: 'desc' },
@@ -122,6 +124,11 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     prisma.merchantFrame.findMany({ where: { merchantId: merchant.id }, orderBy: { name: 'asc' }, select: { id: true, sku: true, externalId: true, productUrl: true, name: true, brand: true, imageUrl: true, shape: true, widthClass: true, source: true, status: true, enrichmentStatus: true } }),
     getMerchantCommerceIntelligence({ merchantId: merchant.id }),
     getMerchantCommercialState({ merchantId: merchant.id }),
+    prisma.merchantActivationEvent.findFirst({
+      where: { merchantId: merchant.id, eventType: MERCHANT_ACTIVATION_EVENT.STORE_PREVIEWED },
+      orderBy: [{ occurredAt: 'asc' }, { createdAt: 'asc' }],
+      select: { occurredAt: true },
+    }),
   ])
 
   const operationRows = await prisma.merchantOperationAudit.findMany({ where: { merchantId: merchant.id, resourceType: 'Experience' }, orderBy: { createdAt: 'desc' }, select: { resourceId: true, action: true, actorType: true, createdAt: true } })
@@ -182,6 +189,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
 
   return {
     merchant,
+    activation: { storePreviewedAt: storePreviewEvent?.occurredAt.toISOString() ?? null },
     store: mapped.find((experience) => experience.type === 'STORE') ?? null,
     catalog: {
       total: catalogMapped.length,

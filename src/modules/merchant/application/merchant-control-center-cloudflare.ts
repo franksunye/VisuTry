@@ -34,6 +34,7 @@ export type MerchantControlExperience = {
 
 export type MerchantControlCenter = {
   merchant: { id: string; slug: string; name: string; websiteUrl: string | null; status: string; referenceData: boolean }
+  activation?: { storePreviewedAt: string | null }
   store: MerchantControlExperience | null
   experiences: MerchantControlExperience[]
   activeCampaignCount: number
@@ -217,7 +218,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     sql`SELECT "merchantSessionId", "experienceId", "merchantFrameId", "type", count(*)::int AS "count" FROM "MerchantEvent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} GROUP BY "merchantSessionId", "experienceId", "merchantFrameId", "type"`,
     sql`SELECT "merchantSessionId", "experienceId", "type", count(*)::int AS "count" FROM "MerchantIntent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} GROUP BY "merchantSessionId", "experienceId", "type"`,
   ])
-  const [experiences, catalogRows, selectedFrameRows, auditRows, currentWindow, previousWindow, credentialCount, aiUsageRows, renderUsageRows] = await Promise.all([
+  const [experiences, catalogRows, selectedFrameRows, auditRows, currentWindow, previousWindow, credentialCount, aiUsageRows, renderUsageRows, storePreviewRows] = await Promise.all([
     sql`
       SELECT e."id", e."type", e."name", e."slug", e."status", e."campaignObjective",
         e."campaignGate", e."presentationMode", e."referenceData", e."headline", e."description",
@@ -237,6 +238,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     sql`SELECT count(*)::int AS "count" FROM "MerchantAgentCredential" WHERE "merchantId" = ${input.merchantId} AND "status" = 'ACTIVE'`,
     sql`SELECT "createdAt" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = 'AI_COMMERCE_SESSION' ORDER BY "createdAt" ASC`,
     sql`SELECT "createdAt" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = 'RENDER_SUCCESS' ORDER BY "createdAt" ASC`,
+    sql`SELECT "occurredAt" FROM "MerchantActivationEvent" WHERE "merchantId" = ${input.merchantId} AND "eventType" = 'merchant_store_previewed' ORDER BY "occurredAt" ASC, "createdAt" ASC LIMIT 1`,
   ])
 
   const selectedByExperience = new Map<string, MerchantCatalogFrameSummary[]>()
@@ -346,6 +348,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
       status: String(merchant.status),
       referenceData: Boolean(merchant.referenceData),
     },
+    activation: { storePreviewedAt: storePreviewRows[0]?.occurredAt == null ? null : new Date(String(storePreviewRows[0].occurredAt)).toISOString() },
     store: mapped.find((experience) => experience.type === 'STORE') ?? null,
     experiences: mapped,
     catalog: catalogSummary(catalogRows as CatalogRow[]),

@@ -39,7 +39,7 @@ Business → Local QA Clean Merchant → name gate → workspace
 It stops before Publish and before payment. All Merchant, Catalog, Store, and
 activation writes use the real local application and local PostgreSQL. The
 deterministic product image is repository-owned at
-`/glasses-presets/large-round-classic.jpg`.
+`/assets/glasses-presets/large-round-classic.jpg`.
 
 ## P1-M1 First Value validation
 
@@ -53,9 +53,16 @@ Clean Merchant
 → product name + image + SKU or product URL
 → Review product → Approve and import
 → Create Store draft
-→ select product → Save products
+→ when exactly one eligible product exists, it is selected automatically
+→ when multiple products exist, select products → Save products
 → Preview your Store
 ```
+
+The first-use path deliberately stops at the private Preview. Publish, Store
+customization, additional products, and Agent connection remain available as
+follow-up actions after First Value; they are not prerequisites for it. The
+Merchant workspace surfaces the human action first and keeps Agent connection
+as a secondary accelerator.
 
 The first-product form keeps the minimum identity fields visible and moves
 shape, brand, and price into optional details. After the first import, the

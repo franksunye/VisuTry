@@ -152,16 +152,27 @@ function StatusPill({ status }: { status: string }) {
 function Overview({
   control,
   agentReady,
+  firstValueAchieved,
   onAgentAccess,
   onCatalog,
   onStore,
 }: {
   control: MerchantControlCenterModel;
   agentReady: boolean;
+  firstValueAchieved: boolean;
   onAgentAccess: () => void;
   onCatalog: () => void;
   onStore: () => void;
 }) {
+  const nextAction = !control.catalog.total
+    ? { label: "Add your first product", onClick: onCatalog }
+    : !control.store
+      ? { label: "Create your Store", onClick: onStore }
+      : !control.store.frameCount
+        ? { label: "Choose products", onClick: onStore }
+        : firstValueAchieved
+          ? { label: "Open Store setup", onClick: onStore }
+          : { label: "Preview your Store", onClick: onStore };
   const cards = [
     {
       label: "Agent connection",
@@ -210,6 +221,14 @@ function Overview({
           <button
             type="button"
             className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`}
+            onClick={nextAction.onClick}
+          >
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            {nextAction.label}
+          </button>
+          <button
+            type="button"
+            className={`${buttonClass} border border-blue-200 bg-white text-blue-800 hover:border-blue-400`}
             onClick={onAgentAccess}
           >
             <KeyRound className="h-4 w-4" aria-hidden="true" />
@@ -217,18 +236,11 @@ function Overview({
           </button>
           {control.catalog.total > 0 ? <button
             type="button"
-            className={`${buttonClass} border border-blue-200 bg-white text-blue-800 hover:border-blue-400`}
-            onClick={onStore}
-          >
-            {control.store ? "Open Store setup" : "Create your Store"}
-          </button> : null}
-          <button
-            type="button"
             className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:border-blue-300`}
             onClick={onCatalog}
           >
-            {control.catalog.total > 0 ? "Manage catalog" : "Add eyewear catalog"}
-          </button>
+            Manage catalog
+          </button> : null}
         </div>
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -1405,6 +1417,7 @@ export function MerchantControlCenter({
       credentials.some((credential) => credential.status === "ACTIVE"),
   );
   const [catalogAvailable, setCatalogAvailable] = useState(control.catalog.total > 0);
+  const [firstValueAchieved, setFirstValueAchieved] = useState(control.activation?.storePreviewedAt != null);
   useEffect(() => {
     const { signupCorrelationId } = getMerchantActivationContext();
     analytics.trackCustomEvent(AnalyticsEvent.MerchantWorkspaceEntered, {
@@ -1548,10 +1561,26 @@ export function MerchantControlCenter({
             </a>
           </section>
         ) : null}
-        <MerchantActivationChecklist control={control} />
+        <MerchantActivationChecklist control={control} firstValueAchieved={control.activation?.storePreviewedAt != null || firstValueAchieved} />
+        <MerchantCatalogSelfService
+          merchantId={control.merchant.id}
+          initialTotal={control.catalog.total}
+          onCatalogChanged={() => {
+            setCatalogAvailable(true)
+            router.refresh()
+          }}
+        />
+        <MerchantStoreSelfService
+          merchantId={control.merchant.id}
+          initialCatalogCount={control.catalog.total}
+          catalogAvailable={catalogAvailable}
+          onFirstValueAchieved={() => setFirstValueAchieved(true)}
+          onStoreChanged={() => router.refresh()}
+        />
         <Overview
           control={control}
           agentReady={agentReady}
+          firstValueAchieved={firstValueAchieved}
           onAgentAccess={() =>
             document
               .getElementById("agent-access")
@@ -1581,20 +1610,6 @@ export function MerchantControlCenter({
           skills={skills}
           initialCredentials={credentials}
           onCredentialsChanged={handleCredentialsChanged}
-        />
-        <MerchantCatalogSelfService
-          merchantId={control.merchant.id}
-          initialTotal={control.catalog.total}
-          onCatalogChanged={() => {
-            setCatalogAvailable(true)
-            router.refresh()
-          }}
-        />
-        <MerchantStoreSelfService
-          merchantId={control.merchant.id}
-          initialCatalogCount={control.catalog.total}
-          catalogAvailable={catalogAvailable}
-          onStoreChanged={() => router.refresh()}
         />
         <Experiences
           experiences={control.experiences}
