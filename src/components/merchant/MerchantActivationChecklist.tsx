@@ -46,7 +46,9 @@ export function MerchantActivationChecklist({ control }: Props) {
       title: "Preview your Store",
       body: hasPreviewableStore
         ? "Review the Store presentation before it is public."
-        : "Choose the product you want shoppers to see.",
+        : hasStore
+          ? "Choose the product you want shoppers to see, then preview it privately."
+          : "Create a Store draft, then preview it privately.",
       complete: false,
     },
     {
@@ -60,9 +62,11 @@ export function MerchantActivationChecklist({ control }: Props) {
   const target = !hasReadyCatalog ? "catalog" : "store";
   const actionLabel = !hasAnyCatalog
     ? "Add your first product"
-    : hasReadyCatalog
-      ? "Preview your Store"
-      : "Open Catalog";
+    : !hasReadyCatalog
+      ? "Open Catalog"
+      : !hasStore
+        ? "Create your Store"
+        : "Preview your Store";
 
   return (
     <section

@@ -7,7 +7,7 @@ const isLocalLabRun = process.env.NODE_ENV === 'test'
   && process.env.P0_L1_LOCAL_MERCHANT_E2E === '1'
   && /^http:\/\/(127\.0\.0\.1|localhost):3001$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
 
-test.describe('P0-L1 Local Merchant Growth Lab', () => {
+test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
   test('runs the real local acquisition-to-private-preview journey', async ({ page, request, context }) => {
     test.skip(!isLocalLabRun, 'Run npm run merchant:local:e2e with the Local server already running.')
 
@@ -55,25 +55,28 @@ test.describe('P0-L1 Local Merchant Growth Lab', () => {
     await nameField.fill('Local Growth Lab Eyewear')
     await page.getByRole('button', { name: /create merchant workspace/i }).click()
     await expect(page.getByRole('status')).toContainText('Merchant workspace created successfully')
+    await expect(page.getByRole('link', { name: 'Add your first product' })).toBeVisible()
 
     await page.getByRole('tab', { name: 'Add manually' }).click()
-    await page.getByLabel('sku for product 1').fill('LOCAL-FRAME-001')
-    await page.getByLabel('name for product 1').fill('Local Growth Round Frame')
-    await page.getByLabel('shape for product 1').fill('round')
-    await page.getByLabel('imageUrl for product 1').fill(`${process.env.PLAYWRIGHT_BASE_URL}/assets/glasses-presets/large-round-classic.jpg`)
-    await page.getByLabel('brand for product 1').fill('VisuTry Local QA')
-    await page.getByRole('button', { name: 'Inspect and preview' }).click()
+    await page.getByLabel('Product name for product 1').fill('Local Growth Round Frame')
+    await page.getByLabel('Product image URL for product 1').fill(`${process.env.PLAYWRIGHT_BASE_URL}/assets/glasses-presets/large-round-classic.jpg`)
+    await page.getByLabel('Merchant SKU for product 1').fill('LOCAL-FRAME-001')
+    await expect(page.getByRole('button', { name: 'Review product' })).toBeEnabled()
+    await page.getByRole('button', { name: 'Review product' }).click()
     await expect(page.getByText(/FOUND 1 · IMPORT_READY 1/)).toBeVisible()
     await page.getByRole('button', { name: /Approve and import 1/ }).click()
     await expect(page.getByText('Your first product is in the Catalog.', { exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Create your Store/ })).toBeVisible()
 
     await expect(page.getByRole('heading', { name: 'Create your Store' })).toBeVisible()
-    await page.getByRole('button', { name: 'Create Store' }).click()
+    await expect(page.getByRole('link', { name: 'Create your Store' })).toBeVisible()
+    await expect(page.getByText('Add Store details (optional)')).toBeVisible()
+    await page.getByRole('button', { name: 'Create Store draft' }).click()
     await expect(page.getByRole('heading', { name: 'Set up your Store' })).toBeVisible()
     await page.getByRole('checkbox').first().check()
     await page.getByRole('button', { name: 'Save products' }).click()
     await expect(page.getByText('Store products saved.', { exact: true })).toBeVisible()
-    await page.getByRole('button', { name: 'Preview Store' }).click()
+    await page.getByRole('button', { name: 'Preview your Store' }).click()
     await expect(page.getByTestId('store-draft-preview')).toBeVisible()
     await expect(page.getByText('Private draft preview', { exact: true })).toBeVisible()
     await expect(page.getByText('DRAFT · not public')).toBeVisible()
