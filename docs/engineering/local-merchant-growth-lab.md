@@ -64,6 +64,15 @@ follow-up actions after First Value; they are not prerequisites for it. The
 Merchant workspace surfaces the human action first and keeps Agent connection
 as a secondary accelerator.
 
+The workspace has two lifecycle modes. Before `merchant_store_previewed`, the
+visual order is activation-first: Checklist, Catalog, and Store. After that
+durable milestone, the layout returns to operating-first: Overview, status and
+attention surfaces, then Catalog and Store for ongoing management. Sticky
+navigation follows the same rule: activation mode shows Overview, Catalog, and
+Store; operating mode restores Insights, Setup, Status, Catalog, and Store.
+Switching Merchants remounts the keyed client workspace so lifecycle and local
+control state cannot leak between Merchant contexts.
+
 The first-product form keeps the minimum identity fields visible and moves
 shape, brand, and price into optional details. After the first import, the
 success state links directly to Store setup. The Store draft uses its default

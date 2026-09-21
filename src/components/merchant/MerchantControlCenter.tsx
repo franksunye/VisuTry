@@ -1395,7 +1395,7 @@ function Experiences({
   );
 }
 
-export function MerchantControlCenter({
+function MerchantControlCenterView({
   locale,
   merchants,
   selectedMerchantId,
@@ -1500,35 +1500,60 @@ export function MerchantControlCenter({
               >
                 Overview
               </a>
-              <a
-                className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                href="#insights"
-              >
-                Insights
-              </a>
-              <a
-                className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                href="#agent-access"
-              >
-                Setup
-              </a>
-              <a
-                className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                href="#experiences"
-              >
-                Status
-              </a>
-              <a
-                className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                href="#catalog"
-              >
-                Catalog
-              </a>
+              {firstValueAchieved ? (
+                <>
+                  <a
+                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
+                    href="#insights"
+                  >
+                    Insights
+                  </a>
+                  <a
+                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
+                    href="#agent-access"
+                  >
+                    Setup
+                  </a>
+                  <a
+                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
+                    href="#experiences"
+                  >
+                    Status
+                  </a>
+                  <a
+                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
+                    href="#catalog"
+                  >
+                    Catalog
+                  </a>
+                  <a
+                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
+                    href="#store"
+                  >
+                    Store
+                  </a>
+                </>
+              ) : (
+                <>
+                  <a
+                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
+                    href="#catalog"
+                  >
+                    Catalog
+                  </a>
+                  <a
+                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
+                    href="#store"
+                  >
+                    Store
+                  </a>
+                </>
+              )}
             </nav>
           </div>
         </div>
       </header>
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
         {billingState === "processing" && control.commercial ? <MerchantBillingProcessingNotice merchantId={control.merchant.id} commercial={control.commercial} targetPlan={billingPlan} /> : null}
         {billingState === "cancelled" ? (
           <section role="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-800 sm:px-6">
@@ -1561,66 +1586,90 @@ export function MerchantControlCenter({
             </a>
           </section>
         ) : null}
-        <MerchantActivationChecklist control={control} firstValueAchieved={control.activation?.storePreviewedAt != null || firstValueAchieved} />
-        <MerchantCatalogSelfService
-          merchantId={control.merchant.id}
-          initialTotal={control.catalog.total}
-          onCatalogChanged={() => {
-            setCatalogAvailable(true)
-            router.refresh()
-          }}
-        />
-        <MerchantStoreSelfService
-          merchantId={control.merchant.id}
-          initialCatalogCount={control.catalog.total}
-          catalogAvailable={catalogAvailable}
-          onFirstValueAchieved={() => setFirstValueAchieved(true)}
-          onStoreChanged={() => router.refresh()}
-        />
-        <Overview
-          control={control}
-          agentReady={agentReady}
-          firstValueAchieved={firstValueAchieved}
-          onAgentAccess={() =>
-            document
-              .getElementById("agent-access")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
-          onCatalog={() =>
-            document
-              .getElementById("catalog")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
-          onStore={() =>
-            document
-              .getElementById("store")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
-        />
-        <WorkspaceDetails
-          merchantId={control.merchant.id}
-          initialName={control.merchant.name}
-          initialWebsiteUrl={control.merchant.websiteUrl}
-        />
-        {control.commercial ? <MerchantPlanUsage commercial={control.commercial} merchantId={control.merchant.id} locale={locale} /> : null}
-        <CommerceIntelligence insights={control.commerceIntelligence} />
-        <AgentAccess
-          merchantId={control.merchant.id}
-          endpoint={endpoint}
-          skills={skills}
-          initialCredentials={credentials}
-          onCredentialsChanged={handleCredentialsChanged}
-        />
-        <Experiences
-          experiences={control.experiences}
-          catalog={control.catalog}
-          onAgentAccess={() =>
-            document
-              .getElementById("agent-access")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
-        />
+        <div className="flex flex-col gap-6">
+          <div className={firstValueAchieved ? "order-8" : "order-1"}>
+            <MerchantActivationChecklist control={control} firstValueAchieved={firstValueAchieved} />
+          </div>
+          <div className={firstValueAchieved ? "order-7" : "order-2"}>
+            <MerchantCatalogSelfService
+              merchantId={control.merchant.id}
+              initialTotal={control.catalog.total}
+              onCatalogChanged={() => {
+                setCatalogAvailable(true)
+                router.refresh()
+              }}
+            />
+          </div>
+          <div className={firstValueAchieved ? "order-8" : "order-3"}>
+            <MerchantStoreSelfService
+              merchantId={control.merchant.id}
+              initialCatalogCount={control.catalog.total}
+              catalogAvailable={catalogAvailable}
+              onFirstValueAchieved={() => setFirstValueAchieved(true)}
+              onStoreChanged={() => router.refresh()}
+            />
+          </div>
+          <div className={firstValueAchieved ? "order-1" : "order-4"}>
+            <Overview
+              control={control}
+              agentReady={agentReady}
+              firstValueAchieved={firstValueAchieved}
+              onAgentAccess={() =>
+                document
+                  .getElementById("agent-access")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+              onCatalog={() =>
+                document
+                  .getElementById("catalog")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+              onStore={() =>
+                document
+                  .getElementById("store")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+            />
+          </div>
+          <div className={firstValueAchieved ? "order-2" : "order-5"}>
+            <WorkspaceDetails
+              merchantId={control.merchant.id}
+              initialName={control.merchant.name}
+              initialWebsiteUrl={control.merchant.websiteUrl}
+            />
+          </div>
+          <div className={firstValueAchieved ? "order-3" : "order-6"}>
+            {control.commercial ? <MerchantPlanUsage commercial={control.commercial} merchantId={control.merchant.id} locale={locale} /> : null}
+          </div>
+          <div className={firstValueAchieved ? "order-4" : "order-7"}>
+            <CommerceIntelligence insights={control.commerceIntelligence} />
+          </div>
+          <div className={firstValueAchieved ? "order-5" : "order-8"}>
+            <AgentAccess
+              merchantId={control.merchant.id}
+              endpoint={endpoint}
+              skills={skills}
+              initialCredentials={credentials}
+              onCredentialsChanged={handleCredentialsChanged}
+            />
+          </div>
+          <div className={firstValueAchieved ? "order-6" : "order-9"}>
+            <Experiences
+              experiences={control.experiences}
+              catalog={control.catalog}
+              onAgentAccess={() =>
+                document
+                  .getElementById("agent-access")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+            />
+          </div>
+        </div>
       </div>
     </main>
   );
+}
+
+export function MerchantControlCenter(props: Props) {
+  return <MerchantControlCenterView key={props.selectedMerchantId} {...props} />;
 }
