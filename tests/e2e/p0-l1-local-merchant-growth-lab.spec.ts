@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { mkdirSync } from 'node:fs'
 
 const isLocalLabRun = process.env.NODE_ENV === 'test'
   && process.env.APP_ENV === 'local'
@@ -80,6 +81,44 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByText('Private draft preview', { exact: true })).toBeVisible()
     await expect(page.getByText('DRAFT · not public')).toBeVisible()
     await expect(page.getByRole('checkbox', { name: /confirm this store is ready/i })).not.toBeChecked()
+
+    // Operating-shell route QA starts only after the real First Value event.
+    // Screenshots stay outside the repository so this remains evidence, not
+    // a product fixture or a tracked visual baseline.
+    const evidenceDir = '/tmp/visutry-p1-m2-1-operating-shell'
+    mkdirSync(evidenceDir, { recursive: true })
+    await page.goto('/en/merchant', { waitUntil: 'networkidle' })
+    await page.screenshot({ path: `${evidenceDir}/home-desktop.png`, fullPage: true })
+    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Catalog' }).first()).toHaveAttribute('href', /\/en\/merchant\/catalog\?merchantId=/)
+    await page.goto('/en/merchant/catalog', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Add your eyewear catalog' })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/catalog-desktop.png`, fullPage: true })
+    await page.goto('/en/merchant/store', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: /Set up your Store|Store — Live/ })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/store-desktop.png`, fullPage: true })
+    await page.goto('/en/merchant/campaigns', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Campaigns' })).toBeVisible()
+    await page.goto('/en/merchant/analytics', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Understand shopper intent' })).toBeVisible()
+    await page.goto('/en/merchant/integrations', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: /Connect your Agent/ })).toBeVisible()
+    await page.goto('/en/merchant/plan', { waitUntil: 'networkidle' })
+    await expect(page.locator('main').getByText('Plan & Usage').last()).toBeVisible()
+    await page.goto('/en/merchant/settings', { waitUntil: 'networkidle' })
+    await expect(page.getByText('Workspace details')).toBeVisible()
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/en/merchant', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/home-mobile.png`, fullPage: true })
+    await page.goto('/en/merchant/catalog', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: 'Add your eyewear catalog' })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/catalog-mobile.png`, fullPage: true })
+    await page.goto('/en/merchant/store', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: /Set up your Store|Store — Live/ })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/store-mobile.png`, fullPage: true })
+
     expect(browserErrors).toEqual([])
     expect(serverErrors).toEqual([])
   })
