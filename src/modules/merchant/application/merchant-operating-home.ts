@@ -33,8 +33,9 @@ const homeFrameSelect = {
   enrichmentStatus: true,
 } as const
 
-function commercialAttention(status: string): boolean {
-  return ['PAYMENT_ACTION_REQUIRED', 'PAST_DUE', 'USAGE_WARNING', 'USAGE_EXHAUSTED', 'EXPIRED', 'PILOT_EXPIRED'].includes(status)
+function commercialAttention(status: string, threshold: string | null): boolean {
+  return ['PAYMENT_ACTION_REQUIRED', 'PAST_DUE', 'USAGE_EXHAUSTED', 'EXPIRED', 'PILOT_EXPIRED'].includes(status)
+    || (status === 'USAGE_WARNING' && threshold === 'WARNING')
 }
 
 function periodLabel(from: string, to: string): string {
@@ -143,7 +144,8 @@ export async function getMerchantOperatingHome(input: { merchantId: string }): P
     commercial: {
       status: commercial.status,
       planName: commercial.planName,
-      attention: commercialAttention(commercial.status),
+      threshold: commercial.threshold,
+      attention: commercialAttention(commercial.status, commercial.threshold),
     },
   }
 }

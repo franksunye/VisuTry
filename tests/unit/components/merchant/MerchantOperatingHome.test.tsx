@@ -9,7 +9,7 @@ function home(overrides: Partial<MerchantOperatingHomeReadModel> = {}): Merchant
     catalog: { total: 1, ready: 1, issueCount: 0 },
     campaigns: { total: 0, active: 0, draft: 0, archived: 0, needsAttention: 0 },
     shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 0 }] },
-    commercial: { status: 'FREE', planName: 'Free', attention: false },
+    commercial: { status: 'FREE', planName: 'Free', threshold: null, attention: false },
     ...overrides,
   }
 }
@@ -50,9 +50,28 @@ describe('MerchantOperatingHome', () => {
   })
 
   it('shows commercial attention without offering a billing mutation', () => {
-    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({ commercial: { status: 'PAST_DUE', planName: 'Growth', attention: true } })} />)
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({ commercial: { status: 'PAST_DUE', planName: 'Growth', threshold: null, attention: true } })} />)
     expect(screen.getByText('Plan & Usage needs attention')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Review Plan & Usage' })).toHaveAttribute('href', '/en/merchant/plan?merchantId=merchant-a')
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('keeps a 70% NOTICE informational instead of showing commercial Attention', () => {
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({
+      commercial: { status: 'USAGE_WARNING', planName: 'Growth', threshold: 'NOTICE', attention: false },
+    })} />)
+    expect(screen.queryByText('Plan & Usage needs attention')).not.toBeInTheDocument()
+  })
+
+  it('surfaces a missing or incomplete Store as Store Attention', () => {
+    const { rerender } = render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({
+      store: { exists: false, status: null, selectedProductCount: 0, eligibleProductCount: 0, readiness: null },
+    })} />)
+    expect(screen.getByText('Store needs setup')).toBeInTheDocument()
+
+    rerender(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({
+      store: { exists: true, status: 'DRAFT', selectedProductCount: 0, eligibleProductCount: 0, readiness: 'INCOMPLETE' },
+    })} />)
+    expect(screen.getByText('Store needs review')).toBeInTheDocument()
   })
 })

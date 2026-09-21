@@ -33,6 +33,7 @@ export type MerchantOperatingHomeReadModel = {
   commercial: {
     status: string
     planName: string
+    threshold: 'NORMAL' | 'NOTICE' | 'WARNING' | 'LIMIT_REACHED' | null
     attention: boolean
   }
 }
@@ -88,10 +89,12 @@ export function resolveMerchantHomePresentation(
     })
   }
 
-  if (read.store.readiness === 'NEEDS_ATTENTION') {
+  if (!read.store.exists || read.store.readiness === 'INCOMPLETE' || read.store.readiness === 'NEEDS_ATTENTION') {
     attention.push({
-      title: 'Store needs review',
-      body: 'Some Store content is not ready for a reliable shopper experience.',
+      title: read.store.exists ? 'Store needs review' : 'Store needs setup',
+      body: read.store.exists
+        ? 'Some Store content is not ready for a reliable shopper experience.'
+        : 'Create a Store to make your catalog available to shoppers.',
       section: 'store',
       label: 'Review Store',
     })
@@ -118,7 +121,7 @@ export function resolveMerchantHomePresentation(
   let recommendedAction: MerchantHomePresentation['recommendedAction']
   if (read.catalog.issueCount > 0) {
     recommendedAction = { label: 'Review Catalog', section: 'catalog', reason: 'Resolve product readiness issues.' }
-  } else if (!read.store.exists || read.store.readiness === 'NEEDS_ATTENTION' || read.store.status === 'DRAFT') {
+  } else if (!read.store.exists || read.store.readiness === 'INCOMPLETE' || read.store.readiness === 'NEEDS_ATTENTION' || read.store.status === 'DRAFT') {
     recommendedAction = { label: 'Review Store', section: 'store', reason: 'Keep your Store ready for shoppers.' }
   } else if (read.campaigns.needsAttention > 0) {
     recommendedAction = { label: 'Review Campaigns', section: 'campaigns', reason: 'Resolve Campaign work that needs attention.' }

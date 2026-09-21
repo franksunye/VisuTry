@@ -7,7 +7,7 @@ function read(overrides: Partial<MerchantOperatingHomeReadModel> = {}): Merchant
     catalog: { total: 1, ready: 1, issueCount: 0 },
     campaigns: { total: 0, active: 0, draft: 0, archived: 0, needsAttention: 0 },
     shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [] },
-    commercial: { status: 'FREE', planName: 'Free', attention: false },
+    commercial: { status: 'FREE', planName: 'Free', threshold: null, attention: false },
     ...overrides,
   }
 }
@@ -27,8 +27,21 @@ describe('resolveMerchantHomePresentation', () => {
   })
 
   it('surfaces commercial attention only for an actionable commercial state', () => {
-    const result = resolveMerchantHomePresentation(read({ commercial: { status: 'USAGE_EXHAUSTED', planName: 'Growth', attention: true } }))
+    const result = resolveMerchantHomePresentation(read({ commercial: { status: 'USAGE_EXHAUSTED', planName: 'Growth', threshold: 'LIMIT_REACHED', attention: true } }))
     expect(result.attention).toEqual(expect.arrayContaining([expect.objectContaining({ section: 'plan' })]))
+  })
+
+  it('does not promote a 70% NOTICE into Home Attention', () => {
+    const result = resolveMerchantHomePresentation(read({ commercial: { status: 'USAGE_WARNING', planName: 'Growth', threshold: 'NOTICE', attention: false } }))
+    expect(result.attention.some((item) => item.section === 'plan')).toBe(false)
+  })
+
+  it('surfaces missing and incomplete Stores as actionable Store Attention', () => {
+    const missing = resolveMerchantHomePresentation(read({ store: { exists: false, status: null, selectedProductCount: 0, eligibleProductCount: 0, readiness: null } }))
+    expect(missing.attention).toEqual(expect.arrayContaining([expect.objectContaining({ section: 'store', title: 'Store needs setup' })]))
+
+    const incomplete = resolveMerchantHomePresentation(read({ store: { exists: true, status: 'DRAFT', selectedProductCount: 0, eligibleProductCount: 0, readiness: 'INCOMPLETE' } }))
+    expect(incomplete.attention).toEqual(expect.arrayContaining([expect.objectContaining({ section: 'store', title: 'Store needs review' })]))
   })
 
   it('prefers Analytics only for an active Store with real activity', () => {

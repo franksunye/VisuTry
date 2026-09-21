@@ -28,6 +28,12 @@ jest.mock('@/modules/merchant/application/merchant-access', () => ({
 jest.mock('@/components/merchant/MerchantControlCenter', () => ({
   MerchantControlCenter: (props: { selectedMerchantId: string; onboardingState?: string }) => <div data-selected-merchant={props.selectedMerchantId} data-onboarding-state={props.onboardingState} />,
 }))
+jest.mock('@/components/merchant/MerchantOperatingHome', () => ({
+  MerchantOperatingHome: () => <div data-testid="merchant-operating-home" />,
+}))
+jest.mock('@/components/merchant/MerchantWorkspaceShell', () => ({
+  MerchantWorkspaceShell: (props: { children: React.ReactNode }) => <div data-testid="merchant-workspace-shell">{props.children}</div>,
+}))
 jest.mock('@/components/merchant/MerchantWorkspaceOnboarding', () => ({
   MerchantWorkspaceOnboarding: (props: { locale: string; commercialIntent?: string }) => (
     <div data-onboarding-locale={props.locale} data-commercial-intent={props.commercialIntent}>Create your Merchant Workspace</div>
@@ -39,6 +45,7 @@ import { listMerchantsForUser } from '@/modules/merchant/application/merchant-me
 import { listMerchantAgentCredentials } from '@/modules/merchant/application/merchant-agent-credentials'
 import { getMerchantControlCenter } from '@/modules/merchant/application/merchant-control-center'
 import { getMerchantOperatingActivation } from '@/modules/merchant/application/merchant-operating-reads'
+import { getMerchantOperatingHome } from '@/modules/merchant/application/merchant-operating-home'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import MerchantWorkspacePage from '@/app/[locale]/merchant/page'
 
@@ -47,6 +54,7 @@ const merchants = listMerchantsForUser as jest.Mock
 const credentials = listMerchantAgentCredentials as jest.Mock
 const control = getMerchantControlCenter as jest.Mock
 const activation = getMerchantOperatingActivation as jest.Mock
+const operatingHome = getMerchantOperatingHome as jest.Mock
 const membership = requireMerchantMembership as jest.Mock
 
 describe('Merchant workspace authorization', () => {
@@ -59,6 +67,14 @@ describe('Merchant workspace authorization', () => {
     ])
     credentials.mockResolvedValue([])
     activation.mockResolvedValue({ storePreviewedAt: null })
+    operatingHome.mockResolvedValue({
+      merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha' },
+      store: { exists: true, status: 'DRAFT', selectedProductCount: 1, eligibleProductCount: 1, readiness: 'READY' },
+      catalog: { total: 1, ready: 1, issueCount: 0 },
+      campaigns: { total: 0, active: 0, draft: 0, archived: 0, needsAttention: 0 },
+      shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [] },
+      commercial: { status: 'FREE', planName: 'Free', threshold: null, attention: false },
+    })
     control.mockResolvedValue({
       merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', websiteUrl: null, status: 'ACTIVE', referenceData: false },
       store: null,
@@ -109,6 +125,18 @@ describe('Merchant workspace authorization', () => {
     const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })
     expect(result).toBeTruthy()
     expect(membership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-b', roles: ['OWNER', 'ADMIN'] })
+  })
+
+  it('uses the dedicated Operating Home after First Value without loading the control aggregate or credentials', async () => {
+    activation.mockResolvedValue({ storePreviewedAt: new Date('2026-09-20T10:00:00.000Z') })
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a' } }) as React.ReactElement
+
+    const operatingHomeElement = result.props.children as React.ReactElement
+    expect(operatingHomeElement.type).toHaveProperty('name', 'MerchantOperatingHome')
+    expect(operatingHomeElement.props.home).toBeDefined()
+    expect(operatingHome).toHaveBeenCalledWith({ merchantId: 'merchant-a' })
+    expect(control).not.toHaveBeenCalled()
+    expect(credentials).not.toHaveBeenCalled()
   })
 
   it('keeps unauthenticated users on the existing login redirect', async () => {
