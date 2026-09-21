@@ -16,4 +16,3 @@ describe('merchant workspace routes', () => {
     expect(merchantWorkspaceHref({ locale: 'en', section: 'settings', merchantId })).toContain('/en/merchant/settings?')
   })
 })
-

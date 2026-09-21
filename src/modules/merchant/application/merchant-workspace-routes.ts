@@ -27,4 +27,3 @@ export function merchantWorkspaceHref(input: {
   const query = new URLSearchParams({ merchantId: input.merchantId })
   return `/${input.locale}${sectionPaths[input.section]}?${query.toString()}`
 }
-

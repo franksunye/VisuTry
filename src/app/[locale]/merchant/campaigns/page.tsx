@@ -10,4 +10,3 @@ export default async function MerchantCampaignsPage({ params, searchParams }: { 
     <MerchantCampaignsWorkspace locale={params.locale} merchantId={context.selectedMerchantId} experiences={control.experiences} />
   </MerchantWorkspaceShell>
 }
-

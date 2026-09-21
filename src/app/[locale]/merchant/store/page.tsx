@@ -10,4 +10,3 @@ export default async function MerchantStorePage({ params, searchParams }: { para
     <MerchantStoreSelfService merchantId={context.selectedMerchantId} initialCatalogCount={control.catalog.total} catalogAvailable={control.catalog.total > 0} />
   </MerchantWorkspaceShell>
 }
-

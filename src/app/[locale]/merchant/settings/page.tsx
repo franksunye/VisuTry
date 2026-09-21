@@ -10,4 +10,3 @@ export default async function MerchantSettingsPage({ params, searchParams }: { p
     <MerchantWorkspaceDetails merchantId={context.selectedMerchantId} initialName={control.merchant.name} initialWebsiteUrl={control.merchant.websiteUrl} />
   </MerchantWorkspaceShell>
 }
-

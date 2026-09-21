@@ -53,4 +53,3 @@ export async function requireMerchantWorkspaceContext(input: {
     selectedMerchantId: selected.merchant.id,
   }
 }
-

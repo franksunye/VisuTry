@@ -28,4 +28,3 @@ After that milestone, `/merchant` is a compact Operating Home. Catalog, Store, C
 `merchant-workspace-context.ts` is the server boundary for session, available Merchants, selected Merchant, and OWNER/ADMIN membership. Route pages use it before loading workspace data. The client shell only owns navigation, selected-Merchant routing, active-route presentation, and workspace-entry telemetry; it is not an authorization boundary.
 
 Campaigns intentionally exposes only merchant-readable status and readiness. Campaign CRUD, Agent capabilities, billing, and publishing remain in their existing application boundaries and are deferred to later gates.
-

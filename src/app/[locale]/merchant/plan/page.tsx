@@ -10,4 +10,3 @@ export default async function MerchantPlanPage({ params, searchParams }: { param
     {control.commercial ? <MerchantPlanUsage commercial={control.commercial} merchantId={context.selectedMerchantId} locale={params.locale} storeStatus={control.store?.status ?? null} /> : <p className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-sm text-slate-500">Plan information is not available yet.</p>}
   </MerchantWorkspaceShell>
 }
-

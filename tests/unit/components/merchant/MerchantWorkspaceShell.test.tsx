@@ -21,4 +21,3 @@ describe('MerchantWorkspaceShell', () => {
     expect(screen.getByRole('combobox', { name: 'Active merchant' })).toHaveValue('merchant-a')
   })
 })
-

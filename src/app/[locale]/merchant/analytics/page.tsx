@@ -11,4 +11,3 @@ export default async function MerchantAnalyticsPage({ params, searchParams }: { 
     <MerchantCommerceIntelligence insights={control.commerceIntelligence} agentHref={merchantWorkspaceHref({ locale: params.locale, section: 'integrations', merchantId: context.selectedMerchantId })} />
   </MerchantWorkspaceShell>
 }
-
