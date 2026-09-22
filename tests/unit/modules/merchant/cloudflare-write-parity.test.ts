@@ -274,7 +274,7 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
       headline: 'Try the edit', description: null, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null,
       secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, startAt: null, endAt: null,
       campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: false,
-      merchantFrameId: 'frame-a', frameId: 'frame-a', sku: null, frameExternalId: 'shopify:product-1', frameProductUrl: 'https://shop.example.test/products/frame-a', frameName: 'Frame A', frameImageUrl: 'https://example.test/frame-a.png',
+      merchantFrameId: 'frame-a', frameId: 'frame-a', sku: null, frameExternalId: 'shopify:product-1', frameProductUrl: 'https://shop.example.test/products/frame-a', frameName: 'Frame A', frameImageUrl: 'https://example.test/frame-a.png', frameBrand: 'VisuTry', framePrice: 129, frameCurrency: 'USD',
       frameShape: 'oval', frameWidthClass: null, frameSource: 'EXTERNAL', frameEnrichmentStatus: 'APPROVED', frameStatus: 'ACTIVE',
     }
     const sql = sqlMock([
@@ -317,7 +317,7 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
       headline: 'Try the edit', description: null, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null,
       secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, startAt: null, endAt: null,
       campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: false,
-      merchantFrameId: 'frame-a', frameId: 'frame-a', sku: null, frameExternalId: 'shopify:product-1', frameProductUrl: 'https://shop.example.test/products/frame-a', frameName: 'Frame A', frameImageUrl: 'https://example.test/frame-a.png',
+      merchantFrameId: 'frame-a', frameId: 'frame-a', sku: null, frameExternalId: 'shopify:product-1', frameProductUrl: 'https://shop.example.test/products/frame-a', frameName: 'Frame A', frameImageUrl: 'https://example.test/frame-a.png', frameBrand: 'VisuTry', framePrice: 129, frameCurrency: 'USD',
       frameShape: 'oval', frameWidthClass: null, frameSource: 'EXTERNAL', frameEnrichmentStatus: 'APPROVED', frameStatus: 'ACTIVE',
     }
     const sql = sqlMock([[{ id: 'merchant-a', slug: 'merchant-a', referenceData: false }], [campaignRow]])
@@ -327,6 +327,12 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
 
     expect(result.readiness.ready).toBe(true)
     expect(result.readiness.blockingIssues).toEqual([])
+    expect(result.selectedFrames).toEqual([expect.objectContaining({
+      id: 'frame-a', name: 'Frame A', brand: 'VisuTry', imageUrl: 'https://example.test/frame-a.png',
+      productUrl: 'https://shop.example.test/products/frame-a', price: 129, currency: 'USD', shape: 'oval',
+      status: 'ACTIVE', valid: true, issues: [],
+    })])
+    expect(sql.mock.calls.some((call) => call[0].join('').includes('mf."price" AS "framePrice"') && call[0].join('').includes('mf."currency" AS "frameCurrency"'))).toBe(true)
   })
 
   it('returns the same structured Campaign limit decision for a full Launch plan', async () => {

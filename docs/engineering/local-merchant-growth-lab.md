@@ -27,6 +27,10 @@ npm run merchant:local:dev
 npm run merchant:local:e2e
 # P1-M1 first-value journey (same guarded Local path)
 npm run merchant:local:p1-m1:e2e
+# Reset again before the Campaign journey: it creates a fresh workspace for
+# LOCAL-MERCHANT-CLEAN, then uses the seeded Growth TEST Merchant.
+npm run merchant:local:reset-clean
+npm run merchant:local:campaign:e2e
 ```
 
 The golden path is:
@@ -36,8 +40,18 @@ Business → Local QA Clean Merchant → name gate → workspace
 → first manual product → Catalog ready → Store draft → private Preview
 ```
 
-It stops before Publish and before payment. All Merchant, Catalog, Store, and
-activation writes use the real local application and local PostgreSQL. The
+The Campaign workspace browser journey creates a fresh FREE Merchant with
+`LOCAL-MERCHANT-CLEAN`, then uses the seeded `QA-USAGE` Growth TEST Merchant
+for the allowed activation path. It prepares Catalog/Store private-Preview
+state through the normal authenticated Local APIs, then exercises Campaign
+Draft, readiness, private Preview, the Free-plan allowance response, explicit
+Campaign Publish, immediate Live edits, and Archive in the browser. It never
+publishes the Store or accesses Preview/Production data.
+
+It stops before Store Publish and payment. Campaign lifecycle actions are
+explicitly exercised because they are the subject of this test. All Merchant,
+Catalog, Store, Campaign, and activation writes use the real local application
+and local PostgreSQL. The
 deterministic product image is repository-owned at
 `/assets/glasses-presets/large-round-classic.jpg`.
 

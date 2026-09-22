@@ -16,7 +16,7 @@ jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
 
 import { prisma } from '@/lib/prisma'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
-import { archiveCampaign, CampaignServiceError, createCampaignDraft, previewCampaign, publishCampaign, setCampaignFrames, updateCampaign } from '@/modules/store/application/campaign-service'
+import { archiveCampaign, CampaignServiceError, createCampaignDraft, getCampaign, previewCampaign, publishCampaign, setCampaignFrames, updateCampaign } from '@/modules/store/application/campaign-service'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 
 const baseRow = {
@@ -117,6 +117,21 @@ describe('Campaign application service', () => {
     expect(result.readiness.ready).toBe(true)
     expect(prisma.experience.update).not.toHaveBeenCalled()
     expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
+  it('returns the selected product presentation needed by the Merchant detail workspace', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+
+    const result = await getCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
+
+    expect(result.selectedFrames).toEqual([expect.objectContaining({
+      id: 'frame-a', name: 'Frame A', brand: null, imageUrl: 'https://cdn.example.test/frame-a.jpg',
+      productUrl: 'https://shop.example.test/products/frame-a', shape: 'round', status: 'ACTIVE', valid: true, issues: [],
+    })])
+    expect(prisma.experience.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      include: expect.objectContaining({ frames: expect.objectContaining({ include: expect.objectContaining({ merchantFrame: expect.objectContaining({ select: expect.objectContaining({ brand: true, price: true, currency: true }) }) }) }) }),
+    }))
   })
 
   it('accepts a stable external identity without a merchant SKU for Campaign readiness', async () => {

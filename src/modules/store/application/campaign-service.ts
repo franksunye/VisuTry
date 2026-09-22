@@ -44,6 +44,19 @@ export type CampaignReadModel = {
   endAt: Date | null
   frameIds: string[]
   frameCount: number
+  selectedFrames: Array<{
+    id: string
+    name: string | null
+    brand: string | null
+    imageUrl: string | null
+    productUrl: string | null
+    price: number | null
+    currency: string | null
+    shape: string | null
+    status: string | null
+    valid: boolean
+    issues: string[]
+  }>
   referenceData: boolean
   publicPath: string
   readiness: { ready: boolean; blockingIssues: string[]; warnings: string[] }
@@ -51,7 +64,7 @@ export type CampaignReadModel = {
 
 type CampaignFrame = {
   merchantFrameId: string
-  merchantFrame: Pick<MerchantFrame, 'id' | 'sku' | 'externalId' | 'productUrl' | 'name' | 'imageUrl' | 'shape' | 'widthClass' | 'source' | 'enrichmentStatus' | 'status'> | null
+  merchantFrame: Pick<MerchantFrame, 'id' | 'sku' | 'externalId' | 'productUrl' | 'name' | 'brand' | 'imageUrl' | 'price' | 'currency' | 'shape' | 'widthClass' | 'source' | 'enrichmentStatus' | 'status'> | null
 }
 
 type CampaignRow = Experience & { frames: CampaignFrame[] }
@@ -79,7 +92,7 @@ const campaignFramesInclude = {
     orderBy: [{ sortOrder: 'asc' as const }, { createdAt: 'asc' as const }],
     include: {
       merchantFrame: {
-        select: { id: true, sku: true, externalId: true, productUrl: true, name: true, imageUrl: true, shape: true, widthClass: true, source: true, enrichmentStatus: true, status: true },
+        select: { id: true, sku: true, externalId: true, productUrl: true, name: true, brand: true, imageUrl: true, price: true, currency: true, shape: true, widthClass: true, source: true, enrichmentStatus: true, status: true },
       },
     },
   },
@@ -151,6 +164,19 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
     endAt: row.endAt,
     frameIds: row.frames.map((frame) => frame.merchantFrameId),
     frameCount: row.frames.length,
+    selectedFrames: row.frames.map((frame, index) => ({
+      id: frame.merchantFrameId,
+      name: frame.merchantFrame?.name ?? null,
+      brand: frame.merchantFrame?.brand ?? null,
+      imageUrl: frame.merchantFrame?.imageUrl ?? null,
+      productUrl: frame.merchantFrame?.productUrl ?? null,
+      price: frame.merchantFrame?.price ?? null,
+      currency: frame.merchantFrame?.currency ?? null,
+      shape: frame.merchantFrame?.shape ?? null,
+      status: frame.merchantFrame?.status ?? null,
+      valid: Boolean(frame.merchantFrame && frameChecks[index].valid),
+      issues: frame.merchantFrame ? frameChecks[index].issues : ['FRAME_NOT_FOUND'],
+    })),
     referenceData: merchantReferenceData || row.referenceData,
     publicPath: `/en/c/${merchantSlug}/${row.slug}`,
     readiness: { ready, blockingIssues, warnings },

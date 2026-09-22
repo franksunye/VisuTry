@@ -21,6 +21,8 @@ jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
 
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { resolveAppEnvironment } from '@/lib/app-environment'
+import { PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION } from '@/modules/merchant/domain/merchant-classification'
 import {
   MerchantAccessError,
   createMerchantMembership,
@@ -338,7 +340,7 @@ describe('Merchant human membership foundation', () => {
     expect(tx.merchant.create.mock.calls[0][0].data).toEqual(expect.objectContaining({
       defaultSource: 'linkedin/paid',
       defaultCampaign: 'g1-launch',
-      classification: 'POSSIBLE_EXTERNAL',
+      classification: resolveAppEnvironment() === 'local' ? 'TEST' : PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION,
     }))
   })
 

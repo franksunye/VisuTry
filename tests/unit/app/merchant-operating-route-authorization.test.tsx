@@ -12,12 +12,20 @@ jest.mock('@/modules/merchant/application/merchant-operating-reads', () => ({
   getMerchantOperatingActivation: jest.fn(),
   getMerchantCatalogCount: jest.fn(),
 }))
+jest.mock('@/modules/store/application/campaign-service', () => ({
+  listCampaigns: jest.fn().mockResolvedValue({ items: [], nextCursor: null }),
+  getCampaign: jest.fn(),
+}))
 jest.mock('@/components/merchant/MerchantWorkspaceShell', () => ({ MerchantWorkspaceShell: (props: { children: React.ReactNode }) => <div>{props.children}</div> }))
 jest.mock('@/components/merchant/MerchantCatalogSelfService', () => ({ MerchantCatalogSelfService: () => <div>catalog</div> }))
+jest.mock('@/components/merchant/MerchantCampaignsWorkspace', () => ({ MerchantCampaignsWorkspace: () => <div>campaigns</div> }))
+jest.mock('@/components/merchant/MerchantCampaignDetailWorkspace', () => ({ MerchantCampaignDetailWorkspace: () => <div>campaign detail</div> }))
 
 import { getServerSession } from 'next-auth'
 import { listMerchantsForUser } from '@/modules/merchant/application/merchant-memberships'
 import MerchantCatalogPage from '@/app/[locale]/merchant/catalog/page'
+import MerchantCampaignsPage from '@/app/[locale]/merchant/campaigns/page'
+import MerchantCampaignDetailPage from '@/app/[locale]/merchant/campaigns/[campaignId]/page'
 
 describe('Merchant operating route authorization', () => {
   it('rejects a catalog route selected for a Merchant outside the user membership set', async () => {
@@ -26,5 +34,15 @@ describe('Merchant operating route authorization', () => {
       { merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha' }, membership: { role: 'OWNER' } },
     ])
     await expect(MerchantCatalogPage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })).rejects.toThrow('NOT_FOUND')
+  })
+
+  it('rejects Campaign list/detail routes when a query Merchant is outside the membership set', async () => {
+    ;(getServerSession as jest.Mock).mockResolvedValue({ user: { id: 'user-a' } })
+    ;(listMerchantsForUser as jest.Mock).mockResolvedValue([
+      { merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha' }, membership: { role: 'OWNER' } },
+    ])
+
+    await expect(MerchantCampaignsPage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })).rejects.toThrow('NOT_FOUND')
+    await expect(MerchantCampaignDetailPage({ params: { locale: 'en', campaignId: 'campaign-b' }, searchParams: { merchantId: 'merchant-b' } })).rejects.toThrow('NOT_FOUND')
   })
 })
