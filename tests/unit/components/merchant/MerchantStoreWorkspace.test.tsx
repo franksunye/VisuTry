@@ -1,6 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { analytics } from '@/lib/analytics'
 import { MerchantStoreWorkspace } from '@/components/merchant/MerchantStoreWorkspace'
 import type { MerchantStorePreview, MerchantStoreWorkspace as WorkspaceData, MerchantStoreWorkspaceFrame } from '@/modules/merchant/application/merchant-store-workspace'
+
+jest.mock('@/lib/analytics', () => ({ analytics: { trackCustomEvent: jest.fn() } }))
 
 jest.mock('@/components/merchant/MerchantStorePrivatePreview', () => ({
   MerchantStorePrivatePreview: ({ preview }: { preview: MerchantStorePreview }) => <div data-testid="private-preview">DRAFT · not public · {preview.store.name}</div>,
@@ -60,6 +63,40 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
     expect(screen.getByRole('button', { name: 'Publish Store' })).toBeDisabled()
     expect(global.fetch).toHaveBeenCalledWith('/api/merchant/merchant-a/store/preview', expect.objectContaining({ method: 'POST' }))
     expect(global.fetch).not.toHaveBeenCalledWith('/api/merchant/merchant-a/store/publish', expect.anything())
+  })
+
+  it('tracks both B2B publish events only after an approved Draft becomes Live', async () => {
+    const existingFetch = global.fetch as jest.Mock
+    let published = false
+    global.fetch = jest.fn().mockImplementation(async (input: string, init?: RequestInit) => {
+      if (input.endsWith('/publish')) {
+        published = true
+        return ok({ id: 'store-a', status: 'ACTIVE', publicPath: '/en/store/north-star', approvalRecorded: true })
+      }
+      if (input === '/api/merchant/merchant-a/store' && !init?.method) {
+        return ok(workspace(published ? 'ACTIVE' : 'DRAFT'))
+      }
+      return existingFetch(input, init)
+    }) as jest.Mock
+
+    render(<MerchantStoreWorkspace merchantId="merchant-a" locale="en" />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Preview Store' }))
+    expect(await screen.findByTestId('private-preview')).toHaveTextContent('DRAFT · not public')
+    expect(analytics.trackCustomEvent).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'I approve publishing this Store publicly' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Publish Store' }))
+
+    expect(await screen.findByText('Your Store is live. Share the public link with shoppers.')).toBeInTheDocument()
+    expect(analytics.trackCustomEvent).toHaveBeenNthCalledWith(1, 'merchant_store_published', {
+      merchant_id: 'merchant-a',
+      source_journey: 'merchant_workspace_store',
+    })
+    expect(analytics.trackCustomEvent).toHaveBeenNthCalledWith(2, 'merchant_first_store_published', {
+      merchant_id: 'merchant-a',
+      source_journey: 'merchant_workspace_store',
+    })
   })
 
   it('keeps Live status and public link while warning before details save changes reach shoppers', async () => {

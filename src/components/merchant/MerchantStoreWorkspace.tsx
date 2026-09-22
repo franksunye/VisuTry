@@ -5,6 +5,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Check, Copy, ExternalLink, Eye, Loader2, Save, Search, Store } from "lucide-react";
+import { analytics } from "@/lib/analytics";
+import { AnalyticsEvent } from "@/lib/analytics-events";
 import { MerchantStorePrivatePreview } from "@/components/merchant/MerchantStorePrivatePreview";
 import type { MerchantStorePreview, MerchantStoreWorkspace as MerchantStoreWorkspaceData } from "@/modules/merchant/application/merchant-store-workspace";
 import { merchantStoreEligibilityMessage, resolveMerchantStoreWorkspacePresentation } from "@/modules/merchant/application/merchant-store-workspace-presentation";
@@ -184,6 +186,8 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ storeId: store.id, approved: true }),
       }));
+      analytics.trackCustomEvent(AnalyticsEvent.MerchantStorePublished, { merchant_id: merchantId, source_journey: "merchant_workspace_store" });
+      analytics.trackCustomEvent(AnalyticsEvent.MerchantFirstStorePublished, { merchant_id: merchantId, source_journey: "merchant_workspace_store" });
       clearPreview();
       setNotice("Your Store is live. Share the public link with shoppers.");
       await loadWorkspace();
