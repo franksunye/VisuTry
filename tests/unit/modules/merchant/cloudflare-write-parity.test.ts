@@ -18,7 +18,7 @@ import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials-cloudflare'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
-import { createMerchantStore, importMerchantFrames, publishMerchantStore, setMerchantStoreFrames, updateMerchantFrame } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+import { createMerchantStore, getMerchantStoreWorkspace, importMerchantFrames, publishMerchantStore, setMerchantStoreFrames, updateMerchantFrame, updateMerchantStore } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
 import { createCampaignDraft, previewCampaign, publishCampaign, archiveCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
 import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
 
@@ -87,6 +87,93 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
       target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null },
     }))
+  })
+
+  it('rejects a newly selected Store-ineligible product with Prisma-parity semantics', async () => {
+    const sql = sqlMock([
+      [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Store A', status: 'DRAFT' }],
+      [],
+      [{ ...activeFrame, imageUrl: null }],
+    ])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    await expect(setMerchantStoreFrames({ actor, storeId: 'store-a', frameIds: ['frame-a'] }))
+      .rejects.toMatchObject({ code: 'STORE_FRAME_NOT_ELIGIBLE', httpStatus: 409 })
+
+    expect(sql.transaction).not.toHaveBeenCalled()
+    expect(withPublicDiscoveryInvalidation).not.toHaveBeenCalled()
+    expect(recordMerchantAgentOperation).not.toHaveBeenCalledWith(expect.objectContaining({ action: 'store.frames_updated' }))
+  })
+
+  it('allows Store-eligible PENDING shape products and preserves an existing ineligible selection for removal', async () => {
+    const pending = { ...activeFrame, id: 'frame-pending', externalId: 'external-pending', productUrl: 'https://shop.example.test/pending', imageUrl: 'https://example.test/pending.png', shape: '', enrichmentStatus: 'PENDING' }
+    const previouslySelectedInvalid = { ...activeFrame, id: 'frame-old-invalid', merchantFrameId: 'frame-old-invalid', sortOrder: 0, imageUrl: null }
+    const sql = sqlMock([
+      [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Store A', status: 'DRAFT' }],
+      [previouslySelectedInvalid],
+      [previouslySelectedInvalid, pending],
+      [{ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE', websiteUrl: null, contactEmail: null }],
+    ], [[], []])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await setMerchantStoreFrames({ actor, storeId: 'store-a', frameIds: ['frame-old-invalid', 'frame-pending'] })
+
+    expect(result.frameIds).toEqual(['frame-old-invalid', 'frame-pending'])
+    expect(sql.transaction).toHaveBeenCalledWith(expect.any(Array), { isolationLevel: 'Serializable' })
+  })
+
+  it('preserves selected product order in the Cloudflare Store read model', async () => {
+    const selectedB = { ...activeFrame, id: 'frame-b', merchantFrameId: 'frame-b', sortOrder: 0, name: 'Frame B' }
+    const selectedA = { ...activeFrame, id: 'frame-a', merchantFrameId: 'frame-a', sortOrder: 1, name: 'Frame A' }
+    const sql = sqlMock([
+      [{ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE', websiteUrl: null, contactEmail: null }],
+      [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Store A', status: 'DRAFT', headline: null, description: null }],
+      [{ ...activeFrame, id: 'frame-a', name: 'Frame A' }, { ...activeFrame, id: 'frame-b', name: 'Frame B' }],
+      [selectedB, selectedA],
+    ])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await getMerchantStoreWorkspace({ actor })
+
+    expect(result.store?.selectedFrameIds).toEqual(['frame-b', 'frame-a'])
+    expect(result.catalog.map((frame) => frame.id)).toEqual(['frame-a', 'frame-b'])
+  })
+
+  it('does not create another publish transaction or public revision for an already Live Store', async () => {
+    const selected = { merchantFrameId: 'frame-a', sortOrder: 0, ...activeFrame }
+    const sql = sqlMock([
+      [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Store A', status: 'ACTIVE' }],
+      [selected],
+      [{ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE', websiteUrl: null, contactEmail: null }],
+      [activeFrame],
+      [],
+    ])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await publishMerchantStore({ actor, storeId: 'store-a', approved: true })
+
+    expect(result).toMatchObject({ status: 'ACTIVE', publicPath: '/en/store/merchant-a' })
+    expect(sql.transaction).not.toHaveBeenCalled()
+  })
+
+  it('keeps Live Store detail updates in place and invalidates the public route without republishing', async () => {
+    const sql = sqlMock([
+      [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Store A', status: 'ACTIVE', headline: null, description: null }],
+      [],
+      [{ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE', websiteUrl: null, contactEmail: null }],
+      [],
+    ], [[[{ id: 'store-a', slug: 'store', name: 'Store A', status: 'ACTIVE', headline: 'Live headline', description: null }], [{ id: 'activation-a' }]]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await updateMerchantStore({ actor, storeId: 'store-a', headline: 'Live headline' })
+
+    expect(result).toMatchObject({ status: 'ACTIVE', headline: 'Live headline', publicPath: '/en/store/merchant-a' })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
+    expect(sql.transaction).toHaveBeenCalledTimes(1)
+    const updateSql = sql.mock.calls.map(([strings]) => (strings as TemplateStringsArray).join('')).find((query) => query.includes('UPDATE "Experience"'))
+    expect(updateSql).toBeDefined()
+    expect(updateSql).toContain('UPDATE "Experience"')
+    expect(updateSql).not.toContain('"status" =')
   })
 
   it('approves a manually completed pending shape and audits correction as MerchantFrame', async () => {

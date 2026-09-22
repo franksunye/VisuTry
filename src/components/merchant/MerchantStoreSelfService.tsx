@@ -2,13 +2,13 @@
 /* Merchant images are arbitrary customer-provided URLs; next/image cannot safely optimize unknown hosts. */
 /* eslint-disable @next/next/no-img-element */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, ArrowRight, Check, Copy, ExternalLink, Eye, Loader2, Save, Store } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
 import { recordMerchantActivationClientEvent } from "@/lib/merchant-activation-client";
-import { ExperiencePresentationShell, type ExperiencePresentationCopy, type PresentationMerchant } from "@/components/store/ExperiencePresentationShell";
-import type { MerchantStorePreviewFrame } from "@/modules/merchant/application/merchant-store-workspace";
+import { MerchantStorePrivatePreview } from "@/components/merchant/MerchantStorePrivatePreview";
+import type { MerchantStorePreview } from "@/modules/merchant/application/merchant-store-workspace";
 
 type Readiness = {
   storeEligible: boolean;
@@ -46,52 +46,9 @@ type StoreWorkspace = {
   catalog: CatalogFrame[];
 };
 
-type Preview = {
-  store: { id: string; name: string; status: string; headline: string | null; description: string | null; publicPath: string };
-  frameCount: number;
-  frames: MerchantStorePreviewFrame[];
-  readiness: {
-    ready: boolean;
-    readyFrameCount: number;
-    blockingIssues: Array<{ frameId: string; issues: string[] }>;
-  };
-  preview: { sideEffectFree: boolean; publicPath: string };
-};
-
 const EMPTY_CATALOG: CatalogFrame[] = [];
 
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
-
-const PREVIEW_COPY: ExperiencePresentationCopy = {
-  storeLabel: "Store preview",
-  campaignLabel: "Store preview",
-  storeSubhead: "A private preview of the Store your shoppers will see.",
-  storeHero: "Explore this Store",
-  heroBody: "Selected eyewear from this Store.",
-  referenceCatalog: "Catalog",
-  liveCatalog: "Store",
-  featuredEyebrow: "Selected products",
-  featuredTitle: "Explore the collection",
-  featuredDescription: "Products selected for this Store.",
-  storeCta: "Explore the collection",
-  campaignCta: "Explore the collection",
-  actionCta: "Start shopping",
-  ctaSupport: "Private draft preview — no shopper session is started.",
-  privacyTitle: "Private Store preview",
-  privacyBody: "This preview is only visible to you until you publish.",
-  privacyPoint1: "No shopper photo is requested.",
-  privacyPoint2: "Publishing is still required.",
-  privacyPoint3: "Selected products are shown below.",
-  privacyPublicNoticeLabel: "Draft visibility",
-  privacyPublicNotice: "Anonymous shoppers cannot access this draft.",
-  privacyAccept: "Continue",
-  privacyStarting: "Starting…",
-  privacyHint: "Private draft preview",
-  poweredBy: "Powered by VisuTry",
-  uploadTitle: "Shopper photo",
-  recommendTitle: "Recommendations",
-  tryOnTitle: "Try on",
-};
 
 function normalizedOptionalText(value: string) {
   return value.trim() || null;
@@ -99,52 +56,6 @@ function normalizedOptionalText(value: string) {
 
 function sameIds(left: string[], right: string[]) {
   return left.length === right.length && left.every((id, index) => id === right[index]);
-}
-
-function MerchantStoreDraftPreview({ preview }: { preview: Preview }) {
-  const featuredFramesRef = useRef<HTMLElement>(null);
-  const merchant: PresentationMerchant = {
-    name: preview.store.name,
-    logoUrl: null,
-    referenceData: false,
-    activeFrameCount: preview.frames.length,
-    experience: {
-      type: "STORE",
-      name: preview.store.name,
-      headline: preview.store.headline,
-      description: preview.store.description,
-      heroAssetUrl: safeImageUrl(preview.frames[0]?.imageUrl ?? null),
-    },
-  };
-
-  return (
-    <div data-testid="store-draft-preview" className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-[#f7f8fb]">
-      <div className="flex flex-col gap-2 border-b border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-700">Private draft preview</p>
-          <p className="mt-1 text-sm font-semibold text-slate-900">{preview.store.name}</p>
-        </div>
-        <span className="w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">DRAFT · not public</span>
-      </div>
-      <div className="px-4 sm:px-6">
-        <ExperiencePresentationShell
-          mode="PRODUCT_FIRST"
-          merchant={merchant}
-          accent="#1d4ed8"
-          featuredFrames={preview.frames}
-          copy={PREVIEW_COPY}
-          publicPocStorage={false}
-          sessionStarting={false}
-          errorMessage={null}
-          onStartRuntime={() => undefined}
-          onShoppingCta={() => featuredFramesRef.current?.scrollIntoView({ behavior: "smooth" })}
-          featuredFramesRef={featuredFramesRef}
-          showRuntimeCta={false}
-          featuredFrameLimit={null}
-        />
-      </div>
-    </div>
-  );
 }
 
 function friendlyIssue(code: string) {
@@ -193,7 +104,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
   const [headline, setHeadline] = useState("");
   const [description, setDescription] = useState("");
   const [selectedFrameIds, setSelectedFrameIds] = useState<string[]>([]);
-  const [preview, setPreview] = useState<Preview | null>(null);
+  const [preview, setPreview] = useState<MerchantStorePreview | null>(null);
   const [publishApproved, setPublishApproved] = useState(false);
 
   const loadWorkspace = useCallback(async () => {
@@ -305,7 +216,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
     }
     setBusy(true); setError(null); setNotice(null);
     try {
-      const next = await readResponse<Preview>(await fetch(`${apiBase}/preview`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ storeId: workspace.store.id }) }));
+      const next = await readResponse<MerchantStorePreview>(await fetch(`${apiBase}/preview`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ storeId: workspace.store.id }) }));
       setPreview(next);
       setPublishApproved(false);
       void recordMerchantActivationClientEvent({
@@ -460,7 +371,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
             <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h3 className="font-semibold text-slate-900">3. Preview your Store</h3><p className="mt-1 text-sm text-slate-600">Your preview is private. Publishing is the separate step that makes this Store public.</p></div><button type="button" onClick={previewStore} disabled={busy || selectedCount === 0 || hasUnsavedChanges} className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}><Eye className="h-4 w-4" aria-hidden="true" /> Preview your Store</button></div>
               {hasUnsavedChanges ? <p role="status" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-800">Save your changes before previewing.</p> : null}
-              {preview ? <MerchantStoreDraftPreview preview={preview} /> : null}
+              {preview ? <MerchantStorePrivatePreview preview={preview} /> : null}
               {preview ? <div className="rounded-2xl border border-white bg-white p-4"><p className={`font-semibold ${preview.readiness.ready ? "text-emerald-700" : "text-amber-700"}`}>{preview.readiness.ready ? "Ready to publish" : "A few products need attention"}</p><p className="mt-1 text-sm text-slate-600">{preview.readiness.ready ? `${preview.frameCount} product${preview.frameCount === 1 ? "" : "s"} will appear in your Store.` : preview.readiness.blockingIssues.map((issue) => `${issue.frameId === "unknown" ? "Some products" : "A product"}: ${issue.issues.map(friendlyIssue).join(", ")}`).join(" · ")}</p>{preview.readiness.ready ? <><label className="mt-5 flex items-start gap-2 text-sm text-slate-700"><input aria-label="I confirm this Store is ready to publish publicly" type="checkbox" checked={publishApproved} onChange={(event) => setPublishApproved(event.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-600" /> <span>I confirm this Store is ready to publish publicly.</span></label><button type="button" onClick={publishStore} disabled={busy || hasUnsavedChanges || !publishApproved} className={`${buttonClass} mt-4 bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />} {workspace.store.status === "ACTIVE" ? "Keep Store live" : "Publish Store"}</button></> : null}</div> : null}
             </div>
           ) : null}

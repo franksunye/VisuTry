@@ -129,7 +129,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.screenshot({ path: `${catalogEvidenceDir}/edit-desktop.png`, fullPage: true })
     await page.getByRole('button', { name: 'Cancel' }).click()
     await page.goto('/en/merchant/store', { waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { name: /Set up your Store|Store — Live/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Store', exact: true })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/store-desktop.png`, fullPage: true })
     await page.goto('/en/merchant/campaigns', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'Campaigns' })).toBeVisible()
@@ -168,7 +168,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.getByRole('button', { name: 'Edit' }).first().click()
     await page.screenshot({ path: `${catalogEvidenceDir}/edit-mobile.png`, fullPage: true })
     await page.goto('/en/merchant/store', { waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { name: /Set up your Store|Store — Live/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Store', exact: true })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/store-mobile.png`, fullPage: true })
 
     expect(browserErrors).toEqual([])

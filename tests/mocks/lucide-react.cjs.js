@@ -2,7 +2,7 @@ const React = require('react')
 
 function createIcon(name) {
   return function Icon(props) {
-    return React.createElement('div', {
+    return React.createElement('span', {
       ...props,
       'data-testid': `${name}-icon`,
     })
@@ -49,6 +49,7 @@ module.exports = {
   AlertTriangle: createIcon('alert-triangle'),
   AlertCircle: createIcon('alert-circle'),
   ExternalLink: createIcon('external-link'),
+  Eye: createIcon('eye'),
   Info: createIcon('info'),
   Lock: createIcon('lock'),
   LockKeyhole: createIcon('lock-keyhole'),
