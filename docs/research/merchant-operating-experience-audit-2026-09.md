@@ -404,3 +404,109 @@ The capture README/index is intended to accompany this audit. Key files:
 `READY FOR LEAD ARCHITECTURE REVIEW`
 
 `NOT READY FOR IMPLEMENTATION`
+
+---
+
+## Final Closure / Post-Implementation Acceptance
+
+**Acceptance baseline:** `main` at `ffcf4285ef46ccbe4862e073b459dc8318abbbb2`
+(`2026-09-22`). This section records the post-implementation state; findings
+and target recommendations above remain the historical pre-M2 audit.
+
+### Gate status and shipped information architecture
+
+P1-M2.1 through P1-M2.7 are merged to the acceptance baseline and individually
+Lead-approved. The final cross-surface Local QA found no P0/P1 regressions.
+Final Lead acceptance of the combined M2 experience remains pending.
+
+The implemented operating shell is:
+
+- **Activation Mode:** a focused first-use path through first product, Catalog
+  readiness, Store setup, and private Store Preview. The path stops before
+  Publish.
+- **Operating Mode:** Home, Catalog, Store, Campaigns, and Analytics are primary
+  destinations. Integrations, Plan & Usage, and Settings are in the More
+  utility menu.
+- Home uses its dedicated operating read model and one state-derived recommended
+  action; resource work remains in the respective workspaces.
+- Store and Campaign Draft/Preview/explicit Publish/Live-edit/Archive states are
+  distinct. Live changes are not represented as staged-until-publish.
+- Analytics uses canonical Commerce Intelligence definitions. Agent key
+  lifecycle is described as Agent key access, not as proof of all MCP/OAuth
+  connectivity.
+
+### Acceptance evidence
+
+All browser and data-path validation ran against the Local Merchant Growth Lab
+and Local PostgreSQL. No Preview or Production database was used. Evidence
+screenshots are local, untracked QA artifacts; viewport captures are at 1440×900
+and 390×844 unless noted.
+
+| Surface / evidence | Local evidence path | Result |
+|---|---|---|
+| Operating Home, Catalog, Store, Campaigns, Analytics, Integrations, mobile More | `/tmp/visutry-p1-m2-1-operating-shell/` | Desktop/mobile screenshots; selected Analytics nav and fixed More visible; utility menu is vertical and unclipped |
+| Catalog add, attention, edit | `/tmp/visutry-p1-m2-3-catalog/` | Desktop/mobile add/edit and attention-state captures |
+| Store Draft, private Preview, approval, Live, Live edit | `/tmp/visutry-p1-m2-4-store-workspace/` | Desktop/mobile lifecycle captures; public Draft route denied, private Preview works, explicit Publish makes Store public, Live save is immediate |
+| Campaign list, Draft/Preview/approval/Live/edit/Archive | `/tmp/visutry-p1-m2-5-campaign-workspace/` | Desktop/mobile lifecycle captures; public Draft route denied, Publish approval required, Archive confirmation/state verified |
+| Analytics empty, Integrations empty/used/revoked | `/tmp/visutry-p1-m2-6-analytics-integrations/` | Desktop/mobile captures; no one-time credential secret retained as review evidence |
+| Mobile active Analytics navigation and expanded More | `/tmp/visutry-p1-m2-7-mobile-navigation/` | Active primary route visible; More remains fixed; menu rows are vertical and unclipped |
+
+The Local Activation Golden Path passed through workspace creation, first
+product, readiness, Store draft, and private Preview without publishing. Its
+durable event order was verified from Local PostgreSQL:
+
+`workspace_created < first_item_added < catalog_ready < store_configured < store_previewed`
+
+Store and Campaign browser suites separately exercised explicit Publish,
+public Live access, immediate Live edit semantics, and Archive where applicable.
+Cross-Merchant browser QA switched between Operating and Activation Merchants;
+activation mode, selected-resource state, and tenant-scoped reads did not leak.
+Deep link, refresh, and browser back preserved the selected Merchant context.
+
+Browser checks observed zero unexpected HTTP 5xx and zero browser console errors
+for the passing Activation, Store, and cross-Merchant journeys. Campaign's
+expected plan-limit response was HTTP 409 and was asserted by its regression
+test; it is not counted as an unexpected server failure. Desktop and mobile
+captures reported no horizontal overflow. Mobile shell header was 99px in the
+M2.1 baseline; Store and Campaign captures were 99px mobile / 109px desktop.
+
+Architecture and security regressions passed, including route-specific
+Operating reads, no Home Control Center aggregate after First Value, tenant
+authorization for tampered Merchant/resource IDs, Merchant-switch state reset,
+one-time secret handling, and the Agent key/OAuth distinction. Activation,
+Store, Campaign, Analytics, and Integrations presentation continue to consume
+canonical application/domain state rather than reimplementing business rules.
+
+### Validation and findings
+
+- Local Activation E2E and P1-M1 Golden Path: PASS.
+- Local Store lifecycle E2E: PASS.
+- Local Campaign lifecycle E2E: PASS.
+- P0-M1 auth boundary E2E: 4/4 PASS.
+- Focused Merchant suite: 16 Jest suites / 103 tests PASS.
+- Full unit regression: 273 suites, 1,728 passed, 1 skipped.
+- Typecheck, lint, `build:ci`, Cloudflare Next build, migration boundary,
+  `prisma validate`, and `git diff --check`: PASS. Lint/build report existing
+  repository warnings; no new M2-specific warning was treated as a failure.
+- Local preflight verified `APP_ENV=local`, loopback PostgreSQL with LOCAL
+  identity marker, PrismaPg, mock QA auth, Stripe test-only mode, and telemetry
+  isolation. No Preview/Production references were used for the QA journey.
+- Migration: **NONE**. The M2 implementation introduced no schema migration or
+  new environment/database prerequisite.
+
+**P0:** none observed in this acceptance pass.
+**P1:** none observed in this acceptance pass.
+**P2:** repository lint/build emit pre-existing warnings; no M2 closure blocker.
+
+### Production metadata (read-only)
+
+At the time of verification, Vercel reported the Production deployment for
+`ffcf4285ef46ccbe4862e073b459dc8318abbbb2` as **READY**, with the
+`www.visutry.com` alias active. No deploy or Production smoke was run as part of
+this Local-only acceptance task. No Production data, Stripe state, or runtime
+configuration was changed. A bounded Production smoke remains required before
+claiming Production acceptance/promotion; it is not a prerequisite for Lead's
+code/UX acceptance of P1-M2.
+
+**Closure status:** ready for Lead final acceptance; not a Production promotion
+report. This record does not start another product phase.
