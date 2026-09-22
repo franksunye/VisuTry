@@ -576,6 +576,13 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
   if (!merchant) throw new MerchantAccessError()
   const frames = await getActiveFrames(input.actor.merchantId, frameIds)
   if (frames.length !== frameIds.length) throw new MerchantAccessError()
+  const previouslySelected = new Set(store.frames.map((frame) => frame.merchantFrameId))
+  const newlySelectedIneligible = frames.find((frame) =>
+    !previouslySelected.has(frame.id) && !validateMerchantFrameStoreReadiness(frame).storeEligible,
+  )
+  if (newlySelectedIneligible) {
+    throw new MerchantOnboardingError('STORE_FRAME_NOT_ELIGIBLE', 'This product is not ready to appear in your Store. Review it in Catalog or choose another product.', 409)
+  }
   await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
     mutation: () => prisma.$transaction(async (tx) => {

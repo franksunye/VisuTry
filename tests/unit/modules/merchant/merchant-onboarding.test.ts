@@ -22,6 +22,7 @@ import { withPublicDiscoveryInvalidation } from '@/modules/store/application/pub
 import type { AgentMerchantActor } from '@/modules/merchant/domain/actor'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 import { merchantOnboarding, validateCatalogFrame } from '@/modules/merchant/application/merchant-onboarding'
+import { MERCHANT_ACTIVATION_EVENT } from '@/modules/merchant/domain/merchant-activation'
 
 const actor: AgentMerchantActor = { actorType: 'AGENT_CREDENTIAL', actorId: 'credential-a', merchantId: 'merchant-a', scopes: ['merchant:read'] }
 
@@ -340,6 +341,87 @@ describe('merchant onboarding catalog validation', () => {
 
     await merchantOnboarding.setMerchantStoreFrames({ actor: writeActor, storeId: 'store-a', frameIds: ['frame-a'] })
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
+  })
+
+  it('rejects a newly selected Store-ineligible product before writes or cache invalidation', async () => {
+    const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'DRAFT', frames: [] })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-invalid', { imageUrl: null })])
+
+    await expect(merchantOnboarding.setMerchantStoreFrames({ actor: writeActor, storeId: 'store-a', frameIds: ['frame-invalid'] }))
+      .rejects.toMatchObject({ code: 'STORE_FRAME_NOT_ELIGIBLE', httpStatus: 409 })
+
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+    expect(withPublicDiscoveryInvalidation).not.toHaveBeenCalled()
+    expect(prisma.merchantOperationAudit.create).not.toHaveBeenCalled()
+  })
+
+  it('allows Store-eligible PENDING shape products and preserves existing ineligible selections for removal', async () => {
+    const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
+    const pending = { ...frame('pending', { sku: null, shape: '' }), externalId: 'external:pending', productUrl: 'https://shop.example.test/pending', source: 'EXTERNAL', enrichmentStatus: 'PENDING' }
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'DRAFT', frames: [{ merchantFrameId: 'legacy-invalid' }] })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([
+      { ...pending, id: 'legacy-invalid', imageUrl: null },
+      pending,
+    ])
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    }))
+
+    const result = await merchantOnboarding.setMerchantStoreFrames({ actor: writeActor, storeId: 'store-a', frameIds: ['legacy-invalid', 'pending'] })
+
+    expect(result.frameIds).toEqual(['legacy-invalid', 'pending'])
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps private preview side-effect free', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({
+      id: 'store-a', slug: 'store', status: 'DRAFT', name: 'Store', headline: null, description: null,
+      frames: [{ merchantFrameId: 'frame-a' }],
+    })
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-a')])
+
+    const result = await merchantOnboarding.previewMerchantStore({ actor: { ...actor, scopes: ['experience:read'] }, storeId: 'store-a' })
+
+    expect(result.preview.sideEffectFree).toBe(true)
+    expect(result.store.status).toBe('DRAFT')
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+    expect(prisma.experience.update).not.toHaveBeenCalled()
+    expect(prisma.merchantOperationAudit.create).not.toHaveBeenCalled()
+  })
+
+  it('does not republish an already Live Store or create another publish milestone', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({
+      id: 'store-a', slug: 'store', status: 'ACTIVE', name: 'Store', headline: null, description: null,
+      frames: [{ merchantFrameId: 'frame-a' }],
+    })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-a')])
+
+    const result = await merchantOnboarding.publishMerchantStore({ actor: { ...actor, scopes: ['experience:write'] }, storeId: 'store-a', approved: true })
+
+    expect(result).toMatchObject({ status: 'ACTIVE', publicPath: '/en/store/merchant-a' })
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+    expect(withPublicDiscoveryInvalidation).not.toHaveBeenCalled()
+  })
+
+  it('keeps Live Store detail saves public without a republish milestone', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'ACTIVE', name: 'Store', headline: null, description: null })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    const eventCreateMany = jest.fn().mockResolvedValue({ count: 1 })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      experience: { update: jest.fn().mockResolvedValue({ id: 'store-a', slug: 'store', status: 'ACTIVE', name: 'Store', headline: 'Now live', description: null }) },
+      merchantActivationEvent: { createMany: eventCreateMany },
+    }))
+
+    const result = await merchantOnboarding.updateMerchantStore({ actor: { ...actor, scopes: ['experience:write'] }, storeId: 'store-a', headline: 'Now live' })
+
+    expect(result).toMatchObject({ status: 'ACTIVE', publicPath: '/en/store/merchant-a' })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
+    expect(eventCreateMany.mock.calls.flatMap(([input]) => (input as { data: Array<{ eventType: string }> }).data).map((event) => event.eventType)).not.toContain(MERCHANT_ACTIVATION_EVENT.STORE_PUBLISHED)
   })
 
   it('invalidates Store discovery after Store creation and publication writes', async () => {

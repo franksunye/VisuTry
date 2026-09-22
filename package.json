@@ -54,6 +54,7 @@
     "merchant:local:dev": "bash scripts/dev-local.sh",
     "merchant:local:activation-report": "bash scripts/merchant-local-activation-report.sh",
     "merchant:local:e2e": "NODE_ENV=test APP_ENV=local ENABLE_MOCKS=true TEST_MODE=true P0_L1_LOCAL_MERCHANT_E2E=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 playwright test tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts --project=chromium && npm run merchant:local:activation-report",
+    "merchant:local:store:e2e": "NODE_ENV=test APP_ENV=local ENABLE_MOCKS=true TEST_MODE=true P1_M2_4_LOCAL_STORE_E2E=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 playwright test tests/e2e/p1-m2-4-local-store-workspace.spec.ts --project=chromium",
     "merchant:local:p1-m1:e2e": "NODE_ENV=test APP_ENV=local ENABLE_MOCKS=true TEST_MODE=true P0_L1_LOCAL_MERCHANT_E2E=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 playwright test tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts --project=chromium && npm run merchant:local:activation-report",
     "merchant:local:analytics:e2e": "bash scripts/merchant-local-analytics-e2e.sh",
     "db:preview:bootstrap": "tsx scripts/preview-db-bootstrap.ts",

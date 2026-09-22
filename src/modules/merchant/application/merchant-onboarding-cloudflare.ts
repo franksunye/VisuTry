@@ -596,6 +596,13 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
   if (!store) throw new MerchantAccessError()
   const frames = await activeFrames(input.actor.merchantId, frameIds)
   if (frames.length !== frameIds.length) throw new MerchantAccessError()
+  const previouslySelected = new Set(store.frames.map((frame) => String(frame.merchantFrameId)))
+  const newlySelectedIneligible = frames.find((frame) =>
+    !previouslySelected.has(String(frame.id)) && !validateMerchantFrameStoreReadiness(frame as unknown as FrameForValidation).storeEligible,
+  )
+  if (newlySelectedIneligible) {
+    throw new MerchantOnboardingError('STORE_FRAME_NOT_ELIGIBLE', 'This product is not ready to appear in your Store. Review it in Catalog or choose another product.', 409)
+  }
   const merchant = await getMerchant({ actor: input.actor })
   const sql = getCloudflareSql()
   const activationInput = {

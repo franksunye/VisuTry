@@ -28,6 +28,25 @@ export type MerchantStorePreviewFrame = {
   productBrand: string | null
 }
 
+export type MerchantStorePreview = {
+  store: {
+    id: string
+    name: string
+    status: string
+    headline: string | null
+    description: string | null
+    publicPath: string
+  }
+  frameCount: number
+  frames: MerchantStorePreviewFrame[]
+  readiness: {
+    ready: boolean
+    readyFrameCount: number
+    blockingIssues: Array<{ frameId: string; issues: string[] }>
+  }
+  preview: { sideEffectFree: boolean; publicPath: string }
+}
+
 export type MerchantStoreWorkspace = {
   store: {
     id: string
