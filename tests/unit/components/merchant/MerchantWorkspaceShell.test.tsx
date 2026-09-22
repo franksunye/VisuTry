@@ -36,6 +36,33 @@ describe('MerchantWorkspaceShell', () => {
     expect(screen.getByRole('combobox', { name: 'Active merchant' })).toHaveValue('merchant-a')
   })
 
+  it('brings the active primary route into the horizontal navigation viewport', () => {
+    const originalScrollIntoView = HTMLElement.prototype.scrollIntoView
+    const scrollIntoView = jest.fn()
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: scrollIntoView })
+
+    try {
+      render(
+        <MerchantWorkspaceShell
+          locale="en"
+          merchants={[{ id: 'merchant-a', slug: 'alpha', name: 'Alpha', role: 'OWNER' }]}
+          selectedMerchantId="merchant-a"
+        >
+          <div>analytics content</div>
+        </MerchantWorkspaceShell>,
+      )
+
+      expect(screen.getByRole('link', { name: 'Catalog' })).toHaveAttribute('aria-current', 'page')
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' })
+    } finally {
+      if (originalScrollIntoView) {
+        Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: originalScrollIntoView })
+      } else {
+        Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView')
+      }
+    }
+  })
+
   it('records workspace entry once per Merchant browser session, not once per route mount', () => {
     const props = {
       locale: 'en',
