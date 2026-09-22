@@ -4,12 +4,12 @@ import { requireMerchantMembership, MerchantAccessError } from './merchant-acces
 import {
   AgentCredentialLimitError,
   InvalidAgentCredentialError,
-  LAST_USED_UPDATE_INTERVAL_MS,
   MAX_ACTIVE_MERCHANT_AGENT_CREDENTIALS,
   createAgentSecret,
   keyPrefixForSecret,
   normalizeMerchantAgentScopes,
   maskAgentSecret,
+  shouldUpdateMerchantAgentCredentialLastUsedAt,
   verifyAgentSecret,
   type MerchantAgentScope,
 } from '../domain/agent-credentials'
@@ -268,7 +268,7 @@ export async function authenticateMerchantAgentCredential(rawKey: string): Promi
     throw new InvalidAgentCredentialError()
   }
 
-  if (!credential.lastUsedAt || Date.now() - credential.lastUsedAt.getTime() >= LAST_USED_UPDATE_INTERVAL_MS) {
+  if (shouldUpdateMerchantAgentCredentialLastUsedAt(credential.lastUsedAt)) {
     await prisma.merchantAgentCredential.update({
       where: { id: credential.id },
       data: { lastUsedAt: new Date() },
