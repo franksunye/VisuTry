@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronDown, Sparkles } from 'lucide-react'
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { analytics } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 import { getMerchantActivationContext, recordMerchantActivationClientEvent } from '@/lib/merchant-activation-client'
@@ -45,6 +45,7 @@ export function MerchantWorkspaceShell({
 }) {
   const pathname = usePathname()
   const selected = merchants.find((merchant) => merchant.id === selectedMerchantId)
+  const primaryNavigationRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const entryKey = `visutry_merchant_workspace_entered:${selectedMerchantId}`
@@ -70,6 +71,11 @@ export function MerchantWorkspaceShell({
       eventType: 'merchant_workspace_entered',
     }).catch(() => {})
   }, [pathname, selectedMerchantId])
+
+  useEffect(() => {
+    const activeLink = primaryNavigationRef.current?.querySelector<HTMLElement>('a[aria-current="page"]')
+    activeLink?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+  }, [pathname])
 
   const href = (section: MerchantWorkspaceSection) => merchantWorkspaceHref({ locale, section, merchantId: selectedMerchantId })
   const switchMerchant = (merchantId: string) => {
@@ -119,7 +125,7 @@ export function MerchantWorkspaceShell({
             </label>
           </div>
           <nav className="-mx-1 flex min-w-0 gap-0.5 pb-1.5 sm:mx-0 sm:gap-1 sm:pb-2" aria-label="Merchant workspace">
-            <div className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1">
+            <div ref={primaryNavigationRef} data-testid="merchant-primary-navigation" className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1">
               {primary.map(({ section, label }) => navLink(section, label))}
             </div>
             <details className="relative ml-auto shrink-0 sm:ml-2">

@@ -93,6 +93,8 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     mkdirSync(catalogEvidenceDir, { recursive: true })
     const m26EvidenceDir = '/tmp/visutry-p1-m2-6-analytics-integrations'
     mkdirSync(m26EvidenceDir, { recursive: true })
+    const m27EvidenceDir = '/tmp/visutry-p1-m2-7-mobile-navigation'
+    mkdirSync(m27EvidenceDir, { recursive: true })
     const m26CaptureMetrics: Array<{ name: string; route: string; viewport: { width: number; height: number }; pageHeight: number; headerHeight: number | null; horizontalOverflow: boolean }> = []
     const captureM26 = async (name: string) => {
       await page.screenshot({ path: `${m26EvidenceDir}/${name}.png` })
@@ -135,7 +137,41 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(`/en/merchant/analytics?merchantId=${encodeURIComponent(m26MerchantId)}`, { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'No shopper activity yet' })).toBeVisible()
+    const mobileNavigation = page.getByRole('navigation', { name: 'Merchant workspace' })
+    const activeAnalyticsLink = mobileNavigation.getByRole('link', { name: 'Analytics', exact: true })
+    await expect(activeAnalyticsLink).toHaveAttribute('aria-current', 'page')
+    const analyticsNavigationMetrics = await page.evaluate(() => {
+      const nav = document.querySelector('nav[aria-label="Merchant workspace"]')
+      const primary = nav?.querySelector<HTMLElement>('[data-testid="merchant-primary-navigation"]')
+      const active = primary?.querySelector<HTMLElement>('a[aria-current="page"]')
+      const more = nav?.querySelector<HTMLElement>('summary')
+      if (!nav || !primary || !active || !more) return null
+      const primaryRect = primary.getBoundingClientRect()
+      const activeRect = active.getBoundingClientRect()
+      const moreRect = more.getBoundingClientRect()
+      return {
+        activeFullyVisible: activeRect.left >= primaryRect.left - 1 && activeRect.right <= primaryRect.right + 1,
+        moreRemainsBesidePrimary: moreRect.left >= primaryRect.right - 1,
+        moreFullyVisible: moreRect.left >= nav.getBoundingClientRect().left && moreRect.right <= nav.getBoundingClientRect().right,
+        noViewportOverflow: document.documentElement.scrollWidth <= innerWidth,
+      }
+    })
+    expect(analyticsNavigationMetrics).toEqual({
+      activeFullyVisible: true,
+      moreRemainsBesidePrimary: true,
+      moreFullyVisible: true,
+      noViewportOverflow: true,
+    })
+    console.log(JSON.stringify({ p1m27AnalyticsNavigation: analyticsNavigationMetrics }))
+    await page.screenshot({ path: `${m27EvidenceDir}/analytics-active-mobile.png`, fullPage: false })
     await captureM26('02-analytics-empty-mobile')
+    const moreSummary = mobileNavigation.locator('summary')
+    await moreSummary.focus()
+    await moreSummary.press('Enter')
+    await expect(mobileNavigation.getByRole('link', { name: 'Integrations' })).toBeVisible()
+    await expect(mobileNavigation.getByRole('link', { name: 'Plan & Usage' })).toBeVisible()
+    await expect(mobileNavigation.getByRole('link', { name: 'Settings' })).toBeVisible()
+    await page.screenshot({ path: `${m27EvidenceDir}/more-open-mobile.png`, fullPage: false })
     await page.goto(`/en/merchant/integrations?merchantId=${encodeURIComponent(m26MerchantId)}`, { waitUntil: 'networkidle' })
     await expect(page.getByText('No active key')).toBeVisible()
     await captureM26('04-integrations-empty-mobile')
