@@ -18,7 +18,10 @@ export async function GET(request: NextRequest, { params }: { params: { merchant
     const rawLimit = Number.parseInt(request.nextUrl.searchParams.get('limit') ?? '50', 10)
     const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 100) : 50
     const cursor = request.nextUrl.searchParams.get('cursor') ?? undefined
-    const data = await listMerchantFrames({ actor: actorFor(auth.userId, params.merchantId, membership.membershipId), cursor, limit })
+    const search = request.nextUrl.searchParams.get('search')?.trim() || undefined
+    const readinessValue = request.nextUrl.searchParams.get('readiness')
+    const readiness = readinessValue === 'all' || readinessValue === 'READY' || readinessValue === 'NEEDS_REVIEW' || readinessValue === 'NEEDS_ATTENTION' ? readinessValue : undefined
+    const data = await listMerchantFrames({ actor: actorFor(auth.userId, params.merchantId, membership.membershipId), cursor, limit, search, readiness: readiness ?? undefined })
     return NextResponse.json({ success: true, data })
   } catch (error) {
     return catalogErrorResponse(error)
