@@ -41,11 +41,22 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     mkdirSync(evidenceDir, { recursive: true })
     const runId = Date.now().toString(36)
     const screenshots: string[] = []
+    const screenshotMetrics: Array<{ screenshot: string; viewport: { width: number; height: number }; pageHeight: number; headerHeight: number | null; horizontalOverflow: boolean; documentWidth: number }> = []
     const journeyClicks = { homeToCampaignList: 0, createToPrivatePreview: 0 }
     const capture = async (name: string, fullPage = false) => {
       const path = `${evidenceDir}/${name}.png`
       await page.screenshot({ path, fullPage })
       screenshots.push(path)
+      screenshotMetrics.push({
+        screenshot: name,
+        ...(await page.evaluate(() => ({
+          viewport: { width: window.innerWidth, height: window.innerHeight },
+          pageHeight: document.documentElement.scrollHeight,
+          headerHeight: document.querySelector('header')?.getBoundingClientRect().height ?? null,
+          horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
+          documentWidth: document.documentElement.scrollWidth,
+        }))),
+      })
     }
     const prepareMerchant = async (merchantId: string, merchantSlug: string) => {
       const catalogEndpoint = `/api/merchant/${encodeURIComponent(merchantId)}/catalog`
@@ -177,6 +188,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     expect(draftCampaign.status).toBe('DRAFT')
     const draftPublicResponse = await page.request.get(draftCampaign.publicPath)
     expect(draftPublicResponse.status(), 'Draft public URL stays unavailable until public admission allows it').toBe(404)
+    const draftPublicRouteStatus = draftPublicResponse.status()
 
     await page.getByRole('button', { name: 'Private Preview' }).click()
     journeyClicks.createToPrivatePreview += 1
@@ -248,30 +260,19 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await capture('16-campaign-archived-detail-mobile', true)
 
-    const metrics = await page.evaluate(() => ({
-      viewport: { width: window.innerWidth, height: window.innerHeight },
-      pageHeight: document.documentElement.scrollHeight,
-      headerHeight: document.querySelector('header')?.getBoundingClientRect().height ?? null,
-      horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
-      documentWidth: document.documentElement.scrollWidth,
-      overflowElements: [...document.querySelectorAll('*')].flatMap((element) => {
-        const rect = element.getBoundingClientRect()
-        return rect.width > 0 && (rect.right > window.innerWidth + 1 || rect.left < -1)
-          ? [{ tag: element.tagName, id: element.id, className: typeof element.className === 'string' ? element.className : '', left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) }]
-          : []
-      }).slice(0, 12),
-    }))
+    const finalMetrics = screenshotMetrics[screenshotMetrics.length - 1]
     writeFileSync(`${evidenceDir}/README.md`, [
       '# P1-M2.5 Local Campaign workspace screenshots',
       '',
       `Local browser evidence captured ${new Date().toISOString()} against TEST Merchants only.`,
       'All writes were made through the authenticated local application APIs and browser UI; Store setup stopped at private Preview.',
+      `Draft public URL before publish: HTTP ${draftPublicRouteStatus}.`,
       '',
       'Desktop: 1440×900. Mobile: 390×844. Browser zoom: 100%.',
       '',
       ...screenshots.map((path) => `- ${path}`),
       '',
-      `Final metrics: ${JSON.stringify(metrics)}`,
+      `Per-screenshot viewport metrics: ${JSON.stringify(screenshotMetrics)}`,
       `Browser errors: ${JSON.stringify(browserErrors)}`,
       `HTTP 5xx: ${JSON.stringify(serverErrors)}`,
       `HTTP 4xx: ${JSON.stringify(clientErrorResponses)}`,
@@ -279,8 +280,8 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
       `Home → Campaign list click count: ${journeyClicks.homeToCampaignList}`,
       `Create form → private Preview click count: ${journeyClicks.createToPrivatePreview}`,
     ].join('\n'))
-    console.log(JSON.stringify({ metrics, journeyClicks, screenshots, browserErrors, serverErrors }))
-    expect(metrics.horizontalOverflow).toBe(false)
+    console.log(JSON.stringify({ finalMetrics, screenshotMetrics, draftPublicRouteStatus, journeyClicks, screenshots, browserErrors, serverErrors }))
+    expect(screenshotMetrics.every((metrics) => !metrics.horizontalOverflow)).toBe(true)
     expect(browserErrors).toEqual([])
     expect(serverErrors).toEqual([])
     expect(clientErrorResponses).toEqual([{ status: 409, url: expect.stringContaining('/publish') }])
