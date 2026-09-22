@@ -23,12 +23,14 @@ describe('MerchantIntegrationsWorkspace', () => {
   beforeEach(() => { global.fetch = jest.fn() })
   afterEach(() => { global.fetch = originalFetch; jest.restoreAllMocks() })
 
-  it('does not configured-state-label an unused active key as connected', () => {
+  it('labels the active-key state narrowly and does not imply OAuth MCP status', () => {
     render(<MerchantIntegrationsWorkspace {...props} initialCredentials={[credential()]} />)
-    expect(screen.getByText('Ready to connect')).toBeInTheDocument()
-    expect(screen.getByText(/has not yet recorded successful use/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Agent key access' })).toBeInTheDocument()
+    expect(screen.getByText('Key created · not yet used')).toBeInTheDocument()
+    expect(screen.getByText(/OAuth MCP authorization is separate/)).toBeInTheDocument()
+    expect(screen.getByText(/has no recorded successful use yet/)).toBeInTheDocument()
     expect(screen.getByText('Not used yet')).toBeInTheDocument()
-    expect(screen.queryByText('Agent use verified')).not.toBeInTheDocument()
+    expect(screen.queryByText('Successful key use recorded')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Create another key' })).toBeInTheDocument()
   })
 
@@ -37,8 +39,8 @@ describe('MerchantIntegrationsWorkspace', () => {
       credential({ id: 'active-used', lastUsedAt: '2026-09-10T08:30:00.000Z' }),
       credential({ id: 'revoked', name: 'Old key', status: 'REVOKED', revokedAt: '2026-09-09T00:00:00.000Z' }),
     ]} />)
-    expect(screen.getByText('Agent use verified')).toBeInTheDocument()
-    expect(screen.getByText(/This records use, not a continuous connection/)).toBeInTheDocument()
+    expect(screen.getByText('Successful key use recorded')).toBeInTheDocument()
+    expect(screen.getByText(/confirms key use, not a continuous connection/)).toBeInTheDocument()
     expect(screen.getByText(/Last used/)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Old key' })).toBeInTheDocument()
     expect(screen.getByText('Revoked')).toBeInTheDocument()
@@ -54,7 +56,7 @@ describe('MerchantIntegrationsWorkspace', () => {
       .mockResolvedValueOnce(response({ credentials: [credential()] }, true))
     render(<MerchantIntegrationsWorkspace {...props} initialCredentials={[]} />)
 
-    expect(screen.getByText('Not configured')).toBeInTheDocument()
+    expect(screen.getByText('No active key')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Create Agent key' }))
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText(new RegExp(testSecret))).toBeInTheDocument()
@@ -63,7 +65,7 @@ describe('MerchantIntegrationsWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close and hide key' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(screen.queryByText(new RegExp(testSecret))).not.toBeInTheDocument()
-    expect(screen.getByText('Ready to connect')).toBeInTheDocument()
+    expect(screen.getByText('Key created · not yet used')).toBeInTheDocument()
     expect(screen.queryByText(testSecret)).not.toBeInTheDocument()
   })
 
@@ -91,7 +93,7 @@ describe('MerchantIntegrationsWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Revoke VisuTry Agent' }))
 
     expect(confirm).toHaveBeenCalledWith(expect.stringContaining('will stop working immediately'))
-    expect(await screen.findByText('Not configured')).toBeInTheDocument()
+    expect(await screen.findByText('No active key')).toBeInTheDocument()
     expect(screen.getByText('Revoked')).toBeInTheDocument()
     expect(screen.getByText('“VisuTry Agent” was revoked.')).toBeInTheDocument()
   })
@@ -109,6 +111,6 @@ describe('MerchantIntegrationsWorkspace', () => {
     view.rerender(<KeyedWorkspace merchantId="merchant-b" initialCredentials={[]} />)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.queryByText(new RegExp(testSecret))).not.toBeInTheDocument()
-    expect(screen.getByText('Not configured')).toBeInTheDocument()
+    expect(screen.getByText('No active key')).toBeInTheDocument()
   })
 })

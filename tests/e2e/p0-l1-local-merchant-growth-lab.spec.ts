@@ -128,7 +128,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
 
     await page.goto(`/en/merchant/integrations?merchantId=${encodeURIComponent(m26MerchantId)}`, { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible()
-    await expect(page.getByText('Not configured')).toBeVisible()
+    await expect(page.getByText('No active key')).toBeVisible()
     await expect(page.getByText('No keys have been created for this workspace.')).toBeVisible()
     await captureM26('03-integrations-empty-desktop')
 
@@ -137,7 +137,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByRole('heading', { name: 'No shopper activity yet' })).toBeVisible()
     await captureM26('02-analytics-empty-mobile')
     await page.goto(`/en/merchant/integrations?merchantId=${encodeURIComponent(m26MerchantId)}`, { waitUntil: 'networkidle' })
-    await expect(page.getByText('Not configured')).toBeVisible()
+    await expect(page.getByText('No active key')).toBeVisible()
     await captureM26('04-integrations-empty-mobile')
 
     const createdKeyResponse = page.waitForResponse((response) => response.url().endsWith(`/api/merchant/${m26MerchantId}/agent-credentials`) && response.request().method() === 'POST')
@@ -152,22 +152,22 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await captureM26('05-integrations-one-time-key-mobile')
     await page.getByRole('button', { name: 'Close and hide key' }).click()
     await expect(page.getByRole('dialog')).not.toBeVisible()
-    await expect(page.getByText('Ready to connect')).toBeVisible()
-    await expect(page.getByText(/has not yet recorded successful use/)).toBeVisible()
+    await expect(page.getByText('Key created · not yet used')).toBeVisible()
+    await expect(page.getByText(/has no recorded successful use yet/)).toBeVisible()
     await expect(page.getByText(new RegExp(keyMatch![1].replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')))).toHaveCount(0)
 
     const agentRead = await request.get('/api/agent/v1/merchant', { headers: { authorization: `Bearer ${keyMatch![1]}` } })
     expect(agentRead.status(), 'A real authenticated Agent read records credential use').toBe(200)
     await page.getByRole('button', { name: 'Refresh status' }).click()
-    await expect(page.getByText('Agent use verified')).toBeVisible()
-    await expect(page.getByText(/This records use, not a continuous connection/)).toBeVisible()
+    await expect(page.getByText('Successful key use recorded')).toBeVisible()
+    await expect(page.getByText(/confirms key use, not a continuous connection/)).toBeVisible()
 
     await page.setViewportSize({ width: 1440, height: 900 })
     await captureM26('06-integrations-used-desktop')
     page.once('dialog', (dialog) => dialog.accept())
     await page.getByRole('button', { name: 'Revoke VisuTry Agent' }).click()
     await expect(page.getByText('“VisuTry Agent” was revoked.')).toBeVisible()
-    await expect(page.getByText('Not configured')).toBeVisible()
+    await expect(page.getByText('No active key')).toBeVisible()
     await captureM26('07-integrations-revoked-desktop')
 
     await page.goto('/en/merchant', { waitUntil: 'networkidle' })

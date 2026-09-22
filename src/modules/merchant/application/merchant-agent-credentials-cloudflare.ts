@@ -9,6 +9,7 @@ import {
   keyPrefixForSecret,
   maskAgentSecret,
   normalizeMerchantAgentScopes,
+  shouldUpdateMerchantAgentCredentialLastUsedAt,
   verifyAgentSecret,
   type MerchantAgentScope,
 } from '../domain/agent-credentials'
@@ -156,7 +157,19 @@ export async function authenticateMerchantAgentCredential(rawKey: string): Promi
   `
   const credential = rows[0]
   if (!credential || String(credential.status) !== 'ACTIVE' || !verifyAgentSecret(rawKey, String(credential.secretHash))) throw new InvalidAgentCredentialError()
-  void LAST_USED_UPDATE_INTERVAL_MS
+  const lastUsedAt = dateValue(credential.lastUsedAt)
+  if (shouldUpdateMerchantAgentCredentialLastUsedAt(lastUsedAt)) {
+    await sql`
+      UPDATE "MerchantAgentCredential"
+      SET "lastUsedAt" = NOW()
+      WHERE "id" = ${String(credential.id)}
+        AND "status" = 'ACTIVE'
+        AND (
+          "lastUsedAt" IS NULL
+          OR "lastUsedAt" <= NOW() - (${LAST_USED_UPDATE_INTERVAL_MS} * INTERVAL '1 millisecond')
+        )
+    `
+  }
   return {
     actorType: 'AGENT_CREDENTIAL',
     actorId: String(credential.id),

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Copy, ExternalLink, KeyRound, RefreshCw, ShieldCheck } from 'lucide-react'
 import type { MerchantAgentCredentialMetadata } from '@/modules/merchant/application/merchant-agent-credentials'
 import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
-import { resolveMerchantAgentIntegrationStatus } from '@/modules/merchant/domain/merchant-integration-presentation'
+import { resolveMerchantAgentKeyAccessStatus } from '@/modules/merchant/domain/merchant-integration-presentation'
 
 type Skill = { name: string; purpose: string; url: string; prompt: string }
 type CredentialView = Omit<MerchantAgentCredentialMetadata, 'createdAt' | 'lastUsedAt' | 'revokedAt'> & {
@@ -103,7 +103,7 @@ export function MerchantIntegrationsWorkspace({
   const [notice, setNotice] = useState<string | null>(null)
   const [oneTimeSetup, setOneTimeSetup] = useState<string | null>(null)
   const skill = skills[0]
-  const status = resolveMerchantAgentIntegrationStatus(credentials)
+  const status = resolveMerchantAgentKeyAccessStatus(credentials)
 
   async function refreshCredentials() {
     const response = await fetch(`/api/merchant/${encodeURIComponent(merchantId)}/agent-credentials`, { cache: 'no-store' })
@@ -175,21 +175,22 @@ export function MerchantIntegrationsWorkspace({
     }
   }
 
-  const statusLabel = status.kind === 'NOT_CONFIGURED' ? 'Not configured' : status.kind === 'READY_TO_CONNECT' ? 'Ready to connect' : 'Agent use verified'
+  const statusLabel = status.kind === 'NOT_CONFIGURED' ? 'No active key' : status.kind === 'READY_TO_CONNECT' ? 'Key created · not yet used' : 'Successful key use recorded'
   const latestUseLabel = formatDate(status.latestActiveUseAt, locale)
 
   return <div data-testid="merchant-integrations-workspace" className="space-y-5">
     <header className="flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
-      <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Merchant workspace</p><h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Integrations</h1><p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">Manage the optional VisuTry Agent / MCP connection for this workspace.</p></div>
+      <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Merchant workspace</p><h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Integrations</h1><p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">Manage Agent keys for optional key-based access to this workspace.</p></div>
       <button type="button" onClick={() => void createKey()} disabled={busy} className={`${buttonClass} shrink-0 bg-slate-950 text-white hover:bg-slate-800`}><KeyRound className="h-4 w-4" aria-hidden="true" />{status.activeCredentialCount ? 'Create another key' : 'Create Agent key'}</button>
     </header>
 
     <section className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
       <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="flex items-start gap-3"><span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${status.kind === 'USED' ? 'bg-emerald-50 text-emerald-700' : status.kind === 'READY_TO_CONNECT' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'}`}><ShieldCheck className="h-5 w-5" aria-hidden="true" /></span><div><h2 className="text-base font-semibold text-slate-950">VisuTry Agent / MCP</h2><p className="mt-1 text-sm font-semibold text-slate-800">{statusLabel}</p>
-          {status.kind === 'NOT_CONFIGURED' ? <p className="mt-1 text-sm leading-5 text-slate-600">No active key exists. Create one only if you want an Agent to access this Merchant workspace.</p> : null}
-          {status.kind === 'READY_TO_CONNECT' ? <p className="mt-1 text-sm leading-5 text-slate-600">An active key exists, but VisuTry has not yet recorded successful use. Creating a key alone does not connect an Agent.</p> : null}
-          {status.kind === 'USED' ? <p className="mt-1 text-sm leading-5 text-slate-600">At least one active key has been used successfully{latestUseLabel ? ` · last used ${latestUseLabel}` : ''}. This records use, not a continuous connection.</p> : null}
+        <div className="flex items-start gap-3"><span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${status.kind === 'USED' ? 'bg-emerald-50 text-emerald-700' : status.kind === 'READY_TO_CONNECT' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'}`}><ShieldCheck className="h-5 w-5" aria-hidden="true" /></span><div><h2 className="text-base font-semibold text-slate-950">Agent key access</h2><p className="mt-1 text-sm font-semibold text-slate-800">{statusLabel}</p>
+          {status.kind === 'NOT_CONFIGURED' ? <p className="mt-1 text-sm leading-5 text-slate-600">No active Agent key exists. Create one if you want an Agent to access this workspace using a key.</p> : null}
+          {status.kind === 'READY_TO_CONNECT' ? <p className="mt-1 text-sm leading-5 text-slate-600">An active key exists, but it has no recorded successful use yet. Key creation alone does not prove that it has been used.</p> : null}
+          {status.kind === 'USED' ? <p className="mt-1 text-sm leading-5 text-slate-600">At least one active key has successful use evidence{latestUseLabel ? ` · last used ${latestUseLabel}` : ''}. This confirms key use, not a continuous connection.</p> : null}
+          <p className="mt-2 text-xs text-slate-500">This status covers Agent key access only; OAuth MCP authorization is separate.</p>
           <p className="mt-2 text-xs text-slate-500">{status.activeCredentialCount} active · {status.revokedCredentialCount} revoked</p>
         </div></div>
       </article>

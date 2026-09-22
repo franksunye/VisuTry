@@ -3,7 +3,7 @@ export type AgentCredentialUsageEvidence = {
   lastUsedAt: string | Date | null
 }
 
-export type MerchantAgentIntegrationStatus = {
+export type MerchantAgentKeyAccessStatus = {
   kind: 'NOT_CONFIGURED' | 'READY_TO_CONNECT' | 'USED'
   activeCredentialCount: number
   revokedCredentialCount: number
@@ -17,9 +17,9 @@ function isoDate(value: string | Date | null): string | null {
 }
 
 /** A credential proves setup only; successful authenticated use is the connection evidence. */
-export function resolveMerchantAgentIntegrationStatus(
+export function resolveMerchantAgentKeyAccessStatus(
   credentials: readonly AgentCredentialUsageEvidence[],
-): MerchantAgentIntegrationStatus {
+): MerchantAgentKeyAccessStatus {
   const active = credentials.filter((credential) => credential.status === 'ACTIVE')
   const lastUses = active
     .map((credential) => isoDate(credential.lastUsedAt))

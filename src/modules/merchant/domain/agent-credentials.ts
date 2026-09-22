@@ -20,6 +20,11 @@ export const MERCHANT_AGENT_LOOKUP_PREFIX_LENGTH = MERCHANT_AGENT_KEY_PREFIX.len
 export const MAX_ACTIVE_MERCHANT_AGENT_CREDENTIALS = 5
 export const LAST_USED_UPDATE_INTERVAL_MS = 15 * 60 * 1000
 
+export function shouldUpdateMerchantAgentCredentialLastUsedAt(lastUsedAt: Date | null, now = Date.now()): boolean {
+  if (!lastUsedAt || !Number.isFinite(lastUsedAt.getTime())) return true
+  return now - lastUsedAt.getTime() >= LAST_USED_UPDATE_INTERVAL_MS
+}
+
 export class InvalidAgentCredentialError extends Error {
   readonly code = 'INVALID_AGENT_CREDENTIAL'
   readonly httpStatus = 401
