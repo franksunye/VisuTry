@@ -71,6 +71,8 @@ describe('Merchant Campaign HTTP boundary', () => {
     const response = await setProducts(request('/api/merchant/merchant-a/campaigns/campaign-a/products', 'PUT', { frameIds: ['frame-b'] }), { params: { merchantId: 'merchant-a', campaignId: 'campaign-a' } })
     expect(response.status).toBe(200)
     expect(setCampaignFrames).toHaveBeenCalledWith({ merchantId: 'merchant-a', campaignId: 'campaign-a', frameIds: ['frame-b'] })
+    expect(getCampaign).toHaveBeenCalledWith({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
+    expect(await response.json()).toMatchObject({ success: true, data: { id: 'campaign-a', status: 'DRAFT' } })
 
     ;(setCampaignFrames as jest.Mock).mockRejectedValueOnce(new MerchantAccessError())
     const crossMerchantProduct = await setProducts(request('/api/merchant/merchant-a/campaigns/campaign-a/products', 'PUT', { frameIds: ['merchant-b-frame'] }), { params: { merchantId: 'merchant-a', campaignId: 'campaign-a' } })

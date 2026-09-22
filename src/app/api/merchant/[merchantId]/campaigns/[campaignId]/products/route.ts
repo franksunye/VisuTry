@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireAuth } from '@/lib/api-auth-runtime'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
-import { setCampaignFrames } from '@/modules/store/application/campaign-service'
+import { getCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service'
 import { campaignErrorResponse } from '../../campaign-http'
 
 export const dynamic = 'force-dynamic'
@@ -17,7 +17,8 @@ export async function PUT(request: NextRequest, { params }: { params: { merchant
     try { body = await request.json() } catch { return NextResponse.json({ success: false, error: 'INVALID_REQUEST' }, { status: 400 }) }
     const parsed = schema.safeParse(body)
     if (!parsed.success) return NextResponse.json({ success: false, error: 'INVALID_REQUEST' }, { status: 400 })
-    const data = await setCampaignFrames({ merchantId: params.merchantId, campaignId: params.campaignId, ...parsed.data })
+    await setCampaignFrames({ merchantId: params.merchantId, campaignId: params.campaignId, ...parsed.data })
+    const data = await getCampaign({ merchantId: params.merchantId, campaignId: params.campaignId })
     return NextResponse.json({ success: true, data })
   } catch (error) {
     return campaignErrorResponse(error)

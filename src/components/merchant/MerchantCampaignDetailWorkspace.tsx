@@ -102,7 +102,8 @@ export function MerchantCampaignDetailWorkspace({
   const [campaign, setCampaign] = useState(initialCampaign)
   const [draft, setDraft] = useState(() => initialDraft(initialCampaign))
   const [selectedIds, setSelectedIds] = useState(initialCampaign.frameIds)
-  const [baseline, setBaseline] = useState(() => JSON.stringify({ draft: initialDraft(initialCampaign), ids: initialCampaign.frameIds }))
+  const [savedDraft, setSavedDraft] = useState(() => initialDraft(initialCampaign))
+  const [savedSelectedIds, setSavedSelectedIds] = useState(initialCampaign.frameIds)
   const [products, setProducts] = useState<CatalogProduct[]>([])
   const [productSearch, setProductSearch] = useState('')
   const [productCursor, setProductCursor] = useState<string | null>(null)
@@ -115,7 +116,14 @@ export function MerchantCampaignDetailWorkspace({
 
   const presentation = resolveMerchantCampaignPresentation(campaign)
   const readOnly = campaign.status === 'ARCHIVED'
-  const dirty = JSON.stringify({ draft, ids: selectedIds }) !== baseline
+  const detailsDirty = JSON.stringify(draft) !== JSON.stringify(savedDraft)
+  const productsDirty = JSON.stringify(selectedIds) !== JSON.stringify(savedSelectedIds)
+  const dirty = detailsDirty || productsDirty
+  const previewSaveInstruction = detailsDirty && productsDirty
+    ? 'Save campaign details and product selection before previewing.'
+    : detailsDirty
+      ? 'Save campaign details before previewing.'
+      : 'Save product selection before previewing.'
   const productIds = useMemo(() => new Set(selectedIds), [selectedIds])
   const campaignEndpoint = `/api/merchant/${encodeURIComponent(merchantId)}/campaigns/${encodeURIComponent(campaign.id)}`
   const campaignUrl = publicHref(locale, campaign)
@@ -149,9 +157,9 @@ export function MerchantCampaignDetailWorkspace({
     setPreview(null)
   }
 
-  async function save() {
-    if (busyAction || readOnly || !dirty) return
-    setBusyAction('save')
+  async function saveDetails() {
+    if (busyAction || readOnly || !detailsDirty || !draft.name.trim()) return
+    setBusyAction('save-details')
     setMessage(null)
     setPreview(null)
     try {
@@ -171,18 +179,34 @@ export function MerchantCampaignDetailWorkspace({
         secondaryCtaLabel: draft.secondaryCtaLabel || null,
         secondaryCtaUrl: draft.secondaryCtaUrl || null,
       }
-      await responseData(await fetch(campaignEndpoint, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }))
-      await responseData(await fetch(`${campaignEndpoint}/products`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ frameIds: selectedIds }) }))
-      const saved = await responseData<Campaign>(await fetch(campaignEndpoint))
+      const saved = await responseData<Campaign>(await fetch(campaignEndpoint, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }))
       const savedDraft = initialDraft(saved)
       setCampaign(saved)
       setDraft(savedDraft)
-      setSelectedIds(saved.frameIds)
-      setBaseline(JSON.stringify({ draft: savedDraft, ids: saved.frameIds }))
-      setMessage({ kind: 'success', text: saved.status === 'ACTIVE' ? 'Saved. These changes are now visible in your live Campaign.' : 'Campaign draft saved.' })
+      setSavedDraft(savedDraft)
+      setMessage({ kind: 'success', text: saved.status === 'ACTIVE' ? 'Campaign details saved. These changes are now visible in your live Campaign.' : 'Campaign details saved.' })
     } catch (error) {
       const typed = error as Error & { code?: string }
-      setMessage({ kind: 'error', text: typed.message || 'Your change could not be saved. Please try again.', code: typed.code })
+      setMessage({ kind: 'error', text: typed.message || 'Campaign details could not be saved. Please try again.', code: typed.code })
+    } finally {
+      setBusyAction(null)
+    }
+  }
+
+  async function saveProducts() {
+    if (busyAction || readOnly || !productsDirty) return
+    setBusyAction('save-products')
+    setMessage(null)
+    setPreview(null)
+    try {
+      const saved = await responseData<Campaign>(await fetch(`${campaignEndpoint}/products`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ frameIds: selectedIds }) }))
+      setCampaign(saved)
+      setSelectedIds(saved.frameIds)
+      setSavedSelectedIds(saved.frameIds)
+      setMessage({ kind: 'success', text: saved.status === 'ACTIVE' ? 'Product selection saved. These changes are now visible in your live Campaign.' : 'Product selection saved.' })
+    } catch (error) {
+      const typed = error as Error & { code?: string }
+      setMessage({ kind: 'error', text: typed.message || 'Product selection could not be saved. Please try again.', code: typed.code })
     } finally {
       setBusyAction(null)
     }
@@ -208,9 +232,12 @@ export function MerchantCampaignDetailWorkspace({
     setMessage(null)
     try {
       const published = await responseData<Campaign>(await fetch(`${campaignEndpoint}/publish`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ approved: true }) }))
+      const publishedDraft = initialDraft(published)
       setCampaign(published)
-      setDraft(initialDraft(published))
-      setBaseline(JSON.stringify({ draft: initialDraft(published), ids: published.frameIds }))
+      setDraft(publishedDraft)
+      setSavedDraft(publishedDraft)
+      setSelectedIds(published.frameIds)
+      setSavedSelectedIds(published.frameIds)
       setPreview(null)
       setApproved(false)
       setMessage({ kind: 'success', text: 'Campaign is live. Its public link is ready to share.' })
@@ -224,15 +251,17 @@ export function MerchantCampaignDetailWorkspace({
   }
 
   async function archive() {
-    if (busyAction) return
+    if (busyAction || dirty) return
     setBusyAction('archive')
     setMessage(null)
     try {
       const archived = await responseData<Campaign>(await fetch(`${campaignEndpoint}/archive`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ confirmed: true }) }))
+      const archivedDraft = initialDraft(archived)
       setCampaign(archived)
-      setDraft(initialDraft(archived))
+      setDraft(archivedDraft)
+      setSavedDraft(archivedDraft)
       setSelectedIds(archived.frameIds)
-      setBaseline(JSON.stringify({ draft: initialDraft(archived), ids: archived.frameIds }))
+      setSavedSelectedIds(archived.frameIds)
       setArchiveConfirm(false)
       setMessage({ kind: 'success', text: 'Campaign archived. Existing public links may remain accessible under the archive policy.' })
       router.refresh()
@@ -270,27 +299,28 @@ export function MerchantCampaignDetailWorkspace({
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]">
       <div className="space-y-5">
         <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5" aria-labelledby="campaign-core-heading">
-          <div className="flex items-start justify-between gap-4"><div><h2 id="campaign-core-heading" className="text-base font-semibold text-slate-950">Campaign details</h2><p className="mt-1 text-sm text-slate-600">Start with a clear name, headline, and product selection.</p></div>{dirty ? <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Unsaved changes</span> : null}</div>
+          <div className="flex items-start justify-between gap-4"><div><h2 id="campaign-core-heading" className="text-base font-semibold text-slate-950">Campaign details</h2><p className="mt-1 text-sm text-slate-600">Start with a clear name and headline.</p></div>{detailsDirty ? <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Unsaved detail changes</span> : null}</div>
           <div className="mt-4 grid gap-4">
-            <Field label="Campaign name *"><input className={inputClass()} value={draft.name} maxLength={120} disabled={readOnly} onChange={(event) => update('name', event.target.value)} /></Field>
-            <Field label="Shopper-facing headline" hint="A concise message shoppers see first."><input className={inputClass()} value={draft.headline} maxLength={240} disabled={readOnly} onChange={(event) => update('headline', event.target.value)} placeholder="Find a frame for every day" /></Field>
+            <Field label="Campaign name *"><input className={inputClass()} value={draft.name} maxLength={120} disabled={readOnly || busyAction !== null} onChange={(event) => update('name', event.target.value)} /></Field>
+            <Field label="Shopper-facing headline" hint="A concise message shoppers see first."><input className={inputClass()} value={draft.headline} maxLength={240} disabled={readOnly || busyAction !== null} onChange={(event) => update('headline', event.target.value)} placeholder="Find a frame for every day" /></Field>
+          {!readOnly ? <div className="mt-4 border-t border-slate-100 pt-3"><button type="button" onClick={saveDetails} disabled={!detailsDirty || busyAction !== null || !draft.name.trim()} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"><Save className="h-4 w-4" aria-hidden="true" />{busyAction === 'save-details' ? 'Saving details…' : 'Save campaign details'}</button>{campaign.status === 'ACTIVE' && detailsDirty ? <p className="mt-2 text-xs text-amber-800">Saving campaign details updates the live Campaign immediately.</p> : null}</div> : null}
           </div>
         </section>
 
         <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5" aria-labelledby="campaign-products-heading">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="campaign-products-heading" className="text-base font-semibold text-slate-950">Products</h2><p className="mt-1 text-sm text-slate-600">Choose active, ready products from this Merchant’s Catalog.</p></div><span className="text-sm font-semibold text-slate-700">{selectedIds.length} selected</span></div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="campaign-products-heading" className="text-base font-semibold text-slate-950">Products</h2><p className="mt-1 text-sm text-slate-600">Choose active, ready products from this Merchant’s Catalog.</p></div><div className="flex items-center gap-2">{productsDirty ? <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Unsaved product changes</span> : null}<span className="text-sm font-semibold text-slate-700">{selectedIds.length} selected</span></div></div>
           {selectedMissing.length > 0 ? <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="font-semibold">Some saved products need attention</p><ul className="mt-1 list-inside list-disc">{selectedMissing.map((frame) => <li key={frame.id}>{frame.name || 'A selected product'} — {frame.issues.map(merchantCampaignIssueCopy).join(' ')}</li>)}</ul><Link href={merchantWorkspaceHref({ locale, section: 'catalog', merchantId })} className="mt-2 inline-flex items-center gap-1 font-semibold underline">Review Catalog <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /></Link></div> : null}
           {campaign.selectedFrames.length > 0 ? <ul className="mt-3 divide-y divide-slate-100 rounded-lg border border-slate-200" aria-label="Selected Campaign products">{campaign.selectedFrames.filter((frame) => selectedIds.includes(frame.id)).map((frame) => <li key={frame.id} className="flex items-center gap-3 p-3">
             <div className="relative h-12 w-14 shrink-0 overflow-hidden rounded-md bg-slate-100">{frame.imageUrl ? <Image src={frame.imageUrl} alt="" fill sizes="56px" className="object-contain p-1" /> : <span className="absolute inset-0 grid place-items-center text-[10px] text-slate-400">No image</span>}</div>
             <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{frame.name || 'Catalog product unavailable'}</p><p className="text-xs text-slate-500">{frame.valid ? 'Ready' : 'Needs Catalog attention'}</p></div>
-            {!readOnly ? <button type="button" aria-label={`Remove ${frame.name || 'selected product'}`} onClick={() => toggleProduct(frame.id)} className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"><X className="h-4 w-4" aria-hidden="true" /></button> : null}
+            {!readOnly ? <button type="button" aria-label={`Remove ${frame.name || 'selected product'}`} onClick={() => toggleProduct(frame.id)} disabled={busyAction !== null} className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50"><X className="h-4 w-4" aria-hidden="true" /></button> : null}
           </li>)}</ul> : null}
           {!readOnly ? <div className="mt-4">
             <label htmlFor="campaign-product-search" className="text-sm font-medium text-slate-800">Add a ready Catalog product</label>
             <div className="mt-1.5 flex gap-2"><input id="campaign-product-search" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void loadProducts(productSearch) } }} className="min-h-10 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="Search the full Catalog" /><button type="button" onClick={() => void loadProducts(productSearch)} disabled={productsBusy} className="min-h-10 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 disabled:opacity-60">Search</button></div>
             <ul className="mt-2 max-h-64 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200" aria-label="Available Catalog products">
               {products.map((product) => <li key={product.id} className="flex items-center gap-3 px-3 py-2.5">
-                <input type="checkbox" checked={productIds.has(product.id)} onChange={() => toggleProduct(product.id)} disabled={readOnly} aria-label={`Select ${product.name}`} className="h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-500" />
+                <input type="checkbox" checked={productIds.has(product.id)} onChange={() => toggleProduct(product.id)} disabled={readOnly || busyAction !== null} aria-label={`Select ${product.name}`} className="h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-500" />
                 <div className="relative h-10 w-12 shrink-0 overflow-hidden rounded bg-slate-100">{product.imageUrl ? <Image src={product.imageUrl} alt="" fill sizes="48px" className="object-contain p-1" /> : null}</div>
                 <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-slate-900">{product.name}</p><p className="truncate text-xs text-slate-500">{product.brand || 'Catalog product'}</p></div>
                 <span className="text-xs font-medium text-emerald-700">Ready</span>
@@ -299,11 +329,12 @@ export function MerchantCampaignDetailWorkspace({
             </ul>
             {productCursor ? <button type="button" disabled={productsBusy} onClick={() => void loadProducts(productSearch, productCursor, true)} className="mt-2 text-sm font-semibold text-blue-700 hover:underline">{productsBusy ? 'Loading…' : 'Load more products'}</button> : null}
           </div> : null}
+          {!readOnly ? <div className="mt-4 border-t border-slate-100 pt-3"><button type="button" onClick={saveProducts} disabled={!productsDirty || busyAction !== null} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"><Save className="h-4 w-4" aria-hidden="true" />{busyAction === 'save-products' ? 'Saving product selection…' : 'Save product selection'}</button>{campaign.status === 'ACTIVE' && productsDirty ? <p className="mt-2 text-xs text-amber-800">Saving product selection updates the live Campaign immediately.</p> : null}</div> : null}
         </section>
 
         {!readOnly ? <details className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
           <summary className="cursor-pointer text-sm font-semibold text-slate-900">Advanced settings <span className="ml-1 font-normal text-slate-500">Optional</span></summary>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <fieldset disabled={busyAction !== null} className="mt-4 grid gap-4 sm:grid-cols-2">
             <Field label="Campaign goal"><select className={inputClass()} value={draft.objective} onChange={(event) => update('objective', event.target.value as CampaignObjective)}><option value="TRAFFIC">Bring shoppers to products</option><option value="INTENT">Encourage shopper interest</option><option value="LEAD">Invite shoppers to get in touch</option></select></Field>
             <Field label="Shopper sign-in timing"><select className={inputClass()} value={draft.gate} onChange={(event) => update('gate', event.target.value as CampaignGate)}><option value="NONE">No sign-in prompt before exploring</option><option value="OPT_IN_AFTER_VALUE">Ask after shoppers see value</option><option value="OPT_IN_BEFORE_AI">Ask before AI-assisted features</option></select></Field>
             <Field label="Presentation style"><select className={inputClass()} value={draft.presentationMode} onChange={(event) => update('presentationMode', event.target.value as PresentationMode)}><option value="EDITORIAL_FIRST">Story first</option><option value="PRODUCT_FIRST">Products first</option><option value="ACTION_FIRST">Action first</option></select></Field>
@@ -315,7 +346,7 @@ export function MerchantCampaignDetailWorkspace({
             <Field label="Secondary button label"><input className={inputClass()} value={draft.secondaryCtaLabel} maxLength={120} onChange={(event) => update('secondaryCtaLabel', event.target.value)} /></Field>
             <Field label="Secondary button destination"><input className={inputClass()} value={draft.secondaryCtaUrl} maxLength={2000} onChange={(event) => update('secondaryCtaUrl', event.target.value)} placeholder="https://… or /…" /></Field>
             <p className="text-xs text-slate-500 sm:col-span-2">Current behavior: {policyLabels.objective}; {policyLabels.gate.toLowerCase()}; {policyLabels.presentationMode.toLowerCase()}.</p>
-          </div>
+          </fieldset>
         </details> : <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5"><h2 className="text-sm font-semibold text-slate-900">Campaign setup</h2><p className="mt-2 text-sm text-slate-600">{policyLabels.objective} · {policyLabels.gate} · {policyLabels.presentationMode}</p>{campaign.description ? <p className="mt-3 text-sm leading-6 text-slate-700">{campaign.description}</p> : null}</section>}
       </div>
 
@@ -328,8 +359,7 @@ export function MerchantCampaignDetailWorkspace({
 
         {!readOnly ? <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5" aria-label="Campaign actions">
           {campaign.status === 'DRAFT' ? <>
-            <button type="button" onClick={save} disabled={!dirty || busyAction !== null || !draft.name.trim()} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"><Save className="h-4 w-4" aria-hidden="true" />{busyAction === 'save' ? 'Saving…' : 'Save draft'}</button>
-            {dirty ? <p className="mt-2 text-xs text-amber-800">Save your changes before previewing.</p> : null}
+            {dirty ? <p className="mb-2 text-xs text-amber-800">{previewSaveInstruction}</p> : null}
             <button type="button" onClick={previewDraft} disabled={dirty || busyAction !== null || !campaign.frameCount} className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"><Eye className="h-4 w-4" aria-hidden="true" />{busyAction === 'preview' ? 'Opening preview…' : 'Private Preview'}</button>
             {!campaign.frameCount ? <p className="mt-2 text-xs text-slate-500">Select and save at least one ready product to preview.</p> : null}
             <div className="mt-4 border-t border-slate-200 pt-4">
@@ -350,8 +380,7 @@ export function MerchantCampaignDetailWorkspace({
     {preview ? <div className="space-y-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800"><LockKeyhole className="h-4 w-4 text-blue-700" aria-hidden="true" />Private Preview uses saved Campaign details only.</p><button type="button" onClick={() => setPreview(null)} className="text-sm font-semibold text-slate-600 hover:text-slate-950">Close Preview</button></div><MerchantCampaignPrivatePreview campaign={preview} merchantName={merchantName} /></div> : null}
 
     {!readOnly ? <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
-      <button type="button" onClick={() => setArchiveConfirm(true)} className="text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-950">Archive Campaign</button>
-      {campaign.status === 'ACTIVE' && dirty ? <button type="button" onClick={save} disabled={!dirty || busyAction !== null} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><Save className="h-4 w-4" aria-hidden="true" />{busyAction === 'save' ? 'Saving…' : 'Save live changes'}</button> : null}
+      <div><button type="button" onClick={() => setArchiveConfirm(true)} disabled={dirty || busyAction !== null} aria-describedby={dirty ? 'campaign-archive-unsaved-help' : undefined} className="text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-45">Archive Campaign</button>{dirty ? <p id="campaign-archive-unsaved-help" className="mt-1 text-xs text-amber-800">Save your changes before archiving.</p> : null}</div>
     </div> : null}
 
     {archiveConfirm ? <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/45 p-4" role="presentation"><section role="alertdialog" aria-modal="true" aria-labelledby="archive-title" aria-describedby="archive-description" className="w-full max-w-md rounded-xl bg-white p-5 shadow-2xl">
