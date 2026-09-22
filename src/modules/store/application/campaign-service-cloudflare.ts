@@ -42,13 +42,26 @@ export type CampaignReadModel = {
   endAt: Date | null
   frameIds: string[]
   frameCount: number
+  selectedFrames: Array<{
+    id: string
+    name: string | null
+    brand: string | null
+    imageUrl: string | null
+    productUrl: string | null
+    price: number | null
+    currency: string | null
+    shape: string | null
+    status: string | null
+    valid: boolean
+    issues: string[]
+  }>
   referenceData: boolean
   publicPath: string
   readiness: { ready: boolean; blockingIssues: string[]; warnings: string[] }
 }
 
 type Row = Record<string, unknown>
-type CampaignFrame = { merchantFrameId: string; merchantFrame: { id: string; sku: string | null; externalId: string | null; productUrl: string | null; name: string; imageUrl: string | null; shape: string; widthClass: string | null; source: string | null; enrichmentStatus: string | null; status: string } | null }
+type CampaignFrame = { merchantFrameId: string; merchantFrame: { id: string; sku: string | null; externalId: string | null; productUrl: string | null; name: string; brand: string | null; imageUrl: string | null; price: number | null; currency: string | null; shape: string; widthClass: string | null; source: string | null; enrichmentStatus: string | null; status: string } | null }
 type CampaignRow = Row & { frames: CampaignFrame[] }
 
 function dateValue(value: unknown): Date | null {
@@ -120,6 +133,7 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
     primaryCtaType: row.primaryCtaType == null ? null : String(row.primaryCtaType), primaryCtaLabel: row.primaryCtaLabel == null ? null : String(row.primaryCtaLabel), primaryCtaUrl: row.primaryCtaUrl == null ? null : String(row.primaryCtaUrl),
     secondaryCtaType: row.secondaryCtaType == null ? null : String(row.secondaryCtaType), secondaryCtaLabel: row.secondaryCtaLabel == null ? null : String(row.secondaryCtaLabel), secondaryCtaUrl: row.secondaryCtaUrl == null ? null : String(row.secondaryCtaUrl),
     startAt: dateValue(row.startAt), endAt: dateValue(row.endAt), frameIds: frames.map((frame) => frame.merchantFrameId), frameCount: frames.length, referenceData: merchantReferenceData || Boolean(row.referenceData), publicPath: `/en/c/${merchantSlug}/${String(row.slug)}`, readiness: { ready, blockingIssues, warnings },
+    selectedFrames: frames.map((frame, index) => ({ id: frame.merchantFrameId, name: frame.merchantFrame?.name ?? null, brand: frame.merchantFrame?.brand ?? null, imageUrl: frame.merchantFrame?.imageUrl ?? null, productUrl: frame.merchantFrame?.productUrl ?? null, price: frame.merchantFrame?.price ?? null, currency: frame.merchantFrame?.currency ?? null, shape: frame.merchantFrame?.shape ?? null, status: frame.merchantFrame?.status ?? null, valid: Boolean(frame.merchantFrame && frameChecks[index].valid), issues: frame.merchantFrame ? frameChecks[index].issues : ['FRAME_NOT_FOUND'] })),
   }
 }
 
@@ -127,12 +141,12 @@ async function fetchCampaign(merchantId: string, campaignId: string): Promise<{ 
   const sql = getCloudflareSql()
   const [merchantRows, rows] = await Promise.all([
     sql`SELECT "id", "slug", "referenceData", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
-    sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
+    sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."brand" AS "frameBrand", mf."price" AS "framePrice", mf."currency" AS "frameCurrency", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
   ])
   const merchant = merchantRows[0]
   if (!merchant || !rows[0]) throw new MerchantAccessError()
   const first = rows[0]
-  const row: CampaignRow = { ...first, frames: rows.filter((item) => item.merchantFrameId != null).map((item) => ({ merchantFrameId: String(item.merchantFrameId), merchantFrame: item.frameId == null ? null : { id: String(item.frameId), sku: item.sku == null ? null : String(item.sku), externalId: item.frameExternalId == null ? null : String(item.frameExternalId), productUrl: item.frameProductUrl == null ? null : String(item.frameProductUrl), name: String(item.frameName), imageUrl: item.frameImageUrl == null ? null : String(item.frameImageUrl), shape: String(item.frameShape), widthClass: item.frameWidthClass == null ? null : String(item.frameWidthClass), source: item.frameSource == null ? null : String(item.frameSource), enrichmentStatus: item.frameEnrichmentStatus == null ? null : String(item.frameEnrichmentStatus), status: String(item.frameStatus) } })) }
+  const row: CampaignRow = { ...first, frames: rows.filter((item) => item.merchantFrameId != null).map((item) => ({ merchantFrameId: String(item.merchantFrameId), merchantFrame: item.frameId == null ? null : { id: String(item.frameId), sku: item.sku == null ? null : String(item.sku), externalId: item.frameExternalId == null ? null : String(item.frameExternalId), productUrl: item.frameProductUrl == null ? null : String(item.frameProductUrl), name: String(item.frameName), brand: item.frameBrand == null ? null : String(item.frameBrand), imageUrl: item.frameImageUrl == null ? null : String(item.frameImageUrl), price: item.framePrice == null ? null : Number(item.framePrice), currency: item.frameCurrency == null ? null : String(item.frameCurrency), shape: String(item.frameShape), widthClass: item.frameWidthClass == null ? null : String(item.frameWidthClass), source: item.frameSource == null ? null : String(item.frameSource), enrichmentStatus: item.frameEnrichmentStatus == null ? null : String(item.frameEnrichmentStatus), status: String(item.frameStatus) } })) }
   return { row, merchant }
 }
 

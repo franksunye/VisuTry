@@ -132,7 +132,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByRole('heading', { name: 'Store', exact: true })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/store-desktop.png`, fullPage: true })
     await page.goto('/en/merchant/campaigns', { waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { name: 'Campaigns' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Campaigns', exact: true })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/campaigns-desktop.png`, fullPage: true })
     await page.goto('/en/merchant/analytics', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'Understand shopper intent' })).toBeVisible()
