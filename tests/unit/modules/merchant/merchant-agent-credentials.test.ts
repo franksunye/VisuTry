@@ -1,7 +1,7 @@
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchantMembership: { findUnique: jest.fn() },
-    merchantAgentCredential: {
+      merchantAgentCredential: {
       count: jest.fn(),
       create: jest.fn(),
       findMany: jest.fn(),
@@ -82,7 +82,7 @@ function setupTransaction(input: {
     merchantAgentCredential: {
       count: jest.fn().mockResolvedValue(input.count ?? 0),
       create: jest.fn().mockResolvedValue(input.create ?? row()),
-      findFirst: jest.fn().mockResolvedValue(input.findFirst ?? row()),
+      findFirst: jest.fn().mockResolvedValue('findFirst' in input ? input.findFirst : row()),
       update: jest.fn().mockResolvedValue(input.update ?? row()),
     },
     merchantOperationAudit: { create: jest.fn().mockResolvedValue(undefined) },
@@ -156,6 +156,14 @@ describe('Merchant agent credentials', () => {
     expect(result[0]).not.toHaveProperty('keyPrefix')
   })
 
+  it('does not list another Merchant credentials when membership is absent', async () => {
+    merchantMembership.findUnique.mockResolvedValue(null)
+
+    await expect(listMerchantAgentCredentials({ userId: 'user-a', merchantId: 'merchant-b' }))
+      .rejects.toMatchObject({ httpStatus: 404 })
+    expect(credentials.findMany).not.toHaveBeenCalled()
+  })
+
   it('authenticates the correct key, rejects the wrong key, and derives tenant from the record', async () => {
     const generated = createAgentSecret()
     const row = {
@@ -224,6 +232,15 @@ describe('Merchant agent credentials', () => {
     }))
   })
 
+  it('does not rotate a credential belonging to another Merchant', async () => {
+    const tx = setupTransaction({ findFirst: null })
+
+    await expect(rotateMerchantAgentCredential({ userId: 'user-a', merchantId: 'merchant-a', credentialId: 'credential-from-merchant-b' }))
+      .rejects.toMatchObject({ httpStatus: 404 })
+    expect(tx.merchantAgentCredential.create).not.toHaveBeenCalled()
+    expect(tx.merchantAgentCredential.update).not.toHaveBeenCalled()
+  })
+
   it('makes the old key invalid while a replacement key remains valid after rotation', async () => {
     const oldKey = createAgentSecret()
     const newKey = createAgentSecret()
@@ -246,6 +263,15 @@ describe('Merchant agent credentials', () => {
     expect(tx.merchantOperationAudit.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ action: 'credential.revoked' }),
     }))
+  })
+
+  it('does not revoke a credential belonging to another Merchant', async () => {
+    const tx = setupTransaction({ findFirst: null })
+
+    await expect(revokeMerchantAgentCredential({ userId: 'user-a', merchantId: 'merchant-a', credentialId: 'credential-from-merchant-b' }))
+      .rejects.toMatchObject({ httpStatus: 404 })
+    expect(tx.merchantAgentCredential.update).not.toHaveBeenCalled()
+    expect(tx.merchantOperationAudit.create).not.toHaveBeenCalled()
   })
 
   it('enforces five active credentials and allows a revoked slot to be reused', async () => {
