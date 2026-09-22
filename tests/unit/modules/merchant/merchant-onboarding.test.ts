@@ -60,7 +60,7 @@ describe('merchant onboarding catalog validation', () => {
 
   it('updates a Catalog resource by id without requiring a merchant SKU', async () => {
     const existing = {
-      ...frame('frame-url', { sku: null }),
+      ...frame('frame-url', { sku: null, shape: '' }),
       externalId: 'external-frame-url',
       productUrl: 'https://shop.example.test/products/frame-url',
       source: 'EXTERNAL' as const,
@@ -92,8 +92,25 @@ describe('merchant onboarding catalog validation', () => {
       frame: { name: 'Corrected frame', shape: 'round', imageUrl: existing.imageUrl, productUrl: existing.productUrl, externalId: existing.externalId, source: 'EXTERNAL' },
     })
 
-    expect(update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'frame-url' }, data: expect.objectContaining({ sku: null, shape: 'round', externalId: existing.externalId }) }))
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'frame-url' }, data: expect.objectContaining({ sku: null, shape: 'round', externalId: existing.externalId, enrichmentStatus: 'APPROVED' }) }))
     expect(result.presentation.state).toBe('READY')
+    expect(prisma.merchantOperationAudit.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'catalog.corrected', resourceType: 'MerchantFrame', resourceId: 'frame-url' }) }))
+  })
+
+  it('does not let an item id owned by another merchant cross the correction boundary', async () => {
+    ;(prisma.merchantFrame.findFirst as jest.Mock).mockResolvedValue(null)
+
+    await expect(merchantOnboarding.updateMerchantFrame({
+      actor: { ...actor, scopes: ['catalog:write'] },
+      frameId: 'frame-owned-by-merchant-b',
+      frame: { name: 'Tampered update', imageUrl: 'https://cdn.example/frame.jpg' },
+    })).rejects.toBeInstanceOf(MerchantAccessError)
+
+    expect(prisma.merchantFrame.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'frame-owned-by-merchant-b', merchantId: 'merchant-a' },
+    }))
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+    expect(prisma.merchantOperationAudit.create).not.toHaveBeenCalled()
   })
 
   it('rejects a Store belonging to another tenant before touching frames', async () => {

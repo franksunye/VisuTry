@@ -32,4 +32,22 @@ describe('MerchantCatalogWorkspace', () => {
 
     await waitFor(() => expect(global.fetch).toHaveBeenLastCalledWith(expect.stringContaining('search=beyond'), expect.objectContaining({ cache: 'no-store' })))
   })
+
+  it('shows and persists the existing product price in the correction form', async () => {
+    render(<MerchantCatalogWorkspace merchantId="merchant-a" locale="en" />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+    const price = await screen.findByRole('spinbutton', { name: 'Price' })
+    expect(price).toHaveValue(129)
+    fireEvent.change(price, { target: { value: '145.50' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(
+      '/api/merchant/merchant-a/catalog/frame-2',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: expect.stringContaining('14550'),
+      }),
+    ))
+  })
 })

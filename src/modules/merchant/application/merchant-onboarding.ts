@@ -10,6 +10,7 @@ import {
 } from '@/modules/store/application/public-discovery-invalidation'
 import { getPublicEdgeTagsForMerchant } from '@/modules/store/application/public-edge-paths-server'
 import {
+  resolveMerchantFrameCorrectionEnrichmentStatus,
   resolveMerchantFrameEnrichmentStatus,
   validateMerchantFrameReadiness,
   type MerchantFrameEnrichmentStatus,
@@ -217,6 +218,11 @@ export async function updateMerchantFrame(input: { actor: MerchantActorContext; 
       ? (existing.source === 'CSV' || existing.source === 'EXTERNAL' || existing.source === 'MANUAL' ? existing.source : 'MANUAL')
       : input.frame.source,
     sourceNotes: input.frame.sourceNotes === undefined ? existing.sourceNotes : input.frame.sourceNotes,
+    enrichmentStatus: input.frame.enrichmentStatus ?? resolveMerchantFrameCorrectionEnrichmentStatus({
+      shape: input.frame.shape === undefined ? existing.shape : input.frame.shape,
+      currentStatus: existing.enrichmentStatus,
+      shapeWasSubmitted: input.frame.shape !== undefined,
+    }),
   })
   const duplicate = await prisma.merchantFrame.findFirst({
     where: { merchantId: input.actor.merchantId, id: { not: input.frameId }, OR: identityFilters(normalized) },

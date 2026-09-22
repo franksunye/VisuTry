@@ -10,10 +10,15 @@ jest.mock('@/modules/store/application/public-edge-paths-cloudflare', () => ({
   getPublicEdgeTagsForCloudflareMerchant: jest.fn(async () => []),
 }))
 
+jest.mock('@/modules/merchant/application/merchant-agent-credentials-cloudflare', () => ({
+  recordMerchantAgentOperation: jest.fn().mockResolvedValue(undefined),
+}))
+
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials-cloudflare'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
-import { createMerchantStore, importMerchantFrames, publishMerchantStore, setMerchantStoreFrames } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+import { createMerchantStore, importMerchantFrames, publishMerchantStore, setMerchantStoreFrames, updateMerchantFrame } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
 import { createCampaignDraft, previewCampaign, publishCampaign, archiveCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
 import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
 
@@ -82,6 +87,48 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
       target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null },
     }))
+  })
+
+  it('approves a manually completed pending shape and audits correction as MerchantFrame', async () => {
+    const existing = {
+      id: 'frame-pending', merchantId: 'merchant-a', sku: null, name: 'Pending frame', brand: null, variant: null,
+      imageUrl: 'https://example.test/pending.png', productUrl: 'https://shop.example.test/products/pending', price: 9900,
+      currency: 'usd', shape: '', material: null, color: null, widthClass: null, styleTags: [], collectionTags: [],
+      source: 'EXTERNAL', externalId: 'shopify:pending', sourceNotes: null, status: 'ACTIVE', enrichmentStatus: 'PENDING',
+    }
+    const corrected = { ...existing, name: 'Reviewed frame', shape: 'oval', enrichmentStatus: 'APPROVED' }
+    const sql = sqlMock([[existing], [], [{ slug: 'merchant-a' }]], [[[corrected], [{ id: 'activation-event' }]]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await updateMerchantFrame({
+      actor: { ...actor, scopes: [...actor.scopes, 'catalog:write'] },
+      frameId: 'frame-pending',
+      frame: { name: 'Reviewed frame', shape: 'oval', imageUrl: existing.imageUrl, productUrl: existing.productUrl, externalId: existing.externalId },
+    })
+
+    expect(result).toMatchObject({ shape: 'oval', enrichmentStatus: 'APPROVED' })
+    expect(sql.transaction).toHaveBeenCalledWith(expect.any(Array), { isolationLevel: 'Serializable' })
+    expect(recordMerchantAgentOperation).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'catalog.corrected',
+      resourceType: 'MerchantFrame',
+      resourceId: 'frame-pending',
+    }))
+  })
+
+  it('rejects a cross-merchant frame id before the Cloudflare correction transaction', async () => {
+    const sql = sqlMock([[]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    await expect(updateMerchantFrame({
+      actor: { ...actor, scopes: [...actor.scopes, 'catalog:write'] },
+      frameId: 'frame-owned-by-merchant-b',
+      frame: { name: 'Tampered update', imageUrl: 'https://example.test/image.png' },
+    })).rejects.toBeInstanceOf(MerchantAccessError)
+
+    expect(sql.mock.calls[0]?.[0]?.join('')).toContain('"id" = ')
+    expect(sql.mock.calls[0]?.[0]?.join('')).toContain('"merchantId" = ')
+    expect(sql.transaction).not.toHaveBeenCalled()
+    expect(recordMerchantAgentOperation).not.toHaveBeenCalled()
   })
 
   it('creates a Campaign DRAFT and keeps the merchant boundary in every read', async () => {

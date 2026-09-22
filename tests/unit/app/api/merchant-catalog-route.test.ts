@@ -21,7 +21,7 @@ jest.mock('@/modules/merchant/application/merchant-onboarding', () => ({
 
 import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
+import { MerchantAccessError, requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { importMerchantFrames, listMerchantFrames, updateMerchantFrame } from '@/modules/merchant/application/merchant-onboarding'
 import { GET, POST } from '@/app/api/merchant/[merchantId]/catalog/route'
 import { PATCH } from '@/app/api/merchant/[merchantId]/catalog/[frameId]/route'
@@ -32,8 +32,8 @@ const mockImport = importMerchantFrames as jest.Mock
 const mockList = listMerchantFrames as jest.Mock
 const mockUpdate = updateMerchantFrame as jest.Mock
 
-function request(body?: unknown) {
-  return new NextRequest('http://localhost/api/merchant/merchant-a/catalog', body === undefined ? undefined : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+function request(body?: unknown, method: 'POST' | 'PATCH' = 'POST') {
+  return new NextRequest('http://localhost/api/merchant/merchant-a/catalog', body === undefined ? undefined : { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
 }
 
 describe('Human merchant catalog route', () => {
@@ -67,8 +67,18 @@ describe('Human merchant catalog route', () => {
   })
 
   it('updates one tenant-owned resource by frame id without requiring SKU', async () => {
-    const response = await PATCH(request({ frame: { name: 'Corrected frame', imageUrl: 'https://cdn.example.test/a.jpg', productUrl: 'https://shop.example.test/a' } }), { params: { merchantId: 'merchant-a', frameId: 'frame-a' } })
+    const response = await PATCH(request({ frame: { name: 'Corrected frame', imageUrl: 'https://cdn.example.test/a.jpg', productUrl: 'https://shop.example.test/a' } }, 'PATCH'), { params: { merchantId: 'merchant-a', frameId: 'frame-a' } })
     expect(response.status).toBe(200)
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ frameId: 'frame-a', actor: expect.objectContaining({ merchantId: 'merchant-a' }), frame: expect.objectContaining({ name: 'Corrected frame' }) }))
+  })
+
+  it('does not let a cross-merchant frame id bypass selected-merchant membership', async () => {
+    mockUpdate.mockRejectedValueOnce(new MerchantAccessError())
+
+    const response = await PATCH(request({ frame: { name: 'Tampered update', imageUrl: 'https://cdn.example.test/a.jpg' } }, 'PATCH'), { params: { merchantId: 'merchant-a', frameId: 'frame-owned-by-merchant-b' } })
+
+    expect(response.status).toBe(404)
+    expect(mockMembership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ frameId: 'frame-owned-by-merchant-b', actor: expect.objectContaining({ merchantId: 'merchant-a' }) }))
   })
 })

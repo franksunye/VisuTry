@@ -58,6 +58,20 @@ export function resolveMerchantFrameEnrichmentStatus(input: {
   return 'APPROVED'
 }
 
+/**
+ * A saved human Catalog correction that explicitly supplies a non-empty shape
+ * approves the previously pending shape enrichment. Other edits must not
+ * silently clear the pending state.
+ */
+export function resolveMerchantFrameCorrectionEnrichmentStatus(input: {
+  shape: string | null | undefined
+  currentStatus: string | null | undefined
+  shapeWasSubmitted: boolean
+}): MerchantFrameEnrichmentStatus {
+  if (input.currentStatus === 'PENDING' && input.shapeWasSubmitted && clean(input.shape)) return 'APPROVED'
+  return resolveMerchantFrameEnrichmentStatus({ shape: input.shape, enrichmentStatus: input.currentStatus })
+}
+
 export function validateMerchantFrameReadiness(frame: MerchantFrameReadinessInput): MerchantFrameReadiness {
   const sku = clean(frame.sku)
   const externalId = clean(frame.externalId)

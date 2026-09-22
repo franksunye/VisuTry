@@ -6,6 +6,7 @@ import { MerchantAccessError } from './merchant-access-cloudflare'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials-cloudflare'
 import { requireAgentScope, type MerchantActorContext } from '../domain/actor'
 import {
+  resolveMerchantFrameCorrectionEnrichmentStatus,
   resolveMerchantFrameEnrichmentStatus,
   validateMerchantFrameReadiness,
   type MerchantFrameEnrichmentStatus,
@@ -224,8 +225,8 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
   }
 }
 
-async function audit(actor: MerchantActorContext, action: string, resourceId?: string) {
-  await recordMerchantAgentOperation({ actor, action, resourceType: 'Experience', resourceId })
+async function audit(actor: MerchantActorContext, action: string, resourceId?: string, resourceType = 'Experience') {
+  await recordMerchantAgentOperation({ actor, action, resourceType, resourceId })
 }
 
 export async function getMerchant(input: { actor: MerchantActorContext }) {
@@ -299,9 +300,11 @@ export async function updateMerchantFrame(input: { actor: MerchantActorContext; 
       ? (existingMapped.source === 'CSV' || existingMapped.source === 'EXTERNAL' || existingMapped.source === 'MANUAL' ? existingMapped.source : 'MANUAL')
       : input.frame.source,
     sourceNotes: input.frame.sourceNotes === undefined ? (existing.sourceNotes == null ? null : String(existing.sourceNotes)) : input.frame.sourceNotes,
-    enrichmentStatus: input.frame.enrichmentStatus === undefined
-      ? existingMapped.enrichmentStatus as MerchantFrameEnrichmentStatus | undefined
-      : input.frame.enrichmentStatus,
+    enrichmentStatus: input.frame.enrichmentStatus ?? resolveMerchantFrameCorrectionEnrichmentStatus({
+      shape: input.frame.shape === undefined ? existingMapped.shape : input.frame.shape,
+      currentStatus: existingMapped.enrichmentStatus,
+      shapeWasSubmitted: input.frame.shape !== undefined,
+    }),
   })
   const duplicateRows = await sql`
     SELECT "id" FROM "MerchantFrame"
@@ -359,7 +362,7 @@ export async function updateMerchantFrame(input: { actor: MerchantActorContext; 
       return rows[0]
     },
   })
-  await audit(input.actor, 'catalog.corrected', input.frameId)
+  await audit(input.actor, 'catalog.corrected', input.frameId, 'MerchantFrame')
   return mapFrame(updated)
 }
 
