@@ -220,8 +220,8 @@ export async function updateMerchantFrame(input: { actor: MerchantActorContext; 
     sourceNotes: input.frame.sourceNotes === undefined ? existing.sourceNotes : input.frame.sourceNotes,
     enrichmentStatus: input.frame.enrichmentStatus ?? resolveMerchantFrameCorrectionEnrichmentStatus({
       shape: input.frame.shape === undefined ? existing.shape : input.frame.shape,
+      previousShape: existing.shape,
       currentStatus: existing.enrichmentStatus,
-      shapeWasSubmitted: input.frame.shape !== undefined,
     }),
   })
   const duplicate = await prisma.merchantFrame.findFirst({

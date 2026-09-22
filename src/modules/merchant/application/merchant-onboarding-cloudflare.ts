@@ -302,8 +302,8 @@ export async function updateMerchantFrame(input: { actor: MerchantActorContext; 
     sourceNotes: input.frame.sourceNotes === undefined ? (existing.sourceNotes == null ? null : String(existing.sourceNotes)) : input.frame.sourceNotes,
     enrichmentStatus: input.frame.enrichmentStatus ?? resolveMerchantFrameCorrectionEnrichmentStatus({
       shape: input.frame.shape === undefined ? existingMapped.shape : input.frame.shape,
+      previousShape: existingMapped.shape,
       currentStatus: existingMapped.enrichmentStatus,
-      shapeWasSubmitted: input.frame.shape !== undefined,
     }),
   })
   const duplicateRows = await sql`

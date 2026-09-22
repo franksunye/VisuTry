@@ -75,8 +75,7 @@ describe('merchant onboarding catalog validation', () => {
       collectionTags: [],
       sourceNotes: null,
     }
-    const updated = { ...existing, shape: 'round', enrichmentStatus: 'APPROVED' as const }
-    const update = jest.fn().mockResolvedValue(updated)
+    const update = jest.fn(({ data }: { data: Record<string, unknown> }) => Promise.resolve({ ...existing, ...data }))
     ;(prisma.merchantFrame.findFirst as jest.Mock)
       .mockResolvedValueOnce(existing)
       .mockResolvedValueOnce(null)
@@ -95,6 +94,52 @@ describe('merchant onboarding catalog validation', () => {
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'frame-url' }, data: expect.objectContaining({ sku: null, shape: 'round', externalId: existing.externalId, enrichmentStatus: 'APPROVED' }) }))
     expect(result.presentation.state).toBe('READY')
     expect(prisma.merchantOperationAudit.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ action: 'catalog.corrected', resourceType: 'MerchantFrame', resourceId: 'frame-url' }) }))
+  })
+
+  it('keeps pending enrichment when an unrelated correction echoes the unchanged shape', async () => {
+    const existing = {
+      ...frame('frame-pending', { shape: 'round' }),
+      externalId: 'external-frame-pending',
+      productUrl: 'https://shop.example.test/products/frame-pending',
+      source: 'EXTERNAL' as const,
+      enrichmentStatus: 'PENDING' as const,
+      brand: 'Old brand',
+      variant: null,
+      price: 9900,
+      currency: 'usd',
+      material: null,
+      color: null,
+      styleTags: [],
+      collectionTags: [],
+      sourceNotes: null,
+    }
+    const update = jest.fn(({ data }: { data: Record<string, unknown> }) => Promise.resolve({ ...existing, ...data }))
+    ;(prisma.merchantFrame.findFirst as jest.Mock).mockResolvedValueOnce(existing).mockResolvedValueOnce(null)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      merchantFrame: { update },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    }))
+
+    const result = await merchantOnboarding.updateMerchantFrame({
+      actor: { ...actor, scopes: ['catalog:write'] },
+      frameId: existing.id,
+      frame: {
+        name: existing.name,
+        brand: 'Updated brand',
+        shape: 'ROUND',
+        imageUrl: existing.imageUrl,
+        productUrl: existing.productUrl,
+        externalId: existing.externalId,
+        source: 'EXTERNAL',
+        price: 12900,
+      },
+    })
+
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ brand: 'Updated brand', price: 12900, shape: 'ROUND', enrichmentStatus: 'PENDING' }),
+    }))
+    expect(result).toMatchObject({ enrichmentStatus: 'PENDING', presentation: { state: 'NEEDS_REVIEW' } })
   })
 
   it('does not let an item id owned by another merchant cross the correction boundary', async () => {

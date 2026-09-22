@@ -115,6 +115,37 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     }))
   })
 
+  it('keeps pending enrichment when an unrelated correction echoes the unchanged shape', async () => {
+    const existing = {
+      id: 'frame-pending-round', merchantId: 'merchant-a', sku: null, name: 'Pending frame', brand: 'Old brand', variant: null,
+      imageUrl: 'https://example.test/pending.png', productUrl: 'https://shop.example.test/products/pending', price: 9900,
+      currency: 'usd', shape: 'round', material: null, color: null, widthClass: null, styleTags: [], collectionTags: [],
+      source: 'EXTERNAL', externalId: 'shopify:pending-round', sourceNotes: null, status: 'ACTIVE', enrichmentStatus: 'PENDING',
+    }
+    const persisted = { ...existing, brand: 'Updated brand', shape: 'ROUND', price: 12900, enrichmentStatus: 'PENDING' }
+    const sql = sqlMock([[existing], [], [{ slug: 'merchant-a' }]], [[[persisted]]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await updateMerchantFrame({
+      actor: { ...actor, scopes: [...actor.scopes, 'catalog:write'] },
+      frameId: existing.id,
+      frame: {
+        name: existing.name,
+        brand: 'Updated brand',
+        shape: 'ROUND',
+        imageUrl: existing.imageUrl,
+        productUrl: existing.productUrl,
+        externalId: existing.externalId,
+        source: 'EXTERNAL',
+        price: 12900,
+      },
+    })
+
+    const updateCall = sql.mock.calls.find(([strings]) => Array.isArray(strings) && strings.join('').includes('UPDATE "MerchantFrame" SET'))
+    expect(updateCall?.slice(1)).toContain('PENDING')
+    expect(result).toMatchObject({ brand: 'Updated brand', price: 12900, enrichmentStatus: 'PENDING', presentation: { state: 'NEEDS_REVIEW' } })
+  })
+
   it('rejects a cross-merchant frame id before the Cloudflare correction transaction', async () => {
     const sql = sqlMock([[]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)

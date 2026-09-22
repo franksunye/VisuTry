@@ -59,16 +59,23 @@ export function resolveMerchantFrameEnrichmentStatus(input: {
 }
 
 /**
- * A saved human Catalog correction that explicitly supplies a non-empty shape
- * approves the previously pending shape enrichment. Other edits must not
- * silently clear the pending state.
+ * A human Catalog correction only resolves pending shape enrichment when it
+ * actually supplies a shape that differs from the stored value. Edit forms
+ * commonly echo unchanged fields, so submission alone is not evidence of
+ * review. Keep this decision at the shared application/domain boundary for
+ * both Prisma and Cloudflare callers.
  */
 export function resolveMerchantFrameCorrectionEnrichmentStatus(input: {
   shape: string | null | undefined
+  previousShape: string | null | undefined
   currentStatus: string | null | undefined
-  shapeWasSubmitted: boolean
 }): MerchantFrameEnrichmentStatus {
-  if (input.currentStatus === 'PENDING' && input.shapeWasSubmitted && clean(input.shape)) return 'APPROVED'
+  const shape = clean(input.shape)
+  const previousShape = clean(input.previousShape)
+  const shapeWasActuallyCorrected = shape !== null
+    && (!previousShape || previousShape.toLowerCase() !== shape.toLowerCase())
+
+  if (input.currentStatus === 'PENDING' && shapeWasActuallyCorrected) return 'APPROVED'
   return resolveMerchantFrameEnrichmentStatus({ shape: input.shape, enrichmentStatus: input.currentStatus })
 }
 
