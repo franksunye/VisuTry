@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes merchant-live-moment-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.merchant-live-moment {
+  animation: merchant-live-moment-enter 360ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merchant-live-moment {
+    animation: none;
+  }
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;

@@ -89,16 +89,18 @@ VisuTry now operates as two connected product faces:
 
 P1-M2 Merchant Operating Experience is **Product / UX / Production Accepted / Closed** at main SHA `3c29d56cce1c380bef42c3f9e99dd25f95ac8724`. The current durable Merchant UX contract is `docs/product/specs/merchant-operating-experience.md`.
 
+**Current authorized phase:** P1-M3 Merchant Live Experience, GitHub Issue #235 — “business is happening.” Scope is a compact, truthful Live Commerce Pulse on Operating Home using existing session/event/intent records. This is an 80/20 read/presentation upgrade, not a realtime-platform expansion; no new activity instrumentation, schema, polling of period Analytics, or Production mutation is in scope.
+
 Current execution posture:
 
 1. Preserve Consumer production stability and paid/product flows as a standing P0 guardrail.
 2. Treat the shipped Merchant Operating Experience as the B2B baseline; do not restart shell/Control-Center redesign work without new evidence.
 3. Observe the Production baseline and close only real defects/regressions.
 4. Keep existing evidence-gated commercial/distribution work as supporting validation; do not infer a new build phase from older dated gate documents.
-5. Select the next product gate explicitly before starting new feature development.
+5. Keep P1-M3 bounded to the explicitly approved Live Commerce Pulse; select any later gate explicitly before further feature development.
 6. Keep Shopify, CRM/marketing automation, generalized Campaign Builder, verified revenue attribution, and similar expansion evidence-gated.
 
-**No new product phase has been authorized after P1-M2 closure.**
+P1-M2 remains the closed historical/product baseline; P1-M3 is the only currently authorized implementation gate.
 
 ## 5. Execution Status Definitions
 
@@ -125,10 +127,10 @@ Current execution posture:
 | --- | --- | --- | --- |
 | P0 | Consumer production stability | Merchant work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / continuously guarded |
 | P0 | Merchant Operating baseline | Keep the Production-accepted Home/Catalog/Store/Campaigns/Analytics/Integrations/Plan/Settings baseline stable and truthful. | Production Accepted / Closed |
+| P1 | Merchant Live Experience (Issue #235) | Make real current commerce activity legible on Home without noisy or costly realtime infrastructure. | In Progress; Local only |
 | P1 | Production observation and defect response | New work should be triggered by evidence, not by reopening completed M2 implementation. | Active operating posture |
-| P1 | Product gate selection | Decide the next bounded product/business gate from current evidence before starting feature work. | Not yet authorized |
 
-### Next — candidate gates, not yet authorized
+### Next — candidate gates, not yet authorized after P1-M3
 
 | Priority | Candidate | Entry condition |
 | --- | --- | --- |
@@ -238,3 +240,4 @@ These are durable capability areas, not authorization to start a new phase. Curr
 | 2026-08-24 | Activated the Product Advantage Gate A/B/C as the pre-outreach execution rule; structured merchant outreach is gated until current evidence passes all three gates. |
 | 2026-08-24 | Deployed the Pilot intake migration and application through PR #128; production Business browser checks passed and request `625a1055-ffb0-4ed4-b14a-a7ca6e686c91` verified durable public submission and idempotent replay. |
 | 2026-09-23 | Rebased active execution on the P1-M2 Production-accepted Merchant Operating baseline, restored the Consumer + Merchant company North Star, removed the August sprint as the current phase, and made next-phase selection explicit. |
+| 2026-09-23 | Authorized P1-M3 Merchant Live Experience through Issue #235: a bounded real-activity Pulse on Operating Home, with no simulated events or realtime-platform expansion. |

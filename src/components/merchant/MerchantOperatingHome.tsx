@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { merchantWorkspaceHref } from '@/modules/merchant/application/merchant-workspace-routes'
 import { resolveMerchantHomePresentation, type MerchantOperatingHomeReadModel } from '@/modules/merchant/domain/merchant-operating-home'
+import { MerchantLivePulse } from './MerchantLivePulse'
 
 function number(value: number) {
   return new Intl.NumberFormat('en-US').format(value)
@@ -54,6 +55,8 @@ export function MerchantOperatingHome({
           </div>
         </section>
       )}
+
+      <MerchantLivePulse key={merchantId} merchantId={merchantId} />
 
       <section aria-labelledby="merchant-home-outcomes" className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3">
