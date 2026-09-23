@@ -1,9 +1,9 @@
 # Merchant Operating Shell — P1-M2.1
 
-**Status:** Completed historical implementation note  
-**Owner:** Product / Engineering  
-**Completed:** 2026-09-22  
-**Last reviewed:** 2026-09-23  
+**Status:** Completed historical implementation note
+**Owner:** Product / Engineering
+**Completed:** 2026-09-22
+**Last reviewed:** 2026-09-23
 **Superseded for current behavior by:** `docs/product/specs/merchant-operating-experience.md`
 
 > Historical scope note: this file records the M2.1 shell boundary as implemented at that gate. Later M2 gates added full Campaign self-service, Analytics/Integrations and mobile navigation polish. Current Operating eligibility is no longer Preview-event-only; use the durable Merchant Operating Experience spec for current behavior.
