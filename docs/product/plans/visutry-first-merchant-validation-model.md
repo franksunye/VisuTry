@@ -1,7 +1,9 @@
 # VisuTry as the First Merchant — Internal Validation Model
 
-**Status:** Internal operating note  
-**Scope:** Product validation, operating sequence, and Sales-readiness use of VisuTry-owned Store / Campaign experiences  
+**Status:** Living supporting reference
+**Owner:** Product / Engineering
+**Last updated:** 2026-09-23
+**Scope:** Product validation, operating sequence, and Sales-readiness use of VisuTry-owned Store / Campaign experiences
 **Related contracts:**
 - `docs/product/specs/merchant-experience-entitlement-sponsored-usage.md`
 - `docs/product/specs/campaign-conversion-policy.md`
@@ -37,7 +39,9 @@ For example, VisuTry may use a deliberately conservative sponsored-usage allowan
 
 Reference Experiences must also preserve explicit provenance and must never be represented as customer, partner, or case-study relationships unless such a relationship actually exists.
 
-The production validation merchant is `VisuTry Demo` (`visutry-demo`): a VisuTry-owned internal validation tenant with `pilotType=INTERNAL`, `referenceData=false`, and explicit `referenceMetadata` ownership. It is not an external reference merchant, partner, or customer.
+The production validation merchant is `VisuTry Demo` (`visutry-demo`): a VisuTry-owned first-party Discovery Canary / production validation tenant. Current runtime seed truth is `pilotType=LIVE`, `classification=REAL`, `classificationSource=DISCOVERY_CANARY_2026-09-03`, `referenceData=false`, and `sponsoredUsagePolicyKey=VISUTRY_OWNED`.
+
+`classification=REAL` here does **not** make VisuTry Demo an external merchant, paying customer, partner, endorsement, or case study. Its explicit Discovery Canary provenance and VisuTry-owned policy keep it outside commercial merchant/subscription/revenue KPI treatment under the current classification contract while preserving its bounded discovery-evidence role. See `docs/project/observability-and-analytics-contract.md` for the governing attribution/exclusion semantics.
 
 ## 3. What VisuTry is validating
 

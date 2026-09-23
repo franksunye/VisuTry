@@ -3,7 +3,7 @@
 **Status:** Active source of truth  
 **Owner:** Product / Engineering / Growth  
 **Created:** 2026-09-04  
-**Last reviewed:** 2026-09-20
+**Last reviewed:** 2026-09-23
 **Review cadence:** Monthly, after a material telemetry/data-plane change, or after an observation gate closes.  
 **Scope:** Production operational telemetry, product/acquisition analytics, merchant-commerce behavioral truth, attribution, test/reference exclusion, dataset/schema governance, and reporting ownership across Consumer and Merchant surfaces.
 
@@ -259,6 +259,19 @@ The full event definitions, reporting boundary, first-product checklist, and
 fixed Preview/QA workflow are maintained in
 [`docs/merchant-activation-v1.md`](../merchant-activation-v1.md).
 
+### 8.2 Activation ledger vs Operating eligibility
+
+`MerchantActivationEvent` remains the factual analytics ledger. Workspace
+Operating eligibility is runtime/product state and may be resolved from a
+Preview event, Publish event, or an actual ACTIVE Store. This allows
+historically live/seeded Merchants to use the Operating Experience without
+rewriting history.
+
+Never backfill or synthesize activation events solely to satisfy UI routing,
+presentation, or workspace-mode compatibility. Entering Operating Mode through
+current Store state must not be counted as a newly observed Preview/Publish
+milestone and does not change the post-v1 cohort denominator.
+
 ## 9. GA4 policy
 
 ### Current topology
@@ -488,3 +501,4 @@ When product analytics enums or merchant distribution semantics change, update t
 | 2026-09-05 | Closed P0/P0.2 production verification after PR #187 merge: verified the bounded live traffic schema, controlled TEST event, legacy/top-level read contract, unchanged exclusion semantics, and preserved T0 clocks; deferred `visutry-commerce-pro`, Vacuum, Trim, and Schema Lock. |
 | 2026-09-13 | Added measurement-safe Merchant Discovery Phase 1 boundaries: retained VisuTry internal acquisition for QA while excluding it from genuine external discovery, and isolated the first-party Discovery Canary from commercial KPIs without changing its discovery eligibility. |
 | 2026-09-20 | Recorded Store/Campaign Cache-Tag functional invalidation and UTM Store Session attribution as production-proven; recorded the bounded `public_html_invalidation` logger/Axiom implementation as closed pending ordinary deployment observation. |
+| 2026-09-23 | Separated Merchant activation-ledger truth from runtime Operating eligibility; allowed Preview/Publish event or actual ACTIVE Store for workspace mode without synthesizing activation history. |

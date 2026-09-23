@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for current technical architecture
 **Owner:** Engineering  
-**Last reviewed:** 2026-09-20
+**Last reviewed:** 2026-09-23
 **Review cadence:** Monthly, and whenever a runtime, domain, persistence, or deployment boundary materially changes
 **Scope:** Current system shape, ownership boundaries, shared platform contracts, production runtime topology, persistence, and architectural guardrails.
 
@@ -75,7 +75,9 @@ The Storefront is a delivery surface; Campaign and commerce intelligence build o
 
 ### Merchant
 
-`src/modules/merchant` owns the tenant/operator boundary: Merchant membership, onboarding, Control Center, Agent Keys, OAuth/MCP access, and merchant-facing operations.
+`src/modules/merchant` owns the tenant/operator boundary: Merchant membership, activation, the resource-oriented Merchant Operating Workspace, Agent Keys, OAuth/MCP access, and merchant-facing operations.
+
+The current human Operating Workspace is a first-class product surface: Home, Catalog, Store, Campaigns, Analytics, Integrations, Plan & Usage, and Settings. Human UI and Agent/MCP are clients of the same canonical application/domain capabilities; Agent access must not depend on DOM automation or a parallel business-rule stack.
 
 `Merchant` is the tenant boundary. Tenant isolation must remain explicit in every read/write path.
 
@@ -96,8 +98,15 @@ contracts.
 Self-service Merchant activation is measured from durable
 `MerchantActivationEvent` milestones in PostgreSQL. GA4/dataLayer observes the
 UX and acquisition funnel, Axiom observes runtime behavior, and neither may be
-used to fabricate durable activation facts or historical cohort joins. The
-activation event contract is maintained in `docs/merchant-activation-v1.md`.
+used to fabricate durable activation facts or historical cohort joins.
+
+Runtime workspace mode is a separate read-only product decision. Operating
+eligibility may be established by a Store Preview event, a Store Publish event,
+or an actual ACTIVE Store. This compatibility rule must never backfill or
+synthesize activation history merely to satisfy routing/presentation. The
+activation event contract is maintained in `docs/merchant-activation-v1.md`;
+the human workspace contract is maintained in
+`docs/product/specs/merchant-operating-experience.md`.
 
 ### Admin
 

@@ -1,9 +1,9 @@
 # VisuTry Product Documentation
 
-**Status:** Active product documentation guide  
-**Created:** 2026-07-08  
-**Last updated:** 2026-08-24
-**Owner:** Product  
+**Status:** Active product documentation guide
+**Created:** 2026-07-08
+**Last updated:** 2026-09-23
+**Owner:** Product
 **Review cadence:** Weekly for active plan, monthly for document structure.
 
 ---
@@ -20,14 +20,15 @@ The main goal is to make it clear what should be built next, why it matters, how
 
 | Document | Purpose | Status |
 | --- | --- | --- |
-| `docs/product/product-plan.md` | Current product operating plan: Now / Next / Later, current sprint, initiatives, backlog, and decisions needed. | Active source of truth for product execution. |
+| `docs/product/product-plan.md` | Current product operating plan: Now / Next / Later, execution posture, standing initiatives, and decisions needed. | Active source of truth for product execution. |
 | `docs/product/specs/` | Detailed specs for individual product capabilities. | Created as needed. |
-| `docs/product/plans/market-facing-productization-plan.md` | Historical Reference Factory → Discover/distribution → Business Website sequence. | **Historical; pre-outreach work now follows the Product Advantage Gate.** |
-| `docs/product/plans/product-advantage-gate.md` | Active Consumer Distribution, Merchant Experience, and Agent-Native pre-outreach gate. | **Active source of truth; outreach gated until A/B/C PASS.** |
+| `docs/product/specs/merchant-operating-experience.md` | Current Merchant human operating experience, Activation/Operating boundary, IA, lifecycle and Human/Agent responsibility contract. | **Active source of truth for Merchant operating behavior.** |
+| `docs/product/plans/market-facing-productization-plan.md` | Historical Reference Factory → Discover/distribution → Business Website sequence. | **Historical; retained as supporting productization evidence.** |
+| `docs/product/plans/product-advantage-gate.md` | Consumer Distribution, Merchant Experience, and Agent-Native pre-outreach evidence gate. | **Supporting evidence/gate; not the current engineering phase after P1-M2 closure.** |
 | `docs/product/plans/pilot-delivery-factory-plan.md` | Five-brand Reference portfolio and repeatable assisted delivery model. | **Factory core complete; retained as delivery contract.** |
 | `docs/product/business-website-ia-and-copy.md` | Business Website product truth, IA, claims, Pilot and CTA baseline. | **Implemented baseline; v1.2 visual brief is current.** |
 | `docs/product/business-website-v1.2-layout-and-visual-system.md` | Current `/business` layout and production visual asset contract. | **v1.2 shipped.** |
-| `docs/product/plans/agent-native-merchant-self-service.md` | Merchant Workspace, Agent Keys, MCP Store/Campaign operations and Commerce Intelligence plan. | **Core through Phase D implemented.** |
+| `docs/product/plans/agent-native-merchant-self-service.md` | Historical Agent-native implementation plan. | **Implemented historical plan; current UX authority is Merchant Operating Experience spec.** |
 | `docs/product/plans/universal-agent-access.md` | Remote MCP OAuth architecture, production evidence, compatibility and external-Pilot limitations. | **Codex Golden Path passed; external hardening remains.** |
 | `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md` | Controlled founder-led outreach, evidence pack, tracker fields and first-batch operating plan. | **Active merchant-validation operating guide.** |
 | `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory Store/Commerce architecture, tenancy, usage, privacy, idempotency and test constraints. | **Implemented baseline; still mandatory.** |
@@ -50,57 +51,38 @@ The main goal is to make it clear what should be built next, why it matters, how
 
 ---
 
-## 4. Current 2B Execution Rule
+## 4. Current Merchant execution rule
 
-As of 2026-08-24, VisuTry has moved beyond the D0-only phase. The shared Merchant → Catalog → Store/Campaign → shopper decision journey → Commerce Intelligence product is implemented, the five-brand Reference Factory is complete, Discover and Business Website v1.2 are live, and the agent-native core is production-deployed. The active gate is real merchant evidence, not another architecture layer.
+P1-M2 Merchant Operating Experience is **Product / UX / Production Accepted / Closed** at main SHA `3c29d56cce1c380bef42c3f9e99dd25f95ac8724`.
 
-Current sequence:
-
-```text
-Store / Campaign architecture + D0 [complete]
-  ↓
-Five-brand Reference Factory [complete]
-  ↓
-Discover / attribution / market-facing hardening [complete]
-  ↓
-Business Website v1.2 + Founding Merchant Pilot offer [shipped]
-  ↓
-Durable assisted Pilot intake [production write verified]
-  ↓
-Product Advantage Gate A/B/C [current]
-  ↓
-Controlled Founding Merchant outreach [only after all three gates pass]
-  ↓
-First real merchant catalog + declared traffic source + intent review [gate evidence]
-  ↓
-Only then promote repeated pain into integrations or broader platform work
-```
-
-Store product hierarchy:
+The production baseline is now:
 
 ```text
-Storefront = first SaaS delivery surface
-Campaign Engine = scalable merchant growth / usage layer
-Commerce Intelligence = optimization layer
-Agent-Ready Commerce = future distribution foundation
+Activation
+first product → Catalog ready → Store draft → private Store Preview (First Value)
+
+Operating
+Home | Catalog | Store | Campaigns | Analytics
+More: Integrations | Plan & Usage | Settings
 ```
+
+Current principle:
+
+> **Self-service first. Agent-operable by design. Human-light over time.**
+
+The Human UI and Agent/MCP share canonical application/domain capabilities. Agent connection is optional and consequential actions remain approval-bounded.
+
+**No new product phase is authorized after P1-M2.** Current execution posture is stabilization/observation plus explicit selection of the next bounded gate. Older Product Advantage, D0, Factory and Agent-native plans remain supporting evidence/history unless explicitly reactivated.
 
 Engineering should start with:
 
 1. `docs/product/product-plan.md`
-2. `docs/product/specs/visutry-store-engineering-foundation.md`
-3. `docs/product/specs/merchant-experience-architecture.md`
-4. `docs/product/specs/campaign-conversion-policy.md`
-5. the scoped implementation plan for the selected current task.
+2. `docs/product/specs/merchant-operating-experience.md`
+3. the relevant durable Merchant/Commerce spec
+4. `docs/project/architecture.md`
+5. the scoped plan/gate only after Product/Lead authorizes it.
 
-Growth / Sales should start with:
-
-1. `docs/product/business-website-ia-and-copy.md`
-2. `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md`
-3. `docs/product/sales/visutry-store-sales-pitch.md`
-4. `docs/product/specs/visutry-store-mvp.md`
-
-Do not add another Reference Brand, generalized Campaign Builder, CRM, Shopify integration, or revenue attribution before the first real merchant learning loop. An assisted Pilot may proceed with the current Store/Campaign runtime; agent-native access is optional unless it is explicitly part of that Pilot promise. If agent-native access is included, close the bounded OAuth authorization UI, cleanup and selected-client Golden Path requirements in `universal-agent-access.md` first.
+Do not add generalized Campaign Builder, CRM, Shopify integration, revenue attribution, or another platform layer merely because P1-M2 is complete. Promote only repeated, evidenced merchant pain into new scope.
 
 ---
 

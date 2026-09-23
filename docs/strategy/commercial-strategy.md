@@ -1,8 +1,8 @@
 # VisuTry Commercial Strategy
 
-**Status:** Active source of truth  
-**Created:** 2026-07-08  
-**Last updated:** 2026-08-06  
+**Status:** Active source of truth
+**Created:** 2026-07-08
+**Last updated:** 2026-09-23
 **Owner:** Product / Strategy
 **Scope:** Commercial direction, product packaging, target customer layers, and the relationship between VisuTry's consumer, prosumer, and B2B strategies.
 
@@ -29,7 +29,26 @@ The key questions answered here are:
 
 ---
 
-## 2. Current Strategic Context
+## 2. Current positioning
+
+Company-level positioning:
+
+> **VisuTry is an AI eyewear decision and commerce platform for both consumers and merchants.**
+
+North Star:
+
+> **Help people make better eyewear decisions, and help merchants turn those decisions into measurable commerce outcomes.**
+
+The product has two independent but reinforcing faces:
+
+- **Consumer — Discovery → Decision**
+- **Merchant — Discovery → Decision → Intent**
+
+Consumer is not merely an acquisition funnel for B2B. It is a standalone eyewear-decision product with Face Analysis, recommendation, Virtual Try-On, Compare, traffic/SEO/AI discovery, and Consumer payment/product validation.
+
+Merchant reuses the same decision capabilities in a commerce context through Catalog, Store, Campaigns, Analytics, Integrations/Agent access, and measurable shopper intent.
+
+## 3. Current Strategic Context
 
 VisuTry currently has several validated product assets:
 
@@ -59,7 +78,7 @@ Each product answers a distinct user question:
 
 ---
 
-## 3. Core Commercial Thesis
+## 4. Core Commercial Thesis
 
 VisuTry should not be positioned primarily as a consumer subscription product.
 
@@ -69,32 +88,34 @@ The stronger commercial thesis is:
 
 In practical terms:
 
-1. **2C is the acquisition and proof layer.**  
-   Free detector, one-time report, credits pack, try-on, comparison, and shareable results create traffic, usage data, product proof, and lightweight revenue.
+1. **2C is an independent decision product and acquisition surface.**
+   Free detector/face analysis, recommendation, one-time report, credits pack, try-on, comparison, and shareable results help consumers make real eyewear decisions while also creating traffic, usage evidence, product proof, and lightweight revenue. Consumer value does not depend on a later Merchant conversion.
 
-2. **Prosumer is the service workflow layer.**  
+2. **Prosumer is the service workflow layer.**
    Eyewear stylists, image consultants, and small service providers can use VisuTry repeatedly for client recommendations and report generation.
 
-3. **B2B is the primary recurring-revenue layer to validate.**  
+3. **B2B is the primary recurring-revenue layer to validate.**
    Optical stores, eyewear sellers, DTC eyewear brands, Shopify/WooCommerce merchants, and agencies need tools that improve shopper confidence, shortlist frames, create purchase intent, and connect that intent to revenue.
 
-4. **Storefront is the delivery surface; the larger business is the AI Commerce / Campaign Engine.**  
+4. **Storefront is the delivery surface; the larger business is the AI Commerce / Campaign Engine.**
    The hosted Store is the simplest way to deliver and validate the workflow. The long-term product is not a merchant website builder. It is a conversion layer that can power campaign-specific shopper experiences across hosted pages, ecommerce sites, ads, social traffic, email, QR, and future agent channels.
 
-5. **The durable moat is workflow + intent intelligence, not image generation alone.**  
+5. **The durable moat is workflow + intent intelligence, not image generation alone.**
    Basic virtual try-on can be copied. Harder-to-copy value comes from merchant onboarding, frame intelligence, recommendation logic, shopper intent, attribution, privacy trust, campaign optimization, analytics, and eventually agent-ready commerce interfaces.
 
-Internal north star:
+Merchant commercial thesis:
 
-> **VisuTry is AI commerce infrastructure for eyewear, built to turn both human and AI-agent traffic into measurable purchase intent and revenue.**
+> **VisuTry's Merchant product is an AI commerce decision and conversion layer for eyewear, designed to turn human and AI-agent traffic into measurable shopper intent and, when trustworthy commerce data exists, measurable commercial outcomes.**
+
+This Merchant thesis is subordinate to the company-level North Star above; it does not replace the standalone Consumer product.
 
 ---
 
-## 4. What Is Already Proven
+## 5. What Is Already Proven
 
 Current evidence should be interpreted conservatively but clearly.
 
-### 4.1 Paid consumer evidence
+### 5.1 Paid consumer evidence
 
 From 2026-06-23 through 2026-07-26, VisuTry recorded 10 completed USD 2.99 Credits Pack payments from 10 distinct user records, for USD 29.90 in gross transaction value. The paid behavior is concentrated in glasses try-on rather than broad universal try-on categories.
 
@@ -104,7 +125,7 @@ This supports the following conclusion:
 
 The current evidence does not yet support a subscription-first consumer model.
 
-### 4.2 Workflow evidence
+### 5.2 Workflow evidence
 
 Two consumer usage patterns matter commercially:
 
@@ -113,7 +134,7 @@ Two consumer usage patterns matter commercially:
 
 Both patterns are directly relevant to merchant workflows.
 
-### 4.3 Technical evidence
+### 5.3 Technical evidence
 
 VisuTry already has reusable commercial infrastructure:
 
@@ -131,7 +152,7 @@ This means the core commercial unit is no longer only an image-generation unit. 
 
 > Shopper intent + merchant catalog → personalized recommendation → visual validation → measurable conversion signal.
 
-### 4.4 AI discovery evidence
+### 5.4 AI discovery evidence
 
 VisuTry already receives meaningful AI-assistant referral traffic in addition to search traffic.
 
@@ -141,9 +162,16 @@ This should be treated as an early operating signal, not proof of a finished cha
 
 ---
 
-## 5. What Is Not Working as the Primary Strategy
 
-### 5.1 Consumer subscription-first pricing
+### Current Merchant operating evidence
+
+The human Merchant Operating Experience is now production-accepted. Home, Catalog, Store, Campaigns, Analytics, Integrations, Plan & Usage, and Settings have completed bounded Production acceptance on VisuTry's own validation tenant.
+
+This proves the current operating product can be used in Production under the accepted lifecycle and tenant boundaries. It does **not** prove external merchant adoption, paid B2B demand, revenue uplift, or merchant endorsement. Those remain separate commercial evidence questions.
+
+## 6. What Is Not Working as the Primary Strategy
+
+### 6.1 Consumer subscription-first pricing
 
 Ordinary consumers do not usually need glasses try-on every month. Their job is episodic:
 
@@ -156,7 +184,7 @@ This makes a monthly or annual consumer subscription difficult to justify as the
 
 Subscriptions can remain available, but they should not be the main story for casual shoppers.
 
-### 5.2 Isolated face analysis as a paid product
+### 6.2 Isolated face analysis as a paid product
 
 A paid face analysis report can work for high-intent users, but basic face-shape identification is increasingly a free acquisition job.
 
@@ -173,7 +201,7 @@ Paid value should come from the next decision layers:
 - shareable report;
 - merchant or consultant workflow.
 
-### 5.3 Page-count-first SEO
+### 6.3 Page-count-first SEO
 
 Older plans to generate 1000+ pages should not be treated as the first commercial priority.
 
@@ -183,7 +211,7 @@ The current priority is not more pages by default. It is a tighter commercial lo
 
 Programmatic SEO may still matter later, but only when each page has a distinct user intent, clear product continuation, and enough quality to avoid thin-page risk.
 
-### 5.4 Generic merchant storefront positioning
+### 6.4 Generic merchant storefront positioning
 
 VisuTry should not compete primarily as a generic ecommerce storefront, website builder, EHR/PMS replacement, inventory ERP, or CRM.
 
@@ -205,9 +233,9 @@ Merchant Commerce System
 
 ---
 
-## 6. Target Customer Layers
+## 7. Target Customer Layers
 
-### 6.1 Consumer: Free entry + one-time / credits conversion
+### 7.1 Consumer: Free entry + one-time / credits conversion
 
 Consumers are still important, but their role is not primarily recurring subscription revenue.
 
@@ -228,7 +256,7 @@ Recommended consumer monetization:
 | Credits Pack | Main casual paid product for try-on and comparison. |
 | Subscription | Secondary option for heavy users only. |
 
-### 6.2 Prosumer: Stylists and eyewear consultants
+### 7.2 Prosumer: Stylists and eyewear consultants
 
 Prosumer users may include:
 
@@ -260,7 +288,7 @@ Key capabilities:
 - advisor notes;
 - branded or semi-branded deliverables.
 
-### 6.3 B2B: Optical stores, eyewear sellers, and commerce merchants
+### 7.3 B2B: Optical stores, eyewear sellers, and commerce merchants
 
 B2B users may include:
 
@@ -295,7 +323,7 @@ Core capabilities:
 - agent-ready product and campaign surfaces;
 - hosted experience first, widget / platform / API surfaces later when justified by demand.
 
-### 6.4 Partner channel: agencies, resellers, and platform wrappers
+### 7.4 Partner channel: agencies, resellers, and platform wrappers
 
 Partner users may include:
 
@@ -316,9 +344,9 @@ The goal is not to build bespoke white-label systems too early. The better path 
 
 ---
 
-## 7. Product Packaging Direction
+## 8. Product Packaging Direction
 
-### 7.1 VisuTry Free
+### 8.1 VisuTry Free
 
 Purpose:
 
@@ -341,7 +369,7 @@ Does not include:
 - saved long-term history by default;
 - merchant workflows.
 
-### 7.2 VisuTry Report / Glasses Advisor
+### 8.2 VisuTry Report / Glasses Advisor
 
 Purpose:
 
@@ -362,7 +390,7 @@ Pricing direction:
 - one-time unlock or credit-based usage;
 - not subscription-first.
 
-### 7.3 VisuTry Credits Pack
+### 8.3 VisuTry Credits Pack
 
 Purpose:
 
@@ -374,7 +402,7 @@ Positioning:
 
 > Continue comparing frames with a one-time credits pack. No subscription required.
 
-### 7.4 VisuTry Studio
+### 8.4 VisuTry Studio
 
 Target:
 
@@ -395,7 +423,7 @@ Possible pricing:
 - usage-based bundle;
 - report quota.
 
-### 7.5 VisuTry Store / Campaign Engine
+### 8.5 VisuTry Store / Campaign Engine
 
 Target:
 
@@ -427,7 +455,7 @@ Possible pricing evolution:
 
 Do not force the mature pricing model into the first pilot. The immediate objective remains willingness-to-pay and workflow validation.
 
-### 7.6 VisuTry Widget / SDK
+### 8.6 VisuTry Widget / SDK
 
 Target:
 
@@ -449,9 +477,9 @@ Sequence:
 
 ---
 
-## 8. Product Workflow Strategy
+## 9. Product Workflow Strategy
 
-### 8.1 Consumer workflow
+### 9.1 Consumer workflow
 
 Recommended consumer path:
 
@@ -466,7 +494,7 @@ Key principle:
 
 > Do not block the first useful result behind login or payment when the search intent is low-commitment discovery.
 
-### 8.2 Prosumer workflow
+### 9.2 Prosumer workflow
 
 Recommended consultant path:
 
@@ -482,7 +510,7 @@ Key principle:
 
 > The paid object is not a single try-on image. It is a client-ready recommendation deliverable.
 
-### 8.3 Merchant workflow
+### 9.3 Merchant workflow
 
 Recommended merchant path:
 
@@ -499,7 +527,7 @@ Key principle:
 
 > The merchant does not buy image generation or a generic storefront. The merchant buys a measurable AI conversion experience.
 
-### 8.4 Agent-ready commerce workflow
+### 9.4 Agent-ready commerce workflow
 
 Store should increasingly support two acquisition classes:
 
@@ -526,9 +554,9 @@ The first implementation should optimize public Store/campaign pages, catalog me
 
 ---
 
-## 9. Pricing Direction
+## 10. Pricing Direction
 
-### 9.1 Consumer pricing
+### 10.1 Consumer pricing
 
 Consumer pricing should be simple and aligned with low-frequency use.
 
@@ -543,7 +571,7 @@ Recommended direction:
 
 Consumer subscriptions should not be the primary homepage or pricing story unless future data proves repeated monthly use.
 
-### 9.2 Prosumer pricing
+### 10.2 Prosumer pricing
 
 Prosumer pricing can support recurring revenue because usage is client-based.
 
@@ -554,7 +582,7 @@ Possible model:
 - branded report add-on;
 - client history retention.
 
-### 9.3 B2B pricing
+### 10.3 B2B pricing
 
 B2B pricing should not expose consumer credits as the main concept.
 
@@ -577,7 +605,7 @@ The strategic objective is to move Store budget perception from a low-value VTO 
 
 ---
 
-## 10. Relationship to Existing Strategy Documents
+## 11. Relationship to Existing Strategy Documents
 
 This section defines the role of existing documents so the strategy system does not fragment.
 
@@ -605,7 +633,9 @@ Guideline:
 
 ---
 
-## 11. Near-Term Roadmap
+## 12. Strategic sequencing reference (not current execution plan)
+
+This section preserves strategic sequencing logic. Current execution priority belongs to `docs/product/product-plan.md`. P1-M2 Merchant Operating Experience is already Production accepted/closed, and this strategy document does not authorize a new product phase.
 
 ### Phase A: Keep the 2C acquisition and credits loop sharp
 
@@ -682,7 +712,7 @@ Studio remains a separate professional-workflow opportunity, but Store is the cu
 
 ---
 
-## 12. Open Questions
+## 13. Open Questions
 
 1. Which first merchant KPI best predicts willingness to pay: product click, inquiry, add-to-cart, conversion, appointment intent, attributed revenue, or merchant retention?
 2. Is the hosted Store the dominant long-term surface, or primarily the first surface for a broader Campaign Engine?
@@ -696,29 +726,30 @@ Studio remains a separate professional-workflow opportunity, but Store is the cu
 
 ---
 
-## 13. Strategic Summary
+## 14. Strategic Summary
 
-VisuTry should be understood as an eyewear decision and conversion platform, not merely a virtual try-on image generator.
+VisuTry should be understood as an **AI eyewear decision and commerce platform for both consumers and merchants**, not merely a virtual try-on image generator.
 
 The recommended commercial direction is:
 
-1. Use free consumer tools to capture high-intent eyewear decision demand and prove the intelligence layer.
-2. Monetize casual consumers through one-time reports and credits packs rather than subscription-first pricing.
-3. Treat Store as the primary recurring-revenue engine to validate.
-4. Use the hosted Storefront as the first delivery surface, while building toward an AI Commerce / Campaign Engine.
-5. Measure the merchant funnel from traffic source through recommendation, try-on, compare, purchase intent, and eventually revenue.
-6. Design Store for both human traffic and AI-agent traffic through discoverable, understandable, actionable, and measurable commerce surfaces.
-7. Add widget, Shopify/WooCommerce, public API, and agent actions only when repeated demand proves the need.
+1. Keep Consumer as an independent Discovery → Decision product with free and paid decision value.
+2. Monetize casual consumers primarily through one-time reports/credits-based usage unless repeated-use evidence supports a stronger subscription story.
+3. Treat Merchant as the Discovery → Decision → Intent commerce product, using Catalog, Store, Campaigns and Analytics to turn qualified traffic into measurable shopper outcomes.
+4. Keep Storefront as one delivery surface; Campaigns, Commerce Intelligence and Agent-operable capabilities extend the same Merchant commerce system.
+5. Distinguish observed intent from verified conversion/revenue and do not claim uplift without trustworthy commerce evidence.
+6. Design both Human UI and Agent/MCP around the same canonical application/domain capabilities.
+7. Add Shopify/WooCommerce, CRM, generalized martech, order/revenue attribution, broad public APIs or autonomous actions only when repeated demand proves the need.
 
-One-line internal strategy:
+One-line strategy:
 
-> **Free tools create demand; Store turns human and agent traffic into measurable eyewear purchase intent and recurring merchant revenue.**
+> **Help people make better eyewear decisions, and help merchants turn those decisions into measurable commerce outcomes.**
 
 ---
 
-## 14. Change Log
+## 15. Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created unified commercial strategy and product-layer model. |
 | 2026-08-06 | Reframed Store from merchant storefront/workspace to AI Commerce / Campaign Engine; defined Storefront as the first delivery surface, added human + AI-agent traffic strategy, agent-ready commerce requirements, conversion/revenue positioning, and campaign-oriented expansion path. |
+| 2026-09-23 | Reconciled commercial strategy with the current Consumer + Merchant company positioning, preserved Consumer as an independent decision product, recorded the Production-accepted Merchant operating baseline without overstating external adoption, and retained intent-vs-revenue evidence discipline. |

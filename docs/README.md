@@ -1,9 +1,9 @@
 # VisuTry Documentation Map
 
-**Status:** Active documentation entry point  
-**Created:** 2026-07-08  
-**Last updated:** 2026-09-17
-**Owner:** Product / Engineering  
+**Status:** Active documentation entry point
+**Created:** 2026-07-08
+**Last updated:** 2026-09-23
+**Owner:** Product / Engineering
 **Review cadence:** Monthly, or whenever product direction / production architecture materially changes.
 
 ## 1. Purpose
@@ -17,6 +17,8 @@ This is the entry point for current VisuTry documentation. It distinguishes acti
 | Commercial direction | `docs/strategy/commercial-strategy.md` |
 | Product execution priority | `docs/product/product-plan.md` |
 | Cross-product positioning / boundaries | `docs/product/product-system.md` |
+| Merchant human operating experience | `docs/product/specs/merchant-operating-experience.md` |
+| Merchant activation milestone semantics | `docs/merchant-activation-v1.md` |
 | Detailed product behavior | `docs/product/specs/` |
 | Technical architecture / current system shape | `docs/project/architecture.md` + accepted ADRs |
 | Observability / analytics / attribution / data-plane ownership | `docs/project/observability-and-analytics-contract.md` |
@@ -74,6 +76,16 @@ A newer gate or observation record supersedes “current phase” wording withou
 2. `docs/product/product-plan.md`
 3. relevant `docs/product/specs/`
 4. the current product gate/plan when a decision is evidence-bound
+
+### Merchant product
+
+1. `docs/product/product-plan.md`
+2. `docs/product/specs/merchant-operating-experience.md`
+3. `docs/merchant-activation-v1.md` for milestone/cohort semantics
+4. relevant Merchant / Experience / Commerce spec
+5. `docs/project/architecture.md`
+6. `docs/project/observability-and-analytics-contract.md` for measurement/classification boundaries
+7. current implementation/configuration
 
 ### Engineering
 
@@ -162,3 +174,4 @@ See `docs/document-inventory.md` for lifecycle and cleanup governance.
 | 2026-09-12 | Tightened architecture documentation precedence; made volatile routing/cache/schema detail code-authoritative; removed the documentation index as a perpetual observation-phase tracker. |
 | 2026-09-13 | Refreshed the active documentation contract for the P0.5A Public Web / Consumer App boundary, P0.5B prefetch guardrail, P0.5C image-delivery boundary, P0.5D intentional ISR boundary, and transitional D1 position; no P0.5E conclusion was added. |
 | 2026-09-17 | Reconciled the documentation governance contract with current Merchant Discovery/Activation and Cloudflare traffic-layer changes; recorded the final P0.5E result as unresolved and retained D1 as `KEEP_FOR_NOW` pending a clean observation window. |
+| 2026-09-23 | Reconciled documentation after P1-M2 Production acceptance; added the Merchant Operating Experience authority and separated activation-ledger semantics from runtime Operating eligibility. |
