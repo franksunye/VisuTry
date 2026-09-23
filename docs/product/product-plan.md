@@ -42,7 +42,7 @@ This plan is derived from:
 | `docs/product/plans/visutry-store-implementation-plan.md` | Defines current Store gates, completed D0 slices, merchant validation, and M1 sequencing. |
 | `docs/ops/store-d0-production-verification-2026-08-05.md` | Records the production D0 evidence baseline and remaining Gate A1 work. |
 | `docs/product/plans/pilot-delivery-factory-plan.md` | Defines the completed five-brand Reference delivery contract and repeatability targets. |
-| `docs/product/plans/market-facing-productization-plan.md` | Historical productization sequence; current pre-outreach execution is governed by `docs/product/plans/product-advantage-gate.md`. |
+| `docs/product/plans/market-facing-productization-plan.md` | Historical productization sequence; retained as supporting evidence and does not define the current execution phase. |
 | `docs/product/business-website-ia-and-copy.md` | Defines current Business Website product truth, claims, Pilot and CTA baseline. |
 | `docs/product/plans/agent-native-merchant-self-service.md` | Historical Agent-native implementation plan; retained for architecture/tooling history. |
 | `docs/product/specs/merchant-operating-experience.md` | Defines the current human Merchant operating IA, lifecycle semantics, workspace-mode boundary, and Human/Agent responsibility model. |
@@ -53,23 +53,30 @@ This plan is derived from:
 
 ## 3. Product North Star
 
-VisuTry should become:
+Company-level positioning:
 
-> **AI commerce infrastructure for eyewear: an intelligence and conversion layer that helps consumers choose frames and helps merchants turn both human and AI-agent traffic into measurable purchase intent and revenue.**
+> **VisuTry is an AI eyewear decision and commerce platform for both consumers and merchants.**
 
-The standalone Consumer acquisition / decision path remains:
+North Star:
 
-> Face Shape Detector → Glasses Advisor → Virtual Try-On → Frame Compare
+> **Help people make better eyewear decisions, and help merchants turn those decisions into measurable commerce outcomes.**
 
-The primary B2B shopper path for the active Product Advantage Gate is:
+Current product faces:
 
-> Discovery / Agent Referral → Store or Campaign Landing → Product Exploration → Recommendation / Try-On / Compare → Product / Inquiry Intent
+```text
+Consumer: Discovery → Decision
+Merchant: Discovery → Decision → Intent
+```
 
-The future merchant path is:
+The Consumer decision path remains independently valuable:
 
-> Traffic / campaign / agent referral → shopper intent → merchant catalog → AI recommendation → try-on → compare → product / inquiry intent → conversion analytics → merchant commerce system.
+> Face Shape / Face Analysis → Recommendation / Glasses Advisor → Virtual Try-On → Compare
 
-The hosted merchant Storefront is the first delivery surface. The larger product direction is the **AI Commerce / Campaign Engine**.
+The Merchant commerce path builds on the same decision capabilities:
+
+> Merchant Catalog → Store / Campaign → shopper Recommendation / Try-On / Compare → measurable Intent → Merchant Analytics
+
+The hosted Storefront is one delivery surface of the Merchant product. Campaigns, Commerce Intelligence, and Agent-operable capabilities extend the same commerce system without reducing VisuTry to a generic storefront or weakening the standalone Consumer product.
 
 ---
 
