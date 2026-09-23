@@ -1,8 +1,8 @@
 # Local Merchant Growth Lab
 
-**Status:** Active operating procedure  
-**Owner:** Product / Engineering  
-**Last updated:** 2026-09-23  
+**Status:** Active operating procedure
+**Owner:** Product / Engineering
+**Last updated:** 2026-09-23
 **Scope:** Guarded Local development and QA for Merchant activation, operating workspaces, Store/Campaign lifecycle, and Merchant regressions without Preview/Production mutation.
 
 The Local Merchant Growth Lab is the primary development and QA environment
