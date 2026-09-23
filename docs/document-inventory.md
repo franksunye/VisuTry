@@ -1,10 +1,10 @@
 # VisuTry Document Inventory
 
-**Status:** Active documentation governance registry  
-**Created:** 2026-07-08  
+**Status:** Active documentation governance registry
+**Created:** 2026-07-08
 **Last updated:** 2026-09-23
-**Owner:** Product / Engineering  
-**Review cadence:** Monthly, and at every major milestone close  
+**Owner:** Product / Engineering
+**Review cadence:** Monthly, and at every major milestone close
 **Scope:** Authoritative documents, directory lifecycle, exceptions, and cleanup debt. This is intentionally not a file-by-file catalog.
 
 ## 1. Operating rule
