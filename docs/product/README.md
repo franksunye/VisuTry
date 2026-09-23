@@ -20,10 +20,10 @@ The main goal is to make it clear what should be built next, why it matters, how
 
 | Document | Purpose | Status |
 | --- | --- | --- |
-| `docs/product/product-plan.md` | Current product operating plan: Now / Next / Later, current sprint, initiatives, backlog, and decisions needed. | Active source of truth for product execution. |
+| `docs/product/product-plan.md` | Current product operating plan: Now / Next / Later, execution posture, standing initiatives, and decisions needed. | Active source of truth for product execution. |
 | `docs/product/specs/` | Detailed specs for individual product capabilities. | Created as needed. |
 | `docs/product/specs/merchant-operating-experience.md` | Current Merchant human operating experience, Activation/Operating boundary, IA, lifecycle and Human/Agent responsibility contract. | **Active source of truth for Merchant operating behavior.** |
-| `docs/product/plans/market-facing-productization-plan.md` | Historical Reference Factory → Discover/distribution → Business Website sequence. | **Historical; pre-outreach work now follows the Product Advantage Gate.** |
+| `docs/product/plans/market-facing-productization-plan.md` | Historical Reference Factory → Discover/distribution → Business Website sequence. | **Historical; retained as supporting productization evidence.** |
 | `docs/product/plans/product-advantage-gate.md` | Consumer Distribution, Merchant Experience, and Agent-Native pre-outreach evidence gate. | **Supporting evidence/gate; not the current engineering phase after P1-M2 closure.** |
 | `docs/product/plans/pilot-delivery-factory-plan.md` | Five-brand Reference portfolio and repeatable assisted delivery model. | **Factory core complete; retained as delivery contract.** |
 | `docs/product/business-website-ia-and-copy.md` | Business Website product truth, IA, claims, Pilot and CTA baseline. | **Implemented baseline; v1.2 visual brief is current.** |
