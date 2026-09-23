@@ -499,17 +499,60 @@ canonical application/domain state rather than reimplementing business rules.
 **P1:** none observed in this acceptance pass.
 **P2:** repository lint/build emit pre-existing warnings; no M2 closure blocker.
 
-### Production metadata (read-only)
+### Production acceptance and compatibility closure
 
-At the time of verification, Vercel reported the Production deployment for
-`ffcf4285ef46ccbe4862e073b459dc8318abbbb2` as **READY**, with the
-`www.visutry.com` alias active. No deploy or Production smoke was run as part of
-this Local-only acceptance task. No Production data, Stripe state, or runtime
-configuration was changed. A bounded Production smoke remains required before
-claiming Production acceptance/promotion; it is not a prerequisite for Lead's
-code/UX acceptance of P1-M2.
+The Local acceptance baseline `ffcf4285ef46ccbe4862e073b459dc8318abbbb2`
+remains the historical Product/UX application baseline before the final
+Production compatibility correction.
 
-**Closure status:** **P1-M2 CLOSED / PASS.** The accepted application baseline
-is `ffcf4285ef46ccbe4862e073b459dc8318abbbb2`; this documentation-only PR has a
-separate commit SHA. This is not a Production promotion report and does not
-start another product phase.
+The first bounded Production smoke on VisuTry Demo exposed one P1 compatibility
+defect: the workspace gate treated only `merchant_store_previewed` as proof
+that the Merchant had crossed First Value. VisuTry Demo already had an ACTIVE
+Store and ACTIVE Campaign but no synthetic historical Preview event, so Home
+fell back to the Activation experience and dedicated Catalog/Campaign routes
+redirected to Merchant root.
+
+Issue #231 / PR #232 fixed this without repairing Production data. The shared
+read-only workspace-mode resolver now enters Operating Mode when a Store Preview
+event exists, a Store Publish event exists, or an actual Store Experience is
+ACTIVE. It does not synthesize or backfill activation history and does not
+change First Value or the post-v1 activation cohort definition.
+
+Final accepted Production baseline:
+
+- main SHA: `3c29d56cce1c380bef42c3f9e99dd25f95ac8724`
+- approved fix HEAD: `17e0a09712e562509e5551a080e48c5aa798f37a`
+- Vercel deployment: `dpl_ELfRGDagvdv9nXLfL3K8wGkkLiiS`
+- `www.visutry.com`: active Production alias
+- Production Acceptance: Issue #230 — **CLOSED / PASS**
+
+The final read-only VisuTry Demo smoke loaded the expected Merchant context for
+Home, Catalog, Store, Campaigns, Analytics, Integrations, Plan & Usage, and
+Settings. Existing public Store and Campaign pages also rendered through
+GET-only access.
+
+Vercel's bounded smoke window reported:
+
+- **0 observed 5xx**
+- no Merchant-route runtime error clusters
+- observed HTTP 405 responses were `GET /api/mcp`, not Merchant workspace
+  failures
+- observed HTTP 307 responses were root `/` edge-middleware redirects, not
+  regressions on Merchant operating routes
+
+The Production browser session did not expose responsive viewport emulation or
+browser-console inspection. Those are retained as evidence limitations rather
+than Production blockers because prior Local mobile/cross-surface QA and
+console-error checks passed, while the final Production routes and runtime
+evidence were clean.
+
+No schema migration, Production data repair/backfill, payment/Stripe operation,
+AI/provider call, or deliberate Production business-state mutation was used to
+close the acceptance.
+
+**Final status: P1-M2 Merchant Operating Experience — PRODUCT / UX / PRODUCTION ACCEPTED / CLOSED.**
+
+Current durable behavior is governed by
+`docs/product/specs/merchant-operating-experience.md`. This audit remains the
+historical pre-M2 findings plus final acceptance evidence; it does not start a
+new product phase.
