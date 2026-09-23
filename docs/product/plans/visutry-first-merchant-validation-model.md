@@ -1,9 +1,9 @@
 # VisuTry as the First Merchant — Internal Validation Model
 
-**Status:** Living supporting reference  
-**Owner:** Product / Engineering  
-**Last updated:** 2026-09-23  
-**Scope:** Product validation, operating sequence, and Sales-readiness use of VisuTry-owned Store / Campaign experiences  
+**Status:** Living supporting reference
+**Owner:** Product / Engineering
+**Last updated:** 2026-09-23
+**Scope:** Product validation, operating sequence, and Sales-readiness use of VisuTry-owned Store / Campaign experiences
 **Related contracts:**
 - `docs/product/specs/merchant-experience-entitlement-sponsored-usage.md`
 - `docs/product/specs/campaign-conversion-policy.md`
