@@ -1,10 +1,10 @@
 # VisuTry Product Plan
 
-**Status:** Active source of truth for product execution  
-**Created:** 2026-07-08  
+**Status:** Active source of truth for product execution
+**Created:** 2026-07-08
 **Last updated:** 2026-09-23
-**Owner:** Product  
-**Review cadence:** Weekly  
+**Owner:** Product
+**Review cadence:** Weekly
 **Scope:** Current product focus, Now / Next / Later priorities, current sprint, product initiatives, backlog, decisions needed, and execution board.
 
 ---
