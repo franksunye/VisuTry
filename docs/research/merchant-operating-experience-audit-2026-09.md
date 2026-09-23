@@ -1,5 +1,10 @@
 # P1-M2 Merchant Operating Experience Audit — 2026-09
 
+**Status:** Accepted historical audit with final Production closure  
+**Owner:** Product / Engineering  
+**Last updated:** 2026-09-23  
+**Scope:** Historical pre-M2 Merchant UX audit, Local cross-surface acceptance, Production compatibility finding, and final P1-M2 Production acceptance evidence.
+
 ## Scope and evidence
 
 This is a read-only Local Merchant Growth Lab audit. No application code,
