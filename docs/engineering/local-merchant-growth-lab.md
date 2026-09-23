@@ -1,6 +1,9 @@
 # Local Merchant Growth Lab
 
-**Status:** Active operating procedure
+**Status:** Active operating procedure  
+**Owner:** Product / Engineering  
+**Last updated:** 2026-09-23  
+**Scope:** Guarded Local development and QA for Merchant activation, operating workspaces, Store/Campaign lifecycle, and Merchant regressions without Preview/Production mutation.
 
 The Local Merchant Growth Lab is the primary development and QA environment
 for Merchant acquisition through private Store Preview. It uses repository-local
@@ -78,14 +81,22 @@ follow-up actions after First Value; they are not prerequisites for it. The
 Merchant workspace surfaces the human action first and keeps Agent connection
 as a secondary accelerator.
 
-The workspace has two lifecycle modes. Before `merchant_store_previewed`, the
-visual order is activation-first: the checklist and first-value actions lead
-into Catalog and Store. After that durable milestone, the operating shell uses
-Home, Catalog, Store, Campaigns, and Analytics as primary destinations; More
+The workspace has two lifecycle modes. The First Value path remains
+activation-first and culminates in the durable `merchant_store_previewed`
+milestone. Runtime Operating eligibility, however, is resolved separately from
+activation analytics: Preview event, Publish event, or an actual ACTIVE Store
+can enter Operating Mode without fabricating historical activation events.
+Home, Catalog, Store, Campaigns, and Analytics are primary destinations; More
 contains Integrations, Plan & Usage, and Settings. The mobile More control
 remains visible while the primary navigation is horizontally scrollable.
 Switching Merchants remounts the keyed client workspace so lifecycle and local
 control state cannot leak between Merchant contexts.
+
+The compatibility regression for an ACTIVE Store with no historical
+Preview/Publish event is `tests/e2e/p1-operating-mode-compat.spec.ts`. It must
+prove Operating Home plus direct Catalog/Store/Campaign routes while leaving a
+true pre-First-Value Merchant in Activation Mode and writing no activation
+history.
 
 The first-product form keeps the minimum identity fields visible and moves
 shape, brand, and price into optional details. After the first import, the
