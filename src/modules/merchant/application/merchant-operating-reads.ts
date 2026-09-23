@@ -6,6 +6,7 @@ import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign
 import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/modules/store/domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readiness'
+import { resolveMerchantWorkspaceMode } from '../domain/merchant-workspace-mode'
 
 export type MerchantWorkspaceDetailsRead = {
   id: string
@@ -61,13 +62,27 @@ function campaignReadiness(frames: MerchantCatalogFrameSummary[], experience: {
   )
 }
 
-export async function getMerchantOperatingActivation(input: { merchantId: string }) {
-  const event = await prisma.merchantActivationEvent.findFirst({
-    where: { merchantId: input.merchantId, eventType: 'merchant_store_previewed' },
-    orderBy: [{ occurredAt: 'asc' }, { createdAt: 'asc' }],
-    select: { occurredAt: true },
+export async function getMerchantWorkspaceMode(input: { merchantId: string }) {
+  const [events, activeStore] = await Promise.all([
+    prisma.merchantActivationEvent.findMany({
+      where: {
+        merchantId: input.merchantId,
+        eventType: { in: ['merchant_store_previewed', 'merchant_store_published'] },
+      },
+      orderBy: [{ occurredAt: 'asc' }, { createdAt: 'asc' }],
+      select: { eventType: true },
+    }),
+    prisma.experience.findFirst({
+      where: { merchantId: input.merchantId, type: 'STORE', status: 'ACTIVE' },
+      select: { id: true },
+    }),
+  ])
+
+  return resolveMerchantWorkspaceMode({
+    hasStorePreviewedEvent: events.some((event) => event.eventType === 'merchant_store_previewed'),
+    hasStorePublishedEvent: events.some((event) => event.eventType === 'merchant_store_published'),
+    storeStatus: activeStore ? 'ACTIVE' : null,
   })
-  return { storePreviewedAt: event?.occurredAt.toISOString() ?? null }
 }
 
 export async function getMerchantCatalogCount(input: { merchantId: string }) {

@@ -17,7 +17,7 @@ jest.mock('@/modules/merchant/application/merchant-control-center', () => ({
   getMerchantControlCenter: jest.fn(),
 }))
 jest.mock('@/modules/merchant/application/merchant-operating-reads', () => ({
-  getMerchantOperatingActivation: jest.fn(),
+  getMerchantWorkspaceMode: jest.fn(),
 }))
 jest.mock('@/modules/merchant/application/merchant-operating-home', () => ({
   getMerchantOperatingHome: jest.fn(),
@@ -44,7 +44,7 @@ import { getServerSession } from 'next-auth'
 import { listMerchantsForUser } from '@/modules/merchant/application/merchant-memberships'
 import { listMerchantAgentCredentials } from '@/modules/merchant/application/merchant-agent-credentials'
 import { getMerchantControlCenter } from '@/modules/merchant/application/merchant-control-center'
-import { getMerchantOperatingActivation } from '@/modules/merchant/application/merchant-operating-reads'
+import { getMerchantWorkspaceMode } from '@/modules/merchant/application/merchant-operating-reads'
 import { getMerchantOperatingHome } from '@/modules/merchant/application/merchant-operating-home'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import MerchantWorkspacePage from '@/app/[locale]/merchant/page'
@@ -53,7 +53,7 @@ const session = getServerSession as jest.Mock
 const merchants = listMerchantsForUser as jest.Mock
 const credentials = listMerchantAgentCredentials as jest.Mock
 const control = getMerchantControlCenter as jest.Mock
-const activation = getMerchantOperatingActivation as jest.Mock
+const workspaceMode = getMerchantWorkspaceMode as jest.Mock
 const operatingHome = getMerchantOperatingHome as jest.Mock
 const membership = requireMerchantMembership as jest.Mock
 
@@ -66,7 +66,7 @@ describe('Merchant workspace authorization', () => {
       { merchant: { id: 'merchant-b', slug: 'beta', name: 'Beta', status: 'ACTIVE' }, membership: { role: 'ADMIN' } },
     ])
     credentials.mockResolvedValue([])
-    activation.mockResolvedValue({ storePreviewedAt: null })
+    workspaceMode.mockResolvedValue({ mode: 'ACTIVATION', reason: 'FIRST_VALUE_NOT_REACHED' })
     operatingHome.mockResolvedValue({
       merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha' },
       store: { exists: true, status: 'DRAFT', selectedProductCount: 1, eligibleProductCount: 1, readiness: 'READY' },
@@ -128,13 +128,24 @@ describe('Merchant workspace authorization', () => {
   })
 
   it('uses the dedicated Operating Home after First Value without loading the control aggregate or credentials', async () => {
-    activation.mockResolvedValue({ storePreviewedAt: new Date('2026-09-20T10:00:00.000Z') })
+    workspaceMode.mockResolvedValue({ mode: 'OPERATING', reason: 'STORE_PREVIEWED' })
     const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a' } }) as React.ReactElement
 
     const operatingHomeElement = result.props.children as React.ReactElement
     expect(operatingHomeElement.type).toHaveProperty('name', 'MerchantOperatingHome')
     expect(operatingHomeElement.props.home).toBeDefined()
     expect(operatingHome).toHaveBeenCalledWith({ merchantId: 'merchant-a' })
+    expect(control).not.toHaveBeenCalled()
+    expect(credentials).not.toHaveBeenCalled()
+  })
+
+  it('uses Operating Home for an existing ACTIVE Store without synthesizing activation history', async () => {
+    workspaceMode.mockResolvedValue({ mode: 'OPERATING', reason: 'ACTIVE_STORE' })
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a' } }) as React.ReactElement
+
+    const operatingHomeElement = result.props.children as React.ReactElement
+    expect(operatingHomeElement.type).toHaveProperty('name', 'MerchantOperatingHome')
+    expect(workspaceMode).toHaveBeenCalledWith({ merchantId: 'merchant-a' })
     expect(control).not.toHaveBeenCalled()
     expect(credentials).not.toHaveBeenCalled()
   })

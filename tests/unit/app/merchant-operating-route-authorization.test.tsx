@@ -9,7 +9,7 @@ jest.mock('@/lib/auth-runtime', () => ({ authOptions: {} }))
 jest.mock('@/modules/merchant/application/merchant-memberships', () => ({ listMerchantsForUser: jest.fn() }))
 jest.mock('@/modules/merchant/application/merchant-access', () => ({ requireMerchantMembership: jest.fn() }))
 jest.mock('@/modules/merchant/application/merchant-operating-reads', () => ({
-  getMerchantOperatingActivation: jest.fn(),
+  getMerchantWorkspaceMode: jest.fn(),
   getMerchantCatalogCount: jest.fn(),
 }))
 jest.mock('@/modules/store/application/campaign-service', () => ({
