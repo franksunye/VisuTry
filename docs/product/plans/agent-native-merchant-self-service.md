@@ -1,10 +1,10 @@
 # VisuTry Agent-Native Merchant Self-Service — Product & Architecture Plan
 
-Status: Implemented historical plan; current architecture partially retained
-Created: 2026-08-12
-Last reconciled: 2026-09-23
-Owner: Product / Engineering
-Scope: Historical implementation plan for Merchant onboarding, Store/Campaign operations and analytics through external AI agents
+**Status:** Implemented historical plan; current architecture partially retained  
+**Created:** 2026-08-12  
+**Last reviewed:** 2026-09-23  
+**Owner:** Product / Engineering  
+**Scope:** Historical implementation plan for Merchant onboarding, Store/Campaign operations and analytics through external AI agents
 
 > **Supersession note (2026-09-23):** the historical “Agent-first, Admin-available / Control Center” UX framing below is no longer the current Merchant product authority. Current principle: **Self-service first. Agent-operable by design. Human-light over time.** The human Merchant Operating Experience is first-class; Agent/MCP is optional and uses the same canonical application/domain capabilities. Current human behavior is defined by `docs/product/specs/merchant-operating-experience.md`; OAuth/MCP access details remain governed by `docs/product/plans/universal-agent-access.md`. Nothing in this historical plan authorizes Agent DOM automation or autonomous consequential actions.
 
