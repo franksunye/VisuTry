@@ -7,7 +7,7 @@ import { requireMerchantMembership } from '@/modules/merchant/application/mercha
 import { listMerchantsForUser } from '@/modules/merchant/application/merchant-memberships'
 import { listMerchantAgentCredentials } from '@/modules/merchant/application/merchant-agent-credentials'
 import { getMerchantControlCenter } from '@/modules/merchant/application/merchant-control-center'
-import { getMerchantOperatingActivation } from '@/modules/merchant/application/merchant-operating-reads'
+import { getMerchantWorkspaceMode } from '@/modules/merchant/application/merchant-operating-reads'
 import { getMerchantOperatingHome } from '@/modules/merchant/application/merchant-operating-home'
 import { MerchantControlCenter } from '@/components/merchant/MerchantControlCenter'
 import { MerchantWorkspaceOnboarding } from '@/components/merchant/MerchantWorkspaceOnboarding'
@@ -58,8 +58,8 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
   }
   await requireMerchantMembership({ userId: session.user.id, merchantId: selected.merchant.id, roles: ['OWNER', 'ADMIN'] })
   const navigationMerchants = merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role }))
-  const activation = await getMerchantOperatingActivation({ merchantId: selected.merchant.id })
-  if (activation.storePreviewedAt) {
+  const workspaceMode = await getMerchantWorkspaceMode({ merchantId: selected.merchant.id })
+  if (workspaceMode.mode === 'OPERATING') {
     const home = await getMerchantOperatingHome({ merchantId: selected.merchant.id })
     if (!home) notFound()
     return (

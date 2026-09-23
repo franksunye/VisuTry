@@ -7,6 +7,7 @@ import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import type { MerchantCommercialPresentation, MerchantControlExperience, MerchantCatalogFrameSummary } from './merchant-control-center'
+import { resolveMerchantWorkspaceMode } from '../domain/merchant-workspace-mode'
 
 export type MerchantWorkspaceDetailsRead = { id: string; name: string; websiteUrl: string | null }
 
@@ -24,10 +25,18 @@ function mapFrame(row: Record<string, unknown>): MerchantCatalogFrameSummary {
   return { ...frame, validation: validateMerchantFrameReadiness(frame) }
 }
 
-export async function getMerchantOperatingActivation(input: { merchantId: string }) {
+export async function getMerchantWorkspaceMode(input: { merchantId: string }) {
   const sql = getCloudflareSql()
-  const rows = await sql`SELECT "occurredAt" FROM "MerchantActivationEvent" WHERE "merchantId" = ${input.merchantId} AND "eventType" = 'merchant_store_previewed' ORDER BY "occurredAt" ASC, "createdAt" ASC LIMIT 1`
-  return { storePreviewedAt: rows[0]?.occurredAt == null ? null : new Date(String(rows[0].occurredAt)).toISOString() }
+  const [events, activeStores] = await Promise.all([
+    sql`SELECT "eventType" FROM "MerchantActivationEvent" WHERE "merchantId" = ${input.merchantId} AND "eventType" IN ('merchant_store_previewed', 'merchant_store_published') ORDER BY "occurredAt" ASC, "createdAt" ASC`,
+    sql`SELECT "id" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'STORE' AND "status" = 'ACTIVE' LIMIT 1`,
+  ])
+
+  return resolveMerchantWorkspaceMode({
+    hasStorePreviewedEvent: events.some((event) => text(event.eventType) === 'merchant_store_previewed'),
+    hasStorePublishedEvent: events.some((event) => text(event.eventType) === 'merchant_store_published'),
+    storeStatus: activeStores.length > 0 ? 'ACTIVE' : null,
+  })
 }
 
 export async function getMerchantCatalogCount(input: { merchantId: string }) {
