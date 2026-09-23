@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for product execution  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-25
+**Last updated:** 2026-09-23
 **Owner:** Product  
 **Review cadence:** Weekly  
 **Scope:** Current product focus, Now / Next / Later priorities, current sprint, product initiatives, backlog, decisions needed, and execution board.
@@ -74,17 +74,23 @@ The hosted merchant Storefront is the first delivery surface. The larger product
 
 ## 4. Current Product Focus
 
-The next product work should focus on turning VisuTry from a set of useful tools into a coherent eyewear decision and conversion system.
+VisuTry now operates as two connected product faces:
 
-Current focus:
+- **Consumer — Discovery → Decision:** Face Analysis, recommendation, Virtual Try-On, Compare, Consumer traffic/SEO/AI discovery, and Consumer payment/product validation.
+- **Merchant — Discovery → Decision → Intent:** Catalog, Store, Campaigns, Analytics, Integrations/Agent access, Plan & Usage, Settings, and measurable shopper decision/intent.
 
-1. Preserve the stable Consumer decision and Credits flows while 2B work resumes.
-2. Pass the Product Advantage Gate: Consumer Distribution & Proof, Merchant Experience Excellence, and Agent-Native Merchant Operations.
-3. Use the shipped Store, Campaign, Discover, Business Website, Merchant Workspace, Commerce Intelligence, Sponsored Usage, and MCP/OAuth capabilities as one product rather than starting another platform layer.
-4. Close only the minimum operational gaps required by the three gates: Consumer continuation/proof, current Store/Campaign acceptance, authorization lifecycle visibility, expiry cleanup, and current-client Golden Path evidence.
-5. Validate willingness to route a real merchant catalog and real traffic through VisuTry only after the three gates pass, before building Shopify, CRM, revenue attribution, a generalized Campaign Builder, or additional Reference Brands.
+P1-M2 Merchant Operating Experience is **Product / UX / Production Accepted / Closed** at main SHA `3c29d56cce1c380bef42c3f9e99dd25f95ac8724`. The current durable Merchant UX contract is `docs/product/specs/merchant-operating-experience.md`.
 
----
+Current execution posture:
+
+1. Preserve Consumer production stability and paid/product flows as a standing P0 guardrail.
+2. Treat the shipped Merchant Operating Experience as the B2B baseline; do not restart shell/Control-Center redesign work without new evidence.
+3. Observe the Production baseline and close only real defects/regressions.
+4. Keep existing evidence-gated commercial/distribution work as supporting validation; do not infer a new build phase from older dated gate documents.
+5. Select the next product gate explicitly before starting new feature development.
+6. Keep Shopify, CRM/marketing automation, generalized Campaign Builder, verified revenue attribution, and similar expansion evidence-gated.
+
+**No new product phase has been authorized after P1-M2 closure.**
 
 ## 5. Execution Status Definitions
 
@@ -109,76 +115,63 @@ Current focus:
 
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
-| P0 | Consumer production stability | 2B work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / guarded by CI |
-| P0 | Product Advantage Gate A/B/C baseline and P0 closure | Structured outreach is gated until the required Consumer, Merchant, and Agent evidence passes under the active Hard Distribution Gate. | In progress — B PASS; Agent-Native Core PASS; A reporting and genuine-distribution evidence remain |
-| P1 | Assisted Pilot operating loop | Intake, catalog review, one Store or Campaign, launch, weekly review, and continuation decision must work without normal shopper actions requiring developer intervention after the gate passes. | Blocked by gate |
-| P1 | Business Website v1.2 | The multi-page `/business` narrative, examples, pricing, integrations, and Pilot offer are live. | Shipped / Measuring |
-| P1 | Store / Campaign / Commerce Intelligence product | Shared Experience runtime, attribution, Sponsored Usage, Reference/Live provenance, Admin insights, and focused Campaign Try-On are live. | Shipped / Measuring |
-| P1 | Agent-native merchant operations | Merchant Workspace, Agent Keys, Remote MCP, OAuth, Store/Campaign tools, and aggregate analytics are implemented; current Codex proves the core and Cursor remains external interoperability validation. | Agent-Native Core PASS / Cursor P1 |
+| P0 | Consumer production stability | Merchant work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / continuously guarded |
+| P0 | Merchant Operating baseline | Keep the Production-accepted Home/Catalog/Store/Campaigns/Analytics/Integrations/Plan/Settings baseline stable and truthful. | Production Accepted / Closed |
+| P1 | Production observation and defect response | New work should be triggered by evidence, not by reopening completed M2 implementation. | Active operating posture |
+| P1 | Product gate selection | Decide the next bounded product/business gate from current evidence before starting feature work. | Not yet authorized |
 
-### Next
+### Next — candidate gates, not yet authorized
 
-| Priority | Workstream | Why it matters | Status |
-| --- | --- | --- | --- |
-| P0 | Product Advantage Gate acceptance | Close the dated A evidence/reporting boundary and keep Gate B and Agent-Native Core evidence current under the active Hard Distribution Gate. | In progress |
-| P1 | OAuth authorization lifecycle UI and cleanup | External agent-native Pilots need connected-authorization visibility, revoke controls, and expired-artifact cleanup. | Backend partially shipped / UI + cleanup ready |
-| P1 | Post-Outreach First Real Merchant validation | After Outreach Ready, one merchant completes catalog intake, Experience launch, declared-source traffic, shopper journey, intent review, and continuation/pricing review. | Not started / intentionally post-outreach |
-| P1 | Second-client MCP compatibility | Complete the external Cursor callback/client validation when the client environment supports it; do not widen the standards-compliant server contract for a client-local failure. | Repository ready / external validation pending |
-| P1 | Controlled Founding Merchant outreach | Durable Pilot intake is available; outreach may start only after Gate A/B/C are all PASS. | Gated |
-| P2 | Merchant-safe Lead Capture / dedicated CTA event | Objective-aware Lead Campaign reporting remains unavailable until a legitimate opt-in runtime and CTA event exist. | Backlog pending merchant demand |
-
-### Later
-
-| Workstream | Reason to defer |
-| --- | --- |
-| Generalized Campaign Builder | First prove that merchants need multiple campaign variants; do not build a marketing automation suite prematurely. |
-| Shopify public app | Requires merchant workflow proof, onboarding, privacy, billing, and support readiness. |
-| WooCommerce plugin | Support complexity is higher due to WordPress/theme variance. |
-| Public API | Should follow repeated technical buyer demand, not lead the go-to-market. |
-| CRM / marketing automation | Use a minimal Pilot tracker until repeated volume justifies a system integration. |
-| Order ingestion / revenue attribution | Current reporting is intentionally limited to observable shopper intent; do not imply ROAS or sales lift without reliable commerce data. |
-| EHR/PMS integration | Valuable long term but too heavy before merchant/practice validation. |
-| Medical-grade PD claims | Requires validation, compliance boundaries, and disclaimers. |
-| Large-scale programmatic SEO | Archived as first-priority strategy; future pages must be intent-specific and workflow-connected. |
-
----
-
-## 7. Current Sprint
-
-**Sprint name:** 2B Product Advantage Gate Readiness
-**Started:** 2026-08-24
-**Exit condition:** Documentation is current, the Product Advantage Gate A/B/C evidence is green, and the assisted Pilot intake/operating path is measurable; no outreach begins while any gate is not PASS.
-**Goal:** Convert the shipped 2B product into a gate-ready operating baseline. Real catalog, real-source shopper activity, and observed-intent review belong to the first post-outreach Merchant Validation gate, not to pre-outreach Gate A/B/C acceptance.
-
-### Sprint outcomes
-
-| Outcome | Acceptance criteria | Status |
+| Priority | Candidate | Entry condition |
 | --- | --- | --- |
-| 2B execution documents agree | Product Plan, documentation index, Factory, Market-Facing, Agent-Native, Universal Agent Access, and Business Website status describe the same current phase. | Shipped |
-| Production foundation remains green | TypeScript, unit/regression, sponsored PostgreSQL, and revenue-critical browser gates remain green while 2B resumes. | Shipped / continuous |
-| Business acquisition surface is credible | `/business`, product pages, examples, pricing, integrations, and Pilot CTA render correctly and make only supported claims. | Shipped / Measuring |
-| Pilot interest is durably recorded | A qualified prospect can submit interest and the team can track source, status, objection, demo, and Pilot outcome without relying only on an email client. | Production write verified / admin review pending |
-| Assisted Pilot can be operated | The supported intake and operating path is defined for a future merchant; its real-catalog acceptance run starts only after Outreach Ready. | Ready / post-outreach validation pending |
-| External agent access is bounded | Connected OAuth authorizations can be listed/revoked, expired artifacts are cleaned, and current Codex proves the core Golden Path; Cursor interoperability is separately tracked. | Agent-Native Core proven / lifecycle UI and Cursor validation pending |
-| Product Advantage Gate passes | Gate B and Agent-Native Core have current reproducible evidence; Gate A separates technical/reporting readiness from genuine distribution evidence, and the hard-vs-soft outreach policy is explicit. | In progress — Gate A reporting readiness is partial and genuine distribution evidence is not proven. See `docs/product/audits/product-advantage-gate-baseline-2026-08-24.md`. |
-| Post-Outreach Merchant Validation is defined | The next-stage evidence sequence is explicit and cannot be counted toward pre-outreach Gate A/B/C. | Defined / not started |
+| P1 | First real merchant validation / controlled outreach | Only when the governing commercial/distribution evidence and operating readiness support it. |
+| P1 | OAuth / external Agent hardening | When an external Agent-enabled pilot requires it; preserve shared canonical capabilities and approval boundaries. |
+| P1 | Merchant conversion/lead capability | Only when a legitimate opt-in/merchant demand exists; do not invent revenue proof. |
+| P2 | Additional Merchant UX polish | Only from observed usability evidence; do not reopen the resource IA by default. |
 
----
+### Later / explicitly evidence-gated
+
+- generalized Campaign Builder / marketing automation;
+- Shopify public app and WooCommerce plugin;
+- CRM/CDP replacement;
+- order ingestion and verified revenue attribution;
+- broad public API expansion;
+- autonomous checkout;
+- medical-grade measurement claims;
+- large-scale programmatic SEO without distinct intent/value.
+
+## 7. Current execution posture
+
+**Previous sprint:** 2B Product Advantage Gate Readiness (historical August execution context).
+
+**Current state:** stabilization / observation after P1-M2 Product + UX + Production acceptance.
+
+**Exit condition for this posture:** Product/Lead explicitly opens the next bounded gate with a defined user/business objective, acceptance criteria, and evidence boundary.
+
+The active Merchant baseline is:
+
+```text
+Activation:
+first product → Catalog ready → Store draft → private Store Preview (First Value)
+
+Operating:
+Home | Catalog | Store | Campaigns | Analytics
+More: Integrations | Plan & Usage | Settings
+```
+
+Workspace Operating eligibility is a runtime compatibility decision, not a rewritten activation milestone: Preview event OR Publish event OR actual ACTIVE Store enters Operating Mode; activation history is never synthesized for routing.
 
 ## 8. Execution Board
 
-| Priority | Initiative | Owner | Status | Next action | Evidence / Source | Target |
-| --- | --- | --- | --- | --- | --- | --- |
-| P0 | Consumer stability boundary | Engineering | Shipped / guarded | Keep Consumer critical tests and revenue browser gate green during every 2B change. | ADR-007, GitHub Quality Gate | Continuous |
-| P0 | Product Advantage Gate baseline | Product / Engineering | In progress | Close dated Gate A/B/C P0s and keep the active gate synchronized after material 2B changes. | `docs/product/plans/product-advantage-gate.md`, dated baseline | Current |
-| P1 | Business Website v1.2 | Product / Growth | Shipped / Measuring | Measure qualified Pilot form starts and submissions by acquisition source. | Business IA, v1.2 brief, PR #121/#125 | Current |
-| P1 | Founding Merchant outreach | Product / Growth | Gated | Prepare no outreach list or messages; begin only after all three gates pass and outreach is explicitly authorized. | Sales readiness audit, Product Advantage Gate | After gate |
-| P1 | Pilot lead and outcome tracker | Product / Growth / Engineering | Production deployed / write verified | Review request `625a1055-ffb0-4ed4-b14a-a7ca6e686c91` through `/admin/business/leads`, close it as a test, then use the board for controlled outreach responses. | Pilot Lead API, admin board, Sales readiness audit §J/§M | Current |
-| P1 | Post-Outreach First Real Merchant validation | Product / Engineering / Growth | Not started | After Outreach Ready, onboard one real 8–50-frame catalog, launch one Experience, route a declared source, and review observed intent plus continuation/pricing evidence. | Store MVP acceptance criteria, dated baseline | Post-outreach validation |
-| P1 | OAuth Pilot hardening | Engineering | Partially implemented | Add authorization list/revoke UI, expired-artifact cleanup, and the selected second-client/DB Golden Path if required by the Pilot. | Universal Agent Access §§15–18 | Next / conditional |
-| P2 | Merchant-safe Lead Campaign runtime | Product / Engineering | Backlog | Define only after a real merchant requires opt-in conversion rather than anonymous intent measurement. | Campaign Conversion Policy | Evidence-gated |
-
----
+| Priority | Initiative | Owner | Status | Next action |
+| --- | --- | --- | --- | --- |
+| P0 | Consumer stability boundary | Engineering | Shipped / guarded | Keep Consumer critical and revenue gates green. |
+| P0 | P1-M2 Merchant Operating Experience | Product / Engineering | **Production Accepted / Closed** | Observe; open a new narrow gate only for a real regression or new product phase. |
+| P1 | Merchant Production observation | Product / Engineering | Active | Watch runtime/product evidence; do not mutate Production for QA without explicit bounded approval. |
+| P1 | Next product gate | Product | Not authorized | Select explicitly from current evidence; do not inherit an August sprint by default. |
+| P1 | Real merchant validation / outreach | Product / Growth | Evidence-gated | Follow its governing current commercial/gate documents when explicitly activated. |
+| P1 | External Agent/OAuth hardening | Engineering | Conditional | Execute only if included in an approved pilot promise. |
+| P2 | CRM / Shopify / revenue attribution / generalized martech | Product / Engineering | Deferred | Require repeated merchant demand and trustworthy commerce evidence. |
 
 ## 9. Product Initiatives
 
