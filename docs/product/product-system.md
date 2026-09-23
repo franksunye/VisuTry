@@ -2,83 +2,88 @@
 
 **Status:** Active source of truth for cross-repository product positioning  
 **Created:** 2026-07-08  
-**Last reviewed:** 2026-08-26
+**Last reviewed:** 2026-09-23  
 **Owner:** Product / Engineering  
-**Review cadence:** Monthly, or when Web, SDK, or Mobile ownership changes  
-**Scope:** Relationship between `VisuTry`, `visutry-tryon-sdk`, and `visutry-mobile`.
+**Review cadence:** Monthly, or when Web, SDK, Mobile, or Merchant product ownership changes  
+**Scope:** Relationship between `VisuTry`, `visutry-tryon-sdk`, and `visutry-mobile`, including the current Consumer and Merchant product faces.
 
----
+## 1. Positioning and North Star
 
-## 1. Purpose
+Company-level positioning:
 
-This document defines how the three VisuTry repositories relate to each other.
+> **VisuTry is an AI eyewear decision and commerce platform for both consumers and merchants.**
 
-The goal is to prevent duplicated product logic, duplicated commercial systems, and unclear ownership between the main web platform, the reusable try-on SDK, and the mobile experience.
+North Star:
+
+> **Help people make better eyewear decisions, and help merchants turn those decisions into measurable commerce outcomes.**
+
+The two current product faces are:
+
+- **Consumer: Discovery → Decision**
+- **Merchant: Discovery → Decision → Intent**
+
+Consumer is an independent product surface, not merely a lead-generation appendage for B2B. Merchant is a production product surface, not a future-only Store experiment.
 
 Working model:
 
 > One brand. One platform. One reusable capability layer. Multiple product surfaces.
 
----
-
-## 2. Repository Roles
+## 2. Repository roles
 
 | Repository | Role | Primary responsibility |
 | --- | --- | --- |
-| `franksunye/VisuTry` | Product platform and commercial system | Web product, user accounts, credits, payments, SEO/GEO, dashboards, history, admin, product plans, B2B validation. |
-| `franksunye/visutry-tryon-sdk` | Reusable capability layer | Face geometry, face-shape analysis, recommendation, AR try-on, web / WeChat adapters, privacy-first on-device processing. |
+| `franksunye/VisuTry` | Product platform and commercial system | Consumer Web product, Merchant Operating Experience, accounts, credits/payments, Store/Campaign runtime, analytics, Agent/MCP access, SEO/GEO, Admin, product/commercial authorities. |
+| `franksunye/visutry-tryon-sdk` | Reusable capability layer | Face geometry, face-shape analysis, recommendation, AR try-on, Web/WeChat adapters, privacy-first on-device processing. |
 | `franksunye/visutry-mobile` | Mobile experience surface | Camera-first PWA / future mini-program experience built on VisuTry platform APIs and SDK capabilities. |
 
 Short version:
 
 ```text
-VisuTry             = product platform and business system
+VisuTry             = product platform + Consumer + Merchant commerce system
 VisuTry Try-On SDK  = reusable eyewear intelligence and try-on engine
 VisuTry Mobile      = camera-first mobile product surface
 ```
 
----
-
-## 3. VisuTry Main Platform
+## 3. VisuTry main platform
 
 `franksunye/VisuTry` is the product and commercial source of truth.
 
-It owns:
+### Consumer product
 
-- public web product at `visutry.com`;
-- Face Shape Detector;
-- Glasses Advisor;
-- Virtual Try-On;
-- Frame Compare;
-- account system;
-- credits and Stripe payments;
-- dashboard and history;
-- sharing surfaces;
-- SEO / GEO pages;
-- product documentation;
-- commercial strategy;
-- B2B Store / Studio validation;
-- admin and analytics surfaces.
+The main platform owns the Consumer decision journey:
 
-It should answer:
+```text
+Face Shape / Face Analysis
+→ Recommendation / Glasses Advisor
+→ Virtual Try-On
+→ Compare
+→ Save / Share / Paid continuation
+```
 
-1. Who is the user?
-2. What is free and what consumes credits?
-3. What was generated and saved?
-4. What converted to payment?
-5. What should be built, measured, or validated next?
-6. What is the current commercial direction?
+It also owns Consumer traffic/SEO/AI discovery, authentication, payment/credits, history, and product validation.
 
-It should not duplicate low-level SDK internals once those capabilities are stabilized in the SDK.
+### Merchant product
 
----
+The main platform owns the production Merchant operating and shopper-commerce journey:
+
+```text
+Merchant acquisition / activation
+→ Catalog
+→ Store / Campaigns
+→ shopper Recommendation / Try-On / Compare
+→ measurable Intent
+→ Analytics / operating decisions
+```
+
+The human Merchant Operating Experience currently provides Home, Catalog, Store, Campaigns, Analytics, Integrations, Plan & Usage, and Settings. First Value remains a private Store Preview. The durable behavior authority is `docs/product/specs/merchant-operating-experience.md`.
+
+The platform also owns Remote MCP / Agent access. Human UI and Agent/MCP use shared canonical application/domain capabilities; Agent access is optional and is not implemented by automating the human UI.
 
 ## 4. VisuTry Try-On SDK
 
 `franksunye/visutry-tryon-sdk` is the reusable capability layer behind the VisuTry product system.
 
 It owns:
-
 - face geometry primitives;
 - MediaPipe / landmark integration;
 - face-shape analysis algorithm;
@@ -88,172 +93,99 @@ It owns:
 - AR glasses try-on rendering;
 - glasses recommendation logic;
 - normalized glasses asset format;
-- platform adapters for Web / H5 and WeChat Mini Program.
+- platform adapters for Web/H5 and WeChat Mini Program.
 
-It should answer:
-
-1. How is a face analyzed?
-2. How are landmarks transformed into useful geometry?
-3. How is face shape classified?
-4. How are glasses recommended?
-5. How is AR try-on rendered?
-6. How can Web, Mobile, or Mini Program call the same capability consistently?
-
-It should not own:
-
+It does not own:
 - Stripe payments;
-- user credits;
-- user accounts;
-- SEO pages;
-- merchant dashboard;
-- B2B lead capture;
-- product roadmap priority;
-- business pricing.
-
----
+- user credits/accounts;
+- Merchant tenancy or commerce lifecycle;
+- SEO/GEO;
+- product roadmap or commercial pricing.
 
 ## 5. VisuTry Mobile
 
-`franksunye/visutry-mobile` is the mobile product surface.
+`franksunye/visutry-mobile` is the mobile Consumer experience surface.
 
-It should provide a camera-first experience for:
+It should provide a camera-first experience for face analysis, glasses advice, try-on, comparison, saved results, sharing, and supported conversion flows.
 
-- taking or uploading a face photo;
-- face-shape detection;
-- glasses advice;
-- virtual try-on;
-- frame comparison;
-- saved results;
-- sharing;
-- mobile-first credits / conversion flows where supported by the platform;
-- future WeChat Mini Program evolution.
+It calls:
+- VisuTry platform APIs for account, credits, history, payments, and persisted generation tasks;
+- VisuTry Try-On SDK for face analysis and local/on-device capabilities.
 
-It should call:
+It must not become a separate backend, billing system, or independent commercial authority.
 
-- VisuTry platform APIs for user, account, credits, history, payments, and persisted generation tasks;
-- VisuTry Try-On SDK for face analysis and local / on-device capabilities.
+## 6. Shared capability and ownership boundaries
 
-It should not become a separate backend or independent commercial system.
+### Platform-owned
 
----
+- Auth / account state
+- credits, quota, Stripe and commercial state
+- persisted generation/history
+- Consumer Web product
+- Merchant tenant and Operating Experience
+- Store/Campaign commerce runtime
+- Agent/MCP authorization and tools
+- analytics/business truth boundaries
+- SEO/GEO and business acquisition
+- product/commercial documentation
 
-## 6. Shared Product Path
+### SDK-owned
 
-The product system should align around the same eyewear decision flow:
+- face geometry and landmarks
+- face-shape algorithm
+- recommendation engine
+- AR renderer
+- glasses asset standard
+- supported platform adapters
 
-```text
-Face Shape Detector
-→ Glasses Advisor
-→ Virtual Try-On
-→ Frame Compare
-→ Save / Share / Buy / Lead Capture
-```
+### Mobile-owned
 
-Different surfaces may emphasize different parts of the path:
+- mobile interaction design
+- PWA shell and camera-first state
+- mobile-specific offline/interaction behavior
+- future mini-program presentation layer
 
-| Surface | Primary emphasis |
-| --- | --- |
-| Web | SEO/GEO acquisition, account, credits, payments, history, B2B validation. |
-| SDK | Face geometry, recommendation, AR try-on, privacy-first local capability. |
-| Mobile | Camera-first upload, fast results, swipeable comparison, save/share, retention. |
-| Future Store / Widget | Merchant-hosted try-on, frame catalog, shopper intent, lead capture, analytics. |
+Business/domain rules that are shared between Human UI and Agent/MCP belong in the main platform application/domain layer, not in DOM automation or duplicated client rules.
 
----
+## 7. Current architecture rule
 
-## 7. Ownership Boundaries
+VisuTry remains a **modular monolith** for the main platform. Consumer, Merchant, Store/Campaign, Admin, and Agent surfaces share the same application core and persistence boundaries.
 
-### Platform-owned capabilities
+Do not create, without evidence:
+- an independent Merchant backend;
+- an independent Mobile backend/billing/account system;
+- an SDK-owned commercial system;
+- a second Agent-only business-rule stack;
+- a separate Store/Campaign microservice merely for naming cleanliness.
 
-These belong primarily in `franksunye/VisuTry`:
+Extract capabilities only when stable ownership, scale, or reuse justifies it.
 
-- Auth / account state;
-- credits and quota;
-- Stripe payments and webhooks;
-- stored TryOnTask history;
-- dashboard;
-- admin;
-- SEO / GEO;
-- merchant validation;
-- product planning and source-of-truth docs.
+## 8. Current product sequencing boundary
 
-### SDK-owned capabilities
+P1-M2 Merchant Operating Experience is Product / UX / Production accepted and closed at main SHA `3c29d56cce1c380bef42c3f9e99dd25f95ac8724`.
 
-These belong primarily in `franksunye/visutry-tryon-sdk`:
+No new product phase is authorized by this document. Current priority/sequence belongs to `docs/product/product-plan.md`.
 
-- face geometry;
-- landmark calculation;
-- face-shape algorithm;
-- AR renderer;
-- recommendation engine;
-- asset standard;
-- platform adapters.
+Standing boundaries:
+- preserve Consumer stability while Merchant evolves;
+- keep Consumer and Merchant as co-equal product faces;
+- validate merchant demand before broad Shopify/CRM/revenue-attribution expansion;
+- keep Agent optional and approval-bounded for consequential actions.
 
-### Mobile-owned capabilities
-
-These belong primarily in `franksunye/visutry-mobile`:
-
-- mobile interaction design;
-- PWA shell;
-- camera-first flow;
-- mobile state management;
-- offline-friendly UI where appropriate;
-- platform adapters for future mobile / mini-program migration.
-
----
-
-## 8. What Not to Split Yet
-
-Do not split the following into independent systems prematurely:
-
-- independent Mobile backend;
-- independent Mobile billing;
-- independent Mobile account system;
-- independent SDK commercial pricing;
-- independent SDK merchant dashboard;
-- separate Store backend before merchant validation;
-- Shopify / WooCommerce public app before hosted workflow validation.
-
-The system should evolve by validating demand first and extracting stable shared capability second.
-
----
-
-## 9. Roadmap Sequencing
-
-### Near term
-
-- Keep VisuTry Web as the primary product and commercial validation surface.
-- Keep SDK focused on stable, testable face / try-on / recommendation capabilities.
-- Keep Mobile as a lightweight camera-first PWA surface using platform APIs and SDK.
-- Complete Credits Pack conversion and Frame Compare productization in the main platform.
-
-### Medium term
-
-- Use SDK capabilities consistently across Web and Mobile.
-- Validate VisuTry Store with hosted links before building platform wrappers.
-- Decide whether custom frames and comparison-board sharing should be shared across Web and Mobile.
-
-### Long term
-
-- Package SDK capabilities for external developer / partner use where useful.
-- Extend Mobile toward WeChat Mini Program if market need justifies it.
-- Add merchant widget / Shopify / WooCommerce only after workflow validation.
-
----
-
-## 10. Related Documents
+## 9. Related documents
 
 - `docs/product/product-plan.md`
-- `docs/product/specs/frame-compare.md`
-- `docs/product/specs/credits-pack-conversion.md`
-- `docs/product/specs/visutry-store-mvp.md`
+- `docs/product/specs/merchant-operating-experience.md`
+- `docs/merchant-activation-v1.md`
+- `docs/product/specs/merchant-experience-architecture.md`
+- `docs/product/specs/visutry-commerce-architecture.md`
+- `docs/product/plans/universal-agent-access.md`
+- `docs/project/architecture.md`
 - `docs/strategy/commercial-strategy.md`
-- `docs/decisions/ADR-003-product-plan-execution-source-of-truth.md`
-- `docs/decisions/ADR-004-frame-compare-core-implemented.md`
 
----
-
-## 11. Change Log
+## 10. Change log
 
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created product system overview for Web, SDK, and Mobile repositories. |
+| 2026-09-23 | Reconciled the product system after P1-M2: established current Consumer + Merchant product faces, production Merchant Operating ownership, shared Human/Agent application boundaries, and the modular-monolith rule. |
