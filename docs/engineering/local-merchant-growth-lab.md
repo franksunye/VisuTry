@@ -79,11 +79,11 @@ Merchant workspace surfaces the human action first and keeps Agent connection
 as a secondary accelerator.
 
 The workspace has two lifecycle modes. Before `merchant_store_previewed`, the
-visual order is activation-first: Checklist, Catalog, and Store. After that
-durable milestone, the layout returns to operating-first: Overview, status and
-attention surfaces, then Catalog and Store for ongoing management. Sticky
-navigation follows the same rule: activation mode shows Overview, Catalog, and
-Store; operating mode restores Insights, Setup, Status, Catalog, and Store.
+visual order is activation-first: the checklist and first-value actions lead
+into Catalog and Store. After that durable milestone, the operating shell uses
+Home, Catalog, Store, Campaigns, and Analytics as primary destinations; More
+contains Integrations, Plan & Usage, and Settings. The mobile More control
+remains visible while the primary navigation is horizontally scrollable.
 Switching Merchants remounts the keyed client workspace so lifecycle and local
 control state cannot leak between Merchant contexts.
 
