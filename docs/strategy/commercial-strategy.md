@@ -113,7 +113,7 @@ Internal north star:
 
 Current evidence should be interpreted conservatively but clearly.
 
-### 4.1 Paid consumer evidence
+### 5.1 Paid consumer evidence
 
 From 2026-06-23 through 2026-07-26, VisuTry recorded 10 completed USD 2.99 Credits Pack payments from 10 distinct user records, for USD 29.90 in gross transaction value. The paid behavior is concentrated in glasses try-on rather than broad universal try-on categories.
 
@@ -123,7 +123,7 @@ This supports the following conclusion:
 
 The current evidence does not yet support a subscription-first consumer model.
 
-### 4.2 Workflow evidence
+### 5.2 Workflow evidence
 
 Two consumer usage patterns matter commercially:
 
@@ -132,7 +132,7 @@ Two consumer usage patterns matter commercially:
 
 Both patterns are directly relevant to merchant workflows.
 
-### 4.3 Technical evidence
+### 5.3 Technical evidence
 
 VisuTry already has reusable commercial infrastructure:
 
@@ -150,7 +150,7 @@ This means the core commercial unit is no longer only an image-generation unit. 
 
 > Shopper intent + merchant catalog → personalized recommendation → visual validation → measurable conversion signal.
 
-### 4.4 AI discovery evidence
+### 5.4 AI discovery evidence
 
 VisuTry already receives meaningful AI-assistant referral traffic in addition to search traffic.
 
@@ -169,7 +169,7 @@ This proves the current operating product can be used in Production under the ac
 
 ## 6. What Is Not Working as the Primary Strategy
 
-### 5.1 Consumer subscription-first pricing
+### 6.1 Consumer subscription-first pricing
 
 Ordinary consumers do not usually need glasses try-on every month. Their job is episodic:
 
@@ -182,7 +182,7 @@ This makes a monthly or annual consumer subscription difficult to justify as the
 
 Subscriptions can remain available, but they should not be the main story for casual shoppers.
 
-### 5.2 Isolated face analysis as a paid product
+### 6.2 Isolated face analysis as a paid product
 
 A paid face analysis report can work for high-intent users, but basic face-shape identification is increasingly a free acquisition job.
 
@@ -199,7 +199,7 @@ Paid value should come from the next decision layers:
 - shareable report;
 - merchant or consultant workflow.
 
-### 5.3 Page-count-first SEO
+### 6.3 Page-count-first SEO
 
 Older plans to generate 1000+ pages should not be treated as the first commercial priority.
 
@@ -209,7 +209,7 @@ The current priority is not more pages by default. It is a tighter commercial lo
 
 Programmatic SEO may still matter later, but only when each page has a distinct user intent, clear product continuation, and enough quality to avoid thin-page risk.
 
-### 5.4 Generic merchant storefront positioning
+### 6.4 Generic merchant storefront positioning
 
 VisuTry should not compete primarily as a generic ecommerce storefront, website builder, EHR/PMS replacement, inventory ERP, or CRM.
 
@@ -233,7 +233,7 @@ Merchant Commerce System
 
 ## 7. Target Customer Layers
 
-### 6.1 Consumer: Free entry + one-time / credits conversion
+### 7.1 Consumer: Free entry + one-time / credits conversion
 
 Consumers are still important, but their role is not primarily recurring subscription revenue.
 
@@ -254,7 +254,7 @@ Recommended consumer monetization:
 | Credits Pack | Main casual paid product for try-on and comparison. |
 | Subscription | Secondary option for heavy users only. |
 
-### 6.2 Prosumer: Stylists and eyewear consultants
+### 7.2 Prosumer: Stylists and eyewear consultants
 
 Prosumer users may include:
 
@@ -286,7 +286,7 @@ Key capabilities:
 - advisor notes;
 - branded or semi-branded deliverables.
 
-### 6.3 B2B: Optical stores, eyewear sellers, and commerce merchants
+### 7.3 B2B: Optical stores, eyewear sellers, and commerce merchants
 
 B2B users may include:
 
@@ -321,7 +321,7 @@ Core capabilities:
 - agent-ready product and campaign surfaces;
 - hosted experience first, widget / platform / API surfaces later when justified by demand.
 
-### 6.4 Partner channel: agencies, resellers, and platform wrappers
+### 7.4 Partner channel: agencies, resellers, and platform wrappers
 
 Partner users may include:
 
@@ -344,7 +344,7 @@ The goal is not to build bespoke white-label systems too early. The better path 
 
 ## 8. Product Packaging Direction
 
-### 7.1 VisuTry Free
+### 8.1 VisuTry Free
 
 Purpose:
 
@@ -367,7 +367,7 @@ Does not include:
 - saved long-term history by default;
 - merchant workflows.
 
-### 7.2 VisuTry Report / Glasses Advisor
+### 8.2 VisuTry Report / Glasses Advisor
 
 Purpose:
 
@@ -388,7 +388,7 @@ Pricing direction:
 - one-time unlock or credit-based usage;
 - not subscription-first.
 
-### 7.3 VisuTry Credits Pack
+### 8.3 VisuTry Credits Pack
 
 Purpose:
 
@@ -400,7 +400,7 @@ Positioning:
 
 > Continue comparing frames with a one-time credits pack. No subscription required.
 
-### 7.4 VisuTry Studio
+### 8.4 VisuTry Studio
 
 Target:
 
@@ -421,7 +421,7 @@ Possible pricing:
 - usage-based bundle;
 - report quota.
 
-### 7.5 VisuTry Store / Campaign Engine
+### 8.5 VisuTry Store / Campaign Engine
 
 Target:
 
@@ -453,7 +453,7 @@ Possible pricing evolution:
 
 Do not force the mature pricing model into the first pilot. The immediate objective remains willingness-to-pay and workflow validation.
 
-### 7.6 VisuTry Widget / SDK
+### 8.6 VisuTry Widget / SDK
 
 Target:
 
@@ -477,7 +477,7 @@ Sequence:
 
 ## 9. Product Workflow Strategy
 
-### 8.1 Consumer workflow
+### 9.1 Consumer workflow
 
 Recommended consumer path:
 
@@ -492,7 +492,7 @@ Key principle:
 
 > Do not block the first useful result behind login or payment when the search intent is low-commitment discovery.
 
-### 8.2 Prosumer workflow
+### 9.2 Prosumer workflow
 
 Recommended consultant path:
 
@@ -508,7 +508,7 @@ Key principle:
 
 > The paid object is not a single try-on image. It is a client-ready recommendation deliverable.
 
-### 8.3 Merchant workflow
+### 9.3 Merchant workflow
 
 Recommended merchant path:
 
@@ -525,7 +525,7 @@ Key principle:
 
 > The merchant does not buy image generation or a generic storefront. The merchant buys a measurable AI conversion experience.
 
-### 8.4 Agent-ready commerce workflow
+### 9.4 Agent-ready commerce workflow
 
 Store should increasingly support two acquisition classes:
 
@@ -554,7 +554,7 @@ The first implementation should optimize public Store/campaign pages, catalog me
 
 ## 10. Pricing Direction
 
-### 9.1 Consumer pricing
+### 10.1 Consumer pricing
 
 Consumer pricing should be simple and aligned with low-frequency use.
 
@@ -569,7 +569,7 @@ Recommended direction:
 
 Consumer subscriptions should not be the primary homepage or pricing story unless future data proves repeated monthly use.
 
-### 9.2 Prosumer pricing
+### 10.2 Prosumer pricing
 
 Prosumer pricing can support recurring revenue because usage is client-based.
 
@@ -580,7 +580,7 @@ Possible model:
 - branded report add-on;
 - client history retention.
 
-### 9.3 B2B pricing
+### 10.3 B2B pricing
 
 B2B pricing should not expose consumer credits as the main concept.
 
@@ -631,7 +631,9 @@ Guideline:
 
 ---
 
-## 12. Near-Term Roadmap
+## 12. Strategic sequencing reference (not current execution plan)
+
+This section preserves strategic sequencing logic. Current execution priority belongs to `docs/product/product-plan.md`. P1-M2 Merchant Operating Experience is already Production accepted/closed, and this strategy document does not authorize a new product phase.
 
 ### Phase A: Keep the 2C acquisition and credits loop sharp
 
