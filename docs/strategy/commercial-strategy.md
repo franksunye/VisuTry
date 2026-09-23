@@ -103,9 +103,11 @@ In practical terms:
 5. **The durable moat is workflow + intent intelligence, not image generation alone.**
    Basic virtual try-on can be copied. Harder-to-copy value comes from merchant onboarding, frame intelligence, recommendation logic, shopper intent, attribution, privacy trust, campaign optimization, analytics, and eventually agent-ready commerce interfaces.
 
-Internal north star:
+Merchant commercial thesis:
 
-> **VisuTry is AI commerce infrastructure for eyewear, built to turn both human and AI-agent traffic into measurable purchase intent and revenue.**
+> **VisuTry's Merchant product is an AI commerce decision and conversion layer for eyewear, designed to turn human and AI-agent traffic into measurable shopper intent and, when trustworthy commerce data exists, measurable commercial outcomes.**
+
+This Merchant thesis is subordinate to the company-level North Star above; it does not replace the standalone Consumer product.
 
 ---
 
