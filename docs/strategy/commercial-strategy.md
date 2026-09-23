@@ -728,21 +728,21 @@ Studio remains a separate professional-workflow opportunity, but Store is the cu
 
 ## 14. Strategic Summary
 
-VisuTry should be understood as an eyewear decision and conversion platform, not merely a virtual try-on image generator.
+VisuTry should be understood as an **AI eyewear decision and commerce platform for both consumers and merchants**, not merely a virtual try-on image generator.
 
 The recommended commercial direction is:
 
-1. Use free consumer tools to capture high-intent eyewear decision demand and prove the intelligence layer.
-2. Monetize casual consumers through one-time reports and credits packs rather than subscription-first pricing.
-3. Treat Store as the primary recurring-revenue engine to validate.
-4. Use the hosted Storefront as the first delivery surface, while building toward an AI Commerce / Campaign Engine.
-5. Measure the merchant funnel from traffic source through recommendation, try-on, compare, purchase intent, and eventually revenue.
-6. Design Store for both human traffic and AI-agent traffic through discoverable, understandable, actionable, and measurable commerce surfaces.
-7. Add widget, Shopify/WooCommerce, public API, and agent actions only when repeated demand proves the need.
+1. Keep Consumer as an independent Discovery → Decision product with free and paid decision value.
+2. Monetize casual consumers primarily through one-time reports/credits-based usage unless repeated-use evidence supports a stronger subscription story.
+3. Treat Merchant as the Discovery → Decision → Intent commerce product, using Catalog, Store, Campaigns and Analytics to turn qualified traffic into measurable shopper outcomes.
+4. Keep Storefront as one delivery surface; Campaigns, Commerce Intelligence and Agent-operable capabilities extend the same Merchant commerce system.
+5. Distinguish observed intent from verified conversion/revenue and do not claim uplift without trustworthy commerce evidence.
+6. Design both Human UI and Agent/MCP around the same canonical application/domain capabilities.
+7. Add Shopify/WooCommerce, CRM, generalized martech, order/revenue attribution, broad public APIs or autonomous actions only when repeated demand proves the need.
 
-One-line internal strategy:
+One-line strategy:
 
-> **Free tools create demand; Store turns human and agent traffic into measurable eyewear purchase intent and recurring merchant revenue.**
+> **Help people make better eyewear decisions, and help merchants turn those decisions into measurable commerce outcomes.**
 
 ---
 
@@ -752,3 +752,4 @@ One-line internal strategy:
 | --- | --- |
 | 2026-07-08 | Created unified commercial strategy and product-layer model. |
 | 2026-08-06 | Reframed Store from merchant storefront/workspace to AI Commerce / Campaign Engine; defined Storefront as the first delivery surface, added human + AI-agent traffic strategy, agent-ready commerce requirements, conversion/revenue positioning, and campaign-oriented expansion path. |
+| 2026-09-23 | Reconciled commercial strategy with the current Consumer + Merchant company positioning, preserved Consumer as an independent decision product, recorded the Production-accepted Merchant operating baseline without overstating external adoption, and retained intent-vs-revenue evidence discipline. |
