@@ -130,16 +130,21 @@ Consumer and Store/Campaign shopper telemetry.
 
 ## 7. First-product success path
 
-The existing Merchant Control Center shows the activation checklist only when
-it is relevant:
+The existing Merchant workspace shows the First Value checklist only when it
+is relevant:
 
-1. **Add your first product** when there is no usable catalog item;
-2. **Preview your Store** when a usable item exists but the Store has not been
-   previewed/configured;
-3. **Publish your Store** when the existing Store path makes publishing valid.
+1. **Add your first product** until a usable Catalog item exists;
+2. **Preview your Store** when the product is ready and the Store can be
+   previewed privately;
+3. **First Value achieved** when the private Store Preview is opened.
 
-An existing active Store returns to the normal Control Center and is not taken
-over by the checklist. Pending/invalid catalog rows are not treated as a
+Publishing is a post-activation action, not a First Value checklist step. A
+successful Store publish remains the canonical A7 milestone
+(`merchant_store_published`) in the activation event contract above. The
+Merchant may publish later through the existing explicit approval flow.
+
+An existing active Store returns to the normal operating workspace and is not
+taken over by the checklist. Pending/invalid catalog rows are not treated as a
 successful first product; the UI explains that the product is still being
 prepared and links to Catalog. A successful manual add shows immediate
 confirmation and the appropriate next action. The existing Store preview

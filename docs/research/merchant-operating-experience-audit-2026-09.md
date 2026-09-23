@@ -417,7 +417,8 @@ and target recommendations above remain the historical pre-M2 audit.
 
 P1-M2.1 through P1-M2.7 are merged to the acceptance baseline and individually
 Lead-approved. The final cross-surface Local QA found no P0/P1 regressions.
-Final Lead acceptance of the combined M2 experience remains pending.
+**Lead final acceptance: PASS.**
+**P1-M2: CLOSED / PASS.**
 
 The implemented operating shell is:
 
@@ -508,5 +509,7 @@ configuration was changed. A bounded Production smoke remains required before
 claiming Production acceptance/promotion; it is not a prerequisite for Lead's
 code/UX acceptance of P1-M2.
 
-**Closure status:** ready for Lead final acceptance; not a Production promotion
-report. This record does not start another product phase.
+**Closure status:** **P1-M2 CLOSED / PASS.** The accepted application baseline
+is `ffcf4285ef46ccbe4862e073b459dc8318abbbb2`; this documentation-only PR has a
+separate commit SHA. This is not a Production promotion report and does not
+start another product phase.
