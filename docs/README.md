@@ -1,9 +1,9 @@
 # VisuTry Documentation Map
 
-**Status:** Active documentation entry point  
-**Created:** 2026-07-08  
+**Status:** Active documentation entry point
+**Created:** 2026-07-08
 **Last updated:** 2026-09-23
-**Owner:** Product / Engineering  
+**Owner:** Product / Engineering
 **Review cadence:** Monthly, or whenever product direction / production architecture materially changes.
 
 ## 1. Purpose
