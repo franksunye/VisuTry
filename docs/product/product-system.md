@@ -1,10 +1,10 @@
 # VisuTry Product System
 
-**Status:** Active source of truth for cross-repository product positioning  
-**Created:** 2026-07-08  
-**Last reviewed:** 2026-09-23  
-**Owner:** Product / Engineering  
-**Review cadence:** Monthly, or when Web, SDK, Mobile, or Merchant product ownership changes  
+**Status:** Active source of truth for cross-repository product positioning
+**Created:** 2026-07-08
+**Last reviewed:** 2026-09-23
+**Owner:** Product / Engineering
+**Review cadence:** Monthly, or when Web, SDK, Mobile, or Merchant product ownership changes
 **Scope:** Relationship between `VisuTry`, `visutry-tryon-sdk`, and `visutry-mobile`, including the current Consumer and Merchant product faces.
 
 ## 1. Positioning and North Star
