@@ -2,7 +2,7 @@
 
 **Status:** Active documentation governance registry  
 **Created:** 2026-07-08  
-**Last updated:** 2026-09-17
+**Last updated:** 2026-09-23
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, and at every major milestone close  
 **Scope:** Authoritative documents, directory lifecycle, exceptions, and cleanup debt. This is intentionally not a file-by-file catalog.
@@ -21,6 +21,8 @@ An unlisted document does not become authoritative merely because it is newer or
 | Documentation governance | `docs/document-inventory.md`, ADR-001, ADR-012 | Product / Engineering | Monthly or governance rule changes |
 | Cross-product positioning | `docs/product/product-system.md` | Product / Engineering | Product boundary or positioning changes |
 | Product execution priority | `docs/product/product-plan.md` | Product | Milestone, gate, or priority changes |
+| Merchant human operating experience | `docs/product/specs/merchant-operating-experience.md` | Product / Engineering | Merchant IA, lifecycle, First Value/Operating boundary, or Human/Agent responsibility changes |
+| Merchant activation milestone semantics | `docs/merchant-activation-v1.md` | Merchant Product / Engineering | Activation event, cohort, milestone, or First Value semantics change |
 | Commercial direction | `docs/strategy/commercial-strategy.md` | Product / Strategy | Commercial thesis changes |
 | GTM execution | `docs/strategy/analytics/gtm.md` | Growth / Product / Analytics | Experiment or acquisition model changes |
 | Observability / analytics / attribution / data-plane ownership | `docs/project/observability-and-analytics-contract.md` | Product / Engineering / Growth | Data-plane, schema, attribution, exclusion, dataset/property, or reporting-authority changes |
@@ -123,6 +125,7 @@ Use the audit during monthly review and before merging broad documentation-gover
 | P1 | Axiom post-containment field ownership / optional Commerce dataset decision | Open; evidence/audit-gated, no split authorized by documentation alone |
 | P1 | GA4 console reconciliation against observed current events/dimensions/key events | Open; operator task, no code change implied |
 | P1 | Add missing metadata to active plans/specs/operations/guides | Open; reduce by area, not mass editing |
+| P1 | Post-P1-M2 Merchant documentation reconciliation | **Done 2026-09-23** — current Merchant Operating authority added; active authorities refreshed; completed M2/Agent phase plans retained as historical evidence rather than current UX authority |
 | P2 | Review large Markdown files over 30 KB for extraction/consolidation | Open |
 | P2 | Convert operations archive-by-status into physical archive folders only when links/forensic workflows remain clear | Deferred |
 
@@ -163,3 +166,4 @@ At milestone close or monthly review:
 | 2026-09-12 | Added the architecture-documentation contract; consolidated active architecture/hosting authorities; reconciled Axiom cleanup status with the active observability contract. |
 | 2026-09-13 | Refreshed the active architecture authorities for P0.5A–D; preserved P0.5E as an evidence-gated observation and kept D1 removal undecided. |
 | 2026-09-17 | Reconciled the governance registry with current Merchant Discovery/Activation and Cloudflare production traffic-layer changes; recorded P0.5E as unresolved and retained D1 as `KEEP_FOR_NOW` pending a clean observation window. |
+| 2026-09-23 | Registered Merchant Operating Experience and Activation semantics as explicit authorities; reconciled post-P1-M2 active docs and marked completed phase plans as historical/superseded where appropriate. |
