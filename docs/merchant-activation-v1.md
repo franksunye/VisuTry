@@ -1,7 +1,8 @@
 # Merchant Activation v1
 
-**Status:** Active implementation contract; production promotion is a separate release decision
-**Owner:** Merchant Product / Engineering
+**Status:** Active implementation contract  
+**Owner:** Merchant Product / Engineering  
+**Last updated:** 2026-09-23  
 **Scope:** New self-service Merchant activation observability and the first-product continuation path
 **Primary KPI:** Merchant First Item Activation Rate
 
@@ -155,7 +156,32 @@ clearest guaranteed path observed in the historical activated cases. Existing
 website, CSV, and Agent-assisted paths remain secondary options and are not
 silently reimplemented here.
 
-## 8. Historical versus post-v1 cohorts
+## 8. Activation analytics vs workspace operating eligibility
+
+The durable activation ledger and the runtime workspace mode serve different
+purposes and must not be conflated.
+
+`MerchantActivationEvent` remains the factual activation analytics source of
+truth. First Value is still the private Store Preview and the post-v1
+denominator still begins at the durable `merchant_workspace_created` event.
+
+The Merchant Operating Experience resolves runtime Operating eligibility
+read-only from authoritative current evidence. A Merchant may enter Operating
+Mode when any of these is true:
+
+- `merchant_store_previewed` exists;
+- `merchant_store_published` exists;
+- an actual Store Experience has `status = ACTIVE`.
+
+This compatibility rule exists for historically live/seeded Merchants and does
+not write, backfill, or synthesize activation events. An ACTIVE Store therefore
+does not become a newly observed Preview milestone merely because the UI routes
+to Operating Mode.
+
+Current behavior is defined in
+`docs/product/specs/merchant-operating-experience.md`.
+
+## 9. Historical versus post-v1 cohorts
 
 The historical Production research baseline remains **pre-instrumentation**:
 41 confirmed self-service Merchants, 2 reaching Catalog/Store, and a 2/41
@@ -168,7 +194,7 @@ known historical state and newly measurable journeys. Existing catalog/store
 state can still be shown as current state, but it is not rewritten as a
 historical Activation event.
 
-## 9. Three-environment QA contract
+## 10. Three-environment QA contract
 
 Activation QA follows the long-lived
 [`Environment Isolation Contract`](engineering/environment-isolation-contract.md):
@@ -198,9 +224,9 @@ Preview schema changes use the guarded Preview bootstrap/release procedure;
 the default guarded build skips migrations outside Production. No Activation
 v1 command deletes billing history or provides arbitrary SQL execution.
 
-## 10. Review checklist
+## 11. Change / release checklist
 
-Before Production promotion, the PR must demonstrate:
+For a material Activation or Merchant workspace change, the PR/release evidence must demonstrate:
 
 - additive migration only, with no backfill;
 - server-authoritative creation/first-item/readiness/Store milestones;
@@ -210,8 +236,10 @@ Before Production promotion, the PR must demonstrate:
 - Admin report usable without manual GA4+Axiom joins;
 - typecheck, unit/regression, migration boundary, Prisma validation, both
   builds, and diff check passing;
-- fixed Preview URL, isolated Preview database, TEST Stripe mode, and no
-  Production access during QA.
+- fixed Preview URL, isolated Preview database, and TEST Stripe mode for Preview QA;
+- no Production mutation unless a separately approved bounded Production validation explicitly requires it.
 
-The final release report must separately state Preview results and the fact
-that Production remains untouched.
+When Production validation is needed, run it as a separate bounded acceptance
+with explicit safety constraints and report the actual Production evidence.
+Do not make “Production untouched” a permanent requirement for every future
+release record.
