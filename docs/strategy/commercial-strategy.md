@@ -1,8 +1,8 @@
 # VisuTry Commercial Strategy
 
-**Status:** Active source of truth  
-**Created:** 2026-07-08  
-**Last updated:** 2026-09-23  
+**Status:** Active source of truth
+**Created:** 2026-07-08
+**Last updated:** 2026-09-23
 **Owner:** Product / Strategy
 **Scope:** Commercial direction, product packaging, target customer layers, and the relationship between VisuTry's consumer, prosumer, and B2B strategies.
 
@@ -88,19 +88,19 @@ The stronger commercial thesis is:
 
 In practical terms:
 
-1. **2C is an independent decision product and acquisition surface.**  
+1. **2C is an independent decision product and acquisition surface.**
    Free detector/face analysis, recommendation, one-time report, credits pack, try-on, comparison, and shareable results help consumers make real eyewear decisions while also creating traffic, usage evidence, product proof, and lightweight revenue. Consumer value does not depend on a later Merchant conversion.
 
-2. **Prosumer is the service workflow layer.**  
+2. **Prosumer is the service workflow layer.**
    Eyewear stylists, image consultants, and small service providers can use VisuTry repeatedly for client recommendations and report generation.
 
-3. **B2B is the primary recurring-revenue layer to validate.**  
+3. **B2B is the primary recurring-revenue layer to validate.**
    Optical stores, eyewear sellers, DTC eyewear brands, Shopify/WooCommerce merchants, and agencies need tools that improve shopper confidence, shortlist frames, create purchase intent, and connect that intent to revenue.
 
-4. **Storefront is the delivery surface; the larger business is the AI Commerce / Campaign Engine.**  
+4. **Storefront is the delivery surface; the larger business is the AI Commerce / Campaign Engine.**
    The hosted Store is the simplest way to deliver and validate the workflow. The long-term product is not a merchant website builder. It is a conversion layer that can power campaign-specific shopper experiences across hosted pages, ecommerce sites, ads, social traffic, email, QR, and future agent channels.
 
-5. **The durable moat is workflow + intent intelligence, not image generation alone.**  
+5. **The durable moat is workflow + intent intelligence, not image generation alone.**
    Basic virtual try-on can be copied. Harder-to-copy value comes from merchant onboarding, frame intelligence, recommendation logic, shopper intent, attribution, privacy trust, campaign optimization, analytics, and eventually agent-ready commerce interfaces.
 
 Internal north star:
