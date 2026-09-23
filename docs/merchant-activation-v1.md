@@ -1,8 +1,8 @@
 # Merchant Activation v1
 
-**Status:** Active implementation contract  
-**Owner:** Merchant Product / Engineering  
-**Last updated:** 2026-09-23  
+**Status:** Active implementation contract
+**Owner:** Merchant Product / Engineering
+**Last updated:** 2026-09-23
 **Scope:** New self-service Merchant activation observability and the first-product continuation path
 **Primary KPI:** Merchant First Item Activation Rate
 
