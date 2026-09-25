@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { storeErrorResponse, archiveCampaign, publishCampaign, updateCampaign, updatePublicExperience } from '@/modules/store/application'
@@ -6,6 +7,7 @@ import { CampaignServiceError } from '@/modules/store/domain/campaign-readiness'
 import { MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import type { CampaignGate, CampaignObjective } from '@/modules/store/domain/campaign-policy'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
+import { assertDecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
 
 export const dynamic = 'force-dynamic'
 
@@ -84,6 +86,23 @@ export async function PUT(
       select: { id: true, slug: true, type: true, merchant: { select: { slug: true } } },
     })
     if (!existing) return NextResponse.json({ success: false, error: 'Experience not found' }, { status: 404 })
+
+    let journeyPolicy: unknown = undefined
+    if ('journeyPolicy' in body) {
+      if (body.journeyPolicy !== null) {
+        try {
+          assertDecisionJourneyPolicy(body.journeyPolicy)
+        } catch (error) {
+          return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Invalid journey policy' }, { status: 400 })
+        }
+      }
+      journeyPolicy = body.journeyPolicy
+      await updatePublicExperience({
+        merchantId: params.id,
+        experienceId: params.experienceId,
+        data: { journeyPolicy: journeyPolicy === null ? Prisma.JsonNull : journeyPolicy as Prisma.InputJsonValue },
+      })
+    }
 
     if (existing.type === 'CAMPAIGN') {
       const status = 'status' in body ? body.status : undefined

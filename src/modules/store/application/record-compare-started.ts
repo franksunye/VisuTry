@@ -40,15 +40,9 @@ export async function recordCompareStarted(input: {
       throw new StoreDomainError(decision.code ?? 'FEATURE_NOT_INCLUDED', 'Compare is not currently available for this Store.', 409, decision.message)
     }
   }
-  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
-  if (!experiencePolicy.compareEnabled) {
-    throw new StoreDomainError(
-      'CAPABILITY_DISABLED',
-      'Compare is not enabled for this store.',
-      403,
-    )
+  if (merchant.compareEnabled === false) {
+    throw new StoreDomainError('CAPABILITY_DISABLED', 'Compare is not enabled for this store.', 403)
   }
-
   const session = await requireOperableStoreSession({
     sessions: input.sessions,
     merchantId: merchant.id,
@@ -58,6 +52,14 @@ export async function recordCompareStarted(input: {
   const experience = session.experienceId && input.experiences
     ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
     : null
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant, experience)
+  if (!experiencePolicy.compareEnabled) {
+    throw new StoreDomainError(
+      'CAPABILITY_DISABLED',
+      'Compare is not enabled for this Experience.',
+      403,
+    )
+  }
 
   const completedTryOns = await prisma.tryOnTask.count({
     where: {

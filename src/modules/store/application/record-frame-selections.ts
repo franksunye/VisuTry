@@ -42,8 +42,6 @@ export async function recordFrameSelections(
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
-  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
-
   const session = await requireOperableStoreSession({
     sessions: input.sessions,
     merchantId: merchant.id,
@@ -53,6 +51,7 @@ export async function recordFrameSelections(
   const experience = session.experienceId && input.experiences
     ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
     : null
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant, experience)
 
   const uniqueIds = Array.from(new Set(input.frameIds.filter(Boolean)))
   const maxSelected = Math.min(MAX_SELECTED, maxSelectableStoreFrames(experiencePolicy))

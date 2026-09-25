@@ -6,7 +6,8 @@ import {
 import type { MerchantRecord, MerchantRepository, MerchantFrameRepository } from './ports/repositories'
 import type { ExperienceRepository, ExperienceRecord } from './ports/repositories'
 import { resolveMerchantExperience } from './resolve-experience'
-import { resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
+import { resolvePublicDecisionJourney, resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
+import type { DecisionJourneyPolicy } from '../domain/decision-journey'
 import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-usage'
 import { productBrandForFrame } from './product-labels'
 import type { PresentationMode } from '../domain/presentation-mode'
@@ -31,6 +32,7 @@ export type PublicMerchantProfile = {
   pilotType: string | null
   referenceData: boolean
   experiencePolicy: StoreExperiencePolicy
+  decisionJourney?: DecisionJourneyPolicy
   /**
    * Anonymous guest sponsored generation ceiling. Null = no sponsored cap
    * (merchant commercial entitlement / compare policy applies).
@@ -98,7 +100,8 @@ export function toPublicMerchantProfile(
     accentColor: merchant.accentColor,
     pilotType: merchant.pilotType ?? null,
     referenceData: merchant.referenceData === true || experience?.referenceData === true,
-    experiencePolicy: resolveStoreExperiencePolicy(merchant),
+    experiencePolicy: resolveStoreExperiencePolicy(merchant, experience),
+    decisionJourney: resolvePublicDecisionJourney(merchant, experience),
     guestSponsoredTryOnLimit: resolveGuestSponsoredTryOnLimit(merchant),
     activeFrameCount: activeFrames.length,
     featuredFrames: activeFrames.slice(0, 4).map((frame) => ({
@@ -153,6 +156,7 @@ export function publicMerchantFromDiscovery(
     pilotType: discovery.merchant.pilotType ?? null,
     referenceData: discovery.merchant.referenceData || discovery.experience.referenceData,
     experiencePolicy: discovery.experiencePolicy,
+    decisionJourney: discovery.decisionJourney,
     guestSponsoredTryOnLimit: discovery.guestSponsoredTryOnLimit,
     activeFrameCount: discovery.frames.length,
     featuredFrames: discovery.frames.slice(0, 4).map((frame) => ({

@@ -70,6 +70,35 @@ describe('Merchant Experience admin routes', () => {
     expect(boundary).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
   })
 
+  it('accepts a bounded journey policy and rejects arbitrary workflow stages', async () => {
+    db.experience.findFirst.mockResolvedValue(storeExperience)
+    db.experience.update.mockResolvedValue({ id: 'experience-1' })
+    const valid = { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] }
+
+    const response = await updateExperience(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', {
+        method: 'PUT',
+        body: JSON.stringify({ journeyPolicy: valid }),
+      }),
+      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+    )
+    expect(response.status).toBe(200)
+    expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: { journeyPolicy: valid } }))
+
+    jest.clearAllMocks()
+    admin.mockResolvedValue({ ok: true, userId: 'admin-1' })
+    db.experience.findFirst.mockResolvedValue(storeExperience)
+    const invalid = await updateExperience(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', {
+        method: 'PUT',
+        body: JSON.stringify({ journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'TRY_ON', 'RECOMMENDATION'] } }),
+      }),
+      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+    )
+    expect(invalid.status).toBe(400)
+    expect(db.experience.update).not.toHaveBeenCalled()
+  })
+
   it('writes only the allowed tenant-owned frame selection and preserves order', async () => {
     db.experience.findFirst.mockResolvedValue(storeExperience)
     db.merchantFrame.findMany.mockResolvedValue([{ id: 'frame-2' }, { id: 'frame-1' }])

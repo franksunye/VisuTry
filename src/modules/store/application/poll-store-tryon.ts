@@ -63,8 +63,6 @@ export async function pollStoreFrameTryOn(
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
-  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
-
   const session = await requireOperableStoreSession({
     sessions: input.sessions,
     merchantId: merchant.id,
@@ -90,12 +88,15 @@ export async function pollStoreFrameTryOn(
   if (!owned) {
     throw sessionUnauthorized()
   }
+  let experience = null
   if (session.experienceId && input.experiences) {
-    const experience = await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
+    experience = await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
     if (!experience || !owned.merchantFrameId || !experienceContainsFrame(experience, owned.merchantFrameId)) {
       throw sessionUnauthorized()
     }
   }
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant, experience)
+  if (!experiencePolicy.tryOnEnabled) throw sessionUnauthorized()
 
   const status = await input.generation.getStatus(input.taskId, merchant.id)
   const taskMetadata = (owned.metadata ?? {}) as Record<string, unknown>

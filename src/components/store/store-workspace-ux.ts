@@ -1,4 +1,41 @@
+import type { DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
+
 export type StoreWorkspaceStep = 1 | 2 | 3
+
+export type StoreJourneyProgress = {
+  stage: DecisionJourneyStage
+  active: boolean
+  complete: boolean
+}
+
+export function resolveStoreJourneyProgress(input: {
+  enabledStages: DecisionJourneyStage[]
+  photoReady: boolean
+  recommendationReady: boolean
+  selectionContinued: boolean
+  compareStarted: boolean
+}): StoreJourneyProgress[] {
+  const recommendationIndex = input.enabledStages.indexOf('RECOMMENDATION')
+  const tryOnIndex = input.enabledStages.indexOf('TRY_ON')
+  const compareIndex = input.enabledStages.indexOf('COMPARE')
+  const activeIndex = !input.photoReady
+    ? 0
+    : !input.recommendationReady
+      ? Math.max(0, recommendationIndex)
+      : !input.selectionContinued
+        ? Math.max(0, recommendationIndex)
+        : compareIndex >= 0 && input.compareStarted
+          ? compareIndex
+          : tryOnIndex >= 0
+            ? tryOnIndex
+            : Math.max(0, recommendationIndex)
+
+  return input.enabledStages.map((stage, index) => ({
+    stage,
+    active: index === activeIndex,
+    complete: index < activeIndex,
+  }))
+}
 
 export type StoreSelectionCtaState = 'try-on-selected' | 'continue-to-try-on' | 'save-selection'
 

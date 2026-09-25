@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import type { MerchantInsightsDto } from '@/modules/store/application/get-merchant-insights'
 import type { ExperienceAdminSummary, ExperienceAdminWorkspace } from '@/modules/store/application/get-experience-admin'
+import { DECISION_JOURNEY_STAGES, type DecisionJourneyPolicy, type DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
 
 function formatDate(value: string | null) {
   if (!value) return null
@@ -195,6 +196,7 @@ export type ExperienceDetailData = {
     startAt: string | null
     endAt: string | null
     referenceData: boolean
+    journeyPolicy: DecisionJourneyPolicy
     selectedFrameIds: string[]
   }
   catalog: CatalogFrame[]
@@ -218,6 +220,7 @@ function CatalogThumbnail({ frame }: { frame: CatalogFrame }) {
 export function ExperienceDetailEditor({ initial }: { initial: ExperienceDetailData }) {
   const [experience, setExperience] = useState(initial.experience)
   const [selectedFrameIds, setSelectedFrameIds] = useState(initial.experience.selectedFrameIds)
+  const [journeyPolicy, setJourneyPolicy] = useState(initial.experience.journeyPolicy)
   const [search, setSearch] = useState('')
   const [saving, setSaving] = useState<'config' | 'catalog' | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -230,7 +233,7 @@ export function ExperienceDetailEditor({ initial }: { initial: ExperienceDetailD
 
   async function saveConfig(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving('config'); setMessage(null)
-    const response = await fetch(`/api/admin/store/merchants/${initial.merchant.id}/experiences/${experience.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(experience) })
+    const response = await fetch(`/api/admin/store/merchants/${initial.merchant.id}/experiences/${experience.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...experience, journeyPolicy }) })
     const payload = await response.json().catch(() => null); setSaving(null)
     setMessage(response.ok ? 'Experience settings saved.' : payload?.error || 'Could not save settings.')
   }
@@ -290,6 +293,28 @@ export function ExperienceDetailEditor({ initial }: { initial: ExperienceDetailD
       <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" aria-labelledby="settings-heading">
         <div className="flex items-start gap-3"><Layers3 className="mt-1 h-5 w-5 text-slate-400" /><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Configuration</p><h2 id="settings-heading" className="mt-1 text-xl font-semibold text-slate-950">Experience settings</h2><p className="mt-1 text-sm text-slate-500">Update the existing copy, schedule, CTA, offer, and catalog selection controls.</p></div></div>
         <form onSubmit={saveConfig} className="mt-5 grid gap-4 lg:grid-cols-2">
+          <fieldset className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 lg:col-span-2">
+            <legend className="px-1 text-sm font-semibold text-slate-900">Decision Journey</legend>
+            <p className="mt-1 text-xs leading-5 text-slate-600">Choose from the platform-defined stages. Face Analysis and Recommendation are the required backbone; Merchant-wide capability settings remain the commercial ceiling.</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              {DECISION_JOURNEY_STAGES.map((stage) => {
+                const required = stage === 'FACE_ANALYSIS' || stage === 'RECOMMENDATION'
+                const checked = journeyPolicy.enabledStages.includes(stage)
+                return <label key={stage} className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-semibold ${checked ? 'border-blue-200 bg-white text-slate-800' : 'border-slate-200 bg-slate-50 text-slate-400'}`}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={required}
+                    onChange={() => setJourneyPolicy((current) => ({
+                      enabledStages: DECISION_JOURNEY_STAGES.filter((candidate) => candidate === stage ? !checked : current.enabledStages.includes(candidate)),
+                    }))}
+                  />
+                  <span>{stage.replace('_', ' ')}</span>
+                  {required ? <span className="ml-auto text-[10px] uppercase tracking-wide text-blue-500">required</span> : null}
+                </label>
+              })}
+            </div>
+          </fieldset>
           <label className="block text-sm font-medium text-slate-700">Name<input value={experience.name} onChange={(event) => setExperience((current) => ({ ...current, name: event.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label>
           <label className="block text-sm font-medium text-slate-700">Status<select value={experience.status} onChange={(event) => update('status', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"><option>DRAFT</option><option>ACTIVE</option><option>ENDED</option><option>ARCHIVED</option></select></label>
           <label className="block text-sm font-medium text-slate-700 lg:col-span-2">Headline<input value={experience.headline ?? ''} onChange={(event) => update('headline', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>

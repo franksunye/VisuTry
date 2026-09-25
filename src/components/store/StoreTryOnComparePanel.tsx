@@ -55,6 +55,7 @@ type StoreTryOnComparePanelProps = {
   initialTasks?: MerchantRuntimeTryOnTaskRef[] | null
   onContinuationBatchId?: (batchId: string) => void
   onTryOnTasksChange?: (tasks: MerchantRuntimeTryOnTaskRef[]) => void
+  onCompareStarted?: (started: boolean) => void
 }
 
 function restoreTilesFromTasks(
@@ -116,6 +117,7 @@ export function StoreTryOnComparePanel({
   initialTasks,
   onContinuationBatchId,
   onTryOnTasksChange,
+  onCompareStarted,
 }: StoreTryOnComparePanelProps) {
   const t = useTranslations('storeShopper')
   const [tiles, setTiles] = useState<TryOnTile[]>(() => restoreTilesFromTasks(selectedFrames, initialTasks))
@@ -202,6 +204,7 @@ export function StoreTryOnComparePanel({
     )
     setBatchId(nextBatchId)
     setCompareStarted(false)
+    onCompareStarted?.(false)
 
     setTiles((current) => {
       const byFrame = new Map(current.map((tile) => [tile.merchantFrameId, tile]))
@@ -311,6 +314,7 @@ export function StoreTryOnComparePanel({
     onError,
     batchId,
     onContinuationBatchId,
+    onCompareStarted,
     experiencePolicy.tryOnEnabled,
     t,
   ])
@@ -893,6 +897,7 @@ export function StoreTryOnComparePanel({
                     throw new Error(json.error || t('errors.intent'))
                   }
                   setCompareStarted(true)
+                  onCompareStarted?.(true)
                 } catch (error) {
                   onError(error instanceof Error ? error.message : t('errors.intent'))
                 }

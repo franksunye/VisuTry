@@ -485,15 +485,11 @@ export async function submitStoreFrameTryOn(
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
-  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
-  if (!experiencePolicy.tryOnEnabled) {
-    throw new StoreDomainError(
-      'CAPABILITY_DISABLED',
-      'Try-On is not enabled for this store.',
-      403,
-    )
+  // Merchant policy is a hard commercial ceiling and can fail before any
+  // session lookup. Experience policy may narrow this further below.
+  if (merchant.tryOnEnabled === false) {
+    throw new StoreDomainError('CAPABILITY_DISABLED', 'Try-On is not enabled for this store.', 403)
   }
-
   const session = await requireOperableStoreSession({
     sessions: input.sessions,
     merchantId: merchant.id,
@@ -504,6 +500,14 @@ export async function submitStoreFrameTryOn(
   const experience = session.experienceId && input.experiences
     ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
     : null
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant, experience)
+  if (!experiencePolicy.tryOnEnabled) {
+    throw new StoreDomainError(
+      'CAPABILITY_DISABLED',
+      'Try-On is not enabled for this Experience.',
+      403,
+    )
+  }
   const telemetryAttribution = resolveStoreTelemetryAttribution(experience)
   const isTestTraffic = resolveTelemetryIsTest({
     merchantReferenceData: merchant.referenceData,
