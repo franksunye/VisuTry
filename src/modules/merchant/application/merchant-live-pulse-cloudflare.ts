@@ -33,11 +33,32 @@ export async function getMerchantLivePulse(input: { merchantId: string; now?: Da
   const sql = getCloudflareSql()
 
   const [activeRows, visitorRows, tryOnRows, productClickRows, eventRows, intentRows] = await Promise.all([
-    sql`SELECT count(*)::int AS "count"
-        FROM "MerchantSession" s JOIN "Merchant" m ON m."id" = s."merchantId"
-        WHERE s."merchantId" = ${input.merchantId} AND m."referenceData" = false
-          AND s."referenceData" = false AND s."status" = 'ACTIVE'
-          AND s."expiresAt" > ${now} AND s."lastActiveAt" >= ${activeSince} AND s."lastActiveAt" < ${now}`,
+    sql`SELECT count(*)::int AS "count" FROM (
+          SELECT s."id"
+          FROM "MerchantSession" s JOIN "Merchant" m ON m."id" = s."merchantId"
+          WHERE s."merchantId" = ${input.merchantId} AND m."referenceData" = false
+            AND s."referenceData" = false AND s."status" = 'ACTIVE'
+            AND s."expiresAt" > ${now} AND s."lastActiveAt" >= ${activeSince} AND s."lastActiveAt" < ${now}
+          UNION
+          SELECT ev."merchantSessionId"
+          FROM "MerchantEvent" ev
+          JOIN "Merchant" m ON m."id" = ev."merchantId"
+          JOIN "MerchantSession" s ON s."id" = ev."merchantSessionId" AND s."merchantId" = ev."merchantId"
+          WHERE ev."merchantId" = ${input.merchantId} AND m."referenceData" = false
+            AND ev."referenceData" = false AND ev."merchantSessionId" IS NOT NULL
+            AND ev."type" IN ('merchant_page_viewed', 'merchant_photo_uploaded', 'merchant_recommendation_started', 'merchant_recommendation_completed', 'merchant_frame_selected', 'merchant_tryon_started', 'merchant_tryon_completed', 'merchant_tryon_failed', 'merchant_compare_started', 'merchant_favorite_saved', 'merchant_product_clicked', 'merchant_inquiry_submitted')
+            AND ev."createdAt" >= ${activeSince} AND ev."createdAt" < ${now}
+            AND s."referenceData" = false AND s."status" = 'ACTIVE' AND s."expiresAt" > ${now}
+          UNION
+          SELECT i."merchantSessionId"
+          FROM "MerchantIntent" i
+          JOIN "Merchant" m ON m."id" = i."merchantId"
+          JOIN "MerchantSession" s ON s."id" = i."merchantSessionId" AND s."merchantId" = i."merchantId"
+          WHERE i."merchantId" = ${input.merchantId} AND m."referenceData" = false
+            AND i."type" IN ('FAVORITE', 'PRODUCT_CLICK', 'INQUIRY')
+            AND i."createdAt" >= ${activeSince} AND i."createdAt" < ${now}
+            AND s."referenceData" = false AND s."status" = 'ACTIVE' AND s."expiresAt" > ${now}
+        ) AS active_sessions`,
     sql`SELECT count(*)::int AS "count"
         FROM "MerchantSession" s JOIN "Merchant" m ON m."id" = s."merchantId"
         WHERE s."merchantId" = ${input.merchantId} AND m."referenceData" = false

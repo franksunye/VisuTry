@@ -1,5 +1,6 @@
 import {
   buildMerchantLivePulse,
+  countDistinctMerchantSessionIds,
   hasMerchantLivePulseChange,
   merchantLivePulseRefreshDelay,
   merchantLivePulseWindows,
@@ -28,6 +29,14 @@ describe('Merchant Live Pulse domain', () => {
       activeSince: new Date('2026-09-23T11:55:00.000Z'),
       activitySince: new Date('2026-09-23T11:45:00.000Z'),
     })
+  })
+
+  it('counts the union of heartbeat and recent activity sessions without exposing session ids', () => {
+    expect(countDistinctMerchantSessionIds(
+      ['heartbeat-session', 'shared-session'],
+      ['shared-session', 'tryon-session'],
+      ['compare-session', null],
+    )).toBe(4)
   })
 
   it('maps canonical event kinds, merges newest-first, and caps the feed at five', () => {

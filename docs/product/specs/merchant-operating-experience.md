@@ -73,7 +73,7 @@ Home is not a duplicate Control Center that embeds the full Catalog/Store/Campai
 
 The Operating Home may show a compact Live Activity pulse built only from existing Merchant sessions, Store events, and intents. It describes current presence and recent actions; it does not simulate activity or add event instrumentation to make the workspace appear active.
 
-- Active shoppers means non-reference sessions for this Merchant that are still `ACTIVE`, not expired, and active within the last five minutes.
+- Active shoppers means distinct non-reference sessions for this Merchant that are still `ACTIVE`, not expired, and have either a session activity heartbeat or a meaningful persisted shopper Event/Intent within the last five minutes. This read-only union keeps Try-On/Compare activity truthful even when those completion paths do not update `lastActiveAt`.
 - The short window is the last 15 minutes: visitors are created Merchant sessions, Try-On completions are `merchant_tryon_completed`, and product clicks are `PRODUCT_CLICK` intents.
 - Recent activity is limited to meaningful existing Try-On, Compare, Recommendation, and Product Click records, with only safe Experience/product display context. Shopper identity, session identifiers, uploaded photos, tokens, IPs, and private metadata are never shown.
 - The status is semantic: fresh successful data is **Live**; an old successful snapshot is **Updated … ago**; a failed request is **Live data paused**. A stale or failed read must not retain a green Live claim.

@@ -2,7 +2,7 @@
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    merchantSession: { count: jest.fn() },
+    merchantSession: { count: jest.fn(), findMany: jest.fn() },
     merchantEvent: { count: jest.fn(), findMany: jest.fn() },
     merchantIntent: { count: jest.fn(), findMany: jest.fn() },
   },
@@ -15,7 +15,7 @@ import { getMerchantLivePulse } from '@/modules/merchant/application/merchant-li
 import { getMerchantLivePulse as getCloudflareMerchantLivePulse } from '@/modules/merchant/application/merchant-live-pulse-cloudflare'
 
 const db = prisma as unknown as {
-  merchantSession: { count: jest.Mock }
+  merchantSession: { count: jest.Mock; findMany: jest.Mock }
   merchantEvent: { count: jest.Mock; findMany: jest.Mock }
   merchantIntent: { count: jest.Mock; findMany: jest.Mock }
 }
@@ -25,23 +25,32 @@ describe('getMerchantLivePulse narrow tenant read', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    db.merchantSession.count.mockResolvedValueOnce(2).mockResolvedValueOnce(12)
+    db.merchantSession.findMany.mockResolvedValue([{ id: 'session-heartbeat' }])
+    db.merchantSession.count.mockResolvedValue(12)
     db.merchantEvent.count.mockResolvedValue(5)
     db.merchantIntent.count.mockResolvedValue(3)
-    db.merchantEvent.findMany.mockResolvedValue([{
-      id: 'event-a',
-      type: 'merchant_tryon_completed',
-      createdAt: new Date('2026-09-23T11:59:00.000Z'),
-      experience: { id: 'experience-a', type: 'STORE', name: 'Main Store' },
-      frame: { id: 'frame-a', name: 'Round Classic' },
-    }])
-    db.merchantIntent.findMany.mockResolvedValue([{
-      id: 'intent-a',
-      type: 'PRODUCT_CLICK',
-      createdAt: new Date('2026-09-23T11:58:00.000Z'),
-      experience: null,
-      frame: null,
-    }])
+    db.merchantEvent.findMany.mockImplementation((input: { select?: Record<string, unknown> }) =>
+      'merchantSessionId' in (input.select ?? {})
+        ? Promise.resolve([{ merchantSessionId: 'session-event' }])
+        : Promise.resolve([{
+            id: 'event-a',
+            type: 'merchant_tryon_completed',
+            createdAt: new Date('2026-09-23T11:59:00.000Z'),
+            experience: { id: 'experience-a', type: 'STORE', name: 'Main Store' },
+            frame: { id: 'frame-a', name: 'Round Classic' },
+          }]),
+    )
+    db.merchantIntent.findMany.mockImplementation((input: { select?: Record<string, unknown> }) =>
+      'merchantSessionId' in (input.select ?? {})
+        ? Promise.resolve([{ merchantSessionId: 'session-event' }])
+        : Promise.resolve([{
+            id: 'intent-a',
+            type: 'PRODUCT_CLICK',
+            createdAt: new Date('2026-09-23T11:58:00.000Z'),
+            experience: null,
+            frame: null,
+          }]),
+    )
   })
 
   it('uses merchant-scoped active, visitor, event, intent, and bounded-feed reads', async () => {
@@ -52,20 +61,37 @@ describe('getMerchantLivePulse narrow tenant read', () => {
       activeShoppers: 2,
       recentWindow: { visitors: 12, tryOnCompletions: 5, productClicks: 3 },
     })
-    expect(db.merchantSession.count).toHaveBeenNthCalledWith(1, {
+    expect(db.merchantSession.findMany).toHaveBeenCalledWith({
       where: expect.objectContaining({
         merchantId: 'merchant-a', status: 'ACTIVE', referenceData: false,
         lastActiveAt: { gte: new Date('2026-09-23T11:55:00.000Z'), lt: now },
         expiresAt: { gt: now },
         merchant: { is: { referenceData: false } },
       }),
+      select: { id: true },
     })
-    expect(db.merchantSession.count).toHaveBeenNthCalledWith(2, {
+    expect(db.merchantSession.count).toHaveBeenCalledWith({
       where: expect.objectContaining({
         merchantId: 'merchant-a',
         createdAt: { gte: new Date('2026-09-23T11:45:00.000Z'), lt: now },
       }),
     })
+    expect(db.merchantEvent.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        createdAt: { gte: new Date('2026-09-23T11:55:00.000Z'), lt: now },
+        type: { in: expect.arrayContaining(['merchant_tryon_completed', 'merchant_compare_started']) },
+      }),
+      distinct: ['merchantSessionId'],
+      select: { merchantSessionId: true },
+    }))
+    expect(db.merchantIntent.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        createdAt: { gte: new Date('2026-09-23T11:55:00.000Z'), lt: now },
+        type: { in: ['FAVORITE', 'PRODUCT_CLICK', 'INQUIRY'] },
+      }),
+      distinct: ['merchantSessionId'],
+      select: { merchantSessionId: true },
+    }))
     expect(db.merchantEvent.count).toHaveBeenCalledWith({
       where: expect.objectContaining({ merchantId: 'merchant-a', type: 'merchant_tryon_completed', referenceData: false }),
     })
@@ -73,14 +99,39 @@ describe('getMerchantLivePulse narrow tenant read', () => {
       where: expect.objectContaining({ merchantId: 'merchant-a', type: 'PRODUCT_CLICK', session: { is: { referenceData: false } } }),
     })
     for (const read of [db.merchantEvent.findMany, db.merchantIntent.findMany]) {
-      expect(read.mock.calls[0][0].where.merchantId).toBe('merchant-a')
-      expect(read.mock.calls[0][0].take).toBe(10)
-      const select = read.mock.calls[0][0].select
+      const feedCall = read.mock.calls.find((call) => call[0].take === 10)?.[0]
+      expect(feedCall.where.merchantId).toBe('merchant-a')
+      expect(feedCall.take).toBe(10)
+      const select = feedCall.select
       expect(select).not.toHaveProperty('merchantSessionId')
       expect(select).not.toHaveProperty('email')
       expect(select).not.toHaveProperty('metadata')
     }
     expect(JSON.stringify(pulse)).not.toMatch(/merchantSessionId|anonymousVisitorId|email|capabilityToken|metadata|photoAssetId/i)
+  })
+
+  it('counts an active session with fresh Try-On or Compare activity even when its heartbeat is old', async () => {
+    db.merchantSession.findMany.mockResolvedValue([{ id: 'session-with-recent-heartbeat' }])
+    db.merchantEvent.findMany.mockImplementation((input: { select?: Record<string, unknown> }) =>
+      'merchantSessionId' in (input.select ?? {})
+        ? Promise.resolve([{ merchantSessionId: 'session-with-fresh-tryon' }, { merchantSessionId: 'session-with-fresh-compare' }])
+        : Promise.resolve([]),
+    )
+    db.merchantIntent.findMany.mockImplementation((input: { select?: Record<string, unknown> }) =>
+      'merchantSessionId' in (input.select ?? {})
+        ? Promise.resolve([])
+        : Promise.resolve([]),
+    )
+
+    const pulse = await getMerchantLivePulse({ merchantId: 'merchant-a', now })
+
+    expect(pulse.activeShoppers).toBe(3)
+    expect(db.merchantEvent.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        createdAt: { gte: new Date('2026-09-23T11:55:00.000Z'), lt: now },
+        session: { is: expect.objectContaining({ status: 'ACTIVE', expiresAt: { gt: now } }) },
+      }),
+    }))
   })
 
   it('keeps Cloudflare counts and safe activity presentation in parity with Prisma', async () => {

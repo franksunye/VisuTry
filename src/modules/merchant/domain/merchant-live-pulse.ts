@@ -36,6 +36,34 @@ export type MerchantLivePulseActivityRow = {
   frameName: string | null
 }
 
+/** Shopper-side records that prove recent presence without adding heartbeat writes. */
+export const MERCHANT_LIVE_PRESENCE_EVENT_TYPES = [
+  'merchant_page_viewed',
+  'merchant_photo_uploaded',
+  'merchant_recommendation_started',
+  'merchant_recommendation_completed',
+  'merchant_frame_selected',
+  'merchant_tryon_started',
+  'merchant_tryon_completed',
+  'merchant_tryon_failed',
+  'merchant_compare_started',
+  'merchant_favorite_saved',
+  'merchant_product_clicked',
+  'merchant_inquiry_submitted',
+] as const
+
+export const MERCHANT_LIVE_PRESENCE_INTENT_TYPES = [
+  'FAVORITE',
+  'PRODUCT_CLICK',
+  'INQUIRY',
+] as const
+
+export function countDistinctMerchantSessionIds(
+  ...groups: Array<ReadonlyArray<string | null | undefined>>
+): number {
+  return new Set(groups.flat().filter((id): id is string => Boolean(id))).size
+}
+
 function activityKind(type: string): MerchantLiveActivityKind | null {
   switch (type) {
     case 'merchant_tryon_completed': return 'TRY_ON_COMPLETED'

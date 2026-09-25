@@ -194,7 +194,7 @@ export function MerchantLivePulse({ merchantId }: { merchantId: string }) {
   ))
 
   return (
-    <section aria-labelledby="merchant-live-pulse-title" className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <section aria-labelledby="merchant-live-pulse-title" className="relative rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-center justify-between gap-3">
         <h2 id="merchant-live-pulse-title" className="text-sm font-semibold text-slate-950">Live activity</h2>
         <span aria-label={`Live data status: ${statusLabel}`} className={`inline-flex items-center gap-1.5 text-xs font-semibold ${freshness === 'LIVE' ? 'text-emerald-700' : freshness === 'PAUSED' ? 'text-amber-800' : 'text-slate-500'}`}>
@@ -204,7 +204,7 @@ export function MerchantLivePulse({ merchantId }: { merchantId: string }) {
       </div>
 
       {moment && (
-        <div aria-live="polite" aria-atomic="true" className="merchant-live-moment mt-3 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2 text-sm text-slate-800">
+        <div aria-live="polite" aria-atomic="true" className="merchant-live-moment pointer-events-none absolute left-3 right-3 top-12 z-10 rounded-lg border border-blue-100 bg-blue-50/95 px-3 py-2 text-sm text-slate-800 shadow-sm sm:left-auto sm:right-5 sm:max-w-sm">
           <span className="font-semibold">{activityLabel(moment.kind)}</span>
           {moment.frame && <span> · {moment.frame.name}</span>}
           <span className="ml-2 text-xs text-slate-500">just now</span>

@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import {
   buildMerchantLivePulse,
+  countDistinctMerchantSessionIds,
+  MERCHANT_LIVE_PRESENCE_EVENT_TYPES,
+  MERCHANT_LIVE_PRESENCE_INTENT_TYPES,
   merchantLivePulseWindows,
   type MerchantLivePulseActivityRow,
 } from '../domain/merchant-live-pulse'
@@ -48,14 +51,49 @@ export async function getMerchantLivePulse(input: { merchantId: string; now?: Da
     merchant: merchantScope,
   }
 
-  const [activeShoppers, visitors, tryOnCompletions, productClicks, events, intents] = await Promise.all([
-    prisma.merchantSession.count({
+  const [activeSessionRows, activeEventSessionRows, activeIntentSessionRows, visitors, tryOnCompletions, productClicks, events, intents] = await Promise.all([
+    prisma.merchantSession.findMany({
       where: {
         ...sessionScope,
         status: 'ACTIVE',
         expiresAt: { gt: now },
         lastActiveAt: { gte: activeSince, lt: now },
       },
+      select: { id: true },
+    }),
+    prisma.merchantEvent.findMany({
+      where: {
+        ...activityScope,
+        createdAt: { gte: activeSince, lt: now },
+        referenceData: false,
+        merchantSessionId: { not: null },
+        type: { in: [...MERCHANT_LIVE_PRESENCE_EVENT_TYPES] },
+        session: {
+          is: {
+            referenceData: false,
+            status: 'ACTIVE',
+            expiresAt: { gt: now },
+          },
+        },
+      },
+      distinct: ['merchantSessionId'],
+      select: { merchantSessionId: true },
+    }),
+    prisma.merchantIntent.findMany({
+      where: {
+        ...activityScope,
+        createdAt: { gte: activeSince, lt: now },
+        type: { in: [...MERCHANT_LIVE_PRESENCE_INTENT_TYPES] },
+        session: {
+          is: {
+            referenceData: false,
+            status: 'ACTIVE',
+            expiresAt: { gt: now },
+          },
+        },
+      },
+      distinct: ['merchantSessionId'],
+      select: { merchantSessionId: true },
     }),
     prisma.merchantSession.count({ where: { ...sessionScope, createdAt: { gte: activitySince, lt: now } } }),
     prisma.merchantEvent.count({
@@ -100,7 +138,11 @@ export async function getMerchantLivePulse(input: { merchantId: string; now?: Da
 
   return buildMerchantLivePulse({
     now,
-    activeShoppers,
+    activeShoppers: countDistinctMerchantSessionIds(
+      activeSessionRows.map((row) => row.id),
+      activeEventSessionRows.map((row) => row.merchantSessionId),
+      activeIntentSessionRows.map((row) => row.merchantSessionId),
+    ),
     visitors,
     tryOnCompletions,
     productClicks,

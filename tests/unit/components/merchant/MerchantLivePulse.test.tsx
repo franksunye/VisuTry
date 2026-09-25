@@ -92,7 +92,9 @@ describe('MerchantLivePulse polling and activity moment', () => {
     expect(screen.queryByText('Try-On completed · Round Classic')).not.toBeInTheDocument()
 
     await act(async () => { await jest.advanceTimersByTimeAsync(10_000) })
-    expect(document.querySelector('[aria-live="polite"]')).toHaveTextContent('Try-On completed · Round Classic')
+    const moment = document.querySelector('[aria-live="polite"]')
+    expect(moment).toHaveTextContent('Try-On completed · Round Classic')
+    expect(moment).toHaveClass('absolute')
     expect(screen.getByText('just now')).toBeInTheDocument()
     expect(screen.getByLabelText(/Live data status: Live/)).toBeInTheDocument()
     expect(document.querySelector('[aria-live="polite"]')).toBeInTheDocument()
