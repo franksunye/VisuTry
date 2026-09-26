@@ -12,6 +12,7 @@ import { resolvePresentationMode, type PresentationMode } from '../domain/presen
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 import { experienceCommands } from './experience-command-service-prisma'
+import { validateExperienceCommandPatch } from './experience-command-service'
 import { MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
@@ -347,7 +348,7 @@ export async function updateAndPublishCampaign(input: CampaignUpdateInput) {
       const lockedMerchant = await tx.merchant.findUnique({ where: { id: input.merchantId }, select: merchantCommercialSelect })
       if (!lockedMerchant) throw new MerchantAccessError()
 
-      const data = buildCampaignUpdatePatch(input, lockedRow)
+      const data = validateExperienceCommandPatch(buildCampaignUpdatePatch(input, lockedRow), { campaignFields: true })
       const candidate = { ...lockedRow, ...data }
       const candidateCampaign = mapCampaign(candidate, lockedMerchant.slug, lockedMerchant.referenceData)
       assertCampaignPublishable(candidateCampaign.readiness, true)

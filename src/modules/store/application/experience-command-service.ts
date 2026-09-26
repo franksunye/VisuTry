@@ -100,6 +100,14 @@ function normalizePatch(patch: Record<string, unknown>, allowCampaignFields: boo
   return normalized
 }
 
+/** Validate and normalize a command patch without persisting it. */
+export function validateExperienceCommandPatch(
+  patch: Record<string, unknown>,
+  options: { campaignFields?: boolean } = {},
+): Record<string, unknown> {
+  return normalizePatch(patch, options.campaignFields === true)
+}
+
 /**
  * Canonical mutation boundary for shared Store/Campaign Experience state.
  * Runtime adapters provide persistence only; validation, command shape, and
@@ -115,7 +123,7 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
     afterUpdate?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
   }) {
-    const patch = normalizePatch(input.patch, input.campaignFields === true)
+    const patch = validateExperienceCommandPatch(input.patch, { campaignFields: input.campaignFields === true })
     if (Object.keys(patch).length === 0) throw new ExperienceCommandError('Experience command has no fields to update')
     const current = await repository.findTarget(input.merchantId, input.experienceId)
     if (!current || (input.expectedType && current.type !== input.expectedType)) {

@@ -255,6 +255,25 @@ describe('Campaign application service', () => {
     expect(update).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['Journey', { journeyPolicy: { enabledStages: ['TRY_ON', 'FACE_ANALYSIS'] } }, 'journeyPolicy.enabledStages must be a unique canonical stage list'],
+    ['Delivery', { deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 5 } }, 'deliveryPolicy.kioskIdleTimeoutSeconds'],
+  ])('rejects invalid %s policy from the application service before the atomic activation write', async (_policyName, patch, validationMessage) => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: activeLaunchPeriodStart, billingPeriodEnd: activeLaunchPeriodEnd, createdAt: activeLaunchPeriodStart }
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue(merchant)
+    const update = jest.fn()
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn(),
+      merchant: { findUnique: jest.fn().mockResolvedValue(merchant) },
+      experience: { findFirst: jest.fn().mockResolvedValue(baseRow), count: jest.fn().mockResolvedValue(0), update },
+    }))
+
+    await expect(updateAndPublishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', ...patch }))
+      .rejects.toThrow(validationMessage)
+    expect(update).not.toHaveBeenCalled()
+  })
+
   it('commits combined configuration and activation with one write and one invalidation', async () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
     const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: activeLaunchPeriodStart, billingPeriodEnd: activeLaunchPeriodEnd, createdAt: activeLaunchPeriodStart }
