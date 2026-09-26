@@ -20,6 +20,7 @@ import type { MerchantInsightsDto } from '@/modules/store/application/get-mercha
 import type { ExperienceAdminSummary, ExperienceAdminWorkspace } from '@/modules/store/application/get-experience-admin'
 import { DECISION_JOURNEY_STAGES, type DecisionJourneyPolicy, type DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
 import { DEFAULT_EXPERIENCE_DELIVERY_POLICY, type ExperienceDeliveryPolicy, MIN_KIOSK_IDLE_TIMEOUT_SECONDS, MAX_KIOSK_IDLE_TIMEOUT_SECONDS } from '@/modules/store/domain/delivery-profile'
+import { isMerchantHandoffAction, MERCHANT_HANDOFF_ACTIONS, type MerchantHandoffAction } from '@/modules/store/domain/merchant-handoff'
 import { buildExperienceAdminSavePayload } from './experience-admin-save-payload'
 
 function formatDate(value: string | null) {
@@ -191,6 +192,7 @@ export type ExperienceDetailData = {
     status: string
     headline: string | null
     description: string | null
+    primaryCtaType: MerchantHandoffAction | null
     primaryCtaLabel: string | null
     primaryCtaUrl: string | null
     offerLabel: string | null
@@ -343,8 +345,11 @@ export function ExperienceDetailEditor({ initial }: { initial: ExperienceDetailD
             <label className="block text-sm font-medium text-slate-700">Start at<input type="datetime-local" value={experience.startAt ? experience.startAt.slice(0, 16) : ''} onChange={(event) => update('startAt', event.target.value ? new Date(event.target.value).toISOString() : '')} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
             <label className="block text-sm font-medium text-slate-700">End at<input type="datetime-local" value={experience.endAt ? experience.endAt.slice(0, 16) : ''} onChange={(event) => update('endAt', event.target.value ? new Date(event.target.value).toISOString() : '')} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
           </> : null}
-          <label className="block text-sm font-medium text-slate-700">Primary CTA label<input value={experience.primaryCtaLabel ?? ''} onChange={(event) => update('primaryCtaLabel', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
-          <label className="block text-sm font-medium text-slate-700">Primary CTA URL<input value={experience.primaryCtaUrl ?? ''} onChange={(event) => update('primaryCtaUrl', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
+          <label className="block text-sm font-medium text-slate-700">Primary CTA action<select aria-label="Primary CTA action" value={experience.primaryCtaType ?? ''} onChange={(event) => setExperience((current) => isMerchantHandoffAction(event.target.value)
+            ? { ...current, primaryCtaType: event.target.value }
+            : { ...current, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null })} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"><option value="">Remove CTA</option>{MERCHANT_HANDOFF_ACTIONS.map((action) => <option key={action} value={action}>{action.replace(/_/g, ' ')}</option>)}</select></label>
+          <label className="block text-sm font-medium text-slate-700">Primary CTA label<input disabled={!experience.primaryCtaType} value={experience.primaryCtaLabel ?? ''} onChange={(event) => update('primaryCtaLabel', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm disabled:bg-slate-100" /></label>
+          <label className="block text-sm font-medium text-slate-700">Primary CTA URL<input disabled={!experience.primaryCtaType} value={experience.primaryCtaUrl ?? ''} onChange={(event) => update('primaryCtaUrl', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm disabled:bg-slate-100" /></label>
           <label className="block text-sm font-medium text-slate-700">Offer label<input value={experience.offerLabel ?? ''} onChange={(event) => update('offerLabel', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
           <label className="block text-sm font-medium text-slate-700">Offer code<input value={experience.offerCode ?? ''} onChange={(event) => update('offerCode', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
           <div className="flex items-center gap-3 lg:col-span-2"><button type="submit" disabled={saving !== null} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><Save className="h-4 w-4" />{saving === 'config' ? 'Saving…' : 'Save settings'}</button>{message ? <p role="status" className="text-sm font-medium text-slate-600">{message}</p> : null}</div>

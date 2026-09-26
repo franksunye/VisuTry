@@ -8,6 +8,7 @@ import type { CampaignGate, CampaignObjective } from '@/modules/store/domain/cam
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { assertDecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
 import { assertExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
+import { ExperienceCommandError } from '@/modules/store/application/experience-command-service'
 
 export const dynamic = 'force-dynamic'
 
@@ -185,7 +186,7 @@ export async function PUT(
     }
     if (journeyPolicy !== undefined) data.journeyPolicy = journeyPolicy
     if (deliveryPolicy !== undefined) data.deliveryPolicy = deliveryPolicy
-    for (const field of ['name', 'headline', 'description', 'primaryCtaLabel', 'primaryCtaUrl', 'offerLabel', 'offerCode']) {
+    for (const field of ['name', 'headline', 'description', 'primaryCtaType', 'primaryCtaLabel', 'primaryCtaUrl', 'secondaryCtaType', 'secondaryCtaLabel', 'secondaryCtaUrl', 'offerLabel', 'offerCode']) {
       if (field in body) {
         const value = body[field]
         if (value !== null && typeof value !== 'string') {
@@ -194,8 +195,8 @@ export async function PUT(
         if (field === 'name' && typeof value === 'string' && value.trim().length === 0) {
           return NextResponse.json({ success: false, error: 'name is required' }, { status: 400 })
         }
-        if (field === 'primaryCtaUrl' && typeof value === 'string' && value.trim() && !isSafeCtaUrl(value.trim())) {
-          return NextResponse.json({ success: false, error: 'primaryCtaUrl must be an https URL or an internal path' }, { status: 400 })
+        if ((field === 'primaryCtaUrl' || field === 'secondaryCtaUrl') && typeof value === 'string' && value.trim() && !isSafeCtaUrl(value.trim())) {
+          return NextResponse.json({ success: false, error: `${field} must be an https URL or an internal path` }, { status: 400 })
         }
         data[field] = typeof value === 'string' ? value.trim() : value
       }
@@ -213,6 +214,9 @@ export async function PUT(
     })
     return NextResponse.json({ success: true, data: experience })
   } catch (error) {
+    if (error instanceof ExperienceCommandError) {
+      return NextResponse.json({ success: false, error: error.message, code: 'INVALID_REQUEST' }, { status: 400 })
+    }
     if (error instanceof CampaignServiceError) {
       return NextResponse.json({ success: false, error: error.message, code: error.code }, { status: error.httpStatus })
     }

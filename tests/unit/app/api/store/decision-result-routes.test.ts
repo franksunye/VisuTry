@@ -66,6 +66,26 @@ describe('Decision Result bearer routes', () => {
     expect(mockShareFindUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { tokenHash: hashSessionCapability(token) } }))
   })
 
+  it('renders the same typed Handoff on the canonical Result and ignores unsafe legacy CTA data', async () => {
+    const token = 'decision-result-token'
+    mockShareFindUnique.mockResolvedValue(shareFor(token, {
+      result: {
+        ...shareFor(token).result,
+        experience: {
+          id: 'experience-1', type: 'STORE', slug: 'main-store', name: 'Main Store',
+          primaryCtaType: 'PRODUCT_OR_COLLECTION', primaryCtaLabel: 'Browse frames', primaryCtaUrl: 'https://merchant.example/products',
+          secondaryCtaType: 'UNBOUNDED_SCRIPT', secondaryCtaLabel: 'Unsafe', secondaryCtaUrl: 'javascript:alert(1)',
+          deliveryPolicy: null,
+        },
+      },
+    }))
+
+    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: { token } })
+    const payload = await response.json()
+    expect(payload.data.experience.primaryCta).toEqual({ action: 'PRODUCT', label: 'Browse frames', url: 'https://merchant.example/products' })
+    expect(payload.data.experience.secondaryCta).toBeNull()
+  })
+
   it.each([
     ['tampered token', 'not-the-issued-token', null],
     ['revoked token', 'decision-result-token', { revokedAt: new Date('2026-09-26T01:00:00.000Z') }],

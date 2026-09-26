@@ -7,6 +7,7 @@ import type { DecisionJourneyPolicy } from '../domain/decision-journey'
 import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-usage'
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
+import { resolveMerchantHandoff, type MerchantHandoff } from '../domain/merchant-handoff'
 import type { CommercialUsage } from '../domain/merchant-commercial-state'
 import type {
   ExperienceRecord,
@@ -57,6 +58,8 @@ export type PublicExperienceDiscovery = {
     headline: string | null
     description: string | null
     heroAssetUrl: string | null
+    primaryHandoff?: MerchantHandoff | null
+    secondaryHandoff?: MerchantHandoff | null
     presentationMode?: import('../domain/presentation-mode').PresentationMode | null
     deliveryPolicy: ExperienceDeliveryPolicy
     referenceData: boolean
@@ -170,6 +173,8 @@ export async function getPublicExperienceDiscovery(input: {
       headline: experience.headline,
       description: experience.description,
       heroAssetUrl: experience.heroAssetUrl,
+      primaryHandoff: resolveMerchantHandoff({ type: experience.primaryCtaType, label: experience.primaryCtaLabel, url: experience.primaryCtaUrl }),
+      secondaryHandoff: resolveMerchantHandoff({ type: experience.secondaryCtaType, label: experience.secondaryCtaLabel, url: experience.secondaryCtaUrl }),
       presentationMode: experience.presentationMode ?? null,
       deliveryPolicy: resolveExperienceDeliveryPolicy(experience.deliveryPolicy),
       referenceData: experience.referenceData,

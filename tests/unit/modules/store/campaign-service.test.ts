@@ -49,6 +49,67 @@ describe('Campaign application service', () => {
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'small-faces' } }))
   })
 
+  it('normalizes legacy CTA types before Prisma Campaign creation', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(null)
+    ;(prisma.experience.create as jest.Mock).mockResolvedValue(baseRow)
+
+    await createCampaignDraft({
+      merchantId: 'merchant-a', name: 'Legacy Actions',
+      primaryCtaType: 'LINK', secondaryCtaType: 'PRODUCT_OR_COLLECTION',
+    })
+
+    expect(prisma.experience.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({
+      primaryCtaType: 'CUSTOM_LINK', secondaryCtaType: 'PRODUCT',
+    }) }))
+  })
+
+  it.each([
+    { description: 'LINK', existingType: 'LINK', retryType: 'LINK', label: 'Visit shop' },
+    { description: 'PRODUCT_OR_COLLECTION', existingType: 'PRODUCT_OR_COLLECTION', retryType: 'PRODUCT_OR_COLLECTION', label: 'Browse products' },
+    { description: 'a legacy untyped custom link', existingType: null, retryType: 'CUSTOM_LINK', label: 'Visit shop' },
+  ])('treats an existing $description CTA as the same idempotent Prisma draft', async ({ existingType, retryType, label }) => {
+    const secondaryType = existingType === 'LINK' ? 'PRODUCT_OR_COLLECTION' : 'LINK'
+    const existing = {
+      ...baseRow,
+      slug: 'legacy-actions',
+      name: 'Legacy Actions',
+      headline: null,
+      primaryCtaType: existingType,
+      primaryCtaLabel: label,
+      primaryCtaUrl: 'https://shop.example.test/next',
+      secondaryCtaType: secondaryType,
+      secondaryCtaLabel: 'More options',
+      secondaryCtaUrl: 'https://shop.example.test/more',
+    }
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(existing)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+
+    const result = await createCampaignDraft({
+      merchantId: 'merchant-a', name: 'Legacy Actions', slug: 'legacy-actions',
+      primaryCtaType: retryType, primaryCtaLabel: label, primaryCtaUrl: 'https://shop.example.test/next',
+      secondaryCtaType: secondaryType, secondaryCtaLabel: 'More options', secondaryCtaUrl: 'https://shop.example.test/more',
+    })
+
+    expect(result.id).toBe('campaign-a')
+    expect(prisma.experience.create).not.toHaveBeenCalled()
+  })
+
+  it('normalizes legacy CTA types before Prisma Campaign updates', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    ;(prisma.experience.update as jest.Mock).mockResolvedValue({ ...baseRow, primaryCtaType: 'CUSTOM_LINK', secondaryCtaType: 'PRODUCT' })
+
+    await updateCampaign({
+      merchantId: 'merchant-a', campaignId: 'campaign-a',
+      primaryCtaType: 'LINK', secondaryCtaType: 'PRODUCT_OR_COLLECTION',
+    })
+
+    expect(prisma.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({
+      primaryCtaType: 'CUSTOM_LINK', secondaryCtaType: 'PRODUCT',
+    }) }))
+  })
+
   it('rejects invalid policy and date ranges', async () => {
     await expect(createCampaignDraft({ merchantId: 'merchant-a', name: 'Bad', objective: 'INVALID' as never })).rejects.toBeInstanceOf(CampaignServiceError)
     await expect(createCampaignDraft({ merchantId: 'merchant-a', name: 'Bad', startAt: '2026-01-02', endAt: '2026-01-01' })).rejects.toMatchObject({ code: 'INVALID_DATE_RANGE' })

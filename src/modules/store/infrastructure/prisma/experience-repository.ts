@@ -62,6 +62,12 @@ const publicExperienceSelect = {
   headline: true,
   description: true,
   heroAssetUrl: true,
+  primaryCtaType: true,
+  primaryCtaLabel: true,
+  primaryCtaUrl: true,
+  secondaryCtaType: true,
+  secondaryCtaLabel: true,
+  secondaryCtaUrl: true,
   referenceData: true,
   campaignObjective: true,
   campaignGate: true,
@@ -86,6 +92,12 @@ type PublicExperienceRow = {
   headline: string | null
   description: string | null
   heroAssetUrl: string | null
+  primaryCtaType: string | null
+  primaryCtaLabel: string | null
+  primaryCtaUrl: string | null
+  secondaryCtaType: string | null
+  secondaryCtaLabel: string | null
+  secondaryCtaUrl: string | null
   referenceData: boolean
   campaignObjective: Experience['campaignObjective']
   campaignGate: Experience['campaignGate']
@@ -107,12 +119,12 @@ function mapPublicExperience(row: PublicExperienceRow): ExperienceRecord {
     headline: row.headline,
     description: row.description,
     heroAssetUrl: row.heroAssetUrl,
-    primaryCtaType: null,
-    primaryCtaLabel: null,
-    primaryCtaUrl: null,
-    secondaryCtaType: null,
-    secondaryCtaLabel: null,
-    secondaryCtaUrl: null,
+    primaryCtaType: row.primaryCtaType,
+    primaryCtaLabel: row.primaryCtaLabel,
+    primaryCtaUrl: row.primaryCtaUrl,
+    secondaryCtaType: row.secondaryCtaType,
+    secondaryCtaLabel: row.secondaryCtaLabel,
+    secondaryCtaUrl: row.secondaryCtaUrl,
     offerLabel: null,
     offerCode: null,
     offerTerms: null,

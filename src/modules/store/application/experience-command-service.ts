@@ -2,6 +2,7 @@ import { assertDecisionJourneyPolicy } from '../domain/decision-journey'
 import { assertExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { isCampaignGate, isCampaignObjective, isPresentationMode } from '../domain/campaign-policy'
 import { isSafeCampaignCtaUrl } from '../domain/campaign-readiness'
+import { normalizeMerchantHandoffAction } from '../domain/merchant-handoff'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 
 export type ExperienceCommandTarget = {
@@ -78,6 +79,14 @@ function normalizePatch(patch: Record<string, unknown>, allowCampaignFields: boo
     const value = normalized[field]
     if (typeof value === 'string' && value && !isSafeCampaignCtaUrl(value)) {
       throw new ExperienceCommandError(`${field} must be an https URL or an internal path`)
+    }
+  }
+  for (const field of ['primaryCtaType', 'secondaryCtaType'] as const) {
+    const value = normalized[field]
+    if (value !== undefined && value !== null) {
+      const action = normalizeMerchantHandoffAction(value)
+      if (!action) throw new ExperienceCommandError(`${field} must use a supported Merchant Handoff action`)
+      normalized[field] = action
     }
   }
   if ('campaignObjective' in normalized && !isCampaignObjective(normalized.campaignObjective)) {

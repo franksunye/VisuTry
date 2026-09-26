@@ -13,6 +13,8 @@ import { productBrandForFrame } from './product-labels'
 import type { PresentationMode } from '../domain/presentation-mode'
 import type { PublicExperienceDiscovery } from './get-public-experience-discovery'
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
+import { resolveMerchantHandoff } from '../domain/merchant-handoff'
+import type { MerchantHandoff } from '../domain/merchant-handoff'
 
 export type PublicMerchantFramePreview = {
   id: string
@@ -52,8 +54,8 @@ export type PublicMerchantProfile = {
     heroAssetUrl: string | null
     presentationMode: PresentationMode | null
     deliveryPolicy: ExperienceDeliveryPolicy
-    primaryCta: { type: string; label: string; url: string | null } | null
-    secondaryCta: { type: string; label: string; url: string | null } | null
+    primaryCta: MerchantHandoff | null
+    secondaryCta: MerchantHandoff | null
     offer: { label: string; code: string | null; terms: string | null } | null
     referenceData: boolean
   } | null
@@ -126,12 +128,8 @@ export function toPublicMerchantProfile(
           heroAssetUrl: experience.heroAssetUrl,
           presentationMode: experience.presentationMode ?? null,
           deliveryPolicy: resolveExperienceDeliveryPolicy(experience.deliveryPolicy),
-          primaryCta: experience.primaryCtaType && experience.primaryCtaLabel
-            ? { type: experience.primaryCtaType, label: experience.primaryCtaLabel, url: experience.primaryCtaUrl }
-            : null,
-          secondaryCta: experience.secondaryCtaType && experience.secondaryCtaLabel
-            ? { type: experience.secondaryCtaType, label: experience.secondaryCtaLabel, url: experience.secondaryCtaUrl }
-            : null,
+          primaryCta: resolveMerchantHandoff({ type: experience.primaryCtaType, label: experience.primaryCtaLabel, url: experience.primaryCtaUrl }),
+          secondaryCta: resolveMerchantHandoff({ type: experience.secondaryCtaType, label: experience.secondaryCtaLabel, url: experience.secondaryCtaUrl }),
           offer: experience.offerLabel
             ? { label: experience.offerLabel, code: experience.offerCode, terms: experience.offerTerms }
             : null,

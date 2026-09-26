@@ -16,6 +16,7 @@ import { validateExperienceCommandPatch } from './experience-command-service'
 import { MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
+import { merchantHandoffConfigurationsMatch, normalizeMerchantHandoffAction, isSupportedMerchantHandoffType } from '../domain/merchant-handoff'
 
 export { CampaignServiceError }
 
@@ -236,6 +237,11 @@ export async function createCampaignDraft(input: {
   const gate = input.gate ?? 'NONE'
   const presentationMode = input.presentationMode ?? 'EDITORIAL_FIRST'
   validatePolicy({ objective, gate, presentationMode })
+  for (const [field, value] of [['primaryCtaType', input.primaryCtaType], ['secondaryCtaType', input.secondaryCtaType]] as const) {
+    if (value != null && !isSupportedMerchantHandoffType(value)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must use a supported Merchant Handoff action.`)
+  }
+  const primaryCtaType = input.primaryCtaType == null ? null : normalizeMerchantHandoffAction(input.primaryCtaType)
+  const secondaryCtaType = input.secondaryCtaType == null ? null : normalizeMerchantHandoffAction(input.secondaryCtaType)
   const startAt = parseDate(input.startAt, 'startAt') ?? null
   const endAt = parseDate(input.endAt, 'endAt') ?? null
   validateDateRange(startAt, endAt)
@@ -257,19 +263,21 @@ export async function createCampaignDraft(input: {
       && existing.description === (input.description?.trim() || null)
       && existing.startAt?.getTime() === startAt?.getTime()
       && existing.endAt?.getTime() === endAt?.getTime()
-      && existing.primaryCtaType === (input.primaryCtaType?.trim() || null)
-      && existing.primaryCtaLabel === (input.primaryCtaLabel?.trim() || null)
-      && existing.primaryCtaUrl === (input.primaryCtaUrl?.trim() || null)
-      && existing.secondaryCtaType === (input.secondaryCtaType?.trim() || null)
-      && existing.secondaryCtaLabel === (input.secondaryCtaLabel?.trim() || null)
-      && existing.secondaryCtaUrl === (input.secondaryCtaUrl?.trim() || null)
+      && merchantHandoffConfigurationsMatch(
+        { type: existing.primaryCtaType, label: existing.primaryCtaLabel, url: existing.primaryCtaUrl },
+        { type: primaryCtaType, label: input.primaryCtaLabel?.trim() || null, url: input.primaryCtaUrl?.trim() || null },
+      )
+      && merchantHandoffConfigurationsMatch(
+        { type: existing.secondaryCtaType, label: existing.secondaryCtaLabel, url: existing.secondaryCtaUrl },
+        { type: secondaryCtaType, label: input.secondaryCtaLabel?.trim() || null, url: input.secondaryCtaUrl?.trim() || null },
+      )
     if (compatible) return mapCampaign(await campaignRow(input.merchantId, existing.id).then((result) => result.row), merchant.slug, merchant.referenceData)
     throw new CampaignServiceError('CAMPAIGN_SLUG_CONFLICT', 'A Campaign already uses this slug.', 409)
   }
   const created = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: requestedSlug },
     mutation: () => prisma.experience.create({
-      data: { merchantId: input.merchantId, type: 'CAMPAIGN', slug: requestedSlug, name, status: 'DRAFT', headline: input.headline?.trim() || null, description: input.description?.trim() || null, campaignObjective: objective, campaignGate: gate, presentationMode, startAt, endAt, primaryCtaType: input.primaryCtaType?.trim() || null, primaryCtaLabel: input.primaryCtaLabel?.trim() || null, primaryCtaUrl: input.primaryCtaUrl?.trim() || null, secondaryCtaType: input.secondaryCtaType?.trim() || null, secondaryCtaLabel: input.secondaryCtaLabel?.trim() || null, secondaryCtaUrl: input.secondaryCtaUrl?.trim() || null },
+      data: { merchantId: input.merchantId, type: 'CAMPAIGN', slug: requestedSlug, name, status: 'DRAFT', headline: input.headline?.trim() || null, description: input.description?.trim() || null, campaignObjective: objective, campaignGate: gate, presentationMode, startAt, endAt, primaryCtaType, primaryCtaLabel: input.primaryCtaLabel?.trim() || null, primaryCtaUrl: input.primaryCtaUrl?.trim() || null, secondaryCtaType, secondaryCtaLabel: input.secondaryCtaLabel?.trim() || null, secondaryCtaUrl: input.secondaryCtaUrl?.trim() || null },
       include: campaignFramesInclude,
     }),
   })
@@ -306,6 +314,9 @@ function buildCampaignUpdatePatch(input: CampaignUpdateInput, currentRow: Campai
   const startAt = parseDate(input.startAt, 'startAt')
   const endAt = parseDate(input.endAt, 'endAt')
   validateDateRange(startAt === undefined ? currentRow.startAt : startAt, endAt === undefined ? currentRow.endAt : endAt)
+  for (const [field, value] of [['primaryCtaType', input.primaryCtaType], ['secondaryCtaType', input.secondaryCtaType]] as const) {
+    if (value != null && !isSupportedMerchantHandoffType(value)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must use a supported Merchant Handoff action.`)
+  }
   for (const url of [input.primaryCtaUrl, input.secondaryCtaUrl]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', 'CTA URL must be an https URL or internal path.')
   const data: Record<string, unknown> = { campaignObjective: objective, campaignGate: gate, presentationMode }
   if (input.name !== undefined) { if (!input.name.trim()) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.'); data.name = input.name.trim() }

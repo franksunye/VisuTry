@@ -14,6 +14,7 @@ import { assertExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
+import { isSupportedMerchantHandoffType, merchantHandoffConfigurationsMatch, normalizeMerchantHandoffAction } from '../domain/merchant-handoff'
 import { experienceCommandsCloudflare } from './experience-command-service-cloudflare'
 
 export { CampaignServiceError }
@@ -150,7 +151,24 @@ async function fetchCampaign(merchantId: string, campaignId: string): Promise<{ 
 }
 
 function compatibleDraft(row: CampaignRow, input: { name: string; objective: CampaignObjective; gate: CampaignGate; presentationMode: PresentationMode; headline: string | null; description: string | null; startAt: Date | null; endAt: Date | null; primaryCtaType: string | null; primaryCtaLabel: string | null; primaryCtaUrl: string | null; secondaryCtaType: string | null; secondaryCtaLabel: string | null; secondaryCtaUrl: string | null }) {
-  return String(row.type) === 'CAMPAIGN' && String(row.status) === 'DRAFT' && String(row.name) === input.name && (row.campaignObjective == null ? 'INTENT' : String(row.campaignObjective)) === input.objective && (row.campaignGate == null ? 'NONE' : String(row.campaignGate)) === input.gate && (row.presentationMode == null ? 'EDITORIAL_FIRST' : String(row.presentationMode)) === input.presentationMode && (row.headline ?? null) === input.headline && (row.description ?? null) === input.description && dateValue(row.startAt)?.getTime() === input.startAt?.getTime() && dateValue(row.endAt)?.getTime() === input.endAt?.getTime() && (row.primaryCtaType ?? null) === input.primaryCtaType && (row.primaryCtaLabel ?? null) === input.primaryCtaLabel && (row.primaryCtaUrl ?? null) === input.primaryCtaUrl && (row.secondaryCtaType ?? null) === input.secondaryCtaType && (row.secondaryCtaLabel ?? null) === input.secondaryCtaLabel && (row.secondaryCtaUrl ?? null) === input.secondaryCtaUrl
+  return String(row.type) === 'CAMPAIGN'
+    && String(row.status) === 'DRAFT'
+    && String(row.name) === input.name
+    && (row.campaignObjective == null ? 'INTENT' : String(row.campaignObjective)) === input.objective
+    && (row.campaignGate == null ? 'NONE' : String(row.campaignGate)) === input.gate
+    && (row.presentationMode == null ? 'EDITORIAL_FIRST' : String(row.presentationMode)) === input.presentationMode
+    && (row.headline ?? null) === input.headline
+    && (row.description ?? null) === input.description
+    && dateValue(row.startAt)?.getTime() === input.startAt?.getTime()
+    && dateValue(row.endAt)?.getTime() === input.endAt?.getTime()
+    && merchantHandoffConfigurationsMatch(
+      { type: row.primaryCtaType, label: row.primaryCtaLabel, url: row.primaryCtaUrl },
+      { type: input.primaryCtaType, label: input.primaryCtaLabel, url: input.primaryCtaUrl },
+    )
+    && merchantHandoffConfigurationsMatch(
+      { type: row.secondaryCtaType, label: row.secondaryCtaLabel, url: row.secondaryCtaUrl },
+      { type: input.secondaryCtaType, label: input.secondaryCtaLabel, url: input.secondaryCtaUrl },
+    )
 }
 
 export async function listCampaigns(input: { merchantId: string; cursor?: string; limit?: number }) {
@@ -178,6 +196,11 @@ export async function createCampaignDraft(input: {
   if (!name) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.')
   const objective = input.objective ?? 'INTENT'; const gate = input.gate ?? 'NONE'; const presentationMode = input.presentationMode ?? 'EDITORIAL_FIRST'
   validatePolicy({ objective, gate, presentationMode })
+  for (const [field, value] of [['primaryCtaType', input.primaryCtaType], ['secondaryCtaType', input.secondaryCtaType]] as const) {
+    if (value != null && !isSupportedMerchantHandoffType(value)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must use a supported Merchant Handoff action.`)
+  }
+  const primaryCtaType = input.primaryCtaType == null ? null : normalizeMerchantHandoffAction(input.primaryCtaType)
+  const secondaryCtaType = input.secondaryCtaType == null ? null : normalizeMerchantHandoffAction(input.secondaryCtaType)
   const startAt = parseDate(input.startAt, 'startAt') ?? null; const endAt = parseDate(input.endAt, 'endAt') ?? null
   validateDateRange(startAt, endAt)
   for (const [field, url] of [['primaryCtaUrl', input.primaryCtaUrl], ['secondaryCtaUrl', input.secondaryCtaUrl] as const]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must be an https URL or internal path.`)
@@ -187,7 +210,7 @@ export async function createCampaignDraft(input: {
   if (!merchant) throw new MerchantAccessError()
   const requestedSlug = slugify(input.slug || name)
   const id = globalThis.crypto?.randomUUID?.() ?? `cf-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
-  const values = { name, objective, gate, presentationMode, headline: input.headline?.trim() || null, description: input.description?.trim() || null, startAt, endAt, primaryCtaType: input.primaryCtaType?.trim() || null, primaryCtaLabel: input.primaryCtaLabel?.trim() || null, primaryCtaUrl: input.primaryCtaUrl?.trim() || null, secondaryCtaType: input.secondaryCtaType?.trim() || null, secondaryCtaLabel: input.secondaryCtaLabel?.trim() || null, secondaryCtaUrl: input.secondaryCtaUrl?.trim() || null }
+  const values = { name, objective, gate, presentationMode, headline: input.headline?.trim() || null, description: input.description?.trim() || null, startAt, endAt, primaryCtaType, primaryCtaLabel: input.primaryCtaLabel?.trim() || null, primaryCtaUrl: input.primaryCtaUrl?.trim() || null, secondaryCtaType, secondaryCtaLabel: input.secondaryCtaLabel?.trim() || null, secondaryCtaUrl: input.secondaryCtaUrl?.trim() || null }
   const inserted = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: String(merchant.slug), experienceSlug: requestedSlug },
     mutation: () => sql`INSERT INTO "Experience" ("id", "merchantId", "type", "slug", "name", "status", "headline", "description", "campaignObjective", "campaignGate", "presentationMode", "startAt", "endAt", "primaryCtaType", "primaryCtaLabel", "primaryCtaUrl", "secondaryCtaType", "secondaryCtaLabel", "secondaryCtaUrl", "createdAt", "updatedAt") VALUES (${id}, ${input.merchantId}, 'CAMPAIGN', ${requestedSlug}, ${values.name}, 'DRAFT', ${values.headline}, ${values.description}, ${values.objective}, ${values.gate}, ${values.presentationMode}, ${values.startAt}, ${values.endAt}, ${values.primaryCtaType}, ${values.primaryCtaLabel}, ${values.primaryCtaUrl}, ${values.secondaryCtaType}, ${values.secondaryCtaLabel}, ${values.secondaryCtaUrl}, NOW(), NOW()) ON CONFLICT ("merchantId", "slug") DO NOTHING RETURNING "id"`,
@@ -259,6 +282,15 @@ export async function updateAndPublishCampaign(input: {
   const effectiveStartAt = startAt === undefined ? dateValue(current.row.startAt) : startAt
   const effectiveEndAt = endAt === undefined ? dateValue(current.row.endAt) : endAt
   validateDateRange(effectiveStartAt, effectiveEndAt)
+  for (const [field, value] of [['primaryCtaType', input.primaryCtaType], ['secondaryCtaType', input.secondaryCtaType]] as const) {
+    if (value != null && !isSupportedMerchantHandoffType(value)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must use a supported Merchant Handoff action.`)
+  }
+  const primaryCtaType = has('primaryCtaType')
+    ? input.primaryCtaType == null ? null : normalizeMerchantHandoffAction(input.primaryCtaType)
+    : current.row.primaryCtaType
+  const secondaryCtaType = has('secondaryCtaType')
+    ? input.secondaryCtaType == null ? null : normalizeMerchantHandoffAction(input.secondaryCtaType)
+    : current.row.secondaryCtaType
   for (const url of [input.primaryCtaUrl, input.secondaryCtaUrl]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', 'CTA URL must be an https URL or internal path.')
   if (input.name !== undefined && !input.name.trim()) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.')
   if (input.journeyPolicy != null) assertDecisionJourneyPolicy(input.journeyPolicy)
@@ -274,10 +306,10 @@ export async function updateAndPublishCampaign(input: {
     presentationMode,
     startAt: effectiveStartAt,
     endAt: effectiveEndAt,
-    primaryCtaType: has('primaryCtaType') ? input.primaryCtaType?.trim() || null : current.row.primaryCtaType,
+    primaryCtaType,
     primaryCtaLabel: has('primaryCtaLabel') ? input.primaryCtaLabel?.trim() || null : current.row.primaryCtaLabel,
     primaryCtaUrl: has('primaryCtaUrl') ? input.primaryCtaUrl?.trim() || null : current.row.primaryCtaUrl,
-    secondaryCtaType: has('secondaryCtaType') ? input.secondaryCtaType?.trim() || null : current.row.secondaryCtaType,
+    secondaryCtaType,
     secondaryCtaLabel: has('secondaryCtaLabel') ? input.secondaryCtaLabel?.trim() || null : current.row.secondaryCtaLabel,
     secondaryCtaUrl: has('secondaryCtaUrl') ? input.secondaryCtaUrl?.trim() || null : current.row.secondaryCtaUrl,
     journeyPolicy: has('journeyPolicy') ? input.journeyPolicy : current.row.journeyPolicy,
@@ -318,10 +350,10 @@ export async function updateAndPublishCampaign(input: {
             "campaignObjective" = ${objective}, "campaignGate" = ${gate}, "presentationMode" = ${presentationMode},
             "startAt" = CASE WHEN ${startAt !== undefined} THEN ${startAt ?? null} ELSE e."startAt" END,
             "endAt" = CASE WHEN ${endAt !== undefined} THEN ${endAt ?? null} ELSE e."endAt" END,
-            "primaryCtaType" = CASE WHEN ${has('primaryCtaType')} THEN ${input.primaryCtaType?.trim() || null} ELSE e."primaryCtaType" END,
+            "primaryCtaType" = CASE WHEN ${has('primaryCtaType')} THEN ${primaryCtaType} ELSE e."primaryCtaType" END,
             "primaryCtaLabel" = CASE WHEN ${has('primaryCtaLabel')} THEN ${input.primaryCtaLabel?.trim() || null} ELSE e."primaryCtaLabel" END,
             "primaryCtaUrl" = CASE WHEN ${has('primaryCtaUrl')} THEN ${input.primaryCtaUrl?.trim() || null} ELSE e."primaryCtaUrl" END,
-            "secondaryCtaType" = CASE WHEN ${has('secondaryCtaType')} THEN ${input.secondaryCtaType?.trim() || null} ELSE e."secondaryCtaType" END,
+            "secondaryCtaType" = CASE WHEN ${has('secondaryCtaType')} THEN ${secondaryCtaType} ELSE e."secondaryCtaType" END,
             "secondaryCtaLabel" = CASE WHEN ${has('secondaryCtaLabel')} THEN ${input.secondaryCtaLabel?.trim() || null} ELSE e."secondaryCtaLabel" END,
             "secondaryCtaUrl" = CASE WHEN ${has('secondaryCtaUrl')} THEN ${input.secondaryCtaUrl?.trim() || null} ELSE e."secondaryCtaUrl" END,
             "journeyPolicy" = CASE WHEN ${has('journeyPolicy')} THEN ${input.journeyPolicy ?? null} ELSE e."journeyPolicy" END,

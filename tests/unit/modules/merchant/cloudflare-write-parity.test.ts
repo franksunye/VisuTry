@@ -280,13 +280,54 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     ])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
-    const result = await createCampaignDraft({ merchantId: 'merchant-a', name: 'Spring Edit', headline: 'Try the edit' })
+    const result = await createCampaignDraft({
+      merchantId: 'merchant-a', name: 'Spring Edit', headline: 'Try the edit',
+      primaryCtaType: 'LINK', secondaryCtaType: 'PRODUCT_OR_COLLECTION',
+    })
 
     expect(result).toMatchObject({ id: 'campaign-a', merchantId: 'merchant-a', status: 'DRAFT', slug: 'spring-edit' })
     expect(sql.mock.calls.some((call) => call[0].join('').includes('e."merchantId"'))).toBe(true)
+    const insert = sql.mock.calls.find((call) => call[0].join('').includes('INSERT INTO "Experience"'))
+    expect(insert?.slice(1)).toContain('CUSTOM_LINK')
+    expect(insert?.slice(1)).toContain('PRODUCT')
+    expect(insert?.slice(1)).not.toContain('LINK')
+    expect(insert?.slice(1)).not.toContain('PRODUCT_OR_COLLECTION')
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
       target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'spring-edit' },
     }))
+  })
+
+  it.each([
+    { description: 'LINK', existingType: 'LINK', retryType: 'LINK', label: 'Visit shop' },
+    { description: 'PRODUCT_OR_COLLECTION', existingType: 'PRODUCT_OR_COLLECTION', retryType: 'PRODUCT_OR_COLLECTION', label: 'Browse products' },
+    { description: 'a legacy untyped custom link', existingType: null, retryType: 'CUSTOM_LINK', label: 'Visit shop' },
+  ])('treats an existing $description CTA as the same idempotent Cloudflare draft', async ({ existingType, retryType, label }) => {
+    const secondaryType = existingType === 'LINK' ? 'PRODUCT_OR_COLLECTION' : 'LINK'
+    const existingCampaign = {
+      id: 'campaign-a', merchantId: 'merchant-a', type: 'CAMPAIGN', slug: 'legacy-actions', name: 'Legacy Actions', status: 'DRAFT',
+      headline: null, description: null, primaryCtaType: existingType, primaryCtaLabel: label,
+      primaryCtaUrl: 'https://shop.example.test/next', secondaryCtaType: secondaryType,
+      secondaryCtaLabel: 'More options', secondaryCtaUrl: 'https://shop.example.test/more',
+      startAt: null, endAt: null, campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST',
+      referenceData: false, merchantFrameId: null,
+    }
+    const sql = sqlMock([
+      [{ slug: 'merchant-a', referenceData: false }],
+      [],
+      [{ id: 'campaign-a' }],
+      [{ slug: 'merchant-a', referenceData: false }],
+      [existingCampaign],
+    ])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await createCampaignDraft({
+      merchantId: 'merchant-a', name: 'Legacy Actions', slug: 'legacy-actions',
+      primaryCtaType: retryType, primaryCtaLabel: label, primaryCtaUrl: 'https://shop.example.test/next',
+      secondaryCtaType: secondaryType, secondaryCtaLabel: 'More options', secondaryCtaUrl: 'https://shop.example.test/more',
+    })
+
+    expect(result.id).toBe('campaign-a')
+    expect(sql.mock.calls.some((call) => call[0].join('').includes('INSERT INTO "Experience"'))).toBe(true)
   })
 
   it('uses a Serializable replacement for Campaign frames and publishes only when approved and ready', async () => {

@@ -4,6 +4,7 @@ import { createStoreRuntime, getMerchantInsights } from '@/modules/store/applica
 import { ExperienceDetailEditor, type ExperienceDetailData } from '@/components/admin/ExperienceAdminUI'
 import { resolveDecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
 import { resolveExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
+import { resolveMerchantHandoff } from '@/modules/store/domain/merchant-handoff'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,6 +53,7 @@ export default async function AdminExperienceDetailPage({ params }: { params: { 
       status: experience.status,
       headline: experience.headline,
       description: experience.description,
+      primaryCtaType: resolveMerchantHandoff({ type: experience.primaryCtaType, label: experience.primaryCtaLabel, url: experience.primaryCtaUrl })?.action ?? null,
       primaryCtaLabel: experience.primaryCtaLabel,
       primaryCtaUrl: experience.primaryCtaUrl,
       offerLabel: experience.offerLabel,
