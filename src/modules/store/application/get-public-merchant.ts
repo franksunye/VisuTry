@@ -12,6 +12,7 @@ import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-us
 import { productBrandForFrame } from './product-labels'
 import type { PresentationMode } from '../domain/presentation-mode'
 import type { PublicExperienceDiscovery } from './get-public-experience-discovery'
+import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 
 export type PublicMerchantFramePreview = {
   id: string
@@ -50,6 +51,7 @@ export type PublicMerchantProfile = {
     description: string | null
     heroAssetUrl: string | null
     presentationMode: PresentationMode | null
+    deliveryPolicy: ExperienceDeliveryPolicy
     primaryCta: { type: string; label: string; url: string | null } | null
     secondaryCta: { type: string; label: string; url: string | null } | null
     offer: { label: string; code: string | null; terms: string | null } | null
@@ -123,6 +125,7 @@ export function toPublicMerchantProfile(
           description: experience.description,
           heroAssetUrl: experience.heroAssetUrl,
           presentationMode: experience.presentationMode ?? null,
+          deliveryPolicy: resolveExperienceDeliveryPolicy(experience.deliveryPolicy),
           primaryCta: experience.primaryCtaType && experience.primaryCtaLabel
             ? { type: experience.primaryCtaType, label: experience.primaryCtaLabel, url: experience.primaryCtaUrl }
             : null,
@@ -177,6 +180,7 @@ export function publicMerchantFromDiscovery(
       description: discovery.experience.description,
       heroAssetUrl: discovery.experience.heroAssetUrl,
       presentationMode: discovery.experience.presentationMode ?? null,
+      deliveryPolicy: discovery.experience.deliveryPolicy,
       primaryCta: null,
       secondaryCta: null,
       offer: null,

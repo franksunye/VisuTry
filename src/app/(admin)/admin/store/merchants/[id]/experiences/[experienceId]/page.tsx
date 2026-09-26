@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { createStoreRuntime, getMerchantInsights } from '@/modules/store/application'
 import { ExperienceDetailEditor, type ExperienceDetailData } from '@/components/admin/ExperienceAdminUI'
 import { resolveDecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
+import { resolveExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 
 export const dynamic = 'force-dynamic'
 
@@ -59,6 +60,7 @@ export default async function AdminExperienceDetailPage({ params }: { params: { 
       endAt: experience.endAt?.toISOString() ?? null,
       referenceData: merchant.referenceData || experience.referenceData,
       journeyPolicy: resolveDecisionJourneyPolicy(experience.journeyPolicy),
+      deliveryPolicy: resolveExperienceDeliveryPolicy(experience.deliveryPolicy),
       selectedFrameIds: experience.frames.map((frame) => frame.merchantFrameId),
     },
     catalog,

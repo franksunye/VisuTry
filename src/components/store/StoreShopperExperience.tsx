@@ -81,6 +81,7 @@ type StoreShopperExperienceProps = {
   locale: string
   publicPocStorage: boolean
   initialPublicMerchant?: PublicMerchantProfile | null
+  kioskMode?: boolean
 }
 
 type LoadState = 'loading' | 'ready' | 'unavailable' | 'error'
@@ -189,6 +190,7 @@ export function StoreShopperExperience({
   locale,
   publicPocStorage,
   initialPublicMerchant = null,
+  kioskMode = false,
 }: StoreShopperExperienceProps) {
   const t = useTranslations('storeShopper')
   const [loadState, setLoadState] = useState<LoadState>(initialPublicMerchant ? 'ready' : 'loading')
@@ -215,6 +217,10 @@ export function StoreShopperExperience({
   const featuredFramesRef = useRef<HTMLElement>(null)
   const tryOnSectionRef = useRef<HTMLDivElement>(null)
   const [storeContinuationQuery, setStoreContinuationQuery] = useState('')
+  const [kioskNotice, setKioskNotice] = useState<string | null>(null)
+  const [kioskResetting, setKioskResetting] = useState(false)
+  const kioskResetInFlight = useRef(false)
+  const kioskPendingSession = useRef<SessionState | null>(null)
 
   const accent = merchant?.accentColor || '#1F4B5A'
   const merchantContinuation = createMerchantContinuation({
@@ -227,6 +233,7 @@ export function StoreShopperExperience({
     ? merchantRuntimeContinuationStorageKey(merchantContinuation)
     : null
   const merchantContinuationPath = merchantContinuation?.canonicalReturnPath
+  const kioskIdleTimeoutSeconds = merchant?.experience?.deliveryPolicy?.kioskIdleTimeoutSeconds ?? 120
 
   const clearRuntimeContinuation = useCallback(() => {
     if (typeof window === 'undefined' || !runtimeContinuationKey) return
@@ -237,9 +244,75 @@ export function StoreShopperExperience({
     }
   }, [runtimeContinuationKey])
 
+  const clearShopperClientState = useCallback(() => {
+    clearRuntimeContinuation()
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem(`vt_store_session:${merchantSlug}:${experienceSlug || 'store'}`)
+      } catch {
+        // Ignore unavailable storage.
+      }
+      const cleanUrl = new URL(window.location.href)
+      cleanUrl.searchParams.delete('merchantContinuation')
+      cleanUrl.searchParams.set('deliveryProfile', 'kiosk')
+      window.history.replaceState({}, '', `${cleanUrl.pathname}${cleanUrl.search}`)
+    }
+    setPrivacyAccepted(false)
+    setSession(null)
+    setPhotoPreview(undefined)
+    setPhotoReady(false)
+    setPhotoUploading(false)
+    setRecommending(false)
+    setRecommendations([])
+    setDecisionResultToken(null)
+    setSelectedIds([])
+    setSelectionSaved(false)
+    setSelectionSaving(false)
+    setCompareStarted(false)
+    setFaceGeometry(null)
+    setFaceDetection(null)
+    setResumeBatchId(null)
+    setResumeTryOnTasks([])
+    setGuestCompareUnlocked(false)
+    setErrorMessage(null)
+  }, [clearRuntimeContinuation, experienceSlug, merchantSlug])
+
+  const resetKiosk = useCallback(async (reason: 'manual' | 'idle') => {
+    if (!kioskMode || kioskResetInFlight.current) return
+    kioskResetInFlight.current = true
+    setKioskResetting(true)
+    const activeSession = session ?? kioskPendingSession.current
+    if (activeSession) kioskPendingSession.current = activeSession
+    clearShopperClientState()
+    try {
+      const response = await fetch('/api/store/sessions/kiosk-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantSlug,
+          experienceSlug: experienceSlug || 'store',
+          ...(activeSession ? { merchantSessionId: activeSession.merchantSessionId } : {}),
+        }),
+        cache: 'no-store',
+      })
+      if (!response.ok) throw new Error('Kiosk reset was not confirmed by the server')
+      kioskPendingSession.current = null
+    } catch {
+      setErrorMessage('Private session reset could not be confirmed. Retry New shopper before allowing the next person to use this kiosk.')
+      kioskResetInFlight.current = false
+      setKioskResetting(false)
+      return
+    }
+    kioskPendingSession.current = null
+    setKioskNotice(reason === 'idle' ? 'For privacy, this kiosk reset after inactivity. Start a new session when you are ready.' : 'Previous shopper data was cleared. Ready for the next shopper.')
+    kioskResetInFlight.current = false
+    setKioskResetting(false)
+  }, [clearShopperClientState, experienceSlug, kioskMode, merchantSlug, session])
+
   const persistRuntimeContinuation = useCallback((batchId = resumeBatchId, tryOnTasks = resumeTryOnTasks) => {
     if (
       typeof window === 'undefined' ||
+      kioskMode ||
       !runtimeContinuationKey ||
       !session ||
       !photoPreview ||
@@ -271,7 +344,7 @@ export function StoreShopperExperience({
     } catch {
       // Ignore unavailable or quota-limited storage.
     }
-  }, [photoPreview, recommendations, resumeBatchId, resumeTryOnTasks, runtimeContinuationKey, selectedIds, selectionSaved, session])
+  }, [kioskMode, photoPreview, recommendations, resumeBatchId, resumeTryOnTasks, runtimeContinuationKey, selectedIds, selectionSaved, session])
 
   useEffect(() => {
     let cancelled = false
@@ -315,6 +388,10 @@ export function StoreShopperExperience({
 
   useEffect(() => {
     if (!merchant || typeof window === 'undefined' || !runtimeContinuationKey || !merchantContinuationPath) return
+    if (kioskMode) {
+      clearRuntimeContinuation()
+      return
+    }
     const params = new URLSearchParams(window.location.search)
     if (!params.has('merchantContinuation')) return
     const current = getMerchantContinuationFromUrl(`${window.location.pathname}${window.location.search}`)
@@ -352,7 +429,7 @@ export function StoreShopperExperience({
     } catch {
       // Ignore malformed same-tab state and let the shopper restart cleanly.
     }
-  }, [merchant, merchantContinuationPath, runtimeContinuationKey])
+  }, [clearRuntimeContinuation, kioskMode, merchant, merchantContinuationPath, runtimeContinuationKey])
 
   useEffect(() => {
     if (!experienceSlug || typeof window === 'undefined') return
@@ -396,10 +473,12 @@ export function StoreShopperExperience({
         expiresAt: json.data.expiresAt,
       }
       setSession(next)
-      try {
-        sessionStorage.setItem(`vt_store_session:${merchantSlug}:${experienceSlug || 'store'}`, JSON.stringify(next))
-      } catch {
-        // ignore
+      if (!kioskMode) {
+        try {
+          sessionStorage.setItem(`vt_store_session:${merchantSlug}:${experienceSlug || 'store'}`, JSON.stringify(next))
+        } catch {
+          // ignore
+        }
       }
       return next
     } catch {
@@ -408,7 +487,7 @@ export function StoreShopperExperience({
     } finally {
       setSessionStarting(false)
     }
-  }, [session, merchantSlug, experienceSlug, locale, t])
+  }, [session, merchantSlug, experienceSlug, locale, kioskMode, t])
 
   const runRecommendations = useCallback(
     async (activeSession: SessionState, file: File) => {
@@ -492,6 +571,7 @@ export function StoreShopperExperience({
   )
 
   const handleAcceptPrivacy = async () => {
+    if (kioskResetting || kioskPendingSession.current) return
     const created = await ensureSession()
     if (created) setPrivacyAccepted(true)
   }
@@ -628,6 +708,37 @@ export function StoreShopperExperience({
     persistRuntimeContinuation()
   }, [persistRuntimeContinuation])
 
+  useEffect(() => {
+    if (!kioskMode || typeof window === 'undefined') return
+    let timer = 0
+    const arm = () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => { void resetKiosk('idle') }, kioskIdleTimeoutSeconds * 1000)
+    }
+    const activityEvents = ['pointerdown', 'touchstart', 'keydown'] as const
+    arm()
+    activityEvents.forEach((name) => window.addEventListener(name, arm, { passive: true }))
+    return () => {
+      window.clearTimeout(timer)
+      activityEvents.forEach((name) => window.removeEventListener(name, arm))
+    }
+  }, [kioskIdleTimeoutSeconds, kioskMode, resetKiosk])
+
+  useEffect(() => {
+    if (!kioskMode || typeof window === 'undefined') return
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return
+      document.documentElement.style.visibility = 'hidden'
+      const cleanUrl = new URL(window.location.href)
+      cleanUrl.searchParams.set('deliveryProfile', 'kiosk')
+      cleanUrl.searchParams.delete('merchantContinuation')
+      window.history.replaceState({}, '', `${cleanUrl.pathname}${cleanUrl.search}`)
+      window.location.reload()
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [kioskMode])
+
   const handleContinuationBatchId = useCallback((batchId: string) => {
     setResumeBatchId(batchId)
     persistRuntimeContinuation(batchId, resumeTryOnTasks)
@@ -714,7 +825,7 @@ export function StoreShopperExperience({
     ? t('recommend.saving')
     : continuationText('recommend.preparing', 'Preparing your try-on…')
   const decisionResultHref = decisionResultToken
-    ? `/${locale}/result/${encodeURIComponent(decisionResultToken)}`
+    ? `/${locale}/result/${encodeURIComponent(decisionResultToken)}${kioskMode ? '?deliveryProfile=kiosk' : ''}`
     : null
   const presentationAcquisition = captureStoreAcquisition()
   const presentationMode = resolvePresentationMode({
@@ -762,7 +873,10 @@ export function StoreShopperExperience({
       <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
         <header className="flex items-center justify-between gap-3 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
           <MerchantMark merchant={merchant} accent={accent} />
+          {kioskMode ? <button type="button" onClick={() => void resetKiosk('manual')} disabled={kioskResetting} className="min-h-12 touch-manipulation rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm disabled:opacity-60" aria-label="Start over and clear this shopper">{kioskResetting ? 'Resetting…' : 'New shopper'}</button> : null}
         </header>
+
+        {kioskNotice ? <p role="status" aria-live="polite" className="mx-auto mt-4 max-w-4xl rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{kioskNotice}</p> : null}
 
         {!privacyAccepted ? (
           <ExperiencePresentationShell

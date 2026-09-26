@@ -5,6 +5,7 @@ import {
 import { resolvePublicDecisionJourney, resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
 import type { DecisionJourneyPolicy } from '../domain/decision-journey'
 import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-usage'
+import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import type {
   ExperienceRecord,
   ExperienceRepository,
@@ -54,6 +55,7 @@ export type PublicExperienceDiscovery = {
     description: string | null
     heroAssetUrl: string | null
     presentationMode?: import('../domain/presentation-mode').PresentationMode | null
+    deliveryPolicy: ExperienceDeliveryPolicy
     referenceData: boolean
     updatedAt: Date
   }
@@ -162,6 +164,7 @@ export async function getPublicExperienceDiscovery(input: {
       description: experience.description,
       heroAssetUrl: experience.heroAssetUrl,
       presentationMode: experience.presentationMode ?? null,
+      deliveryPolicy: resolveExperienceDeliveryPolicy(experience.deliveryPolicy),
       referenceData: experience.referenceData,
       updatedAt: experience.updatedAt,
     },

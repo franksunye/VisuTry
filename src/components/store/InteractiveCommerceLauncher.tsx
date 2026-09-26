@@ -9,6 +9,7 @@ import {
   MERCHANT_CONTINUATION_PARAM,
 } from '@/lib/commerce-handoff/merchant-continuation'
 import type { PublicMerchantProfile } from '@/modules/store/application/get-public-merchant'
+import { resolveRequestedDeliveryProfile } from '@/modules/store/domain/delivery-profile'
 
 const LazyStoreShopperExperience = dynamic(
   () => import('@/components/store/StoreShopperExperience').then((module) => module.StoreShopperExperience),
@@ -46,11 +47,18 @@ export function InteractiveCommerceLauncher({
   initialPublicMerchant = null,
 }: InteractiveCommerceLauncherProps) {
   const [started, setStarted] = useState(false)
+  const [kioskMode, setKioskMode] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
+    const profile = resolveRequestedDeliveryProfile({ requested: params.get('deliveryProfile'), policy: initialPublicMerchant?.experience?.deliveryPolicy ?? { kioskEnabled: false, kioskIdleTimeoutSeconds: 120 } })
+    if (profile === 'KIOSK') {
+      setKioskMode(true)
+      setStarted(true)
+      return
+    }
     if (!params.has(MERCHANT_CONTINUATION_PARAM)) return
 
     const expected = createMerchantContinuation({
@@ -61,21 +69,35 @@ export function InteractiveCommerceLauncher({
     })
     const current = getMerchantContinuationFromUrl(`${window.location.pathname}${window.location.search}`)
     if (expected && current?.canonicalReturnPath === expected.canonicalReturnPath) setStarted(true)
-  }, [experienceSlug, locale, merchantSlug])
+  }, [experienceSlug, initialPublicMerchant, locale, merchantSlug])
 
   useEffect(() => {
     if (!started) return
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    closeButtonRef.current?.focus()
+    if (!kioskMode) closeButtonRef.current?.focus()
 
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [started])
+  }, [kioskMode, started])
 
   if (started) {
+    if (kioskMode) {
+      return (
+        <main className="min-h-[100svh] bg-[#f7f8fb] px-2 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] sm:px-4">
+          <LazyStoreShopperExperience
+            merchantSlug={merchantSlug}
+            experienceSlug={experienceSlug}
+            locale={locale}
+            publicPocStorage={publicPocStorage}
+            initialPublicMerchant={initialPublicMerchant}
+            kioskMode
+          />
+        </main>
+      )
+    }
     return (
       <div className="fixed inset-0 z-50 bg-slate-950/45 p-3 backdrop-blur-[2px] sm:p-6">
         <section
@@ -113,6 +135,7 @@ export function InteractiveCommerceLauncher({
                 locale={locale}
                 publicPocStorage={publicPocStorage}
                 initialPublicMerchant={initialPublicMerchant}
+                kioskMode={false}
               />
             </section>
           </div>

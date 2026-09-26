@@ -124,6 +124,7 @@ export type ExperienceRecord = {
   defaultCampaign: string | null
   referenceMetadata: Record<string, unknown> | null
   journeyPolicy?: Record<string, unknown> | null
+  deliveryPolicy?: Record<string, unknown> | null
   frameIds: string[]
   createdAt: Date
   updatedAt: Date
@@ -291,8 +292,10 @@ export interface MerchantSessionRepository {
     merchantId: string,
     sessionId: string,
   ): Promise<MerchantSessionRecord | null>
+  findByCapabilityTokenHash?(merchantId: string, capabilityTokenHash: string): Promise<MerchantSessionRecord | null>
   touch(merchantId: string, sessionId: string, lastActiveAt: Date): Promise<void>
   markExpired(merchantId: string, sessionId: string): Promise<void>
+  expireAndDetachPhoto?(merchantId: string, sessionId: string): Promise<string | null>
   attachPhotoAsset(input: {
     merchantId: string
     sessionId: string

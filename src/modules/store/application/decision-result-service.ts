@@ -4,6 +4,7 @@ import { isMockMode } from '@/lib/mocks'
 import { hashSessionCapability } from '../domain/session'
 import { sanitizeDecisionResultPayload } from '../domain/decision-result'
 import { isHttpOrHttpsUrl } from '../domain/privacy'
+import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 
 const MAX_SHARE_TOKEN_LENGTH = 200
 
@@ -28,6 +29,7 @@ type DecisionResultShareRow = {
       secondaryCtaType: string | null
       secondaryCtaLabel: string | null
       secondaryCtaUrl: string | null
+      deliveryPolicy: unknown
     } | null
   }
 }
@@ -48,7 +50,7 @@ async function findShare(token: string): Promise<DecisionResultShareRow | null> 
       result: {
         include: {
           merchant: { select: { id: true, slug: true, name: true, status: true, accentColor: true, websiteUrl: true } },
-          experience: { select: { id: true, type: true, slug: true, name: true, primaryCtaType: true, primaryCtaLabel: true, primaryCtaUrl: true, secondaryCtaType: true, secondaryCtaLabel: true, secondaryCtaUrl: true } },
+          experience: { select: { id: true, type: true, slug: true, name: true, primaryCtaType: true, primaryCtaLabel: true, primaryCtaUrl: true, secondaryCtaType: true, secondaryCtaLabel: true, secondaryCtaUrl: true, deliveryPolicy: true } },
         },
       },
     },
@@ -70,7 +72,7 @@ function safeHandoff(label: string | null, type: string | null, url: string | nu
 export type DecisionResultView = {
   expiresAt: string
   merchant: { name: string; slug: string; accentColor: string | null; websiteUrl: string | null }
-  experience: { type: 'STORE' | 'CAMPAIGN'; slug: string; name: string; primaryCta: ReturnType<typeof safeHandoff>; secondaryCta: ReturnType<typeof safeHandoff> } | null
+  experience: { type: 'STORE' | 'CAMPAIGN'; slug: string; name: string; primaryCta: ReturnType<typeof safeHandoff>; secondaryCta: ReturnType<typeof safeHandoff>; deliveryPolicy: ExperienceDeliveryPolicy } | null
   journey: ReturnType<typeof sanitizeDecisionResultPayload>['journey']
   faceFit: ReturnType<typeof sanitizeDecisionResultPayload>['faceFit']
   recommendation: ReturnType<typeof sanitizeDecisionResultPayload>['recommendation']
@@ -120,6 +122,7 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
       type: share.result.experience.type,
       slug: share.result.experience.slug,
       name: share.result.experience.name,
+      deliveryPolicy: resolveExperienceDeliveryPolicy(share.result.experience.deliveryPolicy),
       primaryCta: safeHandoff(share.result.experience.primaryCtaLabel, share.result.experience.primaryCtaType, share.result.experience.primaryCtaUrl),
       secondaryCta: safeHandoff(share.result.experience.secondaryCtaLabel, share.result.experience.secondaryCtaType, share.result.experience.secondaryCtaUrl),
     } : null,

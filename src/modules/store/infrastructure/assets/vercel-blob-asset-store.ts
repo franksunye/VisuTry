@@ -8,7 +8,7 @@ import { del, get, put } from '@vercel/blob'
 import type { StoreAsset } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { isMockMode } from '@/lib/mocks'
-import { mockBlobUpload } from '@/lib/mocks/blob'
+import { MockBlob, mockBlobUpload, readMockBlob } from '@/lib/mocks/blob'
 import type {
   AssetStore,
   DeleteStoreAssetResult,
@@ -69,11 +69,11 @@ async function readPrivateOrPublicBytes(
 ): Promise<StoreAssetBytes> {
   if (isMockMode) {
     if (!providerUrl) throw new Error('Mock asset missing providerUrl')
-    const response = await fetch(providerUrl)
-    if (!response.ok) throw new Error(`Failed to read mock asset (${response.status})`)
+    const mockAsset = readMockBlob(providerUrl)
+    if (!mockAsset) throw new Error('Mock asset bytes are unavailable in the Local blob store')
     return {
-      body: Buffer.from(await response.arrayBuffer()),
-      contentType: response.headers.get('content-type') || 'application/octet-stream',
+      body: mockAsset.body,
+      contentType: mockAsset.contentType,
       storageKey,
     }
   }
@@ -220,7 +220,9 @@ export function createVercelBlobAssetStore(): AssetStore {
         },
       })
 
-      if (row.providerUrl && !isMockMode) {
+      if (row.providerUrl && isMockMode) {
+        await MockBlob.del(row.providerUrl)
+      } else if (row.providerUrl) {
         try {
           await del(row.accessMode === 'PRIVATE_SIGNED' ? row.storageKey : row.providerUrl)
         } catch (error) {

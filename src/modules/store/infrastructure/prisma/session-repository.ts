@@ -61,6 +61,13 @@ export function createPrismaMerchantSessionRepository(): MerchantSessionReposito
       })
       return row ? mapSession(row) : null
     },
+    async findByCapabilityTokenHash(merchantId, capabilityTokenHash) {
+      const row = await prisma.merchantSession.findFirst({
+        where: { merchantId, capabilityTokenHash },
+        orderBy: { createdAt: 'desc' },
+      })
+      return row ? mapSession(row) : null
+    },
     async touch(merchantId, sessionId, lastActiveAt) {
       await prisma.merchantSession.updateMany({
         where: { id: sessionId, merchantId },
@@ -71,6 +78,20 @@ export function createPrismaMerchantSessionRepository(): MerchantSessionReposito
       await prisma.merchantSession.updateMany({
         where: { id: sessionId, merchantId },
         data: { status: 'EXPIRED' },
+      })
+    },
+    async expireAndDetachPhoto(merchantId, sessionId) {
+      return prisma.$transaction(async (tx) => {
+        const session = await tx.merchantSession.findFirst({
+          where: { id: sessionId, merchantId },
+          select: { photoAssetId: true },
+        })
+        if (!session) return null
+        await tx.merchantSession.updateMany({
+          where: { id: sessionId, merchantId },
+          data: { status: 'EXPIRED', photoAssetId: null },
+        })
+        return session.photoAssetId
       })
     },
     async attachPhotoAsset({ merchantId, sessionId, photoAssetId }) {

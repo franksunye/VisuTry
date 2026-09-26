@@ -74,3 +74,13 @@ export function applyStoreVisitorCookie(
     maxAge: VISITOR_MAX_AGE_SECONDS,
   })
 }
+
+export function clearStoreVisitorCookie(response: NextResponse): void {
+  response.cookies.set(STORE_VISITOR_COOKIE, '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+  })
+}

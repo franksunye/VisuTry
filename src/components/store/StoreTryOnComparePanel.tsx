@@ -278,12 +278,11 @@ export function StoreTryOnComparePanel({
                 ? {
                     ...tile,
                     taskId: json.data.taskId,
-                    status:
-                      json.data.status === 'completed'
-                        ? 'completed'
-                        : json.data.status === 'failed'
-                          ? 'failed'
-                          : 'processing',
+                    // The submit response confirms task creation but does not
+                    // include the capability-protected Result asset URL. Even
+                    // an immediately completed task must pass through poll so
+                    // the UI receives that canonical delivery URL.
+                    status: json.data.status === 'failed' ? 'failed' : 'processing',
                     retryAction: json.data.status === 'failed' ? 'resubmit' : 'none',
                     frame: { ...tile.frame, ...json.data.frame },
                   }
@@ -329,13 +328,14 @@ export function StoreTryOnComparePanel({
     .join(',')
 
   useEffect(() => {
+    const pollControllers = pollControllersRef.current
     const taskIds = activeTaskKey ? activeTaskKey.split(',').filter(Boolean) : []
     const active = new Set(taskIds)
 
-    for (const [taskId, stop] of [...pollControllersRef.current.entries()]) {
+    for (const [taskId, stop] of [...pollControllers.entries()]) {
       if (!active.has(taskId)) {
         stop()
-        pollControllersRef.current.delete(taskId)
+        pollControllers.delete(taskId)
       }
     }
 
@@ -360,7 +360,7 @@ export function StoreTryOnComparePanel({
     }
 
     for (const taskId of taskIds) {
-      if (pollControllersRef.current.has(taskId)) continue
+      if (pollControllers.has(taskId)) continue
 
       const handle = startStoreTryOnPollLoop({
         poll: async (signal) => {
@@ -389,7 +389,7 @@ export function StoreTryOnComparePanel({
           }
         },
         onTerminal: (result) => {
-          pollControllersRef.current.delete(taskId)
+          pollControllers.delete(taskId)
           if (result.kind === 'completed') {
             applyTile(taskId, {
               status: 'completed',
@@ -458,15 +458,15 @@ export function StoreTryOnComparePanel({
           })
         },
       })
-      pollControllersRef.current.set(taskId, handle.stop)
+      pollControllers.set(taskId, handle.stop)
     }
 
     return () => {
       for (const taskId of taskIds) {
-        const stop = pollControllersRef.current.get(taskId)
+        const stop = pollControllers.get(taskId)
         if (stop) {
           stop()
-          pollControllersRef.current.delete(taskId)
+          pollControllers.delete(taskId)
         }
       }
     }

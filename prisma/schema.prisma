@@ -1121,6 +1121,8 @@ model Experience {
   referenceMetadata Json?
   /// Nullable closed-list Decision Journey config; null preserves legacy defaults.
   journeyPolicy     Json?
+  /// Delivery behavior is separate from journey stages; null means Web-only.
+  deliveryPolicy    Json?
 
   merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   frames   ExperienceFrame[]

@@ -8,6 +8,7 @@ import { MerchantCommercialError } from '@/modules/merchant/application/merchant
 import type { CampaignGate, CampaignObjective } from '@/modules/store/domain/campaign-policy'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { assertDecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
+import { assertExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 
 export const dynamic = 'force-dynamic'
 
@@ -99,6 +100,20 @@ export async function PUT(
       journeyPolicy = body.journeyPolicy === null ? Prisma.JsonNull : body.journeyPolicy as Prisma.InputJsonValue
     }
 
+    let deliveryPolicy: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | undefined
+    if ('deliveryPolicy' in body) {
+      if (body.deliveryPolicy === null) {
+        deliveryPolicy = Prisma.JsonNull
+      } else {
+        try {
+          assertExperienceDeliveryPolicy(body.deliveryPolicy)
+        } catch (error) {
+          return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Invalid delivery policy' }, { status: 400 })
+        }
+        deliveryPolicy = body.deliveryPolicy as Prisma.InputJsonValue
+      }
+    }
+
     if (existing.type === 'CAMPAIGN') {
       const status = 'status' in body ? body.status : undefined
       if (status !== undefined && (typeof status !== 'string' || !EXPERIENCE_STATUSES.includes(status as ExperienceStatus))) {
@@ -128,6 +143,7 @@ export async function PUT(
         campaignId: params.experienceId,
         ...(campaignStatus ? { status: campaignStatus } : {}),
         ...(journeyPolicy !== undefined ? { journeyPolicy } : {}),
+        ...(deliveryPolicy !== undefined ? { deliveryPolicy } : {}),
         ...(typeof body.name === 'string' ? { name: body.name } : {}),
         ...(body.headline === null || typeof body.headline === 'string' ? { headline: body.headline as string | null } : {}),
         ...(body.description === null || typeof body.description === 'string' ? { description: body.description as string | null } : {}),
@@ -170,6 +186,7 @@ export async function PUT(
 
     const data: Record<string, unknown> = {}
     if (journeyPolicy !== undefined) data.journeyPolicy = journeyPolicy
+    if (deliveryPolicy !== undefined) data.deliveryPolicy = deliveryPolicy
     for (const field of ['name', 'headline', 'description', 'primaryCtaLabel', 'primaryCtaUrl', 'offerLabel', 'offerCode']) {
       if (field in body) {
         const value = body[field]

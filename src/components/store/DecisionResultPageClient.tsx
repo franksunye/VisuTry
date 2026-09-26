@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowUpRight, CheckCircle2, Copy, Glasses, Heart, ShieldCheck } from 'lucide-react'
@@ -11,8 +11,11 @@ function formatExpiry(value: string): string {
   return new Date(value).toISOString().replace('.000Z', ' UTC').replace('T', ' ')
 }
 
-export function DecisionResultPageClient({ locale, token, result }: { locale: string; token: string; result: DecisionResultView }) {
+export function DecisionResultPageClient({ locale, token, result, kioskMode = false }: { locale: string; token: string; result: DecisionResultView; kioskMode?: boolean }) {
   const [copied, setCopied] = useState(false)
+  const [resetting, setResetting] = useState(false)
+  const [resetError, setResetError] = useState<string | null>(null)
+  const resetInFlight = useRef(false)
   const resultPath = `/${locale}/result/${encodeURIComponent(token)}`
   const absoluteResultUrl = useMemo(() => {
     if (typeof window === 'undefined') return resultPath
@@ -29,6 +32,41 @@ export function DecisionResultPageClient({ locale, token, result }: { locale: st
     }
   }
 
+  const startNewShopper = useCallback(async () => {
+    if (!kioskMode || resetInFlight.current) return
+    resetInFlight.current = true
+    setResetting(true)
+    setResetError(null)
+    try {
+      const response = await fetch(`/api/store/results/${encodeURIComponent(token)}/kiosk-reset`, { method: 'POST', cache: 'no-store' })
+      if (!response.ok) throw new Error('The kiosk reset could not be confirmed.')
+      const experiencePath = result.experience?.type === 'CAMPAIGN'
+        ? `/${locale}/c/${encodeURIComponent(result.merchant.slug)}/${encodeURIComponent(result.experience.slug)}`
+        : `/${locale}/store/${encodeURIComponent(result.merchant.slug)}`
+      window.location.replace(`${experiencePath}?deliveryProfile=kiosk`)
+    } catch {
+      setResetError('The secure reset could not be confirmed. Keep this screen private and retry before the next shopper.')
+      setResetting(false)
+      resetInFlight.current = false
+    }
+  }, [kioskMode, locale, result.experience, result.merchant.slug, token])
+
+  useEffect(() => {
+    if (!kioskMode) return
+    let timer = 0
+    const arm = () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => { void startNewShopper() }, (result.experience?.deliveryPolicy.kioskIdleTimeoutSeconds ?? 120) * 1000)
+    }
+    const activityEvents = ['pointerdown', 'touchstart', 'keydown'] as const
+    arm()
+    activityEvents.forEach((name) => window.addEventListener(name, arm, { passive: true }))
+    return () => {
+      window.clearTimeout(timer)
+      activityEvents.forEach((name) => window.removeEventListener(name, arm))
+    }
+  }, [kioskMode, result.experience?.deliveryPolicy.kioskIdleTimeoutSeconds, startNewShopper])
+
   return (
     <main className="min-h-screen bg-[#f7f8fb] px-4 py-8 text-slate-950 sm:px-8 sm:py-12">
       <div className="mx-auto max-w-6xl space-y-6">
@@ -39,9 +77,13 @@ export function DecisionResultPageClient({ locale, token, result }: { locale: st
               <h1 className="mt-3 font-serif text-3xl font-semibold sm:text-5xl">Your {result.experience?.name || 'shopping'} result</h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">A canonical result for {result.merchant.name}, backed by the same Merchant Experience journey on every device.</p>
             </div>
-              <div className="flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-xs text-slate-300"><ShieldCheck className="h-4 w-4 text-cyan-300" /> Expires {formatExpiry(result.expiresAt)}</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-xs text-slate-300"><ShieldCheck className="h-4 w-4 text-cyan-300" /> Expires {formatExpiry(result.expiresAt)}</div>
+                {kioskMode ? <button type="button" onClick={() => void startNewShopper()} disabled={resetting} className="min-h-12 touch-manipulation rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-60">{resetting ? 'Resetting…' : 'New shopper'}</button> : null}
+              </div>
           </div>
         </header>
+        {resetError ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">{resetError}</p> : null}
 
         <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="space-y-6">
@@ -87,7 +129,7 @@ export function DecisionResultPageClient({ locale, token, result }: { locale: st
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Continue on your phone</p>
               <h2 className="mt-2 font-serif text-2xl font-semibold">Scan this result</h2>
               <p className="mt-2 text-sm leading-5 text-slate-500">The QR link opens this same canonical result in a clean browser. No session storage is required.</p>
-              <div className="mt-5 flex justify-center"><DecisionResultQr value={absoluteResultUrl} /></div>
+                <div className="mt-5 flex justify-center"><DecisionResultQr value={absoluteResultUrl} /></div>
               <button type="button" onClick={() => void copyResultLink()} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700"><Copy className="h-4 w-4" /> {copied ? 'Copied' : 'Copy result link'}</button>
             </section>
 
