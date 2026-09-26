@@ -20,6 +20,7 @@ import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/me
 import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merchant-commercial-state'
 import { merchantCatalogItemIsReady, MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
 import { recordMerchantActivationEventWithClient } from './merchant-activation'
+import { experienceCommands } from '@/modules/store/application/experience-command-service-prisma'
 import { resolveMerchantCatalogPresentation, type MerchantCatalogPresentationState } from '../domain/merchant-catalog-presentation'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
@@ -546,12 +547,14 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
   const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true } })
   if (!merchant) throw new MerchantAccessError()
   const meaningfulChange = name !== store.name || headline !== store.headline || description !== store.description
-  const updated = await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
-    mutation: () => prisma.$transaction(async (tx) => {
-      const result = await tx.experience.update({ where: { id: store.id }, data: { name, headline, description }, select: { id: true, slug: true, name: true, status: true, headline: true, description: true } })
+  const updated = await experienceCommands.updateSharedConfiguration({
+    merchantId: input.actor.merchantId,
+    experienceId: store.id,
+    expectedType: 'STORE',
+    patch: { name, headline, description },
+    afterUpdate: async (tx) => {
       if (meaningfulChange) {
-        await recordMerchantActivationEventWithClient(tx, {
+        await recordMerchantActivationEventWithClient(tx as Prisma.TransactionClient, {
           merchantId: input.actor.merchantId,
           eventType: MERCHANT_ACTIVATION_EVENT.STORE_CONFIGURED,
           source: 'SERVER',
@@ -559,11 +562,11 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
           metadata: { store_id: store.id },
         })
       }
-      return result
-    }),
+    },
   })
+  const updatedStore = updated as { id: string; slug: string; name: string; status: string; headline: string | null; description: string | null }
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.updated', resourceType: 'Experience', resourceId: store.id })
-  return { id: updated.id, slug: updated.slug, name: updated.name, status: updated.status, headline: updated.headline, description: updated.description, publicPath: `/en/store/${merchant.slug}` }
+  return { id: updatedStore.id, slug: updatedStore.slug, name: updatedStore.name, status: updatedStore.status, headline: updatedStore.headline, description: updatedStore.description, publicPath: `/en/store/${merchant.slug}` }
 }
 
 export async function setMerchantStoreFrames(input: { actor: MerchantActorContext; storeId: string; frameIds: string[] }) {
@@ -583,13 +586,14 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
   if (newlySelectedIneligible) {
     throw new MerchantOnboardingError('STORE_FRAME_NOT_ELIGIBLE', 'This product is not ready to appear in your Store. Review it in Catalog or choose another product.', 409)
   }
-  await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
-    mutation: () => prisma.$transaction(async (tx) => {
-      await tx.experienceFrame.deleteMany({ where: { experienceId: store.id, merchantId: input.actor.merchantId } })
-      if (frameIds.length) await tx.experienceFrame.createMany({ data: frameIds.map((merchantFrameId, sortOrder) => ({ experienceId: store.id, merchantId: input.actor.merchantId, merchantFrameId, sortOrder, active: true })) })
+  await experienceCommands.replaceCatalogSelection({
+    merchantId: input.actor.merchantId,
+    experienceId: store.id,
+    expectedType: 'STORE',
+    frameIds,
+    afterReplace: async (tx) => {
       if (frameIds.length) {
-        await recordMerchantActivationEventWithClient(tx, {
+        await recordMerchantActivationEventWithClient(tx as Prisma.TransactionClient, {
           merchantId: input.actor.merchantId,
           eventType: MERCHANT_ACTIVATION_EVENT.STORE_CONFIGURED,
           source: 'SERVER',
@@ -597,7 +601,7 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
           metadata: { store_id: store.id, frame_count: frameIds.length },
         })
       }
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+    },
   })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.frames_updated', resourceType: 'Experience', resourceId: store.id })
   return { storeId: store.id, frameIds, frameCount: frameIds.length }
@@ -648,22 +652,24 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
   if (!readiness.ready || store.frames.length === 0) throw new MerchantOnboardingError('STORE_NOT_READY', 'Store is not ready to publish.', 409)
   const published = store.status === 'ACTIVE'
     ? store
-    : await withPublicDiscoveryInvalidation({
-      target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
-      mutation: () => prisma.$transaction(async (tx) => {
-        const publishedStore = await tx.experience.update({ where: { id: store.id }, data: { status: 'ACTIVE' }, include: { frames: { where: { active: true } } } })
-        await recordMerchantActivationEventWithClient(tx, {
+    : await experienceCommands.updateSharedConfiguration({
+      merchantId: input.actor.merchantId,
+      experienceId: store.id,
+      expectedType: 'STORE',
+      patch: { status: 'ACTIVE' },
+      afterUpdate: async (tx) => {
+        await recordMerchantActivationEventWithClient(tx as Prisma.TransactionClient, {
           merchantId: input.actor.merchantId,
           eventType: MERCHANT_ACTIVATION_EVENT.STORE_PUBLISHED,
           source: 'SERVER',
           resourceId: store.id,
           metadata: { store_id: store.id },
         })
-        return publishedStore
-      }),
+      },
     })
+  const publishedStore = published as typeof store
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.published', resourceType: 'Experience', resourceId: store.id })
-  return { id: published.id, status: published.status, publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }
+  return { id: publishedStore.id, status: publishedStore.status, publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }
 }
 
 export const merchantOnboarding = { getMerchant, getOnboardingStatus, listMerchantFrames, getMerchantCatalogWorkspace, validateMerchantCatalog, importMerchantFrames, updateMerchantFrame, getMerchantStoreWorkspace, createMerchantStore, updateMerchantStore, setMerchantStoreFrames, previewMerchantStore, publishMerchantStore }

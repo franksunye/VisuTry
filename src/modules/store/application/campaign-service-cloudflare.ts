@@ -9,9 +9,12 @@ import {
   isSafeCampaignCtaUrl,
 } from '../domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
+import { assertDecisionJourneyPolicy } from '../domain/decision-journey'
+import { assertExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
+import { experienceCommandsCloudflare } from './experience-command-service-cloudflare'
 
 export { CampaignServiceError }
 
@@ -137,7 +140,7 @@ async function fetchCampaign(merchantId: string, campaignId: string): Promise<{ 
   const sql = getCloudflareSql()
   const [merchantRows, rows] = await Promise.all([
     sql`SELECT "id", "slug", "referenceData", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
-    sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."brand" AS "frameBrand", mf."price" AS "framePrice", mf."currency" AS "frameCurrency", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
+    sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."journeyPolicy", e."deliveryPolicy", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."brand" AS "frameBrand", mf."price" AS "framePrice", mf."currency" AS "frameCurrency", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
   ])
   const merchant = merchantRows[0]
   if (!merchant || !rows[0]) throw new MerchantAccessError()
@@ -202,7 +205,7 @@ export async function createCampaignDraft(input: {
 }
 
 export async function updateCampaign(input: {
-  merchantId: string; campaignId: string; name?: string; headline?: string | null; description?: string | null; objective?: CampaignObjective; gate?: CampaignGate; presentationMode?: PresentationMode; startAt?: string | null; endAt?: string | null; primaryCtaType?: string | null; primaryCtaLabel?: string | null; primaryCtaUrl?: string | null; secondaryCtaType?: string | null; secondaryCtaLabel?: string | null; secondaryCtaUrl?: string | null
+  merchantId: string; campaignId: string; name?: string; headline?: string | null; description?: string | null; objective?: CampaignObjective; gate?: CampaignGate; presentationMode?: PresentationMode; startAt?: string | null; endAt?: string | null; primaryCtaType?: string | null; primaryCtaLabel?: string | null; primaryCtaUrl?: string | null; secondaryCtaType?: string | null; secondaryCtaLabel?: string | null; secondaryCtaUrl?: string | null; journeyPolicy?: unknown | null; deliveryPolicy?: unknown | null
 }) {
   const current = await fetchCampaign(input.merchantId, input.campaignId)
   const objective = input.objective ?? (current.row.campaignObjective == null ? 'INTENT' : String(current.row.campaignObjective) as CampaignObjective)
@@ -213,31 +216,130 @@ export async function updateCampaign(input: {
   validateDateRange(startAt === undefined ? dateValue(current.row.startAt) : startAt, endAt === undefined ? dateValue(current.row.endAt) : endAt)
   for (const url of [input.primaryCtaUrl, input.secondaryCtaUrl]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', 'CTA URL must be an https URL or internal path.')
   if (input.name !== undefined && !input.name.trim()) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.')
+  if (input.journeyPolicy != null) assertDecisionJourneyPolicy(input.journeyPolicy)
+  if (input.deliveryPolicy != null) assertExperienceDeliveryPolicy(input.deliveryPolicy)
   const has = (field: string) => Object.prototype.hasOwnProperty.call(input, field)
-  const sql = getCloudflareSql()
-  const rows = await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
-    mutation: () => sql`
-    UPDATE "Experience"
-    SET "name" = CASE WHEN ${has('name')} THEN ${input.name?.trim() ?? null} ELSE "name" END,
-      "headline" = CASE WHEN ${has('headline')} THEN ${input.headline == null ? null : input.headline.trim()} ELSE "headline" END,
-      "description" = CASE WHEN ${has('description')} THEN ${input.description == null ? null : input.description.trim()} ELSE "description" END,
-      "campaignObjective" = ${objective}, "campaignGate" = ${gate}, "presentationMode" = ${presentationMode},
-      "startAt" = CASE WHEN ${startAt !== undefined} THEN ${startAt ?? null} ELSE "startAt" END,
-      "endAt" = CASE WHEN ${endAt !== undefined} THEN ${endAt ?? null} ELSE "endAt" END,
-      "primaryCtaType" = CASE WHEN ${has('primaryCtaType')} THEN ${input.primaryCtaType == null ? null : input.primaryCtaType.trim()} ELSE "primaryCtaType" END,
-      "primaryCtaLabel" = CASE WHEN ${has('primaryCtaLabel')} THEN ${input.primaryCtaLabel == null ? null : input.primaryCtaLabel.trim()} ELSE "primaryCtaLabel" END,
-      "primaryCtaUrl" = CASE WHEN ${has('primaryCtaUrl')} THEN ${input.primaryCtaUrl == null ? null : input.primaryCtaUrl.trim()} ELSE "primaryCtaUrl" END,
-      "secondaryCtaType" = CASE WHEN ${has('secondaryCtaType')} THEN ${input.secondaryCtaType == null ? null : input.secondaryCtaType.trim()} ELSE "secondaryCtaType" END,
-      "secondaryCtaLabel" = CASE WHEN ${has('secondaryCtaLabel')} THEN ${input.secondaryCtaLabel == null ? null : input.secondaryCtaLabel.trim()} ELSE "secondaryCtaLabel" END,
-      "secondaryCtaUrl" = CASE WHEN ${has('secondaryCtaUrl')} THEN ${input.secondaryCtaUrl == null ? null : input.secondaryCtaUrl.trim()} ELSE "secondaryCtaUrl" END,
-      "updatedAt" = NOW()
-    WHERE "id" = ${input.campaignId} AND "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN'
-    RETURNING "id"
-  `,
+  const patch: Record<string, unknown> = {
+    campaignObjective: objective,
+    campaignGate: gate,
+    presentationMode,
+    ...(has('name') ? { name: input.name?.trim() ?? null } : {}),
+    ...(has('headline') ? { headline: input.headline == null ? null : input.headline.trim() } : {}),
+    ...(has('description') ? { description: input.description == null ? null : input.description.trim() } : {}),
+    ...(startAt !== undefined ? { startAt } : {}),
+    ...(endAt !== undefined ? { endAt } : {}),
+    ...(has('primaryCtaType') ? { primaryCtaType: input.primaryCtaType == null ? null : input.primaryCtaType.trim() } : {}),
+    ...(has('primaryCtaLabel') ? { primaryCtaLabel: input.primaryCtaLabel == null ? null : input.primaryCtaLabel.trim() } : {}),
+    ...(has('primaryCtaUrl') ? { primaryCtaUrl: input.primaryCtaUrl == null ? null : input.primaryCtaUrl.trim() } : {}),
+    ...(has('secondaryCtaType') ? { secondaryCtaType: input.secondaryCtaType == null ? null : input.secondaryCtaType.trim() } : {}),
+    ...(has('secondaryCtaLabel') ? { secondaryCtaLabel: input.secondaryCtaLabel == null ? null : input.secondaryCtaLabel.trim() } : {}),
+    ...(has('secondaryCtaUrl') ? { secondaryCtaUrl: input.secondaryCtaUrl == null ? null : input.secondaryCtaUrl.trim() } : {}),
+    ...(has('journeyPolicy') ? { journeyPolicy: input.journeyPolicy } : {}),
+    ...(has('deliveryPolicy') ? { deliveryPolicy: input.deliveryPolicy } : {}),
+  }
+  await experienceCommandsCloudflare.updateCampaignConfiguration({
+    merchantId: input.merchantId,
+    experienceId: input.campaignId,
+    patch,
   })
-  if (!rows[0]) throw new MerchantAccessError()
   return getCampaign({ merchantId: input.merchantId, campaignId: input.campaignId })
+}
+
+/** Apply Campaign configuration and activation as one locked SQL mutation. */
+export async function updateAndPublishCampaign(input: {
+  merchantId: string; campaignId: string; name?: string; headline?: string | null; description?: string | null; objective?: CampaignObjective; gate?: CampaignGate; presentationMode?: PresentationMode; startAt?: string | null; endAt?: string | null; primaryCtaType?: string | null; primaryCtaLabel?: string | null; primaryCtaUrl?: string | null; secondaryCtaType?: string | null; secondaryCtaLabel?: string | null; secondaryCtaUrl?: string | null; journeyPolicy?: unknown | null; deliveryPolicy?: unknown | null
+}) {
+  const current = await fetchCampaign(input.merchantId, input.campaignId)
+  const has = (field: string) => Object.prototype.hasOwnProperty.call(input, field)
+  const objective = input.objective ?? (current.row.campaignObjective == null ? 'INTENT' : String(current.row.campaignObjective) as CampaignObjective)
+  const gate = input.gate ?? (current.row.campaignGate == null ? 'NONE' : String(current.row.campaignGate) as CampaignGate)
+  const presentationMode = input.presentationMode ?? (current.row.presentationMode == null ? 'EDITORIAL_FIRST' : String(current.row.presentationMode) as PresentationMode)
+  validatePolicy({ objective, gate, presentationMode })
+  const startAt = parseDate(input.startAt, 'startAt'); const endAt = parseDate(input.endAt, 'endAt')
+  const effectiveStartAt = startAt === undefined ? dateValue(current.row.startAt) : startAt
+  const effectiveEndAt = endAt === undefined ? dateValue(current.row.endAt) : endAt
+  validateDateRange(effectiveStartAt, effectiveEndAt)
+  for (const url of [input.primaryCtaUrl, input.secondaryCtaUrl]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', 'CTA URL must be an https URL or internal path.')
+  if (input.name !== undefined && !input.name.trim()) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.')
+  if (input.journeyPolicy != null) assertDecisionJourneyPolicy(input.journeyPolicy)
+  if (input.deliveryPolicy != null) assertExperienceDeliveryPolicy(input.deliveryPolicy)
+
+  const candidate: CampaignRow = {
+    ...current.row,
+    name: has('name') ? input.name?.trim() : current.row.name,
+    headline: has('headline') ? input.headline?.trim() || null : current.row.headline,
+    description: has('description') ? input.description?.trim() || null : current.row.description,
+    campaignObjective: objective,
+    campaignGate: gate,
+    presentationMode,
+    startAt: effectiveStartAt,
+    endAt: effectiveEndAt,
+    primaryCtaType: has('primaryCtaType') ? input.primaryCtaType?.trim() || null : current.row.primaryCtaType,
+    primaryCtaLabel: has('primaryCtaLabel') ? input.primaryCtaLabel?.trim() || null : current.row.primaryCtaLabel,
+    primaryCtaUrl: has('primaryCtaUrl') ? input.primaryCtaUrl?.trim() || null : current.row.primaryCtaUrl,
+    secondaryCtaType: has('secondaryCtaType') ? input.secondaryCtaType?.trim() || null : current.row.secondaryCtaType,
+    secondaryCtaLabel: has('secondaryCtaLabel') ? input.secondaryCtaLabel?.trim() || null : current.row.secondaryCtaLabel,
+    secondaryCtaUrl: has('secondaryCtaUrl') ? input.secondaryCtaUrl?.trim() || null : current.row.secondaryCtaUrl,
+    journeyPolicy: has('journeyPolicy') ? input.journeyPolicy : current.row.journeyPolicy,
+    deliveryPolicy: has('deliveryPolicy') ? input.deliveryPolicy : current.row.deliveryPolicy,
+    status: 'ACTIVE',
+  }
+  assertCampaignPublishable(mapCampaign(candidate, String(current.merchant.slug), Boolean(current.merchant.referenceData)).readiness, true)
+
+  const sql = getCloudflareSql()
+  const activeRows = await sql`SELECT count(*)::int AS "count" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "status" = 'ACTIVE'`
+  const capability = resolveMerchantCommercialCapability(merchantCommercialFields(current.merchant), { activeCampaigns: Number(activeRows[0]?.count ?? 0) })
+  const decision = capability.decisions.CAMPAIGN
+  if (String(current.row.status) !== 'ACTIVE' && !decision.allowed) throw new CampaignServiceError(decision.code ?? 'CAMPAIGN_LIMIT_REACHED', decision.message, 409)
+  const campaignLimit = capability.state.plan?.activeCampaigns ?? null
+
+  const results = await experienceCommandsCloudflare.runCampaignLifecycleMutation({
+    merchantId: input.merchantId,
+    experienceId: input.campaignId,
+    mutation: () => sql.transaction([
+      sql`
+        WITH locked_merchant AS MATERIALIZED (
+          SELECT "id" FROM "Merchant" WHERE "id" = ${input.merchantId} FOR UPDATE
+        ),
+        target_campaign AS MATERIALIZED (
+          SELECT e."id", e."status" FROM "Experience" e JOIN locked_merchant m ON m."id" = e."merchantId"
+          WHERE e."id" = ${input.campaignId} AND e."merchantId" = ${input.merchantId} AND e."type" = 'CAMPAIGN' FOR UPDATE
+        ),
+        active_count AS MATERIALIZED (
+          SELECT count(*)::int AS "count" FROM "Experience" e JOIN locked_merchant m ON m."id" = e."merchantId"
+          WHERE e."type" = 'CAMPAIGN' AND e."status" = 'ACTIVE'
+        ),
+        campaign_limit AS MATERIALIZED (SELECT ${campaignLimit}::int AS "limit" FROM locked_merchant m),
+        updated AS (
+          UPDATE "Experience" e
+          SET "name" = CASE WHEN ${has('name')} THEN ${input.name?.trim() ?? null} ELSE e."name" END,
+            "headline" = CASE WHEN ${has('headline')} THEN ${input.headline?.trim() || null} ELSE e."headline" END,
+            "description" = CASE WHEN ${has('description')} THEN ${input.description?.trim() || null} ELSE e."description" END,
+            "campaignObjective" = ${objective}, "campaignGate" = ${gate}, "presentationMode" = ${presentationMode},
+            "startAt" = CASE WHEN ${startAt !== undefined} THEN ${startAt ?? null} ELSE e."startAt" END,
+            "endAt" = CASE WHEN ${endAt !== undefined} THEN ${endAt ?? null} ELSE e."endAt" END,
+            "primaryCtaType" = CASE WHEN ${has('primaryCtaType')} THEN ${input.primaryCtaType?.trim() || null} ELSE e."primaryCtaType" END,
+            "primaryCtaLabel" = CASE WHEN ${has('primaryCtaLabel')} THEN ${input.primaryCtaLabel?.trim() || null} ELSE e."primaryCtaLabel" END,
+            "primaryCtaUrl" = CASE WHEN ${has('primaryCtaUrl')} THEN ${input.primaryCtaUrl?.trim() || null} ELSE e."primaryCtaUrl" END,
+            "secondaryCtaType" = CASE WHEN ${has('secondaryCtaType')} THEN ${input.secondaryCtaType?.trim() || null} ELSE e."secondaryCtaType" END,
+            "secondaryCtaLabel" = CASE WHEN ${has('secondaryCtaLabel')} THEN ${input.secondaryCtaLabel?.trim() || null} ELSE e."secondaryCtaLabel" END,
+            "secondaryCtaUrl" = CASE WHEN ${has('secondaryCtaUrl')} THEN ${input.secondaryCtaUrl?.trim() || null} ELSE e."secondaryCtaUrl" END,
+            "journeyPolicy" = CASE WHEN ${has('journeyPolicy')} THEN ${input.journeyPolicy ?? null} ELSE e."journeyPolicy" END,
+            "deliveryPolicy" = CASE WHEN ${has('deliveryPolicy')} THEN ${input.deliveryPolicy ?? null} ELSE e."deliveryPolicy" END,
+            "status" = 'ACTIVE', "updatedAt" = NOW()
+          FROM target_campaign c, active_count a, campaign_limit l
+          WHERE e."id" = c."id" AND (c."status" = 'ACTIVE' OR l."limit" IS NULL OR a."count" < l."limit")
+          RETURNING e."id"
+        )
+        SELECT c."status" AS "currentStatus", updated."id" AS "updatedId"
+        FROM target_campaign c LEFT JOIN updated ON true
+      `,
+    ], { isolationLevel: 'Serializable' }),
+  })
+  const result = (results as unknown[][])[0]?.[0] as Row | undefined
+  if (!result) throw new MerchantAccessError()
+  if (result.updatedId == null && String(result.currentStatus) !== 'ACTIVE') throw new CampaignServiceError('CAMPAIGN_LIMIT_REACHED', decision.message, 409)
+  return mapCampaign(candidate, String(current.merchant.slug), Boolean(current.merchant.referenceData))
 }
 
 export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[] }) {
@@ -247,10 +349,11 @@ export async function setCampaignFrames(input: { merchantId: string; campaignId:
   const sql = getCloudflareSql()
   const frames = await sql`SELECT "id", "sku", "externalId", "productUrl", "name", "imageUrl", "shape", "widthClass", "source", "enrichmentStatus", "status" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId} AND "id" = ANY(${frameIds}) AND "status" = 'ACTIVE'`
   if (frames.length !== frameIds.length || frames.some((frame) => !validateCatalogFrame(frame as never).valid)) throw new MerchantAccessError()
-  const statements = [sql`DELETE FROM "ExperienceFrame" WHERE "experienceId" = ${input.campaignId} AND "merchantId" = ${input.merchantId}`, ...frameIds.map((frameId, sortOrder) => sql`INSERT INTO "ExperienceFrame" ("experienceId", "merchantId", "merchantFrameId", "sortOrder", "active", "createdAt", "updatedAt") VALUES (${input.campaignId}, ${input.merchantId}, ${frameId}, ${sortOrder}, true, NOW(), NOW()) ON CONFLICT ("experienceId", "merchantFrameId") DO UPDATE SET "sortOrder" = EXCLUDED."sortOrder", "active" = true, "updatedAt" = NOW()`)]
-  await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
-    mutation: () => sql.transaction(statements, { isolationLevel: 'Serializable' }),
+  await experienceCommandsCloudflare.replaceCatalogSelection({
+    merchantId: input.merchantId,
+    experienceId: input.campaignId,
+    frameIds,
+    expectedType: 'CAMPAIGN',
   })
   return { frameIds }
 }
@@ -276,8 +379,9 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
   // Neon tagged-template transactions are statement-based. Keep the
   // Merchant row lock, ACTIVE count, and conditional activation in one SQL
   // statement so concurrent publishers cannot both observe the same slot.
-  const results = await withPublicDiscoveryInvalidation({
-      target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
+  const results = await experienceCommandsCloudflare.runCampaignLifecycleMutation({
+      merchantId: input.merchantId,
+      experienceId: input.campaignId,
       mutation: () => sql.transaction([
         sql`
           WITH locked_merchant AS MATERIALIZED (
@@ -323,7 +427,7 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
         `,
       ], { isolationLevel: 'Serializable' }),
     })
-  const result = results[0]?.[0]
+  const result = (results as unknown[][])[0]?.[0] as Row | undefined
   if (!result) throw new MerchantAccessError()
   if (result.activatedId == null && String(result.currentStatus) !== 'ACTIVE') {
     throw new CampaignServiceError('CAMPAIGN_LIMIT_REACHED', decision.message, 409)
@@ -333,18 +437,10 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
 
 export async function archiveCampaign(input: { merchantId: string; campaignId: string }) {
   const current = await fetchCampaign(input.merchantId, input.campaignId)
-  await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
-    mutation: async () => {
-      const sql = getCloudflareSql()
-      const rows = await sql`
-        UPDATE "Experience"
-        SET "status" = 'ARCHIVED', "updatedAt" = NOW()
-        WHERE "id" = ${input.campaignId} AND "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN'
-        RETURNING "id"
-      `
-      if (!rows[0]) throw new MerchantAccessError()
-    },
+  await experienceCommandsCloudflare.updateCampaignConfiguration({
+    merchantId: input.merchantId,
+    experienceId: input.campaignId,
+    patch: { status: 'ARCHIVED' },
   })
   return getCampaign({ merchantId: input.merchantId, campaignId: input.campaignId })
 }

@@ -25,7 +25,28 @@ import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credent
 type SqlMock = jest.Mock & { transaction: jest.Mock; unsafe: jest.Mock }
 
 function sqlMock(results: unknown[][], transactions: unknown[][][] = []): SqlMock {
-  const sql = jest.fn(() => Promise.resolve(results.shift() ?? [])) as SqlMock
+  const seenRows: Record<string, unknown>[] = []
+  const sql = jest.fn((...args: unknown[]) => {
+    const strings = args[0] as TemplateStringsArray | undefined
+    const query = strings?.join('') ?? ''
+    if (query.includes('FROM "Experience" e JOIN "Merchant" m')) {
+      const experienceId = String(args[1] ?? '')
+      const merchantId = String(args[2] ?? '')
+      const experience = seenRows.find((row) => row.id === experienceId && (!row.merchantId || row.merchantId === merchantId))
+      const merchant = seenRows.find((row) => row.id === merchantId && typeof row.slug === 'string')
+        ?? seenRows.find((row) => row.slug === merchantId)
+      if (!experience || !merchant) return Promise.resolve([])
+      return Promise.resolve([{
+        id: experience.id,
+        slug: experience.slug ?? (experience.type === 'STORE' ? 'store' : ''),
+        type: experience.type ?? (experienceId.startsWith('campaign') ? 'CAMPAIGN' : 'STORE'),
+        merchantSlug: merchant.slug,
+      }])
+    }
+    const rows = results.shift() ?? []
+    seenRows.push(...rows.filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === 'object'))
+    return Promise.resolve(rows)
+  }) as SqlMock
   sql.unsafe = jest.fn((value: string) => value)
   sql.transaction = jest.fn(() => Promise.resolve(transactions.shift() ?? []))
   return sql
@@ -173,7 +194,7 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     const updateSql = sql.mock.calls.map(([strings]) => (strings as TemplateStringsArray).join('')).find((query) => query.includes('UPDATE "Experience"'))
     expect(updateSql).toBeDefined()
     expect(updateSql).toContain('UPDATE "Experience"')
-    expect(updateSql).not.toContain('"status" =')
+    expect(updateSql).toContain('"status" = CASE WHEN')
   })
 
   it('approves a manually completed pending shape and audits correction as MerchantFrame', async () => {
@@ -368,9 +389,13 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     }
     let active = 0
     let lockTail = Promise.resolve()
-    const sql = jest.fn((strings: TemplateStringsArray) => {
+    const sql = jest.fn((strings: TemplateStringsArray, ...values: unknown[]) => {
       const query = strings.join('')
       if (query.includes('SELECT "id", "slug", "referenceData"')) return Promise.resolve([merchant])
+      if (query.includes('FROM "Experience" e JOIN "Merchant" m')) {
+        const experienceId = String(values[0])
+        return Promise.resolve([{ id: experienceId, slug: experienceId, type: 'CAMPAIGN', merchantSlug: merchant.slug }])
+      }
       if (query.includes('SELECT e."id"')) return Promise.resolve([{ ...campaign, status: active > 0 ? 'ACTIVE' : 'DRAFT' }])
       if (query.includes('SELECT count(*)::int')) return Promise.resolve([{ count: active }])
       return Promise.resolve([])

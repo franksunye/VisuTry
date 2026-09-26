@@ -145,6 +145,17 @@ end_at?
 reference_data
 ```
 
+Shared Experience configuration and catalog writes use one application command boundary for Store and
+Campaign configuration, Journey/Delivery policy, presentation and handoff, and
+catalog selection. The boundary validates the complete command before a write,
+scopes the aggregate by merchant, and owns public-discovery invalidation. The
+Prisma and Cloudflare SQL adapters provide persistence parity; they do not own
+separate policy semantics. Campaign objective, gate, schedule, readiness, and
+merchant activation-capacity rules remain Campaign-specific. In particular,
+the capacity-checked Campaign activation transaction stays inside the Campaign
+application service and is invoked through the shared lifecycle invalidation
+boundary.
+
 Additional Campaign-only configuration may later include:
 
 ```text

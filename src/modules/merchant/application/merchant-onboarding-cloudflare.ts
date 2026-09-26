@@ -1,6 +1,7 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { getPublicEdgeTagsForCloudflareMerchant } from '@/modules/store/application/public-edge-paths-cloudflare'
+import { experienceCommandsCloudflare } from '@/modules/store/application/experience-command-service-cloudflare'
 import { getMerchantProfile } from './get-merchant-profile-cloudflare'
 import { MerchantAccessError } from './merchant-access-cloudflare'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials-cloudflare'
@@ -572,20 +573,17 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
     resourceId: input.storeId,
     metadata: { store_id: input.storeId },
   }
-  const updated = await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
-    mutation: async () => {
-      const statements = [sql`UPDATE "Experience" SET "name" = ${name}, "headline" = ${headline}, "description" = ${description}, "updatedAt" = NOW() WHERE "id" = ${input.storeId} AND "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE' RETURNING "id", "slug", "name", "status", "headline", "description"`]
-      if (meaningfulChange) statements.push(merchantActivationEventInsertStatement(sql, activationInput))
-      const results = await sql.transaction(statements, { isolationLevel: 'Serializable' })
-      const rows = results[0] ?? []
-      if (!rows[0]) throw new MerchantAccessError()
-      if (meaningfulChange) logMerchantActivationEventIfInserted(activationInput, results[1])
-      return rows[0]
-    },
+  const updatedResult = await experienceCommandsCloudflare.updateSharedConfiguration({
+    merchantId: input.actor.merchantId,
+    experienceId: input.storeId,
+    expectedType: 'STORE',
+    patch: { name, headline, description },
+    atomicEffects: meaningfulChange ? [merchantActivationEventInsertStatement(sql, activationInput)] : [],
   })
+  const updated = updatedResult as { experience: Row; effects: unknown[][] }
+  if (meaningfulChange) logMerchantActivationEventIfInserted(activationInput, updated.effects[0])
   await audit(input.actor, 'store.updated', input.storeId)
-  return { id: String(updated.id), slug: String(updated.slug), name: String(updated.name), status: String(updated.status), headline: updated.headline == null ? null : String(updated.headline), description: updated.description == null ? null : String(updated.description), publicPath: `/en/store/${merchant.slug}` }
+  return { id: String(updated.experience.id), slug: String(updated.experience.slug), name: String(updated.experience.name), status: String(updated.experience.status), headline: updated.experience.headline == null ? null : String(updated.experience.headline), description: updated.experience.description == null ? null : String(updated.experience.description), publicPath: `/en/store/${merchant.slug}` }
 }
 
 export async function setMerchantStoreFrames(input: { actor: MerchantActorContext; storeId: string; frameIds: string[] }) {
@@ -612,12 +610,14 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
     resourceId: input.storeId,
     metadata: { store_id: input.storeId, frame_count: frameIds.length },
   }
-  const statements = [sql`DELETE FROM "ExperienceFrame" WHERE "experienceId" = ${input.storeId} AND "merchantId" = ${input.actor.merchantId}`, ...frameIds.map((frameId, sortOrder) => sql`INSERT INTO "ExperienceFrame" ("experienceId", "merchantId", "merchantFrameId", "sortOrder", "active", "createdAt", "updatedAt") VALUES (${input.storeId}, ${input.actor.merchantId}, ${frameId}, ${sortOrder}, true, NOW(), NOW()) ON CONFLICT ("experienceId", "merchantFrameId") DO UPDATE SET "sortOrder" = EXCLUDED."sortOrder", "active" = true, "updatedAt" = NOW()`)]
-  if (frameIds.length) statements.push(merchantActivationEventInsertStatement(sql, activationInput))
-  const transactionResults = await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
-    mutation: () => sql.transaction(statements, { isolationLevel: 'Serializable' }),
+  const selection = await experienceCommandsCloudflare.replaceCatalogSelection({
+    merchantId: input.actor.merchantId,
+    experienceId: input.storeId,
+    expectedType: 'STORE',
+    frameIds,
+    atomicEffects: frameIds.length ? [merchantActivationEventInsertStatement(sql, activationInput)] : [],
   })
+  const transactionResults = selection.mutationResult as unknown[][]
   if (frameIds.length) logMerchantActivationEventIfInserted(activationInput, transactionResults.at(-1))
   await audit(input.actor, 'store.frames_updated', input.storeId)
   return { storeId: input.storeId, frameIds, frameCount: frameIds.length }
@@ -671,23 +671,22 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
     resourceId: input.storeId,
     metadata: { store_id: input.storeId },
   }
-  const published = await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
-    mutation: async () => {
-      if (!shouldPublish) return store.store
-      const statements = [sql`
-        UPDATE "Experience"
-        SET "status" = 'ACTIVE', "updatedAt" = NOW()
-        WHERE "id" = ${input.storeId} AND "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE' AND "status" = 'DRAFT'
-        RETURNING "id", "status"
-      `, merchantActivationEventInsertStatement(sql, activationInput)]
-      const results = await sql.transaction(statements, { isolationLevel: 'Serializable' })
-      const rows = results[0] ?? []
-      if (!rows[0]) throw new MerchantOnboardingError('STORE_PUBLISH_FAILED', 'The Store could not be published.', 409)
-      logMerchantActivationEventIfInserted(activationInput, results[1])
-      return rows[0]
-    },
-  })
+  const published = shouldPublish
+    ? await experienceCommandsCloudflare.updateSharedConfiguration({
+        merchantId: input.actor.merchantId,
+        experienceId: input.storeId,
+        expectedType: 'STORE',
+        patch: { status: 'ACTIVE' },
+        atomicEffects: [merchantActivationEventInsertStatement(sql, activationInput)],
+      }).then((value) => {
+        const result = value as { experience: Row; effects: unknown[][] }
+        if (String(store.store.status) === 'DRAFT' && String(result.experience.status ?? 'ACTIVE') !== 'ACTIVE') {
+          throw new MerchantOnboardingError('STORE_PUBLISH_FAILED', 'The Store could not be published.', 409)
+        }
+        logMerchantActivationEventIfInserted(activationInput, result.effects[0])
+        return result.experience
+      })
+    : store.store
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.published', resourceType: 'Experience', resourceId: String(store.store.id) })
   return { id: String((published as Row).id), status: String((published as Row).status), publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }
 }
