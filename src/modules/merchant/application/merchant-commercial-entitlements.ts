@@ -1,16 +1,18 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
-  canUseCommercialFeature,
   isCommercialPeriodActive,
-  resolveMerchantCommercialState,
-  resolveMerchantCommercialPeriod,
-  type CommercialFeature,
   type CommercialUsage,
   type EntitlementDecision,
   type MerchantCommercialFields,
   type MerchantCommercialState,
 } from '@/modules/store/domain/merchant-commercial-state'
+import {
+  decideMerchantCommercialFeature,
+  resolveMerchantCommercialCapability,
+  type MerchantCommercialCapability,
+} from '@/modules/store/domain/merchant-commercial-capability'
+import type { CommercialFeature } from '@/modules/store/domain/merchant-commercial-state'
 export { commercialStateForPresentation } from '@/modules/store/domain/merchant-commercial-state'
 
 const commercialMerchantSelect = {
@@ -22,6 +24,7 @@ const commercialMerchantSelect = {
   entitlementVersion: true,
   commerceSessionAllowance: true,
   standardRenderAllowance: true,
+  premiumRenderAllowance: true,
   campaignAllowance: true,
   entitlementEffectiveFrom: true,
   billingPeriodEnd: true,
@@ -53,7 +56,7 @@ async function usageForMerchant(
   row: CommercialMerchantRow,
   now: Date,
 ): Promise<CommercialUsage> {
-  const period = resolveMerchantCommercialPeriod(fields(row), now)
+  const period = resolveMerchantCommercialCapability(fields(row), {}, now).state.period
   const periodFilter = period.start || period.end
     ? { createdAt: { ...(period.start ? { gte: period.start } : {}), ...(period.end ? { lt: period.end } : {}) } }
     : {}
@@ -67,11 +70,15 @@ async function usageForMerchant(
 }
 
 export async function getMerchantCommercialState(input: { merchantId: string; now?: Date }): Promise<MerchantCommercialState> {
+  return (await getMerchantCommercialCapability(input)).state
+}
+
+export async function getMerchantCommercialCapability(input: { merchantId: string; now?: Date }): Promise<MerchantCommercialCapability> {
   const now = input.now ?? new Date()
   const merchant = await prisma.merchant.findUnique({ where: { id: input.merchantId }, select: commercialMerchantSelect })
   if (!merchant) throw new Error('Merchant not found')
   const usage = await usageForMerchant(input.merchantId, merchant, now)
-  return resolveMerchantCommercialState(fields(merchant), usage, now)
+  return resolveMerchantCommercialCapability(fields(merchant), usage, now)
 }
 
 export async function decideMerchantFeature(input: {
@@ -79,8 +86,8 @@ export async function decideMerchantFeature(input: {
   feature: CommercialFeature
   now?: Date
 }): Promise<{ state: MerchantCommercialState; decision: EntitlementDecision }> {
-  const state = await getMerchantCommercialState({ merchantId: input.merchantId, now: input.now })
-  return { state, decision: canUseCommercialFeature(state, input.feature) }
+  const capability = await getMerchantCommercialCapability({ merchantId: input.merchantId, now: input.now })
+  return { state: capability.state, decision: capability.decisions[input.feature] }
 }
 
 /** Server-authoritative feature decision API for Merchant runtime callers. */
@@ -116,7 +123,7 @@ export async function canAddMerchantCatalogItems(input: { merchantId: string; ad
   const limit = state.plan?.catalogItems ?? null
   const allowed = limit === null || state.usage.catalogItems + additionalItems <= limit
   if (allowed) return { allowed: true as const, state }
-  const decision = canUseCommercialFeature({ ...state, featureAvailability: { ...state.featureAvailability, CATALOG: false } }, 'CATALOG')
+  const decision = decideMerchantCommercialFeature({ ...state, featureAvailability: { ...state.featureAvailability, CATALOG: false } }, 'CATALOG')
   return { allowed: false as const, state, decision }
 }
 
@@ -134,9 +141,9 @@ export async function consumeAICommerceSession(input: {
   const now = input.now ?? new Date()
   const merchant = await prisma.merchant.findUnique({ where: { id: input.merchantId }, select: commercialMerchantSelect })
   if (!merchant) throw new Error('Merchant not found')
-  const period = resolveMerchantCommercialPeriod(fields(merchant), now)
+  const period = resolveMerchantCommercialCapability(fields(merchant), {}, now).state.period
   const current = await usageForMerchant(input.merchantId, merchant, now)
-  const state = resolveMerchantCommercialState(fields(merchant), current, now)
+  const state = resolveMerchantCommercialCapability(fields(merchant), current, now).state
   const limit = state.aiCommerceSessionLimit
   if (limit === null) return { consumed: false, alreadyConsumed: false, used: current.aiCommerceSessions, limit: null, state }
 
@@ -172,6 +179,6 @@ export async function consumeAICommerceSession(input: {
       return { consumed: false, alreadyConsumed: true, used: raced }
     }
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
-  const nextState = resolveMerchantCommercialState(fields(merchant), { ...current, aiCommerceSessions: result.used }, now)
+  const nextState = resolveMerchantCommercialCapability(fields(merchant), { ...current, aiCommerceSessions: result.used }, now).state
   return { ...result, limit, state: nextState }
 }

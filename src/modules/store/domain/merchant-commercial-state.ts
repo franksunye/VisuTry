@@ -1,4 +1,4 @@
-import { resolveMerchantUsagePeriod } from './merchant-entitlement'
+import { isMerchantEntitlementActive, resolveMerchantEntitlement, resolveMerchantUsagePeriod } from './merchant-entitlement'
 import {
   getMerchantPlanDefinition,
   isMerchantPlanCode,
@@ -34,6 +34,7 @@ export type MerchantCommercialFields = {
   entitlementVersion?: string | null
   commerceSessionAllowance?: number | null
   standardRenderAllowance?: number | null
+  premiumRenderAllowance?: number | null
   campaignAllowance?: number | null
   entitlementEffectiveFrom?: Date | null
   billingPeriodEnd?: Date | null
@@ -58,6 +59,7 @@ export type MerchantCommercialState = {
   period: UsagePeriod
   usage: CommercialUsage
   aiCommerceSessionLimit: number | null
+  standardTryOnGenerationLimit: number | null
   aiCommerceSessionRemaining: number | null
   aiCommerceSessionPercentage: number | null
   threshold: UsageThreshold | null
@@ -139,6 +141,8 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
     standardTryOnGenerations: Math.max(0, usage.standardTryOnGenerations ?? 0),
   }
   if (!isCanonicalMerchantCommercialFields(fields)) {
+    const compatibilityEntitlement = resolveMerchantEntitlement(fields, now)
+    const pilotTryOnActive = isMerchantEntitlementActive(compatibilityEntitlement, now)
     return {
       commercialState: 'LEGACY_UNMIGRATED',
       planCode: null,
@@ -147,6 +151,7 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
       period: { kind: 'none', start: null, end: null },
       usage: normalizedUsage,
       aiCommerceSessionLimit: null,
+      standardTryOnGenerationLimit: null,
       aiCommerceSessionRemaining: null,
       aiCommerceSessionPercentage: null,
       threshold: null,
@@ -155,7 +160,9 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
         CATALOG: true,
         CAMPAIGN: true,
         RECOMMENDATION: true,
-        GENERATIVE_TRY_ON: true,
+        // Legacy rows retain their old access posture, except an explicitly
+        // recognized Founding Pilot still ends at its fixed period boundary.
+        GENERATIVE_TRY_ON: pilotTryOnActive,
         COMPARE: true,
         BASIC_ANALYTICS: true,
         ADVANCED_ANALYTICS: true,
@@ -167,20 +174,27 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
   const plan = getMerchantPlanDefinition(planCode)
   const period = resolveMerchantCommercialPeriod(fields, now)
   const limit = plan.aiCommerceSessions
+  const standardTryOnGenerationLimit = plan.standardTryOnGenerations === null
+    ? null
+    : resolveMerchantEntitlement(fields, now).standardRenderAllowance
   const threshold = usageThreshold(normalizedUsage.aiCommerceSessions, limit)
+  const standardTryOnGenerationsExhausted = standardTryOnGenerationLimit !== null
+    && normalizedUsage.standardTryOnGenerations >= standardTryOnGenerationLimit
   const periodExpired = Boolean(period.end && now.getTime() >= period.end.getTime())
   const explicitStatus = parseStatus(fields.commercialStatus)
   let status: CommercialStatus
   if (planCode === 'FREE') status = 'FREE'
   else if (planCode === 'FOUNDING_PILOT') {
-    status = periodExpired ? 'PILOT_EXPIRED'
-      : threshold === 'LIMIT_REACHED' ? 'USAGE_EXHAUSTED'
+    status = periodExpired || explicitStatus === 'PILOT_EXPIRED' ? 'PILOT_EXPIRED'
+      : explicitStatus === 'USAGE_EXHAUSTED' ? 'USAGE_EXHAUSTED'
+      : threshold === 'LIMIT_REACHED' || standardTryOnGenerationsExhausted ? 'USAGE_EXHAUSTED'
         : threshold === 'NOTICE' || threshold === 'WARNING' ? 'USAGE_WARNING'
           : 'PILOT_ACTIVE'
   }
-  else if (periodExpired) status = 'EXPIRED'
+  else if (periodExpired || explicitStatus === 'EXPIRED') status = 'EXPIRED'
   else if (explicitStatus && ['CANCEL_AT_PERIOD_END', 'PAYMENT_ACTION_REQUIRED', 'PAST_DUE'].includes(explicitStatus)) status = explicitStatus
-  else if (threshold === 'LIMIT_REACHED') status = 'USAGE_EXHAUSTED'
+  else if (explicitStatus === 'USAGE_EXHAUSTED') status = 'USAGE_EXHAUSTED'
+  else if (threshold === 'LIMIT_REACHED' || standardTryOnGenerationsExhausted) status = 'USAGE_EXHAUSTED'
   else if (threshold === 'NOTICE' || threshold === 'WARNING') status = 'USAGE_WARNING'
   else status = 'PAID_ACTIVE'
 
@@ -208,6 +222,7 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
     commercialState: 'CANONICAL',
     planCode, plan, status, period, usage: normalizedUsage,
     aiCommerceSessionLimit: limit,
+    standardTryOnGenerationLimit,
     aiCommerceSessionRemaining: limit === null ? null : Math.max(0, limit - normalizedUsage.aiCommerceSessions),
     aiCommerceSessionPercentage: percentageUsed(normalizedUsage.aiCommerceSessions, limit),
     threshold, featureAvailability, primaryAction,
@@ -240,13 +255,23 @@ function recommendedCatalogPlan(planCode: MerchantPlanCode): MerchantPlanCode {
 
 export function canUseCommercialFeature(state: MerchantCommercialState, feature: CommercialFeature): EntitlementDecision {
   if (state.status === 'LEGACY_UNMIGRATED') {
+    if (!state.featureAvailability[feature]) {
+      return { allowed: false, feature, code: 'COMMERCIAL_PERIOD_EXPIRED', message: 'This feature is not currently available for this commercial period.' }
+    }
     return { allowed: true, feature, message: 'Existing Store access remains available until a current plan is selected.' }
   }
   if (state.featureAvailability[feature]) return { allowed: true, feature, message: 'Available.' }
   if (['EXPIRED', 'PILOT_EXPIRED', 'PAYMENT_ACTION_REQUIRED', 'PAST_DUE'].includes(state.status)) return { allowed: false, feature, code: 'COMMERCIAL_PERIOD_EXPIRED', message: state.status === 'PILOT_EXPIRED' ? 'Your Founding Pilot has ended. Your Store and catalog remain available.' : 'This feature is not currently available for this commercial period.' }
   if (feature === 'CAMPAIGN') return { allowed: false, feature, code: 'CAMPAIGN_LIMIT_REACHED', message: `Your current plan includes up to ${state.plan?.activeCampaigns ?? 'custom'} active Campaigns.`, current: state.usage.activeCampaigns, limit: state.plan?.activeCampaigns, recommendedPlan: recommendedCampaignPlan(state.planCode ?? 'FREE') }
   if (feature === 'CATALOG') return { allowed: false, feature, code: 'CATALOG_LIMIT_REACHED', message: `Your current plan includes up to ${state.plan?.catalogItems ?? 'custom'} catalog items.`, current: state.usage.catalogItems, limit: state.plan?.catalogItems, recommendedPlan: recommendedCatalogPlan(state.planCode ?? 'FREE') }
-  if (feature === 'GENERATIVE_TRY_ON' && state.status === 'USAGE_EXHAUSTED') return { allowed: false, feature, code: 'AI_USAGE_LIMIT_REACHED', message: 'Your included AI Commerce Sessions are fully used. Your Store remains live. Virtual Try-On is paused.', current: state.usage.aiCommerceSessions, limit: state.aiCommerceSessionLimit, recommendedPlan: state.planCode === 'LAUNCH' ? 'GROWTH' : 'SCALE' }
+  if (feature === 'GENERATIVE_TRY_ON' && state.status === 'USAGE_EXHAUSTED') {
+    const sessionLimitReached = state.aiCommerceSessionLimit !== null
+      && state.usage.aiCommerceSessions >= state.aiCommerceSessionLimit
+    const current = sessionLimitReached ? state.usage.aiCommerceSessions : state.usage.standardTryOnGenerations
+    const limit = sessionLimitReached ? state.aiCommerceSessionLimit : state.standardTryOnGenerationLimit
+    const quota = sessionLimitReached ? 'AI Commerce Sessions' : 'standard Try-On generations'
+    return { allowed: false, feature, code: 'AI_USAGE_LIMIT_REACHED', message: `Your included ${quota} are fully used. Your Store remains live. Virtual Try-On is paused.`, current, limit, recommendedPlan: state.planCode === 'LAUNCH' ? 'GROWTH' : 'SCALE' }
+  }
   return { allowed: false, feature, code: 'FEATURE_NOT_INCLUDED', message: feature === 'GENERATIVE_TRY_ON' ? 'Virtual Try-On is not included in the Free plan.' : 'This feature is not included in the current plan.', recommendedPlan: 'LAUNCH' }
 }
 

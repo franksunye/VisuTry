@@ -7,7 +7,10 @@ import {
   buildExperienceDiscoveryMetadata,
 } from '@/lib/store-discovery-seo'
 import { SITE_CONFIG } from '@/lib/seo'
-import { getPublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
+import {
+  getPublicExperienceDiscovery,
+  resolvePublicGenerativeTryOnAvailability,
+} from '@/modules/store/application/get-public-experience-discovery'
 import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
 
 const date = new Date('2026-08-12T00:00:00.000Z')
@@ -143,6 +146,152 @@ function discovery(): PublicExperienceDiscovery {
 }
 
 describe('Store/Campaign discovery SEO', () => {
+  it.each(['STORE', 'CAMPAIGN'] as const)(
+    'projects the same usage-aware Try-On capability for public %s discovery',
+    async (type) => {
+      const merchantRecord = {
+        id: 'merchant-1',
+        slug: 'visutry-optical',
+        name: 'VisuTry Optical',
+        logoUrl: null,
+        websiteUrl: 'https://merchant.example.test',
+        accentColor: '#1f4b5a',
+        status: 'ACTIVE',
+        planCode: 'LAUNCH',
+        commercialStatus: 'PAID_ACTIVE',
+        entitlementEffectiveFrom: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        billingPeriodEnd: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        createdAt: date,
+        updatedAt: date,
+      }
+      const repositories = {
+        merchants: { findBySlug: jest.fn().mockResolvedValue(merchantRecord) },
+        experiences: {
+          findDefaultStore: jest.fn().mockResolvedValue({
+            id: 'experience-1', merchantId: 'merchant-1', type: 'STORE', slug: 'store', name: 'Store', status: 'ACTIVE',
+            headline: null, description: null, heroAssetUrl: null, referenceData: false, updatedAt: date,
+          }),
+          findPublicCampaignByMerchantAndSlug: jest.fn().mockResolvedValue({
+            id: 'experience-1', merchantId: 'merchant-1', type: 'CAMPAIGN', slug: 'petite-fit', name: 'Petite Fit', status: 'ACTIVE',
+            headline: null, description: null, heroAssetUrl: null, referenceData: false, updatedAt: date,
+          }),
+        },
+        frames: { findActiveByMerchant: jest.fn().mockResolvedValue(frames()) },
+      }
+      const discoveryFor = (aiCommerceSessions: number) => getPublicExperienceDiscovery({
+        ...repositories,
+        slug: merchantRecord.slug,
+        experienceSlug: type === 'CAMPAIGN' ? 'petite-fit' : null,
+        commercialUsage: { aiCommerceSessions },
+      } as never)
+
+      const belowLimit = await discoveryFor(0)
+      const atLimit = await discoveryFor(1000)
+      expect(belowLimit?.merchant.generativeTryOnAvailable).toBe(true)
+      expect(atLimit?.merchant.generativeTryOnAvailable).toBe(false)
+    },
+  )
+
+  it.each(['STORE', 'CAMPAIGN'] as const)(
+    'projects Founding Pilot render exhaustion consistently for public %s discovery',
+    async (type) => {
+      const merchantRecord = {
+        id: 'merchant-pilot', slug: 'pilot-optical', name: 'Pilot Optical', status: 'ACTIVE',
+        planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE',
+        createdAt: new Date('2026-08-01T00:00:00.000Z'), updatedAt: date,
+      }
+      const repositories = {
+        merchants: { findBySlug: jest.fn().mockResolvedValue(merchantRecord) },
+        experiences: {
+          findDefaultStore: jest.fn().mockResolvedValue({
+            id: 'experience-pilot', merchantId: merchantRecord.id, type: 'STORE', slug: 'store', name: 'Store', status: 'ACTIVE',
+            headline: null, description: null, heroAssetUrl: null, referenceData: false, updatedAt: date,
+          }),
+          findPublicCampaignByMerchantAndSlug: jest.fn().mockResolvedValue({
+            id: 'experience-pilot', merchantId: merchantRecord.id, type: 'CAMPAIGN', slug: 'summer', name: 'Summer', status: 'ACTIVE',
+            headline: null, description: null, heroAssetUrl: null, referenceData: false, updatedAt: date,
+          }),
+        },
+        frames: { findActiveByMerchant: jest.fn().mockResolvedValue(frames()) },
+      }
+      const discoveryFor = (standardTryOnGenerations: number, aiCommerceSessions = 0) => getPublicExperienceDiscovery({
+        ...repositories,
+        slug: merchantRecord.slug,
+        experienceSlug: type === 'CAMPAIGN' ? 'summer' : null,
+        commercialUsage: { aiCommerceSessions, standardTryOnGenerations },
+      } as never)
+
+      const underBothLimits = await discoveryFor(3499, 1499)
+      const renderLimitReached = await discoveryFor(3500, 0)
+      const sessionLimitReached = await discoveryFor(100, 1500)
+      expect(underBothLimits?.merchant.generativeTryOnAvailable).toBe(true)
+      expect(renderLimitReached?.merchant.generativeTryOnAvailable).toBe(false)
+      expect(sessionLimitReached?.merchant.generativeTryOnAvailable).toBe(false)
+    },
+  )
+
+  it('loads current-period usage for the live public capability overlay', async () => {
+    const merchantRecord = {
+      id: 'merchant-1', slug: 'visutry-optical', status: 'ACTIVE', planCode: 'LAUNCH',
+      commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: new Date('2026-08-01T00:00:00.000Z'),
+      billingPeriodEnd: new Date('2026-09-01T00:00:00.000Z'), createdAt: date,
+    }
+    const countAICommerceSessions = jest.fn().mockResolvedValue(1000)
+    const available = await resolvePublicGenerativeTryOnAvailability({
+      slug: merchantRecord.slug,
+      merchants: { findPublicBySlug: jest.fn().mockResolvedValue(merchantRecord) } as never,
+      usage: { countAICommerceSessions } as never,
+      now: new Date('2026-08-15T00:00:00.000Z'),
+    })
+
+    expect(available).toBe(false)
+    expect(countAICommerceSessions).toHaveBeenCalledWith({
+      merchantId: 'merchant-1',
+      periodStart: merchantRecord.entitlementEffectiveFrom,
+      periodEnd: merchantRecord.billingPeriodEnd,
+    })
+  })
+
+  it('counts both Founding Pilot quotas for the live public capability overlay', async () => {
+    const merchantRecord = {
+      id: 'merchant-pilot', slug: 'pilot-optical', status: 'ACTIVE', planCode: 'FOUNDING_PILOT',
+      commercialStatus: 'PILOT_ACTIVE', createdAt: new Date('2026-08-01T00:00:00.000Z'),
+    }
+    const countAICommerceSessions = jest.fn().mockResolvedValue(0)
+    const countSuccessfulRenders = jest.fn().mockResolvedValue(3500)
+    const available = await resolvePublicGenerativeTryOnAvailability({
+      slug: merchantRecord.slug,
+      merchants: { findPublicBySlug: jest.fn().mockResolvedValue(merchantRecord) } as never,
+      usage: { countAICommerceSessions, countSuccessfulRenders } as never,
+      now: new Date('2026-08-15T00:00:00.000Z'),
+    })
+
+    expect(available).toBe(false)
+    expect(countAICommerceSessions).toHaveBeenCalledTimes(1)
+    expect(countSuccessfulRenders).toHaveBeenCalledWith(merchantRecord.id)
+  })
+
+  it.each([
+    ['FOUNDING_LAUNCH_BONUS', undefined, 5000],
+    [null, 4200, 4200],
+  ] as const)('honors Founding Pilot render allowances in the public overlay (%s, %s)', async (commercialExceptionCode, standardRenderAllowance, limit) => {
+    const merchantRecord = {
+      id: 'merchant-pilot-special', slug: 'pilot-special', status: 'ACTIVE', planCode: 'FOUNDING_PILOT',
+      commercialStatus: 'PILOT_ACTIVE', createdAt: new Date('2026-08-01T00:00:00.000Z'),
+      commercialExceptionCode, standardRenderAllowance: standardRenderAllowance ?? null,
+    }
+    const countAICommerceSessions = jest.fn().mockResolvedValue(0)
+    const countSuccessfulRenders = jest.fn().mockResolvedValue(limit - 1)
+    const usage = { countAICommerceSessions, countSuccessfulRenders } as never
+    const merchants = { findPublicBySlug: jest.fn().mockResolvedValue(merchantRecord) } as never
+    const input = { slug: merchantRecord.slug, merchants, usage, now: new Date('2026-08-15T00:00:00.000Z') }
+
+    await expect(resolvePublicGenerativeTryOnAvailability(input)).resolves.toBe(true)
+    countSuccessfulRenders.mockResolvedValue(limit)
+    await expect(resolvePublicGenerativeTryOnAvailability(input)).resolves.toBe(false)
+    expect(countSuccessfulRenders).toHaveBeenCalledTimes(2)
+  })
+
   it('uses factual merchant/campaign metadata and a clean canonical', () => {
     const metadata = buildExperienceDiscoveryMetadata({
       discovery: discovery(),

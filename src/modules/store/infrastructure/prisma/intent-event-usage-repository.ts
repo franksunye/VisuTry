@@ -1,10 +1,7 @@
 import type { MerchantEvent, MerchantIntent, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { sanitizeEventMetadata } from '../../domain/privacy'
-import {
-  merchantUsageCreatedAtFilter,
-  resolveMerchantEntitlement,
-} from '../../domain/merchant-entitlement'
+import { resolveMerchantCommercialCapability } from '../../domain/merchant-commercial-capability'
 import type {
   MerchantEventRecord,
   MerchantEventRepository,
@@ -75,7 +72,7 @@ async function usageCreatedAtForMerchant(
     },
   })
   if (!merchant) return undefined
-  return merchantUsageCreatedAtFilter(resolveMerchantEntitlement(merchant))
+  return resolveMerchantCommercialCapability(merchant).storeRuntime.usageCreatedAt
 }
 
 export function createPrismaMerchantIntentRepository(): MerchantIntentRepository {

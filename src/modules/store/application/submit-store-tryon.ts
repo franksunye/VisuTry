@@ -9,11 +9,8 @@ import {
   buildStoreEventIdempotencyKey,
   buildStoreGenerationIdempotencyKey,
   evaluateStoreDemoAllowance,
-  isMerchantEntitlementActive,
   merchantInactive,
   merchantNotFound,
-  merchantUsageCreatedAtFilter,
-  resolveMerchantEntitlement,
   selectUsagePolicy,
   resolveStoreExperiencePolicy,
   experiencePolicyMetadata,
@@ -23,7 +20,7 @@ import {
   authRequiredForContinuation,
   consumerEntitlementRequired,
 } from '../domain'
-import { canUseCommercialFeature, isCanonicalMerchantCommercialFields } from '../domain/merchant-commercial-state'
+import { resolveMerchantCommercialCapability, decideMerchantCommercialFeature } from '../domain/merchant-commercial-capability'
 import { consumeAICommerceSession } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { checkUserQuota } from '@/lib/quota'
 import { calculateExpiresAt } from '@/config/retention'
@@ -586,8 +583,10 @@ export async function submitStoreFrameTryOn(
     )
   }
 
-  const entitlement = resolveMerchantEntitlement(merchant)
-  if (!isMerchantEntitlementActive(entitlement)) {
+  const commercialCapability = resolveMerchantCommercialCapability(merchant)
+  const storeRuntime = commercialCapability.storeRuntime
+  if (commercialCapability.decisions.GENERATIVE_TRY_ON.code === 'COMMERCIAL_PERIOD_EXPIRED'
+    && storeRuntime.persistedGenerationOrigin === 'STORE_PILOT') {
     throw new StoreDomainError(
       'MERCHANT_INACTIVE',
       'This store is temporarily unavailable.',
@@ -595,7 +594,7 @@ export async function submitStoreFrameTryOn(
       'Merchant Pilot entitlement period is not active.',
     )
   }
-  const usageCreatedAt = merchantUsageCreatedAtFilter(entitlement)
+  const usageCreatedAt = storeRuntime.usageCreatedAt
 
   const idempotencyKey = buildStoreGenerationIdempotencyKey({
     merchantSessionId: session.id,
@@ -608,13 +607,12 @@ export async function submitStoreFrameTryOn(
     select: { id: true, userId: true, metadata: true },
   })
   const existingMetadata = (existingBeforeClaim?.metadata ?? {}) as Record<string, unknown>
-  const hasCanonicalCommercialPlan = isCanonicalMerchantCommercialFields(merchant)
-  if (hasCanonicalCommercialPlan && !existingBeforeClaim) {
+  if (commercialCapability.state.commercialState === 'CANONICAL' && !existingBeforeClaim) {
     const commercialSession = await consumeAICommerceSession({
       merchantId: merchant.id,
       merchantSessionId: session.id,
     })
-    const decision = canUseCommercialFeature(commercialSession.state, 'GENERATIVE_TRY_ON')
+    const decision = decideMerchantCommercialFeature(commercialSession.state, 'GENERATIVE_TRY_ON')
     if (!decision.allowed && !commercialSession.alreadyConsumed) {
       throw new StoreDomainError(
         decision.code ?? 'FEATURE_NOT_INCLUDED',
@@ -631,7 +629,7 @@ export async function submitStoreFrameTryOn(
       merchantSessionId: session.id,
       merchantFrameId: frame.id,
     },
-    entitlement.tryOnOrigin,
+    storeRuntime.persistedGenerationOrigin,
   )
   let sponsoredReservationId: string | null = null
   let taskUserId: string | null = null
@@ -693,18 +691,11 @@ export async function submitStoreFrameTryOn(
 
   const claimRenderLimits = usagePolicy.kind === 'consumer_quota'
     ? {
-        ...entitlement.renderLimits,
+        ...storeRuntime.consumerContinuationRenderLimits,
         maxSuccessfulRendersPerMerchant: Number.POSITIVE_INFINITY,
         maxSuccessfulRendersPerSession: Number.POSITIVE_INFINITY,
       }
-    : hasCanonicalCommercialPlan && merchant.planCode !== 'FOUNDING_PILOT'
-      ? {
-          ...entitlement.renderLimits,
-          maxSuccessfulRendersPerMerchant: Number.POSITIVE_INFINITY,
-          maxSuccessfulRendersPerSession: Number.POSITIVE_INFINITY,
-          maxAttemptsPerSession: Number.POSITIVE_INFINITY,
-        }
-      : entitlement.renderLimits
+    : storeRuntime.renderLimits
 
   let claim: Awaited<ReturnType<typeof claimStoreTryOnSlot>>
   try {
@@ -717,7 +708,7 @@ export async function submitStoreFrameTryOn(
       clientIp: input.clientIp,
       renderLimits: claimRenderLimits,
       usageCreatedAt: usagePolicy.kind === 'consumer_quota' ? undefined : usageCreatedAt,
-      tryOnOrigin: entitlement.tryOnOrigin,
+      tryOnOrigin: storeRuntime.persistedGenerationOrigin,
       batchId: input.batchId,
       maxCompareFrames: experiencePolicy.maxCompareFrames,
       userId: taskUserId,
@@ -853,7 +844,7 @@ export async function submitStoreFrameTryOn(
       idempotencyKey,
       clientSubmissionId: input.clientSubmissionId,
       prompt,
-      storeOrigin: entitlement.tryOnOrigin,
+      storeOrigin: storeRuntime.persistedGenerationOrigin,
       userId: taskUserId,
       expiresAt: usagePolicy.kind === 'consumer_quota' ? consumerRetentionExpiresAt : undefined,
       onProviderAccepted: sponsoredReservationId && input.sponsoredUsage

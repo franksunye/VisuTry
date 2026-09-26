@@ -8,7 +8,8 @@ import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readine
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import type { MerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { buildMerchantCommerceIntelligence, type MerchantCommerceActivity } from './merchant-commerce-intelligence'
-import { commercialStateForPresentation, resolveMerchantCommercialPeriod, resolveMerchantCommercialState } from '@/modules/store/domain/merchant-commercial-state'
+import { commercialStateForPresentation } from '@/modules/store/domain/merchant-commercial-state'
+import { resolveMerchantCommercialCapability } from '@/modules/store/domain/merchant-commercial-capability'
 import type { MerchantCatalogFrameSummary, MerchantCatalogSummary, MerchantCommerceIntelligence } from './merchant-control-center'
 
 export type MerchantControlExperience = {
@@ -187,7 +188,7 @@ function toActivity(
 export async function getMerchantControlCenter(input: { merchantId: string }): Promise<MerchantControlCenter | null> {
   const sql = getCloudflareSql()
   const merchantRows = await sql`
-    SELECT "id", "slug", "name", "websiteUrl", "status", "referenceData", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt"
+    SELECT "id", "slug", "name", "websiteUrl", "status", "referenceData", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt"
     FROM "Merchant"
     WHERE "id" = ${input.merchantId}
     LIMIT 1
@@ -202,13 +203,14 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     entitlementVersion: merchant.entitlementVersion == null ? null : String(merchant.entitlementVersion),
     commerceSessionAllowance: merchant.commerceSessionAllowance == null ? null : Number(merchant.commerceSessionAllowance),
     standardRenderAllowance: merchant.standardRenderAllowance == null ? null : Number(merchant.standardRenderAllowance),
+    premiumRenderAllowance: merchant.premiumRenderAllowance == null ? null : Number(merchant.premiumRenderAllowance),
     campaignAllowance: merchant.campaignAllowance == null ? null : Number(merchant.campaignAllowance),
     entitlementEffectiveFrom: merchant.entitlementEffectiveFrom == null ? null : new Date(String(merchant.entitlementEffectiveFrom)),
     billingPeriodEnd: merchant.billingPeriodEnd == null ? null : new Date(String(merchant.billingPeriodEnd)),
     commercialExceptionCode: merchant.commercialExceptionCode == null ? null : String(merchant.commercialExceptionCode),
     createdAt: merchant.createdAt == null ? null : new Date(String(merchant.createdAt)),
   }
-  const commercialPeriod = resolveMerchantCommercialPeriod(merchantFields)
+  const commercialPeriod = resolveMerchantCommercialCapability(merchantFields).state.period
 
   const currentPeriod = resolveAnalyticsPeriod({})
   const windowMs = currentPeriod.to.getTime() - currentPeriod.from.getTime()
@@ -332,12 +334,12 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
   }
   const aiCommerceSessions = (aiUsageRows as Array<{ createdAt: unknown }>).filter(inCommercialPeriod).length
   const standardTryOnGenerations = (renderUsageRows as Array<{ createdAt: unknown }>).filter(inCommercialPeriod).length
-  const commercialState = resolveMerchantCommercialState(merchantFields, {
+  const commercialState = resolveMerchantCommercialCapability(merchantFields, {
     aiCommerceSessions,
     standardTryOnGenerations,
     activeCampaigns: mapped.filter((experience) => experience.type === 'CAMPAIGN' && experience.status === 'ACTIVE').length,
     catalogItems: (catalogRows as CatalogRow[]).length,
-  })
+  }).state
 
   return {
     merchant: {

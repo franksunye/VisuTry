@@ -360,6 +360,54 @@ describe('Experience foundation', () => {
     expect(recordFirstShopperSession).toHaveBeenCalledWith({ merchantId: 'merchant-1', merchantSessionId: 'session-1' })
   })
 
+  it('keeps session event plan metadata commercial and separate from persistence origins', async () => {
+    const base = await merchant().findBySlug('ello-sunglasses')
+    const periodStart = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    const periodEnd = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    const cases = [
+      { name: 'canonical Launch', fields: { planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' }, planCode: 'LAUNCH' },
+      {
+        name: 'canonical Founding Pilot',
+        fields: { planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE', entitlementEffectiveFrom: periodStart, billingPeriodEnd: periodEnd },
+        planCode: 'FOUNDING_PILOT',
+      },
+      { name: 'legacy demo', fields: { planCode: null, commercialStage: 'DEMO', commercialStatus: null }, planCode: 'LEGACY_UNMIGRATED' },
+      {
+        name: 'legacy Founding Pilot',
+        fields: { planCode: null, commercialStage: 'MARKET_CAPTURE', commercialStatus: null, entitlementEffectiveFrom: periodStart, billingPeriodEnd: periodEnd },
+        planCode: 'FOUNDING_PILOT',
+      },
+    ]
+
+    for (const testCase of cases) {
+      const appendIdempotent = jest.fn().mockResolvedValue({ created: true })
+      await createStoreSession({
+        merchants: {
+          ...merchant(),
+          findBySlug: jest.fn().mockResolvedValue({ ...base, ...testCase.fields }),
+        },
+        sessions: {
+          create: jest.fn().mockResolvedValue({ id: 'session-commercial-identity' }),
+          findByMerchantAndId: jest.fn(),
+          touch: jest.fn(),
+          markExpired: jest.fn(),
+          attachPhotoAsset: jest.fn(),
+        },
+        events: { appendIdempotent, listByMerchant: jest.fn() },
+        usage: { record: jest.fn() } as never,
+        slug: 'ello-sunglasses',
+      })
+
+      const metadata = appendIdempotent.mock.calls[0][0].metadata
+      expect(metadata).toMatchObject({ planCode: testCase.planCode })
+      expect(metadata.planCode).not.toBe('STORE_DEMO')
+      expect(metadata.planCode).not.toBe('STORE_PILOT')
+      if (testCase.name.includes('Founding Pilot')) {
+        expect(metadata.entitlementVersion).toBe('v8')
+      }
+    }
+  })
+
   it('does not fail a shopper session when activation telemetry is temporarily unavailable', async () => {
     const sessionCreate = jest.fn().mockResolvedValue({
       id: 'session-retry',

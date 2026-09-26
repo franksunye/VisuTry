@@ -26,6 +26,7 @@ jest.mock('@/modules/store/application/runtime', () => ({
 
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { createStoreRuntime } from '@/modules/store/application/runtime'
 import {
   buildPublicRouteAdmissionIndex,
   isPublicCampaignRouteAdmitted,
@@ -171,5 +172,73 @@ describe('public route admission', () => {
 
     expect(prisma.merchant.findMany).not.toHaveBeenCalled()
     expect((unstable_cache as jest.Mock).mock.calls.length).toBe(cacheCallsBefore)
+  })
+
+  it('refreshes the quota-sensitive public Store hint outside the persistent content cache', async () => {
+    const storeExperience = makeExperience({
+      id: 'store-route-a',
+      type: 'STORE',
+      slug: 'store',
+      frameCount: 4,
+      hasProductDestination: true,
+    })
+    ;(prisma.merchant.findMany as jest.Mock).mockResolvedValue([makeMerchant([storeExperience])])
+    ;(prisma.experienceFrame.groupBy as jest.Mock).mockResolvedValue([
+      { experienceId: 'store-route-a', _count: { _all: 4 } },
+    ])
+
+    const now = new Date()
+    const merchant = {
+      id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE',
+      logoUrl: null, websiteUrl: null, accentColor: null, referenceData: false, pilotType: 'LIVE',
+      planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE',
+      entitlementEffectiveFrom: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+      billingPeriodEnd: new Date(now.getTime() + 24 * 60 * 60 * 1000),
+      createdAt: now, updatedAt: now,
+    }
+    const countAICommerceSessions = jest.fn().mockResolvedValue(0)
+    const runtime = {
+      merchants: {
+        findPublicBySlug: jest.fn().mockResolvedValue(merchant),
+        findBySlug: jest.fn().mockResolvedValue(merchant),
+      },
+      experiences: {
+        findPublicStoreByMerchant: jest.fn().mockResolvedValue({
+          ...storeExperience,
+          merchantId: merchant.id,
+          frameIds: ['frame-1', 'frame-2', 'frame-3', 'frame-4'],
+          headline: null,
+          description: null,
+          heroAssetUrl: null,
+          referenceData: false,
+          updatedAt: now,
+          deliveryPolicy: null,
+        }),
+      },
+      frames: {
+        findPublicActiveByMerchantAndExperience: jest.fn().mockResolvedValue(Array.from({ length: 4 }, (_, index) => ({
+          id: `frame-${index + 1}`, name: `Frame ${index + 1}`, brand: null,
+          imageUrl: `https://images.example.test/${index}.jpg`,
+          productUrl: `https://shop.example.test/${index}`, price: null, currency: null,
+          shape: 'round', material: null, color: null, widthClass: null, updatedAt: now,
+        }))),
+      },
+      usage: { countAICommerceSessions },
+    }
+    ;(createStoreRuntime as jest.Mock).mockReturnValue(runtime)
+
+    const withinLimit = await getPublicExperienceDiscoveryForRoute('merchant-a')
+    expect(withinLimit?.merchant.generativeTryOnAvailable).toBe(true)
+
+    countAICommerceSessions.mockResolvedValue(1000)
+    const exhausted = await getPublicExperienceDiscoveryForRoute('merchant-a')
+    expect(exhausted?.merchant.generativeTryOnAvailable).toBe(false)
+    expect(countAICommerceSessions).toHaveBeenCalledTimes(2)
+
+    countAICommerceSessions.mockRejectedValueOnce(new Error('usage ledger unavailable'))
+    const usageUnavailable = await getPublicExperienceDiscoveryForRoute('merchant-a')
+    expect(usageUnavailable).not.toBeNull()
+    expect(usageUnavailable?.experience.name).toBe('Campaign A')
+    expect(usageUnavailable?.merchant.generativeTryOnAvailable).toBe(false)
   })
 })

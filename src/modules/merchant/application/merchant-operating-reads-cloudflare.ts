@@ -1,7 +1,8 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { resolveAnalyticsPeriod } from '@/modules/store/application/merchant-analytics-compute'
 import { buildMerchantCommerceIntelligence, type MerchantCommerceActivity, type MerchantCommerceIntelligence } from './merchant-commerce-intelligence'
-import { resolveMerchantCommercialPeriod, resolveMerchantCommercialState, commercialStateForPresentation } from '@/modules/store/domain/merchant-commercial-state'
+import { commercialStateForPresentation } from '@/modules/store/domain/merchant-commercial-state'
+import { resolveMerchantCommercialCapability } from '@/modules/store/domain/merchant-commercial-capability'
 import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign-policy'
 import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/modules/store/domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
@@ -114,7 +115,7 @@ export async function getMerchantOperatingAnalytics(input: { merchantId: string 
 export async function getMerchantOperatingPlan(input: { merchantId: string }): Promise<MerchantCommercialPresentation> {
   const sql = getCloudflareSql()
   const [merchantRows, activeCampaignRows, catalogRows, aiUsageRows, renderUsageRows] = await Promise.all([
-    sql`SELECT "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`,
+    sql`SELECT "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`,
     sql`SELECT count(*)::int AS "count" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "status" = 'ACTIVE'`,
     sql`SELECT count(*)::int AS "count" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId}`,
     sql`SELECT "createdAt" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = 'AI_COMMERCE_SESSION' ORDER BY "createdAt" ASC`,
@@ -123,11 +124,11 @@ export async function getMerchantOperatingPlan(input: { merchantId: string }): P
   const merchant = merchantRows[0]
   if (!merchant) throw new Error('Merchant not found')
   const fields = {
-    planCode: merchant.planCode == null ? null : text(merchant.planCode), commercialStatus: merchant.commercialStatus == null ? null : text(merchant.commercialStatus), commercialStage: merchant.commercialStage == null ? null : text(merchant.commercialStage), pricingVersion: merchant.pricingVersion == null ? null : text(merchant.pricingVersion), entitlementVersion: merchant.entitlementVersion == null ? null : text(merchant.entitlementVersion), commerceSessionAllowance: merchant.commerceSessionAllowance == null ? null : Number(merchant.commerceSessionAllowance), standardRenderAllowance: merchant.standardRenderAllowance == null ? null : Number(merchant.standardRenderAllowance), campaignAllowance: merchant.campaignAllowance == null ? null : Number(merchant.campaignAllowance), entitlementEffectiveFrom: date(merchant.entitlementEffectiveFrom), billingPeriodEnd: date(merchant.billingPeriodEnd), commercialExceptionCode: merchant.commercialExceptionCode == null ? null : text(merchant.commercialExceptionCode), createdAt: date(merchant.createdAt),
+    planCode: merchant.planCode == null ? null : text(merchant.planCode), commercialStatus: merchant.commercialStatus == null ? null : text(merchant.commercialStatus), commercialStage: merchant.commercialStage == null ? null : text(merchant.commercialStage), pricingVersion: merchant.pricingVersion == null ? null : text(merchant.pricingVersion), entitlementVersion: merchant.entitlementVersion == null ? null : text(merchant.entitlementVersion), commerceSessionAllowance: merchant.commerceSessionAllowance == null ? null : Number(merchant.commerceSessionAllowance), standardRenderAllowance: merchant.standardRenderAllowance == null ? null : Number(merchant.standardRenderAllowance), premiumRenderAllowance: merchant.premiumRenderAllowance == null ? null : Number(merchant.premiumRenderAllowance), campaignAllowance: merchant.campaignAllowance == null ? null : Number(merchant.campaignAllowance), entitlementEffectiveFrom: date(merchant.entitlementEffectiveFrom), billingPeriodEnd: date(merchant.billingPeriodEnd), commercialExceptionCode: merchant.commercialExceptionCode == null ? null : text(merchant.commercialExceptionCode), createdAt: date(merchant.createdAt),
   }
-  const period = resolveMerchantCommercialPeriod(fields)
+  const period = resolveMerchantCommercialCapability(fields).state.period
   const inPeriod = (row: { createdAt: unknown }) => { const value = date(row.createdAt)?.getTime() ?? 0; return (!period.start || value >= period.start.getTime()) && (!period.end || value < period.end.getTime()) }
-  return commercialStateForPresentation(resolveMerchantCommercialState(fields, { aiCommerceSessions: (aiUsageRows as Array<{ createdAt: unknown }>).filter(inPeriod).length, standardTryOnGenerations: (renderUsageRows as Array<{ createdAt: unknown }>).filter(inPeriod).length, activeCampaigns: Number(activeCampaignRows[0]?.count ?? 0), catalogItems: Number(catalogRows[0]?.count ?? 0) }))
+  return commercialStateForPresentation(resolveMerchantCommercialCapability(fields, { aiCommerceSessions: (aiUsageRows as Array<{ createdAt: unknown }>).filter(inPeriod).length, standardTryOnGenerations: (renderUsageRows as Array<{ createdAt: unknown }>).filter(inPeriod).length, activeCampaigns: Number(activeCampaignRows[0]?.count ?? 0), catalogItems: Number(catalogRows[0]?.count ?? 0) }).state)
 }
 
 export async function getMerchantStoreStatus(input: { merchantId: string }): Promise<string | null> {
