@@ -11,6 +11,7 @@ import {
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
+import { experienceCommands } from './experience-command-service-prisma'
 import { MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
@@ -292,8 +293,8 @@ export async function updateCampaign(input: {
   secondaryCtaType?: string | null
   secondaryCtaLabel?: string | null
   secondaryCtaUrl?: string | null
-  journeyPolicy?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput
-  deliveryPolicy?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput
+  journeyPolicy?: unknown | null
+  deliveryPolicy?: unknown | null
 }) {
   const current = await campaignRow(input.merchantId, input.campaignId)
   const objective = input.objective ?? current.row.campaignObjective ?? 'INTENT'
@@ -304,7 +305,7 @@ export async function updateCampaign(input: {
   const endAt = parseDate(input.endAt, 'endAt')
   validateDateRange(startAt === undefined ? current.row.startAt : startAt, endAt === undefined ? current.row.endAt : endAt)
   for (const url of [input.primaryCtaUrl, input.secondaryCtaUrl]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', 'CTA URL must be an https URL or internal path.')
-  const data: Prisma.ExperienceUpdateInput = { campaignObjective: objective, campaignGate: gate, presentationMode }
+  const data: Record<string, unknown> = { campaignObjective: objective, campaignGate: gate, presentationMode }
   if (input.name !== undefined) { if (!input.name.trim()) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.'); data.name = input.name.trim() }
   for (const field of ['headline', 'description', 'primaryCtaType', 'primaryCtaLabel', 'primaryCtaUrl', 'secondaryCtaType', 'secondaryCtaLabel', 'secondaryCtaUrl'] as const) if (input[field] !== undefined) data[field] = typeof input[field] === 'string' ? input[field].trim() : input[field]
   if (startAt !== undefined) data.startAt = startAt
@@ -312,11 +313,12 @@ export async function updateCampaign(input: {
   if (input.status !== undefined) data.status = input.status
   if (input.journeyPolicy !== undefined) data.journeyPolicy = input.journeyPolicy
   if (input.deliveryPolicy !== undefined) data.deliveryPolicy = input.deliveryPolicy
-  const updated = await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
-    mutation: () => prisma.experience.update({ where: { id: current.row.id }, data, include: campaignFramesInclude }),
+  const updated = await experienceCommands.updateCampaignConfiguration({
+    merchantId: input.merchantId,
+    experienceId: input.campaignId,
+    patch: data,
   })
-  return mapCampaign(updated, current.merchant.slug, current.merchant.referenceData)
+  return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData)
 }
 
 export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[] }) {
@@ -328,12 +330,11 @@ export async function setCampaignFrames(input: { merchantId: string; campaignId:
     select: { id: true, sku: true, externalId: true, productUrl: true, name: true, imageUrl: true, shape: true, widthClass: true, source: true, enrichmentStatus: true, status: true },
   })
   if (frames.length !== frameIds.length || frames.some((frame) => !validateCatalogFrame(frame).valid)) throw new MerchantAccessError()
-  await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
-    mutation: () => prisma.$transaction(async (tx) => {
-      await tx.experienceFrame.deleteMany({ where: { experienceId: input.campaignId, merchantId: input.merchantId } })
-      if (frameIds.length) await tx.experienceFrame.createMany({ data: frameIds.map((merchantFrameId, sortOrder) => ({ experienceId: input.campaignId, merchantId: input.merchantId, merchantFrameId, sortOrder, active: true })) })
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+  await experienceCommands.replaceCatalogSelection({
+    merchantId: input.merchantId,
+    experienceId: input.campaignId,
+    frameIds,
+    expectedType: 'CAMPAIGN',
   })
   return { frameIds }
 }
@@ -348,8 +349,9 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
   const model = mapCampaign(current.row, current.merchant.slug, current.merchant.referenceData)
   assertCampaignPublishable(model.readiness, true)
   if (current.row.status === 'ACTIVE') return model
-  const updated = await withPublicDiscoveryInvalidation({
-      target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
+  const updated = await experienceCommands.runCampaignLifecycleMutation({
+      merchantId: input.merchantId,
+      experienceId: input.campaignId,
       mutation: () => prisma.$transaction(async (tx) => {
         // All Campaign activations for one Merchant serialize on the Merchant
         // row. One capability decision covers canonical and compatibility
@@ -374,14 +376,15 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
         return tx.experience.update({ where: { id: lockedRow.id }, data: { status: 'ACTIVE' }, include: campaignFramesInclude })
       }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
   })
-  return mapCampaign(updated, current.merchant.slug, current.merchant.referenceData)
+  return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData)
 }
 
 export async function archiveCampaign(input: { merchantId: string; campaignId: string }) {
   const current = await campaignRow(input.merchantId, input.campaignId)
-  const updated = await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
-    mutation: () => prisma.experience.update({ where: { id: current.row.id }, data: { status: 'ARCHIVED' }, include: campaignFramesInclude }),
+  const updated = await experienceCommands.updateCampaignConfiguration({
+    merchantId: input.merchantId,
+    experienceId: input.campaignId,
+    patch: { status: 'ARCHIVED' },
   })
-  return mapCampaign(updated, current.merchant.slug, current.merchant.referenceData)
+  return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData)
 }

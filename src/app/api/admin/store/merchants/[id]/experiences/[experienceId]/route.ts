@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { storeErrorResponse, archiveCampaign, publishCampaign, updateCampaign, updatePublicExperience } from '@/modules/store/application'
@@ -88,7 +87,7 @@ export async function PUT(
     })
     if (!existing) return NextResponse.json({ success: false, error: 'Experience not found' }, { status: 404 })
 
-    let journeyPolicy: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | undefined = undefined
+    let journeyPolicy: unknown | undefined = undefined
     if ('journeyPolicy' in body) {
       if (body.journeyPolicy !== null) {
         try {
@@ -97,20 +96,20 @@ export async function PUT(
           return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Invalid journey policy' }, { status: 400 })
         }
       }
-      journeyPolicy = body.journeyPolicy === null ? Prisma.JsonNull : body.journeyPolicy as Prisma.InputJsonValue
+      journeyPolicy = body.journeyPolicy
     }
 
-    let deliveryPolicy: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | undefined
+    let deliveryPolicy: unknown | undefined
     if ('deliveryPolicy' in body) {
       if (body.deliveryPolicy === null) {
-        deliveryPolicy = Prisma.JsonNull
+        deliveryPolicy = null
       } else {
         try {
           assertExperienceDeliveryPolicy(body.deliveryPolicy)
         } catch (error) {
           return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Invalid delivery policy' }, { status: 400 })
         }
-        deliveryPolicy = body.deliveryPolicy as Prisma.InputJsonValue
+        deliveryPolicy = body.deliveryPolicy
       }
     }
 

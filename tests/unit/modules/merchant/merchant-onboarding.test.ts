@@ -331,7 +331,7 @@ describe('merchant onboarding catalog validation', () => {
 
   it('invalidates Store discovery after frame replacement succeeds', async () => {
     const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
-    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'DRAFT', frames: [] })
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', type: 'STORE', slug: 'store', status: 'DRAFT', frames: [] })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-a')])
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
@@ -345,7 +345,7 @@ describe('merchant onboarding catalog validation', () => {
 
   it('rejects a newly selected Store-ineligible product before writes or cache invalidation', async () => {
     const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
-    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'DRAFT', frames: [] })
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', type: 'STORE', slug: 'store', status: 'DRAFT', frames: [] })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-invalid', { imageUrl: null })])
 
@@ -360,7 +360,7 @@ describe('merchant onboarding catalog validation', () => {
   it('allows Store-eligible PENDING shape products and preserves existing ineligible selections for removal', async () => {
     const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
     const pending = { ...frame('pending', { sku: null, shape: '' }), externalId: 'external:pending', productUrl: 'https://shop.example.test/pending', source: 'EXTERNAL', enrichmentStatus: 'PENDING' }
-    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'DRAFT', frames: [{ merchantFrameId: 'legacy-invalid' }] })
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', type: 'STORE', slug: 'store', status: 'DRAFT', frames: [{ merchantFrameId: 'legacy-invalid' }] })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([
       { ...pending, id: 'legacy-invalid', imageUrl: null },
@@ -409,7 +409,7 @@ describe('merchant onboarding catalog validation', () => {
   })
 
   it('keeps Live Store detail saves public without a republish milestone', async () => {
-    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'ACTIVE', name: 'Store', headline: null, description: null })
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', type: 'STORE', slug: 'store', status: 'ACTIVE', name: 'Store', headline: null, description: null })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     const eventCreateMany = jest.fn().mockResolvedValue({ count: 1 })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
@@ -428,7 +428,7 @@ describe('merchant onboarding catalog validation', () => {
     const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
     ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-a')])
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({
-      id: 'store-a', slug: 'store', status: 'DRAFT', name: 'Store', frames: [{ merchantFrameId: 'frame-a' }],
+      id: 'store-a', type: 'STORE', slug: 'store', status: 'DRAFT', name: 'Store', frames: [{ merchantFrameId: 'frame-a' }],
     })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.$transaction as jest.Mock)
