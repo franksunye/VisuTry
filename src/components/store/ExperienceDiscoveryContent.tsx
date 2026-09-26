@@ -112,6 +112,7 @@ export function ExperienceDiscoveryContent({
   return (
     <main
       lang={locale}
+      data-store-discovery="true"
       data-presentation-mode={presentationMode}
       className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950"
     >

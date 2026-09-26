@@ -29,6 +29,7 @@ describe('publicMerchantFromDiscovery', () => {
         description: null,
         heroAssetUrl: null,
         presentationMode: null,
+        deliveryPolicy: { kioskEnabled: false, kioskIdleTimeoutSeconds: 120 },
         referenceData: true,
         updatedAt: date,
       },

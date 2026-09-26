@@ -125,6 +125,7 @@ function discovery(): PublicExperienceDiscovery {
       headline: 'Best glasses for petite faces',
       description: 'A factual frame edit.',
       heroAssetUrl: null,
+      deliveryPolicy: { kioskEnabled: false, kioskIdleTimeoutSeconds: 120 },
       referenceData: false,
       updatedAt: date,
     },

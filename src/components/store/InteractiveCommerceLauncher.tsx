@@ -30,6 +30,7 @@ type InteractiveCommerceLauncherProps = {
   publicPocStorage: boolean
   generativeTryOnAvailable?: boolean
   initialPublicMerchant?: PublicMerchantProfile | null
+  initialKioskMode?: boolean
 }
 
 /**
@@ -44,8 +45,10 @@ export function InteractiveCommerceLauncher({
   publicPocStorage,
   generativeTryOnAvailable = true,
   initialPublicMerchant = null,
+  initialKioskMode = false,
 }: InteractiveCommerceLauncherProps) {
-  const [started, setStarted] = useState(false)
+  const [started, setStarted] = useState(initialKioskMode)
+  const [kioskMode, setKioskMode] = useState(initialKioskMode)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -67,15 +70,29 @@ export function InteractiveCommerceLauncher({
     if (!started) return
 
     const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    closeButtonRef.current?.focus()
+    if (!kioskMode) document.body.style.overflow = 'hidden'
+    if (!kioskMode) closeButtonRef.current?.focus()
 
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [started])
+  }, [kioskMode, started])
 
   if (started) {
+    if (kioskMode) {
+      return (
+        <main className="min-h-[100svh] bg-[#f7f8fb] px-2 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] sm:px-4">
+          <LazyStoreShopperExperience
+            merchantSlug={merchantSlug}
+            experienceSlug={experienceSlug}
+            locale={locale}
+            publicPocStorage={publicPocStorage}
+            initialPublicMerchant={initialPublicMerchant}
+            kioskMode
+          />
+        </main>
+      )
+    }
     return (
       <div className="fixed inset-0 z-50 bg-slate-950/45 p-3 backdrop-blur-[2px] sm:p-6">
         <section
@@ -113,6 +130,7 @@ export function InteractiveCommerceLauncher({
                 locale={locale}
                 publicPocStorage={publicPocStorage}
                 initialPublicMerchant={initialPublicMerchant}
+                kioskMode={false}
               />
             </section>
           </div>

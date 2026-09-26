@@ -19,6 +19,7 @@ import {
 import type { MerchantInsightsDto } from '@/modules/store/application/get-merchant-insights'
 import type { ExperienceAdminSummary, ExperienceAdminWorkspace } from '@/modules/store/application/get-experience-admin'
 import { DECISION_JOURNEY_STAGES, type DecisionJourneyPolicy, type DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
+import { DEFAULT_EXPERIENCE_DELIVERY_POLICY, type ExperienceDeliveryPolicy, MIN_KIOSK_IDLE_TIMEOUT_SECONDS, MAX_KIOSK_IDLE_TIMEOUT_SECONDS } from '@/modules/store/domain/delivery-profile'
 
 function formatDate(value: string | null) {
   if (!value) return null
@@ -197,6 +198,7 @@ export type ExperienceDetailData = {
     endAt: string | null
     referenceData: boolean
     journeyPolicy: DecisionJourneyPolicy
+    deliveryPolicy: ExperienceDeliveryPolicy
     selectedFrameIds: string[]
   }
   catalog: CatalogFrame[]
@@ -221,6 +223,7 @@ export function ExperienceDetailEditor({ initial }: { initial: ExperienceDetailD
   const [experience, setExperience] = useState(initial.experience)
   const [selectedFrameIds, setSelectedFrameIds] = useState(initial.experience.selectedFrameIds)
   const [journeyPolicy, setJourneyPolicy] = useState(initial.experience.journeyPolicy)
+  const [deliveryPolicy, setDeliveryPolicy] = useState(initial.experience.deliveryPolicy ?? DEFAULT_EXPERIENCE_DELIVERY_POLICY)
   const [search, setSearch] = useState('')
   const [saving, setSaving] = useState<'config' | 'catalog' | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -233,7 +236,7 @@ export function ExperienceDetailEditor({ initial }: { initial: ExperienceDetailD
 
   async function saveConfig(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving('config'); setMessage(null)
-    const response = await fetch(`/api/admin/store/merchants/${initial.merchant.id}/experiences/${experience.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...experience, journeyPolicy }) })
+    const response = await fetch(`/api/admin/store/merchants/${initial.merchant.id}/experiences/${experience.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...experience, journeyPolicy, deliveryPolicy }) })
     const payload = await response.json().catch(() => null); setSaving(null)
     setMessage(response.ok ? 'Experience settings saved.' : payload?.error || 'Could not save settings.')
   }
@@ -313,6 +316,22 @@ export function ExperienceDetailEditor({ initial }: { initial: ExperienceDetailD
                   {required ? <span className="ml-auto text-[10px] uppercase tracking-wide text-blue-500">required</span> : null}
                 </label>
               })}
+            </div>
+          </fieldset>
+          <fieldset className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4 lg:col-span-2">
+            <legend className="px-1 text-sm font-semibold text-slate-900">Delivery profile</legend>
+            <p className="mt-1 text-xs leading-5 text-slate-600">Web remains the default. Kiosk adds a shared-device reset and never changes the Decision Journey or the canonical phone Result.</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-700">
+                <input type="checkbox" checked={deliveryPolicy.kioskEnabled} onChange={(event) => setDeliveryPolicy((current) => ({ ...current, kioskEnabled: event.target.checked }))} />
+                Enable Kiosk profile
+              </label>
+              <label className="block text-sm font-medium text-slate-700">Idle reset timeout
+                <select value={deliveryPolicy.kioskIdleTimeoutSeconds} disabled={!deliveryPolicy.kioskEnabled} onChange={(event) => setDeliveryPolicy((current) => ({ ...current, kioskIdleTimeoutSeconds: Number(event.target.value) }))} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm disabled:bg-slate-100">
+                  {[30, 60, 120, 180, 300, 600, 900].filter((seconds) => seconds >= MIN_KIOSK_IDLE_TIMEOUT_SECONDS && seconds <= MAX_KIOSK_IDLE_TIMEOUT_SECONDS).map((seconds) => <option key={seconds} value={seconds}>{seconds < 60 ? `${seconds} seconds` : `${seconds / 60} minute${seconds === 60 ? '' : 's'}`}</option>)}
+                </select>
+                <span className="mt-1 block text-xs font-normal text-slate-500">Allowed policy range: {MIN_KIOSK_IDLE_TIMEOUT_SECONDS}–{MAX_KIOSK_IDLE_TIMEOUT_SECONDS} seconds.</span>
+              </label>
             </div>
           </fieldset>
           <label className="block text-sm font-medium text-slate-700">Name<input value={experience.name} onChange={(event) => setExperience((current) => ({ ...current, name: event.target.value }))} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100" /></label>

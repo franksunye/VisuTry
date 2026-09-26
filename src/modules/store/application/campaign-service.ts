@@ -297,6 +297,7 @@ export async function updateCampaign(input: {
   secondaryCtaLabel?: string | null
   secondaryCtaUrl?: string | null
   journeyPolicy?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput
+  deliveryPolicy?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput
 }) {
   const current = await campaignRow(input.merchantId, input.campaignId)
   const objective = input.objective ?? current.row.campaignObjective ?? 'INTENT'
@@ -314,6 +315,7 @@ export async function updateCampaign(input: {
   if (endAt !== undefined) data.endAt = endAt
   if (input.status !== undefined) data.status = input.status
   if (input.journeyPolicy !== undefined) data.journeyPolicy = input.journeyPolicy
+  if (input.deliveryPolicy !== undefined) data.deliveryPolicy = input.deliveryPolicy
   const updated = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
     mutation: () => prisma.experience.update({ where: { id: current.row.id }, data, include: campaignFramesInclude }),

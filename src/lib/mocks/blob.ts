@@ -9,8 +9,31 @@ export interface MockBlobResult {
   uploadedAt: Date
 }
 
-// Mock blob storage
-const mockBlobs: Map<string, MockBlobResult> = new Map()
+type MockBlobRecord = {
+  result: MockBlobResult
+  body: Buffer
+  contentType: string
+}
+
+type MockBlobGlobal = typeof globalThis & {
+  __visutryMockBlobs?: Map<string, MockBlobRecord>
+}
+
+// Next.js may evaluate this module in multiple route bundles. Keep Local mock
+// bytes on the process global so upload and controlled delivery share storage.
+const mockBlobs = ((globalThis as MockBlobGlobal).__visutryMockBlobs ??= new Map())
+
+async function bytesFor(body: string | Buffer | ReadableStream | File): Promise<Buffer> {
+  if (typeof body === 'string') return Buffer.from(body, 'utf8')
+  if (Buffer.isBuffer(body)) return body
+  if (body instanceof File) return Buffer.from(await body.arrayBuffer())
+  return Buffer.from(await new Response(body).arrayBuffer())
+}
+
+export function readMockBlob(providerUrl: string): { body: Buffer; contentType: string } | null {
+  const record = [...mockBlobs.values()].find(({ result }) => result.url === providerUrl)
+  return record ? { body: record.body, contentType: record.contentType } : null
+}
 
 export class MockBlob {
   static async put(
@@ -28,17 +51,8 @@ export class MockBlob {
     // Simulate upload delay
     await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000))
 
-    // Generate mock file size
-    let size = 0
-    if (typeof body === 'string') {
-      size = Buffer.byteLength(body, 'utf8')
-    } else if (Buffer.isBuffer(body)) {
-      size = (body as Buffer).length
-    } else if (body instanceof File) {
-      size = body.size
-    } else {
-      size = Math.floor(Math.random() * 1000000) + 100000 // Random size between 100KB-1MB
-    }
+    const bytes = await bytesFor(body)
+    const size = bytes.byteLength
 
     const mockResult: MockBlobResult = {
       url: `https://mock-blob-storage.vercel.app/${pathname}`,
@@ -48,7 +62,11 @@ export class MockBlob {
       uploadedAt: new Date(),
     }
 
-    mockBlobs.set(pathname, mockResult)
+    mockBlobs.set(pathname, {
+      result: mockResult,
+      body: bytes,
+      contentType: body instanceof File ? body.type || 'application/octet-stream' : 'application/octet-stream',
+    })
     
     console.log('✅ Mock Blob: File uploaded successfully')
     console.log('🔗 URL:', mockResult.url)
@@ -83,7 +101,7 @@ export class MockBlob {
 
     console.log('📋 Mock Blob: Listing files...')
     
-    let blobs = Array.from(mockBlobs.values())
+    let blobs = Array.from(mockBlobs.values(), ({ result }) => result)
     
     if (options?.prefix) {
       blobs = blobs.filter(blob => blob.pathname.startsWith(options.prefix!))

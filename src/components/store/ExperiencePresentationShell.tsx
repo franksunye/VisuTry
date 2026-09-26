@@ -80,6 +80,7 @@ type ExperiencePresentationShellProps = {
   featuredFramesRef: RefObject<HTMLElement>
   showRuntimeCta?: boolean
   featuredFrameLimit?: number | null
+  runtimeBlocked?: boolean
 }
 
 function ExperienceHeroVisual({
@@ -173,6 +174,7 @@ function RuntimeCta({
   copy,
   onStartRuntime,
   describedBy = 'privacy-details',
+  runtimeBlocked = false,
 }: {
   label: string
   accent: string
@@ -180,12 +182,13 @@ function RuntimeCta({
   copy: ExperiencePresentationCopy
   onStartRuntime: () => void
   describedBy?: string
+  runtimeBlocked?: boolean
 }) {
   return (
     <button
       type="button"
       onClick={onStartRuntime}
-      disabled={sessionStarting}
+      disabled={sessionStarting || runtimeBlocked}
       aria-describedby={describedBy}
       className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
       style={{ backgroundColor: accent }}
@@ -231,6 +234,7 @@ function PrivacyGate({
   errorMessage,
   onStartRuntime,
   showCta,
+  runtimeBlocked = false,
 }: {
   accent: string
   copy: ExperiencePresentationCopy
@@ -239,6 +243,7 @@ function PrivacyGate({
   errorMessage: string | null
   onStartRuntime: () => void
   showCta?: boolean
+  runtimeBlocked?: boolean
 }) {
   return (
     <section
@@ -262,6 +267,7 @@ function PrivacyGate({
             sessionStarting={sessionStarting}
             copy={copy}
             onStartRuntime={onStartRuntime}
+            runtimeBlocked={runtimeBlocked}
           />
         ) : null}
       </div>
@@ -304,6 +310,7 @@ export function ExperiencePresentationShell({
   featuredFramesRef,
   showRuntimeCta = true,
   featuredFrameLimit = 4,
+  runtimeBlocked = false,
 }: ExperiencePresentationShellProps) {
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const headline = merchant.experience?.headline || (isCampaign ? merchant.experience?.name : copy.storeHero) || copy.storeHero
@@ -327,6 +334,7 @@ export function ExperiencePresentationShell({
               sessionStarting={sessionStarting}
               copy={copy}
               onStartRuntime={onStartRuntime}
+              runtimeBlocked={runtimeBlocked}
             />
           </div>
           <p className="mt-3 flex items-center gap-2 text-xs text-slate-400">
@@ -351,6 +359,7 @@ export function ExperiencePresentationShell({
             errorMessage={errorMessage}
             onStartRuntime={onStartRuntime}
             showCta={false}
+            runtimeBlocked={runtimeBlocked}
           />
         </div>
       </main>
@@ -395,6 +404,7 @@ export function ExperiencePresentationShell({
           errorMessage={errorMessage}
           onStartRuntime={onStartRuntime}
           showCta={showRuntimeCta}
+          runtimeBlocked={runtimeBlocked}
         />
       </div>
     </main>

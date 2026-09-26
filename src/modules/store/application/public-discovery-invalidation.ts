@@ -54,17 +54,23 @@ export async function withPublicDiscoveryInvalidation<T>(input: {
   // same data as the public API.
   for (const locale of locales) {
     revalidatePath(`/${locale}/store/${input.target.merchantSlug}`)
+    // Kiosk pages are separate ISR artifacts so discovery can stay unchanged
+    // while the delivery policy is evaluated independently. Policy writes
+    // must invalidate that artifact too (not wait for its seven-day TTL).
+    revalidatePath(`/${locale}/store/${input.target.merchantSlug}/kiosk`)
   }
 
   if (input.target.kind === 'experience' && input.target.experienceSlug) {
     for (const locale of locales) {
       revalidatePath(`/${locale}/c/${input.target.merchantSlug}/${input.target.experienceSlug}`)
+      revalidatePath(`/${locale}/c/${input.target.merchantSlug}/${input.target.experienceSlug}/kiosk`)
     }
   } else if (input.target.kind !== 'experience') {
     // Merchant and catalog writes can affect any public campaign belonging to
     // this merchant. Use the dynamic route pattern because campaign slugs are
     // not part of the mutation boundary.
     revalidatePath('/[locale]/c/[merchantSlug]/[experienceSlug]', 'page')
+    revalidatePath('/[locale]/c/[merchantSlug]/[experienceSlug]/kiosk', 'page')
   }
 
   // The dynamic sitemap is a route-level ISR artifact in addition to its

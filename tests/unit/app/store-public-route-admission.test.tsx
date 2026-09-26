@@ -80,6 +80,7 @@ const discovery: PublicExperienceDiscovery = {
     description: null,
     heroAssetUrl: null,
     presentationMode: null,
+    deliveryPolicy: { kioskEnabled: false, kioskIdleTimeoutSeconds: 120 },
     referenceData: false,
     updatedAt: discoveryUpdatedAt,
   },
