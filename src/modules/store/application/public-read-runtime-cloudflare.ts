@@ -133,6 +133,7 @@ function mapExperience(row: Row, frameIds: string[]): ExperienceRecord {
     defaultSource: nullableString(row.defaultSource),
     defaultCampaign: nullableString(row.defaultCampaign),
     referenceMetadata: (row.referenceMetadata as Record<string, unknown> | null) ?? null,
+    journeyPolicy: (row.journeyPolicy as Record<string, unknown> | null) ?? null,
     frameIds,
     createdAt: dateValue(row.createdAt),
     updatedAt: dateValue(row.updatedAt),
@@ -153,7 +154,7 @@ const experienceColumns = `
   "primaryCtaType", "primaryCtaLabel", "primaryCtaUrl", "secondaryCtaType", "secondaryCtaLabel",
   "secondaryCtaUrl", "offerLabel", "offerCode", "offerTerms", "startAt", "endAt", "campaignObjective",
   "campaignGate", "presentationMode", "referenceData", "defaultSource", "defaultCampaign",
-  "referenceMetadata", "createdAt", "updatedAt"
+  "referenceMetadata", "journeyPolicy", "createdAt", "updatedAt"
 `
 
 const frameColumns = `

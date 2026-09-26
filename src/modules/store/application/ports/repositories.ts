@@ -116,6 +116,7 @@ export type ExperienceRecord = {
   defaultSource: string | null
   defaultCampaign: string | null
   referenceMetadata: Record<string, unknown> | null
+  journeyPolicy?: Record<string, unknown> | null
   frameIds: string[]
   createdAt: Date
   updatedAt: Date

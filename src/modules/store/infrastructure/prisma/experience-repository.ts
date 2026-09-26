@@ -36,6 +36,7 @@ function mapExperience(row: ExperienceWithFrames): ExperienceRecord {
     defaultSource: row.defaultSource,
     defaultCampaign: row.defaultCampaign,
     referenceMetadata: (row.referenceMetadata as Record<string, unknown> | null) ?? null,
+    journeyPolicy: (row.journeyPolicy as Record<string, unknown> | null) ?? null,
     frameIds: row.frames.map((frame) => frame.merchantFrameId),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -64,6 +65,7 @@ const publicExperienceSelect = {
   campaignObjective: true,
   campaignGate: true,
   presentationMode: true,
+  journeyPolicy: true,
   updatedAt: true,
   frames: {
     where: { active: true },
@@ -86,6 +88,7 @@ type PublicExperienceRow = {
   campaignObjective: Experience['campaignObjective']
   campaignGate: Experience['campaignGate']
   presentationMode: Experience['presentationMode']
+  journeyPolicy: unknown
   updatedAt: Date
   frames: Array<{ merchantFrameId: string }>
 }
@@ -119,6 +122,7 @@ function mapPublicExperience(row: PublicExperienceRow): ExperienceRecord {
     defaultSource: null,
     defaultCampaign: null,
     referenceMetadata: null,
+    journeyPolicy: (row.journeyPolicy as Record<string, unknown> | null) ?? null,
     frameIds: row.frames.map((frame) => frame.merchantFrameId),
     createdAt: row.updatedAt,
     updatedAt: row.updatedAt,

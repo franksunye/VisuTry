@@ -57,7 +57,7 @@ export async function createStoreSession(input: {
   })
 
   const entitlement = resolveMerchantEntitlement(merchant)
-  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant, experience)
   // A normal Store visit is operational traffic, not a paid AI Commerce
   // Session. Paid usage is marked idempotently when the shopper crosses the
   // AI-assisted threshold (recommendation/AI generation), so exhaustion can

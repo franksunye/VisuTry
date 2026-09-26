@@ -1,9 +1,16 @@
+import {
+  applyMerchantDecisionJourneyCeiling,
+  resolveDecisionJourneyPolicy,
+  type DecisionJourneyPolicy,
+} from './decision-journey'
+
 export const STORE_EXPERIENCE_DEFAULTS = {
   tryOnEnabled: true,
   compareEnabled: true,
   maxCompareFrames: 2,
   inquiryEnabled: false,
 } as const
+
 
 export type MaxCompareFrames = 2 | 3 | 4
 
@@ -29,15 +36,26 @@ export function resolveStoreExperiencePolicy(input: {
   compareEnabled?: boolean | null
   maxCompareFrames?: number | null
   inquiryEnabled?: boolean | null
-}): StoreExperiencePolicy {
+}, experience?: { journeyPolicy?: unknown | null } | null): StoreExperiencePolicy {
   const maxCompareFrames = input.maxCompareFrames ?? STORE_EXPERIENCE_DEFAULTS.maxCompareFrames
   assertMaxCompareFrames(maxCompareFrames)
+  const journey = applyMerchantDecisionJourneyCeiling(
+    resolveDecisionJourneyPolicy(experience?.journeyPolicy),
+    input,
+  )
   return {
-    tryOnEnabled: input.tryOnEnabled ?? STORE_EXPERIENCE_DEFAULTS.tryOnEnabled,
-    compareEnabled: input.compareEnabled ?? STORE_EXPERIENCE_DEFAULTS.compareEnabled,
+    tryOnEnabled: (input.tryOnEnabled ?? STORE_EXPERIENCE_DEFAULTS.tryOnEnabled) && journey.enabledStages.includes('TRY_ON'),
+    compareEnabled: (input.compareEnabled ?? STORE_EXPERIENCE_DEFAULTS.compareEnabled) && journey.enabledStages.includes('COMPARE'),
     maxCompareFrames,
     inquiryEnabled: input.inquiryEnabled ?? STORE_EXPERIENCE_DEFAULTS.inquiryEnabled,
   }
+}
+
+export function resolvePublicDecisionJourney(
+  merchant: { tryOnEnabled?: boolean | null; compareEnabled?: boolean | null },
+  experience?: { journeyPolicy?: unknown | null } | null,
+): DecisionJourneyPolicy {
+  return applyMerchantDecisionJourneyCeiling(resolveDecisionJourneyPolicy(experience?.journeyPolicy), merchant)
 }
 
 export type StoreFrameSelectionContext = {

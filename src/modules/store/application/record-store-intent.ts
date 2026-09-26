@@ -65,15 +65,6 @@ export async function recordStoreIntent(
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
-  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
-  if (input.type === 'INQUIRY' && !experiencePolicy.inquiryEnabled) {
-    throw new StoreDomainError(
-      'CAPABILITY_DISABLED',
-      'Inquiry is not enabled for this store.',
-      403,
-    )
-  }
-
   const session = await requireOperableStoreSession({
     sessions: input.sessions,
     merchantId: merchant.id,
@@ -84,6 +75,14 @@ export async function recordStoreIntent(
   const experience = session.experienceId && input.experiences
     ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
     : null
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant, experience)
+  if (input.type === 'INQUIRY' && !experiencePolicy.inquiryEnabled) {
+    throw new StoreDomainError(
+      'CAPABILITY_DISABLED',
+      'Inquiry is not enabled for this store.',
+      403,
+    )
+  }
 
   let canonicalProductUrl: string | null = null
   let resolvedFrameId = input.merchantFrameId ?? null

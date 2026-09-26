@@ -1117,6 +1117,8 @@ model Experience {
   defaultSource     String?
   defaultCampaign   String?
   referenceMetadata Json?
+  /// Nullable closed-list Decision Journey config; null preserves legacy defaults.
+  journeyPolicy     Json?
 
   merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   frames   ExperienceFrame[]

@@ -1,4 +1,4 @@
-import { resolveStoreSelectionCtaState, resolveStoreWorkspaceStep } from '@/components/store/store-workspace-ux'
+import { resolveStoreJourneyProgress, resolveStoreSelectionCtaState, resolveStoreWorkspaceStep } from '@/components/store/store-workspace-ux'
 
 describe('Store workspace progression', () => {
   it('keeps a selected-but-not-continued shopper in Choose frames', () => {
@@ -13,5 +13,28 @@ describe('Store workspace progression', () => {
 
   it('retains a save state for catalogs without try-on enabled', () => {
     expect(resolveStoreSelectionCtaState({ selectionContinued: false, tryOnEnabled: false })).toBe('save-selection')
+  })
+
+  it('renders policy-defined stages and advances Compare only after the compare event succeeds', () => {
+    const stages = ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON', 'COMPARE'] as const
+    expect(resolveStoreJourneyProgress({
+      enabledStages: [...stages],
+      photoReady: true,
+      recommendationReady: true,
+      selectionContinued: true,
+      compareStarted: false,
+    })).toEqual([
+      { stage: 'FACE_ANALYSIS', active: false, complete: true },
+      { stage: 'RECOMMENDATION', active: false, complete: true },
+      { stage: 'TRY_ON', active: true, complete: false },
+      { stage: 'COMPARE', active: false, complete: false },
+    ])
+    expect(resolveStoreJourneyProgress({
+      enabledStages: [...stages],
+      photoReady: true,
+      recommendationReady: true,
+      selectionContinued: true,
+      compareStarted: true,
+    }).at(-1)).toEqual({ stage: 'COMPARE', active: true, complete: false })
   })
 })

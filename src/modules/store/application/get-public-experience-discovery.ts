@@ -2,7 +2,8 @@ import {
   resolveExperienceSearchVisibility,
   type ExperienceSearchVisibility,
 } from '../domain/experience-search-visibility'
-import { resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
+import { resolvePublicDecisionJourney, resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
+import type { DecisionJourneyPolicy } from '../domain/decision-journey'
 import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-usage'
 import type {
   ExperienceRecord,
@@ -58,6 +59,7 @@ export type PublicExperienceDiscovery = {
   }
   frames: PublicDiscoveryFrame[]
   experiencePolicy: StoreExperiencePolicy
+  decisionJourney?: DecisionJourneyPolicy
   guestSponsoredTryOnLimit: number | null
   visibility: ExperienceSearchVisibility
   lastModified: Date
@@ -164,7 +166,8 @@ export async function getPublicExperienceDiscovery(input: {
       updatedAt: experience.updatedAt,
     },
     frames: publicFrames,
-    experiencePolicy: resolveStoreExperiencePolicy(merchant),
+    experiencePolicy: resolveStoreExperiencePolicy(merchant, experience),
+    decisionJourney: resolvePublicDecisionJourney(merchant, experience),
     guestSponsoredTryOnLimit: resolveGuestSponsoredTryOnLimit(merchant),
     visibility,
     lastModified: [merchant.updatedAt, experience.updatedAt, latestFrameUpdate]

@@ -21,8 +21,9 @@ import { analyzeFaceLandmarkFile } from '@/lib/face-landmark-client'
 import type { FaceLandmarkDetectionResult } from '@/lib/face-landmark-client'
 import type { FaceGeometryAnalysis } from '@/types/face-analysis'
 import { maxSelectableStoreFrames } from '@/modules/store/domain/experience-policy'
+import { DEFAULT_DECISION_JOURNEY_POLICY, type DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
 import { resolvePresentationMode } from '@/modules/store/domain/presentation-mode'
-import { resolveStoreSelectionCtaState, resolveStoreWorkspaceStep } from '@/components/store/store-workspace-ux'
+import { resolveStoreJourneyProgress, resolveStoreSelectionCtaState } from '@/components/store/store-workspace-ux'
 import {
   createMerchantContinuation,
   getMerchantContinuationFromUrl,
@@ -202,6 +203,7 @@ export function StoreShopperExperience({
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionSaving, setSelectionSaving] = useState(false)
   const [selectionSaved, setSelectionSaved] = useState(false)
+  const [compareStarted, setCompareStarted] = useState(false)
   const [faceGeometry, setFaceGeometry] = useState<FaceGeometryAnalysis | null>(null)
   const [faceDetection, setFaceDetection] = useState<FaceLandmarkDetectionResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -654,10 +656,13 @@ export function StoreShopperExperience({
     )
   }
 
-  const currentStep = resolveStoreWorkspaceStep({
+  const enabledJourneyStages = merchant.decisionJourney?.enabledStages ?? DEFAULT_DECISION_JOURNEY_POLICY.enabledStages
+  const journeyProgress = resolveStoreJourneyProgress({
+    enabledStages: enabledJourneyStages,
     photoReady,
+    recommendationReady: recommendations.length > 0,
     selectionContinued: selectionSaved,
-    tryOnEnabled: merchant.experiencePolicy.tryOnEnabled,
+    compareStarted,
   })
   const maxSelectableFrames = maxSelectableStoreFrames(merchant.experiencePolicy, {
     guestSponsoredTryOnLimit: merchant.guestSponsoredTryOnLimit,
@@ -680,6 +685,14 @@ export function StoreShopperExperience({
   }
   const stepChooseFrames = continuationText('steps.chooseFrames', 'Choose frames')
   const stepStartTryOn = continuationText('steps.startTryOn', 'Start Try-On')
+  const journeyLabels: Record<DecisionJourneyStage, string> = {
+    FACE_ANALYSIS: t('upload.title'),
+    FIT_PROFILE: continuationText('fitProfile.title', 'Fit profile'),
+    RECOMMENDATION: stepChooseFrames,
+    TRY_ON: stepStartTryOn,
+    COMPARE: continuationText('tryOn.compareTitle', 'Compare'),
+  }
+  const journeyStageNumber = (stage: DecisionJourneyStage) => enabledJourneyStages.indexOf(stage) + 1
   const selectionCtaState = resolveStoreSelectionCtaState({
     selectionContinued: selectionSaved,
     tryOnEnabled: merchant.experiencePolicy.tryOnEnabled,
@@ -759,10 +772,10 @@ export function StoreShopperExperience({
         ) : (
           <main className="py-7 sm:py-10">
             <section className="mx-auto mb-7 flex max-w-4xl items-center gap-3 rounded-2xl border border-white bg-white/80 p-3 shadow-sm backdrop-blur sm:gap-6 sm:px-5">
-              <JourneyStep number={1} label={t('upload.title')} active={currentStep === 1} complete={currentStep > 1} accent={accent} />
-              <div className="h-px flex-1 bg-slate-200" />
-              <JourneyStep number={2} label={stepChooseFrames} active={currentStep === 2} complete={currentStep > 2} accent={accent} />
-              {merchant.experiencePolicy.tryOnEnabled ? <><div className="h-px flex-1 bg-slate-200" /><JourneyStep number={3} label={stepStartTryOn} active={currentStep === 3} complete={false} accent={accent} /></> : null}
+              {journeyProgress.map((step, index) => <span key={step.stage} className="contents">
+                {index > 0 ? <div className="h-px flex-1 bg-slate-200" /> : null}
+                <JourneyStep number={index + 1} label={journeyLabels[step.stage]} active={step.active} complete={step.complete} accent={accent} />
+              </span>)}
             </section>
 
             <div className={`grid gap-6 ${recommendations.length > 0 ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
@@ -770,7 +783,7 @@ export function StoreShopperExperience({
                 <section className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] sm:p-7">
                   <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 1</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step {journeyStageNumber('FACE_ANALYSIS')}</p>
                       <h1 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('upload.title')}</h1>
                       <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{t('upload.guidance')}</p>
                     </div>
@@ -790,7 +803,7 @@ export function StoreShopperExperience({
                   {errorMessage ? <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{errorMessage}</p> : null}
                 </section>
 
-                {photoReady && (recommending || recommendations.length > 0) ? (
+                {enabledJourneyStages.includes('FIT_PROFILE') && photoReady && (recommending || recommendations.length > 0) ? (
                   <StoreFitProfile
                     photoPreview={photoPreview || ''}
                     geometry={faceGeometry}
@@ -811,7 +824,7 @@ export function StoreShopperExperience({
                   <section className="rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] sm:p-7">
                     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 2 · {stepChooseFrames}</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step {journeyStageNumber('RECOMMENDATION')} · {stepChooseFrames}</p>
                         <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('recommend.title')}</h2>
                         <p className="mt-2 text-sm text-slate-500">{merchant.experiencePolicy.tryOnEnabled ? t('recommend.subtitle', { max: maxSelectableFrames }) : t('recommend.subtitleNoTryOn')}</p>
                       </div>
@@ -860,7 +873,7 @@ export function StoreShopperExperience({
                   <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm xl:hidden">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">{selectionSaved ? continuationText('recommend.readyEyebrow', 'Ready when you are') : 'Step 2'}</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">{selectionSaved ? continuationText('recommend.readyEyebrow', 'Ready when you are') : `Step ${journeyStageNumber('RECOMMENDATION')}`}</p>
                         <p className="mt-1 text-sm text-slate-500">{t('recommend.selectHint', { max: maxSelectableFrames, count: selectedIds.length })}</p>
                       </div>
                       <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-sm font-bold text-blue-700">{selectedIds.length}</span>
@@ -890,11 +903,13 @@ export function StoreShopperExperience({
                       photoPreview={photoPreview}
                       accent={accent}
                       experiencePolicy={merchant.experiencePolicy}
+                      decisionJourneyStages={enabledJourneyStages}
                       onError={(message) => setErrorMessage(message || null)}
                       initialBatchId={resumeBatchId}
                       initialTasks={resumeTryOnTasks}
                       onContinuationBatchId={handleContinuationBatchId}
                       onTryOnTasksChange={handleTryOnTasksChange}
+                      onCompareStarted={setCompareStarted}
                     />
                   ) : null}
                 </div>

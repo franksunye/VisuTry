@@ -281,6 +281,7 @@ export async function createCampaignDraft(input: {
 export async function updateCampaign(input: {
   merchantId: string
   campaignId: string
+  status?: 'DRAFT' | 'ENDED'
   name?: string
   headline?: string | null
   description?: string | null
@@ -295,6 +296,7 @@ export async function updateCampaign(input: {
   secondaryCtaType?: string | null
   secondaryCtaLabel?: string | null
   secondaryCtaUrl?: string | null
+  journeyPolicy?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput
 }) {
   const current = await campaignRow(input.merchantId, input.campaignId)
   const objective = input.objective ?? current.row.campaignObjective ?? 'INTENT'
@@ -310,6 +312,8 @@ export async function updateCampaign(input: {
   for (const field of ['headline', 'description', 'primaryCtaType', 'primaryCtaLabel', 'primaryCtaUrl', 'secondaryCtaType', 'secondaryCtaLabel', 'secondaryCtaUrl'] as const) if (input[field] !== undefined) data[field] = typeof input[field] === 'string' ? input[field].trim() : input[field]
   if (startAt !== undefined) data.startAt = startAt
   if (endAt !== undefined) data.endAt = endAt
+  if (input.status !== undefined) data.status = input.status
+  if (input.journeyPolicy !== undefined) data.journeyPolicy = input.journeyPolicy
   const updated = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
     mutation: () => prisma.experience.update({ where: { id: current.row.id }, data, include: campaignFramesInclude }),

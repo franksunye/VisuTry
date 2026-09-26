@@ -31,6 +31,30 @@ const db = prisma as unknown as {
 const admin = requireAdmin as jest.Mock
 const boundary = withPublicDiscoveryInvalidation as jest.Mock
 const storeExperience = { id: 'experience-1', slug: 'store', type: 'STORE', merchant: { slug: 'merchant-a' } }
+const campaignExperience = {
+  id: 'campaign-a',
+  slug: 'spring',
+  type: 'CAMPAIGN',
+  merchantId: 'merchant-a',
+  merchant: { slug: 'merchant-a' },
+  name: 'Spring',
+  status: 'DRAFT',
+  headline: 'Spring frames',
+  description: null,
+  primaryCtaType: null,
+  primaryCtaLabel: null,
+  primaryCtaUrl: null,
+  secondaryCtaType: null,
+  secondaryCtaLabel: null,
+  secondaryCtaUrl: null,
+  startAt: null,
+  endAt: null,
+  campaignObjective: 'INTENT',
+  campaignGate: 'NONE',
+  presentationMode: 'EDITORIAL_FIRST',
+  referenceData: false,
+  frames: [],
+}
 
 describe('Merchant Experience admin routes', () => {
   beforeEach(() => {
@@ -68,6 +92,78 @@ describe('Merchant Experience admin routes', () => {
     expect(response.status).toBe(200)
     expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: { primaryCtaUrl } }))
     expect(boundary).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
+  })
+
+  it('accepts a bounded journey policy and rejects arbitrary workflow stages', async () => {
+    db.experience.findFirst.mockResolvedValue(storeExperience)
+    db.experience.update.mockResolvedValue({ id: 'experience-1' })
+    const valid = { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] }
+
+    const response = await updateExperience(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', {
+        method: 'PUT',
+        body: JSON.stringify({ journeyPolicy: valid }),
+      }),
+      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+    )
+    expect(response.status).toBe(200)
+    expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: { journeyPolicy: valid } }))
+
+    jest.clearAllMocks()
+    admin.mockResolvedValue({ ok: true, userId: 'admin-1' })
+    db.experience.findFirst.mockResolvedValue(storeExperience)
+    const invalid = await updateExperience(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', {
+        method: 'PUT',
+        body: JSON.stringify({ journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'TRY_ON', 'RECOMMENDATION'] } }),
+      }),
+      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+    )
+    expect(invalid.status).toBe(400)
+    expect(db.experience.update).not.toHaveBeenCalled()
+  })
+
+  it('accepts a Campaign Journey-only update as a successful canonical mutation', async () => {
+    const journeyPolicy = { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] }
+    db.experience.findFirst.mockResolvedValue(campaignExperience)
+    db.merchant.findUnique.mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    db.experience.update.mockResolvedValue({ ...campaignExperience, journeyPolicy })
+
+    const response = await updateExperience(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/campaign-a', {
+        method: 'PUT',
+        body: JSON.stringify({ journeyPolicy }),
+      }),
+      { params: { id: 'merchant-a', experienceId: 'campaign-a' } },
+    )
+
+    expect(response.status).toBe(200)
+    expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ journeyPolicy }),
+    }))
+  })
+
+  it('validates Campaign siblings before writing a Journey policy', async () => {
+    const journeyPolicy = { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] }
+    for (const body of [
+      { journeyPolicy, status: 'NOT_A_STATUS' },
+      { journeyPolicy, headline: 42 },
+    ]) {
+      jest.clearAllMocks()
+      admin.mockResolvedValue({ ok: true, userId: 'admin-1' })
+      db.experience.findFirst.mockResolvedValue(campaignExperience)
+
+      const response = await updateExperience(
+        new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/campaign-a', {
+          method: 'PUT',
+          body: JSON.stringify(body),
+        }),
+        { params: { id: 'merchant-a', experienceId: 'campaign-a' } },
+      )
+
+      expect(response.status).toBe(400)
+      expect(db.experience.update).not.toHaveBeenCalled()
+    }
   })
 
   it('writes only the allowed tenant-owned frame selection and preserves order', async () => {
