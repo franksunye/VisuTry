@@ -114,6 +114,20 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
     expect(enableResponse.status()).toBe(200)
 
     try {
+      // A policy toggle must invalidate the independently cached Kiosk ISR
+      // artifact immediately; disabling the policy cannot wait seven days.
+      const kioskUrl = '/en/store/local-qa-pilot/kiosk'
+      expect((await request.get(kioskUrl)).status()).toBe(200)
+      const disableKioskResponse = await request.put(`/api/admin/store/merchants/${merchant!.id}/experiences/${storeExperience!.id}`, {
+        data: { deliveryPolicy: { kioskEnabled: false, kioskIdleTimeoutSeconds: 900 } },
+      })
+      expect(disableKioskResponse.status()).toBe(200)
+      expect((await request.get(kioskUrl)).status()).toBe(404)
+      const reenableKioskResponse = await request.put(`/api/admin/store/merchants/${merchant!.id}/experiences/${storeExperience!.id}`, {
+        data: { deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 900 } },
+      })
+      expect(reenableKioskResponse.status()).toBe(200)
+
       // Ordinary Web is still the existing modal flow and has no kiosk reset UI.
       const webContext = await browser.newContext({ viewport: { width: 390, height: 844 } })
       const webPage = await webContext.newPage()
@@ -172,8 +186,7 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
 
       const resultLink = page.getByRole('link', { name: 'Open your private result' })
       await expect(resultLink).toBeVisible()
-      const kioskResultHref = await resultLink.getAttribute('href')
-      expect(kioskResultHref).toContain('deliveryProfile=kiosk')
+      expect(await resultLink.getAttribute('href')).toContain('deliveryProfile=kiosk')
       await resultLink.click()
       await expect(page.getByRole('heading', { name: /Your .* result/i })).toBeVisible()
       await expect(page.getByRole('heading', { name: 'Your curated shortlist' })).toBeVisible()
@@ -190,6 +203,9 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       await expect(phonePage.getByRole('heading', { name: /Your .* result/i })).toBeVisible()
       await expect(phonePage.locator('img[src*="/api/store/results/"]').first()).toBeVisible()
       await expect(phonePage.getByRole('button', { name: 'New shopper' })).toHaveCount(0)
+      const tokenOnlyReset = await phonePage.request.post(`/api/store/results/${encodeURIComponent(token)}/kiosk-reset`)
+      expect(tokenOnlyReset.status()).toBe(404)
+      expect((await phonePage.request.get(`/api/store/results/${encodeURIComponent(token)}`)).status()).toBe(200)
       await phonePage.screenshot({ path: `${evidenceDir}/clean-phone-canonical-result.png`, fullPage: true })
 
       // Reproduce Result A → Back → Store reset → Forward. The Result remains
@@ -212,19 +228,9 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       expect(retainedResult.status()).toBe(200)
       await page.screenshot({ path: `${evidenceDir}/kiosk-manual-reset-clean.png`, fullPage: true })
 
-      // Also exercise the Result screen's own reset action. It replaces the
-      // Result entry with a fresh kiosk navigation while keeping phone access.
-      await page.goto(kioskResultHref!, { waitUntil: 'networkidle' })
-      await expect(page.getByRole('button', { name: 'New shopper' })).toBeVisible()
-      await page.getByRole('button', { name: 'New shopper' }).click()
-      await expect(page).toHaveURL(/\/en\/store\/local-qa-pilot\/kiosk$/)
-      await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible()
-      const retainedResultAfterResultReset = await phonePage.request.get(`/api/store/results/${encodeURIComponent(token)}`)
-      expect(retainedResultAfterResultReset.status()).toBe(200)
-
       // A browser reload intentionally drops the in-memory session ID while
-      // leaving HttpOnly capability cookies in place. New shopper must use
-      // that capability to expire the orphaned Local session and clear cookies.
+      // leaving HttpOnly capability cookies in place. Starting directly must
+      // first clear that orphan; a failed cleanup may not create a new session.
       await page.getByRole('button', { name: /I understand.*continue/i }).click()
       await expect.poll(async () => (await page.context().cookies('http://127.0.0.1:3001'))
         .some((cookie) => cookie.name === 'vt_store_cap')).toBe(true)
@@ -232,18 +238,24 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible()
       const orphanReset = page.waitForResponse((response) => response.url().endsWith('/api/store/sessions/kiosk-reset')
         && response.request().method() === 'POST')
+      const sessionCreateRequests: string[] = []
+      const trackSessionCreate = (response: import('@playwright/test').Response) => {
+        if (response.url().endsWith('/api/store/sessions') && response.request().method() === 'POST') sessionCreateRequests.push(response.url())
+      }
+      page.on('response', trackSessionCreate)
       await page.route('**/api/store/sessions/kiosk-reset', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }))
-      await page.getByRole('button', { name: 'Start over and clear this shopper' }).click()
+      await page.getByRole('button', { name: /I understand.*continue/i }).click()
       expect((await orphanReset).status()).toBe(503)
       await expect(page.getByRole('alert').filter({ hasText: /reset could not be confirmed/i })).toBeVisible()
       await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeDisabled()
+      expect(sessionCreateRequests).toEqual([])
       await page.unroute('**/api/store/sessions/kiosk-reset')
       const confirmedOrphanReset = page.waitForResponse((response) => response.url().endsWith('/api/store/sessions/kiosk-reset')
         && response.request().method() === 'POST')
       await page.getByRole('button', { name: 'Start over and clear this shopper' }).click()
       expect((await confirmedOrphanReset).status()).toBe(200)
       await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible()
-      await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible()
+      page.off('response', trackSessionCreate)
       const resetCookies = await page.context().cookies('http://127.0.0.1:3001')
       expect(resetCookies.some((cookie) => cookie.name === 'vt_store_cap')).toBe(false)
       expect(resetCookies.some((cookie) => cookie.name === 'vt_store_visitor')).toBe(false)

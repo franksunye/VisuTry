@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { hashSessionCapability } from '@/modules/store/domain/session'
+import { hashSessionCapability, verifySessionCapability } from '@/modules/store/domain/session'
 import { resolveExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 import { createStoreRuntime } from '@/modules/store/application/runtime'
-import { clearStoreCapabilityCookie, clearStoreVisitorCookie } from '@/modules/store/infrastructure/http/session-cookie'
+import { clearStoreCapabilityCookie, clearStoreVisitorCookie, readStoreCapabilityToken } from '@/modules/store/infrastructure/http/session-cookie'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,20 +37,36 @@ export async function POST(_request: NextRequest, { params }: { params: { token:
     return NextResponse.json({ success: false, error: 'Kiosk reset is not authorized' }, { status: 404 })
   }
 
+  // The Result token grants continuation/read access, never shared-device
+  // mutation authority. Reset additionally requires the Kiosk's HttpOnly
+  // capability for this exact MerchantSession.
+  const capabilityToken = readStoreCapabilityToken(_request)
+  if (!capabilityToken) {
+    return NextResponse.json({ success: false, error: 'Kiosk reset is not authorized' }, { status: 404 })
+  }
+
   const runtime = createStoreRuntime()
-  const photoAssetId = await prisma.$transaction(async (tx) => {
+  const reset = await prisma.$transaction(async (tx) => {
     const session = await tx.merchantSession.findFirst({
       where: { id: share.result.merchantSessionId, merchantId: share.result.merchantId },
-      select: { photoAssetId: true },
+      select: { photoAssetId: true, capabilityTokenHash: true, experienceId: true },
     })
-    if (!session) return null
-    await tx.merchantSession.updateMany({
-      where: { id: share.result.merchantSessionId, merchantId: share.result.merchantId },
+    if (!session || !verifySessionCapability(capabilityToken, session.capabilityTokenHash)) return null
+    const result = await tx.merchantSession.updateMany({
+      where: {
+        id: share.result.merchantSessionId,
+        merchantId: share.result.merchantId,
+        experienceId: session.experienceId,
+        capabilityTokenHash: session.capabilityTokenHash,
+      },
       data: { status: 'EXPIRED', photoAssetId: null },
     })
-    return session.photoAssetId
+    return result.count === 1 ? { photoAssetId: session.photoAssetId } : null
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
-  if (photoAssetId) await runtime.assets.delete(photoAssetId, share.result.merchantId)
+  if (!reset) {
+    return NextResponse.json({ success: false, error: 'Kiosk reset is not authorized' }, { status: 404 })
+  }
+  if (reset.photoAssetId) await runtime.assets.delete(reset.photoAssetId, share.result.merchantId)
 
   const response = NextResponse.json({ success: true })
   clearStoreCapabilityCookie(response)

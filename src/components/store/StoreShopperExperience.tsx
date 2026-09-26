@@ -223,6 +223,10 @@ export function StoreShopperExperience({
   const kioskResetInFlight = useRef(false)
   const kioskResetSafetyLatch = useRef(false)
   const kioskPendingSession = useRef<SessionState | null>(null)
+  // A document reload loses the in-memory session ID but not its HttpOnly
+  // capability cookie. Confirm server cleanup before this document can create
+  // another session and overwrite that capability.
+  const kioskOrphanCleanupConfirmed = useRef(false)
 
   const accent = merchant?.accentColor || '#1F4B5A'
   const merchantContinuation = createMerchantContinuation({
@@ -470,6 +474,25 @@ export function StoreShopperExperience({
 
     setSessionStarting(true)
     setErrorMessage(null)
+    if (kioskMode && !kioskOrphanCleanupConfirmed.current) {
+      try {
+        const cleanup = await fetch('/api/store/sessions/kiosk-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ merchantSlug, experienceSlug: experienceSlug || 'store' }),
+          cache: 'no-store',
+        })
+        if (!cleanup.ok) throw new Error('Orphan session cleanup was not confirmed')
+        kioskOrphanCleanupConfirmed.current = true
+      } catch {
+        kioskResetSafetyLatch.current = true
+        setKioskResetSafetyLatched(true)
+        setErrorMessage('Private session reset could not be confirmed. Retry New shopper before starting another session.')
+        setSessionStarting(false)
+        return null
+      }
+    }
+
     try {
       const res = await fetch('/api/store/sessions', {
         method: 'POST',
