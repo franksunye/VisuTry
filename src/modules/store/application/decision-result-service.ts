@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { isMockMode } from '@/lib/mocks'
 import { hashSessionCapability } from '../domain/session'
 import { sanitizeDecisionResultPayload } from '../domain/decision-result'
-import { isHttpOrHttpsUrl } from '../domain/privacy'
+import { resolveMerchantHandoff } from '../domain/merchant-handoff'
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 
 const MAX_SHARE_TOKEN_LENGTH = 200
@@ -62,17 +62,10 @@ async function findShare(token: string): Promise<DecisionResultShareRow | null> 
   return share as DecisionResultShareRow
 }
 
-function safeHandoff(label: string | null, type: string | null, url: string | null) {
-  if (!label || !url) return null
-  if (url.startsWith('/') && !url.startsWith('//') && !url.includes('\\')) return { label, type: type || 'LINK', url }
-  if (isHttpOrHttpsUrl(url)) return { label, type: type || 'LINK', url }
-  return null
-}
-
 export type DecisionResultView = {
   expiresAt: string
   merchant: { name: string; slug: string; accentColor: string | null; websiteUrl: string | null }
-  experience: { type: 'STORE' | 'CAMPAIGN'; slug: string; name: string; primaryCta: ReturnType<typeof safeHandoff>; secondaryCta: ReturnType<typeof safeHandoff>; deliveryPolicy: ExperienceDeliveryPolicy } | null
+  experience: { type: 'STORE' | 'CAMPAIGN'; slug: string; name: string; primaryCta: ReturnType<typeof resolveMerchantHandoff>; secondaryCta: ReturnType<typeof resolveMerchantHandoff>; deliveryPolicy: ExperienceDeliveryPolicy } | null
   journey: ReturnType<typeof sanitizeDecisionResultPayload>['journey']
   faceFit: ReturnType<typeof sanitizeDecisionResultPayload>['faceFit']
   recommendation: ReturnType<typeof sanitizeDecisionResultPayload>['recommendation']
@@ -123,8 +116,8 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
       slug: share.result.experience.slug,
       name: share.result.experience.name,
       deliveryPolicy: resolveExperienceDeliveryPolicy(share.result.experience.deliveryPolicy),
-      primaryCta: safeHandoff(share.result.experience.primaryCtaLabel, share.result.experience.primaryCtaType, share.result.experience.primaryCtaUrl),
-      secondaryCta: safeHandoff(share.result.experience.secondaryCtaLabel, share.result.experience.secondaryCtaType, share.result.experience.secondaryCtaUrl),
+      primaryCta: resolveMerchantHandoff({ type: share.result.experience.primaryCtaType, label: share.result.experience.primaryCtaLabel, url: share.result.experience.primaryCtaUrl }),
+      secondaryCta: resolveMerchantHandoff({ type: share.result.experience.secondaryCtaType, label: share.result.experience.secondaryCtaLabel, url: share.result.experience.secondaryCtaUrl }),
     } : null,
     journey: payload.journey,
     faceFit: payload.faceFit,

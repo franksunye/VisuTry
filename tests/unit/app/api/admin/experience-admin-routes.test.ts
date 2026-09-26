@@ -95,6 +95,33 @@ describe('Merchant Experience admin routes', () => {
     expect(boundary).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
   })
 
+  it('persists bounded primary and secondary Merchant Handoff semantics on Store Experiences', async () => {
+    db.experience.findFirst.mockResolvedValue(storeExperience)
+    db.experience.update.mockResolvedValue({ id: 'experience-1' })
+    const patch = {
+      primaryCtaType: 'WHATSAPP', primaryCtaLabel: 'Chat with us', primaryCtaUrl: 'https://wa.me/15550001111',
+      secondaryCtaType: 'VISIT_STORE', secondaryCtaLabel: 'Visit our store', secondaryCtaUrl: '/en/store/merchant-a',
+    }
+
+    const response = await updateExperience(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', { method: 'PUT', body: JSON.stringify(patch) }),
+      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+    )
+
+    expect(response.status).toBe(200)
+    expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: patch }))
+  })
+
+  it('rejects unbounded Store Handoff types before mutation', async () => {
+    db.experience.findFirst.mockResolvedValue(storeExperience)
+    const response = await updateExperience(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', { method: 'PUT', body: JSON.stringify({ primaryCtaType: 'RUN_SCRIPT' }) }),
+      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+    )
+    expect(response.status).toBe(400)
+    expect(db.experience.update).not.toHaveBeenCalled()
+  })
+
   it('accepts a bounded journey policy and rejects arbitrary workflow stages', async () => {
     db.experience.findFirst.mockResolvedValue(storeExperience)
     db.experience.update.mockResolvedValue({ id: 'experience-1' })

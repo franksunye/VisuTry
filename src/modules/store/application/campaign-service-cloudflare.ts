@@ -14,6 +14,7 @@ import { assertExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
+import { isSupportedMerchantHandoffType } from '../domain/merchant-handoff'
 import { experienceCommandsCloudflare } from './experience-command-service-cloudflare'
 
 export { CampaignServiceError }
@@ -178,6 +179,9 @@ export async function createCampaignDraft(input: {
   if (!name) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.')
   const objective = input.objective ?? 'INTENT'; const gate = input.gate ?? 'NONE'; const presentationMode = input.presentationMode ?? 'EDITORIAL_FIRST'
   validatePolicy({ objective, gate, presentationMode })
+  for (const [field, value] of [['primaryCtaType', input.primaryCtaType], ['secondaryCtaType', input.secondaryCtaType]] as const) {
+    if (value != null && !isSupportedMerchantHandoffType(value)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must use a supported Merchant Handoff action.`)
+  }
   const startAt = parseDate(input.startAt, 'startAt') ?? null; const endAt = parseDate(input.endAt, 'endAt') ?? null
   validateDateRange(startAt, endAt)
   for (const [field, url] of [['primaryCtaUrl', input.primaryCtaUrl], ['secondaryCtaUrl', input.secondaryCtaUrl] as const]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must be an https URL or internal path.`)
@@ -259,6 +263,9 @@ export async function updateAndPublishCampaign(input: {
   const effectiveStartAt = startAt === undefined ? dateValue(current.row.startAt) : startAt
   const effectiveEndAt = endAt === undefined ? dateValue(current.row.endAt) : endAt
   validateDateRange(effectiveStartAt, effectiveEndAt)
+  for (const [field, value] of [['primaryCtaType', input.primaryCtaType], ['secondaryCtaType', input.secondaryCtaType]] as const) {
+    if (value != null && !isSupportedMerchantHandoffType(value)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must use a supported Merchant Handoff action.`)
+  }
   for (const url of [input.primaryCtaUrl, input.secondaryCtaUrl]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', 'CTA URL must be an https URL or internal path.')
   if (input.name !== undefined && !input.name.trim()) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.')
   if (input.journeyPolicy != null) assertDecisionJourneyPolicy(input.journeyPolicy)

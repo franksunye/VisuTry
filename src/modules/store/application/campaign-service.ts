@@ -16,6 +16,7 @@ import { validateExperienceCommandPatch } from './experience-command-service'
 import { MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
+import { isSupportedMerchantHandoffType } from '../domain/merchant-handoff'
 
 export { CampaignServiceError }
 
@@ -236,6 +237,9 @@ export async function createCampaignDraft(input: {
   const gate = input.gate ?? 'NONE'
   const presentationMode = input.presentationMode ?? 'EDITORIAL_FIRST'
   validatePolicy({ objective, gate, presentationMode })
+  for (const [field, value] of [['primaryCtaType', input.primaryCtaType], ['secondaryCtaType', input.secondaryCtaType]] as const) {
+    if (value != null && !isSupportedMerchantHandoffType(value)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must use a supported Merchant Handoff action.`)
+  }
   const startAt = parseDate(input.startAt, 'startAt') ?? null
   const endAt = parseDate(input.endAt, 'endAt') ?? null
   validateDateRange(startAt, endAt)
@@ -306,6 +310,9 @@ function buildCampaignUpdatePatch(input: CampaignUpdateInput, currentRow: Campai
   const startAt = parseDate(input.startAt, 'startAt')
   const endAt = parseDate(input.endAt, 'endAt')
   validateDateRange(startAt === undefined ? currentRow.startAt : startAt, endAt === undefined ? currentRow.endAt : endAt)
+  for (const [field, value] of [['primaryCtaType', input.primaryCtaType], ['secondaryCtaType', input.secondaryCtaType]] as const) {
+    if (value != null && !isSupportedMerchantHandoffType(value)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must use a supported Merchant Handoff action.`)
+  }
   for (const url of [input.primaryCtaUrl, input.secondaryCtaUrl]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', 'CTA URL must be an https URL or internal path.')
   const data: Record<string, unknown> = { campaignObjective: objective, campaignGate: gate, presentationMode }
   if (input.name !== undefined) { if (!input.name.trim()) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.'); data.name = input.name.trim() }
