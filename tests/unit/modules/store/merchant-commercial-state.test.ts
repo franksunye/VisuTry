@@ -101,6 +101,33 @@ describe('G4-A canonical Merchant commercial contract', () => {
     expect(canUseCommercialFeature(state, 'GENERATIVE_TRY_ON').code).toBe('AI_USAGE_LIMIT_REACHED')
   })
 
+  it('includes the Founding Pilot standard render ceiling in canonical decisions and runtime claims', () => {
+    const fields = {
+      planCode: 'FOUNDING_PILOT',
+      commercialStatus: 'PILOT_ACTIVE',
+      createdAt: new Date('2026-08-01T00:00:00.000Z'),
+      standardRenderAllowance: 4200,
+    }
+    const belowBoth = resolveMerchantCommercialCapability(fields, {
+      aiCommerceSessions: 1499,
+      standardTryOnGenerations: 3499,
+    }, now)
+    const sessionsExhausted = resolveMerchantCommercialCapability(fields, {
+      aiCommerceSessions: 1500,
+      standardTryOnGenerations: 100,
+    }, now)
+    const rendersExhausted = resolveMerchantCommercialCapability(fields, {
+      aiCommerceSessions: 0,
+      standardTryOnGenerations: 3500,
+    }, now)
+
+    expect(belowBoth.decisions.GENERATIVE_TRY_ON.allowed).toBe(true)
+    expect(sessionsExhausted.decisions.GENERATIVE_TRY_ON).toMatchObject({ allowed: false, current: 1500, limit: 1500 })
+    expect(rendersExhausted.state).toMatchObject({ status: 'USAGE_EXHAUSTED', standardTryOnGenerationLimit: 3500 })
+    expect(rendersExhausted.decisions.GENERATIVE_TRY_ON).toMatchObject({ allowed: false, current: 3500, limit: 3500 })
+    expect(rendersExhausted.storeRuntime.renderLimits.maxSuccessfulRendersPerMerchant).toBe(3500)
+  })
+
   it('supports an anchored monthly period without relying on calendar-month assumptions', () => {
     const period = resolveMerchantCommercialPeriod({ planCode: 'LAUNCH', createdAt: new Date('2026-08-15T12:00:00.000Z') }, now)
     expect(period.kind).toBe('monthly')

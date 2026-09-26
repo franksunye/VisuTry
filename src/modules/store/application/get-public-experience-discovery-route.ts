@@ -55,12 +55,19 @@ export async function getPublicExperienceDiscoveryForRoute(
 
   // Keep rich Store/Campaign content on the existing ISR boundary while
   // refreshing the quota-sensitive capability hint against live usage.
-  const runtime = createPublicStoreReadRuntime()
-  const generativeTryOnAvailable = await resolvePublicGenerativeTryOnAvailability({
-    merchants: runtime.merchants,
-    usage: runtime.usage,
-    slug,
-  })
+  let generativeTryOnAvailable = false
+  try {
+    const runtime = createPublicStoreReadRuntime()
+    generativeTryOnAvailable = await resolvePublicGenerativeTryOnAvailability({
+      merchants: runtime.merchants,
+      usage: runtime.usage,
+      slug,
+    })
+  } catch {
+    // Keep cached discovery available during a commercial-usage outage, while
+    // conservatively removing the live Try-On capability claim.
+    generativeTryOnAvailable = false
+  }
   return {
     ...discovery,
     merchant: { ...discovery.merchant, generativeTryOnAvailable },

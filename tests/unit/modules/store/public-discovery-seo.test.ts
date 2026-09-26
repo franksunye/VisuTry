@@ -192,6 +192,44 @@ describe('Store/Campaign discovery SEO', () => {
     },
   )
 
+  it.each(['STORE', 'CAMPAIGN'] as const)(
+    'projects Founding Pilot render exhaustion consistently for public %s discovery',
+    async (type) => {
+      const merchantRecord = {
+        id: 'merchant-pilot', slug: 'pilot-optical', name: 'Pilot Optical', status: 'ACTIVE',
+        planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE',
+        createdAt: new Date('2026-08-01T00:00:00.000Z'), updatedAt: date,
+      }
+      const repositories = {
+        merchants: { findBySlug: jest.fn().mockResolvedValue(merchantRecord) },
+        experiences: {
+          findDefaultStore: jest.fn().mockResolvedValue({
+            id: 'experience-pilot', merchantId: merchantRecord.id, type: 'STORE', slug: 'store', name: 'Store', status: 'ACTIVE',
+            headline: null, description: null, heroAssetUrl: null, referenceData: false, updatedAt: date,
+          }),
+          findPublicCampaignByMerchantAndSlug: jest.fn().mockResolvedValue({
+            id: 'experience-pilot', merchantId: merchantRecord.id, type: 'CAMPAIGN', slug: 'summer', name: 'Summer', status: 'ACTIVE',
+            headline: null, description: null, heroAssetUrl: null, referenceData: false, updatedAt: date,
+          }),
+        },
+        frames: { findActiveByMerchant: jest.fn().mockResolvedValue(frames()) },
+      }
+      const discoveryFor = (standardTryOnGenerations: number, aiCommerceSessions = 0) => getPublicExperienceDiscovery({
+        ...repositories,
+        slug: merchantRecord.slug,
+        experienceSlug: type === 'CAMPAIGN' ? 'summer' : null,
+        commercialUsage: { aiCommerceSessions, standardTryOnGenerations },
+      } as never)
+
+      const underBothLimits = await discoveryFor(3499, 1499)
+      const renderLimitReached = await discoveryFor(3500, 0)
+      const sessionLimitReached = await discoveryFor(100, 1500)
+      expect(underBothLimits?.merchant.generativeTryOnAvailable).toBe(true)
+      expect(renderLimitReached?.merchant.generativeTryOnAvailable).toBe(false)
+      expect(sessionLimitReached?.merchant.generativeTryOnAvailable).toBe(false)
+    },
+  )
+
   it('loads current-period usage for the live public capability overlay', async () => {
     const merchantRecord = {
       id: 'merchant-1', slug: 'visutry-optical', status: 'ACTIVE', planCode: 'LAUNCH',
@@ -212,6 +250,25 @@ describe('Store/Campaign discovery SEO', () => {
       periodStart: merchantRecord.entitlementEffectiveFrom,
       periodEnd: merchantRecord.billingPeriodEnd,
     })
+  })
+
+  it('counts both Founding Pilot quotas for the live public capability overlay', async () => {
+    const merchantRecord = {
+      id: 'merchant-pilot', slug: 'pilot-optical', status: 'ACTIVE', planCode: 'FOUNDING_PILOT',
+      commercialStatus: 'PILOT_ACTIVE', createdAt: new Date('2026-08-01T00:00:00.000Z'),
+    }
+    const countAICommerceSessions = jest.fn().mockResolvedValue(0)
+    const countSuccessfulRenders = jest.fn().mockResolvedValue(3500)
+    const available = await resolvePublicGenerativeTryOnAvailability({
+      slug: merchantRecord.slug,
+      merchants: { findPublicBySlug: jest.fn().mockResolvedValue(merchantRecord) } as never,
+      usage: { countAICommerceSessions, countSuccessfulRenders } as never,
+      now: new Date('2026-08-15T00:00:00.000Z'),
+    })
+
+    expect(available).toBe(false)
+    expect(countAICommerceSessions).toHaveBeenCalledTimes(1)
+    expect(countSuccessfulRenders).toHaveBeenCalledWith(merchantRecord.id)
   })
 
   it('uses factual merchant/campaign metadata and a clean canonical', () => {

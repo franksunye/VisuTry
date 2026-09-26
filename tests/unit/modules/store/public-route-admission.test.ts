@@ -234,5 +234,11 @@ describe('public route admission', () => {
     const exhausted = await getPublicExperienceDiscoveryForRoute('merchant-a')
     expect(exhausted?.merchant.generativeTryOnAvailable).toBe(false)
     expect(countAICommerceSessions).toHaveBeenCalledTimes(2)
+
+    countAICommerceSessions.mockRejectedValueOnce(new Error('usage ledger unavailable'))
+    const usageUnavailable = await getPublicExperienceDiscoveryForRoute('merchant-a')
+    expect(usageUnavailable).not.toBeNull()
+    expect(usageUnavailable?.experience.name).toBe('Campaign A')
+    expect(usageUnavailable?.merchant.generativeTryOnAvailable).toBe(false)
   })
 })

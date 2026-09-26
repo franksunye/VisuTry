@@ -62,6 +62,18 @@ export function resolveMerchantCommercialCapability(
   const compatibility = resolveMerchantEntitlement(fields, now)
   const enforceLegacyRenderLimits = state.commercialState === 'LEGACY_UNMIGRATED'
     || state.planCode === 'FOUNDING_PILOT'
+  const compatibilityRenderLimits = enforceLegacyRenderLimits
+    ? compatibility.renderLimits
+    : unlimitedStoreRenderLimits()
+  const renderLimits = state.planCode === 'FOUNDING_PILOT' && state.standardTryOnGenerationLimit !== null
+    ? {
+        ...compatibilityRenderLimits,
+        maxSuccessfulRendersPerMerchant: Math.min(
+          compatibilityRenderLimits.maxSuccessfulRendersPerMerchant,
+          state.standardTryOnGenerationLimit,
+        ),
+      }
+    : compatibilityRenderLimits
   const decisions = Object.fromEntries(COMMERCIAL_FEATURES.map((feature) => [
     feature,
     canUseCommercialFeature(state, feature),
@@ -77,7 +89,7 @@ export function resolveMerchantCommercialCapability(
     },
     storeRuntime: {
       persistedGenerationOrigin: compatibility.tryOnOrigin,
-      renderLimits: enforceLegacyRenderLimits ? compatibility.renderLimits : unlimitedStoreRenderLimits(),
+      renderLimits,
       consumerContinuationRenderLimits: compatibility.renderLimits,
       usageCreatedAt: merchantUsageCreatedAtFilter(compatibility),
       enforceLegacyRenderLimits,

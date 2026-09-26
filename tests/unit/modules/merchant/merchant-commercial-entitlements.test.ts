@@ -23,6 +23,7 @@ const merchant = {
 
 describe('Merchant AI Commerce Session meter', () => {
   let used = 0
+  let rendersUsed = 0
   const txLedger = {
     findUnique: jest.fn(),
     count: jest.fn(),
@@ -32,11 +33,12 @@ describe('Merchant AI Commerce Session meter', () => {
 
   beforeEach(() => {
     used = 0
+    rendersUsed = 0
     jest.clearAllMocks()
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue(merchant)
     ;(prisma.experience.count as jest.Mock).mockResolvedValue(0)
     ;(prisma.merchantFrame.count as jest.Mock).mockResolvedValue(0)
-    ;(prisma.merchantUsageLedger.count as jest.Mock).mockImplementation(({ where }: { where: { kind: string } }) => where.kind === 'AI_COMMERCE_SESSION' ? used : 0)
+    ;(prisma.merchantUsageLedger.count as jest.Mock).mockImplementation(({ where }: { where: { kind: string } }) => where.kind === 'AI_COMMERCE_SESSION' ? used : where.kind === 'RENDER_SUCCESS' ? rendersUsed : 0)
     txSession.findFirst.mockImplementation(async () => ({ id: 'session-a', billableAICommerceSession: used > 0 }))
     txLedger.findUnique.mockImplementation(async () => used > 0 ? { id: 'meter-a' } : null)
     txLedger.count.mockImplementation(async () => used)
@@ -58,6 +60,22 @@ describe('Merchant AI Commerce Session meter', () => {
     const result = await consumeAICommerceSession({ merchantId: 'merchant-a', merchantSessionId: 'session-a', now: new Date('2026-09-01T00:00:00.000Z') })
 
     expect(result).toMatchObject({ consumed: false, alreadyConsumed: false, used: 0, limit: 1000 })
+    expect(txLedger.create).not.toHaveBeenCalled()
+  })
+
+  it('denies new AI Commerce Sessions when the canonical Founding Pilot render allowance is exhausted', async () => {
+    rendersUsed = 3500
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({
+      ...merchant,
+      planCode: 'FOUNDING_PILOT',
+      commercialStatus: 'PILOT_ACTIVE',
+      standardRenderAllowance: 3500,
+    })
+
+    const result = await consumeAICommerceSession({ merchantId: 'merchant-a', merchantSessionId: 'session-a', now: new Date('2026-08-10T00:00:00.000Z') })
+
+    expect(result).toMatchObject({ consumed: false, state: { status: 'USAGE_EXHAUSTED', usage: { standardTryOnGenerations: 3500 } } })
+    expect(prisma.merchantUsageLedger.count).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ kind: 'RENDER_SUCCESS' }) }))
     expect(txLedger.create).not.toHaveBeenCalled()
   })
 

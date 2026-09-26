@@ -206,7 +206,9 @@ export async function resolvePublicGenerativeTryOnAvailability(input: {
   const now = input.now ?? new Date()
   const baseline = resolveMerchantCommercialCapability(merchant, {}, now)
   const sessionLimit = baseline.state.plan?.aiCommerceSessions
+  const standardTryOnGenerationLimit = baseline.state.standardTryOnGenerationLimit
   let aiCommerceSessions = 0
+  let standardTryOnGenerations = 0
   if (sessionLimit !== null && sessionLimit !== undefined) {
     if (!input.usage.countAICommerceSessions) return false
     aiCommerceSessions = await input.usage.countAICommerceSessions({
@@ -215,10 +217,14 @@ export async function resolvePublicGenerativeTryOnAvailability(input: {
       periodEnd: baseline.state.period.end,
     })
   }
+  if (standardTryOnGenerationLimit !== null) {
+    if (!input.usage.countSuccessfulRenders) return false
+    standardTryOnGenerations = await input.usage.countSuccessfulRenders(merchant.id)
+  }
 
   return resolveMerchantCommercialCapability(
     merchant,
-    { aiCommerceSessions },
+    { aiCommerceSessions, standardTryOnGenerations },
     now,
   ).decisions.GENERATIVE_TRY_ON.allowed
 }
