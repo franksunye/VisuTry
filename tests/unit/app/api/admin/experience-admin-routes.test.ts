@@ -157,6 +157,7 @@ describe('Merchant Experience admin routes', () => {
     db.experience.update.mockResolvedValue({ id: 'experience-1', status: 'ACTIVE' })
     const payload = buildExperienceAdminSavePayload({
       type: 'STORE', name: 'Store A', status: 'ACTIVE', headline: 'Find your fit', description: null,
+      primaryCtaType: 'LINK',
       primaryCtaLabel: 'Explore', primaryCtaUrl: '/shop', offerLabel: null, offerCode: null,
       startAt: null, endAt: null,
     }, { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] }, {
@@ -164,6 +165,7 @@ describe('Merchant Experience admin routes', () => {
     })
 
     expect(payload).toMatchObject({ status: 'ACTIVE', headline: 'Find your fit', journeyPolicy: { enabledStages: expect.any(Array) }, deliveryPolicy: { kioskEnabled: true } })
+    expect(payload).toHaveProperty('primaryCtaType', 'CUSTOM_LINK')
     expect(payload).not.toHaveProperty('startAt')
     expect(payload).not.toHaveProperty('endAt')
 
@@ -175,7 +177,7 @@ describe('Merchant Experience admin routes', () => {
     )
 
     expect(response.status).toBe(200)
-    expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'ACTIVE', headline: 'Find your fit', journeyPolicy: payload.journeyPolicy, deliveryPolicy: payload.deliveryPolicy }) }))
+    expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'ACTIVE', headline: 'Find your fit', primaryCtaType: 'CUSTOM_LINK', journeyPolicy: payload.journeyPolicy, deliveryPolicy: payload.deliveryPolicy }) }))
     const commandData = (db.experience.update.mock.calls[0][0] as { data: Record<string, unknown> }).data
     expect(commandData).not.toHaveProperty('startAt')
     expect(commandData).not.toHaveProperty('endAt')

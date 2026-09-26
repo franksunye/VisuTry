@@ -19,6 +19,14 @@ describe('Merchant Handoff contract', () => {
     })
   })
 
+  it('reads a legacy CTA with a null action type as a custom link only when its destination is valid', () => {
+    expect(resolveMerchantHandoff({ type: null, label: ' Visit shop ', url: 'https://shop.example/next' })).toEqual({
+      action: 'CUSTOM_LINK', label: 'Visit shop', url: 'https://shop.example/next',
+    })
+    expect(resolveMerchantHandoff({ type: null, label: 'Visit shop', url: 'javascript:alert(1)' })).toBeNull()
+    expect(resolveMerchantHandoff({ label: 'Visit shop', url: 'https://shop.example/next' })).toBeNull()
+  })
+
   it.each(['UNKNOWN', 'javascript:alert(1)', '//evil.example', 'mailto:shop@example.com', '/\\evil'])('fails closed for malformed persisted Handoff %s', (value) => {
     expect(resolveMerchantHandoff({ type: value, label: 'Go', url: value })).toBeNull()
   })

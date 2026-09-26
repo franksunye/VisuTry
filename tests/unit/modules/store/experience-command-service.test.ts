@@ -58,7 +58,16 @@ describe('canonical Experience command boundary', () => {
       merchantId: 'merchant-a', experienceId: 'experience-1',
       patch: { primaryCtaType: 'PRODUCT_OR_COLLECTION', secondaryCtaType: 'WHATSAPP' },
     })
-    expect(repository.update).toHaveBeenCalledTimes(1)
+    expect(repository.update).toHaveBeenCalledWith('merchant-a', 'experience-1', {
+      primaryCtaType: 'PRODUCT', secondaryCtaType: 'WHATSAPP',
+    }, { afterUpdate: undefined, atomicEffects: undefined })
+
+    await commands.updateSharedConfiguration({
+      merchantId: 'merchant-a', experienceId: 'experience-1', patch: { primaryCtaType: 'LINK' },
+    })
+    expect(repository.update).toHaveBeenLastCalledWith('merchant-a', 'experience-1', {
+      primaryCtaType: 'CUSTOM_LINK',
+    }, { afterUpdate: undefined, atomicEffects: undefined })
 
     jest.clearAllMocks()
     await expect(commands.updateSharedConfiguration({

@@ -280,10 +280,18 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     ])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
-    const result = await createCampaignDraft({ merchantId: 'merchant-a', name: 'Spring Edit', headline: 'Try the edit' })
+    const result = await createCampaignDraft({
+      merchantId: 'merchant-a', name: 'Spring Edit', headline: 'Try the edit',
+      primaryCtaType: 'LINK', secondaryCtaType: 'PRODUCT_OR_COLLECTION',
+    })
 
     expect(result).toMatchObject({ id: 'campaign-a', merchantId: 'merchant-a', status: 'DRAFT', slug: 'spring-edit' })
     expect(sql.mock.calls.some((call) => call[0].join('').includes('e."merchantId"'))).toBe(true)
+    const insert = sql.mock.calls.find((call) => call[0].join('').includes('INSERT INTO "Experience"'))
+    expect(insert?.slice(1)).toContain('CUSTOM_LINK')
+    expect(insert?.slice(1)).toContain('PRODUCT')
+    expect(insert?.slice(1)).not.toContain('LINK')
+    expect(insert?.slice(1)).not.toContain('PRODUCT_OR_COLLECTION')
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
       target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'spring-edit' },
     }))

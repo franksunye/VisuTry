@@ -23,11 +23,17 @@ const LEGACY_ACTIONS: Record<string, MerchantHandoffAction> = {
 }
 
 export function isSupportedMerchantHandoffType(value: unknown): value is string {
-  return isMerchantHandoffAction(value) || (typeof value === 'string' && Object.prototype.hasOwnProperty.call(LEGACY_ACTIONS, value))
+  return normalizeMerchantHandoffAction(value) !== null
 }
 
 export function isMerchantHandoffAction(value: unknown): value is MerchantHandoffAction {
   return typeof value === 'string' && (MERCHANT_HANDOFF_ACTIONS as readonly string[]).includes(value)
+}
+
+/** Accept legacy inputs, but return only a canonical action for new writes. */
+export function normalizeMerchantHandoffAction(value: unknown): MerchantHandoffAction | null {
+  if (isMerchantHandoffAction(value)) return value
+  return typeof value === 'string' ? LEGACY_ACTIONS[value] ?? null : null
 }
 
 /** Legacy CTA types stay readable, while unknown persisted values fail closed. */
@@ -37,11 +43,9 @@ export function resolveMerchantHandoff(input: {
   label?: unknown
   url?: unknown
 }): MerchantHandoff | null {
-  const action = isMerchantHandoffAction(input.action)
-    ? input.action
-    : typeof input.type === 'string'
-      ? (isMerchantHandoffAction(input.type) ? input.type : LEGACY_ACTIONS[input.type])
-      : undefined
+  const action = input.action !== undefined
+    ? normalizeMerchantHandoffAction(input.action)
+    : input.type === null ? 'CUSTOM_LINK' : normalizeMerchantHandoffAction(input.type)
   if (!action || typeof input.label !== 'string' || !input.label.trim() || typeof input.url !== 'string') return null
   const url = input.url.trim()
   if (input.label.trim().length > 240 || /\s|[\u0000-\u001f\u007f]/u.test(url)) return null

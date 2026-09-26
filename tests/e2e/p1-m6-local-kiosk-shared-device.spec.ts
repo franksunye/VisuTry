@@ -319,7 +319,15 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
         mimeType: 'image/jpeg',
         buffer: readFileSync('public/home/Ethan-try-on-glasses-screen.jpg'),
       })
+      // The supported minimum idle timeout is shorter than some Local model
+      // responses. Keep this shopper active while the recommendation is in
+      // flight, then stop activity so the separate idle-reset assertion below
+      // exercises a genuine inactivity window.
+      const activityPulse = await page.evaluate(() => window.setInterval(() => {
+        window.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+      }, 1_000))
       await expect(page.getByRole('heading', { name: 'Recommended for you' })).toBeVisible({ timeout: 45_000 })
+      await page.evaluate((timer) => window.clearInterval(timer), activityPulse)
       await expect(page.locator('[data-testid^="store-tryon-result-"]')).toHaveCount(0)
       await expect(page.getByRole('heading', { name: 'Your completed looks' })).toHaveCount(0)
       await expect(page.getByText(/For privacy, this kiosk reset after inactivity/i)).toHaveCount(0)

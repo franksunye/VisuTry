@@ -1,5 +1,6 @@
 import type { DecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
 import type { ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
+import { normalizeMerchantHandoffAction } from '@/modules/store/domain/merchant-handoff'
 
 type ExperienceAdminSaveState = {
   type: 'STORE' | 'CAMPAIGN'
@@ -7,6 +8,7 @@ type ExperienceAdminSaveState = {
   status: string
   headline: string | null
   description: string | null
+  primaryCtaType: string | null
   primaryCtaLabel: string | null
   primaryCtaUrl: string | null
   offerLabel: string | null
@@ -25,6 +27,7 @@ export function buildExperienceAdminSavePayload(
     status: experience.status,
     headline: experience.headline,
     description: experience.description,
+    primaryCtaType: experience.primaryCtaType == null ? null : normalizeMerchantHandoffAction(experience.primaryCtaType),
     primaryCtaLabel: experience.primaryCtaLabel,
     primaryCtaUrl: experience.primaryCtaUrl,
     offerLabel: experience.offerLabel,
