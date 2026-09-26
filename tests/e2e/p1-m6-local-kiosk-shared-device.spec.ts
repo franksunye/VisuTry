@@ -156,7 +156,7 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       const popup = await externalPopup
       const invocationRequest = await externalInvocation
       const invocationResponse = await invocationRequest.response()
-      expect(invocationResponse).not.toBeNull()
+      if (!invocationResponse) throw new Error('Discovery handoff invocation did not receive an HTTP response')
       expect(invocationResponse.status()).toBe(200)
       const invocationBody = invocationResponse.request().postDataJSON() as Record<string, unknown>
       expect(invocationBody).toMatchObject({ action: 'CUSTOM_LINK', surface: 'DISCOVERY' })
