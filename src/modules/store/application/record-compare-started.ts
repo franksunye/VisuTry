@@ -13,6 +13,7 @@ import type {
   MerchantRepository,
   MerchantSessionRepository,
   ExperienceRepository,
+  DecisionResultRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { canUseFeature } from '@/modules/merchant/application/merchant-commercial-entitlements'
@@ -22,6 +23,7 @@ export async function recordCompareStarted(input: {
   merchants: MerchantRepository
   sessions: MerchantSessionRepository
   events: MerchantEventRepository
+  decisionResults?: DecisionResultRepository
   experiences?: ExperienceRepository
   slug: string
   merchantSessionId: string
@@ -134,6 +136,12 @@ export async function recordCompareStarted(input: {
       completedTryOns,
     })
   }
+
+  await input.decisionResults?.updateSessionSnapshot({
+    merchantId: merchant.id,
+    merchantSessionId: session.id,
+    compare: { startedAt: new Date().toISOString(), frameIds: selectedFrameIds },
+  })
 
   return { recorded: result.created }
 }

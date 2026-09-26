@@ -703,6 +703,8 @@ model Merchant {
   operationAudits MerchantOperationAudit[]
   oauthAuthorizations MerchantOAuthAuthorization[]
   activationEvents MerchantActivationEvent[]
+  decisionResults DecisionResult[]
+  decisionResultShares DecisionResultShare[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1126,6 +1128,7 @@ model Experience {
   intents  MerchantIntent[]
   events   MerchantEvent[]
   sponsoredUsages MerchantSponsoredUsage[]
+  decisionResults DecisionResult[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1194,6 +1197,7 @@ model MerchantSession {
   usage      MerchantUsageLedger[]
   tryOnTasks TryOnTask[]
   sponsoredUsages MerchantSponsoredUsage[]
+  decisionResults DecisionResult[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1233,6 +1237,52 @@ model MerchantIntent {
   @@index([merchantId, type])
   @@index([merchantSessionId])
   @@index([merchantId, experienceId])
+}
+
+/// Canonical, tenant-scoped Shopper Decision Result. Payload contains only
+/// bounded summaries/references; raw shopper photos remain outside this model.
+model DecisionResult {
+  id                String   @id @default(cuid())
+  merchantId        String
+  experienceId      String?
+  merchantSessionId String
+  schemaVersion     Int      @default(1)
+  payload           Json
+  expiresAt         DateTime
+  finalizedAt       DateTime?
+
+  merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  experience Experience?      @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
+  session    MerchantSession  @relation(fields: [merchantSessionId, merchantId], references: [id, merchantId], onDelete: Cascade)
+  shares     DecisionResultShare[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([merchantId, merchantSessionId])
+  @@unique([id, merchantId])
+  @@index([merchantId, expiresAt])
+  @@index([merchantSessionId])
+}
+
+/// Opaque bearer capability for a bounded Result continuation. Only the hash
+/// is persisted; the raw token is returned once to the creating client.
+model DecisionResultShare {
+  id              String   @id @default(cuid())
+  merchantId      String
+  decisionResultId String
+  tokenHash       String   @unique
+  expiresAt       DateTime
+  revokedAt       DateTime?
+
+  merchant Merchant      @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  result   DecisionResult @relation(fields: [decisionResultId, merchantId], references: [id, merchantId], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([merchantId, decisionResultId])
+  @@index([expiresAt, revokedAt])
 }
 
 /// Append-only durable Store events (source of truth for merchant insights).

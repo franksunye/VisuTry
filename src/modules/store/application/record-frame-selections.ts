@@ -12,6 +12,7 @@ import type {
   MerchantRepository,
   MerchantSessionRepository,
   ExperienceRepository,
+  DecisionResultRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 
@@ -21,6 +22,7 @@ export type RecordFrameSelectionsInput = {
   sessions: MerchantSessionRepository
   experiences?: ExperienceRepository
   events: MerchantEventRepository
+  decisionResults?: DecisionResultRepository
   slug: string
   merchantSessionId: string
   capabilityToken: string | null
@@ -101,6 +103,11 @@ export async function recordFrameSelections(
   }
 
   await input.sessions.touch(merchant.id, input.merchantSessionId, new Date())
+  await input.decisionResults?.updateSessionSnapshot({
+    merchantId: merchant.id,
+    merchantSessionId: session.id,
+    selectedFrameIds: uniqueIds,
+  })
 
   return { selectedFrameIds: uniqueIds }
 }

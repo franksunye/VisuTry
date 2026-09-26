@@ -7,6 +7,7 @@ import {
   createPrismaMerchantIntentRepository,
   createPrismaStoreUsageRepository,
   createPrismaMerchantSponsoredUsageRepository,
+  createPrismaDecisionResultRepository,
   createVercelBlobAssetStore,
   createStoreGenerationAdapter,
 } from '../infrastructure'
@@ -25,6 +26,7 @@ export function createStoreRuntime() {
     intents: createPrismaMerchantIntentRepository(),
     usage: createPrismaStoreUsageRepository(),
     sponsoredUsage: createPrismaMerchantSponsoredUsageRepository(prisma),
+    decisionResults: createPrismaDecisionResultRepository(),
     assets: createVercelBlobAssetStore(),
     generation: createStoreGenerationAdapter(),
     activation: {

@@ -17,6 +17,7 @@ import type {
   MerchantRepository,
   MerchantSessionRepository,
   ExperienceRepository,
+  DecisionResultRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { assertSameMerchantTenant } from './tenant-guards'
@@ -36,6 +37,7 @@ export type RecordStoreIntentInput = {
   sessions: MerchantSessionRepository
   intents: MerchantIntentRepository
   events: MerchantEventRepository
+  decisionResults?: DecisionResultRepository
   experiences?: ExperienceRepository
   slug: string
   merchantSessionId: string
@@ -172,6 +174,13 @@ export async function recordStoreIntent(
   })
 
   await input.sessions.touch(merchant.id, input.merchantSessionId, new Date())
+  if (input.type === 'FAVORITE') {
+    await input.decisionResults?.updateSessionSnapshot({
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+      favoriteFrameId: resolvedFrameId,
+    })
+  }
 
   if (created) {
     logger.info('store', 'Store intent recorded', {
