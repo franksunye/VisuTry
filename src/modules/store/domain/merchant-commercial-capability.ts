@@ -27,6 +27,11 @@ export type PersistedStoreGenerationOrigin = Extract<TryOnOrigin, 'STORE_DEMO' |
 export type MerchantCommercialCapability = {
   state: MerchantCommercialState
   decisions: Record<CommercialFeature, EntitlementDecision>
+  /** Commercial identity for logs/events; never use persistence origin here. */
+  commercialIdentity: {
+    planCode: string
+    entitlementVersion: string
+  }
   storeRuntime: {
     /** Compatibility-only value written to existing task/usage records. */
     persistedGenerationOrigin: PersistedStoreGenerationOrigin
@@ -65,6 +70,11 @@ export function resolveMerchantCommercialCapability(
   return {
     state,
     decisions,
+    commercialIdentity: {
+      planCode: state.planCode
+        ?? (compatibility.planCode === 'FOUNDING_PILOT' ? 'FOUNDING_PILOT' : 'LEGACY_UNMIGRATED'),
+      entitlementVersion: compatibility.entitlementVersion,
+    },
     storeRuntime: {
       persistedGenerationOrigin: compatibility.tryOnOrigin,
       renderLimits: enforceLegacyRenderLimits ? compatibility.renderLimits : unlimitedStoreRenderLimits(),

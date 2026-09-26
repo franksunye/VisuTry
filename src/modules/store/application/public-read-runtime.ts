@@ -10,5 +10,6 @@ export function createPublicStoreReadRuntime() {
     merchants: runtime.merchants,
     frames: runtime.frames,
     experiences: runtime.experiences,
+    usage: runtime.usage,
   }
 }

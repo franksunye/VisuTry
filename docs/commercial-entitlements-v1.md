@@ -33,6 +33,13 @@ Merchant plan identities and must not gate product features. Consumer quota
 continuations remain independently authorized and do not inherit Merchant
 commercial capability.
 
+Public Store and Campaign content remains ISR-cached. The `generativeTryOnAvailable`
+hint is deliberately overlaid from a live, current-period AI Commerce Session
+usage read after the content cache, so reaching the runtime session limit cannot
+leave a stale public Try-On claim. Session-event `planCode` metadata uses the
+canonical plan code, `FOUNDING_PILOT` for historical Pilot compatibility, or
+`LEGACY_UNMIGRATED`; generation origins never occupy that field.
+
 ## Legacy enrollment boundary
 
 Only a Merchant with a supported `planCode` is enrolled in the canonical

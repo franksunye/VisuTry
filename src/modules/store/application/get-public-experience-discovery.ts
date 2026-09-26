@@ -6,7 +6,8 @@ import { resolvePublicDecisionJourney, resolveStoreExperiencePolicy, type StoreE
 import type { DecisionJourneyPolicy } from '../domain/decision-journey'
 import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-usage'
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
-import { merchantFeatureAvailable } from '../domain/merchant-commercial-capability'
+import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
+import type { CommercialUsage } from '../domain/merchant-commercial-state'
 import type {
   ExperienceRecord,
   ExperienceRepository,
@@ -14,6 +15,7 @@ import type {
   MerchantFrameRepository,
   MerchantRecord,
   MerchantRepository,
+  StoreUsageRepository,
 } from './ports/repositories'
 
 export type PublicDiscoveryFrame = {
@@ -114,6 +116,8 @@ export async function getPublicExperienceDiscovery(input: {
   experiences: ExperienceRepository
   slug: string
   experienceSlug?: string | null
+  /** Omitted cached-content reads fail closed; the route overlays live usage. */
+  commercialUsage?: Partial<CommercialUsage>
 }): Promise<PublicExperienceDiscovery | null> {
   const merchant = input.merchants.findPublicBySlug
     ? await input.merchants.findPublicBySlug(input.slug)
@@ -149,7 +153,9 @@ export async function getPublicExperienceDiscovery(input: {
       logoUrl: merchant.logoUrl,
       websiteUrl: merchant.websiteUrl,
       accentColor: merchant.accentColor,
-      generativeTryOnAvailable: merchantFeatureAvailable(merchant, 'GENERATIVE_TRY_ON'),
+      generativeTryOnAvailable: input.commercialUsage
+        ? resolveMerchantCommercialCapability(merchant, input.commercialUsage).decisions.GENERATIVE_TRY_ON.allowed
+        : false,
       referenceData: merchant.referenceData === true || experience.referenceData,
       pilotType: merchant.pilotType ?? null,
       updatedAt: merchant.updatedAt,
@@ -178,4 +184,41 @@ export async function getPublicExperienceDiscovery(input: {
       .filter((value): value is Date => value instanceof Date)
       .reduce((latest, value) => value > latest ? value : latest),
   }
+}
+
+/**
+ * Recomputes the public capability hint from the same current-period usage
+ * consumed by runtime enforcement. Public discovery content is ISR-cached, but
+ * this tiny commercial overlay is deliberately live so quota exhaustion cannot
+ * leave a stale Try-On claim on Store or Campaign pages.
+ */
+export async function resolvePublicGenerativeTryOnAvailability(input: {
+  merchants: MerchantRepository
+  usage: StoreUsageRepository
+  slug: string
+  now?: Date
+}): Promise<boolean> {
+  const merchant = input.merchants.findPublicBySlug
+    ? await input.merchants.findPublicBySlug(input.slug)
+    : await input.merchants.findBySlug(input.slug)
+  if (!merchant || merchant.status !== 'ACTIVE') return false
+
+  const now = input.now ?? new Date()
+  const baseline = resolveMerchantCommercialCapability(merchant, {}, now)
+  const sessionLimit = baseline.state.plan?.aiCommerceSessions
+  let aiCommerceSessions = 0
+  if (sessionLimit !== null && sessionLimit !== undefined) {
+    if (!input.usage.countAICommerceSessions) return false
+    aiCommerceSessions = await input.usage.countAICommerceSessions({
+      merchantId: merchant.id,
+      periodStart: baseline.state.period.start,
+      periodEnd: baseline.state.period.end,
+    })
+  }
+
+  return resolveMerchantCommercialCapability(
+    merchant,
+    { aiCommerceSessions },
+    now,
+  ).decisions.GENERATIVE_TRY_ON.allowed
 }

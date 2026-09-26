@@ -1,6 +1,9 @@
 import { unstable_cache } from 'next/cache'
 import { createPublicStoreReadRuntime } from './public-read-runtime'
-import { getPublicExperienceDiscovery } from './get-public-experience-discovery'
+import {
+  getPublicExperienceDiscovery,
+  resolvePublicGenerativeTryOnAvailability,
+} from './get-public-experience-discovery'
 import {
   PUBLIC_DISCOVERY_CACHE,
   publicDiscoveryCacheKey,
@@ -12,9 +15,9 @@ import {
 } from './public-route-admission'
 
 /**
- * Persistent, slug-scoped read model shared by generateMetadata and the page.
- * The cached function is the only route-level entry point that reaches the
- * Store repositories; cache hits do not instantiate a DB read.
+ * Persistent, slug-scoped content read model shared by generateMetadata and
+ * the page. Content and frames stay ISR-cached; the quota-sensitive public
+ * Try-On hint is overlaid from current commercial usage after the cache read.
  */
 export async function getPublicExperienceDiscoveryForRoute(
   slug: string,
@@ -47,5 +50,19 @@ export async function getPublicExperienceDiscoveryForRoute(
     },
   )
 
-  return cachedRead()
+  const discovery = await cachedRead()
+  if (!discovery) return null
+
+  // Keep rich Store/Campaign content on the existing ISR boundary while
+  // refreshing the quota-sensitive capability hint against live usage.
+  const runtime = createPublicStoreReadRuntime()
+  const generativeTryOnAvailable = await resolvePublicGenerativeTryOnAvailability({
+    merchants: runtime.merchants,
+    usage: runtime.usage,
+    slug,
+  })
+  return {
+    ...discovery,
+    merchant: { ...discovery.merchant, generativeTryOnAvailable },
+  }
 }

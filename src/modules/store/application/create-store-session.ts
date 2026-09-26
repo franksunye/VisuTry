@@ -131,9 +131,8 @@ export async function createStoreSession(input: {
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
     metadata: {
-      planCode: commercialCapability.state.planCode
-        ?? commercialCapability.storeRuntime.persistedGenerationOrigin,
-      entitlementVersion: merchant.entitlementVersion ?? null,
+      planCode: commercialCapability.commercialIdentity.planCode,
+      entitlementVersion: commercialCapability.commercialIdentity.entitlementVersion,
       ...experiencePolicyMetadata(experiencePolicy),
       ...(acquisitionMeta ?? {}),
     },
@@ -146,8 +145,7 @@ export async function createStoreSession(input: {
     merchantSessionId: session.id,
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
-    planCode: commercialCapability.state.planCode
-      ?? commercialCapability.storeRuntime.persistedGenerationOrigin,
+    planCode: commercialCapability.commercialIdentity.planCode,
     source: acquisition.source,
     campaign: acquisition.campaign,
   })

@@ -84,6 +84,14 @@ describe('G4-A canonical Merchant commercial contract', () => {
     expect(merchantFeatureAvailable(fields, 'GENERATIVE_TRY_ON', {}, now)).toBe(false)
   })
 
+  it('treats a persisted USAGE_EXHAUSTED status as authoritative without a usage snapshot', () => {
+    const state = resolveMerchantCommercialState({ planCode: 'LAUNCH', commercialStatus: 'USAGE_EXHAUSTED' }, {}, now)
+
+    expect(state.status).toBe('USAGE_EXHAUSTED')
+    expect(resolveMerchantCommercialCapability({ planCode: 'LAUNCH', commercialStatus: 'USAGE_EXHAUSTED' }, {}, now)
+      .decisions.GENERATIVE_TRY_ON).toMatchObject({ allowed: false, code: 'AI_USAGE_LIMIT_REACHED' })
+  })
+
   it('pauses Try-On at paid session exhaustion without taking Store offline', () => {
     const state = resolveMerchantCommercialState({ planCode: 'GROWTH', entitlementEffectiveFrom: new Date('2026-08-01T00:00:00.000Z'), billingPeriodEnd: new Date('2026-09-01T00:00:00.000Z') }, { aiCommerceSessions: 5000 }, now)
     expect(state.status).toBe('USAGE_EXHAUSTED')

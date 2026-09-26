@@ -179,12 +179,14 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
   if (planCode === 'FREE') status = 'FREE'
   else if (planCode === 'FOUNDING_PILOT') {
     status = periodExpired || explicitStatus === 'PILOT_EXPIRED' ? 'PILOT_EXPIRED'
+      : explicitStatus === 'USAGE_EXHAUSTED' ? 'USAGE_EXHAUSTED'
       : threshold === 'LIMIT_REACHED' ? 'USAGE_EXHAUSTED'
         : threshold === 'NOTICE' || threshold === 'WARNING' ? 'USAGE_WARNING'
           : 'PILOT_ACTIVE'
   }
   else if (periodExpired || explicitStatus === 'EXPIRED') status = 'EXPIRED'
   else if (explicitStatus && ['CANCEL_AT_PERIOD_END', 'PAYMENT_ACTION_REQUIRED', 'PAST_DUE'].includes(explicitStatus)) status = explicitStatus
+  else if (explicitStatus === 'USAGE_EXHAUSTED') status = 'USAGE_EXHAUSTED'
   else if (threshold === 'LIMIT_REACHED') status = 'USAGE_EXHAUSTED'
   else if (threshold === 'NOTICE' || threshold === 'WARNING') status = 'USAGE_WARNING'
   else status = 'PAID_ACTIVE'
