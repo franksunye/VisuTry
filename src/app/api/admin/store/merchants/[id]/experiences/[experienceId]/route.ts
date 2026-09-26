@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
-import { storeErrorResponse, archiveCampaign, publishCampaign, updateCampaign, updatePublicExperience } from '@/modules/store/application'
+import { storeErrorResponse, archiveCampaign, publishCampaign, updateAndPublishCampaign, updateCampaign, updatePublicExperience } from '@/modules/store/application'
 import { CampaignServiceError } from '@/modules/store/domain/campaign-readiness'
 import { MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import type { CampaignGate, CampaignObjective } from '@/modules/store/domain/campaign-policy'
@@ -13,15 +13,6 @@ export const dynamic = 'force-dynamic'
 
 const EXPERIENCE_STATUSES = ['DRAFT', 'ACTIVE', 'ENDED', 'ARCHIVED'] as const
 type ExperienceStatus = (typeof EXPERIENCE_STATUSES)[number]
-
-function optionalDate(value: unknown): Date | null | undefined {
-  if (value === undefined) return undefined
-  if (value === null || value === '') return null
-  if (typeof value !== 'string') throw new Error('Date fields must be ISO strings or null')
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) throw new Error('Invalid date field')
-  return date
-}
 
 function isSafeCtaUrl(value: string) {
   if (/\s|[\u0000-\u001f\u007f]/u.test(value)) return false
@@ -159,11 +150,16 @@ export async function PUT(
         ...(body.secondaryCtaUrl === null || typeof body.secondaryCtaUrl === 'string' ? { secondaryCtaUrl: body.secondaryCtaUrl as string | null } : {}),
       }
       const hasCampaignFields = Object.keys(campaignUpdate).length > 2
-      const updated = hasCampaignFields ? await updateCampaign(campaignUpdate) : null
       if (status === 'ACTIVE') {
-        const published = await publishCampaign({ merchantId: params.id, campaignId: params.experienceId, approved: true })
+        let published
+        if (hasCampaignFields) {
+          published = await updateAndPublishCampaign(campaignUpdate)
+        } else {
+          published = await publishCampaign({ merchantId: params.id, campaignId: params.experienceId, approved: true })
+        }
         return NextResponse.json({ success: true, data: published })
       }
+      const updated = hasCampaignFields ? await updateCampaign(campaignUpdate) : null
       if (status === 'ARCHIVED') {
         const archived = await archiveCampaign({ merchantId: params.id, campaignId: params.experienceId })
         return NextResponse.json({ success: true, data: archived })
@@ -184,6 +180,9 @@ export async function PUT(
     }
 
     const data: Record<string, unknown> = {}
+    if ('startAt' in body || 'endAt' in body) {
+      return NextResponse.json({ success: false, error: 'Campaign schedule fields are not supported for Store Experiences' }, { status: 400 })
+    }
     if (journeyPolicy !== undefined) data.journeyPolicy = journeyPolicy
     if (deliveryPolicy !== undefined) data.deliveryPolicy = deliveryPolicy
     for (const field of ['name', 'headline', 'description', 'primaryCtaLabel', 'primaryCtaUrl', 'offerLabel', 'offerCode']) {
@@ -207,16 +206,6 @@ export async function PUT(
       }
       data.status = body.status
     }
-    for (const field of ['startAt', 'endAt']) {
-      if (field in body) {
-        try {
-          data[field] = optionalDate(body[field])
-        } catch (error) {
-          return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Invalid date field' }, { status: 400 })
-        }
-      }
-    }
-
     const experience = await updatePublicExperience({
       merchantId: params.id,
       experienceId: params.experienceId,

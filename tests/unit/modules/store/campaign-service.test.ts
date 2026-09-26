@@ -16,7 +16,7 @@ jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
 
 import { prisma } from '@/lib/prisma'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
-import { archiveCampaign, CampaignServiceError, createCampaignDraft, getCampaign, previewCampaign, publishCampaign, setCampaignFrames, updateCampaign } from '@/modules/store/application/campaign-service'
+import { archiveCampaign, CampaignServiceError, createCampaignDraft, getCampaign, previewCampaign, publishCampaign, setCampaignFrames, updateAndPublishCampaign, updateCampaign } from '@/modules/store/application/campaign-service'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 
 const baseRow = {
@@ -208,6 +208,75 @@ describe('Campaign application service', () => {
     const rejection = results.find((result) => result.status === 'rejected')
     expect(rejection).toMatchObject({ status: 'rejected', reason: expect.objectContaining({ code: 'CAMPAIGN_LIMIT_REACHED' }) })
     expect(active.size).toBe(1)
+  })
+
+  it('rejects combined configuration and activation at capacity without writing any configuration', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: activeLaunchPeriodStart, billingPeriodEnd: activeLaunchPeriodEnd, createdAt: activeLaunchPeriodStart }
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue(merchant)
+    const update = jest.fn()
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn(),
+      merchant: { findUnique: jest.fn().mockResolvedValue(merchant) },
+      experience: { findFirst: jest.fn().mockResolvedValue(baseRow), count: jest.fn().mockResolvedValue(1), update },
+    }))
+    const patch = {
+      name: 'Changed while publishing',
+      headline: 'New headline',
+      journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] },
+      deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 },
+      startAt: '2026-09-27T00:00:00.000Z',
+    }
+
+    await expect(updateAndPublishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', ...patch }))
+      .rejects.toMatchObject({ code: 'CAMPAIGN_LIMIT_REACHED', httpStatus: 409 })
+
+    expect(update).not.toHaveBeenCalled()
+    expect(prisma.experience.update).not.toHaveBeenCalled()
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledTimes(1)
+  })
+
+  it('rejects a combined activation readiness failure before the single configuration write', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: activeLaunchPeriodStart, billingPeriodEnd: activeLaunchPeriodEnd, createdAt: activeLaunchPeriodStart }
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue(merchant)
+    const update = jest.fn()
+    const count = jest.fn()
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn(),
+      merchant: { findUnique: jest.fn().mockResolvedValue(merchant) },
+      experience: { findFirst: jest.fn().mockResolvedValue(baseRow), count, update },
+    }))
+
+    await expect(updateAndPublishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', headline: null }))
+      .rejects.toMatchObject({ code: 'CAMPAIGN_NOT_READY', httpStatus: 409 })
+
+    expect(count).not.toHaveBeenCalled()
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('commits combined configuration and activation with one write and one invalidation', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: activeLaunchPeriodStart, billingPeriodEnd: activeLaunchPeriodEnd, createdAt: activeLaunchPeriodStart }
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue(merchant)
+    const update = jest.fn(async ({ data }: { data: Record<string, unknown> }) => ({ ...baseRow, ...data }))
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn(),
+      merchant: { findUnique: jest.fn().mockResolvedValue(merchant) },
+      experience: { findFirst: jest.fn().mockResolvedValue(baseRow), count: jest.fn().mockResolvedValue(0), update },
+    }))
+
+    const result = await updateAndPublishCampaign({
+      merchantId: 'merchant-a', campaignId: 'campaign-a',
+      headline: 'Atomic live headline',
+      journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] },
+      deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 },
+    })
+
+    expect(result.status).toBe('ACTIVE')
+    expect(update).toHaveBeenCalledTimes(1)
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'ACTIVE', headline: 'Atomic live headline', journeyPolicy: expect.any(Object), deliveryPolicy: expect.any(Object) }) }))
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledTimes(1)
   })
 
   it('invalidates publish and archive transitions after the database write', async () => {

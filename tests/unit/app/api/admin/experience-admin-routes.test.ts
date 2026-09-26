@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import { buildExperienceAdminSavePayload } from '@/components/admin/experience-admin-save-payload'
 import { PUT as updateExperience } from '@/app/api/admin/store/merchants/[id]/experiences/[experienceId]/route'
 import { PUT as updateFrames } from '@/app/api/admin/store/merchants/[id]/experiences/[experienceId]/frames/route'
 
@@ -120,6 +121,48 @@ describe('Merchant Experience admin routes', () => {
       { params: { id: 'merchant-a', experienceId: 'experience-1' } },
     )
     expect(invalid.status).toBe(400)
+    expect(db.experience.update).not.toHaveBeenCalled()
+  })
+
+  it('saves the normal Store Admin payload without Campaign schedule fields', async () => {
+    db.experience.findFirst.mockResolvedValue(storeExperience)
+    db.merchant.findUnique.mockResolvedValue({ slug: 'merchant-a' })
+    db.experience.update.mockResolvedValue({ id: 'experience-1', status: 'ACTIVE' })
+    const payload = buildExperienceAdminSavePayload({
+      type: 'STORE', name: 'Store A', status: 'ACTIVE', headline: 'Find your fit', description: null,
+      primaryCtaLabel: 'Explore', primaryCtaUrl: '/shop', offerLabel: null, offerCode: null,
+      startAt: null, endAt: null,
+    }, { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] }, {
+      kioskEnabled: true, kioskIdleTimeoutSeconds: 120,
+    })
+
+    expect(payload).toMatchObject({ status: 'ACTIVE', headline: 'Find your fit', journeyPolicy: { enabledStages: expect.any(Array) }, deliveryPolicy: { kioskEnabled: true } })
+    expect(payload).not.toHaveProperty('startAt')
+    expect(payload).not.toHaveProperty('endAt')
+
+    const response = await updateExperience(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', {
+        method: 'PUT', body: JSON.stringify(payload),
+      }),
+      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+    )
+
+    expect(response.status).toBe(200)
+    expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'ACTIVE', headline: 'Find your fit', journeyPolicy: payload.journeyPolicy, deliveryPolicy: payload.deliveryPolicy }) }))
+    const commandData = (db.experience.update.mock.calls[0][0] as { data: Record<string, unknown> }).data
+    expect(commandData).not.toHaveProperty('startAt')
+    expect(commandData).not.toHaveProperty('endAt')
+  })
+
+  it('rejects Campaign schedule input on Store Admin writes before invoking the shared command', async () => {
+    db.experience.findFirst.mockResolvedValue(storeExperience)
+    const response = await updateExperience(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', {
+        method: 'PUT', body: JSON.stringify({ headline: 'Store', startAt: null }),
+      }),
+      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+    )
+    expect(response.status).toBe(400)
     expect(db.experience.update).not.toHaveBeenCalled()
   })
 
@@ -242,8 +285,12 @@ describe('Merchant Experience admin routes', () => {
       frames: [],
     }
     db.experience.findFirst.mockResolvedValue(campaign)
-    db.merchant.findUnique.mockResolvedValue({ slug: 'merchant-a', referenceData: false })
-    db.experience.update.mockResolvedValue(campaign)
+    const lockedUpdate = jest.fn()
+    db.$transaction.mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn(),
+      merchant: { findUnique: jest.fn().mockResolvedValue({ slug: 'merchant-a', referenceData: false }) },
+      experience: { findFirst: jest.fn().mockResolvedValue(campaign), count: jest.fn().mockResolvedValue(0), update: lockedUpdate },
+    }))
 
     const response = await updateExperience(
       new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/campaign-a', {
@@ -255,6 +302,6 @@ describe('Merchant Experience admin routes', () => {
 
     expect(response.status).toBe(409)
     await expect(response.json()).resolves.toMatchObject({ success: false, code: 'CAMPAIGN_NOT_READY' })
-    expect(db.experience.update).toHaveBeenCalled()
+    expect(lockedUpdate).not.toHaveBeenCalled()
   })
 })

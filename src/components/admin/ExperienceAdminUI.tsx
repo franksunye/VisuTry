@@ -20,6 +20,7 @@ import type { MerchantInsightsDto } from '@/modules/store/application/get-mercha
 import type { ExperienceAdminSummary, ExperienceAdminWorkspace } from '@/modules/store/application/get-experience-admin'
 import { DECISION_JOURNEY_STAGES, type DecisionJourneyPolicy, type DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
 import { DEFAULT_EXPERIENCE_DELIVERY_POLICY, type ExperienceDeliveryPolicy, MIN_KIOSK_IDLE_TIMEOUT_SECONDS, MAX_KIOSK_IDLE_TIMEOUT_SECONDS } from '@/modules/store/domain/delivery-profile'
+import { buildExperienceAdminSavePayload } from './experience-admin-save-payload'
 
 function formatDate(value: string | null) {
   if (!value) return null
@@ -236,7 +237,7 @@ export function ExperienceDetailEditor({ initial }: { initial: ExperienceDetailD
 
   async function saveConfig(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving('config'); setMessage(null)
-    const response = await fetch(`/api/admin/store/merchants/${initial.merchant.id}/experiences/${experience.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...experience, journeyPolicy, deliveryPolicy }) })
+    const response = await fetch(`/api/admin/store/merchants/${initial.merchant.id}/experiences/${experience.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildExperienceAdminSavePayload(experience, journeyPolicy, deliveryPolicy)) })
     const payload = await response.json().catch(() => null); setSaving(null)
     setMessage(response.ok ? 'Experience settings saved.' : payload?.error || 'Could not save settings.')
   }
@@ -338,8 +339,10 @@ export function ExperienceDetailEditor({ initial }: { initial: ExperienceDetailD
           <label className="block text-sm font-medium text-slate-700">Status<select value={experience.status} onChange={(event) => update('status', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"><option>DRAFT</option><option>ACTIVE</option><option>ENDED</option><option>ARCHIVED</option></select></label>
           <label className="block text-sm font-medium text-slate-700 lg:col-span-2">Headline<input value={experience.headline ?? ''} onChange={(event) => update('headline', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
           <label className="block text-sm font-medium text-slate-700 lg:col-span-2">Description<textarea value={experience.description ?? ''} onChange={(event) => update('description', event.target.value)} rows={3} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
-          <label className="block text-sm font-medium text-slate-700">Start at<input type="datetime-local" value={experience.startAt ? experience.startAt.slice(0, 16) : ''} onChange={(event) => update('startAt', event.target.value ? new Date(event.target.value).toISOString() : '')} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
-          <label className="block text-sm font-medium text-slate-700">End at<input type="datetime-local" value={experience.endAt ? experience.endAt.slice(0, 16) : ''} onChange={(event) => update('endAt', event.target.value ? new Date(event.target.value).toISOString() : '')} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
+          {experience.type === 'CAMPAIGN' ? <>
+            <label className="block text-sm font-medium text-slate-700">Start at<input type="datetime-local" value={experience.startAt ? experience.startAt.slice(0, 16) : ''} onChange={(event) => update('startAt', event.target.value ? new Date(event.target.value).toISOString() : '')} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
+            <label className="block text-sm font-medium text-slate-700">End at<input type="datetime-local" value={experience.endAt ? experience.endAt.slice(0, 16) : ''} onChange={(event) => update('endAt', event.target.value ? new Date(event.target.value).toISOString() : '')} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
+          </> : null}
           <label className="block text-sm font-medium text-slate-700">Primary CTA label<input value={experience.primaryCtaLabel ?? ''} onChange={(event) => update('primaryCtaLabel', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
           <label className="block text-sm font-medium text-slate-700">Primary CTA URL<input value={experience.primaryCtaUrl ?? ''} onChange={(event) => update('primaryCtaUrl', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>
           <label className="block text-sm font-medium text-slate-700">Offer label<input value={experience.offerLabel ?? ''} onChange={(event) => update('offerLabel', event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" /></label>

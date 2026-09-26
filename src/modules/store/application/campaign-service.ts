@@ -275,7 +275,7 @@ export async function createCampaignDraft(input: {
   return mapCampaign(created, merchant.slug, merchant.referenceData)
 }
 
-export async function updateCampaign(input: {
+export type CampaignUpdateInput = {
   merchantId: string
   campaignId: string
   status?: 'DRAFT' | 'ENDED'
@@ -295,15 +295,16 @@ export async function updateCampaign(input: {
   secondaryCtaUrl?: string | null
   journeyPolicy?: unknown | null
   deliveryPolicy?: unknown | null
-}) {
-  const current = await campaignRow(input.merchantId, input.campaignId)
-  const objective = input.objective ?? current.row.campaignObjective ?? 'INTENT'
-  const gate = input.gate ?? current.row.campaignGate ?? 'NONE'
-  const presentationMode = input.presentationMode ?? current.row.presentationMode ?? 'EDITORIAL_FIRST'
+}
+
+function buildCampaignUpdatePatch(input: CampaignUpdateInput, currentRow: CampaignRow): Record<string, unknown> {
+  const objective = input.objective ?? currentRow.campaignObjective ?? 'INTENT'
+  const gate = input.gate ?? currentRow.campaignGate ?? 'NONE'
+  const presentationMode = input.presentationMode ?? currentRow.presentationMode ?? 'EDITORIAL_FIRST'
   validatePolicy({ objective, gate, presentationMode })
   const startAt = parseDate(input.startAt, 'startAt')
   const endAt = parseDate(input.endAt, 'endAt')
-  validateDateRange(startAt === undefined ? current.row.startAt : startAt, endAt === undefined ? current.row.endAt : endAt)
+  validateDateRange(startAt === undefined ? currentRow.startAt : startAt, endAt === undefined ? currentRow.endAt : endAt)
   for (const url of [input.primaryCtaUrl, input.secondaryCtaUrl]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', 'CTA URL must be an https URL or internal path.')
   const data: Record<string, unknown> = { campaignObjective: objective, campaignGate: gate, presentationMode }
   if (input.name !== undefined) { if (!input.name.trim()) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.'); data.name = input.name.trim() }
@@ -313,12 +314,59 @@ export async function updateCampaign(input: {
   if (input.status !== undefined) data.status = input.status
   if (input.journeyPolicy !== undefined) data.journeyPolicy = input.journeyPolicy
   if (input.deliveryPolicy !== undefined) data.deliveryPolicy = input.deliveryPolicy
+  return data
+}
+
+export async function updateCampaign(input: CampaignUpdateInput) {
+  const current = await campaignRow(input.merchantId, input.campaignId)
+  const data = buildCampaignUpdatePatch(input, current.row)
   const updated = await experienceCommands.updateCampaignConfiguration({
     merchantId: input.merchantId,
     experienceId: input.campaignId,
     patch: data,
   })
   return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData)
+}
+
+/**
+ * Applies Admin configuration and Campaign activation as one transaction.
+ * Candidate readiness and the locked commercial capacity are checked before
+ * the single Experience update, so rejection cannot persist any patch fields.
+ */
+export async function updateAndPublishCampaign(input: CampaignUpdateInput) {
+  const publication = await experienceCommands.runCampaignLifecycleMutation({
+    merchantId: input.merchantId,
+    experienceId: input.campaignId,
+    mutation: () => prisma.$transaction(async (tx) => {
+      await tx.$queryRaw<{ id: string }[]>(Prisma.sql`SELECT "id" FROM "Merchant" WHERE "id" = ${input.merchantId} FOR UPDATE`)
+      const lockedRow = await tx.experience.findFirst({
+        where: { id: input.campaignId, merchantId: input.merchantId, type: 'CAMPAIGN' },
+        include: campaignFramesInclude,
+      })
+      if (!lockedRow) throw new MerchantAccessError()
+      const lockedMerchant = await tx.merchant.findUnique({ where: { id: input.merchantId }, select: merchantCommercialSelect })
+      if (!lockedMerchant) throw new MerchantAccessError()
+
+      const data = buildCampaignUpdatePatch(input, lockedRow)
+      const candidate = { ...lockedRow, ...data }
+      const candidateCampaign = mapCampaign(candidate, lockedMerchant.slug, lockedMerchant.referenceData)
+      assertCampaignPublishable(candidateCampaign.readiness, true)
+
+      const activeCampaigns = await tx.experience.count({ where: { merchantId: input.merchantId, type: 'CAMPAIGN', status: 'ACTIVE' } })
+      const capability = resolveMerchantCommercialCapability(lockedMerchant as MerchantCommercialFields, { activeCampaigns })
+      const decision = capability.decisions.CAMPAIGN
+      if (lockedRow.status !== 'ACTIVE' && !decision.allowed) throw new MerchantCommercialError(decision)
+
+      const row = await tx.experience.update({
+        where: { id: lockedRow.id },
+        data: { ...data, status: 'ACTIVE' },
+        include: campaignFramesInclude,
+      })
+      return { row, merchantSlug: lockedMerchant.slug, merchantReferenceData: lockedMerchant.referenceData }
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+  })
+  const result = publication as { row: CampaignRow; merchantSlug: string; merchantReferenceData: boolean }
+  return mapCampaign(result.row, result.merchantSlug, result.merchantReferenceData)
 }
 
 export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[] }) {
