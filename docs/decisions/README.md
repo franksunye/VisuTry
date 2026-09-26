@@ -2,7 +2,7 @@
 
 **Status:** Active decision log entry point  
 **Created:** 2026-07-08  
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-27
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, or whenever major product / strategy decisions are made.
 
@@ -79,7 +79,7 @@ What becomes easier, harder, required, or deferred because of this decision?
 | ADR-010 | Adopt a Hybrid Edge Architecture for Store / Campaign Scale | Accepted | 2026-08-17 |
 | ADR-011 | Vercel Is the Sole Next Frontend Owner | **Accepted / Current frontend authority** | 2026-08-19 |
 | ADR-012 | Govern Documentation by Authority and Lifecycle, Not a Full Manual Catalog | Accepted | 2026-08-26 |
-| ADR-013 | Canonical Merchant Handoff | Proposed | 2026-09-26 |
+| ADR-013 | Canonical Merchant Handoff | Accepted | 2026-09-26 |
 
 ### Hosting decision precedence
 
@@ -108,3 +108,4 @@ ADR-011 does not abandon the hybrid-cloud strategy. It prevents two independent 
 | 2026-08-19 | Added ADR-011: Vercel becomes the sole production Next frontend owner after the dual-build ChunkLoadError incident. |
 | 2026-08-26 | Added ADR-012: replace the full manual catalog with authority, directory lifecycle, and automated drift checks. |
 | 2026-09-26 | Proposed ADR-013: define the bounded Merchant Handoff contract and its privacy-safe invocation semantics. |
+| 2026-09-27 | Accepted ADR-013 after documenting legacy no-type and alias compatibility, canonical persistence, and equivalent draft retry semantics. |

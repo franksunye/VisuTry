@@ -16,7 +16,7 @@ import { validateExperienceCommandPatch } from './experience-command-service'
 import { MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
-import { normalizeMerchantHandoffAction, isSupportedMerchantHandoffType } from '../domain/merchant-handoff'
+import { merchantHandoffConfigurationsMatch, normalizeMerchantHandoffAction, isSupportedMerchantHandoffType } from '../domain/merchant-handoff'
 
 export { CampaignServiceError }
 
@@ -263,12 +263,14 @@ export async function createCampaignDraft(input: {
       && existing.description === (input.description?.trim() || null)
       && existing.startAt?.getTime() === startAt?.getTime()
       && existing.endAt?.getTime() === endAt?.getTime()
-      && existing.primaryCtaType === primaryCtaType
-      && existing.primaryCtaLabel === (input.primaryCtaLabel?.trim() || null)
-      && existing.primaryCtaUrl === (input.primaryCtaUrl?.trim() || null)
-      && existing.secondaryCtaType === secondaryCtaType
-      && existing.secondaryCtaLabel === (input.secondaryCtaLabel?.trim() || null)
-      && existing.secondaryCtaUrl === (input.secondaryCtaUrl?.trim() || null)
+      && merchantHandoffConfigurationsMatch(
+        { type: existing.primaryCtaType, label: existing.primaryCtaLabel, url: existing.primaryCtaUrl },
+        { type: primaryCtaType, label: input.primaryCtaLabel?.trim() || null, url: input.primaryCtaUrl?.trim() || null },
+      )
+      && merchantHandoffConfigurationsMatch(
+        { type: existing.secondaryCtaType, label: existing.secondaryCtaLabel, url: existing.secondaryCtaUrl },
+        { type: secondaryCtaType, label: input.secondaryCtaLabel?.trim() || null, url: input.secondaryCtaUrl?.trim() || null },
+      )
     if (compatible) return mapCampaign(await campaignRow(input.merchantId, existing.id).then((result) => result.row), merchant.slug, merchant.referenceData)
     throw new CampaignServiceError('CAMPAIGN_SLUG_CONFLICT', 'A Campaign already uses this slug.', 409)
   }

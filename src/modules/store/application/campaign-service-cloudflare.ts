@@ -14,7 +14,7 @@ import { assertExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
-import { isSupportedMerchantHandoffType, normalizeMerchantHandoffAction } from '../domain/merchant-handoff'
+import { isSupportedMerchantHandoffType, merchantHandoffConfigurationsMatch, normalizeMerchantHandoffAction } from '../domain/merchant-handoff'
 import { experienceCommandsCloudflare } from './experience-command-service-cloudflare'
 
 export { CampaignServiceError }
@@ -151,7 +151,24 @@ async function fetchCampaign(merchantId: string, campaignId: string): Promise<{ 
 }
 
 function compatibleDraft(row: CampaignRow, input: { name: string; objective: CampaignObjective; gate: CampaignGate; presentationMode: PresentationMode; headline: string | null; description: string | null; startAt: Date | null; endAt: Date | null; primaryCtaType: string | null; primaryCtaLabel: string | null; primaryCtaUrl: string | null; secondaryCtaType: string | null; secondaryCtaLabel: string | null; secondaryCtaUrl: string | null }) {
-  return String(row.type) === 'CAMPAIGN' && String(row.status) === 'DRAFT' && String(row.name) === input.name && (row.campaignObjective == null ? 'INTENT' : String(row.campaignObjective)) === input.objective && (row.campaignGate == null ? 'NONE' : String(row.campaignGate)) === input.gate && (row.presentationMode == null ? 'EDITORIAL_FIRST' : String(row.presentationMode)) === input.presentationMode && (row.headline ?? null) === input.headline && (row.description ?? null) === input.description && dateValue(row.startAt)?.getTime() === input.startAt?.getTime() && dateValue(row.endAt)?.getTime() === input.endAt?.getTime() && (row.primaryCtaType ?? null) === input.primaryCtaType && (row.primaryCtaLabel ?? null) === input.primaryCtaLabel && (row.primaryCtaUrl ?? null) === input.primaryCtaUrl && (row.secondaryCtaType ?? null) === input.secondaryCtaType && (row.secondaryCtaLabel ?? null) === input.secondaryCtaLabel && (row.secondaryCtaUrl ?? null) === input.secondaryCtaUrl
+  return String(row.type) === 'CAMPAIGN'
+    && String(row.status) === 'DRAFT'
+    && String(row.name) === input.name
+    && (row.campaignObjective == null ? 'INTENT' : String(row.campaignObjective)) === input.objective
+    && (row.campaignGate == null ? 'NONE' : String(row.campaignGate)) === input.gate
+    && (row.presentationMode == null ? 'EDITORIAL_FIRST' : String(row.presentationMode)) === input.presentationMode
+    && (row.headline ?? null) === input.headline
+    && (row.description ?? null) === input.description
+    && dateValue(row.startAt)?.getTime() === input.startAt?.getTime()
+    && dateValue(row.endAt)?.getTime() === input.endAt?.getTime()
+    && merchantHandoffConfigurationsMatch(
+      { type: row.primaryCtaType, label: row.primaryCtaLabel, url: row.primaryCtaUrl },
+      { type: input.primaryCtaType, label: input.primaryCtaLabel, url: input.primaryCtaUrl },
+    )
+    && merchantHandoffConfigurationsMatch(
+      { type: row.secondaryCtaType, label: row.secondaryCtaLabel, url: row.secondaryCtaUrl },
+      { type: input.secondaryCtaType, label: input.secondaryCtaLabel, url: input.secondaryCtaUrl },
+    )
 }
 
 export async function listCampaigns(input: { merchantId: string; cursor?: string; limit?: number }) {

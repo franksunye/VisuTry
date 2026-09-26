@@ -64,6 +64,37 @@ describe('Campaign application service', () => {
     }) }))
   })
 
+  it.each([
+    { description: 'LINK', existingType: 'LINK', retryType: 'LINK', label: 'Visit shop' },
+    { description: 'PRODUCT_OR_COLLECTION', existingType: 'PRODUCT_OR_COLLECTION', retryType: 'PRODUCT_OR_COLLECTION', label: 'Browse products' },
+    { description: 'a legacy untyped custom link', existingType: null, retryType: 'CUSTOM_LINK', label: 'Visit shop' },
+  ])('treats an existing $description CTA as the same idempotent Prisma draft', async ({ existingType, retryType, label }) => {
+    const secondaryType = existingType === 'LINK' ? 'PRODUCT_OR_COLLECTION' : 'LINK'
+    const existing = {
+      ...baseRow,
+      slug: 'legacy-actions',
+      name: 'Legacy Actions',
+      headline: null,
+      primaryCtaType: existingType,
+      primaryCtaLabel: label,
+      primaryCtaUrl: 'https://shop.example.test/next',
+      secondaryCtaType: secondaryType,
+      secondaryCtaLabel: 'More options',
+      secondaryCtaUrl: 'https://shop.example.test/more',
+    }
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(existing)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+
+    const result = await createCampaignDraft({
+      merchantId: 'merchant-a', name: 'Legacy Actions', slug: 'legacy-actions',
+      primaryCtaType: retryType, primaryCtaLabel: label, primaryCtaUrl: 'https://shop.example.test/next',
+      secondaryCtaType: secondaryType, secondaryCtaLabel: 'More options', secondaryCtaUrl: 'https://shop.example.test/more',
+    })
+
+    expect(result.id).toBe('campaign-a')
+    expect(prisma.experience.create).not.toHaveBeenCalled()
+  })
+
   it('normalizes legacy CTA types before Prisma Campaign updates', async () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })

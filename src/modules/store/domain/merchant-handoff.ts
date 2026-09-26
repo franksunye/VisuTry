@@ -54,6 +54,23 @@ export function resolveMerchantHandoff(input: {
   return { action, label: input.label.trim(), url }
 }
 
+/** Compare persisted and requested CTA configs by their resolved public meaning. */
+export function merchantHandoffConfigurationsMatch(
+  left: { type?: unknown; label?: unknown; url?: unknown },
+  right: { type?: unknown; label?: unknown; url?: unknown },
+): boolean {
+  const leftHandoff = resolveMerchantHandoff(left)
+  const rightHandoff = resolveMerchantHandoff(right)
+  if (leftHandoff && rightHandoff) {
+    return leftHandoff.action === rightHandoff.action
+      && leftHandoff.label === rightHandoff.label
+      && leftHandoff.url === rightHandoff.url
+  }
+  // Keep legacy idempotency behavior for configurations that are not publicly
+  // resolvable, without treating malformed data as an equivalent valid CTA.
+  return left.type === right.type && left.label === right.label && left.url === right.url
+}
+
 /**
  * Canonical invocation metadata is an allow-list, never a URL or arbitrary
  * caller payload. PRODUCT_CLICK is reserved for frame-level commerce intent;
