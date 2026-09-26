@@ -16,13 +16,33 @@ with weekly review. Pilot is not silently converted to Launch.
 Every Merchant has one canonical Store in v1. Additional brands or Stores are
 future separate Merchant workspaces; Store count is not a pricing dimension.
 
+## Canonical capability decision boundary
+
+`src/modules/store/domain/merchant-commercial-capability.ts` is the single
+server-side entry point for Merchant commercial capability decisions. It
+combines the canonical commercial state, usage snapshot, and explicitly
+isolated legacy compatibility profile, then produces the feature decisions
+consumed by Store Try-On/Compare, Campaign activation, public capability hints,
+and Merchant-facing decision APIs. Callers must not independently infer
+commercial access from `planCode` or `commercialStatus`.
+
+`STORE_DEMO` and `STORE_PILOT` remain only as compatibility values written to
+existing Try-On task/usage records. The canonical resolver maps its resolved
+capability to those values at the persistence/telemetry boundary; they are not
+Merchant plan identities and must not gate product features. Consumer quota
+continuations remain independently authorized and do not inherit Merchant
+commercial capability.
+
 ## Legacy enrollment boundary
 
 Only a Merchant with a supported `planCode` is enrolled in the canonical
 commercial domain. A row with no supported plan is represented as
 `LEGACY_UNMIGRATED` / `Legacy · not enrolled`; it is not silently presented as
 `FREE`. Legacy runtime behavior remains compatible with the existing product,
-and this PR does not backfill or mutate existing production Merchants.
+including the bounded Store Demo allowance and historical Founding Pilot
+period rules, through the compatibility profile owned by the canonical
+capability resolver. This work does not backfill or mutate existing production
+Merchants.
 
 Enrollment is an explicit future transition: a billing or Admin-controlled
 operation must write a supported `planCode`, the commercial contract version,

@@ -6,12 +6,12 @@ import {
   computeSessionExpiresAt,
   merchantInactive,
   merchantNotFound,
-  resolveMerchantEntitlement,
   sanitizeSessionAcquisition,
   sessionAcquisitionToMetadata,
   type SessionAcquisitionInput,
 } from '../domain'
 import { experiencePolicyMetadata, resolveStoreExperiencePolicy } from '../domain/experience-policy'
+import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import { resolveMerchantExperience } from './resolve-experience'
 import type {
   MerchantEventRepository,
@@ -56,8 +56,8 @@ export async function createStoreSession(input: {
     slug: input.experienceSlug ?? null,
   })
 
-  const entitlement = resolveMerchantEntitlement(merchant)
   const experiencePolicy = resolveStoreExperiencePolicy(merchant, experience)
+  const commercialCapability = resolveMerchantCommercialCapability(merchant)
   // A normal Store visit is operational traffic, not a paid AI Commerce
   // Session. Paid usage is marked idempotently when the shopper crosses the
   // AI-assisted threshold (recommendation/AI generation), so exhaustion can
@@ -131,8 +131,9 @@ export async function createStoreSession(input: {
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
     metadata: {
-      planCode: entitlement.planCode,
-      entitlementVersion: entitlement.entitlementVersion,
+      planCode: commercialCapability.state.planCode
+        ?? commercialCapability.storeRuntime.persistedGenerationOrigin,
+      entitlementVersion: merchant.entitlementVersion ?? null,
       ...experiencePolicyMetadata(experiencePolicy),
       ...(acquisitionMeta ?? {}),
     },
@@ -145,7 +146,8 @@ export async function createStoreSession(input: {
     merchantSessionId: session.id,
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
-    planCode: entitlement.planCode,
+    planCode: commercialCapability.state.planCode
+      ?? commercialCapability.storeRuntime.persistedGenerationOrigin,
     source: acquisition.source,
     campaign: acquisition.campaign,
   })

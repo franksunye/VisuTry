@@ -8,6 +8,7 @@ import {
   usageThreshold,
 } from '@/modules/store/domain/merchant-commercial-state'
 import { getMerchantPlanDefinition } from '@/modules/store/domain/merchant-commercial-plans'
+import { merchantFeatureAvailable, resolveMerchantCommercialCapability } from '@/modules/store/domain/merchant-commercial-capability'
 
 const now = new Date('2026-08-27T00:00:00.000Z')
 
@@ -46,6 +47,41 @@ describe('G4-A canonical Merchant commercial contract', () => {
     expect(legacy).toMatchObject({ commercialState: 'LEGACY_UNMIGRATED', planCode: null, plan: null, status: 'LEGACY_UNMIGRATED', primaryAction: 'ENROLL_PLAN' })
     expect(commercialStateForPresentation(legacy)).toMatchObject({ isCanonical: false, planName: 'Legacy · not enrolled', status: 'LEGACY_UNMIGRATED' })
     expect(canUseCommercialFeature(legacy, 'GENERATIVE_TRY_ON').allowed).toBe(true)
+  })
+
+  it('uses one capability decision for public projection and Store runtime while isolating origin as persistence compatibility', () => {
+    const launchFields = { planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' }
+    const freeFields = { planCode: 'FREE', commercialStatus: 'FREE' }
+    const launch = resolveMerchantCommercialCapability(launchFields, {}, now)
+    const free = resolveMerchantCommercialCapability(freeFields, {}, now)
+    const legacy = resolveMerchantCommercialCapability({ planCode: 'DEMO', commercialStatus: null }, {}, now)
+
+    expect(launch.decisions.GENERATIVE_TRY_ON.allowed).toBe(true)
+    expect(merchantFeatureAvailable(launchFields, 'GENERATIVE_TRY_ON', {}, now)).toBe(true)
+    expect(free.decisions.GENERATIVE_TRY_ON.allowed).toBe(false)
+    expect(merchantFeatureAvailable(freeFields, 'GENERATIVE_TRY_ON', {}, now)).toBe(false)
+    expect(legacy.state.commercialState).toBe('LEGACY_UNMIGRATED')
+    expect(legacy.decisions.GENERATIVE_TRY_ON.allowed).toBe(true)
+    expect(legacy.storeRuntime).toMatchObject({
+      persistedGenerationOrigin: 'STORE_DEMO',
+      enforceLegacyRenderLimits: true,
+      renderLimits: { maxSuccessfulRendersPerMerchant: 500, maxSuccessfulRendersPerSession: 8, maxAttemptsPerSession: 16 },
+    })
+  })
+
+  it('retains expired legacy Founding Pilot enforcement without misclassifying the row as Free', () => {
+    const fields = {
+      planCode: null,
+      commercialStage: 'MARKET_CAPTURE',
+      entitlementEffectiveFrom: new Date('2026-07-01T00:00:00.000Z'),
+      billingPeriodEnd: new Date('2026-07-31T00:00:00.000Z'),
+    }
+    const capability = resolveMerchantCommercialCapability(fields, {}, now)
+
+    expect(capability.state).toMatchObject({ commercialState: 'LEGACY_UNMIGRATED', status: 'LEGACY_UNMIGRATED' })
+    expect(capability.storeRuntime.persistedGenerationOrigin).toBe('STORE_PILOT')
+    expect(capability.decisions.GENERATIVE_TRY_ON).toMatchObject({ allowed: false, code: 'COMMERCIAL_PERIOD_EXPIRED' })
+    expect(merchantFeatureAvailable(fields, 'GENERATIVE_TRY_ON', {}, now)).toBe(false)
   })
 
   it('pauses Try-On at paid session exhaustion without taking Store offline', () => {

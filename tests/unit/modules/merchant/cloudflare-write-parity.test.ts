@@ -293,13 +293,15 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
 
     const publishSql = sqlMock([
       [{ id: 'merchant-a', slug: 'merchant-a', referenceData: false }], [campaignRow],
-      [{ id: 'campaign-a' }],
+      [{ count: 0 }],
+      [],
       [{ id: 'merchant-a', slug: 'merchant-a', referenceData: false }], [{ ...campaignRow, status: 'ACTIVE' }],
-    ])
+    ], [[[{ activatedId: 'campaign-a', currentStatus: 'ACTIVE', campaignLimit: null }], []]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(publishSql)
     const published = await publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })
     expect(published.status).toBe('ACTIVE')
-    expect(publishSql.mock.calls.some((call) => String(call[0]?.join?.('') ?? '').includes('UPDATE "Experience"'))).toBe(true)
+    expect(publishSql.transaction).toHaveBeenCalledWith(expect.any(Array), { isolationLevel: 'Serializable' })
+    expect(publishSql.mock.calls.some((call) => String(call[0]?.join?.('') ?? '').includes('campaign_limit AS MATERIALIZED'))).toBe(true)
 
     const archiveSql = sqlMock([
       [{ id: 'merchant-a', slug: 'merchant-a', referenceData: false }], [{ ...campaignRow, status: 'ACTIVE' }],

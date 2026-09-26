@@ -10,12 +10,8 @@ import {
 } from '../domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
-import {
-  canUseCommercialFeature,
-  isCanonicalMerchantCommercialFields,
-  resolveMerchantCommercialState,
-  type MerchantCommercialFields,
-} from '../domain/merchant-commercial-state'
+import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
+import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
 
 export { CampaignServiceError }
 
@@ -268,17 +264,19 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
   assertCampaignPublishable(model.readiness, true)
   if (String(current.row.status) === 'ACTIVE') return model
   const sql = getCloudflareSql()
-  if (isCanonicalMerchantCommercialFields(merchantCommercialFields(current.merchant))) {
-    const activeRows = await sql`SELECT count(*)::int AS "count" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "status" = 'ACTIVE'`
-    const merchantFields = merchantCommercialFields(current.merchant)
-    const state = resolveMerchantCommercialState(merchantFields, { activeCampaigns: Number(activeRows[0]?.count ?? 0) })
-    const decision = canUseCommercialFeature(state, 'CAMPAIGN')
-    if (!decision.allowed) throw new CampaignServiceError(decision.code ?? 'CAMPAIGN_LIMIT_REACHED', decision.message, 409)
+  const activeRows = await sql`SELECT count(*)::int AS "count" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "status" = 'ACTIVE'`
+  const capability = resolveMerchantCommercialCapability(
+    merchantCommercialFields(current.merchant),
+    { activeCampaigns: Number(activeRows[0]?.count ?? 0) },
+  )
+  const decision = capability.decisions.CAMPAIGN
+  if (!decision.allowed) throw new CampaignServiceError(decision.code ?? 'CAMPAIGN_LIMIT_REACHED', decision.message, 409)
+  const campaignLimit = capability.state.plan?.activeCampaigns ?? null
 
-    // Neon tagged-template transactions are statement-based. Keep the
-    // Merchant row lock, ACTIVE count, and conditional activation in one SQL
-    // statement so concurrent publishers cannot both observe the same slot.
-    const results = await withPublicDiscoveryInvalidation({
+  // Neon tagged-template transactions are statement-based. Keep the
+  // Merchant row lock, ACTIVE count, and conditional activation in one SQL
+  // statement so concurrent publishers cannot both observe the same slot.
+  const results = await withPublicDiscoveryInvalidation({
       target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
       mutation: () => sql.transaction([
         sql`
@@ -305,14 +303,7 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
               AND e."status" = 'ACTIVE'
           ),
           campaign_limit AS MATERIALIZED (
-            SELECT CASE UPPER(m."planCode")
-              WHEN 'FREE' THEN 0
-              WHEN 'LAUNCH' THEN 1
-              WHEN 'GROWTH' THEN 3
-              WHEN 'SCALE' THEN 10
-              WHEN 'FOUNDING_PILOT' THEN 1
-              ELSE NULL
-            END::int AS "limit"
+            SELECT ${campaignLimit}::int AS "limit"
             FROM locked_merchant m
           ),
           activated AS (
@@ -332,25 +323,11 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
         `,
       ], { isolationLevel: 'Serializable' }),
     })
-    const result = results[0]?.[0]
-    if (!result) throw new MerchantAccessError()
-    if (result.activatedId == null && String(result.currentStatus) !== 'ACTIVE') {
-      throw new CampaignServiceError('CAMPAIGN_LIMIT_REACHED', `Your current plan includes up to ${result.campaignLimit ?? 'custom'} active Campaigns.`, 409)
-    }
-    return getCampaign({ merchantId: input.merchantId, campaignId: input.campaignId })
+  const result = results[0]?.[0]
+  if (!result) throw new MerchantAccessError()
+  if (result.activatedId == null && String(result.currentStatus) !== 'ACTIVE') {
+    throw new CampaignServiceError('CAMPAIGN_LIMIT_REACHED', decision.message, 409)
   }
-  await withPublicDiscoveryInvalidation({
-    target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
-    mutation: async () => {
-      const rows = await sql`
-        UPDATE "Experience"
-        SET "status" = 'ACTIVE', "updatedAt" = NOW()
-        WHERE "id" = ${input.campaignId} AND "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN'
-        RETURNING "id"
-      `
-      if (!rows[0]) throw new MerchantAccessError()
-    },
-  })
   return getCampaign({ merchantId: input.merchantId, campaignId: input.campaignId })
 }
 

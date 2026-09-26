@@ -1,4 +1,4 @@
-import { resolveMerchantUsagePeriod } from './merchant-entitlement'
+import { isMerchantEntitlementActive, resolveMerchantEntitlement, resolveMerchantUsagePeriod } from './merchant-entitlement'
 import {
   getMerchantPlanDefinition,
   isMerchantPlanCode,
@@ -34,6 +34,7 @@ export type MerchantCommercialFields = {
   entitlementVersion?: string | null
   commerceSessionAllowance?: number | null
   standardRenderAllowance?: number | null
+  premiumRenderAllowance?: number | null
   campaignAllowance?: number | null
   entitlementEffectiveFrom?: Date | null
   billingPeriodEnd?: Date | null
@@ -139,6 +140,8 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
     standardTryOnGenerations: Math.max(0, usage.standardTryOnGenerations ?? 0),
   }
   if (!isCanonicalMerchantCommercialFields(fields)) {
+    const compatibilityEntitlement = resolveMerchantEntitlement(fields, now)
+    const pilotTryOnActive = isMerchantEntitlementActive(compatibilityEntitlement, now)
     return {
       commercialState: 'LEGACY_UNMIGRATED',
       planCode: null,
@@ -155,7 +158,9 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
         CATALOG: true,
         CAMPAIGN: true,
         RECOMMENDATION: true,
-        GENERATIVE_TRY_ON: true,
+        // Legacy rows retain their old access posture, except an explicitly
+        // recognized Founding Pilot still ends at its fixed period boundary.
+        GENERATIVE_TRY_ON: pilotTryOnActive,
         COMPARE: true,
         BASIC_ANALYTICS: true,
         ADVANCED_ANALYTICS: true,
@@ -173,12 +178,12 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
   let status: CommercialStatus
   if (planCode === 'FREE') status = 'FREE'
   else if (planCode === 'FOUNDING_PILOT') {
-    status = periodExpired ? 'PILOT_EXPIRED'
+    status = periodExpired || explicitStatus === 'PILOT_EXPIRED' ? 'PILOT_EXPIRED'
       : threshold === 'LIMIT_REACHED' ? 'USAGE_EXHAUSTED'
         : threshold === 'NOTICE' || threshold === 'WARNING' ? 'USAGE_WARNING'
           : 'PILOT_ACTIVE'
   }
-  else if (periodExpired) status = 'EXPIRED'
+  else if (periodExpired || explicitStatus === 'EXPIRED') status = 'EXPIRED'
   else if (explicitStatus && ['CANCEL_AT_PERIOD_END', 'PAYMENT_ACTION_REQUIRED', 'PAST_DUE'].includes(explicitStatus)) status = explicitStatus
   else if (threshold === 'LIMIT_REACHED') status = 'USAGE_EXHAUSTED'
   else if (threshold === 'NOTICE' || threshold === 'WARNING') status = 'USAGE_WARNING'
@@ -240,6 +245,9 @@ function recommendedCatalogPlan(planCode: MerchantPlanCode): MerchantPlanCode {
 
 export function canUseCommercialFeature(state: MerchantCommercialState, feature: CommercialFeature): EntitlementDecision {
   if (state.status === 'LEGACY_UNMIGRATED') {
+    if (!state.featureAvailability[feature]) {
+      return { allowed: false, feature, code: 'COMMERCIAL_PERIOD_EXPIRED', message: 'This feature is not currently available for this commercial period.' }
+    }
     return { allowed: true, feature, message: 'Existing Store access remains available until a current plan is selected.' }
   }
   if (state.featureAvailability[feature]) return { allowed: true, feature, message: 'Available.' }

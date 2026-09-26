@@ -6,6 +6,7 @@ import { resolvePublicDecisionJourney, resolveStoreExperiencePolicy, type StoreE
 import type { DecisionJourneyPolicy } from '../domain/decision-journey'
 import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-usage'
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
+import { merchantFeatureAvailable } from '../domain/merchant-commercial-capability'
 import type {
   ExperienceRecord,
   ExperienceRepository,
@@ -148,7 +149,7 @@ export async function getPublicExperienceDiscovery(input: {
       logoUrl: merchant.logoUrl,
       websiteUrl: merchant.websiteUrl,
       accentColor: merchant.accentColor,
-      generativeTryOnAvailable: merchant.planCode !== 'FREE' && !['PILOT_EXPIRED', 'EXPIRED', 'PAST_DUE', 'PAYMENT_ACTION_REQUIRED', 'USAGE_EXHAUSTED'].includes(merchant.commercialStatus ?? ''),
+      generativeTryOnAvailable: merchantFeatureAvailable(merchant, 'GENERATIVE_TRY_ON'),
       referenceData: merchant.referenceData === true || experience.referenceData,
       pilotType: merchant.pilotType ?? null,
       updatedAt: merchant.updatedAt,
