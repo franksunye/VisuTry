@@ -17,6 +17,7 @@ import type {
   MerchantRepository,
   MerchantSessionRepository,
   ExperienceRepository,
+  DecisionResultRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { productBrandForFrame } from './product-labels'
@@ -26,6 +27,7 @@ import {
   resolveMerchantCommercialPeriod,
   resolveMerchantCommercialState,
 } from '../domain/merchant-commercial-state'
+import { resolvePublicDecisionJourney } from '../domain/experience-policy'
 import { getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 import type { StoreUsageRepository } from './ports/repositories'
 
@@ -35,6 +37,7 @@ export type RecommendFramesInput = {
   sessions: MerchantSessionRepository
   experiences?: ExperienceRepository
   events: MerchantEventRepository
+  decisionResults?: DecisionResultRepository
   usage?: StoreUsageRepository
   slug: string
   merchantSessionId: string
@@ -48,6 +51,7 @@ export type RecommendFramesInput = {
 
 export type RecommendedFrameDto = {
   id: string
+  sku: string | null
   name: string
   imageUrl: string | null
   productUrl: string | null
@@ -67,6 +71,7 @@ export type RecommendFramesResult = {
   rankingVersion: string
   signalsUsed: ShopperAnalysisSignals
   frames: RecommendedFrameDto[]
+  decisionResult?: { token: string; expiresAt: string }
 }
 
 export async function recommendMerchantFrames(
@@ -157,6 +162,7 @@ export async function recommendMerchantFrames(
     return [
       {
         id: frame.id,
+        sku: frame.sku,
         name: frame.name,
         imageUrl: frame.imageUrl,
         productUrl: frame.productUrl,
@@ -209,10 +215,43 @@ export async function recommendMerchantFrames(
 
   await input.sessions.touch(merchant.id, input.merchantSessionId, new Date())
 
+  const decisionResult = input.decisionResults
+    ? await input.decisionResults.upsertRecommendation({
+        merchantId: merchant.id,
+        experienceId: session.experienceId,
+        merchantSessionId: session.id,
+        expiresAt: session.expiresAt,
+        journey: {
+          experienceId: experience?.id ?? null,
+          experienceType: experience?.type ?? 'STORE',
+          experienceSlug: experience?.slug ?? null,
+          enabledStages: resolvePublicDecisionJourney(merchant, experience).enabledStages,
+        },
+        faceFit: {
+          faceShape: signals.faceShape ?? null,
+          alternativeShapes: signals.alternativeFaceShapes ?? [],
+          preferredWidthClass: signals.preferredWidthClass ?? null,
+          geometryQualityBand: geometryQualityBand(signals),
+          qualityScore: signals.geometryQualityScore ?? null,
+          signalCount: shopperSignalCount(signals),
+        },
+        rankingVersion: ranking.rankingVersion,
+        frames: frames.map((frame) => ({
+          frameId: frame.id,
+          sku: frame.sku ?? null,
+          name: frame.name,
+          productUrl: frame.productUrl,
+          score: frame.score,
+          reason: frame.reason,
+        })),
+      })
+    : null
+
   return {
     rankingVersion: ranking.rankingVersion,
     signalsUsed: signals,
     frames,
+    ...(decisionResult ? { decisionResult: { token: decisionResult.shareToken, expiresAt: decisionResult.expiresAt.toISOString() } } : {}),
   }
 }
 

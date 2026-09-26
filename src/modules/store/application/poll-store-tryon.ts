@@ -14,6 +14,7 @@ import type {
   MerchantSessionRepository,
   StoreUsageRepository,
   ExperienceRepository,
+  DecisionResultRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { settleStoreTryOnUsage } from './settle-store-usage'
@@ -31,6 +32,7 @@ export type PollStoreTryOnInput = {
   events: MerchantEventRepository
   usage: StoreUsageRepository
   generation: StoreGenerationPort
+  decisionResults?: DecisionResultRepository
   experiences?: ExperienceRepository
   slug: string
   merchantSessionId: string
@@ -172,6 +174,16 @@ export async function pollStoreFrameTryOn(
         eventCreated: completedEvent.created,
       })
     }
+    await input.decisionResults?.updateSessionSnapshot({
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+      tryOnResult: {
+        taskId: input.taskId,
+        frameId: owned.merchantFrameId,
+        status: 'COMPLETED',
+        completedAt: new Date().toISOString(),
+      },
+    })
   }
 
   if (status.status === 'FAILED' && owned.merchantFrameId) {

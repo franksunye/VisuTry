@@ -3,6 +3,7 @@ import { Prisma, TaskStatus, TryOnType } from '@prisma/client'
 import { randomUUID } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
+import { isMockMode } from '@/lib/mocks'
 import {
   StoreDomainError,
   buildStoreEventIdempotencyKey,
@@ -55,6 +56,11 @@ import {
 import { acquireStoreDispatchTakeover } from './store-task-leases'
 import { startGenerationRequest, recordGenerationFailure } from '@/lib/generation/telemetry'
 import { resolveStoreTelemetryAttribution, resolveTelemetryIsTest } from '@/lib/generation/origin'
+
+const LOCAL_DECISION_RESULT_E2E_ENABLED = process.env.APP_ENV === 'local'
+  && process.env.ENABLE_MOCKS === 'true'
+  && process.env.TEST_MODE === 'true'
+  && process.env.P1_M5_LOCAL_DECISION_RESULT_E2E === '1'
 
 export type SubmitStoreTryOnInput = {
   merchants: MerchantRepository
@@ -543,7 +549,9 @@ export async function submitStoreFrameTryOn(
     )
   }
 
-  const photoBytes = await input.assets.getBytes(session.photoAssetId, merchant.id)
+  const photoBytes = LOCAL_DECISION_RESULT_E2E_ENABLED && isMockMode
+    ? { body: Buffer.from('local-decision-result-e2e-photo'), contentType: 'image/jpeg' }
+    : await input.assets.getBytes(session.photoAssetId, merchant.id)
   if (!photoBytes) {
     throw new StoreDomainError(
       'VALIDATION_ERROR',

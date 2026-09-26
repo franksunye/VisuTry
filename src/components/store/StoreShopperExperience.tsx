@@ -47,6 +47,7 @@ type SessionState = {
 
 type RecommendedFrame = {
   id: string
+  sku?: string | null
   name: string
   imageUrl: string | null
   productUrl: string | null
@@ -200,6 +201,7 @@ export function StoreShopperExperience({
   const [photoReady, setPhotoReady] = useState(false)
   const [recommending, setRecommending] = useState(false)
   const [recommendations, setRecommendations] = useState<RecommendedFrame[]>([])
+  const [decisionResultToken, setDecisionResultToken] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionSaving, setSelectionSaving] = useState(false)
   const [selectionSaved, setSelectionSaved] = useState(false)
@@ -413,6 +415,7 @@ export function StoreShopperExperience({
       setRecommending(true)
       setErrorMessage(null)
       setRecommendations([])
+      setDecisionResultToken(null)
       setSelectedIds([])
       setSelectionSaved(false)
 
@@ -478,6 +481,7 @@ export function StoreShopperExperience({
           return
         }
         setRecommendations(json.data.frames || [])
+        setDecisionResultToken(typeof json.data.decisionResult?.token === 'string' ? json.data.decisionResult.token : null)
       } catch {
         setErrorMessage(t('errors.recommend'))
       } finally {
@@ -502,6 +506,7 @@ export function StoreShopperExperience({
     setPhotoPreview(preview)
     setPhotoReady(false)
     setRecommendations([])
+    setDecisionResultToken(null)
     setSelectedIds([])
     setSelectionSaved(false)
     setFaceGeometry(null)
@@ -548,6 +553,7 @@ export function StoreShopperExperience({
     setPhotoPreview(undefined)
     setPhotoReady(false)
     setRecommendations([])
+    setDecisionResultToken(null)
     setSelectedIds([])
     setSelectionSaved(false)
     setFaceGeometry(null)
@@ -707,6 +713,9 @@ export function StoreShopperExperience({
   const selectionBusyLabel = selectionCtaState === 'save-selection'
     ? t('recommend.saving')
     : continuationText('recommend.preparing', 'Preparing your try-on…')
+  const decisionResultHref = decisionResultToken
+    ? `/${locale}/result/${encodeURIComponent(decisionResultToken)}`
+    : null
   const presentationAcquisition = captureStoreAcquisition()
   const presentationMode = resolvePresentationMode({
     experienceType: merchant.experience?.type || 'STORE',
@@ -945,7 +954,7 @@ export function StoreShopperExperience({
                     >
                       {selectionSaving ? <><Loader2 className="h-4 w-4 animate-spin" />{selectionBusyLabel}</> : <>{selectionCtaLabel}<ArrowRight className="h-4 w-4" /></>}
                     </button>
-                    {selectionSaved ? <div className="mt-4 flex gap-2 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><div><p className="font-semibold">{continuationText('recommend.readyTitle', 'Frames ready')}</p>{merchant.experiencePolicy.tryOnEnabled ? <p className="mt-0.5 text-xs leading-5">{continuationText('recommend.readyBody', 'Continue below to start your virtual try-on.')}</p> : null}</div></div> : null}
+                    {selectionSaved ? <div className="mt-4 flex gap-2 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><div><p className="font-semibold">{continuationText('recommend.readyTitle', 'Frames ready')}</p>{merchant.experiencePolicy.tryOnEnabled ? <p className="mt-0.5 text-xs leading-5">{continuationText('recommend.readyBody', 'Continue below to start your virtual try-on.')}</p> : null}{decisionResultHref ? <Link href={decisionResultHref} className="mt-2 inline-flex font-semibold text-emerald-900 underline underline-offset-2">Open your private result</Link> : null}</div></div> : null}
                   </div>
                 </aside>
               ) : null}

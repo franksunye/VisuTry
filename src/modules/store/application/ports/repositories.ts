@@ -20,6 +20,13 @@ import type {
 import type { ExperienceStatus, ExperienceType } from '../../domain/experience'
 import type { CampaignGate, CampaignObjective } from '../../domain/campaign-policy'
 import type { PresentationMode } from '../../domain/presentation-mode'
+import type {
+  CanonicalDecisionResultPayload,
+  DecisionResultFrameReference,
+  DecisionResultFaceFitSummary,
+  DecisionResultJourneyContext,
+  DecisionResultTryOnReference,
+} from '../../domain/decision-result'
 
 export type MerchantRecord = {
   id: string
@@ -173,6 +180,27 @@ export type MerchantEventRecord = {
   referenceData?: boolean
   metadata: Record<string, unknown> | null
   createdAt: Date
+}
+
+export interface DecisionResultRepository {
+  upsertRecommendation(input: {
+    merchantId: string
+    experienceId?: string | null
+    merchantSessionId: string
+    expiresAt: Date
+    journey: DecisionResultJourneyContext
+    faceFit: DecisionResultFaceFitSummary
+    rankingVersion: string
+    frames: DecisionResultFrameReference[]
+  }): Promise<{ resultId: string; shareToken: string; expiresAt: Date }>
+  updateSessionSnapshot(input: {
+    merchantId: string
+    merchantSessionId: string
+    selectedFrameIds?: string[]
+    favoriteFrameId?: string | null
+    tryOnResult?: DecisionResultTryOnReference
+    compare?: { startedAt: string; frameIds: string[] }
+  }): Promise<void>
 }
 
 export type StoreAssetRecord = {
