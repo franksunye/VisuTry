@@ -271,6 +271,27 @@ describe('Store/Campaign discovery SEO', () => {
     expect(countSuccessfulRenders).toHaveBeenCalledWith(merchantRecord.id)
   })
 
+  it.each([
+    ['FOUNDING_LAUNCH_BONUS', undefined, 5000],
+    [null, 4200, 4200],
+  ] as const)('honors Founding Pilot render allowances in the public overlay (%s, %s)', async (commercialExceptionCode, standardRenderAllowance, limit) => {
+    const merchantRecord = {
+      id: 'merchant-pilot-special', slug: 'pilot-special', status: 'ACTIVE', planCode: 'FOUNDING_PILOT',
+      commercialStatus: 'PILOT_ACTIVE', createdAt: new Date('2026-08-01T00:00:00.000Z'),
+      commercialExceptionCode, standardRenderAllowance: standardRenderAllowance ?? null,
+    }
+    const countAICommerceSessions = jest.fn().mockResolvedValue(0)
+    const countSuccessfulRenders = jest.fn().mockResolvedValue(limit - 1)
+    const usage = { countAICommerceSessions, countSuccessfulRenders } as never
+    const merchants = { findPublicBySlug: jest.fn().mockResolvedValue(merchantRecord) } as never
+    const input = { slug: merchantRecord.slug, merchants, usage, now: new Date('2026-08-15T00:00:00.000Z') }
+
+    await expect(resolvePublicGenerativeTryOnAvailability(input)).resolves.toBe(true)
+    countSuccessfulRenders.mockResolvedValue(limit)
+    await expect(resolvePublicGenerativeTryOnAvailability(input)).resolves.toBe(false)
+    expect(countSuccessfulRenders).toHaveBeenCalledTimes(2)
+  })
+
   it('uses factual merchant/campaign metadata and a clean canonical', () => {
     const metadata = buildExperienceDiscoveryMetadata({
       discovery: discovery(),

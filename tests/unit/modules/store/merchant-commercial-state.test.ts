@@ -101,31 +101,40 @@ describe('G4-A canonical Merchant commercial contract', () => {
     expect(canUseCommercialFeature(state, 'GENERATIVE_TRY_ON').code).toBe('AI_USAGE_LIMIT_REACHED')
   })
 
-  it('includes the Founding Pilot standard render ceiling in canonical decisions and runtime claims', () => {
-    const fields = {
+  it('preserves default and exceptional Founding Pilot render allowances in canonical decisions and runtime claims', () => {
+    const baseFields = {
       planCode: 'FOUNDING_PILOT',
       commercialStatus: 'PILOT_ACTIVE',
       createdAt: new Date('2026-08-01T00:00:00.000Z'),
-      standardRenderAllowance: 4200,
     }
-    const belowBoth = resolveMerchantCommercialCapability(fields, {
+    const belowBoth = resolveMerchantCommercialCapability(baseFields, {
       aiCommerceSessions: 1499,
       standardTryOnGenerations: 3499,
     }, now)
-    const sessionsExhausted = resolveMerchantCommercialCapability(fields, {
+    const sessionsExhausted = resolveMerchantCommercialCapability(baseFields, {
       aiCommerceSessions: 1500,
       standardTryOnGenerations: 100,
     }, now)
-    const rendersExhausted = resolveMerchantCommercialCapability(fields, {
+    const normalLimitReached = resolveMerchantCommercialCapability(baseFields, {
       aiCommerceSessions: 0,
       standardTryOnGenerations: 3500,
     }, now)
+    const bonusFields = { ...baseFields, commercialExceptionCode: 'FOUNDING_LAUNCH_BONUS' }
+    const bonusUnderLimit = resolveMerchantCommercialCapability(bonusFields, { standardTryOnGenerations: 4999 }, now)
+    const bonusLimitReached = resolveMerchantCommercialCapability(bonusFields, { standardTryOnGenerations: 5000 }, now)
+    const explicitFields = { ...baseFields, standardRenderAllowance: 4200 }
+    const explicitUnderLimit = resolveMerchantCommercialCapability(explicitFields, { standardTryOnGenerations: 4199 }, now)
+    const explicitLimitReached = resolveMerchantCommercialCapability(explicitFields, { standardTryOnGenerations: 4200 }, now)
 
     expect(belowBoth.decisions.GENERATIVE_TRY_ON.allowed).toBe(true)
     expect(sessionsExhausted.decisions.GENERATIVE_TRY_ON).toMatchObject({ allowed: false, current: 1500, limit: 1500 })
-    expect(rendersExhausted.state).toMatchObject({ status: 'USAGE_EXHAUSTED', standardTryOnGenerationLimit: 3500 })
-    expect(rendersExhausted.decisions.GENERATIVE_TRY_ON).toMatchObject({ allowed: false, current: 3500, limit: 3500 })
-    expect(rendersExhausted.storeRuntime.renderLimits.maxSuccessfulRendersPerMerchant).toBe(3500)
+    expect(normalLimitReached.state).toMatchObject({ status: 'USAGE_EXHAUSTED', standardTryOnGenerationLimit: 3500 })
+    expect(normalLimitReached.decisions.GENERATIVE_TRY_ON).toMatchObject({ allowed: false, current: 3500, limit: 3500 })
+    expect(normalLimitReached.storeRuntime.renderLimits.maxSuccessfulRendersPerMerchant).toBe(3500)
+    expect(bonusUnderLimit).toMatchObject({ state: { standardTryOnGenerationLimit: 5000 }, storeRuntime: { renderLimits: { maxSuccessfulRendersPerMerchant: 5000 } }, decisions: { GENERATIVE_TRY_ON: { allowed: true } } })
+    expect(bonusLimitReached).toMatchObject({ state: { status: 'USAGE_EXHAUSTED', standardTryOnGenerationLimit: 5000 }, storeRuntime: { renderLimits: { maxSuccessfulRendersPerMerchant: 5000 } }, decisions: { GENERATIVE_TRY_ON: { allowed: false, current: 5000, limit: 5000 } } })
+    expect(explicitUnderLimit).toMatchObject({ state: { standardTryOnGenerationLimit: 4200 }, storeRuntime: { renderLimits: { maxSuccessfulRendersPerMerchant: 4200 } }, decisions: { GENERATIVE_TRY_ON: { allowed: true } } })
+    expect(explicitLimitReached).toMatchObject({ state: { status: 'USAGE_EXHAUSTED', standardTryOnGenerationLimit: 4200 }, storeRuntime: { renderLimits: { maxSuccessfulRendersPerMerchant: 4200 } }, decisions: { GENERATIVE_TRY_ON: { allowed: false, current: 4200, limit: 4200 } } })
   })
 
   it('supports an anchored monthly period without relying on calendar-month assumptions', () => {

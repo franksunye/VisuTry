@@ -176,7 +176,7 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
   const limit = plan.aiCommerceSessions
   const standardTryOnGenerationLimit = plan.standardTryOnGenerations === null
     ? null
-    : Math.min(plan.standardTryOnGenerations, Math.max(0, fields.standardRenderAllowance ?? plan.standardTryOnGenerations))
+    : resolveMerchantEntitlement(fields, now).standardRenderAllowance
   const threshold = usageThreshold(normalizedUsage.aiCommerceSessions, limit)
   const standardTryOnGenerationsExhausted = standardTryOnGenerationLimit !== null
     && normalizedUsage.standardTryOnGenerations >= standardTryOnGenerationLimit
