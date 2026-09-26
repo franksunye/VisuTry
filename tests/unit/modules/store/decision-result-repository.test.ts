@@ -20,7 +20,7 @@ describe('Decision Result Prisma repository', () => {
     const shareCreate = jest.fn().mockResolvedValue({ id: 'share-1' })
     const tx = {
       decisionResult: { findUnique: jest.fn().mockResolvedValue(null), create, update: jest.fn() },
-      decisionResultShare: { create: shareCreate },
+      decisionResultShare: { create: shareCreate, updateMany: jest.fn() },
     }
     mockTransaction.mockImplementation(async (callback: (value: typeof tx) => Promise<unknown>) => callback(tx))
 
@@ -50,40 +50,58 @@ describe('Decision Result Prisma repository', () => {
     expect(tokenHash).not.toBe(result.shareToken)
   })
 
-  it('updates the existing result snapshot without creating a second result', async () => {
+  it('replaces an existing recommendation baseline, resets downstream state, and revokes old shares', async () => {
     const update = jest.fn().mockResolvedValue({ id: 'result-1' })
     const existing = {
       id: 'result-1',
       payload: {
         journey: { experienceType: 'STORE', enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION'] },
+        faceFit: { faceShape: 'round', alternativeShapes: [], preferredWidthClass: 'wide', geometryQualityBand: 'high', qualityScore: 70, signalCount: 2 },
+        recommendation: { rankingVersion: 'rank-old', frames: [{ frameId: 'frame-old', sku: 'OLD', name: 'Old', productUrl: null, score: 80, reason: 'old' }] },
         selectedFrameIds: ['frame-1'],
-        favoriteFrameIds: [],
-        tryOnResults: [],
+        favoriteFrameIds: ['frame-1'],
+        tryOnResults: [{ taskId: 'task-old', frameId: 'frame-1', status: 'COMPLETED', completedAt: '2026-09-25T00:00:00.000Z' }],
+        compare: { startedAt: '2026-09-25T00:00:00.000Z', frameIds: ['frame-1', 'frame-2'] },
       },
     }
+    const revokeShares = jest.fn().mockResolvedValue({ count: 1 })
+    const shareCreate = jest.fn().mockResolvedValue({ id: 'share-new' })
     const tx = {
       decisionResult: { findUnique: jest.fn().mockResolvedValue(existing), create: jest.fn(), update },
-      decisionResultShare: { create: jest.fn() },
+      decisionResultShare: { create: shareCreate, updateMany: revokeShares },
     }
     mockTransaction.mockImplementation(async (callback: (value: typeof tx) => Promise<unknown>) => callback(tx))
 
-    await createPrismaDecisionResultRepository().updateSessionSnapshot({
+    const result = await createPrismaDecisionResultRepository().upsertRecommendation({
       merchantId: 'merchant-1',
+      experienceId: 'experience-1',
       merchantSessionId: 'session-1',
-      favoriteFrameId: 'frame-2',
-      tryOnResult: { taskId: 'task-1', frameId: 'frame-2', status: 'COMPLETED', completedAt: '2026-09-26T00:00:00.000Z' },
+      expiresAt: new Date('2026-09-27T00:00:00.000Z'),
+      journey: { experienceId: 'experience-1', experienceType: 'STORE', experienceSlug: 'store', enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION'] },
+      faceFit: { faceShape: 'oval', alternativeShapes: [], preferredWidthClass: 'medium', geometryQualityBand: 'high', qualityScore: 95, signalCount: 4 },
+      rankingVersion: 'rank-new',
+      frames: [{ frameId: 'frame-new', sku: 'NEW', name: 'New', productUrl: null, score: 95, reason: 'new' }],
     })
 
     expect(update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'result-1' },
       data: expect.objectContaining({
         payload: expect.objectContaining({
-          selectedFrameIds: ['frame-1'],
-          favoriteFrameIds: ['frame-2'],
-          tryOnResults: [{ taskId: 'task-1', frameId: 'frame-2', status: 'COMPLETED', completedAt: '2026-09-26T00:00:00.000Z' }],
+          faceFit: expect.objectContaining({ faceShape: 'oval' }),
+          recommendation: expect.objectContaining({ rankingVersion: 'rank-new', frames: [{ frameId: 'frame-new', sku: 'NEW', name: 'New', productUrl: null, score: 95, reason: 'new' }] }),
+          selectedFrameIds: [],
+          favoriteFrameIds: [],
+          tryOnResults: [],
+          compare: null,
         }),
       }),
     }))
+    expect(revokeShares).toHaveBeenCalledWith({
+      where: { merchantId: 'merchant-1', decisionResultId: 'result-1', revokedAt: null },
+      data: { revokedAt: expect.any(Date) },
+    })
+    expect(shareCreate).toHaveBeenCalled()
+    expect(result.resultId).toBe('result-1')
     expect(tx.decisionResult.create).not.toHaveBeenCalled()
   })
 })

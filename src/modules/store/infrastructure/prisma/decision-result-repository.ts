@@ -15,12 +15,6 @@ function newShareToken(): { token: string; tokenHash: string } {
   return { token, tokenHash: hashSessionCapability(token) }
 }
 
-function mergePayload(current: unknown, patch: (payload: CanonicalDecisionResultPayload) => void): CanonicalDecisionResultPayload {
-  const payload = sanitizeDecisionResultPayload(current)
-  patch(payload)
-  return sanitizeDecisionResultPayload(payload)
-}
-
 export function createPrismaDecisionResultRepository(): DecisionResultRepository {
   return {
     async upsertRecommendation(input) {
@@ -29,14 +23,17 @@ export function createPrismaDecisionResultRepository(): DecisionResultRepository
         const existing = await tx.decisionResult.findUnique({
           where: { merchantId_merchantSessionId: { merchantId: input.merchantId, merchantSessionId: input.merchantSessionId } },
         })
-        const payload = mergePayload(existing?.payload, (next) => {
-          next.journey = input.journey
-          next.faceFit = input.faceFit
-          next.recommendation = {
+        // A recommendation is the new canonical baseline for this session.
+        // Selection, favorites, Try-On references, and Compare state all belong
+        // to the previous baseline and must not leak into the new Result.
+        const payload: CanonicalDecisionResultPayload = {
+          ...emptyDecisionResultPayload(input.journey),
+          faceFit: input.faceFit,
+          recommendation: {
             rankingVersion: input.rankingVersion,
             frames: input.frames,
-          }
-        })
+          },
+        }
         const result = existing
           ? await tx.decisionResult.update({
               where: { id: existing.id },
@@ -51,7 +48,15 @@ export function createPrismaDecisionResultRepository(): DecisionResultRepository
                 payload: payload as Prisma.InputJsonValue,
                 expiresAt: input.expiresAt,
               },
-            })
+          })
+        if (existing) {
+          // Shares point to the canonical row, so retaining an old bearer token
+          // would silently make it reveal the next recommendation cycle.
+          await tx.decisionResultShare.updateMany({
+            where: { merchantId: input.merchantId, decisionResultId: result.id, revokedAt: null },
+            data: { revokedAt: new Date() },
+          })
+        }
         await tx.decisionResultShare.create({
           data: {
             merchantId: input.merchantId,
@@ -71,14 +76,16 @@ export function createPrismaDecisionResultRepository(): DecisionResultRepository
           where: { merchantId_merchantSessionId: { merchantId: input.merchantId, merchantSessionId: input.merchantSessionId } },
         })
         if (!existing) return
-        const payload = mergePayload(existing.payload, (next) => {
+        const payload: CanonicalDecisionResultPayload = (() => {
+          const next = sanitizeDecisionResultPayload(existing.payload)
           if (input.selectedFrameIds) next.selectedFrameIds = uniqueBounded(input.selectedFrameIds, 12)
           if (input.favoriteFrameId) next.favoriteFrameIds = uniqueBounded([...next.favoriteFrameIds, input.favoriteFrameId], 12)
           if (input.tryOnResult) {
             next.tryOnResults = [...next.tryOnResults.filter((result) => result.taskId !== input.tryOnResult?.taskId), input.tryOnResult].slice(0, 12)
           }
           if (input.compare) next.compare = input.compare
-        })
+          return next
+        })()
         await tx.decisionResult.update({
           where: { id: existing.id },
           data: { payload: payload as Prisma.InputJsonValue },
