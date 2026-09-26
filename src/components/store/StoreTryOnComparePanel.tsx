@@ -16,6 +16,7 @@ import {
   type MerchantContinuationContext,
 } from '@/lib/commerce-handoff/merchant-continuation'
 import type { StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
+import { DEFAULT_DECISION_JOURNEY_POLICY, type DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
 
 type FrameMeta = {
   id: string
@@ -51,6 +52,7 @@ type StoreTryOnComparePanelProps = {
   accent: string
   onError: (message: string) => void
   experiencePolicy: StoreExperiencePolicy
+  decisionJourneyStages?: DecisionJourneyStage[]
   initialBatchId?: string | null
   initialTasks?: MerchantRuntimeTryOnTaskRef[] | null
   onContinuationBatchId?: (batchId: string) => void
@@ -113,6 +115,7 @@ export function StoreTryOnComparePanel({
   accent,
   onError,
   experiencePolicy,
+  decisionJourneyStages = DEFAULT_DECISION_JOURNEY_POLICY.enabledStages,
   initialBatchId,
   initialTasks,
   onContinuationBatchId,
@@ -576,12 +579,13 @@ export function StoreTryOnComparePanel({
   const framesNeedingSubmit = selectedFrames.filter(
     (frame) => !tiles.some((tile) => tile.merchantFrameId === frame.id && Boolean(tile.taskId)),
   )
+  const tryOnStepNumber = decisionJourneyStages.indexOf('TRY_ON') + 1
 
   return (
     <section className="rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] sm:p-7">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 3 · {t('tryOn.editLabel')}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step {tryOnStepNumber} · {t('tryOn.editLabel')}</p>
           <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('tryOn.title')}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{t('tryOn.subtitle')}</p>
         </div>

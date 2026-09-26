@@ -80,6 +80,7 @@ function pollCalls(): unknown[][] {
 function renderPanel(overrides?: {
   initialTasks?: { merchantFrameId: string; taskId: string }[]
   onTryOnTasksChange?: (tasks: { merchantFrameId: string; taskId: string }[]) => void
+  decisionJourneyStages?: ('FACE_ANALYSIS' | 'FIT_PROFILE' | 'RECOMMENDATION' | 'TRY_ON' | 'COMPARE')[]
 }) {
   return render(
     <StoreTryOnComparePanel
@@ -92,6 +93,7 @@ function renderPanel(overrides?: {
       accent="#1F4B5A"
       onError={jest.fn()}
       experiencePolicy={policy}
+      decisionJourneyStages={overrides?.decisionJourneyStages}
       initialBatchId="batch-1"
       initialTasks={overrides?.initialTasks ?? [{ merchantFrameId: 'frame-a', taskId: 'task-a' }]}
       onTryOnTasksChange={overrides?.onTryOnTasksChange}
@@ -107,6 +109,14 @@ describe('StoreTryOnComparePanel retry and rehydration', () => {
   afterEach(() => {
     jest.useRealTimers()
     jest.restoreAllMocks()
+  })
+
+  it.each([
+    [['FACE_ANALYSIS', 'FIT_PROFILE', 'RECOMMENDATION', 'TRY_ON', 'COMPARE'], 'Step 4 · Try them on'],
+    [['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'], 'Step 3 · Try them on'],
+  ] as const)('derives the Try-On step from the configured Journey (%s)', (decisionJourneyStages, label) => {
+    renderPanel({ decisionJourneyStages: [...decisionJourneyStages] })
+    expect(screen.getByText(label)).toBeInTheDocument()
   })
 
   it('does not POST /try-on when Check again follows a poll timeout', async () => {

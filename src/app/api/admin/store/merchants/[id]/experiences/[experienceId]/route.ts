@@ -87,7 +87,7 @@ export async function PUT(
     })
     if (!existing) return NextResponse.json({ success: false, error: 'Experience not found' }, { status: 404 })
 
-    let journeyPolicy: unknown = undefined
+    let journeyPolicy: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | undefined = undefined
     if ('journeyPolicy' in body) {
       if (body.journeyPolicy !== null) {
         try {
@@ -96,12 +96,7 @@ export async function PUT(
           return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Invalid journey policy' }, { status: 400 })
         }
       }
-      journeyPolicy = body.journeyPolicy
-      await updatePublicExperience({
-        merchantId: params.id,
-        experienceId: params.experienceId,
-        data: { journeyPolicy: journeyPolicy === null ? Prisma.JsonNull : journeyPolicy as Prisma.InputJsonValue },
-      })
+      journeyPolicy = body.journeyPolicy === null ? Prisma.JsonNull : body.journeyPolicy as Prisma.InputJsonValue
     }
 
     if (existing.type === 'CAMPAIGN') {
@@ -109,9 +104,30 @@ export async function PUT(
       if (status !== undefined && (typeof status !== 'string' || !EXPERIENCE_STATUSES.includes(status as ExperienceStatus))) {
         return NextResponse.json({ success: false, error: 'Invalid experience status' }, { status: 400 })
       }
+      if ('name' in body && typeof body.name !== 'string') {
+        return NextResponse.json({ success: false, error: 'name must be a string' }, { status: 400 })
+      }
+      for (const field of ['headline', 'description', 'primaryCtaType', 'primaryCtaLabel', 'primaryCtaUrl', 'secondaryCtaType', 'secondaryCtaLabel', 'secondaryCtaUrl'] as const) {
+        if (field in body && body[field] !== null && typeof body[field] !== 'string') {
+          return NextResponse.json({ success: false, error: `${field} must be a string or null` }, { status: 400 })
+        }
+      }
+      for (const field of ['startAt', 'endAt'] as const) {
+        if (field in body && body[field] !== null && typeof body[field] !== 'string') {
+          return NextResponse.json({ success: false, error: `${field} must be an ISO string or null` }, { status: 400 })
+        }
+      }
+      for (const field of ['campaignObjective', 'campaignGate', 'presentationMode'] as const) {
+        if (field in body && typeof body[field] !== 'string') {
+          return NextResponse.json({ success: false, error: `${field} must be a string` }, { status: 400 })
+        }
+      }
+      const campaignStatus = status === 'DRAFT' || status === 'ENDED' ? status as 'DRAFT' | 'ENDED' : undefined
       const campaignUpdate = {
         merchantId: params.id,
         campaignId: params.experienceId,
+        ...(campaignStatus ? { status: campaignStatus } : {}),
+        ...(journeyPolicy !== undefined ? { journeyPolicy } : {}),
         ...(typeof body.name === 'string' ? { name: body.name } : {}),
         ...(body.headline === null || typeof body.headline === 'string' ? { headline: body.headline as string | null } : {}),
         ...(body.description === null || typeof body.description === 'string' ? { description: body.description as string | null } : {}),
@@ -138,6 +154,7 @@ export async function PUT(
         return NextResponse.json({ success: true, data: archived })
       }
       if (status === 'DRAFT' || status === 'ENDED') {
+        if (updated) return NextResponse.json({ success: true, data: updated })
         const experience = await updatePublicExperience({
           merchantId: params.id,
           experienceId: params.experienceId,
@@ -152,6 +169,7 @@ export async function PUT(
     }
 
     const data: Record<string, unknown> = {}
+    if (journeyPolicy !== undefined) data.journeyPolicy = journeyPolicy
     for (const field of ['name', 'headline', 'description', 'primaryCtaLabel', 'primaryCtaUrl', 'offerLabel', 'offerCode']) {
       if (field in body) {
         const value = body[field]

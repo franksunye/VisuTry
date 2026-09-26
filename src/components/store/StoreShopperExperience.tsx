@@ -873,7 +873,7 @@ export function StoreShopperExperience({
                   <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm xl:hidden">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">{selectionSaved ? continuationText('recommend.readyEyebrow', 'Ready when you are') : 'Step 2'}</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">{selectionSaved ? continuationText('recommend.readyEyebrow', 'Ready when you are') : `Step ${journeyStageNumber('RECOMMENDATION')}`}</p>
                         <p className="mt-1 text-sm text-slate-500">{t('recommend.selectHint', { max: maxSelectableFrames, count: selectedIds.length })}</p>
                       </div>
                       <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-sm font-bold text-blue-700">{selectedIds.length}</span>
@@ -903,6 +903,7 @@ export function StoreShopperExperience({
                       photoPreview={photoPreview}
                       accent={accent}
                       experiencePolicy={merchant.experiencePolicy}
+                      decisionJourneyStages={enabledJourneyStages}
                       onError={(message) => setErrorMessage(message || null)}
                       initialBatchId={resumeBatchId}
                       initialTasks={resumeTryOnTasks}
