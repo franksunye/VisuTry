@@ -219,7 +219,9 @@ export function StoreShopperExperience({
   const [storeContinuationQuery, setStoreContinuationQuery] = useState('')
   const [kioskNotice, setKioskNotice] = useState<string | null>(null)
   const [kioskResetting, setKioskResetting] = useState(false)
+  const [kioskResetSafetyLatched, setKioskResetSafetyLatched] = useState(false)
   const kioskResetInFlight = useRef(false)
+  const kioskResetSafetyLatch = useRef(false)
   const kioskPendingSession = useRef<SessionState | null>(null)
 
   const accent = merchant?.accentColor || '#1F4B5A'
@@ -252,10 +254,6 @@ export function StoreShopperExperience({
       } catch {
         // Ignore unavailable storage.
       }
-      const cleanUrl = new URL(window.location.href)
-      cleanUrl.searchParams.delete('merchantContinuation')
-      cleanUrl.searchParams.set('deliveryProfile', 'kiosk')
-      window.history.replaceState({}, '', `${cleanUrl.pathname}${cleanUrl.search}`)
     }
     setPrivacyAccepted(false)
     setSession(null)
@@ -277,6 +275,19 @@ export function StoreShopperExperience({
     setErrorMessage(null)
   }, [clearRuntimeContinuation, experienceSlug, merchantSlug])
 
+  const navigateToFreshKioskEntry = useCallback((reason: 'manual' | 'idle') => {
+    if (typeof window === 'undefined') return
+    const kioskPath = experienceSlug
+      ? `/${locale}/c/${encodeURIComponent(merchantSlug)}/${encodeURIComponent(experienceSlug)}/kiosk`
+      : `/${locale}/store/${encodeURIComponent(merchantSlug)}/kiosk`
+    const cleanUrl = new URL(kioskPath, window.location.origin)
+    cleanUrl.searchParams.set('kioskReset', `${Date.now()}-${Math.random().toString(36).slice(2)}`)
+    cleanUrl.searchParams.set('kioskResetReason', reason)
+    // A new document navigation truncates the browser's forward list. replaceState
+    // (or location.replace) only edits the current entry and preserves old Result URLs.
+    window.location.assign(`${cleanUrl.pathname}${cleanUrl.search}`)
+  }, [experienceSlug, locale, merchantSlug])
+
   const resetKiosk = useCallback(async (reason: 'manual' | 'idle') => {
     if (!kioskMode || kioskResetInFlight.current) return
     kioskResetInFlight.current = true
@@ -297,7 +308,13 @@ export function StoreShopperExperience({
       })
       if (!response.ok) throw new Error('Kiosk reset was not confirmed by the server')
       kioskPendingSession.current = null
+      kioskResetSafetyLatch.current = false
+      setKioskResetSafetyLatched(false)
+      navigateToFreshKioskEntry(reason)
+      return
     } catch {
+      kioskResetSafetyLatch.current = true
+      setKioskResetSafetyLatched(true)
       setErrorMessage('Private session reset could not be confirmed. Retry New shopper before allowing the next person to use this kiosk.')
       kioskResetInFlight.current = false
       setKioskResetting(false)
@@ -307,7 +324,7 @@ export function StoreShopperExperience({
     setKioskNotice(reason === 'idle' ? 'For privacy, this kiosk reset after inactivity. Start a new session when you are ready.' : 'Previous shopper data was cleared. Ready for the next shopper.')
     kioskResetInFlight.current = false
     setKioskResetting(false)
-  }, [clearShopperClientState, experienceSlug, kioskMode, merchantSlug, session])
+  }, [clearShopperClientState, experienceSlug, kioskMode, merchantSlug, navigateToFreshKioskEntry, session])
 
   const persistRuntimeContinuation = useCallback((batchId = resumeBatchId, tryOnTasks = resumeTryOnTasks) => {
     if (
@@ -445,6 +462,10 @@ export function StoreShopperExperience({
   }, [experienceSlug])
 
   const ensureSession = useCallback(async (): Promise<SessionState | null> => {
+    if (kioskMode && kioskResetSafetyLatch.current) {
+      setErrorMessage('Private session reset could not be confirmed. Retry New shopper before starting another session.')
+      return null
+    }
     if (session) return session
 
     setSessionStarting(true)
@@ -571,7 +592,7 @@ export function StoreShopperExperience({
   )
 
   const handleAcceptPrivacy = async () => {
-    if (kioskResetting || kioskPendingSession.current) return
+    if (kioskResetting || kioskPendingSession.current || kioskResetSafetyLatch.current) return
     const created = await ensureSession()
     if (created) setPrivacyAccepted(true)
   }
@@ -707,6 +728,20 @@ export function StoreShopperExperience({
   useEffect(() => {
     persistRuntimeContinuation()
   }, [persistRuntimeContinuation])
+
+  useEffect(() => {
+    if (!kioskMode || typeof window === 'undefined') return
+    const resetUrl = new URL(window.location.href)
+    const resetMarker = resetUrl.searchParams.get('kioskReset')
+    if (!resetMarker) return
+    const reason = resetUrl.searchParams.get('kioskResetReason')
+    setKioskNotice(reason === 'idle'
+      ? 'For privacy, this kiosk reset after inactivity. Start a new session when you are ready.'
+      : 'Previous shopper data was cleared. Ready for the next shopper.')
+    resetUrl.searchParams.delete('kioskReset')
+    resetUrl.searchParams.delete('kioskResetReason')
+    window.history.replaceState({}, '', `${resetUrl.pathname}${resetUrl.search}`)
+  }, [kioskMode])
 
   useEffect(() => {
     if (!kioskMode || typeof window === 'undefined') return
@@ -887,6 +922,7 @@ export function StoreShopperExperience({
             copy={presentationCopy}
             publicPocStorage={publicPocStorage}
             sessionStarting={sessionStarting}
+            runtimeBlocked={kioskResetSafetyLatched}
             errorMessage={errorMessage}
             onStartRuntime={handleAcceptPrivacy}
             onShoppingCta={scrollToFeaturedFrames}

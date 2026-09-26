@@ -41,9 +41,12 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
       const response = await fetch(`/api/store/results/${encodeURIComponent(token)}/kiosk-reset`, { method: 'POST', cache: 'no-store' })
       if (!response.ok) throw new Error('The kiosk reset could not be confirmed.')
       const experiencePath = result.experience?.type === 'CAMPAIGN'
-        ? `/${locale}/c/${encodeURIComponent(result.merchant.slug)}/${encodeURIComponent(result.experience.slug)}`
-        : `/${locale}/store/${encodeURIComponent(result.merchant.slug)}`
-      window.location.replace(`${experiencePath}?deliveryProfile=kiosk`)
+        ? `/${locale}/c/${encodeURIComponent(result.merchant.slug)}/${encodeURIComponent(result.experience.slug)}/kiosk`
+        : `/${locale}/store/${encodeURIComponent(result.merchant.slug)}/kiosk`
+      const nextUrl = new URL(experiencePath, window.location.origin)
+      nextUrl.searchParams.set('kioskReset', `${Date.now()}-${Math.random().toString(36).slice(2)}`)
+      nextUrl.searchParams.set('kioskResetReason', 'manual')
+      window.location.replace(`${nextUrl.pathname}${nextUrl.search}`)
     } catch {
       setResetError('The secure reset could not be confirmed. Keep this screen private and retry before the next shopper.')
       setResetting(false)

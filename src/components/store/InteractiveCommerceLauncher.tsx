@@ -9,7 +9,6 @@ import {
   MERCHANT_CONTINUATION_PARAM,
 } from '@/lib/commerce-handoff/merchant-continuation'
 import type { PublicMerchantProfile } from '@/modules/store/application/get-public-merchant'
-import { resolveRequestedDeliveryProfile } from '@/modules/store/domain/delivery-profile'
 
 const LazyStoreShopperExperience = dynamic(
   () => import('@/components/store/StoreShopperExperience').then((module) => module.StoreShopperExperience),
@@ -31,6 +30,7 @@ type InteractiveCommerceLauncherProps = {
   publicPocStorage: boolean
   generativeTryOnAvailable?: boolean
   initialPublicMerchant?: PublicMerchantProfile | null
+  initialKioskMode?: boolean
 }
 
 /**
@@ -45,20 +45,15 @@ export function InteractiveCommerceLauncher({
   publicPocStorage,
   generativeTryOnAvailable = true,
   initialPublicMerchant = null,
+  initialKioskMode = false,
 }: InteractiveCommerceLauncherProps) {
-  const [started, setStarted] = useState(false)
-  const [kioskMode, setKioskMode] = useState(false)
+  const [started, setStarted] = useState(initialKioskMode)
+  const [kioskMode, setKioskMode] = useState(initialKioskMode)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
-    const profile = resolveRequestedDeliveryProfile({ requested: params.get('deliveryProfile'), policy: initialPublicMerchant?.experience?.deliveryPolicy ?? { kioskEnabled: false, kioskIdleTimeoutSeconds: 120 } })
-    if (profile === 'KIOSK') {
-      setKioskMode(true)
-      setStarted(true)
-      return
-    }
     if (!params.has(MERCHANT_CONTINUATION_PARAM)) return
 
     const expected = createMerchantContinuation({
@@ -69,13 +64,13 @@ export function InteractiveCommerceLauncher({
     })
     const current = getMerchantContinuationFromUrl(`${window.location.pathname}${window.location.search}`)
     if (expected && current?.canonicalReturnPath === expected.canonicalReturnPath) setStarted(true)
-  }, [experienceSlug, initialPublicMerchant, locale, merchantSlug])
+  }, [experienceSlug, locale, merchantSlug])
 
   useEffect(() => {
     if (!started) return
 
     const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    if (!kioskMode) document.body.style.overflow = 'hidden'
     if (!kioskMode) closeButtonRef.current?.focus()
 
     return () => {
