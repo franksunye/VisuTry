@@ -59,13 +59,21 @@ export async function getPublicExperienceDiscoveryForRoute(
   let generativeTryOnAvailable = false
   let merchantHandoffAvailable = false
   let kioskDeliveryAvailable = false
+  const runtime = createPublicStoreReadRuntime()
+
   try {
-    const runtime = createPublicStoreReadRuntime()
     generativeTryOnAvailable = await resolvePublicGenerativeTryOnAvailability({
       merchants: runtime.merchants,
       usage: runtime.usage,
       slug,
     })
+  } catch {
+    // Keep cached discovery available during a commercial-usage outage, while
+    // conservatively removing only the metered Try-On capability claim.
+    generativeTryOnAvailable = false
+  }
+
+  try {
     const merchant = runtime.merchants.findPublicBySlug
       ? await runtime.merchants.findPublicBySlug(slug)
       : await runtime.merchants.findBySlug(slug)
@@ -75,9 +83,10 @@ export async function getPublicExperienceDiscoveryForRoute(
       kioskDeliveryAvailable = capability.decisions.KIOSK_DELIVERY.allowed
     }
   } catch {
-    // Keep cached discovery available during a commercial-usage outage, while
-    // conservatively removing the live Try-On capability claim.
-    generativeTryOnAvailable = false
+    // Non-metered plan capabilities fail closed without coupling them to the
+    // AI usage overlay above.
+    merchantHandoffAvailable = false
+    kioskDeliveryAvailable = false
   }
   return {
     ...discovery,
