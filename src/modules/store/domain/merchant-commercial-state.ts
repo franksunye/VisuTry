@@ -19,6 +19,7 @@ export type CommercialStatus = (typeof COMMERCIAL_STATUSES)[number]
 
 export const COMMERCIAL_FEATURES = [
   'STORE', 'CATALOG', 'CAMPAIGN', 'RECOMMENDATION', 'GENERATIVE_TRY_ON', 'COMPARE',
+  'DECISION_RESULT', 'MERCHANT_HANDOFF', 'KIOSK_DELIVERY',
   'BASIC_ANALYTICS', 'ADVANCED_ANALYTICS',
 ] as const
 export type CommercialFeature = (typeof COMMERCIAL_FEATURES)[number]
@@ -164,6 +165,9 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
         // recognized Founding Pilot still ends at its fixed period boundary.
         GENERATIVE_TRY_ON: pilotTryOnActive,
         COMPARE: true,
+        DECISION_RESULT: true,
+        MERCHANT_HANDOFF: true,
+        KIOSK_DELIVERY: true,
         BASIC_ANALYTICS: true,
         ADVANCED_ANALYTICS: true,
       },
@@ -202,6 +206,11 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
   const recommendation = plan.recommendation && paidActive
   const generativeTryOn = plan.generativeTryOn && paidActive && status !== 'USAGE_EXHAUSTED'
   const compare = plan.compare && paidActive
+  const kioskAddOnProvisioned = (fields.commercialExceptionCode ?? '').trim().toUpperCase() === 'KIOSK_ADD_ON'
+  const kioskDelivery = paidActive && (
+    plan.kioskDelivery === 'included'
+    || ((plan.kioskDelivery === 'add_on' || plan.kioskDelivery === 'custom') && kioskAddOnProvisioned)
+  )
   const featureAvailability: Record<CommercialFeature, boolean> = {
     STORE: true,
     CATALOG: paidActive && (plan.catalogItems === null || normalizedUsage.catalogItems < plan.catalogItems),
@@ -209,6 +218,9 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
     RECOMMENDATION: recommendation || planCode === 'FREE',
     GENERATIVE_TRY_ON: generativeTryOn,
     COMPARE: compare,
+    DECISION_RESULT: plan.decisionResult && paidActive,
+    MERCHANT_HANDOFF: plan.merchantHandoff && paidActive,
+    KIOSK_DELIVERY: kioskDelivery,
     BASIC_ANALYTICS: plan.analytics === 'basic' || plan.analytics === 'advanced',
     ADVANCED_ANALYTICS: plan.analytics === 'advanced',
   }
