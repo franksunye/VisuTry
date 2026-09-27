@@ -15,7 +15,7 @@ jest.mock('lucide-react', () => ({
   ShieldCheck: () => <span aria-hidden="true" />,
 }))
 
-describe('BusinessPricingPage v1.1 information architecture', () => {
+describe('BusinessPricingPage v2 product-market narrative', () => {
   it('keeps Free, Pilot, and Enterprise visible while limiting primary cards to Launch, Growth, and Scale', () => {
     const { container } = render(<BusinessPricingPage locale="en" />)
 
@@ -48,8 +48,10 @@ describe('BusinessPricingPage v1.1 information architecture', () => {
   it('compares the agreed capability packaging without changing capacity or presenting scoped integrations as included', () => {
     render(<BusinessPricingPage locale="en" />)
     const table = screen.getByRole('table', { name: 'Merchant plan comparison' })
-    const values = (label: string) => within(table).getByRole('row', { name: new RegExp(`^${label}`) })
-      .querySelectorAll('td')
+    const values = (label: string) => {
+      const rowHeader = within(table).getByText(label, { selector: 'th' })
+      return rowHeader.closest('tr')!.querySelectorAll('td')
+    }
 
     expect(Array.from(values('AI Commerce Sessions'), (cell) => cell.textContent)).toEqual(['Not applicable', '1,000', '5,000', '10,000', 'Custom'])
     expect(Array.from(values('Decision Result \+ mobile continuation'), (cell) => cell.textContent)).toEqual(['—', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
