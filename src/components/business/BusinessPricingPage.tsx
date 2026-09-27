@@ -127,7 +127,7 @@ function comparisonRows() {
     { label: 'Generative Try-On', tooltip: 'If included AI Commerce Session capacity is exhausted, your Store stays live while generative Try-On pauses until capacity is restored.', values: plans.map((plan) => plan.generativeTryOn ? '✓ Included' : '—') },
     { label: 'Compare', values: plans.map((plan) => plan.compare ? '✓ Included' : '—') },
     { label: 'Analytics', values: comparisonPlanCodes.map(analyticsLabel) },
-    { label: 'API / Integrations', tooltip: 'Enterprise usage, integrations, support, and commercial scope are configured for your program; Custom does not imply unlimited use.', values: comparisonPlanCodes.map((code) => code === 'ENTERPRISE' ? '✓ Included' : '—') },
+    { label: 'Custom integration scope', tooltip: 'Enterprise can scope specific integration work with VisuTry. This does not imply a generally available public API, webhook, CRM, or booking-provider product.', values: comparisonPlanCodes.map((code) => code === 'ENTERPRISE' ? 'Scoped' : '—') },
     { label: 'Support / SLA', values: comparisonPlanCodes.map((code) => code === 'ENTERPRISE' ? 'Custom' : code === 'GROWTH' || code === 'SCALE' ? 'Priority' : 'Standard') },
   ]
 }
@@ -160,6 +160,34 @@ function ComparisonTable() {
   )
 }
 
+function MerchantExperienceCapabilities() {
+  const capabilities = [
+    ['Guided Decision Journey', 'Use a bounded shopper journey to move from understanding and recommendation through Try-On and Compare.'],
+    ['Decision Result & continuation', 'Carry the shopper’s useful result beyond the session, including secure QR / phone continuation from a shared device.'],
+    ['Merchant Handoff', 'Return intent to the merchant through configured Visit Store, appointment, WhatsApp, email, product, or safe-link actions.'],
+    ['Kiosk-ready delivery', 'Deliver the same Store or Campaign through the Kiosk profile with shared-device reset and privacy safeguards.'],
+  ] as const
+
+  return (
+    <section className="border-y border-slate-200 bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Built into the Merchant Experience</p>
+        <h2 className="mt-3 max-w-4xl text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">The product is more than Recommendation, Try-On, and Compare.</h2>
+        <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">VisuTry now carries the shopper from discovery through a guided decision, a reusable result, and a configured merchant handoff. These capabilities do not create new pricing meters.</p>
+        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {capabilities.map(([title, description]) => (
+            <article key={title} className="border-t border-slate-300 pt-5">
+              <p className="flex items-center gap-2 text-sm font-semibold text-slate-950"><Check className="h-4 w-4 text-blue-700" aria-hidden="true" />{title}</p>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
+            </article>
+          ))}
+        </div>
+        <p className="mt-8 max-w-4xl text-sm leading-6 text-slate-500">Plan entitlements still govern metered AI capabilities such as Generative Try-On and the included AI Commerce Session capacity. Kiosk delivery is a delivery profile, not a separate Store or Campaign product.</p>
+      </div>
+    </section>
+  )
+}
+
 function PilotSection({ locale }: { locale: string }) {
   return (
     <section id="pilot" data-plan-code="FOUNDING_PILOT" className="border-y border-violet-200 bg-violet-50/70">
@@ -182,7 +210,7 @@ function PilotSection({ locale }: { locale: string }) {
             <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Catalog scope</p><p className="mt-2 text-lg font-semibold text-slate-950">{FOUNDING_PILOT_OFFER.catalogFrames.min}–{FOUNDING_PILOT_OFFER.catalogFrames.max} frames</p></div>
             <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Working model</p><p className="mt-2 text-lg font-semibold text-slate-950">{FOUNDING_PILOT_OFFER.setup}</p></div>
           </div>
-          <div className="mt-7 border-t border-slate-200 pt-6 text-sm leading-6 text-slate-600">Recommendation, Try-On, and Compare are included. At day 30, choose Free, Launch, Growth, or Scale. The Store and catalog are retained.</div>
+          <div className="mt-7 border-t border-slate-200 pt-6 text-sm leading-6 text-slate-600">The Pilot includes a guided decision experience with Recommendation, Standard Try-On, Compare, Decision Result / continuation, and configured Merchant Handoff. Kiosk-ready delivery can be configured when the Pilot use case requires it. At day 30, choose Free, Launch, Growth, or Scale. The Store and catalog are retained.</div>
         </div>
       </div>
     </section>
@@ -198,7 +226,7 @@ function EnterpriseSection({ locale }: { locale: string }) {
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Enterprise</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">Custom scale for larger commerce programs.</h2>
-          <p className="mt-5 text-base leading-7 text-slate-600">For brands, agencies, and teams that need custom usage, integrations, commercial onboarding, or SLA requirements.</p>
+          <p className="mt-5 text-base leading-7 text-slate-600">For brands, agencies, and teams that need custom usage, scoped integration work, commercial onboarding, or SLA requirements.</p>
           <p className="mt-4 text-2xl font-semibold text-slate-950">{enterprise.priceLabel}</p>
           <p className="mt-2 text-sm text-slate-500">One Merchant / Brand has one canonical Store.</p>
         </div>
@@ -206,7 +234,7 @@ function EnterpriseSection({ locale }: { locale: string }) {
           <ul className="space-y-3 text-sm text-slate-700">
             <li>Custom AI Commerce Sessions</li>
             <li>Custom catalog and Campaign limits</li>
-            <li>API / integrations</li>
+            <li>Scoped integration work</li>
             <li>Custom support / SLA</li>
           </ul>
           <Link href={businessHref(locale, planPath('ENTERPRISE'))} prefetch={false} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800">
@@ -229,9 +257,9 @@ function UsageSection() {
           <p className="mt-5 text-base leading-7 text-slate-300">A shopper enters a Store or Campaign, starts Recommendation, Try-On, or Compare, and can continue through multiple AI interactions within the same visit. That journey counts as one AI Commerce Session.</p>
         </div>
         <div aria-label="AI Commerce Session journey" className="mt-10 flex flex-col gap-3 rounded-2xl border border-white/15 bg-white/5 p-5 text-sm font-semibold text-white sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-6">
-          <span>Store or Campaign</span><ArrowRight className="hidden h-4 w-4 text-sky-300 sm:block" aria-hidden="true" /><span>Recommendation / Try-On / Compare</span><ArrowRight className="hidden h-4 w-4 text-sky-300 sm:block" aria-hidden="true" /><span>1 AI Commerce Session</span>
+          <span>Store or Campaign</span><ArrowRight className="hidden h-4 w-4 text-sky-300 sm:block" aria-hidden="true" /><span>Guided AI decision journey</span><ArrowRight className="hidden h-4 w-4 text-sky-300 sm:block" aria-hidden="true" /><span>1 AI Commerce Session</span>
         </div>
-        <p className="mt-4 text-sm text-slate-400">Plain browsing, product views, and product clicks do not consume a paid AI Commerce Session.</p>
+        <p className="mt-4 text-sm text-slate-400">Recommendation, multiple Try-Ons, and Compare within the same attributed visit still count as one AI Commerce Session. Decision Result, QR continuation, and Merchant Handoff do not add a second session meter. Plain browsing, product views, and product clicks do not consume a paid AI Commerce Session.</p>
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
           <article className="rounded-2xl border border-white/15 bg-white/5 p-6"><p className="text-sm font-semibold text-white">Store stays live</p><p className="mt-3 text-sm leading-6 text-slate-300">When included capacity is reached, Store browsing, product links, inquiries, and analytics remain available.</p></article>
           <article className="rounded-2xl border border-white/15 bg-white/5 p-6"><p className="text-sm font-semibold text-white">Try-On pauses</p><p className="mt-3 text-sm leading-6 text-slate-300">Generative Try-On pauses until capacity is restored or the next billing period begins. Basic Recommendation follows plan policy.</p></article>
@@ -252,6 +280,7 @@ function FaqSection() {
     ['Do I keep my Store if my paid plan ends?', 'Yes. The Store and catalog are retained. Paid AI features change according to the commercial state and plan.'],
     ['How many Stores do I get?', 'One canonical Store per Merchant / Brand in the current model.'],
     ['Do I need a technical integration to start?', 'No for the hosted Store path. Start with a reviewed catalog and your existing product or inquiry destinations.'],
+    ['Are Kiosk, Decision Result, and Merchant Handoff separate usage meters?', 'No. They are Merchant Experience capabilities, not additional usage meters. Metered AI features and AI Commerce Session capacity still follow the selected plan.'],
   ] as const
 
   return (
@@ -280,6 +309,8 @@ export function BusinessPricingPage({ locale }: { locale: string }) {
           <div className="mt-10 grid gap-5 lg:grid-cols-3">{primaryPlanCodes.map((code) => <PrimaryPlanCard key={code} locale={locale} planCode={code} />)}</div>
         </div>
       </section>
+
+      <MerchantExperienceCapabilities />
 
       <PilotSection locale={locale} />
 
