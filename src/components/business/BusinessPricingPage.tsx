@@ -116,6 +116,14 @@ function analyticsLabel(planCode: ComparisonPlanCode) {
   return plan.sourceAttribution ? 'Standard' : 'Basic'
 }
 
+function kioskDeliveryLabel(planCode: ComparisonPlanCode) {
+  const entitlement = getMerchantPlanDefinition(planCode).kioskDelivery
+  if (entitlement === 'add_on') return 'Add-on'
+  if (entitlement === 'included') return 'Included'
+  if (entitlement === 'custom') return 'Custom'
+  return '—'
+}
+
 function comparisonRows() {
   const plans = comparisonPlanCodes.map((code) => getMerchantPlanDefinition(code))
   return [
@@ -127,9 +135,9 @@ function comparisonRows() {
     { label: 'AI Recommendation', values: plans.map((plan) => plan.recommendation ? plan.code === 'FREE' ? 'Basic' : '✓ Included' : '—') },
     { label: 'Generative Try-On', tooltip: 'If included AI Commerce Session capacity is exhausted, your Store stays live while generative Try-On pauses until capacity is restored.', values: plans.map((plan) => plan.generativeTryOn ? '✓ Included' : '—') },
     { label: 'Frame Compare', values: plans.map((plan) => plan.compare ? '✓ Included' : '—') },
-    { label: 'Decision Result & secure continuation', tooltip: 'Paid plans can carry a shopper’s decision result to their phone through a secure continuation link or QR code.', values: comparisonPlanCodes.map((code) => code === 'FREE' ? '—' : '✓ Included') },
-    { label: 'Merchant Handoff', tooltip: 'Free Stores can link to products. Paid plans can use configured handoff actions such as store visit, appointment, inquiry, or supported merchant destinations.', values: comparisonPlanCodes.map((code) => code === 'FREE' ? 'Basic product links' : '✓ Included') },
-    { label: 'Kiosk-ready delivery', tooltip: 'A shared-device delivery profile with reset and secure phone continuation. Launch and Growth can arrange an add-on; Scale includes the profile. Hardware and custom installation are separately scoped.', values: comparisonPlanCodes.map((code) => code === 'FREE' ? '—' : code === 'LAUNCH' || code === 'GROWTH' ? 'Add-on' : code === 'SCALE' ? 'Included' : 'Custom') },
+    { label: 'Decision Result & secure continuation', tooltip: 'Paid plans can carry a shopper’s decision result to their phone through a secure continuation link or QR code.', values: plans.map((plan) => plan.decisionResult ? '✓ Included' : '—') },
+    { label: 'Merchant Handoff', tooltip: 'Free Stores can link to products. Paid plans can use configured handoff actions such as store visit, appointment, inquiry, or supported merchant destinations.', values: plans.map((plan) => plan.merchantHandoff ? '✓ Included' : 'Basic product links') },
+    { label: 'Kiosk-ready delivery', tooltip: 'A shared-device delivery profile with reset and secure phone continuation. Launch and Growth can arrange an add-on; Scale includes the profile. Hardware and custom installation are separately scoped.', values: comparisonPlanCodes.map(kioskDeliveryLabel) },
     { label: 'Commerce analytics & attribution', tooltip: 'Free includes basic Store analytics; Launch adds source attribution. Growth and Scale include advanced commerce analytics. Enterprise scope is tailored.', values: comparisonPlanCodes.map(analyticsLabel) },
     { label: 'Custom integration scope', tooltip: 'Enterprise can scope specific integration work with VisuTry. This does not imply a generally available public API, webhook, CRM, or booking-provider product.', values: comparisonPlanCodes.map((code) => code === 'ENTERPRISE' ? 'Scoped' : '—') },
     { label: 'Support / SLA', values: comparisonPlanCodes.map((code) => code === 'ENTERPRISE' ? 'Custom SLA' : code === 'GROWTH' || code === 'SCALE' ? 'Priority' : code === 'LAUNCH' ? 'Standard' : 'Self-service') },
