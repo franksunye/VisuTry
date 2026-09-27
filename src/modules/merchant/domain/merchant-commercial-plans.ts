@@ -20,6 +20,8 @@ export const MERCHANT_PLAN_CODES = [
 
 export type MerchantPlanCode = (typeof MERCHANT_PLAN_CODES)[number]
 export type AnalyticsEntitlement = 'none' | 'basic' | 'advanced'
+export type MerchantHandoffEntitlement = 'basic_product_links' | 'full'
+export type KioskDeliveryEntitlement = 'none' | 'add_on' | 'included' | 'custom'
 export type KioskDeliveryEntitlement = 'none' | 'add_on' | 'included' | 'custom'
 
 export type MerchantPlanDefinition = {
