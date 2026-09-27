@@ -49,8 +49,9 @@ describe('BusinessPricingPage v2 product-market narrative', () => {
     render(<BusinessPricingPage locale="en" />)
     const table = screen.getByRole('table', { name: 'Merchant plan comparison' })
     const values = (label: string) => {
-      const rowHeader = within(table).getByText(label, { selector: 'th' })
-      return rowHeader.closest('tr')!.querySelectorAll('td')
+      const row = within(table).getAllByRole('row').find((candidate) => candidate.textContent?.startsWith(label))
+      if (!row) throw new Error(`Missing comparison row: ${label}`)
+      return row.querySelectorAll('td')
     }
 
     expect(Array.from(values('AI Commerce Sessions'), (cell) => cell.textContent)).toEqual(['Not applicable', '1,000', '5,000', '10,000', 'Custom'])
