@@ -110,9 +110,10 @@ function FreeEntry({ locale }: { locale: string }) {
 }
 
 function analyticsLabel(planCode: ComparisonPlanCode) {
-  if (planCode === 'FREE') return 'Basic'
   if (planCode === 'ENTERPRISE') return 'Custom'
-  return 'Advanced'
+  const plan = getMerchantPlanDefinition(planCode)
+  if (plan.analytics === 'advanced') return 'Advanced'
+  return plan.sourceAttribution ? 'Standard' : 'Basic'
 }
 
 function comparisonRows() {
@@ -123,12 +124,15 @@ function comparisonRows() {
     { label: 'Catalog items', values: plans.map((plan) => formatNumber(plan.catalogItems)) },
     { label: 'Active Campaigns', tooltip: 'Only published and active Campaigns count toward your plan limit. Draft Campaigns do not.', values: plans.map((plan) => formatNumber(plan.activeCampaigns)) },
     { label: 'AI Commerce Sessions', tooltip: 'One shopper using Recommendation, Try-On, or Compare within the same session counts as 1 AI Commerce Session. Plain browsing does not count.', values: plans.map((plan) => plan.code === 'FREE' ? 'Not applicable' : formatNumber(plan.aiCommerceSessions)) },
-    { label: 'Basic Recommendation', values: plans.map((plan) => plan.recommendation ? '✓ Included' : '—') },
+    { label: 'AI Recommendation', values: plans.map((plan) => plan.recommendation ? plan.code === 'FREE' ? 'Basic' : '✓ Included' : '—') },
     { label: 'Generative Try-On', tooltip: 'If included AI Commerce Session capacity is exhausted, your Store stays live while generative Try-On pauses until capacity is restored.', values: plans.map((plan) => plan.generativeTryOn ? '✓ Included' : '—') },
-    { label: 'Compare', values: plans.map((plan) => plan.compare ? '✓ Included' : '—') },
-    { label: 'Analytics', values: comparisonPlanCodes.map(analyticsLabel) },
+    { label: 'Frame Compare', values: plans.map((plan) => plan.compare ? '✓ Included' : '—') },
+    { label: 'Decision Result & secure continuation', tooltip: 'Paid plans can carry a shopper’s decision result to their phone through a secure continuation link or QR code.', values: comparisonPlanCodes.map((code) => code === 'FREE' ? '—' : '✓ Included') },
+    { label: 'Merchant Handoff', tooltip: 'Free Stores can link to products. Paid plans can use configured handoff actions such as store visit, appointment, inquiry, or supported merchant destinations.', values: comparisonPlanCodes.map((code) => code === 'FREE' ? 'Basic product links' : '✓ Included') },
+    { label: 'Kiosk-ready delivery', tooltip: 'A shared-device delivery profile with reset and secure phone continuation. Launch and Growth can arrange an add-on; Scale includes the profile. Hardware and custom installation are separately scoped.', values: comparisonPlanCodes.map((code) => code === 'FREE' ? '—' : code === 'LAUNCH' || code === 'GROWTH' ? 'Add-on' : code === 'SCALE' ? 'Included' : 'Custom') },
+    { label: 'Commerce analytics & attribution', tooltip: 'Free includes basic Store analytics; Launch adds source attribution. Growth and Scale include advanced commerce analytics. Enterprise scope is tailored.', values: comparisonPlanCodes.map(analyticsLabel) },
     { label: 'Custom integration scope', tooltip: 'Enterprise can scope specific integration work with VisuTry. This does not imply a generally available public API, webhook, CRM, or booking-provider product.', values: comparisonPlanCodes.map((code) => code === 'ENTERPRISE' ? 'Scoped' : '—') },
-    { label: 'Support / SLA', values: comparisonPlanCodes.map((code) => code === 'ENTERPRISE' ? 'Custom' : code === 'GROWTH' || code === 'SCALE' ? 'Priority' : 'Standard') },
+    { label: 'Support / SLA', values: comparisonPlanCodes.map((code) => code === 'ENTERPRISE' ? 'Custom SLA' : code === 'GROWTH' || code === 'SCALE' ? 'Priority' : code === 'LAUNCH' ? 'Standard' : 'Self-service') },
   ]
 }
 
@@ -171,9 +175,9 @@ function MerchantExperienceCapabilities() {
   return (
     <section className="border-y border-slate-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Built into the Merchant Experience</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Merchant Experience capabilities</p>
         <h2 className="mt-3 max-w-4xl text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">The product is more than Recommendation, Try-On, and Compare.</h2>
-        <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">VisuTry now carries the shopper from discovery through a guided decision, a reusable result, and a configured merchant handoff. These capabilities do not create new pricing meters.</p>
+        <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">VisuTry carries the shopper from discovery through a guided decision, a reusable result, and a configured merchant handoff. Plan availability is shown in the comparison below; these capabilities do not create new usage meters.</p>
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {capabilities.map(([title, description]) => (
             <article key={title} className="border-t border-slate-300 pt-5">
@@ -182,7 +186,7 @@ function MerchantExperienceCapabilities() {
             </article>
           ))}
         </div>
-        <p className="mt-8 max-w-4xl text-sm leading-6 text-slate-500">Plan entitlements still govern metered AI capabilities such as Generative Try-On and the included AI Commerce Session capacity. Kiosk delivery is a delivery profile, not a separate Store or Campaign product.</p>
+        <p className="mt-8 max-w-4xl text-sm leading-6 text-slate-500">Plan entitlements still govern metered AI capabilities such as Generative Try-On and the included AI Commerce Session capacity. Kiosk delivery is a delivery profile, available by plan or add-on; hardware and custom setup are scoped separately.</p>
       </div>
     </section>
   )
@@ -318,7 +322,7 @@ export function BusinessPricingPage({ locale }: { locale: string }) {
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Compare plans</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">The same commercial model, side by side.</h2>
-          <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">Use the comparison for detailed capabilities. Growth receives a subtle visual emphasis; the underlying canonical pricing and entitlement model is unchanged.</p>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">Compare included capacity, the shopper decision experience, and operating capabilities. The Founding Pilot is a separate 30-day offer.</p>
           <ComparisonTable />
         </div>
       </section>
