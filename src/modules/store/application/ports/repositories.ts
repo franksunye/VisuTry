@@ -59,6 +59,7 @@ export type MerchantRecord = {
   entitlementEffectiveFrom: Date | null
   billingPeriodEnd: Date | null
   commercialExceptionCode: string | null
+  commercialAddOns?: string[] | null
   commercialStatus?: string | null
   createdAt: Date
   updatedAt: Date
