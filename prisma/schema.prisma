@@ -682,6 +682,8 @@ model Merchant {
   billingPeriodEnd           DateTime?
   /// Audited commercial exception (e.g. FOUNDING_LAUNCH_BONUS).
   commercialExceptionCode    String?
+  /// Explicit assisted commercial add-ons, e.g. KIOSK. Separate from one-off exception codes.
+  commercialAddOns           String[] @default([])
   /// Provider-independent commercial lifecycle state. Stripe/G4-B may update this later.
   commercialStatus           String?
 
