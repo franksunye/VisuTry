@@ -265,6 +265,36 @@ describe('recommendMerchantFrames', () => {
     expect(again.frames.map((f) => f.frameId)).toEqual(result.frames.map((f) => f.id))
   })
 
+  it('keeps Free Recommendation useful without issuing a Decision Result share', async () => {
+    const { merchants, frameRepo, sessions, events } = repos()
+    const baseMerchant = await merchants.findBySlug('luna-optical')
+    merchants.findBySlug = jest.fn().mockResolvedValue({
+      ...baseMerchant,
+      planCode: 'FREE',
+      commercialStatus: 'FREE',
+    })
+    const decisionResults = {
+      upsertRecommendation: jest.fn(),
+      updateSessionSnapshot: jest.fn(),
+    }
+
+    const result = await recommendMerchantFrames({
+      merchants,
+      frames: frameRepo,
+      sessions,
+      events,
+      decisionResults,
+      slug: 'luna-optical',
+      merchantSessionId: 's1',
+      capabilityToken: capability.token,
+      signals: { measuredShape: 'square' },
+    })
+
+    expect(result.frames.length).toBeGreaterThan(0)
+    expect(result.decisionResult).toBeUndefined()
+    expect(decisionResults.upsertRecommendation).not.toHaveBeenCalled()
+  })
+
   it('rejects recommend without capability', async () => {
     const { merchants, frameRepo, sessions, events } = repos()
     await expect(
