@@ -40,10 +40,10 @@ describe('G4-A canonical Merchant commercial contract', () => {
   it('enforces Decision Result, Merchant Handoff, and Kiosk packaging from the canonical plan contract', () => {
     const free = resolveMerchantCommercialCapability({ planCode: 'FREE', commercialStatus: 'FREE' }, {}, now)
     const launch = resolveMerchantCommercialCapability({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' }, {}, now)
-    const launchWithKiosk = resolveMerchantCommercialCapability({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', commercialExceptionCode: 'KIOSK_ADD_ON' }, {}, now)
+    const launchWithKiosk = resolveMerchantCommercialCapability({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', commercialAddOns: ['KIOSK'] }, {}, now)
     const scale = resolveMerchantCommercialCapability({ planCode: 'SCALE', commercialStatus: 'PAID_ACTIVE' }, {}, now)
     const enterprise = resolveMerchantCommercialCapability({ planCode: 'ENTERPRISE', commercialStatus: 'PAID_ACTIVE' }, {}, now)
-    const enterpriseWithKiosk = resolveMerchantCommercialCapability({ planCode: 'ENTERPRISE', commercialStatus: 'PAID_ACTIVE', commercialExceptionCode: 'KIOSK_ADD_ON' }, {}, now)
+    const enterpriseWithKiosk = resolveMerchantCommercialCapability({ planCode: 'ENTERPRISE', commercialStatus: 'PAID_ACTIVE', commercialAddOns: ['KIOSK'] }, {}, now)
 
     expect(free.decisions.DECISION_RESULT.allowed).toBe(false)
     expect(free.decisions.MERCHANT_HANDOFF.allowed).toBe(false)
