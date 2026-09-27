@@ -19,6 +19,7 @@ export const MERCHANT_PLAN_CODES = [
 
 export type MerchantPlanCode = (typeof MERCHANT_PLAN_CODES)[number]
 export type AnalyticsEntitlement = 'none' | 'basic' | 'advanced'
+export type KioskDeliveryEntitlement = 'none' | 'add_on' | 'included' | 'custom'
 
 export type MerchantPlanDefinition = {
   code: MerchantPlanCode
@@ -36,6 +37,9 @@ export type MerchantPlanDefinition = {
   compare: boolean
   analytics: AnalyticsEntitlement
   sourceAttribution: boolean
+  decisionResult: boolean
+  merchantHandoff: boolean
+  kioskDelivery: KioskDeliveryEntitlement
   normalStoreTraffic: 'unlimited'
   pilotCatalogRange?: { min: number; max: number }
   setupLabel?: string
@@ -48,37 +52,43 @@ export const MERCHANT_COMMERCIAL_PLANS: Readonly<Record<MerchantPlanCode, Mercha
     code: 'FREE', name: 'Free', priceCents: 0, priceLabel: '$0', billing: 'free',
     stores: 1, catalogItems: 50, activeCampaigns: 0, aiCommerceSessions: null,
     standardTryOnGenerations: null, generativeTryOn: false, recommendation: true,
-    compare: false, analytics: 'basic', sourceAttribution: false, normalStoreTraffic: 'unlimited',
+    compare: false, analytics: 'basic', sourceAttribution: false,
+    decisionResult: false, merchantHandoff: false, kioskDelivery: 'none', normalStoreTraffic: 'unlimited',
   }),
   LAUNCH: plan({
     code: 'LAUNCH', name: 'Launch', priceCents: 19900, priceLabel: '$199/month', billing: 'monthly',
     stores: 1, catalogItems: 100, activeCampaigns: 1, aiCommerceSessions: 1000,
     standardTryOnGenerations: null, generativeTryOn: true, recommendation: true,
-    compare: true, analytics: 'basic', sourceAttribution: true, normalStoreTraffic: 'unlimited',
+    compare: true, analytics: 'basic', sourceAttribution: true,
+    decisionResult: true, merchantHandoff: true, kioskDelivery: 'add_on', normalStoreTraffic: 'unlimited',
   }),
   GROWTH: plan({
     code: 'GROWTH', name: 'Growth', priceCents: 49900, priceLabel: '$499/month', billing: 'monthly',
     stores: 1, catalogItems: 500, activeCampaigns: 3, aiCommerceSessions: 5000,
     standardTryOnGenerations: null, generativeTryOn: true, recommendation: true,
-    compare: true, analytics: 'advanced', sourceAttribution: true, normalStoreTraffic: 'unlimited',
+    compare: true, analytics: 'advanced', sourceAttribution: true,
+    decisionResult: true, merchantHandoff: true, kioskDelivery: 'add_on', normalStoreTraffic: 'unlimited',
   }),
   SCALE: plan({
     code: 'SCALE', name: 'Scale', priceCents: 99900, priceLabel: '$999/month', billing: 'monthly',
     stores: 1, catalogItems: 2000, activeCampaigns: 10, aiCommerceSessions: 10000,
     standardTryOnGenerations: null, generativeTryOn: true, recommendation: true,
-    compare: true, analytics: 'advanced', sourceAttribution: true, normalStoreTraffic: 'unlimited',
+    compare: true, analytics: 'advanced', sourceAttribution: true,
+    decisionResult: true, merchantHandoff: true, kioskDelivery: 'included', normalStoreTraffic: 'unlimited',
   }),
   ENTERPRISE: plan({
     code: 'ENTERPRISE', name: 'Enterprise', priceCents: null, priceLabel: '$2,500+ / month', billing: 'custom',
     stores: 1, catalogItems: null, activeCampaigns: null, aiCommerceSessions: null,
     standardTryOnGenerations: null, generativeTryOn: true, recommendation: true,
-    compare: true, analytics: 'advanced', sourceAttribution: true, normalStoreTraffic: 'unlimited',
+    compare: true, analytics: 'advanced', sourceAttribution: true,
+    decisionResult: true, merchantHandoff: true, kioskDelivery: 'custom', normalStoreTraffic: 'unlimited',
   }),
   FOUNDING_PILOT: plan({
     code: 'FOUNDING_PILOT', name: 'Founding Pilot', priceCents: 14900, priceLabel: '$149 / 30 days', billing: 'fixed_30_days',
     stores: 1, catalogItems: 50, activeCampaigns: 1, aiCommerceSessions: 1500,
     standardTryOnGenerations: 3500, generativeTryOn: true, recommendation: true,
-    compare: true, analytics: 'basic', sourceAttribution: true, normalStoreTraffic: 'unlimited',
+    compare: true, analytics: 'basic', sourceAttribution: true,
+    decisionResult: true, merchantHandoff: true, kioskDelivery: 'included', normalStoreTraffic: 'unlimited',
     pilotCatalogRange: { min: 8, max: 50 }, setupLabel: 'Assisted setup + weekly review',
   }),
 } as const
