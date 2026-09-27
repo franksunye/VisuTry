@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BusinessPricingPage } from '@/components/business/BusinessPricingPage'
 
@@ -35,13 +35,28 @@ describe('BusinessPricingPage v1.1 information architecture', () => {
 
     expect(screen.getByText('Guided Decision Journey')).toBeVisible()
     expect(screen.getByText('Decision Result & continuation')).toBeVisible()
-    expect(screen.getByText('Merchant Handoff')).toBeVisible()
-    expect(screen.getByText('Kiosk-ready delivery')).toBeVisible()
-    expect(screen.getByText(/do not create new pricing meters/i)).toBeVisible()
+    expect(screen.getAllByText('Merchant Handoff')).not.toHaveLength(0)
+    expect(screen.getAllByText('Kiosk-ready delivery')).not.toHaveLength(0)
+    expect(screen.getByText(/do not create new usage meters/i)).toBeVisible()
     expect(screen.getByText('Custom integration scope')).toBeVisible()
     expect(screen.getByText('Scoped')).toBeVisible()
     expect(screen.queryByText('API / Integrations')).not.toBeInTheDocument()
     expect(screen.queryByText('API / integrations')).not.toBeInTheDocument()
+  })
+
+  it('compares the agreed capability packaging without changing capacity or presenting scoped integrations as included', () => {
+    render(<BusinessPricingPage locale="en" />)
+    const table = screen.getByRole('table', { name: 'Merchant plan comparison' })
+    const values = (label: string) => within(table).getByRole('row', { name: new RegExp(`^${label}`) })
+      .querySelectorAll('td')
+
+    expect(Array.from(values('AI Commerce Sessions'), (cell) => cell.textContent)).toEqual(['Not applicable', '1,000', '5,000', '10,000', 'Custom'])
+    expect(Array.from(values('Decision Result & secure continuation'), (cell) => cell.textContent)).toEqual(['—', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
+    expect(Array.from(values('Merchant Handoff'), (cell) => cell.textContent)).toEqual(['Basic product links', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
+    expect(Array.from(values('Kiosk-ready delivery'), (cell) => cell.textContent)).toEqual(['—', 'Add-on', 'Add-on', 'Included', 'Custom'])
+    expect(Array.from(values('Commerce analytics & attribution'), (cell) => cell.textContent)).toEqual(['Basic', 'Standard', 'Advanced', 'Advanced', 'Custom'])
+    expect(Array.from(values('Custom integration scope'), (cell) => cell.textContent)).toEqual(['—', '—', '—', '—', 'Scoped'])
+    expect(Array.from(values('Support / SLA'), (cell) => cell.textContent)).toEqual(['Self-service', 'Standard', 'Priority', 'Priority', 'Custom SLA'])
   })
 
   it('keeps canonical prices, promises, routes, and accessible explanatory tooltips', async () => {
@@ -60,7 +75,7 @@ describe('BusinessPricingPage v1.1 information architecture', () => {
     expect(screen.getByRole('link', { name: 'Start 30-Day Pilot' })).toHaveAttribute('href', '/en/merchant?commercialIntent=FOUNDING_PILOT')
     expect(screen.getByRole('link', { name: 'Contact Sales' })).toHaveAttribute('href', '/en/business/pilot?plan=enterprise')
 
-    expect(screen.getAllByRole('button', { name: /explanation$/i })).toHaveLength(5)
+    expect(screen.getAllByRole('button', { name: /explanation$/i })).toHaveLength(9)
     await user.click(screen.getByRole('button', { name: 'AI Commerce Sessions explanation' }))
     expect(screen.getByRole('tooltip')).toHaveTextContent(/1 AI Commerce Session/i)
     await user.keyboard('{Escape}')
