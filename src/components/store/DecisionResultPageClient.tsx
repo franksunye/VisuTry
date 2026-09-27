@@ -1,11 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowUpRight, CheckCircle2, Copy, Glasses, Heart, ShieldCheck } from 'lucide-react'
 import { DecisionResultQr } from './DecisionResultQr'
 import type { DecisionResultView } from '@/modules/store/application/decision-result-service'
+import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
 
 function formatExpiry(value: string): string {
   return new Date(value).toISOString().replace('.000Z', ' UTC').replace('T', ' ')
@@ -16,6 +16,7 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
   const [resetting, setResetting] = useState(false)
   const [resetError, setResetError] = useState<string | null>(null)
   const resetInFlight = useRef(false)
+  const resultExperience = result.experience
   const resultPath = `/${locale}/result/${encodeURIComponent(token)}`
   const absoluteResultUrl = useMemo(() => {
     if (typeof window === 'undefined') return resultPath
@@ -136,20 +137,23 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
               <button type="button" onClick={() => void copyResultLink()} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700"><Copy className="h-4 w-4" /> {copied ? 'Copied' : 'Copy result link'}</button>
             </section>
 
-            {result.experience?.primaryCta || result.experience?.secondaryCta ? (
+            {resultExperience?.primaryCta || resultExperience?.secondaryCta ? (
               <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Next step</p>
                 <div className="mt-4 space-y-3">
-                  {[result.experience.primaryCta, result.experience.secondaryCta].filter(Boolean).map((cta, index) => cta && (
-                    cta.url.startsWith('/') ? (
-                      <Link key={`${cta.url}-${index}`} href={cta.url} className="flex items-center justify-between rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">
-                        {cta.label}<ArrowUpRight className="h-4 w-4" />
-                      </Link>
-                    ) : (
-                      <a key={`${cta.url}-${index}`} href={cta.url} target="_blank" rel="noreferrer" className="flex items-center justify-between rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">
-                        {cta.label}<ArrowUpRight className="h-4 w-4" />
-                      </a>
-                    )
+                  {[resultExperience.primaryCta, resultExperience.secondaryCta].filter((cta) => cta !== null).map((cta, index) => cta && (
+                    <MerchantHandoffLink
+                      key={`${cta.action}-${index}`}
+                      handoff={cta}
+                      merchantSlug={result.merchant.slug}
+                      experienceSlug={resultExperience.slug}
+                      experienceType={resultExperience.type}
+                      surface="RESULT"
+                      locale={locale}
+                      className="flex items-center justify-between rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white"
+                    >
+                      {cta.label}<ArrowUpRight className="h-4 w-4" />
+                    </MerchantHandoffLink>
                   ))}
                 </div>
               </section>

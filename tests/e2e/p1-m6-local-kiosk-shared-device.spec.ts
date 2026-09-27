@@ -13,7 +13,7 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
   test('runs the kiosk golden path, preserves the phone Result, and resets A→B on manual and idle boundaries', async ({ page, request, browser }) => {
     // The final idle-boundary assertion exercises the real configured timeout
     // (120s), in addition to the complete recommendation/Try-On/Result path.
-    test.setTimeout(360_000)
+    test.setTimeout(480_000)
     test.skip(!isLocalKioskRun, 'Run against the guarded Local PostgreSQL environment with the P1-M6 fixture flag.')
 
     const evidenceDir = '/tmp/visutry-p1-m6-local-kiosk'
@@ -109,6 +109,9 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
         primaryCtaType: 'LINK',
         primaryCtaLabel: 'Continue to merchant',
         primaryCtaUrl: 'https://merchant.example.test/contact',
+        secondaryCtaType: 'VISIT_STORE',
+        secondaryCtaLabel: 'Return to this store',
+        secondaryCtaUrl: '/en/store/local-qa-pilot',
       },
     })
     expect(enableResponse.status()).toBe(200)
@@ -132,6 +135,33 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       const webContext = await browser.newContext({ viewport: { width: 390, height: 844 } })
       const webPage = await webContext.newPage()
       await webPage.goto('/en/store/local-qa-pilot', { waitUntil: 'networkidle' })
+      const externalHandoff = webPage.getByRole('link', { name: 'Continue to merchant', exact: true })
+      const internalHandoff = webPage.getByRole('link', { name: 'Return to this store', exact: true })
+      await expect(externalHandoff).toHaveAttribute('href', 'https://merchant.example.test/contact')
+      await expect(internalHandoff).toHaveAttribute('href', '/en/store/local-qa-pilot')
+      const internalInvocation = webPage.waitForResponse((response) => response.url().endsWith('/api/store/handoffs/invoke') && response.request().method() === 'POST', { timeout: 15_000 })
+      await internalHandoff.click()
+      expect((await internalInvocation).status()).toBe(200)
+      // The internal anchor performs a document navigation. Wait for the
+      // destination page to finish hydrating before asserting the external
+      // CTA's client-side telemetry handler.
+      await webPage.waitForLoadState('networkidle')
+      await webPage.route('https://merchant.example.test/**', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: 'Local mocked merchant destination' }))
+      const externalInvocation = webPage.waitForRequest((requestEvent) => requestEvent.url().endsWith('/api/store/handoffs/invoke') && requestEvent.method() === 'POST', { timeout: 15_000 })
+      webPage.on('requestfailed', (failedRequest) => {
+        if (failedRequest.url().endsWith('/api/store/handoffs/invoke')) console.error('[p1-m6] handoff invoke failed', failedRequest.failure())
+      })
+      const externalPopup = webPage.waitForEvent('popup', { timeout: 15_000 })
+      await externalHandoff.click()
+      const popup = await externalPopup
+      const invocationRequest = await externalInvocation
+      const invocationResponse = await invocationRequest.response()
+      if (!invocationResponse) throw new Error('Discovery handoff invocation did not receive an HTTP response')
+      expect(invocationResponse.status()).toBe(200)
+      const invocationBody = invocationResponse.request().postDataJSON() as Record<string, unknown>
+      expect(invocationBody).toMatchObject({ action: 'CUSTOM_LINK', surface: 'DISCOVERY' })
+      expect(JSON.stringify(invocationBody)).not.toContain('merchant.example.test')
+      await popup.close()
       await webPage.getByRole('button', { name: 'Try on your photo' }).click()
       await expect(webPage.getByRole('dialog', { name: /try-on workspace/i })).toBeVisible()
       await expect(webPage.getByRole('dialog').getByRole('button', { name: /I understand.*continue/i })).toBeVisible()
@@ -191,7 +221,18 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       await expect(page.getByRole('heading', { name: /Your .* result/i })).toBeVisible()
       await expect(page.getByRole('heading', { name: 'Your curated shortlist' })).toBeVisible()
       await expect(page.getByRole('heading', { name: 'Your completed looks' })).toBeVisible()
-      await expect(page.getByRole('link', { name: 'Continue to merchant' })).toBeVisible()
+      const resultHandoff = page.getByRole('link', { name: 'Continue to merchant' })
+      await expect(resultHandoff).toBeVisible()
+      await expect(resultHandoff).toHaveAttribute('data-merchant-handoff-action', 'CUSTOM_LINK')
+      await page.context().route('https://merchant.example.test/**', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: 'Local mocked merchant destination' }))
+      const resultInvocation = page.waitForResponse((response) => response.url().endsWith('/api/store/handoffs/invoke') && response.request().method() === 'POST', { timeout: 15_000 })
+      const resultPopup = page.waitForEvent('popup', { timeout: 15_000 })
+      await resultHandoff.click()
+      expect((await resultInvocation).status()).toBe(200)
+      const resultPopupPage = await resultPopup
+      await resultPopupPage.waitForURL('https://merchant.example.test/contact', { timeout: 15_000 })
+      expect(resultPopupPage.url()).toContain('merchant.example.test/contact')
+      await resultPopupPage.close()
       const resultUrl = new URL(page.url())
       const token = decodeURIComponent(resultUrl.pathname.split('/').at(-1) || '')
       expect(resultUrl.searchParams.get('deliveryProfile')).toBe('kiosk')
@@ -278,7 +319,15 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
         mimeType: 'image/jpeg',
         buffer: readFileSync('public/home/Ethan-try-on-glasses-screen.jpg'),
       })
+      // The supported minimum idle timeout is shorter than some Local model
+      // responses. Keep this shopper active while the recommendation is in
+      // flight, then stop activity so the separate idle-reset assertion below
+      // exercises a genuine inactivity window.
+      const activityPulse = await page.evaluate(() => window.setInterval(() => {
+        window.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+      }, 1_000))
       await expect(page.getByRole('heading', { name: 'Recommended for you' })).toBeVisible({ timeout: 45_000 })
+      await page.evaluate((timer) => window.clearInterval(timer), activityPulse)
       await expect(page.locator('[data-testid^="store-tryon-result-"]')).toHaveCount(0)
       await expect(page.getByRole('heading', { name: 'Your completed looks' })).toHaveCount(0)
       await expect(page.getByText(/For privacy, this kiosk reset after inactivity/i)).toHaveCount(0)
@@ -299,6 +348,9 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
           primaryCtaType: originalExperience.primaryCtaType ?? null,
           primaryCtaLabel: originalExperience.primaryCtaLabel ?? null,
           primaryCtaUrl: originalExperience.primaryCtaUrl ?? null,
+          secondaryCtaType: originalExperience.secondaryCtaType ?? null,
+          secondaryCtaLabel: originalExperience.secondaryCtaLabel ?? null,
+          secondaryCtaUrl: originalExperience.secondaryCtaUrl ?? null,
         },
       })
       expect(restoreResponse.status()).toBe(200)

@@ -10,6 +10,7 @@ import {
 } from '@/lib/store-discovery-seo'
 import { buildStoreOutboundUrl, type StoreOutboundLinkType } from '@/lib/store-outbound-links'
 import { MerchantShopperAccountControlSlot } from '@/components/store/MerchantShopperAccountControlSlot'
+import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
 
 function formatPrice(price: number | null, currency: string | null): string | null {
   if (price === null || price === undefined) return null
@@ -152,6 +153,22 @@ export function ExperienceDiscoveryContent({
               <a href="#featured-frames" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800">
                 Explore the collection
               </a>
+              {experience.primaryHandoff || experience.secondaryHandoff ? (
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {[experience.primaryHandoff, experience.secondaryHandoff].filter((handoff) => handoff !== null).map((handoff, index) => handoff ? (
+                    <MerchantHandoffLink
+                      key={`${handoff.action}-${index}`}
+                      handoff={handoff}
+                      merchantSlug={merchant.slug}
+                      experienceSlug={experience.slug}
+                      experienceType={experience.type}
+                      surface="DISCOVERY"
+                      locale={locale}
+                      className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 bg-white/90 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:border-slate-500"
+                    />
+                  ) : null)}
+                </div>
+              ) : null}
               {demoCampaignHref ? (
                 <Link
                   href={demoCampaignHref}

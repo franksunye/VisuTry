@@ -52,6 +52,32 @@ describe('canonical Experience command boundary', () => {
     expect(withPublicDiscoveryInvalidation).not.toHaveBeenCalled()
   })
 
+  it('bounds configured handoff types while preserving known legacy CTA values', async () => {
+    const { commands, repository } = serviceFor()
+    await commands.updateSharedConfiguration({
+      merchantId: 'merchant-a', experienceId: 'experience-1',
+      patch: { primaryCtaType: 'PRODUCT_OR_COLLECTION', secondaryCtaType: 'WHATSAPP' },
+    })
+    expect(repository.update).toHaveBeenCalledWith('merchant-a', 'experience-1', {
+      primaryCtaType: 'PRODUCT', secondaryCtaType: 'WHATSAPP',
+    }, { afterUpdate: undefined, atomicEffects: undefined })
+
+    await commands.updateSharedConfiguration({
+      merchantId: 'merchant-a', experienceId: 'experience-1', patch: { primaryCtaType: 'LINK' },
+    })
+    expect(repository.update).toHaveBeenLastCalledWith('merchant-a', 'experience-1', {
+      primaryCtaType: 'CUSTOM_LINK',
+    }, { afterUpdate: undefined, atomicEffects: undefined })
+
+    jest.clearAllMocks()
+    await expect(commands.updateSharedConfiguration({
+      merchantId: 'merchant-a', experienceId: 'experience-1',
+      patch: { primaryCtaType: 'EXECUTE_SCRIPT' },
+    })).rejects.toThrow('primaryCtaType must use a supported Merchant Handoff action')
+    expect(repository.findTarget).not.toHaveBeenCalled()
+    expect(repository.update).not.toHaveBeenCalled()
+  })
+
   it('keeps Campaign-only policy fields out of shared commands and rejects wrong aggregate types', async () => {
     const { commands, repository } = serviceFor('STORE')
 

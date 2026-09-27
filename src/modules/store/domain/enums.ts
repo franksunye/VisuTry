@@ -66,6 +66,7 @@ export const STORE_EVENT_TYPES = [
   'merchant_favorite_saved',
   'merchant_product_clicked',
   'merchant_inquiry_submitted',
+  'merchant_handoff_invoked',
   'merchant_insights_viewed',
 ] as const
 export type StoreEventType = (typeof STORE_EVENT_TYPES)[number]

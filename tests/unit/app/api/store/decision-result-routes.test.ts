@@ -20,18 +20,19 @@ jest.mock('@/lib/prisma', () => ({
 }))
 
 function shareFor(token: string, overrides: Record<string, unknown> = {}) {
+  const futureExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
   const resultOverrides = overrides.result && typeof overrides.result === 'object'
     ? overrides.result as Record<string, unknown>
     : {}
   return {
     tokenHash: hashSessionCapability(token),
-    expiresAt: (overrides.expiresAt as Date | undefined) ?? new Date('2026-09-27T00:00:00.000Z'),
+    expiresAt: (overrides.expiresAt as Date | undefined) ?? futureExpiry,
     revokedAt: (overrides.revokedAt as Date | null | undefined) ?? null,
     result: {
       id: 'result-1',
       merchantId: 'merchant-1',
       merchantSessionId: 'session-1',
-      expiresAt: new Date('2026-09-27T00:00:00.000Z'),
+      expiresAt: futureExpiry,
       payload: {
         journey: { experienceType: 'STORE', enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION'] },
         faceFit: null,
@@ -64,6 +65,26 @@ describe('Decision Result bearer routes', () => {
     expect(response.status).toBe(200)
     expect(payload.data.merchant.name).toBe('Merchant')
     expect(mockShareFindUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { tokenHash: hashSessionCapability(token) } }))
+  })
+
+  it('renders the same typed Handoff on the canonical Result and ignores unsafe legacy CTA data', async () => {
+    const token = 'decision-result-token'
+    mockShareFindUnique.mockResolvedValue(shareFor(token, {
+      result: {
+        ...shareFor(token).result,
+        experience: {
+          id: 'experience-1', type: 'STORE', slug: 'main-store', name: 'Main Store',
+          primaryCtaType: 'PRODUCT_OR_COLLECTION', primaryCtaLabel: 'Browse frames', primaryCtaUrl: 'https://merchant.example/products',
+          secondaryCtaType: 'UNBOUNDED_SCRIPT', secondaryCtaLabel: 'Unsafe', secondaryCtaUrl: 'javascript:alert(1)',
+          deliveryPolicy: null,
+        },
+      },
+    }))
+
+    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: { token } })
+    const payload = await response.json()
+    expect(payload.data.experience.primaryCta).toEqual({ action: 'PRODUCT', label: 'Browse frames', url: 'https://merchant.example/products' })
+    expect(payload.data.experience.secondaryCta).toBeNull()
   })
 
   it.each([
