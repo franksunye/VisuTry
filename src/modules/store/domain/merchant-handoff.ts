@@ -45,7 +45,7 @@ export function resolveMerchantHandoff(input: {
 }): MerchantHandoff | null {
   const action = input.action !== undefined
     ? normalizeMerchantHandoffAction(input.action)
-    : input.type === null ? 'CUSTOM_LINK' : normalizeMerchantHandoffAction(input.type)
+    : input.type === null || input.type === '' ? 'CUSTOM_LINK' : normalizeMerchantHandoffAction(input.type)
   if (!action || typeof input.label !== 'string' || !input.label.trim() || typeof input.url !== 'string') return null
   const url = input.url.trim()
   if (input.label.trim().length > 240 || /\s|[\u0000-\u001f\u007f]/u.test(url)) return null

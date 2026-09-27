@@ -20,18 +20,19 @@ jest.mock('@/lib/prisma', () => ({
 }))
 
 function shareFor(token: string, overrides: Record<string, unknown> = {}) {
+  const futureExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
   const resultOverrides = overrides.result && typeof overrides.result === 'object'
     ? overrides.result as Record<string, unknown>
     : {}
   return {
     tokenHash: hashSessionCapability(token),
-    expiresAt: (overrides.expiresAt as Date | undefined) ?? new Date('2026-09-27T00:00:00.000Z'),
+    expiresAt: (overrides.expiresAt as Date | undefined) ?? futureExpiry,
     revokedAt: (overrides.revokedAt as Date | null | undefined) ?? null,
     result: {
       id: 'result-1',
       merchantId: 'merchant-1',
       merchantSessionId: 'session-1',
-      expiresAt: new Date('2026-09-27T00:00:00.000Z'),
+      expiresAt: futureExpiry,
       payload: {
         journey: { experienceType: 'STORE', enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION'] },
         faceFit: null,

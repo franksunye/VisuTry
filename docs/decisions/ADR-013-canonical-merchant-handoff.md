@@ -6,9 +6,9 @@
 
 ## Decision
 
-Store and Campaign CTA configuration resolves into one closed `MerchantHandoff` contract: `VISIT_STORE`, `BOOK_APPOINTMENT`, `WHATSAPP`, `EMAIL`, `PRODUCT`, or `CUSTOM_LINK`, each carrying only its action, display label, and safe destination. A historical CTA with `type = null` remains readable as `CUSTOM_LINK` only when its label is nonblank and its destination is valid and safe. `PRODUCT_OR_COLLECTION` and `LINK` remain readable as `PRODUCT` and `CUSTOM_LINK`; unknown, malformed, and unsafe persisted CTA values are omitted from public views.
+Store and Campaign CTA configuration resolves into one closed `MerchantHandoff` contract: `VISIT_STORE`, `BOOK_APPOINTMENT`, `WHATSAPP`, `EMAIL`, `PRODUCT`, or `CUSTOM_LINK`, each carrying only its action, display label, and safe destination. A historical CTA with `type = null` or `type = ''` remains readable as `CUSTOM_LINK` only when its label is nonblank and its destination is valid and safe. `PRODUCT_OR_COLLECTION` and `LINK` remain readable as `PRODUCT` and `CUSTOM_LINK`; unknown, malformed, and unsafe persisted CTA values are omitted from public views.
 
-Legacy callers may still submit `PRODUCT_OR_COLLECTION` and `LINK` as compatibility inputs, but every new persistence path normalizes them before writing (`PRODUCT_OR_COLLECTION` → `PRODUCT`; `LINK` → `CUSTOM_LINK`). Unsupported values are rejected. Campaign draft idempotency compares resolved Handoff semantics rather than raw stored action strings, so a retry matches equivalent legacy aliases and valid untyped custom links. Prisma and Cloudflare use the same compatibility rule.
+Legacy callers may still submit `PRODUCT_OR_COLLECTION` and `LINK` as compatibility inputs, but every new persistence path normalizes them before writing (`PRODUCT_OR_COLLECTION` → `PRODUCT`; `LINK` → `CUSTOM_LINK`). Campaign Draft accepts `type = ''` as the same legacy no-type input as `null`, storing it as `null` rather than persisting an empty action string. Unsupported values are rejected. Campaign draft idempotency compares resolved Handoff semantics rather than raw stored action strings, so a retry matches equivalent legacy aliases and valid untyped custom links with either `null` or an empty-string type. Prisma and Cloudflare use the same compatibility rule.
 
 Provider URL construction and launch behavior stay in presentation/adapters. The domain contract does not parse WhatsApp, email, booking, or other provider syntax. Store/Campaign discovery and canonical DecisionResult render the same resolved contract.
 
@@ -22,7 +22,7 @@ No provider delivery, webhook, CRM, appointment integration, arbitrary code, or 
 
 ## Consequences
 
-- Public Store/Campaign discovery and Decision Result preserve valid historical no-type CTAs without exposing unsupported or unsafe actions.
+- Public Store/Campaign discovery and Decision Result preserve valid historical no-type CTAs (`null` or empty string) without exposing unsupported or unsafe actions.
 - New database writes converge on canonical action values while older callers and persisted rows remain compatible.
 - Campaign draft retries remain idempotent across canonical and equivalent legacy Handoff representations on Prisma and Cloudflare.
 - Admin configuration exposes only the bounded canonical action selector; merchants do not need to choose legacy aliases.
@@ -31,4 +31,4 @@ No provider delivery, webhook, CRM, appointment integration, arbitrary code, or 
 
 | Date | Change |
 | --- | --- |
-| 2026-09-27 | Accepted the canonical Handoff contract and documented legacy no-type reads, alias normalization, and idempotency compatibility after implementation and validation. |
+| 2026-09-27 | Accepted the canonical Handoff contract and documented null/empty-string legacy no-type reads, alias normalization, and idempotency compatibility after implementation and validation. |

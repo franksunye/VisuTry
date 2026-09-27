@@ -68,6 +68,7 @@ describe('Campaign application service', () => {
     { description: 'LINK', existingType: 'LINK', retryType: 'LINK', label: 'Visit shop' },
     { description: 'PRODUCT_OR_COLLECTION', existingType: 'PRODUCT_OR_COLLECTION', retryType: 'PRODUCT_OR_COLLECTION', label: 'Browse products' },
     { description: 'a legacy untyped custom link', existingType: null, retryType: 'CUSTOM_LINK', label: 'Visit shop' },
+    { description: 'an empty-string legacy custom link', existingType: '', retryType: '', label: 'Visit shop' },
   ])('treats an existing $description CTA as the same idempotent Prisma draft', async ({ existingType, retryType, label }) => {
     const secondaryType = existingType === 'LINK' ? 'PRODUCT_OR_COLLECTION' : 'LINK'
     const existing = {

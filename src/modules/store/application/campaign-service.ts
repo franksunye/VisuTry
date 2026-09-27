@@ -238,10 +238,10 @@ export async function createCampaignDraft(input: {
   const presentationMode = input.presentationMode ?? 'EDITORIAL_FIRST'
   validatePolicy({ objective, gate, presentationMode })
   for (const [field, value] of [['primaryCtaType', input.primaryCtaType], ['secondaryCtaType', input.secondaryCtaType]] as const) {
-    if (value != null && !isSupportedMerchantHandoffType(value)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must use a supported Merchant Handoff action.`)
+    if (value != null && value !== '' && !isSupportedMerchantHandoffType(value)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must use a supported Merchant Handoff action.`)
   }
-  const primaryCtaType = input.primaryCtaType == null ? null : normalizeMerchantHandoffAction(input.primaryCtaType)
-  const secondaryCtaType = input.secondaryCtaType == null ? null : normalizeMerchantHandoffAction(input.secondaryCtaType)
+  const primaryCtaType = input.primaryCtaType == null || input.primaryCtaType === '' ? null : normalizeMerchantHandoffAction(input.primaryCtaType)
+  const secondaryCtaType = input.secondaryCtaType == null || input.secondaryCtaType === '' ? null : normalizeMerchantHandoffAction(input.secondaryCtaType)
   const startAt = parseDate(input.startAt, 'startAt') ?? null
   const endAt = parseDate(input.endAt, 'endAt') ?? null
   validateDateRange(startAt, endAt)

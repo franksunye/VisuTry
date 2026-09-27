@@ -23,7 +23,11 @@ describe('Merchant Handoff contract', () => {
     expect(resolveMerchantHandoff({ type: null, label: ' Visit shop ', url: 'https://shop.example/next' })).toEqual({
       action: 'CUSTOM_LINK', label: 'Visit shop', url: 'https://shop.example/next',
     })
+    expect(resolveMerchantHandoff({ type: '', label: ' Visit shop ', url: 'https://shop.example/next' })).toEqual({
+      action: 'CUSTOM_LINK', label: 'Visit shop', url: 'https://shop.example/next',
+    })
     expect(resolveMerchantHandoff({ type: null, label: 'Visit shop', url: 'javascript:alert(1)' })).toBeNull()
+    expect(resolveMerchantHandoff({ type: '', label: 'Visit shop', url: 'javascript:alert(1)' })).toBeNull()
     expect(resolveMerchantHandoff({ label: 'Visit shop', url: 'https://shop.example/next' })).toBeNull()
   })
 
