@@ -171,7 +171,7 @@ function ComparisonTable() {
               <Fragment key={row.label}>
                 {showGroup ? (
                   <tr className="border-b border-slate-200 bg-slate-50/80">
-                    <th scope="rowgroup" colSpan={comparisonPlanCodes.length + 1} className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">{row.group}</th>
+                    <th colSpan={comparisonPlanCodes.length + 1} className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">{row.group}</th>
                   </tr>
                 ) : null}
                 <tr className="border-b border-slate-100 last:border-0">
@@ -202,7 +202,7 @@ function MerchantExperienceCapabilities() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">From discovery to action</p>
         <h2 className="mt-3 max-w-4xl text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">One journey from discovery to a confident decision — and merchant action.</h2>
-        <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">VisuTry helps shoppers discover the right frames, make a confident decision, keep that decision with them, and continue directly into the merchant’s next action.</p>
+        <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">VisuTry helps shoppers discover the right frames, make a confident decision, keep that decision with them, and continue directly to the merchant’s next action.</p>
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {capabilities.map(([title, description]) => (
             <article key={title} className="border-t border-slate-300 pt-5">
@@ -239,7 +239,7 @@ function PilotSection({ locale }: { locale: string }) {
             <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Catalog scope</p><p className="mt-2 text-lg font-semibold text-slate-950">{FOUNDING_PILOT_OFFER.catalogFrames.min}–{FOUNDING_PILOT_OFFER.catalogFrames.max} frames</p></div>
             <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Working model</p><p className="mt-2 text-lg font-semibold text-slate-950">{FOUNDING_PILOT_OFFER.setup}</p></div>
           </div>
-          <div className="mt-7 border-t border-slate-200 pt-6 text-sm leading-6 text-slate-600">The Pilot includes a guided decision experience with Recommendation, Standard Try-On, Compare, Decision Result / continuation, and configured Merchant Handoff. Kiosk-ready delivery can be configured when the Pilot use case requires it. At day 30, choose Free, Launch, Growth, or Scale. The Store and catalog are retained.</div>
+          <div className="mt-7 border-t border-slate-200 pt-6 text-sm leading-6 text-slate-600">The Pilot includes a guided decision experience with Recommendation, Standard Try-On, Compare, Decision Result / mobile continuation, and configured Merchant Actions. Kiosk-ready delivery can be configured when the Pilot use case requires it. At day 30, choose Free, Launch, Growth, or Scale. The Store and catalog are retained.</div>
         </div>
       </div>
     </section>
@@ -288,7 +288,7 @@ function UsageSection() {
         <div aria-label="AI Commerce Session journey" className="mt-10 flex flex-col gap-3 rounded-2xl border border-white/15 bg-white/5 p-5 text-sm font-semibold text-white sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-6">
           <span>Store or Campaign</span><ArrowRight className="hidden h-4 w-4 text-sky-300 sm:block" aria-hidden="true" /><span>Guided AI decision journey</span><ArrowRight className="hidden h-4 w-4 text-sky-300 sm:block" aria-hidden="true" /><span>1 AI Commerce Session</span>
         </div>
-        <p className="mt-4 text-sm text-slate-400">Recommendation, multiple Try-Ons, and Compare within the same attributed visit still count as one AI Commerce Session. Decision Result, QR continuation, and Merchant Handoff do not add a second session meter. Plain browsing, product views, and product clicks do not consume a paid AI Commerce Session.</p>
+        <p className="mt-4 text-sm text-slate-400">Recommendation, multiple Try-Ons, and Compare within the same attributed visit still count as one AI Commerce Session. Decision Result, QR continuation, and Merchant Actions do not add a second session meter. Plain browsing, product views, and product clicks do not consume a paid AI Commerce Session.</p>
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
           <article className="rounded-2xl border border-white/15 bg-white/5 p-6"><p className="text-sm font-semibold text-white">Store stays live</p><p className="mt-3 text-sm leading-6 text-slate-300">When included capacity is reached, Store browsing, product links, inquiries, and analytics remain available.</p></article>
           <article className="rounded-2xl border border-white/15 bg-white/5 p-6"><p className="text-sm font-semibold text-white">Try-On pauses</p><p className="mt-3 text-sm leading-6 text-slate-300">Generative Try-On pauses until capacity is restored or the next billing period begins. Basic Recommendation follows plan policy.</p></article>
