@@ -5,6 +5,7 @@ import { hashSessionCapability } from '../domain/session'
 import { sanitizeDecisionResultPayload } from '../domain/decision-result'
 import { resolveMerchantHandoff } from '../domain/merchant-handoff'
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
+import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 
 const MAX_SHARE_TOKEN_LENGTH = 200
 
@@ -17,7 +18,7 @@ type DecisionResultShareRow = {
     merchantSessionId: string
     expiresAt: Date
     payload: unknown
-    merchant: { id: string; slug: string; name: string; status: string; accentColor: string | null; websiteUrl: string | null }
+    merchant: { id: string; slug: string; name: string; status: string; accentColor: string | null; websiteUrl: string | null; planCode: string | null; commercialStatus: string | null; commercialExceptionCode: string | null }
     experience: {
       id: string
       type: 'STORE' | 'CAMPAIGN'
@@ -49,7 +50,7 @@ async function findShare(token: string): Promise<DecisionResultShareRow | null> 
     include: {
       result: {
         include: {
-          merchant: { select: { id: true, slug: true, name: true, status: true, accentColor: true, websiteUrl: true } },
+          merchant: { select: { id: true, slug: true, name: true, status: true, accentColor: true, websiteUrl: true, planCode: true, commercialStatus: true, commercialExceptionCode: true } },
           experience: { select: { id: true, type: true, slug: true, name: true, primaryCtaType: true, primaryCtaLabel: true, primaryCtaUrl: true, secondaryCtaType: true, secondaryCtaLabel: true, secondaryCtaUrl: true, deliveryPolicy: true } },
         },
       },
@@ -59,6 +60,7 @@ async function findShare(token: string): Promise<DecisionResultShareRow | null> 
   if (share.result.expiresAt.getTime() <= Date.now()) return null
   if (share.result.merchantId !== share.result.merchant.id) return null
   if (share.result.merchant.status !== 'ACTIVE') return null
+  if (!resolveMerchantCommercialCapability(share.result.merchant).decisions.DECISION_RESULT.allowed) return null
   return share as DecisionResultShareRow
 }
 
