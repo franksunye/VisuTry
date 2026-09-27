@@ -621,3 +621,109 @@ The server-authoritative `ExperienceSearchVisibility` policy is:
 - `PRIVATE`: draft, unavailable, inactive, or unresolved content.
 
 Reference provenance remains disclosed as reference content and never becomes a partnership claim through metadata or structured data. Sitemap inclusion and page robots metadata use the same policy; currently only the English route is indexable when the underlying content is shared English copy.
+
+
+---
+
+## 18. Current Merchant Product Capability Contract — 2026-09-27
+
+Y2K Store productization and the post-Y2K Merchant Domain Hardening work extend the shipped Merchant product beyond the earlier Store / Campaign + Recommendation / Try-On / Compare framing.
+
+The current standard capability stack is:
+
+```text
+Merchant
+  ├─ Catalog
+  ├─ Commercial Capability
+  └─ Experience
+       ├─ STORE
+       └─ CAMPAIGN
+            ├─ Decision Journey Policy
+            ├─ Delivery Profile
+            │    ├─ WEB
+            │    └─ KIOSK
+            ├─ Recommendation / Try-On / Compare
+            ├─ Canonical DecisionResult
+            │    └─ Secure QR / phone continuation
+            └─ Merchant Handoff
+                 ├─ VISIT_STORE
+                 ├─ BOOK_APPOINTMENT
+                 ├─ WHATSAPP
+                 ├─ EMAIL
+                 ├─ PRODUCT
+                 └─ CUSTOM_LINK
+```
+
+### 18.1 Product capabilities
+
+These are standard product capabilities and should not be presented as separate pricing meters:
+
+- **Guided Decision Journey** — a bounded sequence of supported decision stages; not a generic workflow engine.
+- **Delivery Profile** — the same Experience can be delivered on normal web surfaces or through the Kiosk profile. Kiosk is not a new Experience type.
+- **Decision Result** — the canonical shopper decision artifact that can carry the useful outcome of the journey beyond the transient session.
+- **Secure continuation** — a shopper can continue a Result from a shared device to a personal device through the bounded Result token / QR flow.
+- **Merchant Handoff** — one closed action contract for returning shopper intent to the merchant. Provider-specific URL construction remains presentation / adapter behavior.
+- **Shared-device safety** — Kiosk reset, idle reset, session/cookie cleanup, photo cleanup and fail-closed continuation rules support shared-device delivery.
+- **Commerce Intelligence signals** — recommendation, Try-On, Compare, product interest and Handoff signals remain attributable to Merchant / Experience context.
+
+The standard shopper value path can therefore be described as:
+
+```text
+Discovery
+→ Decision
+→ Result
+→ Handoff
+```
+
+Recommendation, Try-On and Compare are important capabilities inside **Decision**; they are not the complete Merchant product specification.
+
+### 18.2 Commercial / metered dimensions
+
+The commercial plan contract remains separate from the capability description.
+
+Current pricing and entitlement dimensions remain:
+
+- one canonical Store per Merchant / Brand;
+- catalog-item allowance;
+- active-Campaign allowance;
+- AI Commerce Session allowance;
+- Standard Try-On generation allowance where explicitly defined;
+- Recommendation / Generative Try-On / Compare availability;
+- Analytics entitlement;
+- support / commercial scope.
+
+Decision Journey, Decision Result, secure continuation, Merchant Handoff and Kiosk delivery do **not** introduce new billing meters in the current commercial contract.
+
+Where a journey contains a metered AI capability, the existing plan entitlement still governs that capability. Reaching an AI allowance does not turn the public Store or catalog off.
+
+### 18.3 Pilot packaging
+
+The Founding Merchant Pilot remains a fixed 30-day offer using the existing commercial limits. Its product scope may now be described more completely as a hosted Store or Campaign decision experience using a reviewed merchant catalog, guided recommendation, Standard Try-On, Compare, Decision Result / continuation, configured Merchant Handoff and—where the pilot use case requires it—Kiosk-ready delivery.
+
+This does not imply that every Pilot includes custom hardware installation, external provider integrations or a bespoke workflow.
+
+### 18.4 Explicitly deferred capabilities
+
+The following remain outside the current shipped Merchant product contract and must not be marketed as generally available:
+
+- public external API productization;
+- outbound webhook delivery infrastructure;
+- CRM / booking-provider integrations;
+- exact calibrated physical frame-size / PD measurement;
+- multi-location / fleet management;
+- autonomous commerce-agent checkout;
+- arbitrary workflow or page scripting.
+
+Enterprise may scope integration work commercially, but that must not be represented as a generally available public API / webhook product until the relevant capability is shipped and approved.
+
+### 18.5 Messaging rule
+
+External Merchant messaging should preserve this hierarchy:
+
+1. **Store / Campaign** — where the experience is used;
+2. **Decision Journey** — how the shopper moves from uncertainty to a smaller set of choices;
+3. **Decision Result** — what the shopper can keep and continue;
+4. **Merchant Handoff** — how intent returns to merchant commerce;
+5. **Commerce Intelligence** — what observable decision and intent signals the merchant can review.
+
+This keeps the public product description aligned with the canonical domain without exposing internal implementation concepts or customer-specific configurations.
