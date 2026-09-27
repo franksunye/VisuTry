@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
-import { PUT } from '@/app/api/admin/store/merchants/[id]/commercial-add-ons/route'
+import { GET, PUT } from '@/app/api/admin/store/merchants/[id]/commercial-add-ons/route'
 
 jest.mock('@/lib/api-auth', () => ({ requireAdmin: jest.fn() }))
 jest.mock('@/lib/prisma', () => ({
@@ -28,6 +28,32 @@ describe('Merchant commercial add-on admin route', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     admin.mockResolvedValue({ ok: true, userId: 'admin-1' })
+  })
+
+  it('reports effective Kiosk availability from plan plus provisioned add-ons', async () => {
+    db.merchant.findUnique.mockResolvedValue({
+      id: 'merchant-1',
+      planCode: 'LAUNCH',
+      commercialStatus: 'PAID_ACTIVE',
+      commercialAddOns: ['KIOSK'],
+      entitlementEffectiveFrom: new Date('2026-09-01T00:00:00.000Z'),
+      billingPeriodEnd: new Date('2026-10-01T00:00:00.000Z'),
+    })
+
+    const response = await GET(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-1/commercial-add-ons'),
+      { params: { id: 'merchant-1' } },
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.data).toMatchObject({
+      merchantId: 'merchant-1',
+      planCode: 'LAUNCH',
+      commercialAddOns: ['KIOSK'],
+      kioskDelivery: 'add_on',
+      kioskAvailable: true,
+    })
   })
 
   it('provisions Kiosk for an add-on eligible plan and audits the mutation', async () => {
