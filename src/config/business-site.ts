@@ -59,10 +59,10 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   overview: {
     slug: '/business',
     metaTitle: 'AI Commerce for Eyewear Brands & Agencies | VisuTry',
-    metaDescription: 'Turn eyewear catalogs and campaign traffic into guided AI shopping experiences for brand, commerce, and agency teams with recommendation, virtual try-on, comparison, and measurable shopper intent.',
+    metaDescription: 'Turn eyewear catalogs and campaign traffic into guided AI decision experiences with recommendation, virtual try-on, comparison, Decision Result, merchant handoff, and measurable shopper intent.',
     eyebrow: 'AI Commerce for Eyewear',
     title: 'Be discovered. Help shoppers decide. Measure what drives intent.',
-    description: 'VisuTry helps eyewear merchants become more discoverable across search and AI, then helps shoppers move from product discovery to recommendation, Virtual Try-On, Compare, and measurable intent.',
+    description: 'VisuTry helps eyewear merchants become more discoverable across search and AI, then helps shoppers move from product discovery through a guided decision, reusable Result, and measurable merchant handoff.',
     primaryCta: { label: 'Start a Pilot', href: pilotHref },
     secondaryCta: { label: 'Explore Store', href: '/business/store' },
     microcopy: 'Hosted first. Keep your current ecommerce site and product pages.',
@@ -70,7 +70,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       {
         eyebrow: 'From browsing to confident choice',
         title: 'Showing more frames is easy. Helping shoppers decide is harder.',
-        body: 'Eyewear shoppers often browse many frames without knowing what to try first. VisuTry combines catalog guidance, recommendation, Try-On, Compare, and merchant intent signals into one decision journey.',
+        body: 'Eyewear shoppers often browse many frames without knowing what to try first. VisuTry combines catalog guidance, recommendation, Try-On, Compare, a reusable Decision Result, and merchant handoff into one decision journey.',
         cards: [
           { title: 'Recommend', description: 'Narrow a merchant catalog into a more relevant shortlist.' },
           { title: 'Try On', description: 'Let shoppers preview selected frames using their own photo.' },
@@ -138,7 +138,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         eyebrow: 'Platform model',
         title: 'One catalog. Multiple shopping experiences.',
         body: 'Products belong to the merchant catalog. Store and Campaigns reuse that catalog rather than duplicating product truth. Each Experience can select a different subset of frames and present a different shopper context.',
-        steps: ['Merchant catalog', 'Store or Campaign Experience', 'Recommendation', 'Try-On', 'Compare', 'Product handoff', 'Commerce Intelligence'],
+        steps: ['Merchant catalog', 'Store or Campaign Experience', 'Guided decision', 'Try-On + Compare', 'Decision Result', 'Merchant handoff', 'Commerce Intelligence'],
       },
       {
         eyebrow: 'Catalog foundation',
@@ -148,8 +148,8 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       },
       {
         eyebrow: 'Shared decision runtime',
-        title: 'Recommendation, Try-On, and Compare work as one journey.',
-        body: 'Recommendation helps narrow the set of frames. Try-On helps visualize selected products. Compare helps shoppers review finalists. Product links or inquiry actions then return the shopper to the merchant’s existing selling flow.',
+        title: 'Recommendation, Try-On, Compare, Result, and Handoff work as one journey.',
+        body: 'Recommendation helps narrow the set of frames. Try-On helps visualize selected products. Compare helps shoppers review finalists. A canonical Decision Result can carry the useful outcome forward, and configured Handoff actions return intent to the merchant’s existing selling flow.',
       },
       {
         eyebrow: 'Experience model',
@@ -171,10 +171,10 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   store: {
     slug: '/business/store',
     metaTitle: 'AI Storefront for Eyewear Brands & Retailers | VisuTry',
-    metaDescription: 'Create a merchant-branded AI storefront with frame recommendation, virtual try-on, comparison, product handoff, and intent signals.',
+    metaDescription: 'Create a merchant-branded AI storefront with guided frame decisions, virtual try-on, comparison, Decision Result, secure continuation, merchant handoff, and kiosk-ready delivery.',
     eyebrow: 'AI Storefront',
     title: 'Turn your eyewear catalog into an AI-guided storefront.',
-    description: 'Give shoppers a merchant-branded path from discovery and recommendation to Try-On, Compare, and your existing product or inquiry destination.',
+    description: 'Give shoppers a merchant-branded path from discovery and recommendation to Try-On, Compare, a reusable Result, and your existing product, appointment, or inquiry destination — on web or kiosk-ready delivery.',
     primaryCta: { label: 'Start a Pilot', href: pilotHref },
     secondaryCta: { label: 'See Product Examples', href: '/business/examples' },
     sections: [
@@ -193,12 +193,12 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       {
         eyebrow: 'Shopper workflow',
         title: 'A simpler path through a difficult category.',
-        steps: ['Enter Store', 'Add shopper context', 'Get shortlist', 'Try selected frames', 'Compare finalists', 'Continue to product or inquiry'],
+        steps: ['Enter Store', 'Understand shopper', 'Get shortlist', 'Try selected frames', 'Compare finalists', 'Result & merchant handoff'],
       },
       {
         eyebrow: 'Beyond VTO',
         title: 'Virtual Try-On shows a frame. VisuTry helps shoppers decide which frame to try.',
-        body: 'VisuTry treats Try-On as one step in the decision journey. Recommendation narrows the catalog before Try-On, Compare helps evaluate finalists, and intent signals help the merchant understand which frames generated interest.',
+        body: 'VisuTry treats Try-On as one step in the decision journey. Recommendation narrows the catalog before Try-On, Compare helps evaluate finalists, Decision Result preserves the useful outcome, and Merchant Handoff returns intent to the next commerce action.',
       },
       {
         eyebrow: 'Store product preview',
@@ -210,17 +210,17 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   campaigns: {
     slug: '/business/campaigns',
     metaTitle: 'AI Shopping Campaigns for Eyewear Brands & Agencies | VisuTry',
-    metaDescription: 'Create focused AI shopping experiences for eyewear campaigns, collections, audiences, traffic sources, creator stories, and media briefs while preserving merchant product truth.',
+    metaDescription: 'Create focused AI shopping experiences for eyewear campaigns with guided decisions, reusable Results, merchant handoff, and Experience-level intent measurement while preserving merchant product truth.',
     eyebrow: 'Campaign Experiences',
     title: 'Turn campaign traffic into a focused shopping journey.',
-    description: 'Create intent-specific commerce experiences built for traffic from search, AI, paid media, social, email, and QR — guiding shoppers from product discovery to recommendation, Try-On, Compare, and measurable actions.',
+    description: 'Create intent-specific commerce experiences for search, AI, paid media, social, email, and QR — guiding shoppers from discovery through decision, Result, Handoff, and measurable actions.',
     primaryCta: { label: 'Start a Pilot', href: pilotHref },
     secondaryCta: { label: 'See a Campaign Example', href: '/c/akila/statement-frames' },
     sections: [
       {
         eyebrow: 'Campaign model',
         title: 'Match the experience to the reason the shopper arrived.',
-        steps: ['Search / Social / Email / QR', 'Campaign Experience', 'Focused catalog subset', 'Recommendation', 'Try-On + Compare', 'Product intent'],
+        steps: ['Search / Social / Email / QR', 'Campaign Experience', 'Focused catalog subset', 'Guided decision', 'Decision Result', 'Merchant handoff'],
       },
       {
         eyebrow: 'One catalog, many contexts',
@@ -287,7 +287,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   pricing: {
     slug: '/business/pricing',
     metaTitle: 'VisuTry Merchant Pricing | Free, Pilot, Launch, Growth, Scale & Enterprise',
-    metaDescription: 'Compare VisuTry merchant plans, the $149 Founding Pilot, AI Commerce Session capacity, Store limits, and custom Enterprise support.',
+    metaDescription: 'Compare VisuTry merchant plans, the $149 Founding Pilot, AI Commerce Session capacity, Store and Campaign limits, and the guided Merchant Experience capabilities built around the journey.',
     eyebrow: 'Pricing',
     title: 'Plans that scale with shopper engagement.',
     description: 'Start free, validate with a 30-day Pilot, or choose a plan based on shopper volume.',
@@ -377,7 +377,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       {
         eyebrow: 'Pilot scope',
         title: '$149 / 30 days with assisted setup.',
-        body: 'The current Founding Merchant Pilot includes 8–50 reviewed frames, one hosted Store or Campaign Experience, personalized recommendation, Standard Try-On, Frame Compare, enabled product-intent signals, up to 1,500 AI-assisted shoppers, up to 3,500 Standard Try-On generations, assisted setup, and a weekly review.',
+        body: 'The current Founding Merchant Pilot includes 8–50 reviewed frames, one hosted Store or Campaign Experience, guided recommendation, Standard Try-On, Frame Compare, Decision Result / continuation, configured Merchant Handoff, enabled intent signals, up to 1,500 AI-assisted shoppers, up to 3,500 Standard Try-On generations, assisted setup, and a weekly review. Kiosk-ready delivery can be configured when the Pilot use case requires it.',
       },
       {
         eyebrow: 'What happens next',

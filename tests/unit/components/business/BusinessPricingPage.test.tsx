@@ -30,6 +30,20 @@ describe('BusinessPricingPage v1.1 information architecture', () => {
     expect(screen.getByRole('columnheader', { name: 'Enterprise' })).toBeVisible()
   })
 
+  it('surfaces the current Merchant Experience capabilities without over-promising integrations', () => {
+    render(<BusinessPricingPage locale="en" />)
+
+    expect(screen.getByText('Guided Decision Journey')).toBeVisible()
+    expect(screen.getByText('Decision Result & continuation')).toBeVisible()
+    expect(screen.getByText('Merchant Handoff')).toBeVisible()
+    expect(screen.getByText('Kiosk-ready delivery')).toBeVisible()
+    expect(screen.getByText(/do not create new pricing meters/i)).toBeVisible()
+    expect(screen.getByText('Custom integration scope')).toBeVisible()
+    expect(screen.getByText('Scoped')).toBeVisible()
+    expect(screen.queryByText('API / Integrations')).not.toBeInTheDocument()
+    expect(screen.queryByText('API / integrations')).not.toBeInTheDocument()
+  })
+
   it('keeps canonical prices, promises, routes, and accessible explanatory tooltips', async () => {
     const user = userEvent.setup()
     render(<BusinessPricingPage locale="en" />)
