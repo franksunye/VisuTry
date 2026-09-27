@@ -14,10 +14,10 @@ const now = new Date('2026-08-27T00:00:00.000Z')
 
 describe('G4-A canonical Merchant commercial contract', () => {
   it('keeps normal plan definitions canonical and separate from Pilot', () => {
-    expect(getMerchantPlanDefinition('FREE')).toMatchObject({ catalogItems: 50, activeCampaigns: 0, generativeTryOn: false, recommendation: true })
-    expect(getMerchantPlanDefinition('LAUNCH')).toMatchObject({ priceLabel: '$199/month', catalogItems: 100, activeCampaigns: 1, aiCommerceSessions: 1000 })
-    expect(getMerchantPlanDefinition('GROWTH')).toMatchObject({ priceLabel: '$499/month', catalogItems: 500, activeCampaigns: 3, aiCommerceSessions: 5000 })
-    expect(getMerchantPlanDefinition('SCALE')).toMatchObject({ priceLabel: '$999/month', catalogItems: 2000, activeCampaigns: 10, aiCommerceSessions: 10000 })
+    expect(getMerchantPlanDefinition('FREE')).toMatchObject({ catalogItems: 50, activeCampaigns: 0, generativeTryOn: false, recommendation: true, decisionResult: false, merchantHandoff: false, kioskDelivery: 'none' })
+    expect(getMerchantPlanDefinition('LAUNCH')).toMatchObject({ priceLabel: '$199/month', catalogItems: 100, activeCampaigns: 1, aiCommerceSessions: 1000, decisionResult: true, merchantHandoff: true, kioskDelivery: 'add_on' })
+    expect(getMerchantPlanDefinition('GROWTH')).toMatchObject({ priceLabel: '$499/month', catalogItems: 500, activeCampaigns: 3, aiCommerceSessions: 5000, kioskDelivery: 'add_on' })
+    expect(getMerchantPlanDefinition('SCALE')).toMatchObject({ priceLabel: '$999/month', catalogItems: 2000, activeCampaigns: 10, aiCommerceSessions: 10000, kioskDelivery: 'included' })
     expect(getMerchantPlanDefinition('FOUNDING_PILOT')).toMatchObject({ priceLabel: '$149 / 30 days', aiCommerceSessions: 1500, standardTryOnGenerations: 3500 })
   })
 
@@ -35,6 +35,28 @@ describe('G4-A canonical Merchant commercial contract', () => {
     expect(state.featureAvailability.GENERATIVE_TRY_ON).toBe(false)
     expect(state.featureAvailability.CAMPAIGN).toBe(false)
     expect(canUseCommercialFeature(state, 'GENERATIVE_TRY_ON').code).toBe('FEATURE_NOT_INCLUDED')
+  })
+
+  it('enforces Decision Result, Merchant Handoff, and Kiosk packaging from the canonical plan contract', () => {
+    const free = resolveMerchantCommercialCapability({ planCode: 'FREE', commercialStatus: 'FREE' }, {}, now)
+    const launch = resolveMerchantCommercialCapability({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' }, {}, now)
+    const launchWithKiosk = resolveMerchantCommercialCapability({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', commercialExceptionCode: 'KIOSK_ADD_ON' }, {}, now)
+    const scale = resolveMerchantCommercialCapability({ planCode: 'SCALE', commercialStatus: 'PAID_ACTIVE' }, {}, now)
+    const enterprise = resolveMerchantCommercialCapability({ planCode: 'ENTERPRISE', commercialStatus: 'PAID_ACTIVE' }, {}, now)
+    const enterpriseWithKiosk = resolveMerchantCommercialCapability({ planCode: 'ENTERPRISE', commercialStatus: 'PAID_ACTIVE', commercialExceptionCode: 'KIOSK_ADD_ON' }, {}, now)
+
+    expect(free.decisions.DECISION_RESULT.allowed).toBe(false)
+    expect(free.decisions.MERCHANT_HANDOFF.allowed).toBe(false)
+    expect(free.decisions.KIOSK_DELIVERY.allowed).toBe(false)
+
+    expect(launch.decisions.DECISION_RESULT.allowed).toBe(true)
+    expect(launch.decisions.MERCHANT_HANDOFF.allowed).toBe(true)
+    expect(launch.decisions.KIOSK_DELIVERY.allowed).toBe(false)
+    expect(launchWithKiosk.decisions.KIOSK_DELIVERY.allowed).toBe(true)
+
+    expect(scale.decisions.KIOSK_DELIVERY.allowed).toBe(true)
+    expect(enterprise.decisions.KIOSK_DELIVERY.allowed).toBe(false)
+    expect(enterpriseWithKiosk.decisions.KIOSK_DELIVERY.allowed).toBe(true)
   })
 
   it('distinguishes canonical Free enrollment from a legacy merchant', () => {
