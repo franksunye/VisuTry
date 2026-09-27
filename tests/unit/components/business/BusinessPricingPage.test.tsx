@@ -30,14 +30,15 @@ describe('BusinessPricingPage v1.1 information architecture', () => {
     expect(screen.getByRole('columnheader', { name: 'Enterprise' })).toBeVisible()
   })
 
-  it('surfaces the current Merchant Experience capabilities without over-promising integrations', () => {
+  it('frames the Merchant Experience as a discovery-to-action journey without over-promising integrations', () => {
     render(<BusinessPricingPage locale="en" />)
 
+    expect(screen.getByRole('heading', { name: /One journey from discovery to a confident decision/i })).toBeVisible()
     expect(screen.getByText('Guided Decision Journey')).toBeVisible()
-    expect(screen.getByText('Decision Result & continuation')).toBeVisible()
-    expect(screen.getAllByText('Merchant Handoff')).not.toHaveLength(0)
-    expect(screen.getAllByText('Kiosk-ready delivery')).not.toHaveLength(0)
-    expect(screen.getByText(/do not create new usage meters/i)).toBeVisible()
+    expect(screen.getByText('Decision Result')).toBeVisible()
+    expect(screen.getByText('Continue to Action')).toBeVisible()
+    expect(screen.getByText('Web & In-Store Delivery')).toBeVisible()
+    expect(screen.getByText(/do not add a second usage meter/i)).toBeVisible()
     expect(screen.getByText('Custom integration scope')).toBeVisible()
     expect(screen.getByText('Scoped')).toBeVisible()
     expect(screen.queryByText('API / Integrations')).not.toBeInTheDocument()
@@ -51,12 +52,34 @@ describe('BusinessPricingPage v1.1 information architecture', () => {
       .querySelectorAll('td')
 
     expect(Array.from(values('AI Commerce Sessions'), (cell) => cell.textContent)).toEqual(['Not applicable', '1,000', '5,000', '10,000', 'Custom'])
-    expect(Array.from(values('Decision Result & secure continuation'), (cell) => cell.textContent)).toEqual(['—', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
-    expect(Array.from(values('Merchant Handoff'), (cell) => cell.textContent)).toEqual(['Basic product links', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
-    expect(Array.from(values('Kiosk-ready delivery'), (cell) => cell.textContent)).toEqual(['—', 'Add-on', 'Add-on', 'Included', 'Custom'])
+    expect(Array.from(values('Decision Result \+ mobile continuation'), (cell) => cell.textContent)).toEqual(['—', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
+    expect(Array.from(values('Merchant Actions'), (cell) => cell.textContent)).toEqual(['Basic product links', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
+    expect(Array.from(values('In-store Kiosk Mode'), (cell) => cell.textContent)).toEqual(['—', 'Add-on', 'Add-on', 'Included', 'Custom'])
     expect(Array.from(values('Commerce analytics & attribution'), (cell) => cell.textContent)).toEqual(['Basic', 'Standard', 'Advanced', 'Advanced', 'Custom'])
     expect(Array.from(values('Custom integration scope'), (cell) => cell.textContent)).toEqual(['—', '—', '—', '—', 'Scoped'])
     expect(Array.from(values('Support / SLA'), (cell) => cell.textContent)).toEqual(['Self-service', 'Standard', 'Priority', 'Priority', 'Custom SLA'])
+  })
+
+  it('keeps the pricing story in the intended decision-first order', () => {
+    const { container } = render(<BusinessPricingPage locale="en" />)
+    const sections = Array.from(container.querySelectorAll('[data-pricing-section]'))
+      .map((section) => section.getAttribute('data-pricing-section'))
+
+    expect(sections).toEqual([
+      'plans',
+      'usage-model',
+      'decision-journey',
+      'pilot',
+      'comparison',
+      'enterprise',
+      'proof',
+      'faq',
+    ])
+    expect(screen.getByText('Recommendation + Try-On + Compare + Decision Result')).toBeVisible()
+    expect(screen.getByText('Advanced commerce analytics included')).toBeVisible()
+    expect(screen.getByText('In-store Kiosk Mode included')).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Open Reference Experience' })).toHaveAttribute('href', '/en/c/akila/statement-frames')
+    expect(screen.getByRole('link', { name: 'Explore Product Examples' })).toHaveAttribute('href', '/en/business/examples')
   })
 
   it('keeps canonical prices, promises, routes, and accessible explanatory tooltips', async () => {
