@@ -53,6 +53,24 @@ describe('Merchant Handoff contract', () => {
     expect(JSON.stringify(metadata)).not.toMatch(/wa\.me|15551234567|private|shopper@example|secret-token/i)
   })
 
+  it('blocks configured Experience handoffs for the canonical Free plan', async () => {
+    const input = {
+      merchants: { findPublicBySlug: jest.fn().mockResolvedValue({ id: 'merchant-1', status: 'ACTIVE', planCode: 'FREE', commercialStatus: 'FREE' }) } as never,
+      experiences: { findPublicStoreByMerchant: jest.fn() } as never,
+      events: { appendIdempotent: jest.fn() } as never,
+      merchantSlug: 'merchant',
+      experienceSlug: 'store',
+      experienceType: 'STORE' as const,
+      action: 'CUSTOM_LINK' as const,
+      surface: 'DISCOVERY' as const,
+      clientActionId: 'b2c14fe1-8544-4f4c-9a63-a0f8ca5e7060',
+    }
+
+    await expect(recordMerchantHandoff(input)).rejects.toMatchObject({ code: 'FEATURE_NOT_INCLUDED' })
+    expect(input.experiences.findPublicStoreByMerchant).not.toHaveBeenCalled()
+    expect(input.events.appendIdempotent).not.toHaveBeenCalled()
+  })
+
   it('persists one idempotent event only for an action configured on that Experience', async () => {
     const experience = {
       id: 'experience-1', slug: 'spring-edit', type: 'CAMPAIGN',
