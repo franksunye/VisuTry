@@ -64,8 +64,9 @@ test.describe('@critical Business market-facing narrative', () => {
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
-    await expect(page).toHaveTitle(/VisuTry Merchant Pricing/);
-    await expect(page.getByRole('heading', { name: /Plans that scale with shopper engagement/i })).toBeVisible();
+    await expect(page).toHaveTitle(/VisuTry Eyewear AI Commerce Pricing/);
+    await expect(page.getByRole('heading', { name: /Simple pricing for the full eyewear decision journey/i })).toBeVisible();
+    await expect(page.getByText(/not individual renders/i)).toBeVisible();
     await expect(page.getByText('No surprise usage billing.')).toBeVisible();
     await expect(page.locator('[data-primary-plan="true"]')).toHaveCount(3);
     await expect(page.locator('[data-plan-code="LAUNCH"][data-primary-plan="true"]')).toContainText('$199/month');
@@ -98,8 +99,10 @@ test.describe('@critical Business market-facing narrative', () => {
     await page.waitForLoadState('networkidle');
     await sessionsTooltipButton.click();
     await expect(page.getByRole('tooltip')).toContainText(/1 AI Commerce Session/i);
-    await expect(page.getByRole('link', { name: 'Start Free' })).toHaveAttribute('href', '/en/merchant?commercialIntent=FREE');
-    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' })).toHaveAttribute('href', '/en/merchant?commercialIntent=FOUNDING_PILOT');
+    await expect(page.getByRole('link', { name: 'Start Free' }).first()).toHaveAttribute('href', '/en/merchant?commercialIntent=FREE');
+    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' }).last()).toHaveAttribute('href', '/en/merchant?commercialIntent=FOUNDING_PILOT');
+    await expect(page.getByRole('heading', { name: /One journey from discovery to a confident decision/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Open Reference Experience' })).toHaveAttribute('href', '/en/c/akila/statement-frames');
     await expect(page.getByRole('link', { name: 'Choose Launch' })).toHaveAttribute('href', '/en/merchant?commercialIntent=LAUNCH');
     await expect(page.getByRole('link', { name: 'Choose Growth' })).toHaveAttribute('href', '/en/merchant?commercialIntent=GROWTH');
     await expect(page.getByRole('link', { name: 'Choose Scale' })).toHaveAttribute('href', '/en/merchant?commercialIntent=SCALE');
@@ -124,7 +127,7 @@ test.describe('@critical Business market-facing narrative', () => {
       expect(response).not.toBeNull();
       expect(response!.status()).toBeLessThan(400);
       await expect(page).toHaveURL('/en/business/pricing');
-      await expect(page.getByRole('heading', { name: /Plans that scale with shopper engagement/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Simple pricing for the full eyewear decision journey/i })).toBeVisible();
     });
   }
 });
