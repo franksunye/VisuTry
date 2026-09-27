@@ -627,7 +627,7 @@ Reference provenance remains disclosed as reference content and never becomes a 
 
 ## 18. Current Merchant Product Capability Contract — 2026-09-27
 
-Y2K Store productization and the post-Y2K Merchant Domain Hardening work extend the shipped Merchant product beyond the earlier Store / Campaign + Recommendation / Try-On / Compare framing.
+Recent Store productization and Merchant Domain Hardening extend the shipped Merchant product beyond the earlier Store / Campaign + Recommendation / Try-On / Compare framing.
 
 The current standard capability stack is:
 
