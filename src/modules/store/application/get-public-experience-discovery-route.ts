@@ -13,6 +13,7 @@ import {
   isPublicCampaignRouteAdmitted,
   isPublicStoreRouteAdmitted,
 } from './public-route-admission'
+import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 
 /**
  * Persistent, slug-scoped content read model shared by generateMetadata and
@@ -56,6 +57,8 @@ export async function getPublicExperienceDiscoveryForRoute(
   // Keep rich Store/Campaign content on the existing ISR boundary while
   // refreshing the quota-sensitive capability hint against live usage.
   let generativeTryOnAvailable = false
+  let merchantHandoffAvailable = false
+  let kioskDeliveryAvailable = false
   try {
     const runtime = createPublicStoreReadRuntime()
     generativeTryOnAvailable = await resolvePublicGenerativeTryOnAvailability({
@@ -63,6 +66,14 @@ export async function getPublicExperienceDiscoveryForRoute(
       usage: runtime.usage,
       slug,
     })
+    const merchant = runtime.merchants.findPublicBySlug
+      ? await runtime.merchants.findPublicBySlug(slug)
+      : await runtime.merchants.findBySlug(slug)
+    if (merchant?.status === 'ACTIVE') {
+      const capability = resolveMerchantCommercialCapability(merchant)
+      merchantHandoffAvailable = capability.decisions.MERCHANT_HANDOFF.allowed
+      kioskDeliveryAvailable = capability.decisions.KIOSK_DELIVERY.allowed
+    }
   } catch {
     // Keep cached discovery available during a commercial-usage outage, while
     // conservatively removing the live Try-On capability claim.
@@ -71,5 +82,14 @@ export async function getPublicExperienceDiscoveryForRoute(
   return {
     ...discovery,
     merchant: { ...discovery.merchant, generativeTryOnAvailable },
+    experience: {
+      ...discovery.experience,
+      primaryHandoff: merchantHandoffAvailable ? discovery.experience.primaryHandoff : null,
+      secondaryHandoff: merchantHandoffAvailable ? discovery.experience.secondaryHandoff : null,
+      deliveryPolicy: {
+        ...discovery.experience.deliveryPolicy,
+        kioskEnabled: kioskDeliveryAvailable && discovery.experience.deliveryPolicy.kioskEnabled,
+      },
+    },
   }
 }
