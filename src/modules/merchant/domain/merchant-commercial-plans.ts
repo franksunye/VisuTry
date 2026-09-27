@@ -7,6 +7,7 @@
  */
 
 export const COMMERCIAL_PLAN_VERSION = 'v1' as const
+export const KIOSK_ADD_ON_EXCEPTION_CODE = 'KIOSK_ADD_ON' as const
 
 export const MERCHANT_PLAN_CODES = [
   'FREE',
