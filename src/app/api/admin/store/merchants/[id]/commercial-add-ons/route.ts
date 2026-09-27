@@ -8,12 +8,48 @@ import {
   KIOSK_ADD_ON_CODE,
 } from '@/modules/merchant/domain/merchant-commercial-plans'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import { resolveMerchantCommercialCapability } from '@/modules/store/domain/merchant-commercial-capability'
 
 export const dynamic = 'force-dynamic'
 
 const commercialAddOnsSchema = z.object({
   addOns: z.array(z.literal(KIOSK_ADD_ON_CODE)).max(1),
 }).strict()
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.response
+
+  const merchant = await prisma.merchant.findUnique({
+    where: { id: params.id },
+    select: {
+      id: true,
+      planCode: true,
+      commercialStatus: true,
+      commercialAddOns: true,
+      entitlementEffectiveFrom: true,
+      billingPeriodEnd: true,
+    },
+  })
+  if (!merchant) {
+    return NextResponse.json({ success: false, error: 'MERCHANT_NOT_FOUND' }, { status: 404 })
+  }
+
+  const capability = resolveMerchantCommercialCapability(merchant)
+  return NextResponse.json({
+    success: true,
+    data: {
+      merchantId: merchant.id,
+      planCode: capability.state.planCode,
+      commercialAddOns: merchant.commercialAddOns,
+      kioskDelivery: capability.state.plan?.kioskDelivery ?? null,
+      kioskAvailable: capability.decisions.KIOSK_DELIVERY.allowed,
+    },
+  })
+}
 
 export async function PUT(
   request: NextRequest,
