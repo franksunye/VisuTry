@@ -50,7 +50,7 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
           { title: 'Discover / Recommend', description: 'Turn a broad merchant catalog into a more relevant shortlist for the shopper.' },
           { title: 'Try-On', description: 'Let shoppers visualize selected frames using their own photo.' },
           { title: 'Compare', description: 'Help shoppers evaluate finalists side by side before they leave the experience.' },
-          { title: 'Continue', description: 'Return high-intent shoppers to the merchant product or inquiry destination.' },
+          { title: 'Result / Handoff', description: 'Preserve the useful decision result and return high-intent shoppers to the merchant’s configured next action.' },
         ],
       }
     }
@@ -58,11 +58,12 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
     if (pageKey === 'store' && section.eyebrow === 'What the Store does') {
       return {
         ...section,
-        title: 'Three jobs matter: guide, evaluate, continue.',
+        title: 'Four jobs matter: guide, evaluate, carry the result, continue.',
         cards: [
           { title: 'Guide discovery', description: 'Merchant branding, reviewed frame data, and a relevant shortlist help shoppers move beyond an undifferentiated catalog grid.' },
           { title: 'Help shoppers evaluate', description: 'Recommendation, Virtual Try-On, and Frame Compare support the decision before a shopper leaves the experience.' },
-          { title: 'Return intent to commerce', description: 'Product click, favorite, inquiry, and other enabled signals connect the decision journey back to the merchant flow.' },
+          { title: 'Carry the result', description: 'A canonical Decision Result keeps the useful outcome of the journey available beyond the transient session, including secure phone continuation.' },
+          { title: 'Return intent to commerce', description: 'Configured Merchant Handoff actions connect the decision journey back to product, appointment, store-visit, inquiry, or other supported merchant destinations.' },
         ],
       }
     }
@@ -71,7 +72,7 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       return {
         eyebrow: 'Store product preview',
         title: 'See how the hosted Store experience is designed to work.',
-        body: 'This preview shows how a hosted Store brings reviewed product data, guided discovery, Try-On, Compare, and merchant handoff into one branded shopping journey. Live merchant Stores are only presented as live when they are actually published.',
+        body: 'This preview shows how a hosted Store brings reviewed product data, guided discovery, Try-On, Compare, Decision Result, and merchant handoff into one branded shopping journey. The same Experience can also use the Kiosk delivery profile for shared-device use cases. Live merchant Stores are only presented as live when they are actually published.',
       }
     }
 
@@ -166,7 +167,7 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       {
         eyebrow: 'Product journey',
         title: 'The campaign itself becomes a focused commerce experience.',
-        body: 'Carry focused frame discovery into recommendation, Try-On, Compare, and merchant handoff so the shopper journey stays aligned with the campaign context.',
+        body: 'Carry focused frame discovery into a guided decision, Decision Result, and merchant handoff so the shopper journey stays aligned with the campaign context from arrival through the next commerce action.',
       },
       mapped[2],
       mapped[3],
