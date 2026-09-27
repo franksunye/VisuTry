@@ -54,10 +54,12 @@ describe('Merchant Handoff contract', () => {
   })
 
   it('blocks configured Experience handoffs for the canonical Free plan', async () => {
+    const findPublicStoreByMerchant = jest.fn()
+    const appendIdempotent = jest.fn()
     const input = {
       merchants: { findPublicBySlug: jest.fn().mockResolvedValue({ id: 'merchant-1', status: 'ACTIVE', planCode: 'FREE', commercialStatus: 'FREE' }) } as never,
-      experiences: { findPublicStoreByMerchant: jest.fn() } as never,
-      events: { appendIdempotent: jest.fn() } as never,
+      experiences: { findPublicStoreByMerchant } as never,
+      events: { appendIdempotent } as never,
       merchantSlug: 'merchant',
       experienceSlug: 'store',
       experienceType: 'STORE' as const,
@@ -67,8 +69,8 @@ describe('Merchant Handoff contract', () => {
     }
 
     await expect(recordMerchantHandoff(input)).rejects.toMatchObject({ code: 'FEATURE_NOT_INCLUDED' })
-    expect(input.experiences.findPublicStoreByMerchant).not.toHaveBeenCalled()
-    expect(input.events.appendIdempotent).not.toHaveBeenCalled()
+    expect(findPublicStoreByMerchant).not.toHaveBeenCalled()
+    expect(appendIdempotent).not.toHaveBeenCalled()
   })
 
   it('persists one idempotent event only for an action configured on that Experience', async () => {
