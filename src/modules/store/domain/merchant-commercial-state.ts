@@ -1,7 +1,7 @@
 import { isMerchantEntitlementActive, resolveMerchantEntitlement, resolveMerchantUsagePeriod } from './merchant-entitlement'
 import {
   getMerchantPlanDefinition,
-  KIOSK_ADD_ON_EXCEPTION_CODE,
+  KIOSK_ADD_ON_CODE,
   isMerchantPlanCode,
   resolveMerchantPlanCode,
   type MerchantPlanCode,
@@ -41,6 +41,7 @@ export type MerchantCommercialFields = {
   entitlementEffectiveFrom?: Date | null
   billingPeriodEnd?: Date | null
   commercialExceptionCode?: string | null
+  commercialAddOns?: string[] | null
   createdAt?: Date | null
 }
 
@@ -207,7 +208,7 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
   const recommendation = plan.recommendation && paidActive
   const generativeTryOn = plan.generativeTryOn && paidActive && status !== 'USAGE_EXHAUSTED'
   const compare = plan.compare && paidActive
-  const kioskAddOnProvisioned = (fields.commercialExceptionCode ?? '').trim().toUpperCase() === KIOSK_ADD_ON_EXCEPTION_CODE
+  const kioskAddOnProvisioned = (fields.commercialAddOns ?? []).some((addOn) => addOn.trim().toUpperCase() === KIOSK_ADD_ON_CODE)
   const kioskDelivery = paidActive && (
     plan.kioskDelivery === 'included'
     || ((plan.kioskDelivery === 'add_on' || plan.kioskDelivery === 'custom') && kioskAddOnProvisioned)
