@@ -267,7 +267,7 @@ describe('recommendMerchantFrames', () => {
 
   it('keeps Free Recommendation useful without issuing a Decision Result share', async () => {
     const { merchants, frameRepo, sessions, events } = repos()
-    const baseMerchant = await merchants.findBySlug('luna-optical')
+    const baseMerchant = (await merchants.findBySlug('luna-optical'))!
     merchants.findBySlug = jest.fn().mockResolvedValue({
       ...baseMerchant,
       planCode: 'FREE',
