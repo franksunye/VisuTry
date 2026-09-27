@@ -75,6 +75,7 @@ export async function recommendMerchantFrames(
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
+  const commercialCapability = resolveMerchantCommercialCapability(merchant)
 
   const session = await requireOperableStoreSession({
     sessions: input.sessions,
@@ -84,7 +85,7 @@ export async function recommendMerchantFrames(
   })
 
   if (input.usage?.countAICommerceSessions && input.usage.consumeAICommerceSession) {
-    const baselineCapability = resolveMerchantCommercialCapability(merchant)
+    const baselineCapability = commercialCapability
     const period = baselineCapability.state.period
     const used = await input.usage.countAICommerceSessions({
       merchantId: merchant.id,
@@ -210,7 +211,7 @@ export async function recommendMerchantFrames(
 
   await input.sessions.touch(merchant.id, input.merchantSessionId, new Date())
 
-  const decisionResult = input.decisionResults
+  const decisionResult = input.decisionResults && commercialCapability.decisions.DECISION_RESULT.allowed
     ? await input.decisionResults.upsertRecommendation({
         merchantId: merchant.id,
         experienceId: session.experienceId,

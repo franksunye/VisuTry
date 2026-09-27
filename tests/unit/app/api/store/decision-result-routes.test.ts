@@ -87,6 +87,25 @@ describe('Decision Result bearer routes', () => {
     expect(payload.data.experience.secondaryCta).toBeNull()
   })
 
+  it('fails closed when a previously issued Result belongs to a Merchant without Decision Result entitlement', async () => {
+    const token = 'decision-result-token'
+    mockShareFindUnique.mockResolvedValue(shareFor(token, {
+      result: {
+        ...shareFor(token).result,
+        merchant: {
+          ...shareFor(token).result.merchant,
+          planCode: 'FREE',
+          commercialStatus: 'FREE',
+          commercialExceptionCode: null,
+        },
+      },
+    }))
+
+    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: { token } })
+
+    expect(response.status).toBe(404)
+  })
+
   it.each([
     ['tampered token', 'not-the-issued-token', null],
     ['revoked token', 'decision-result-token', { revokedAt: new Date('2026-09-26T01:00:00.000Z') }],

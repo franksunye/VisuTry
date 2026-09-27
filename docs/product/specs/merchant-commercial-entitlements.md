@@ -1,9 +1,9 @@
 # VisuTry Merchant Commercial Entitlements Spec
 
-**Status:** Approved Demo/Pilot baseline — Market-Capture Competitive Offer v8  
+**Status:** Founding Pilot v8 reference; recurring plan packaging superseded by `docs/commercial-entitlements-v1.md`  
 **Owner:** Product / Engineering / Sales  
 **Created:** 2026-08-06  
-**Last updated:** 2026-08-06  
+**Last updated:** 2026-09-27  
 **Related pricing:** `docs/strategy/merchant-pricing-packaging-unit-economics.md`  
 **Related provider risk:** `docs/strategy/merchant-provider-risk-and-fallback-economics.md`  
 **Related sales demo:** `docs/product/specs/visutry-store-sales-demo.md`  
@@ -265,24 +265,15 @@ Do not describe the product primarily as a price-per-render package.
 
 ---
 
-## 11. Future Entitlements — Not Locked
+## 11. Recurring Entitlements — Superseded Section
 
-The previous Launch / Growth / Scale entitlement matrix is no longer an approved external baseline.
+This August 2026 Pilot spec no longer owns the recurring Free / Launch / Growth /
+Scale / Enterprise package. The current canonical recurring contract, pricing,
+capabilities, and runtime rules live in `docs/commercial-entitlements-v1.md` and
+`src/modules/merchant/domain/merchant-commercial-plans.ts`.
 
-Future recurring entitlements must be created as a new pricing/entitlement version after evidence from the first merchant cohort.
-
-They may use different:
-
-- price;
-- session allowance;
-- render allowance;
-- campaign allowance;
-- catalog allowance;
-- support model;
-- integration level;
-- overage model.
-
-Do not hard-code historical $199 / $499 / $999 hypotheses as permanent product contracts.
+The Founding Pilot rules elsewhere in this document remain historical/current
+Pilot reference until that offer is separately revised.
 
 ---
 

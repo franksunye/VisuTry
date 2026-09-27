@@ -13,6 +13,7 @@ import {
   isPublicCampaignRouteAdmitted,
   isPublicStoreRouteAdmitted,
 } from './public-route-admission'
+import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 
 /**
  * Persistent, slug-scoped content read model shared by generateMetadata and
@@ -56,8 +57,11 @@ export async function getPublicExperienceDiscoveryForRoute(
   // Keep rich Store/Campaign content on the existing ISR boundary while
   // refreshing the quota-sensitive capability hint against live usage.
   let generativeTryOnAvailable = false
+  let merchantHandoffAvailable = false
+  let kioskDeliveryAvailable = false
+  const runtime = createPublicStoreReadRuntime()
+
   try {
-    const runtime = createPublicStoreReadRuntime()
     generativeTryOnAvailable = await resolvePublicGenerativeTryOnAvailability({
       merchants: runtime.merchants,
       usage: runtime.usage,
@@ -65,11 +69,36 @@ export async function getPublicExperienceDiscoveryForRoute(
     })
   } catch {
     // Keep cached discovery available during a commercial-usage outage, while
-    // conservatively removing the live Try-On capability claim.
+    // conservatively removing only the metered Try-On capability claim.
     generativeTryOnAvailable = false
+  }
+
+  try {
+    const merchant = runtime.merchants.findPublicBySlug
+      ? await runtime.merchants.findPublicBySlug(slug)
+      : await runtime.merchants.findBySlug(slug)
+    if (merchant?.status === 'ACTIVE') {
+      const capability = resolveMerchantCommercialCapability(merchant)
+      merchantHandoffAvailable = capability.decisions.MERCHANT_HANDOFF.allowed
+      kioskDeliveryAvailable = capability.decisions.KIOSK_DELIVERY.allowed
+    }
+  } catch {
+    // Non-metered plan capabilities fail closed without coupling them to the
+    // AI usage overlay above.
+    merchantHandoffAvailable = false
+    kioskDeliveryAvailable = false
   }
   return {
     ...discovery,
     merchant: { ...discovery.merchant, generativeTryOnAvailable },
+    experience: {
+      ...discovery.experience,
+      primaryHandoff: merchantHandoffAvailable ? discovery.experience.primaryHandoff : null,
+      secondaryHandoff: merchantHandoffAvailable ? discovery.experience.secondaryHandoff : null,
+      deliveryPolicy: {
+        ...discovery.experience.deliveryPolicy,
+        kioskEnabled: kioskDeliveryAvailable && discovery.experience.deliveryPolicy.kioskEnabled,
+      },
+    },
   }
 }

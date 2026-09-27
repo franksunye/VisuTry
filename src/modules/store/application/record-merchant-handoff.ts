@@ -1,6 +1,7 @@
 import { buildStoreEventIdempotencyKey, merchantInactive, merchantNotFound, type MerchantHandoffAction } from '../domain'
 import { StoreDomainError } from '../domain/errors'
 import { merchantHandoffEventMetadata, resolveMerchantHandoff } from '../domain/merchant-handoff'
+import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { ExperienceRepository, MerchantEventRepository, MerchantRepository } from './ports/repositories'
 
 export type RecordMerchantHandoffInput = {
@@ -27,6 +28,10 @@ export async function recordMerchantHandoff(input: RecordMerchantHandoffInput) {
     : await input.merchants.findBySlug(input.merchantSlug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
+  const handoffDecision = resolveMerchantCommercialCapability(merchant).decisions.MERCHANT_HANDOFF
+  if (!handoffDecision.allowed) {
+    throw new StoreDomainError(handoffDecision.code ?? 'FEATURE_NOT_INCLUDED', 'Merchant Handoff is not included for this Store.', 403, handoffDecision.message)
+  }
 
   const experience = input.experienceType === 'STORE'
     ? input.experiences.findPublicStoreByMerchant

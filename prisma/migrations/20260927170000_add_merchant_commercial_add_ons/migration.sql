@@ -1,0 +1,2 @@
+ALTER TABLE "Merchant"
+ADD COLUMN "commercialAddOns" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];

@@ -29,6 +29,7 @@ const commercialMerchantSelect = {
   entitlementEffectiveFrom: true,
   billingPeriodEnd: true,
   commercialExceptionCode: true,
+  commercialAddOns: true,
   createdAt: true,
 } satisfies Prisma.MerchantSelect
 

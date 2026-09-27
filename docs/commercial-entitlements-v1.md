@@ -16,6 +16,37 @@ with weekly review. Pilot is not silently converted to Launch.
 Every Merchant has one canonical Store in v1. Additional brands or Stores are
 future separate Merchant workspaces; Store count is not a pricing dimension.
 
+### Merchant Experience capability packaging
+
+The plan contract also owns the non-metered Merchant Experience capabilities
+shown on the public pricing page. UI code must render these fields from the
+canonical plan definition rather than re-declaring plan names.
+
+| Capability | Free | Launch | Growth | Scale | Enterprise |
+| --- | --- | --- | --- | --- | --- |
+| Decision Result + secure continuation | No | Included | Included | Included | Included |
+| Configured Merchant Handoff | Product links only | Included | Included | Included | Included |
+| Kiosk delivery profile | No | Add-on | Add-on | Included | Custom |
+
+“Product links only” means ordinary frame/product destinations remain available
+on Free. It does not grant the Experience-level `MerchantHandoff` contract.
+
+Kiosk has two independent gates: commercial entitlement and Experience
+configuration. `deliveryPolicy.kioskEnabled=true` never grants commercial
+access by itself. Scale includes the commercial Kiosk entitlement. In v1,
+Launch/Growth add-on provisioning and explicitly scoped Enterprise Kiosk access
+use the durable `commercialAddOns=["KIOSK"]` entitlement; this is an assisted
+commercial operation, not self-service billing. Admin provisioning uses the
+admin-only `PUT /api/admin/store/merchants/{id}/commercial-add-ons` boundary;
+the write is audited and invalidates the affected public Store/Campaign/Kiosk
+artifacts. The Kiosk route is available only when both the commercial
+entitlement and the Experience delivery policy allow it. Hardware and custom
+installation remain separately scoped.
+
+Founding Pilot is not part of the recurring-plan comparison table. Existing
+Pilot delivery behavior remains enabled for compatibility while the Pilot offer
+continues to be described by its own fixed commercial package.
+
 ## Canonical capability decision boundary
 
 `src/modules/store/domain/merchant-commercial-capability.ts` is the single
