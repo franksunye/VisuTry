@@ -35,7 +35,7 @@ Kiosk has two independent gates: commercial entitlement and Experience
 configuration. `deliveryPolicy.kioskEnabled=true` never grants commercial
 access by itself. Scale includes the commercial Kiosk entitlement. In v1,
 Launch/Growth add-on provisioning and explicitly scoped Enterprise Kiosk access
-use the audited `commercialExceptionCode=KIOSK_ADD_ON`; this is an assisted
+use the durable `commercialAddOns=["KIOSK"]` entitlement; this is an assisted
 commercial operation, not self-service billing. The Kiosk route is available
 only when both the commercial entitlement and the Experience delivery policy
 allow it. Hardware and custom installation remain separately scoped.
