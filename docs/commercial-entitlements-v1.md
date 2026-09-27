@@ -36,9 +36,12 @@ configuration. `deliveryPolicy.kioskEnabled=true` never grants commercial
 access by itself. Scale includes the commercial Kiosk entitlement. In v1,
 Launch/Growth add-on provisioning and explicitly scoped Enterprise Kiosk access
 use the durable `commercialAddOns=["KIOSK"]` entitlement; this is an assisted
-commercial operation, not self-service billing. The Kiosk route is available
-only when both the commercial entitlement and the Experience delivery policy
-allow it. Hardware and custom installation remain separately scoped.
+commercial operation, not self-service billing. Admin provisioning uses the
+admin-only `PUT /api/admin/store/merchants/{id}/commercial-add-ons` boundary;
+the write is audited and invalidates the affected public Store/Campaign/Kiosk
+artifacts. The Kiosk route is available only when both the commercial
+entitlement and the Experience delivery policy allow it. Hardware and custom
+installation remain separately scoped.
 
 Founding Pilot is not part of the recurring-plan comparison table. Existing
 Pilot delivery behavior remains enabled for compatibility while the Pilot offer
