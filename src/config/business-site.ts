@@ -68,7 +68,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     microcopy: 'Hosted first. Keep your current ecommerce site and product pages.',
     sections: [
       {
-        eyebrow: 'Why VisuTry',
+        eyebrow: 'Discovery → Decision → Merchant Action',
         title: 'Eyewear discovery is abundant. Decision confidence is scarce.',
         body: 'VisuTry adds a decision layer between product discovery and merchant commerce so shoppers can narrow choices, evaluate frames, keep a useful result, and continue when they are ready.',
         cards: [
