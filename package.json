@@ -136,7 +136,8 @@
     "perf:test:open": "node scripts/test-performance.js --open",
     "perf:hybrid-sample": "node scripts/hybrid-performance-sample.mjs",
     "perf:hybrid-sample:validate": "node scripts/hybrid-performance-sample.mjs --validate-only",
-    "perf:hybrid-sample:full": "node scripts/hybrid-performance-sample.mjs --full"
+    "perf:hybrid-sample:full": "node scripts/hybrid-performance-sample.mjs --full",
+    "demo:local:provider-smoke": "bash scripts/run-local-demo-provider-smoke.sh"
   },
   "dependencies": {
     "@axiomhq/js": "^1.3.1",

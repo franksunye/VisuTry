@@ -78,6 +78,31 @@ journey only uses the explicitly exported Local/test settings; normal
 mode-0600 file under ignored `.local/` and removed on exit. This command does
 not call GrsAI or Gemini.
 
+## One-command real-provider smoke
+
+After explicit owner authorization, the canonical real-provider validation is:
+
+```bash
+npm run demo:local:provider-smoke -- --authorized
+```
+
+Do not replace this with a desktop browser or an ad-hoc Playwright script. The
+runner bootstraps and resets the Local Demo, starts the explicitly armed GrsAI
+runtime, and drives the normal shopper UI with repository Playwright. It submits
+**VT Rowan first and waits for a real completed result before VT Lane becomes
+the second request**. The test never clicks retry; if Rowan fails, Lane is not
+submitted.
+
+The runner captures S01–S06 evidence under ignored
+`.local/demo-evidence/provider-smoke-<run>/`, writes a browser state record,
+checks PostgreSQL telemetry for exactly two GrsAI `GenerationRequest` rows and
+exactly two provider `GenerationAttempt` rows, restarts the app with providers
+blocked, verifies the same Decision Result media, and finishes with the scoped
+shopper/session/media reset. Gemini fallback is not permitted.
+
+This command is intentionally refused in CI, Vercel, Production, or without the
+explicit `--authorized` argument.
+
 ## Runtime contract
 
 | Concern | Local Demo behavior |
