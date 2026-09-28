@@ -103,7 +103,7 @@ function EditorialCards({ section, locale, dark = false }: { section: BusinessSe
   const cards = section.cards ?? []
   if (!cards.length) return null
   return (
-    <div className={`mt-9 grid gap-x-8 gap-y-8 ${cards.length <= 2 ? 'md:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+    <div className={`mt-9 grid gap-x-8 gap-y-8 ${cards.length <= 2 ? 'md:grid-cols-2' : cards.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
       {cards.map((card, index) => {
         const href = card.href ? businessHref(locale, card.href) : null
         return (
