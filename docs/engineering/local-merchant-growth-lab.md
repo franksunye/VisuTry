@@ -9,6 +9,11 @@ The Local Merchant Growth Lab is the primary development and QA environment
 for Merchant acquisition through private Store Preview. It uses repository-local
 PostgreSQL, guarded mock identities, and Stripe TEST configuration only.
 
+For the reusable VisuTry Demo Optical Store, use the separate
+[Local Demo Runtime Contract](./local-demo-runtime-contract.md). It owns the
+`demo:local:seed`, `demo:local:dev`, and browser network verification loop;
+the Merchant Growth Lab's clean-onboarding seed/reset remains separate.
+
 ## First run
 
 ```bash

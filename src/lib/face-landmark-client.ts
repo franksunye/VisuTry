@@ -28,9 +28,32 @@ export function resolveMediaPipeAssetUrls(
   }
 }
 
+function isLoopbackHostname(hostname: string) {
+  return hostname === '127.0.0.1' || hostname === 'localhost' || hostname === '::1' || hostname === '[::1]'
+}
+
+/**
+ * Explicit loopback MediaPipe assets are a Local-only contract: if they fail,
+ * surface that failure instead of silently reaching the public CDN/GCS hosts.
+ */
+export function shouldAllowRemoteMediaPipeFallback(
+  urls: { wasm: string; model: string },
+  pageOrigin = typeof window === 'undefined' ? 'https://visutry.invalid' : window.location.origin,
+) {
+  try {
+    return ![urls.wasm, urls.model].every((value) => {
+      const url = new URL(value, pageOrigin)
+      return url.protocol === 'http:' && isLoopbackHostname(url.hostname)
+    })
+  } catch {
+    return true
+  }
+}
+
 const PRIMARY_ASSET_URLS = resolveMediaPipeAssetUrls()
 const PRIMARY_WASM_ASSET_URL = PRIMARY_ASSET_URLS.wasm
 const PRIMARY_MODEL_ASSET_URL = PRIMARY_ASSET_URLS.model
+const ALLOW_REMOTE_ASSET_FALLBACK = shouldAllowRemoteMediaPipeFallback(PRIMARY_ASSET_URLS)
 
 type FaceLandmarkerDelegate = 'GPU' | 'CPU'
 type FaceLandmarkerAssetSource = 'primary' | 'fallback'
@@ -199,6 +222,7 @@ async function getFaceLandmarker(delegate: FaceLandmarkerDelegate): Promise<Face
       try {
         return await createFaceLandmarker(delegate, 'primary')
       } catch (primaryError) {
+        if (!ALLOW_REMOTE_ASSET_FALLBACK) throw primaryError
         try {
           return await createFaceLandmarker(delegate, 'fallback')
         } catch (fallbackError) {

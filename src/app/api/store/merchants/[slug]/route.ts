@@ -19,6 +19,7 @@ export async function GET(
       experiences: runtime.experiences,
       slug: params.slug,
       experienceSlug,
+      includeCatalogFrames: request.nextUrl.searchParams.get('includeCatalogFrames') === '1',
     })
 
     return NextResponse.json({

@@ -304,6 +304,39 @@ describe('Experience foundation', () => {
     expect(profile).not.toHaveProperty('contactEmail')
   })
 
+  it('returns the full public Store selection only when explicitly requested', async () => {
+    const selectedFrames = Array.from({ length: 10 }, (_, index) => frame(`frame-${index + 1}`))
+    const findActiveByMerchant = jest.fn().mockResolvedValue(selectedFrames)
+    const dependencies = {
+      merchants: merchant(),
+      frames: {
+        findActiveByMerchant,
+        findByMerchantAndId: jest.fn(),
+        findActiveByMerchantAndId: jest.fn(),
+      },
+      slug: 'ello-sunglasses',
+    }
+
+    const defaultProfile = await getPublicMerchantProfile(dependencies)
+    expect(defaultProfile.activeFrameCount).toBe(10)
+    expect(defaultProfile.featuredFrames).toHaveLength(4)
+    expect(defaultProfile).not.toHaveProperty('catalogFrames')
+
+    const exploringProfile = await getPublicMerchantProfile({
+      ...dependencies,
+      includeCatalogFrames: true,
+    })
+    expect(exploringProfile.featuredFrames).toHaveLength(4)
+    expect(exploringProfile.catalogFrames?.map(({ id }) => id)).toEqual(selectedFrames.map(({ id }) => id))
+    expect(exploringProfile.catalogFrames?.[0]).toMatchObject({
+      id: 'frame-1',
+      name: 'frame-1',
+      price: null,
+      currency: null,
+      productBrand: null,
+    })
+  })
+
   it('persists the selected experience and first-touch campaign on session creation', async () => {
     const sessionCreate = jest.fn().mockResolvedValue({
       id: 'session-1',

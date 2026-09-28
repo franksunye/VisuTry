@@ -22,6 +22,7 @@ import {
   analyzeFaceLandmarkFile,
   detectFaceLandmarksFromImage,
   resolveMediaPipeAssetUrls,
+  shouldAllowRemoteMediaPipeFallback,
 } from '@/lib/face-landmark-client'
 import type { FaceLandmarkPoint } from '@/types/face-analysis'
 
@@ -81,6 +82,24 @@ describe('face-landmark-client detector fallback', () => {
       wasm: 'https://assets.example.test/mediapipe/0.10.35/wasm',
       model: 'https://assets.example.test/mediapipe/0.10.35/models/face_landmarker.task',
     })
+  })
+
+  it('does not allow remote fallback when both primary assets are explicitly loopback', () => {
+    expect(shouldAllowRemoteMediaPipeFallback({
+      wasm: 'http://127.0.0.1:4100/0.10.35/wasm',
+      model: 'http://127.0.0.1:4100/0.10.35/models/face_landmarker.task',
+    })).toBe(false)
+  })
+
+  it('preserves remote fallback for non-local asset configurations', () => {
+    expect(shouldAllowRemoteMediaPipeFallback({
+      wasm: '/mediapipe/wasm',
+      model: '/mediapipe/models/face_landmarker.task',
+    }, 'https://www.visutry.com')).toBe(true)
+    expect(shouldAllowRemoteMediaPipeFallback({
+      wasm: 'https://assets.example.test/wasm',
+      model: 'https://assets.example.test/model.task',
+    }, 'https://www.visutry.com')).toBe(true)
   })
 
   it('treats blank values as unset and normalizes trailing slashes', () => {
