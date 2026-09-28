@@ -122,11 +122,14 @@ test.describe('@critical Business market-facing narrative', () => {
     await expect(page.locator('[data-plan-code="ENTERPRISE"][id="enterprise"]')).toContainText('$2,500+ / month');
     await expect(page.locator('[data-plan-code="ENTERPRISE"][id="enterprise"]')).toContainText('Contact Sales');
     await expect(page.getByRole('heading', { name: /Validate before choosing a monthly plan/i })).toBeVisible();
-    await expect(page.locator('#pilot')).toContainText('$149 / 30 days');
-    await expect(page.locator('#pilot')).toContainText('AI-assisted shoppers');
-    await expect(page.locator('#pilot')).toContainText('1,500');
-    await expect(page.locator('#pilot')).toContainText('3,500');
-    await expect(page.locator('#pilot')).toContainText('No auto-renew');
+    await expect(page.locator('#pilot')).toContainText('From $149 / 30 days');
+    await expect(page.locator('#pilot')).toContainText('Typical pilot includes');
+    await expect(page.locator('#pilot')).toContainText('8–50 real frames');
+    await expect(page.locator('#pilot')).toContainText('Virtual Try-On + Compare');
+    await expect(page.locator('#pilot')).toContainText('Scope confirmed before billing');
+    await expect(page.locator('#pilot')).toContainText(/deployment configurations may vary in scope and pricing/i);
+    await expect(page.locator('#pilot')).not.toContainText('1,500');
+    await expect(page.locator('#pilot')).not.toContainText('3,500');
     await expect(page.getByRole('heading', { name: /One shopper journey, one session/i })).toBeVisible();
     await expect(page.getByText(/A shopper enters a Store or Campaign, starts Recommendation/i)).toBeVisible();
     await expect(page.getByText(/There are no automatic overage charges and no rollover/i)).toBeVisible();
@@ -137,7 +140,7 @@ test.describe('@critical Business market-facing narrative', () => {
     await sessionsTooltipButton.click();
     await expect(page.getByRole('tooltip')).toContainText(/1 AI Commerce Session/i);
     await expect(page.getByRole('link', { name: 'Start Free' }).first()).toHaveAttribute('href', '/en/merchant?commercialIntent=FREE');
-    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' }).last()).toHaveAttribute('href', '/en/merchant?commercialIntent=FOUNDING_PILOT');
+    await expect(page.getByRole('link', { name: 'Request Pilot Review' })).toHaveAttribute('href', '/en/business/pilot');
     await expect(page.getByRole('heading', { name: /One journey from discovery to a confident decision/i })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Open Reference Experience' })).toHaveAttribute('href', '/en/c/akila/statement-frames');
     await expect(page.getByRole('link', { name: 'Choose Launch' })).toHaveAttribute('href', '/en/merchant?commercialIntent=LAUNCH');
@@ -147,6 +150,18 @@ test.describe('@critical Business market-facing narrative', () => {
     await expect(page.locator('body')).not.toContainText(/price_(?:live|test|[A-Za-z0-9]+)/i);
     expect(consoleErrors).toEqual([]);
     expect(pageErrors).toEqual([]);
+  });
+
+  test('Pilot page presents one configurable Founding Pilot offer from $149', async ({ page }) => {
+    const response = await page.goto('/en/business/pilot', { waitUntil: 'domcontentloaded' });
+
+    expect(response).not.toBeNull();
+    expect(response!.status()).toBeLessThan(400);
+    await expect(page).toHaveTitle(/Start a VisuTry Founding Merchant Pilot/);
+    await expect(page.getByRole('heading', { name: 'From $149 / 30 days.' })).toBeVisible();
+    await expect(page.getByText(/Final scope and pilot fee are confirmed based on your deployment configuration/i)).toBeVisible();
+    await expect(page.getByText(/Hosted, Campaign, in-store, and other deployment configurations may vary in scope and pricing/i)).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Request Pilot Review' })).toHaveAttribute('href', '#pilot-request');
   });
 
   test('Merchant pricing comparison remains usable on mobile', async ({ page }) => {
