@@ -37,6 +37,25 @@ test.describe('@critical Business market-facing narrative', () => {
     }
   })
 
+  test('core Business pages preserve the visual hierarchy without mobile horizontal overflow', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+
+    for (const route of [
+      '/en/business',
+      '/en/business/platform',
+      '/en/business/store',
+      '/en/business/campaigns',
+      '/en/business/commerce-intelligence',
+    ]) {
+      const response = await page.goto(route, { waitUntil: 'domcontentloaded' })
+      expect(response).not.toBeNull()
+      expect(response!.status()).toBeLessThan(400)
+      const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+      expect(documentWidth).toBeLessThanOrEqual(390)
+      await expect(page.locator('h1')).toBeVisible()
+    }
+  })
+
   test('public Merchant CTA preserves the anonymous authentication continuation', async ({ page }) => {
     await page.goto('/en/business', { waitUntil: 'domcontentloaded' });
     await page.getByRole('link', { name: 'Merchant Sign In' }).first().click();
