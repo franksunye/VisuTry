@@ -341,7 +341,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     description: 'Start with a focused, real-world pilot using your own eyewear catalog. Final scope and pilot fee are confirmed based on your deployment configuration.',
     primaryCta: { label: 'Request Pilot Review', href: '#pilot-request' },
     secondaryCta: { label: 'View Pricing', href: '/business/pricing' },
-    microcopy: 'We review deployment configuration, catalog scope, and launch timing before confirming the Pilot and fee.',
+    microcopy: 'From $149 / 30 days · We review deployment configuration, catalog scope, and launch timing before confirming the Pilot and fee.',
     sections: [
       {
         eyebrow: 'What to send',
