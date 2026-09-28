@@ -1,0 +1,128 @@
+{
+  "catalogId": "visutry-demo-catalog-v1",
+  "purpose": "Reusable VisuTry first-party synthetic local demo catalog",
+  "demoOnly": true,
+  "forSale": false,
+  "items": [
+    {
+      "id": "vt-rowan",
+      "sku": "VT-DEMO-001",
+      "name": "VT Rowan",
+      "assetPath": "/assets/glasses-presets/round-classic.jpg",
+      "shape": "round",
+      "visualColor": "black",
+      "materialAppearance": "acetate appearance",
+      "styleTags": ["classic", "creative"],
+      "demoOnly": true,
+      "forSale": false
+    },
+    {
+      "id": "vt-lane",
+      "sku": "VT-DEMO-002",
+      "name": "VT Lane",
+      "assetPath": "/assets/glasses-presets/rectangle-classic.jpg",
+      "shape": "rectangle",
+      "visualColor": "black",
+      "materialAppearance": "acetate appearance",
+      "styleTags": ["classic", "professional"],
+      "demoOnly": true,
+      "forSale": false
+    },
+    {
+      "id": "vt-vale",
+      "sku": "VT-DEMO-003",
+      "name": "VT Vale",
+      "assetPath": "/assets/glasses-presets/oval-classic.jpg",
+      "shape": "oval",
+      "visualColor": "dark metal appearance",
+      "materialAppearance": "thin metal appearance",
+      "styleTags": ["minimal", "professional"],
+      "demoOnly": true,
+      "forSale": false
+    },
+    {
+      "id": "vt-arden",
+      "sku": "VT-DEMO-004",
+      "name": "VT Arden",
+      "assetPath": "/assets/glasses-presets/browline-classic.jpg",
+      "shape": "browline",
+      "visualColor": "black and silver appearance",
+      "materialAppearance": "mixed appearance",
+      "styleTags": ["classic", "professional"],
+      "demoOnly": true,
+      "forSale": false
+    },
+    {
+      "id": "vt-north",
+      "sku": "VT-DEMO-005",
+      "name": "VT North",
+      "assetPath": "/assets/glasses-presets/aviator-classic.jpg",
+      "shape": "aviator",
+      "visualColor": "dark metal appearance",
+      "materialAppearance": "metal appearance",
+      "styleTags": ["classic", "bold"],
+      "demoOnly": true,
+      "forSale": false
+    },
+    {
+      "id": "vt-sable",
+      "sku": "VT-DEMO-006",
+      "name": "VT Sable",
+      "assetPath": "/assets/glasses-presets/cat-eye-classic.jpg",
+      "shape": "cat-eye",
+      "visualColor": "black",
+      "materialAppearance": "acetate appearance",
+      "styleTags": ["bold", "creative"],
+      "demoOnly": true,
+      "forSale": false
+    },
+    {
+      "id": "vt-solis",
+      "sku": "VT-DEMO-007",
+      "name": "VT Solis",
+      "assetPath": "/assets/glasses-presets/demo-v1/vt-solis.png",
+      "shape": "soft-square",
+      "visualColor": "warm tortoise appearance",
+      "materialAppearance": "acetate appearance",
+      "styleTags": ["classic", "professional"],
+      "demoOnly": true,
+      "forSale": false
+    },
+    {
+      "id": "vt-lumen",
+      "sku": "VT-DEMO-008",
+      "name": "VT Lumen",
+      "assetPath": "/assets/glasses-presets/demo-v1/vt-lumen.png",
+      "shape": "oval",
+      "visualColor": "gold",
+      "materialAppearance": "thin metal appearance",
+      "styleTags": ["minimal", "professional", "classic"],
+      "demoOnly": true,
+      "forSale": false
+    },
+    {
+      "id": "vt-cove",
+      "sku": "VT-DEMO-009",
+      "name": "VT Cove",
+      "assetPath": "/assets/glasses-presets/demo-v1/vt-cove.png",
+      "shape": "rectangle",
+      "visualColor": "crystal / transparent appearance",
+      "materialAppearance": "acetate appearance",
+      "styleTags": ["minimal", "creative"],
+      "demoOnly": true,
+      "forSale": false
+    },
+    {
+      "id": "vt-mira",
+      "sku": "VT-DEMO-010",
+      "name": "VT Mira",
+      "assetPath": "/assets/glasses-presets/demo-v1/vt-mira.png",
+      "shape": "geometric",
+      "visualColor": "silver",
+      "materialAppearance": "thin metal appearance",
+      "styleTags": ["minimal", "professional", "creative"],
+      "demoOnly": true,
+      "forSale": false
+    }
+  ]
+}

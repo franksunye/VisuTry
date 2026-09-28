@@ -25,6 +25,22 @@ export type PublicMerchantFramePreview = {
   productBrand: string | null
 }
 
+export type PublicMerchantCatalogFrame = {
+  id: string
+  sku: string | null
+  name: string
+  imageUrl: string | null
+  productUrl: string | null
+  price: number | null
+  currency: string | null
+  shape: string
+  material: string | null
+  color: string | null
+  widthClass: string | null
+  styleTags: string[]
+  productBrand: string | null
+}
+
 export type PublicMerchantProfile = {
   id: string
   slug: string
@@ -43,6 +59,8 @@ export type PublicMerchantProfile = {
   guestSponsoredTryOnLimit: number | null
   activeFrameCount: number
   featuredFrames: PublicMerchantFramePreview[]
+  /** Returned only for the shopper's explicit full-catalog exploration request. */
+  catalogFrames?: PublicMerchantCatalogFrame[]
   status: MerchantStatus
   experience: {
     id: string
@@ -67,6 +85,7 @@ export async function getPublicMerchantProfile(input: {
   experiences?: ExperienceRepository
   slug: string
   experienceSlug?: string | null
+  includeCatalogFrames?: boolean
 }): Promise<PublicMerchantProfile> {
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) {
@@ -87,7 +106,27 @@ export async function getPublicMerchantProfile(input: {
       ? await input.frames.findActiveByMerchantAndExperience(merchant.id, experience)
       : await input.frames.findActiveByMerchant(merchant.id)
 
-  return toPublicMerchantProfile(merchant, activeFrames, experience)
+  const profile = toPublicMerchantProfile(merchant, activeFrames, experience)
+  if (!input.includeCatalogFrames) return profile
+
+  return {
+    ...profile,
+    catalogFrames: activeFrames.map((frame) => ({
+      id: frame.id,
+      sku: frame.sku,
+      name: frame.name,
+      imageUrl: frame.imageUrl,
+      productUrl: frame.productUrl,
+      price: frame.price,
+      currency: frame.currency,
+      shape: frame.shape,
+      material: frame.material,
+      color: frame.color,
+      widthClass: frame.widthClass,
+      styleTags: frame.styleTags,
+      productBrand: productBrandForFrame(frame),
+    })),
+  }
 }
 
 export function toPublicMerchantProfile(

@@ -7,6 +7,7 @@
 import { get } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { isMockMode } from '@/lib/mocks'
+import { readMockBlob } from '@/lib/mocks/blob'
 import {
   StoreDomainError,
   merchantInactive,
@@ -42,8 +43,16 @@ async function readStoreResultBytes(input: {
   resultPathname?: string | null
   accessMode: unknown
 }): Promise<{ body: Buffer; contentType: string }> {
-  if (isMockMode || input.accessMode === 'PUBLIC_TEMPORARY') {
-    if (!isMockMode && !isVercelBlobUrl(input.resultImageUrl)) {
+  if (isMockMode) {
+    const local = await readMockBlob(input.resultPathname || input.resultImageUrl)
+    if (!local) {
+      throw new StoreDomainError('VALIDATION_ERROR', 'Result image unavailable.', 404)
+    }
+    return local
+  }
+
+  if (input.accessMode === 'PUBLIC_TEMPORARY') {
+    if (!isVercelBlobUrl(input.resultImageUrl)) {
       throw new StoreDomainError('VALIDATION_ERROR', 'Result image unavailable.', 404)
     }
     const response = await fetch(input.resultImageUrl)

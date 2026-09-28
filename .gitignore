@@ -15,6 +15,9 @@
 /.open-next/
 /.wrangler/
 /.artifacts/
+/.local/mock-blob/
+/.local/mock-blob-test-*/
+/.local/demo-evidence/
 
 # production
 /build

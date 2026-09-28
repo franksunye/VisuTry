@@ -49,6 +49,15 @@
     "db:local:reset": "bash scripts/db-local.sh reset",
     "db:local:status": "bash scripts/db-local.sh status",
     "merchant:local:preflight": "tsx scripts/merchant-local-preflight.ts",
+    "demo:local:seed": "bash scripts/seed-local-demo.sh",
+    "demo:local:dev": "bash scripts/dev-local-demo.sh",
+    "demo:local:dev:e2e": "bash scripts/dev-local-demo.sh --deterministic-tryon-fixture",
+    "demo:local:dev:grsai": "bash scripts/dev-local-demo.sh --arm-grsai",
+    "demo:local:bootstrap": "bash scripts/bootstrap-local-demo.sh",
+    "demo:local:journey:e2e": "bash scripts/run-local-demo-journey-e2e.sh",
+    "demo:local:network:verify": "node scripts/verify-local-demo-network.mjs",
+    "demo:local:reset-session": "bash scripts/reset-local-demo-session.sh",
+    "demo:local:shopper:ux:e2e": "NODE_ENV=test APP_ENV=local ENABLE_MOCKS=true TEST_MODE=true PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 playwright test tests/e2e/demo-local-catalog-exploration.spec.ts --project=chromium",
     "merchant:local:bootstrap": "bash scripts/merchant-local-bootstrap.sh",
     "merchant:local:reset-clean": "bash scripts/merchant-local-reset-clean.sh",
     "merchant:local:dev": "bash scripts/dev-local.sh",
@@ -127,7 +136,8 @@
     "perf:test:open": "node scripts/test-performance.js --open",
     "perf:hybrid-sample": "node scripts/hybrid-performance-sample.mjs",
     "perf:hybrid-sample:validate": "node scripts/hybrid-performance-sample.mjs --validate-only",
-    "perf:hybrid-sample:full": "node scripts/hybrid-performance-sample.mjs --full"
+    "perf:hybrid-sample:full": "node scripts/hybrid-performance-sample.mjs --full",
+    "demo:local:provider-smoke": "bash scripts/run-local-demo-provider-smoke.sh"
   },
   "dependencies": {
     "@axiomhq/js": "^1.3.1",

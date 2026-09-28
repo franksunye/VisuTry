@@ -17,6 +17,7 @@ import {
 } from '@/lib/commerce-handoff/merchant-continuation'
 import type { StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
 import { DEFAULT_DECISION_JOURNEY_POLICY, type DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
+import { formatPublicStorePrice } from '@/modules/store/domain/format-public-store-price'
 
 type FrameMeta = {
   id: string
@@ -58,6 +59,7 @@ type StoreTryOnComparePanelProps = {
   onContinuationBatchId?: (batchId: string) => void
   onTryOnTasksChange?: (tasks: MerchantRuntimeTryOnTaskRef[]) => void
   onCompareStarted?: (started: boolean) => void
+  decisionResultHref?: string | null
 }
 
 function restoreTilesFromTasks(
@@ -92,16 +94,7 @@ function deviceTypeLabel(): string {
 }
 
 function formatPrice(price: number | null, currency: string | null): string | null {
-  if (price === null || price === undefined) return null
-  const code = (currency || 'usd').toUpperCase()
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: code,
-    }).format(price / 100)
-  } catch {
-    return `${(price / 100).toFixed(2)} ${code}`
-  }
+  return formatPublicStorePrice(price, currency)
 }
 
 export function StoreTryOnComparePanel({
@@ -121,6 +114,7 @@ export function StoreTryOnComparePanel({
   onContinuationBatchId,
   onTryOnTasksChange,
   onCompareStarted,
+  decisionResultHref,
 }: StoreTryOnComparePanelProps) {
   const t = useTranslations('storeShopper')
   const [tiles, setTiles] = useState<TryOnTile[]>(() => restoreTilesFromTasks(selectedFrames, initialTasks))
@@ -882,6 +876,7 @@ export function StoreTryOnComparePanel({
           {experiencePolicy.compareEnabled && completed.length >= 2 && !showCompare && (
             <button
               type="button"
+              data-testid="store-tryon-open-compare"
               onClick={async () => {
                 try {
                   const res = await fetch('/api/store/sessions/compare', {
@@ -955,8 +950,29 @@ export function StoreTryOnComparePanel({
                   </div>
                 ))}
               </div>
+              {decisionResultHref ? (
+                <Link
+                  href={decisionResultHref}
+                  data-testid="store-decision-result-continuation"
+                  className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-95"
+                  style={{ backgroundColor: accent }}
+                >
+                  View your result
+                </Link>
+              ) : null}
             </div>
           )}
+
+          {!showCompare && completed.length > 0 && decisionResultHref ? (
+            <Link
+              href={decisionResultHref}
+              data-testid="store-decision-result-continuation"
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-95"
+              style={{ backgroundColor: accent }}
+            >
+              View your result
+            </Link>
+          ) : null}
         </>
       )}
     </section>

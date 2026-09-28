@@ -15,6 +15,23 @@ jest.mock('@/lib/logger', () => ({
 }))
 
 describe('GrsAi Library', () => {
+  const originalApiKey = process.env.GRSAI_API_KEY
+  const originalBaseUrl = process.env.GRSAI_BASE_URL
+
+  beforeAll(() => {
+    // These tests replace fetch with a Jest mock. Keep them independent from
+    // developer/CI secrets while satisfying the provider configuration guard.
+    process.env.GRSAI_API_KEY = 'jest-mock-only'
+    process.env.GRSAI_BASE_URL = 'https://grsaiapi.com'
+  })
+
+  afterAll(() => {
+    if (originalApiKey === undefined) delete process.env.GRSAI_API_KEY
+    else process.env.GRSAI_API_KEY = originalApiKey
+    if (originalBaseUrl === undefined) delete process.env.GRSAI_BASE_URL
+    else process.env.GRSAI_BASE_URL = originalBaseUrl
+  })
+
   beforeEach(() => {
     jest.clearAllMocks()
     delete process.env.GRSAI_SUBMIT_TIMEOUT_MS

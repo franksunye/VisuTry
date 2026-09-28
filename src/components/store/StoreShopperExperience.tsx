@@ -35,7 +35,11 @@ import {
   type MerchantRuntimeTryOnTaskRef,
 } from '@/lib/commerce-handoff/merchant-runtime-state'
 import { isPersistablePreviewUrl } from '@/lib/commerce-handoff/merchant-runtime-preview'
-import type { PublicMerchantProfile } from '@/modules/store/application/get-public-merchant'
+import { formatPublicStorePrice } from '@/modules/store/domain/format-public-store-price'
+import type {
+  PublicMerchantCatalogFrame,
+  PublicMerchantProfile,
+} from '@/modules/store/application/get-public-merchant'
 
 type MerchantProfile = PublicMerchantProfile
 
@@ -45,23 +49,12 @@ type SessionState = {
   expiresAt: string
 }
 
-type RecommendedFrame = {
-  id: string
-  sku?: string | null
-  name: string
-  imageUrl: string | null
-  productUrl: string | null
-  price: number | null
-  currency: string | null
-  shape: string
-  material: string | null
-  color: string | null
-  widthClass: string | null
-  styleTags: string[]
-  productBrand: string | null
+type RecommendedFrame = PublicMerchantCatalogFrame & {
   score: number
   reason: string
 }
+
+type StoreCatalogFrame = PublicMerchantCatalogFrame
 
 type RuntimeContinuationState = {
   merchantId: string
@@ -128,19 +121,6 @@ function captureStoreAcquisition(): {
   }
 }
 
-function formatPrice(price: number | null, currency: string | null): string | null {
-  if (price === null || price === undefined) return null
-  const code = (currency || 'usd').toUpperCase()
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency: code,
-    }).format(price / 100)
-  } catch {
-    return `${(price / 100).toFixed(2)} ${code}`
-  }
-}
-
 function MerchantMark({ merchant, accent }: { merchant: MerchantProfile; accent: string }) {
   return (
     <div className="flex items-center gap-3">
@@ -203,6 +183,11 @@ export function StoreShopperExperience({
   const [photoReady, setPhotoReady] = useState(false)
   const [recommending, setRecommending] = useState(false)
   const [recommendations, setRecommendations] = useState<RecommendedFrame[]>([])
+  const [catalogFrames, setCatalogFrames] = useState<StoreCatalogFrame[]>([])
+  const [catalogFramesLoaded, setCatalogFramesLoaded] = useState(false)
+  const [catalogFramesLoading, setCatalogFramesLoading] = useState(false)
+  const [catalogFramesError, setCatalogFramesError] = useState<string | null>(null)
+  const [catalogExpanded, setCatalogExpanded] = useState(false)
   const [decisionResultToken, setDecisionResultToken] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionSaving, setSelectionSaving] = useState(false)
@@ -266,6 +251,11 @@ export function StoreShopperExperience({
     setPhotoUploading(false)
     setRecommending(false)
     setRecommendations([])
+    setCatalogFrames([])
+    setCatalogFramesLoaded(false)
+    setCatalogFramesLoading(false)
+    setCatalogFramesError(null)
+    setCatalogExpanded(false)
     setDecisionResultToken(null)
     setSelectedIds([])
     setSelectionSaved(false)
@@ -278,6 +268,38 @@ export function StoreShopperExperience({
     setGuestCompareUnlocked(false)
     setErrorMessage(null)
   }, [clearRuntimeContinuation, experienceSlug, merchantSlug])
+
+  const loadCatalogFrames = useCallback(async (): Promise<StoreCatalogFrame[] | null> => {
+    if (catalogFramesLoaded) return catalogFrames
+    setCatalogFramesLoading(true)
+    setCatalogFramesError(null)
+    try {
+      const query = new URLSearchParams({ includeCatalogFrames: '1' })
+      if (experienceSlug) query.set('experienceSlug', experienceSlug)
+      const response = await fetch(
+        `/api/store/merchants/${encodeURIComponent(merchantSlug)}?${query.toString()}`,
+        { cache: 'no-store' },
+      )
+      const json = await response.json()
+      const rows = json?.data?.catalogFrames
+      if (!response.ok || !json?.success || !Array.isArray(rows)) {
+        throw new Error('Could not load the rest of this Store catalog.')
+      }
+      const validFrames = rows.filter((frame): frame is StoreCatalogFrame =>
+        Boolean(frame && typeof frame === 'object'
+          && typeof frame.id === 'string'
+          && typeof frame.name === 'string'),
+      )
+      setCatalogFrames(validFrames)
+      setCatalogFramesLoaded(true)
+      return validFrames
+    } catch (error) {
+      setCatalogFramesError(error instanceof Error ? error.message : 'Could not load the rest of this Store catalog.')
+      return null
+    } finally {
+      setCatalogFramesLoading(false)
+    }
+  }, [catalogFrames, catalogFramesLoaded, experienceSlug, merchantSlug])
 
   const navigateToFreshKioskEntry = useCallback((reason: 'manual' | 'idle') => {
     if (typeof window === 'undefined') return
@@ -373,6 +395,10 @@ export function StoreShopperExperience({
     async function loadMerchant() {
       if (initialPublicMerchant) {
         setMerchant(initialPublicMerchant)
+        if (initialPublicMerchant.catalogFrames) {
+          setCatalogFrames(initialPublicMerchant.catalogFrames)
+          setCatalogFramesLoaded(true)
+        }
         setLoadState('ready')
         return
       }
@@ -392,6 +418,10 @@ export function StoreShopperExperience({
         }
 
         setMerchant(json.data)
+        if (Array.isArray(json.data.catalogFrames)) {
+          setCatalogFrames(json.data.catalogFrames)
+          setCatalogFramesLoaded(true)
+        }
         setLoadState('ready')
       } catch {
         if (!cancelled) {
@@ -444,13 +474,16 @@ export function StoreShopperExperience({
       setRecommendations(validRecommendations)
       setSelectedIds(value.selectedIds)
       setSelectionSaved(true)
+      if (value.selectedIds.some((id) => !validRecommendations.some((frame) => frame.id === id))) {
+        void loadCatalogFrames()
+      }
       setResumeBatchId(value.batchId)
       setResumeTryOnTasks(value.tryOnTasks)
       setGuestCompareUnlocked(true)
     } catch {
       // Ignore malformed same-tab state and let the shopper restart cleanly.
     }
-  }, [clearRuntimeContinuation, kioskMode, merchant, merchantContinuationPath, runtimeContinuationKey])
+  }, [clearRuntimeContinuation, kioskMode, loadCatalogFrames, merchant, merchantContinuationPath, runtimeContinuationKey])
 
   useEffect(() => {
     if (!experienceSlug || typeof window === 'undefined') return
@@ -538,6 +571,10 @@ export function StoreShopperExperience({
       setRecommending(true)
       setErrorMessage(null)
       setRecommendations([])
+      setCatalogFrames([])
+      setCatalogFramesLoaded(false)
+      setCatalogFramesError(null)
+      setCatalogExpanded(false)
       setDecisionResultToken(null)
       setSelectedIds([])
       setSelectionSaved(false)
@@ -604,6 +641,10 @@ export function StoreShopperExperience({
           return
         }
         setRecommendations(json.data.frames || [])
+        setCatalogFrames([])
+        setCatalogFramesLoaded(false)
+        setCatalogFramesError(null)
+        setCatalogExpanded(false)
         setDecisionResultToken(typeof json.data.decisionResult?.token === 'string' ? json.data.decisionResult.token : null)
       } catch {
         setErrorMessage(t('errors.recommend'))
@@ -630,6 +671,10 @@ export function StoreShopperExperience({
     setPhotoPreview(preview)
     setPhotoReady(false)
     setRecommendations([])
+    setCatalogFrames([])
+    setCatalogFramesLoaded(false)
+    setCatalogFramesError(null)
+    setCatalogExpanded(false)
     setDecisionResultToken(null)
     setSelectedIds([])
     setSelectionSaved(false)
@@ -677,6 +722,10 @@ export function StoreShopperExperience({
     setPhotoPreview(undefined)
     setPhotoReady(false)
     setRecommendations([])
+    setCatalogFrames([])
+    setCatalogFramesLoaded(false)
+    setCatalogFramesError(null)
+    setCatalogExpanded(false)
     setDecisionResultToken(null)
     setSelectedIds([])
     setSelectionSaved(false)
@@ -843,7 +892,13 @@ export function StoreShopperExperience({
     guestSponsoredTryOnLimit: merchant.guestSponsoredTryOnLimit,
     guestCompareUnlocked,
   })
-  const selectedFrames = recommendations.filter((frame) => selectedIds.includes(frame.id))
+  const selectedFrames = (catalogFramesLoaded ? catalogFrames : recommendations)
+    .filter((frame) => selectedIds.includes(frame.id))
+  const recommendedFrameIds = new Set(recommendations.map((frame) => frame.id))
+  const additionalCatalogFrames = catalogFrames.filter((frame) => !recommendedFrameIds.has(frame.id))
+  const canExploreCatalog = catalogFramesLoaded
+    ? additionalCatalogFrames.length > 0
+    : merchant.activeFrameCount > recommendations.length
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const continuationText = (key: string, fallback: string) => t.has(key) ? t(key) : fallback
   const fitProfileCopy: StoreFitProfileCopy = {
@@ -858,6 +913,11 @@ export function StoreShopperExperience({
     mapAlt: continuationText('fitProfile.mapAlt', 'Your photo with a subtle fit map'),
     mapFallback: continuationText('fitProfile.mapFallback', 'Fit map unavailable'),
   }
+  const exploreAllFramesLabel = continuationText('recommend.exploreAllFrames', 'Explore all frames')
+  const hideOtherFramesLabel = continuationText('recommend.hideOtherFrames', 'Hide other frames')
+  const moreFramesTitle = continuationText('recommend.moreFramesTitle', 'More frames from this Store')
+  const moreFramesBody = continuationText('recommend.moreFramesBody', 'Recommended frames stay above; explore the rest of this Store here.')
+  const catalogLoadingLabel = continuationText('recommend.catalogLoading', 'Loading Store frames…')
   const stepChooseFrames = continuationText('steps.chooseFrames', 'Choose frames')
   const stepStartTryOn = continuationText('steps.startTryOn', 'Start Try-On')
   const journeyLabels: Record<DecisionJourneyStage, string> = {
@@ -1016,7 +1076,7 @@ export function StoreShopperExperience({
                     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {recommendations.map((frame, index) => {
                         const selected = selectedIds.includes(frame.id)
-                        const priceLabel = formatPrice(frame.price, frame.currency)
+                        const priceLabel = formatPublicStorePrice(frame.price, frame.currency)
                         return (
                           <li key={frame.id}>
                             <button
@@ -1036,11 +1096,11 @@ export function StoreShopperExperience({
                               <div className="p-4">
                                 <div className="flex items-start justify-between gap-3">
                                   <p className="font-semibold text-slate-900">{frame.name}</p>
-                                  <p className="shrink-0 text-right text-sm font-semibold text-slate-900">{priceLabel || t('recommend.priceUnavailable')}</p>
+                                  {priceLabel ? <p className="shrink-0 text-right text-sm font-semibold text-slate-900">{priceLabel}</p> : null}
                                 </div>
                                 <p className="mt-1 text-xs font-medium uppercase tracking-[0.12em] text-slate-400">{frame.productBrand || merchant.name}</p>
                                 <p className="mt-1 text-xs capitalize text-slate-400">{[frame.shape, frame.color, frame.widthClass].filter(Boolean).join(' · ')}</p>
-                                <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">{continuationText('recommend.reasonLabel', 'Why it fits')}</p>
+                                <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">{continuationText('recommend.reasonLabel', 'Why we recommend it')}</p>
                                 <p className="mt-1 text-xs leading-5 text-slate-600">{frame.reason || continuationText('recommend.reasonFallback', 'Selected from this collection.')}</p>
                               </div>
                             </button>
@@ -1048,6 +1108,65 @@ export function StoreShopperExperience({
                         )
                       })}
                     </ul>
+                  </section>
+                ) : null}
+
+                {photoReady && !recommending && recommendations.length > 0 && canExploreCatalog ? (
+                  <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-label={moreFramesTitle}>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-semibold text-slate-900">{moreFramesTitle}</h3>
+                        <p className="mt-1 text-sm text-slate-500">{moreFramesBody}</p>
+                      </div>
+                      <button
+                        type="button"
+                        aria-expanded={catalogExpanded}
+                        onClick={() => {
+                          const nextExpanded = !catalogExpanded
+                          setCatalogExpanded(nextExpanded)
+                          if (nextExpanded && !catalogFramesLoaded) void loadCatalogFrames()
+                        }}
+                        className="min-h-10 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
+                      >
+                        {catalogExpanded ? hideOtherFramesLabel : exploreAllFramesLabel}
+                      </button>
+                    </div>
+                    {catalogExpanded ? (
+                      <div className="mt-5">
+                        {catalogFramesLoading ? <p role="status" className="py-4 text-sm text-slate-500">{catalogLoadingLabel}</p> : null}
+                        {catalogFramesError ? <p role="alert" className="py-3 text-sm text-rose-700">{catalogFramesError}</p> : null}
+                        {!catalogFramesLoading && !catalogFramesError && catalogFramesLoaded ? (
+                          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            {additionalCatalogFrames.map((frame) => {
+                              const selected = selectedIds.includes(frame.id)
+                              const priceLabel = formatPublicStorePrice(frame.price, frame.currency)
+                              return (
+                                <li key={frame.id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleFrame(frame.id)}
+                                    disabled={!selected && selectedIds.length >= maxSelectableFrames}
+                                    aria-pressed={selected}
+                                    aria-label={selected ? `Remove ${frame.name}` : `Select ${frame.name}`}
+                                    className={`group flex h-full w-full items-center gap-3 rounded-xl border p-3 text-left transition hover:border-blue-300 hover:bg-blue-50/40 disabled:cursor-not-allowed disabled:opacity-50 ${selected ? 'border-blue-500 bg-blue-50/60 ring-1 ring-blue-300' : 'border-slate-200 bg-white'}`}
+                                  >
+                                    <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-50">
+                                      {frame.imageUrl ? <Image src={frame.imageUrl} alt={frame.name} fill sizes="80px" className="object-contain p-2" /> : <Glasses className="absolute inset-0 m-auto h-6 w-6 text-slate-300" aria-hidden="true" />}
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                      <span className="block truncate text-sm font-semibold text-slate-900">{frame.name}</span>
+                                      <span className="mt-1 block truncate text-xs text-slate-500">{[frame.shape, frame.color].filter(Boolean).join(' · ')}</span>
+                                      {priceLabel ? <span className="mt-1 block text-xs font-semibold text-slate-700">{priceLabel}</span> : null}
+                                    </span>
+                                    {selected ? <CheckCircle2 className="h-5 w-5 shrink-0 text-blue-700" aria-hidden="true" /> : <span className="text-lg text-slate-400" aria-hidden="true">+</span>}
+                                  </button>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </section>
                 ) : null}
 
@@ -1092,6 +1211,7 @@ export function StoreShopperExperience({
                       onContinuationBatchId={handleContinuationBatchId}
                       onTryOnTasksChange={handleTryOnTasksChange}
                       onCompareStarted={setCompareStarted}
+                      decisionResultHref={decisionResultHref}
                     />
                   ) : null}
                 </div>
