@@ -22,6 +22,15 @@ describe('Business public content contract', () => {
     expect(businessPages.intelligence.sections.some((section) => section.eyebrow === 'Questions it answers')).toBe(true)
   })
 
+  it('keeps commercial detail out of Business Home and campaign-channel detail out of Platform', () => {
+    const homeCopy = JSON.stringify(businessPages.overview)
+    const platformCopy = JSON.stringify(businessPages.platform)
+
+    expect(homeCopy).not.toMatch(/\$149|1,500|3,500/)
+    expect(homeCopy).not.toMatch(/Founding Merchant Pilot/)
+    expect(platformCopy).not.toMatch(/paid & social|creator|email|QR/i)
+  })
+
   it('does not reuse section headlines across the five core pages', () => {
     const titles = coreKeys.flatMap((key) => businessPages[key].sections.map((section) => section.title))
     expect(new Set(titles).size).toBe(titles.length)
