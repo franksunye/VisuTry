@@ -3,17 +3,43 @@ import { businessPages } from '@/config/business-site'
 const coreKeys = ['overview', 'platform', 'store', 'campaigns', 'intelligence'] as const
 
 describe('Business public content contract', () => {
-  it('uses one canonical discovery-to-action narrative across core Merchant pages', () => {
+  it('anchors one canonical Merchant journey on Business Home', () => {
     expect(businessPages.overview.title).toBe('Be discovered. Help shoppers decide. Turn intent into action.')
     expect(businessPages.overview.sections[0]?.eyebrow).toBe('Discovery → Decision → Merchant Action')
+  })
 
-    for (const key of coreKeys) {
-      const page = businessPages[key]
-      const publicCopy = JSON.stringify(page)
-      expect(publicCopy).toMatch(/discovery/i)
-      expect(publicCopy).toMatch(/decision/i)
-      expect(publicCopy).toMatch(/action/i)
-    }
+  it('gives each core page a distinct information job', () => {
+    expect(businessPages.platform.title).toMatch(/system behind every VisuTry decision experience/i)
+    expect(businessPages.platform.sections.some((section) => section.eyebrow === 'Platform architecture')).toBe(true)
+
+    expect(businessPages.store.title).toMatch(/always-on decision experience/i)
+    expect(businessPages.store.sections.some((section) => section.eyebrow === 'When to use Store')).toBe(true)
+
+    expect(businessPages.campaigns.title).toMatch(/Focused decision experiences for campaign traffic/i)
+    expect(businessPages.campaigns.sections.some((section) => section.eyebrow === 'When to use Campaigns')).toBe(true)
+
+    expect(businessPages.intelligence.title).toMatch(/gains — or loses — momentum/i)
+    expect(businessPages.intelligence.sections.some((section) => section.eyebrow === 'Questions it answers')).toBe(true)
+  })
+
+  it('does not reuse section headlines across the five core pages', () => {
+    const titles = coreKeys.flatMap((key) => businessPages[key].sections.map((section) => section.title))
+    expect(new Set(titles).size).toBe(titles.length)
+  })
+
+  it('keeps page-specific scope instead of restating every capability everywhere', () => {
+    const storeCopy = JSON.stringify(businessPages.store)
+    const campaignCopy = JSON.stringify(businessPages.campaigns)
+    const intelligenceCopy = JSON.stringify(businessPages.intelligence)
+
+    expect(storeCopy).toMatch(/open-ended/i)
+    expect(storeCopy).not.toMatch(/paid & social/i)
+
+    expect(campaignCopy).toMatch(/arrival context/i)
+    expect(campaignCopy).not.toMatch(/Kiosk/i)
+
+    expect(intelligenceCopy).toMatch(/operating questions/i)
+    expect(intelligenceCopy).not.toMatch(/Kiosk/i)
   })
 
   it('uses market-facing Merchant Actions instead of internal Handoff terminology', () => {
@@ -22,7 +48,7 @@ describe('Business public content contract', () => {
     expect(publicCopy).toMatch(/Merchant Actions/)
   })
 
-  it('keeps the canonical product vocabulary visible across the core story', () => {
+  it('keeps canonical product vocabulary available without forcing it into every page', () => {
     const publicCopy = JSON.stringify(coreKeys.map((key) => businessPages[key]))
 
     expect(publicCopy).toMatch(/Recommendation/)
@@ -43,7 +69,7 @@ describe('Business public content contract', () => {
   })
 
   it('keeps Commerce Intelligence inside its evidence boundary', () => {
-    expect(businessPages.intelligence.description).toMatch(/without treating intent as guaranteed revenue/i)
+    expect(businessPages.intelligence.description).toMatch(/evidence layer/i)
     expect(businessPages.intelligence.sections.find((section) => section.eyebrow === 'Evidence boundary')?.note)
       .toBe('No guaranteed conversion uplift, revenue lift, or incremental GMV claims.')
   })
