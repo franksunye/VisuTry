@@ -76,7 +76,7 @@ function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey })
 
         {!textOnly ? (
           <div className={storeDominant ? 'mt-12 lg:mt-14 lg:ml-auto lg:w-[82%]' : 'relative'}>
-            {slot ? <BusinessVisualPlaceholder {...slot} /> : null}
+            {slot ? <BusinessVisualPlaceholder {...slot} priority /> : null}
           </div>
         ) : null}
       </div>
@@ -125,35 +125,92 @@ function EditorialCards({ section, locale, dark = false }: { section: BusinessSe
   )
 }
 
-function supplementalSlot(pageKey: BusinessPageKey, sectionIndex: number): VisualSlot | null {
-  if (pageKey === 'overview' && sectionIndex === 1) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE' }
-  if (pageKey === 'overview' && sectionIndex === 2) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
-  if (pageKey === 'overview' && sectionIndex === 3) return { id: 'B2B-VIS-06', name: 'Commerce Intelligence', status: 'NEEDS INSIGHTS CAPTURE' }
-  if (pageKey === 'platform' && sectionIndex === 2) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE' }
-  if (pageKey === 'platform' && sectionIndex === 4) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
-  if (pageKey === 'store' && sectionIndex === 1) return { id: 'B2B-VIS-03', name: 'Store Shopper Journey', status: 'NEEDS STORE CAPTURE', ratio: '4:3' }
-  if (pageKey === 'campaigns' && sectionIndex === 1) return { id: 'B2B-VIS-04', name: 'Campaign Experience', status: 'NEEDS CAMPAIGN CAPTURE' }
-  if (pageKey === 'examples' && sectionIndex === 0) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE', ratio: '4:3' }
-  if (pageKey === 'integrations' && sectionIndex === 1) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
-  if (pageKey === 'pilot' && sectionIndex === 2) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
-  return null
+type SectionPresentation = {
+  visual?: VisualSlot
+  visualSide?: 'left' | 'right'
+  contrast?: boolean
 }
 
-function isContrastSection(pageKey: BusinessPageKey, index: number) {
-  if (pageKey === 'overview' && index === 3) return true
-  if (pageKey === 'intelligence' && index === 0) return true
-  return false
+function sectionPresentation(pageKey: BusinessPageKey, section: BusinessSection): SectionPresentation {
+  if (pageKey === 'overview' && section.eyebrow === 'Product surfaces') {
+    return {
+      visual: { id: 'B2B-VIS-03', name: 'Store Experience', status: 'NEEDS STORE CAPTURE' },
+      visualSide: 'right',
+    }
+  }
+
+  if (pageKey === 'overview' && section.eyebrow === 'Merchant operating model') {
+    return {
+      visual: { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' },
+      visualSide: 'left',
+    }
+  }
+
+  if (pageKey === 'overview' && section.eyebrow === 'Commerce Intelligence') {
+    return {
+      visual: { id: 'B2B-VIS-06', name: 'Commerce Intelligence', status: 'NEEDS INSIGHTS CAPTURE' },
+      visualSide: 'right',
+      contrast: true,
+    }
+  }
+
+  if (pageKey === 'platform' && section.eyebrow === 'Merchant Workspace') {
+    return {
+      visual: { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' },
+      visualSide: 'right',
+    }
+  }
+
+  if (pageKey === 'store' && section.eyebrow === 'Shopper experience') {
+    return {
+      visual: { id: 'B2B-VIS-03', name: 'Store Shopper Journey', status: 'NEEDS STORE CAPTURE', ratio: '4:3' },
+      visualSide: 'left',
+    }
+  }
+
+  if (pageKey === 'intelligence' && section.eyebrow === 'Evidence boundary') {
+    return { contrast: true }
+  }
+
+  if (pageKey === 'examples' && section.eyebrow === 'Store product preview') {
+    return {
+      visual: { id: 'B2B-VIS-03', name: 'Store Experience', status: 'NEEDS STORE CAPTURE', ratio: '4:3' },
+      visualSide: 'right',
+    }
+  }
+
+  if (pageKey === 'integrations' && section.eyebrow === 'Merchant workspace proof') {
+    return {
+      visual: { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' },
+      visualSide: 'right',
+    }
+  }
+
+  if (pageKey === 'pilot' && section.eyebrow === 'Merchant workspace') {
+    return {
+      visual: { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' },
+      visualSide: 'right',
+    }
+  }
+
+  return {}
 }
 
 function SectionBlock({ pageKey, section, index, locale }: { pageKey: BusinessPageKey; section: BusinessSection; index: number; locale: string }) {
-  const slot = supplementalSlot(pageKey, index)
-  const contrast = isContrastSection(pageKey, index)
+  const presentation = sectionPresentation(pageKey, section)
+  const slot = presentation.visual
+  const contrast = Boolean(presentation.contrast)
   const split = Boolean(slot)
+  const visualLeft = split && presentation.visualSide === 'left'
+  const compact = !split && !contrast && !section.cards && !section.steps
 
   return (
-    <section className={contrast ? 'bg-slate-950 text-white' : index % 2 === 0 ? 'bg-white' : 'bg-[#f8fafc]'}>
-      <div className={`mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 ${split ? 'grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:gap-14' : ''}`}>
-        <div className={split ? '' : 'mx-auto max-w-5xl'}>
+    <section
+      className={contrast ? 'bg-slate-950 text-white' : index % 2 === 0 ? 'bg-white' : 'bg-[#f8fafc]'}
+      data-business-section={section.eyebrow ?? section.title}
+    >
+      <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${compact ? 'py-12 sm:py-16' : 'py-14 sm:py-20'} ${split ? 'grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:gap-14' : ''}`}>
+        <div className={`${split ? '' : 'mx-auto max-w-5xl'} ${visualLeft ? 'lg:order-2' : ''}`}>
           {section.eyebrow ? <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${contrast ? 'text-sky-300' : 'text-blue-700'}`}>{section.eyebrow}</p> : null}
           <h2 className={`mt-3 max-w-4xl text-3xl font-semibold tracking-[-0.04em] sm:text-4xl lg:text-[2.7rem] lg:leading-[1.08] ${contrast ? 'text-white' : 'text-slate-950'}`}>{section.title}</h2>
           {section.body ? <p className={`mt-5 max-w-3xl text-base leading-7 ${contrast ? 'text-slate-300' : 'text-slate-600'}`}>{section.body}</p> : null}
@@ -161,7 +218,11 @@ function SectionBlock({ pageKey, section, index, locale }: { pageKey: BusinessPa
           {section.cards ? <EditorialCards section={section} locale={locale} dark={contrast} /> : null}
           {section.note ? <p className={`mt-6 max-w-3xl border-l-2 pl-4 text-xs leading-5 ${contrast ? 'border-sky-400 text-slate-400' : 'border-slate-300 text-slate-500'}`}>{section.note}</p> : null}
         </div>
-        {slot ? <BusinessVisualPlaceholder {...slot} /> : null}
+        {slot ? (
+          <div className={visualLeft ? 'lg:order-1' : ''}>
+            <BusinessVisualPlaceholder {...slot} />
+          </div>
+        ) : null}
       </div>
     </section>
   )
