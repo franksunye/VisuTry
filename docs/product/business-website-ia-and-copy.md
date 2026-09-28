@@ -157,10 +157,18 @@ The Pricing page owns:
 - Kiosk packaging;
 - support / integration scope.
 
+The public Founding Pilot pricing policy is:
+
+- one **Founding Pilot** offer, not separate hosted / Campaign / in-store Pilot SKUs;
+- public entry price: **From $149 / 30 days**;
+- final scope and Pilot fee are confirmed based on deployment configuration before billing;
+- hosted, Campaign, in-store, and other deployment configurations may vary in scope and pricing;
+- merchant-specific proposals and quotations may use the confirmed configuration-specific fee directly.
+
 The public CTA convention is:
 
 - **Start 30-Day Pilot** on Business marketing pages;
-- **Request Pilot Review** on the Pilot page itself;
+- **Request Pilot Review** on the Pilot page itself and in the Pricing-page Pilot block;
 - **Start Free** where the Free commercial path is relevant.
 
 ## 6. Claims Boundary

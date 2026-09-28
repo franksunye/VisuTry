@@ -261,7 +261,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   pricing: {
     slug: '/business/pricing',
     metaTitle: 'VisuTry Eyewear AI Commerce Pricing | Free, Pilot & Merchant Plans',
-    metaDescription: 'Simple pricing for the full eyewear decision journey. Compare Free, the $149 Founding Pilot, Launch, Growth, Scale, and Enterprise by AI Commerce Sessions, Campaigns, analytics, and delivery capabilities.',
+    metaDescription: 'Simple pricing for the full eyewear decision journey. Compare Free, the Founding Pilot from $149 / 30 days, Launch, Growth, Scale, and Enterprise by AI Commerce Sessions, Campaigns, analytics, and delivery capabilities.',
     eyebrow: 'Pricing',
     title: 'Simple pricing for the full eyewear decision journey.',
     description: 'One AI Commerce Session covers a shopper’s Recommendation, Try-On, and Compare journey — so you scale with meaningful shopper decisions, not individual renders.',
@@ -335,13 +335,13 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   pilot: {
     slug: '/business/pilot',
     metaTitle: 'Start a VisuTry Founding Merchant Pilot',
-    metaDescription: 'Launch a 30-day $149 VisuTry Pilot with 8–50 reviewed frames, one hosted Store or Campaign Experience, and assisted setup.',
+    metaDescription: 'Start a VisuTry Founding Merchant Pilot from $149 / 30 days. Final scope and pilot fee are confirmed based on deployment configuration.',
     eyebrow: 'Founding Merchant Pilot',
     title: 'Test VisuTry with your real eyewear catalog.',
-    description: 'Start with a focused frame set, one hosted Store or Campaign Experience, and a 30-day review cycle before making a larger commitment.',
+    description: 'Start with a focused, real-world pilot using your own eyewear catalog. Final scope and pilot fee are confirmed based on your deployment configuration.',
     primaryCta: { label: 'Request Pilot Review', href: '#pilot-request' },
     secondaryCta: { label: 'View Pricing', href: '/business/pricing' },
-    microcopy: 'We review fit, catalog scope, and launch timing before confirming the Pilot.',
+    microcopy: 'From $149 / 30 days · We review deployment configuration, catalog scope, and launch timing before confirming the Pilot and fee.',
     sections: [
       {
         eyebrow: 'What to send',
@@ -357,7 +357,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         eyebrow: 'How the Pilot starts',
         title: 'Request → scope review → confirmation → launch & review.',
         steps: ['Request', 'Scope Review', 'Confirmation', 'Launch & Review'],
-        body: 'We confirm the frame set, Store or Campaign format, launch assumptions, Pilot terms, and payment instructions before configuration begins.',
+        body: 'We confirm the frame set, deployment configuration, launch assumptions, Pilot scope, fee, and payment instructions before configuration begins.',
       },
       {
         eyebrow: 'Merchant workspace',
@@ -366,8 +366,8 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       },
       {
         eyebrow: 'Pilot scope',
-        title: '$149 / 30 days with assisted setup.',
-        body: 'The current Founding Merchant Pilot includes 8–50 reviewed frames, one hosted Store or Campaign Experience, guided Recommendation, Standard Try-On, Frame Compare, Decision Result / mobile continuation, configured Merchant Actions, enabled intent signals, up to 1,500 AI-assisted shoppers, up to 3,500 Standard Try-On generations, assisted setup, and a weekly review. Kiosk-ready delivery can be configured when the Pilot use case requires it.',
+        title: 'From $149 / 30 days.',
+        body: 'A typical Founding Merchant Pilot includes 8–50 real frames, an AI-assisted shopper experience, Virtual Try-On, Frame Compare, assisted setup, and a weekly review. Hosted, Campaign, in-store, and other deployment configurations may vary in scope and pricing. Final scope and pilot fee are confirmed before billing.',
       },
       {
         eyebrow: 'What happens next',

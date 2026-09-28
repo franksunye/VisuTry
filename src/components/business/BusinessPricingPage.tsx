@@ -17,13 +17,14 @@ type ComparisonPlanCode = (typeof comparisonPlanCodes)[number]
 
 function planPath(planCode: MerchantPlanCode) {
   if (planCode === 'ENTERPRISE') return '/business/pilot?plan=enterprise'
+  if (planCode === 'FOUNDING_PILOT') return '/business/pilot'
   return merchantPurchasePath(planCode as MerchantPurchaseIntent)
 }
 
 function planCta(planCode: MerchantPlanCode) {
   if (planCode === 'FREE') return 'Start Free'
   if (planCode === 'ENTERPRISE') return 'Contact Sales'
-  if (planCode === 'FOUNDING_PILOT') return 'Start 30-Day Pilot'
+  if (planCode === 'FOUNDING_PILOT') return 'Request Pilot Review'
   return `Choose ${getMerchantPlanDefinition(planCode).name}`
 }
 
@@ -224,22 +225,23 @@ function PilotSection({ locale }: { locale: string }) {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-700">Founding Pilot</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">Validate before choosing a monthly plan.</h2>
-          <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">Test real products and shopper traffic with assisted setup and a focused 30-day review cycle.</p>
-          <p className="mt-7 text-5xl font-semibold tracking-[-0.05em] text-slate-950">{FOUNDING_PILOT_OFFER.priceLabel}</p>
-          <p className="mt-3 text-sm font-semibold text-violet-950">One-time · 30 days · No auto-renew</p>
+          <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">Start with a focused, real-world pilot using your own eyewear catalog. Final scope and pilot fee are confirmed based on your deployment configuration.</p>
+          <p className="mt-7 text-5xl font-semibold tracking-[-0.05em] text-slate-950">From {FOUNDING_PILOT_OFFER.priceLabel}</p>
+          <p className="mt-3 text-sm font-semibold text-violet-950">30 days · No auto-renew · Scope confirmed before billing</p>
           <Link href={businessHref(locale, planPath('FOUNDING_PILOT'))} prefetch={false} className="mt-7 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800">
             {planCta('FOUNDING_PILOT')}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
         <div className="rounded-2xl border border-violet-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">AI-assisted shoppers</p><p className="mt-2 text-lg font-semibold text-slate-950">{FOUNDING_PILOT_OFFER.aiAssistedShoppers.toLocaleString('en-US')}</p></div>
-            <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Standard Try-On generations</p><p className="mt-2 text-lg font-semibold text-slate-950">{FOUNDING_PILOT_OFFER.standardTryOnGenerations.toLocaleString('en-US')}</p></div>
-            <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Catalog scope</p><p className="mt-2 text-lg font-semibold text-slate-950">{FOUNDING_PILOT_OFFER.catalogFrames.min}–{FOUNDING_PILOT_OFFER.catalogFrames.max} frames</p></div>
-            <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Working model</p><p className="mt-2 text-lg font-semibold text-slate-950">{FOUNDING_PILOT_OFFER.setup}</p></div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Typical pilot includes</p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div><p className="text-sm font-semibold text-slate-950">8–50 real frames</p><p className="mt-1 text-sm leading-6 text-slate-600">A focused selection from your own eyewear catalog.</p></div>
+            <div><p className="text-sm font-semibold text-slate-950">AI-assisted shopper experience</p><p className="mt-1 text-sm leading-6 text-slate-600">Guided Recommendation and decision support using your products.</p></div>
+            <div><p className="text-sm font-semibold text-slate-950">Virtual Try-On + Compare</p><p className="mt-1 text-sm leading-6 text-slate-600">Let shoppers evaluate shortlisted frames in the same journey.</p></div>
+            <div><p className="text-sm font-semibold text-slate-950">Assisted setup + weekly review</p><p className="mt-1 text-sm leading-6 text-slate-600">Launch support and a focused review cycle during the Pilot.</p></div>
           </div>
-          <div className="mt-7 border-t border-slate-200 pt-6 text-sm leading-6 text-slate-600">The Pilot includes a guided decision experience with Recommendation, Standard Try-On, Compare, Decision Result / mobile continuation, and configured Merchant Actions. Kiosk-ready delivery can be configured when the Pilot use case requires it. At day 30, choose Free, Launch, Growth, or Scale. The Store and catalog are retained.</div>
+          <div className="mt-7 border-t border-slate-200 pt-6 text-sm leading-6 text-slate-600">Hosted, Campaign, in-store, and other deployment configurations may vary in scope and pricing. Final scope and pilot fee are confirmed before billing.</div>
         </div>
       </div>
     </section>
@@ -330,7 +332,7 @@ function FaqSection() {
   const faq = [
     ['What counts as an AI Commerce Session?', 'One shopper starts an AI-assisted shopping journey in one Store or Campaign. Recommendation, multiple Try-Ons, Compare, and Intent in that journey count as one session. Plain browsing does not.'],
     ['What happens when I reach my session limit?', 'Your Store, catalog, product browsing, product links, inquiries, and analytics remain available. Generative Try-On pauses until capacity is restored.'],
-    ['Does the Founding Pilot renew automatically?', 'No. It is a one-time $149, 30-day offer with no automatic renewal or silent conversion to a monthly plan.'],
+    ['Does the Founding Pilot renew automatically?', 'No. The Founding Pilot starts from $149 / 30 days. Final scope and fee are confirmed based on deployment configuration, with no automatic renewal or silent conversion to a monthly plan.'],
     ['Can I upgrade later?', 'Yes. Start with Free or the Founding Pilot, then choose Launch, Growth, or Scale based on the capacity you need.'],
     ['Do I keep my Store if my paid plan ends?', 'Yes. The Store and catalog are retained. Paid AI features change according to the commercial state and plan.'],
     ['How many Stores do I get?', 'One canonical Store per Merchant / Brand in the current model.'],
