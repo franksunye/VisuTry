@@ -5,11 +5,15 @@ import dotenv from 'dotenv'
 import { PrismaClient } from '@prisma/client'
 import { assertDatabaseEnvironment } from '../src/lib/app-environment'
 import { createRuntimePostgresAdapter, resolveRuntimePostgresProvider } from '../src/lib/postgres-runtime'
+import { MockBlob, readMockBlob } from '../src/lib/mocks/blob'
 import {
   assertDemoServerStopped,
   assertDemoStoreIdentity,
   assertLocalDemoMerchantIdentity,
   assertLocalDemoSessionResetEnvironment,
+  assertLocalDemoShopperMediaPathname,
+  localDemoShopperMediaPathnameFromReference,
+  localDemoShopperMediaPrefixes,
   localDemoTryOnTaskScope,
 } from './lib/local-demo-session-reset-contract'
 
@@ -39,6 +43,23 @@ function isTcpPortListening(host: string, port: number): Promise<boolean> {
 
 function printCounts(label: string, counts: Record<string, number>): void {
   console.log(`${label}: ${Object.entries(counts).map(([key, value]) => `${key}=${value}`).join(' ')}`)
+}
+
+function addLocalMediaReference(target: Set<string>, value: string | null | undefined, merchantId: string): void {
+  const pathname = localDemoShopperMediaPathnameFromReference(value, merchantId)
+  if (pathname) target.add(pathname)
+}
+
+async function listScopedLocalMedia(merchantId: string): Promise<string[]> {
+  const pathnames = new Set<string>()
+  for (const prefix of localDemoShopperMediaPrefixes(merchantId)) {
+    const { blobs } = await MockBlob.list({ prefix })
+    for (const blob of blobs) {
+      assertLocalDemoShopperMediaPathname(blob.pathname, merchantId)
+      pathnames.add(blob.pathname)
+    }
+  }
+  return [...pathnames]
 }
 
 async function main(): Promise<void> {
@@ -126,7 +147,13 @@ async function main(): Promise<void> {
       const sessionIds = sessionRows.map((row) => row.id)
       const taskRows = await tx.tryOnTask.findMany({
         where: { merchantId: merchant.id, merchantSessionId: { in: sessionIds } },
-        select: { id: true },
+        select: {
+          id: true,
+          userImageUrl: true,
+          itemImageUrl: true,
+          resultImageUrl: true,
+          metadata: true,
+        },
       })
       const taskIds = taskRows.map((row) => row.id)
       const decisionRows = await tx.decisionResult.findMany({
@@ -150,7 +177,7 @@ async function main(): Promise<void> {
             ...(sessionPhotoAssetIds.length ? [{ id: { in: sessionPhotoAssetIds } }] : []),
           ],
         },
-        select: { id: true },
+        select: { id: true, purpose: true, storageKey: true, providerUrl: true },
       })
       const assetIds = relatedAssets.map((row) => row.id)
       if (assetIds.length) {
@@ -162,11 +189,57 @@ async function main(): Promise<void> {
         }
       }
 
-      const orphanRows = await tx.storeOrphanBlob.findMany({
-        where: localDemoTryOnTaskScope(merchant.id, taskIds),
-        select: { id: true },
+      const orphanRowsForMerchant = await tx.storeOrphanBlob.findMany({
+        where: { merchantId: merchant.id },
+        select: { id: true, tryOnTaskId: true, url: true, pathname: true },
       })
+      const taskIdSet = new Set(taskIds)
+      const shopperOrphanRows = orphanRowsForMerchant.filter((row) => {
+        const pathFromUrl = localDemoShopperMediaPathnameFromReference(row.url, merchant.id)
+        const pathFromPathname = localDemoShopperMediaPathnameFromReference(row.pathname, merchant.id)
+        return taskIdSet.has(row.tryOnTaskId || '') || Boolean(pathFromUrl || pathFromPathname)
+      })
+      const orphanRows = shopperOrphanRows
       const orphanIds = orphanRows.map((row) => row.id)
+
+      const mediaReferences = new Set<string>()
+      for (const row of sessionRows) {
+        // The corresponding StoreAsset below is the canonical photo pathname
+        // source; the FK is still included to ensure session-owned rows are found.
+        if (row.photoAssetId && !relatedAssets.some((asset) => asset.id === row.photoAssetId)) {
+          throw new Error('Refusing: a Demo shopper photo reference has no matching session-owned StoreAsset.')
+        }
+      }
+      for (const row of taskRows) {
+        addLocalMediaReference(mediaReferences, row.userImageUrl, merchant.id)
+        addLocalMediaReference(mediaReferences, row.itemImageUrl, merchant.id)
+        addLocalMediaReference(mediaReferences, row.resultImageUrl, merchant.id)
+        const metadata = row.metadata && typeof row.metadata === 'object' && !Array.isArray(row.metadata)
+          ? row.metadata as Record<string, unknown>
+          : {}
+        for (const key of ['userPathname', 'itemPathname', 'resultPathname']) {
+          const value = metadata[key]
+          if (typeof value === 'string') addLocalMediaReference(mediaReferences, value, merchant.id)
+        }
+      }
+      for (const row of relatedAssets) {
+        if (row.purpose === 'SHOPPER_PHOTO' || row.storageKey.startsWith(`store/${merchant.id}/sessions/`)) {
+          const storagePath = localDemoShopperMediaPathnameFromReference(row.storageKey, merchant.id)
+          const providerPath = localDemoShopperMediaPathnameFromReference(row.providerUrl, merchant.id)
+          if (!storagePath && !providerPath) {
+            throw new Error('Refusing: a Demo shopper photo asset does not identify an exact Local media object.')
+          }
+          if (storagePath) mediaReferences.add(storagePath)
+          if (providerPath) mediaReferences.add(providerPath)
+        } else {
+          addLocalMediaReference(mediaReferences, row.storageKey, merchant.id)
+          addLocalMediaReference(mediaReferences, row.providerUrl, merchant.id)
+        }
+      }
+      for (const row of orphanRows) {
+        addLocalMediaReference(mediaReferences, row.pathname, merchant.id)
+        addLocalMediaReference(mediaReferences, row.url, merchant.id)
+      }
 
       const before = {
         sessions: sessionIds.length,
@@ -250,8 +323,70 @@ async function main(): Promise<void> {
       if (preserved.merchant !== 1 || preserved.stores !== 1 || preserved.products !== 10 || preserved.selectedProducts !== 10) {
         throw new Error('Reset changed the protected Merchant/Store/catalog fixture invariant; transaction will roll back.')
       }
-      return { merchantId: merchant.id, classification: merchant.classification, before, after, preserved }
+      return {
+        merchantId: merchant.id,
+        classification: merchant.classification,
+        before,
+        after,
+        preserved,
+        mediaReferences: [...mediaReferences],
+        taskIds,
+      }
     }, { maxWait: 10_000, timeout: 30_000 })
+
+    // The filesystem store cannot participate in the database transaction.
+    // Enumerate only the dedicated Merchant's exact shopper namespaces after
+    // DB commit, union those objects with durable row references, then delete
+    // and verify. If interrupted, rerunning reset discovers leftovers by
+    // prefix even when their DB rows have already been removed.
+    const diskMediaBefore = await listScopedLocalMedia(result.merchantId)
+    const mediaToDelete = [...new Set([...result.mediaReferences, ...diskMediaBefore])]
+    for (const pathname of mediaToDelete) assertLocalDemoShopperMediaPathname(pathname, result.merchantId)
+    if (mediaToDelete.length) await MockBlob.del(mediaToDelete)
+
+    const mediaRemaining: string[] = []
+    for (const pathname of mediaToDelete) {
+      if (await readMockBlob(pathname)) mediaRemaining.push(pathname)
+    }
+    const scopedMediaAfter = await listScopedLocalMedia(result.merchantId)
+    if (mediaRemaining.length || scopedMediaAfter.length) {
+      throw new Error(`Local shopper media reset verification failed; remaining objects=${[...new Set([...mediaRemaining, ...scopedMediaAfter])].length}. Rerun the bounded reset.`)
+    }
+
+    const finalDbState = await prisma.$transaction(async (tx) => {
+      const merchant = await tx.merchant.findUniqueOrThrow({
+        where: { id: result.merchantId },
+        select: { id: true },
+      })
+      const sessions = await tx.merchantSession.count({ where: { merchantId: merchant.id } })
+      const tasks = await tx.tryOnTask.count({ where: { merchantId: merchant.id, origin: { in: ['STORE_DEMO', 'STORE_PILOT'] } } })
+      const decisions = await tx.decisionResult.count({ where: { merchantId: merchant.id } })
+      const shopperAssets = await tx.storeAsset.count({
+        where: { merchantId: merchant.id, OR: [{ merchantSessionId: { not: null } }, { ownerType: 'SESSION' }] },
+      })
+      const remainingOrphanRows = await tx.storeOrphanBlob.findMany({
+        where: { merchantId: merchant.id },
+        select: { tryOnTaskId: true, url: true, pathname: true },
+      })
+      const taskIdSet = new Set(result.taskIds)
+      const shopperOrphans = remainingOrphanRows.filter((row) =>
+        taskIdSet.has(row.tryOnTaskId || '')
+        || Boolean(localDemoShopperMediaPathnameFromReference(row.pathname, merchant.id))
+        || Boolean(localDemoShopperMediaPathnameFromReference(row.url, merchant.id)),
+      ).length
+      const preserved = {
+        merchant: await tx.merchant.count({ where: { id: merchant.id, slug: 'visutry-demo-optical', classification: 'TEST' } }),
+        stores: await tx.experience.count({ where: { merchantId: merchant.id, type: 'STORE', slug: 'store', status: 'ACTIVE' } }),
+        products: await tx.merchantFrame.count({ where: { merchantId: merchant.id } }),
+        selectedProducts: await tx.experienceFrame.count({ where: { merchantId: merchant.id, active: true } }),
+      }
+      return { sessions, tasks, decisions, shopperAssets, shopperOrphans, preserved }
+    })
+    if (finalDbState.sessions || finalDbState.tasks || finalDbState.decisions || finalDbState.shopperAssets || finalDbState.shopperOrphans
+      || finalDbState.preserved.merchant !== 1 || finalDbState.preserved.stores !== 1
+      || finalDbState.preserved.products !== 10 || finalDbState.preserved.selectedProducts !== 10) {
+      throw new Error('Final Local Demo reset verification failed: shopper DB state must be zero while the canonical Merchant/Store/10-product fixture remains.')
+    }
 
     console.log('LOCAL DEMO SHOPPER SESSION RESET')
     console.log('environment: LOCAL')
@@ -261,6 +396,18 @@ async function main(): Promise<void> {
     console.log('action: cleared shopper sessions, related assets/events/intents/usage/results/tasks, abuse counters, and first-shopper milestone; preserved Merchant/Store/catalog.')
     printCounts('after shopper state', result.after)
     printCounts('preserved fixture', result.preserved)
+    console.log(`local shopper media: before=${diskMediaBefore.length} references=${result.mediaReferences.length} deleted=${mediaToDelete.length} after=${scopedMediaAfter.length}`)
+    printCounts('final database verification', {
+      sessions: finalDbState.sessions,
+      shopperTryOnTasks: finalDbState.tasks,
+      decisionResults: finalDbState.decisions,
+      shopperAssets: finalDbState.shopperAssets,
+      shopperOrphans: finalDbState.shopperOrphans,
+      merchant: finalDbState.preserved.merchant,
+      stores: finalDbState.preserved.stores,
+      products: finalDbState.preserved.products,
+      selectedProducts: finalDbState.preserved.selectedProducts,
+    })
     console.log('PASS')
   } finally {
     await prisma.$disconnect()

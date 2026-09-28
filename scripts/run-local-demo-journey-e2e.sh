@@ -105,6 +105,13 @@ export VISUTRY_LOCAL_DEMO_RESULT_TOKEN_FILE="$token_file"
 npm run merchant:local:preflight
 node scripts/preflight-local-demo.mjs
 
+run_reset_in_fresh_shell() {
+  env -i PATH="$PATH" HOME="${HOME:-/tmp}" bash scripts/reset-local-demo-session.sh
+}
+
+echo "Resetting only the dedicated Local Demo shopper state before the journey."
+run_reset_in_fresh_shell
+
 start_server
 npx playwright test tests/e2e/demo-local-decision-result.spec.ts --project=chromium --grep "completes Store"
 if [[ ! -s "$token_file" ]]; then
@@ -124,6 +131,9 @@ VISUTRY_LOCAL_DEMO_RESTART_RESULT_TOKEN="$result_token" \
   npx playwright test tests/e2e/demo-local-decision-result.spec.ts --project=chromium --grep "serves the same Decision Result"
 unset result_token
 stop_server
+
+echo "Resetting again after restart verification; Merchant/Store/catalog must remain and shopper DB/media must be empty."
+run_reset_in_fresh_shell
 
 if grep -E 'Submitting task to: https://(grsaiapi\.com|generativelanguage\.googleapis\.com)' "$server_log"; then
   echo "Unexpected real AI provider dispatch was logged during the no-provider journey." >&2

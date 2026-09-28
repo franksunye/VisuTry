@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-if [[ -n "${VERCEL_ENV:-}" ]]; then
+if [[ -n "${VERCEL_ENV:-}" || -n "${VERCEL:-}" ]]; then
   echo "Refusing: Local Demo session reset cannot run in a Vercel environment."
   exit 1
 fi
@@ -26,6 +26,9 @@ export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-http://127.0.0.1:3001}"
 export NEXT_PUBLIC_MEDIAPIPE_WASM_BASE_URL=http://127.0.0.1:4100/0.10.35/wasm
 export NEXT_PUBLIC_MEDIAPIPE_MODEL_URL=http://127.0.0.1:4100/0.10.35/models/face_landmarker.task
 export STRIPE_MERCHANT_BILLING_MODE=test
+export VISUTRY_LOCAL_DEMO_RUNTIME=1
+export VISUTRY_LOCAL_DEMO_PROVIDER_MODE=blocked
+export P1_M5_LOCAL_DECISION_RESULT_E2E=0
 
 npm run merchant:local:preflight
 node scripts/preflight-local-demo.mjs

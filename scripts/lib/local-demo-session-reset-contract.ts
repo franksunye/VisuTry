@@ -7,6 +7,102 @@ const ACCEPTED_CLASSIFICATION_SOURCES = new Set([
   'LOCAL_DEMO_FIXTURE',
   'WHITEPAPER_DEMO_PHASE_2B_2B',
 ])
+const LOCAL_MOCK_BLOB_ORIGIN = 'https://mock-blob-storage.vercel.app'
+
+function safeMerchantPathSegment(merchantId: string): boolean {
+  return /^[A-Za-z0-9_-]{1,128}$/.test(merchantId)
+}
+
+export function localDemoShopperMediaPrefixes(merchantId: string): string[] {
+  if (!safeMerchantPathSegment(merchantId)) {
+    throw new Error('Refusing: Demo Merchant id is not a safe Local media path segment.')
+  }
+  return [
+    `store/${merchantId}/sessions/`,
+    `tryon/user/store/${merchantId}/`,
+    `tryon/item/store/${merchantId}/`,
+    `tryon/result/store/${merchantId}/`,
+  ]
+}
+
+export function isLocalDemoShopperMediaPathname(pathname: string, merchantId: string): boolean {
+  if (!safeMerchantPathSegment(merchantId)
+    || !pathname
+    || pathname.startsWith('/')
+    || pathname.includes('\\')
+    || pathname.includes('\0')) return false
+
+  const segments = pathname.split('/')
+  if (segments.some((segment) => !segment || segment === '.' || segment === '..')) return false
+  const uuid = '[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
+  const taskId = '[A-Za-z0-9_-]{1,128}'
+  const merchant = merchantId
+
+  if (segments.length === 5
+    && segments[0] === 'store'
+    && segments[1] === merchant
+    && segments[2] === 'sessions'
+    && /^[A-Za-z0-9_-]{1,128}$/.test(segments[3])) {
+    return new RegExp(`^photo-${uuid}\\.(?:jpg|png|webp)$`, 'i').test(segments[4])
+  }
+
+  if (segments.length === 5
+    && segments[0] === 'tryon'
+    && (segments[1] === 'user' || segments[1] === 'item')
+    && segments[2] === 'store'
+    && segments[3] === merchant) {
+    return new RegExp(`^${taskId}-v\\d+-${uuid}$`, 'i').test(segments[4])
+  }
+
+  if (segments.length === 5
+    && segments[0] === 'tryon'
+    && segments[1] === 'result'
+    && segments[2] === 'store'
+    && segments[3] === merchant) {
+    return new RegExp(`^${taskId}\\.png$`, 'i').test(segments[4])
+  }
+
+  return false
+}
+
+export function localDemoShopperMediaPathnameFromReference(
+  reference: string | null | undefined,
+  merchantId: string,
+): string | null {
+  if (!reference) return null
+  let pathname: string
+
+  if (/^https?:\/\//i.test(reference)) {
+    let url: URL
+    try {
+      url = new URL(reference)
+    } catch {
+      return null
+    }
+    if (url.origin !== LOCAL_MOCK_BLOB_ORIGIN) return null
+    try {
+      pathname = url.pathname.slice(1).split('/').map((segment) => decodeURIComponent(segment)).join('/')
+    } catch {
+      throw new Error('Refusing: a Local mock media reference has invalid path encoding.')
+    }
+  } else {
+    pathname = reference
+  }
+
+  if (isLocalDemoShopperMediaPathname(pathname, merchantId)) return pathname
+  const isWithinDemoShopperNamespace = localDemoShopperMediaPrefixes(merchantId)
+    .some((prefix) => pathname.startsWith(prefix))
+  if (isWithinDemoShopperNamespace) {
+    throw new Error('Refusing: a Demo shopper media reference does not match an approved Local path shape.')
+  }
+  return null
+}
+
+export function assertLocalDemoShopperMediaPathname(pathname: string, merchantId: string): void {
+  if (!isLocalDemoShopperMediaPathname(pathname, merchantId)) {
+    throw new Error('Refusing: Local media cleanup found an object outside the exact Demo shopper namespaces.')
+  }
+}
 
 export function localDemoTryOnTaskScope(merchantId: string, taskIds: readonly string[]) {
   return {
@@ -32,12 +128,18 @@ function assertDatabaseTarget(value: string | undefined, name: string): void {
 }
 
 export function assertLocalDemoSessionResetEnvironment(env: Record<string, string | undefined>): void {
-  if (env.APP_ENV?.trim().toLowerCase() !== 'local' || env.VERCEL_ENV) {
+  if (env.APP_ENV?.trim().toLowerCase() !== 'local' || env.VERCEL_ENV || env.VERCEL) {
     throw new Error('Refusing: session reset requires explicit APP_ENV=local outside Vercel.')
   }
   if (env.NODE_ENV === 'production') throw new Error('Refusing: NODE_ENV=production is not allowed.')
   if (env.ENABLE_MOCKS?.trim().toLowerCase() !== 'true') {
     throw new Error('Refusing: Local TEST mock mode must be enabled.')
+  }
+  if (env.VISUTRY_LOCAL_DEMO_RUNTIME !== '1') {
+    throw new Error('Refusing: Local Demo runtime marker must be enabled for reset.')
+  }
+  if (env.VISUTRY_LOCAL_DEMO_PROVIDER_MODE !== 'blocked') {
+    throw new Error('Refusing: Local Demo providers must be blocked during reset.')
   }
   if (env.STRIPE_MERCHANT_BILLING_MODE?.trim().toLowerCase() !== 'test') {
     throw new Error('Refusing: Stripe Merchant billing mode must be TEST.')
