@@ -15,7 +15,28 @@ if [[ "${NODE_ENV:-}" == "production" ]]; then
   exit 1
 fi
 
+demo_mode="${1:-blocked}"
+case "$demo_mode" in
+  blocked)
+    export VISUTRY_LOCAL_DEMO_PROVIDER_MODE=blocked
+    export P1_M5_LOCAL_DECISION_RESULT_E2E=0
+    ;;
+  --deterministic-tryon-fixture)
+    export VISUTRY_LOCAL_DEMO_PROVIDER_MODE=blocked
+    export P1_M5_LOCAL_DECISION_RESULT_E2E=1
+    ;;
+  --arm-grsai)
+    export VISUTRY_LOCAL_DEMO_PROVIDER_MODE=grsai
+    export P1_M5_LOCAL_DECISION_RESULT_E2E=0
+    ;;
+  *)
+    echo "Usage: $0 [--deterministic-tryon-fixture|--arm-grsai]" >&2
+    exit 2
+    ;;
+esac
+
 export APP_ENV=local
+export VISUTRY_LOCAL_DEMO_RUNTIME=1
 export ENABLE_MOCKS=true
 export TEST_MODE=true
 export NEXTAUTH_URL=http://127.0.0.1:3001

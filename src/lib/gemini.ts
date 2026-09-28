@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 import { mockGenerateTryOnImage, isMockMode } from "./mocks/gemini"
 import { logger } from "./logger"
 import { buildTryOnPrompt } from "./prompt-builder"
+import { localDemoGeminiDispatchAllowed } from '@/lib/local-demo-provider-policy'
 
 // Configure proxy for Gemini API in local development
 if (typeof window === 'undefined') {
@@ -91,6 +92,9 @@ export async function generateTryOnImage({
   // Original prompt: "Place these glasses naturally on the person's face. Ensure the glasses fit properly, match the lighting and perspective, and look realistic."
   prompt = "Place the glasses naturally on the person’s face in the uploaded photo — use that face photo exactly as is, without cropping or altering its size, proportions, or composition; if the head is slightly tilted, the glasses frame should tilt accordingly and align exactly with the roll/tilt angle of the head, sitting properly on the nose bridge and temples. Ensure the glasses fit properly, match the lighting and perspective, look realistic, and avoid any distortion or skewing of the frame."
 }: TryOnRequest): Promise<TryOnResult> {
+  if (!localDemoGeminiDispatchAllowed()) {
+    throw new Error('Gemini generation is disabled in the Local Demo runtime; only explicitly armed GrsAI is supported.')
+  }
   // Support both new and legacy field names
   const actualItemImageUrl = itemImageUrl || glassesImageUrl
 

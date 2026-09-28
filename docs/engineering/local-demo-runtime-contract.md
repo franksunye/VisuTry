@@ -6,10 +6,15 @@
 
 ## Operator loop
 
+One-time or after a schema change:
+
+```bash
+npm run demo:local:bootstrap
+```
+
 Terminal A:
 
 ```bash
-npm run demo:local:seed
 npm run demo:local:dev
 ```
 
@@ -25,8 +30,8 @@ the actual `analyzeFaceLandmarkFile` browser module against a generated
 abstract canvas image. That probe initializes MediaPipe without a shopper
 photo, Store session, upload, API mutation, screenshot, or Try-On request.
 
-After a shopper rehearsal, stop Terminal A with Ctrl-C before clearing its
-process-memory photo/result blobs, then run:
+After a shopper rehearsal, stop Terminal A with Ctrl-C before resetting its
+session data, then run:
 
 ```bash
 npm run demo:local:reset-session
@@ -55,6 +60,24 @@ when the Next process exits. If the assets are absent, run
 `npm run mediapipe:assets:download` once; that command downloads pinned files
 and verifies their SHA-256 before writing to ignored `.local/mediapipe-assets/`.
 
+`npm run demo:local:bootstrap` starts/reuses the guarded Local PostgreSQL,
+reconciles its schema and LOCAL marker, seeds the deterministic demo fixture,
+and runs database/runtime/provider preflights. It refuses non-loopback or
+unexpected Local database targets. Regular Local Demo startup checks Prisma
+schema parity and fails with the bootstrap command if the schema has drifted.
+
+For repeatable no-provider Store → Try-On → Compare → Decision Result browser
+verification, run `npm run demo:local:journey:e2e`. It owns both local server
+processes, refuses ports 3001/4100 if already occupied, uses the actual
+browser MediaPipe/recommendation journey, substitutes only the explicitly
+guarded deterministic Local Try-On fixture, stops and restarts the Next app,
+then verifies that the same Decision Result media still resolves. The demo
+launcher can start without a developer `.env.local` file because the no-provider
+journey only uses the explicitly exported Local/test settings; normal
+`dev-local` still requires `.env.local`. The test token is held briefly in a
+mode-0600 file under ignored `.local/` and removed on exit. This command does
+not call GrsAI or Gemini.
+
 ## Runtime contract
 
 | Concern | Local Demo behavior |
@@ -65,10 +88,10 @@ and verifies their SHA-256 before writing to ignored `.local/mediapipe-assets/`.
 | MediaPipe | Real browser inference, pinned 0.10.35 WASM/model hosted from `127.0.0.1:4100`; loopback configuration disables CDN/GCS fallback |
 | Recommendation | Existing deterministic production application/domain path |
 | Store / Compare / Result | Existing Store application routes and persisted Local PostgreSQL state |
-| Try-On | Real GrsAI provider only after a separately approved, explicit generation action; startup itself never calls it |
+| Try-On | Blocked by default in Local Demo. A deterministic result fixture is available only to the dedicated Local E2E command. Real GrsAI requires explicit `--arm-grsai` startup plus an explicit shopper generation action; Gemini is never a fallback |
 | Stripe | Local mock path and TEST mode only; no checkout is needed for the demo journey |
 | Analytics | `APP_ENV=local` suppresses Production GA/Axiom destinations |
-| Store photo/result bytes | Existing `APP_ENV=local` mock Blob adapter. It is process-memory storage, isolated from Vercel Blob; keep the same dev process alive through one walkthrough |
+| Store photo/result bytes | Filesystem-backed `APP_ENV=local` mock Blob adapter under ignored `.local/mock-blob/`, isolated from Vercel Blob and durable across Next process restarts |
 | Production / Preview | Never used |
 
 The canonical ten-frame catalog manifest, approved Demo Shopper, contact sheet,
@@ -76,46 +99,48 @@ and asset provenance live in [`docs/assets/local-demo`](../assets/local-demo/).
 The catalog is synthetic, first-party demo inventory and is not offered for
 sale.
 
-## Known full-journey blockers
+## Previously observed full-journey gaps — Gate 2 disposition
 
 The bounded 2026-09-28 shopper run completed Face Intelligence, deterministic
-recommendation, selection, two approved GrsAI Try-On jobs, and Compare. Both
-provider tasks completed, but normal Local result-image reads returned HTTP
-404, leaving the Try-On and Compare image areas blank. The current process-memory
-mock Blob path is therefore not yet sufficient for reusable result delivery.
+recommendation, selection, two approved GrsAI Try-On jobs, and Compare. Result
+image reads then returned HTTP 404 because the previous process-memory mock
+Blob did not survive route/process boundaries. Gate 2 replaces this with the
+filesystem-backed Local adapter and tests object resolution after creating a
+new adapter instance and restarting the application.
 
 At 1024×768, the same run also found no visible normal shopper route from
-Try-On/Compare to “Open your private result” / Decision Result. The required
-follow-up is to review these two architecture gaps before another final capture.
-No provider retry or fallback is implied by this note.
+Try-On/Compare to Decision Result. Gate 2 adds a continuation link to the
+existing result token/href and exercises it in the browser journey. Store
+publishing behavior is unchanged.
 
-`ENABLE_MOCKS=true` selects mock auth/Stripe/Blob behavior where those
-adapters consult mock mode. It is **not** a Try-On provider kill switch. A
-Store Try-On request can reach the configured GrsAI provider; do not click a
-generation action without explicit approval for that run.
+The Local Demo provider gate now defaults to blocked even when provider keys
+are present. The Try-On application boundary rejects before Merchant/session
+reads, usage reservations, generation task creation, telemetry, or provider
+dispatch. Explicitly arming `--arm-grsai` validates a dedicated GrsAI key and
+approved HTTPS origin; it never enables Gemini fallback. Preflight makes no
+provider calls. `ENABLE_MOCKS=true` alone remains unrelated to provider
+authorization.
 
 ## Provider environment resolution
 
 Next local development loads the standard development env-file layers after
 the shell environment, with shell-exported values taking precedence. The
 Local Demo launcher explicitly exports `APP_ENV`, local URLs, Stripe TEST
-mode, and both MediaPipe loopback URLs before starting Next; it does not inject
-provider keys.
+mode, both MediaPipe loopback URLs, and the blocked-by-default provider mode
+before starting Next; it does not inject provider keys.
 
-Store GrsAI resolution is:
+Outside Local Demo, legacy provider resolution remains:
 
 ```text
 API key: GRSAI_API_KEY || GEMINI_API_KEY
 Base URL: GRSAI_BASE_URL || GEMINI_API_BASE_URL || https://grsaiapi.com
 ```
 
-Developer-provided environment values may make a provider credential available
-to the Local server; the launcher and preflight never print credential values.
-Presence does not establish ownership, permissions, or approval for use. Seed,
-startup, Store load, and MediaPipe initialization make no provider request. A
-shopper-triggered Try-On can contact GrsAI; do not submit it without explicit
-approval for that run. Do not use Gemini as an implicit substitute for a
-missing or rejected GrsAI credential.
+In Local Demo, these fallback variables do not arm generation. The separate
+`--arm-grsai` mode requires explicit `GRSAI_API_KEY` and `GRSAI_BASE_URL` on
+the approved HTTPS origin; no credential value is printed. `--arm-grsai` does
+not itself make a request. A subsequent explicit shopper Try-On is the only
+provider dispatch point. Do not use Gemini as an implicit substitute.
 
 ## Network verification
 
@@ -135,19 +160,21 @@ other external requests.
 
 ## Phase 2C walkthrough runbook — plan only, not executed
 
-The following is the exact proposed sequence. Do not begin it until the
-Lead approves the GrsAI credential/account and authorizes shopper-photo
-handling and the two provider generations. At that time, keep one Local Demo
-dev process alive for the whole flow because mock Blob bytes are in memory.
+The following remains a separate real-provider rehearsal. Do not begin it
+until the Lead approves the GrsAI credential/account and authorizes
+shopper-photo handling and the two provider generations. Local mock Blob bytes
+now persist across app restarts; a single process is no longer a storage
+requirement, though the operator should still avoid resetting data during an
+active journey.
 
 | Step | Route / expected state | Expected Local data write | External provider | Screenshot candidate / observation |
 |---|---|---|---|---|
 | 1. Open Store | `/en/store/visutry-demo-optical`, public collection visible | Read-only Merchant/Store/catalog reads; no session until shopper explicitly continues | None | Store landing; confirm 10 products, demo disclosure, no false price/sale claims |
-| 2. Upload Demo Shopper v1 | Same Store; explicit privacy continuation then photo selection | `POST /api/store/sessions` creates MerchantSession, page-view event, usage row, and first-shopper activation milestone; `POST /api/store/sessions/photo` stores mock Blob bytes in process memory, creates StoreAsset, attaches it to session, records photo-upload event | None for upload; local app only | Photo-ready state; verify privacy copy and local-only transfer |
+| 2. Upload Demo Shopper v1 | Same Store; explicit privacy continuation then photo selection | `POST /api/store/sessions` creates MerchantSession, page-view event, usage row, and first-shopper activation milestone; `POST /api/store/sessions/photo` stores mock Blob bytes under `.local/mock-blob/`, creates StoreAsset, attaches it to session, records photo-upload event | None for upload; local app only | Photo-ready state; verify privacy copy and local-only transfer |
 | 3. Face Intelligence | Happens in browser as part of the image/recommendation action | Browser-only inference; no face landmarks or raw image uploaded for MediaPipe | Local WASM/model only (`127.0.0.1:4100`) | Face analysis result/state; observe no CDN/GCS requests |
 | 4. Inspect recommendations | Store recommendation state after upload | `POST /api/store/sessions/recommend`; server records recommendation activity and creates/updates the Decision Result record | None; deterministic local ranking | Recommendation list and explanation; confirm only eligible demo catalog frames |
 | 5. Select VT Rowan | Select Rowan in recommendation list | Client selection is transient until confirmed; confirmation uses `POST /api/store/sessions/select-frames`, persisting selection/event state | None | Selected Rowan and continuation affordance |
-| 6. Real Try-On #1 | Try-On panel for VT Rowan | `POST /api/store/sessions/try-on` creates TryOnTask; mock Blob adapter persists temporary source/result bytes and task state locally | One approved GrsAI generation and result poll | Queued/running/completed result; record latency and image fidelity |
+| 6. Real Try-On #1 | Try-On panel for VT Rowan | `POST /api/store/sessions/try-on` creates TryOnTask; filesystem mock Blob persists temporary source/result bytes and task state locally | One approved GrsAI generation and result poll | Queued/running/completed result; record latency and image fidelity |
 | 7. Select VT Lane | Add Lane as second comparison frame | Selection state updated through the same select-frames boundary if required | None | Two visibly distinct selected frames |
 | 8. Real Try-On #2 | Try-On panel for VT Lane | Second TryOnTask and Local mock Blob/result state | One approved GrsAI generation and result poll | Second result; compare alignment, crop, and visible defects |
 | 9. Compare | Compare action after two completed looks | `POST /api/store/sessions/compare` records comparison event and Decision Result state | None | Compare view; evaluate scanability and fair side-by-side presentation |

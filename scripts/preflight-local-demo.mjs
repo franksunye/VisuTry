@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
@@ -36,6 +37,7 @@ const localChecks = [
   ['MediaPipe model URL', process.env.NEXT_PUBLIC_MEDIAPIPE_MODEL_URL === 'http://127.0.0.1:4100/0.10.35/models/face_landmarker.task'],
   ['Stripe billing mode', process.env.STRIPE_MERCHANT_BILLING_MODE?.toLowerCase() === 'test'],
   ['Stripe secret mode', !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test_')],
+  ['Local Demo runtime marker', process.env.VISUTRY_LOCAL_DEMO_RUNTIME === '1'],
 ]
 
 console.log('LOCAL DEMO RUNTIME PREFLIGHT')
@@ -54,6 +56,23 @@ for (const [label, value] of providerRows) {
   console.log(`${label}: ${detail}`)
 }
 console.log(`Blob token: ${process.env.BLOB_READ_WRITE_TOKEN ? `PRESENT — ${sourceFor('BLOB_READ_WRITE_TOKEN')}` : 'ABSENT'}`)
-console.log('Store photo/result storage: LOCAL MOCK selected by APP_ENV=local; provider calls are action-gated and are not made by startup.')
+console.log('Store photo/result storage: filesystem-backed Local MOCK; startup makes no provider calls.')
 
-if (localChecks.some(([, passed]) => !passed)) process.exitCode = 1
+if (localChecks.some(([, passed]) => !passed)) {
+  process.exitCode = 1
+} else {
+  const schemaCheck = spawnSync('npx', [
+    'prisma', 'migrate', 'diff', '--from-config-datasource', '--to-schema',
+    'prisma/schema.prisma', '--exit-code',
+  ], { encoding: 'utf8', env: process.env })
+  const schemaReady = schemaCheck.status === 0
+  console.log(`SCHEMA PARITY: ${schemaReady ? 'PASS' : 'FAIL'} — ${schemaReady ? 'Prisma schema matches Local PostgreSQL' : 'Run: npm run demo:local:bootstrap'}`)
+  if (!schemaReady) process.exitCode = 1
+
+  const providerCheck = spawnSync('npx', ['tsx', 'scripts/preflight-local-demo-provider.ts'], {
+    encoding: 'utf8', env: process.env,
+  })
+  if (providerCheck.stdout) process.stdout.write(providerCheck.stdout)
+  if (providerCheck.stderr) process.stderr.write(providerCheck.stderr)
+  if (providerCheck.status !== 0) process.exitCode = 1
+}

@@ -1211,6 +1211,7 @@ export function StoreShopperExperience({
                       onContinuationBatchId={handleContinuationBatchId}
                       onTryOnTasksChange={handleTryOnTasksChange}
                       onCompareStarted={setCompareStarted}
+                      decisionResultHref={decisionResultHref}
                     />
                   ) : null}
                 </div>

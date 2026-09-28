@@ -69,7 +69,7 @@ async function readPrivateOrPublicBytes(
 ): Promise<StoreAssetBytes> {
   if (isMockMode) {
     if (!providerUrl) throw new Error('Mock asset missing providerUrl')
-    const mockAsset = readMockBlob(providerUrl)
+    const mockAsset = await readMockBlob(providerUrl)
     if (!mockAsset) throw new Error('Mock asset bytes are unavailable in the Local blob store')
     return {
       body: mockAsset.body,

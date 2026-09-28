@@ -39,14 +39,23 @@ wait_ready() {
 
 case "$ACTION" in
   up)
+    refuse_remote
     refuse_unsafe_pgdata
     mkdir -p "$(dirname "$PGDATA")"
-    if [[ ! -f "$PGDATA/PG_VERSION" ]]; then
-      initdb -D "$PGDATA" --username="$PGUSER" --auth=trust >/dev/null
-    fi
     if pg_ctl -D "$PGDATA" status >/dev/null 2>&1; then
       echo "✓ Local Postgres already running on ${PGPORT}"
+    elif pg_isready -h 127.0.0.1 -p "$PGPORT" -U "$PGUSER" -d postgres >/dev/null 2>&1; then
+      endpoint="$(psql "$LOCAL_URL" -X -Atc "SELECT host(inet_server_addr()) || '|' || inet_server_port()::text || '|' || current_database()")"
+      expected_endpoint="127.0.0.1|${PGPORT}|${PGDATABASE}"
+      if [[ "$endpoint" != "$expected_endpoint" ]]; then
+        echo "❌ Refusing to reuse unexpected Local PostgreSQL endpoint/database." >&2
+        exit 1
+      fi
+      echo "✓ Reusing verified loopback Local Postgres: ${LOCAL_URL}"
     else
+      if [[ ! -f "$PGDATA/PG_VERSION" ]]; then
+        initdb -D "$PGDATA" --username="$PGUSER" --auth=trust >/dev/null
+      fi
       pg_ctl -D "$PGDATA" -o "-p ${PGPORT}" -l "$PGDATA/server.log" start >/dev/null
       wait_ready
       if ! psql "postgresql://${PGUSER}@127.0.0.1:${PGPORT}/postgres" -tAc "SELECT 1 FROM pg_database WHERE datname='${PGDATABASE}'" | grep -q 1; then
@@ -77,7 +86,7 @@ case "$ACTION" in
     # production baseline without a replayable migration. Keep Local usable
     # from an empty cluster by reconciling the schema after the migration run;
     # this path is never used by Vercel/Production.
-    DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma db push --accept-data-loss >/dev/null
+    DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma db push >/dev/null
     APP_ENV=local VISUTRY_DATABASE_IDENTITY="$VISUTRY_DATABASE_IDENTITY" DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx tsx scripts/db-environment.ts register
     ;;
   seed)

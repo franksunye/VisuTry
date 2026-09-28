@@ -1,6 +1,7 @@
 import { get } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { isMockMode } from '@/lib/mocks'
+import { readMockBlob } from '@/lib/mocks/blob'
 import { hashSessionCapability } from '../domain/session'
 import { sanitizeDecisionResultPayload } from '../domain/decision-result'
 import { resolveMerchantHandoff } from '../domain/merchant-handoff'
@@ -174,7 +175,12 @@ async function resolveResultAsset(token: string, assetRef: string) {
 export async function resolveDecisionResultAsset(input: { token: string; assetRef: string }): Promise<{ body: Buffer; contentType: string; expiresAt: Date | null } | null> {
   const access = await resolveResultAsset(input.token, input.assetRef)
   if (!access) return null
-  if (isMockMode || access.accessMode === 'PUBLIC_TEMPORARY') {
+  if (isMockMode) {
+    const local = await readMockBlob(access.resultPathname || access.resultImageUrl)
+    if (!local) return null
+    return { ...local, expiresAt: access.expiresAt }
+  }
+  if (access.accessMode === 'PUBLIC_TEMPORARY') {
     const response = await fetch(access.resultImageUrl)
     if (!response.ok) return null
     return { body: Buffer.from(await response.arrayBuffer()), contentType: response.headers.get('content-type') || 'image/png', expiresAt: access.expiresAt }

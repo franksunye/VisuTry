@@ -1,14 +1,23 @@
 import { logger } from "@/lib/logger"
+import { resolveLocalDemoProviderPolicy } from '@/lib/local-demo-provider-policy'
 import { buildTryOnPrompt } from "@/lib/prompt-builder"
 import { GRSAI_TRY_ON_MODEL } from "@/lib/generation/providers"
 import { compactGenerationLogContext, type GenerationLogContext } from "@/lib/generation/log-context"
 
-const GRSAI_API_KEY = process.env.GRSAI_API_KEY || process.env.GEMINI_API_KEY
-// Default to the current overseas GrsAi host from vendor docs.
-const GRSAI_BASE_URL = (process.env.GRSAI_BASE_URL || process.env.GEMINI_API_BASE_URL || "https://grsaiapi.com").replace(/\/$/, "")
 const MODEL_NAME = GRSAI_TRY_ON_MODEL
 const DEFAULT_SUBMIT_TIMEOUT_MS = 25_000
 const MAX_SUBMIT_TIMEOUT_MS = 45_000
+
+function getGrsAiConfig() {
+  const localPolicy = resolveLocalDemoProviderPolicy()
+  if (localPolicy.kind === 'blocked') throw new Error('Local Demo GrsAI dispatch is blocked by default.')
+  if (localPolicy.kind === 'misconfigured') throw new Error(localPolicy.reason)
+  if (localPolicy.kind === 'grsai') return { apiKey: localPolicy.apiKey, baseUrl: localPolicy.baseUrl }
+  return {
+    apiKey: process.env.GRSAI_API_KEY || process.env.GEMINI_API_KEY,
+    baseUrl: (process.env.GRSAI_BASE_URL || process.env.GEMINI_API_BASE_URL || 'https://grsaiapi.com').replace(/\/$/, ''),
+  }
+}
 
 export interface GrsAiRequestContext extends GenerationLogContext {
   taskId?: string
@@ -77,7 +86,9 @@ export async function submitAsyncTask(
   promptVersion?: string,
   context: GrsAiRequestContext = {},
 ): Promise<string> {
-  const url = `${GRSAI_BASE_URL}/v1/draw/nano-banana`
+  const config = getGrsAiConfig()
+  if (!config.apiKey) throw new Error('GRSAI_API_KEY is not configured')
+  const url = `${config.baseUrl}/v1/draw/nano-banana`
   const timeoutMs = getSubmitTimeoutMs()
   const startedAt = Date.now()
 
@@ -99,7 +110,7 @@ export async function submitAsyncTask(
   }
 
   logger.info('grsai', `Submitting task to: ${url}`, {
-    baseUrl: GRSAI_BASE_URL,
+    baseUrl: config.baseUrl,
     timeoutMs,
     provider: 'grsai',
     model: MODEL_NAME,
@@ -114,7 +125,7 @@ export async function submitAsyncTask(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${GRSAI_API_KEY}`
+        "Authorization": `Bearer ${config.apiKey}`
       },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(timeoutMs),
@@ -210,7 +221,9 @@ export async function submitAsyncTask(
  * @param grsaiTaskId - The external task ID from GrsAi (stored in metadata.externalTaskId)
  */
 export async function pollTaskResult(grsaiTaskId: string, context: GrsAiRequestContext = {}): Promise<GrsAiResult> {
-  const url = `${GRSAI_BASE_URL}/v1/draw/result`
+  const config = getGrsAiConfig()
+  if (!config.apiKey) throw new Error('GRSAI_API_KEY is not configured')
+  const url = `${config.baseUrl}/v1/draw/result`
   const startTime = Date.now()
   const logContext = {
     grsaiTaskId,
@@ -226,7 +239,7 @@ export async function pollTaskResult(grsaiTaskId: string, context: GrsAiRequestC
   logger.debug('grsai', `Polling GrsAi task result`, {
     ...logContext,
     url,
-    baseUrl: GRSAI_BASE_URL,
+    baseUrl: config.baseUrl,
   })
 
   try {
@@ -234,7 +247,7 @@ export async function pollTaskResult(grsaiTaskId: string, context: GrsAiRequestC
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${GRSAI_API_KEY}`
+        "Authorization": `Bearer ${config.apiKey}`
       },
       body: JSON.stringify({ id: grsaiTaskId })
     })

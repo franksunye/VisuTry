@@ -53,11 +53,12 @@ import {
 import { acquireStoreDispatchTakeover } from './store-task-leases'
 import { startGenerationRequest, recordGenerationFailure } from '@/lib/generation/telemetry'
 import { resolveStoreTelemetryAttribution, resolveTelemetryIsTest } from '@/lib/generation/origin'
+import {
+  isLocalDemoDecisionResultFixtureEnabled,
+  resolveLocalDemoProviderPolicy,
+} from '@/lib/local-demo-provider-policy'
 
-const LOCAL_DECISION_RESULT_E2E_ENABLED = process.env.APP_ENV === 'local'
-  && process.env.ENABLE_MOCKS === 'true'
-  && process.env.TEST_MODE === 'true'
-  && process.env.P1_M5_LOCAL_DECISION_RESULT_E2E === '1'
+const LOCAL_DECISION_RESULT_E2E_ENABLED = isLocalDemoDecisionResultFixtureEnabled()
 
 export type SubmitStoreTryOnInput = {
   merchants: MerchantRepository
@@ -485,6 +486,24 @@ async function claimStoreTryOnSlot(input: {
 export async function submitStoreFrameTryOn(
   input: SubmitStoreTryOnInput,
 ): Promise<SubmitStoreTryOnResult> {
+  const providerPolicy = resolveLocalDemoProviderPolicy()
+  const deterministicFixtureEnabled = LOCAL_DECISION_RESULT_E2E_ENABLED && isMockMode
+  if (providerPolicy.kind === 'misconfigured') {
+    throw new StoreDomainError(
+      'CAPABILITY_DISABLED',
+      'Virtual Try-On is unavailable in this Local Demo setup.',
+      503,
+      providerPolicy.reason,
+    )
+  }
+  if (providerPolicy.kind === 'blocked' && !deterministicFixtureEnabled) {
+    throw new StoreDomainError(
+      'CAPABILITY_DISABLED',
+      'Virtual Try-On is paused in this Local Demo environment.',
+      503,
+      'Local Demo provider mode is blocked; no task or usage was recorded.',
+    )
+  }
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()

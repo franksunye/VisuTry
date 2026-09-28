@@ -1,5 +1,6 @@
 import { FACE_ANALYSIS_MODEL } from '@/config/face-analysis'
 import { logger } from '@/lib/logger'
+import { resolveLocalDemoProviderPolicy } from '@/lib/local-demo-provider-policy'
 
 const CHAT_API_TIMEOUT_MS = 45_000
 const CHAT_API_TOTAL_BUDGET_MS = 55_000
@@ -8,6 +9,12 @@ const CHAT_API_RETRY_DELAY_MS = 1_500
 const MAX_INLINE_IMAGE_BYTES = 800 * 1024
 
 function getGrsAiConfig() {
+  const localPolicy = resolveLocalDemoProviderPolicy()
+  if (localPolicy.kind === 'blocked') throw new Error('Local Demo GrsAI dispatch is blocked by default.')
+  if (localPolicy.kind === 'misconfigured') throw new Error(localPolicy.reason)
+  if (localPolicy.kind === 'grsai') {
+    return { apiKey: localPolicy.apiKey, baseUrl: localPolicy.baseUrl }
+  }
   const apiKey = process.env.GRSAI_API_KEY || process.env.GEMINI_API_KEY
   const baseUrl = (
     process.env.GRSAI_BASE_URL ||

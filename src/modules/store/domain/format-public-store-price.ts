@@ -1,7 +1,7 @@
 /** Format a real Store price in minor currency units; absent prices stay absent. */
 export function formatPublicStorePrice(price: number | null, currency: string | null): string | null {
-  if (price === null || price === undefined) return null
-  const code = (currency || 'usd').toUpperCase()
+  if (price === null || price === undefined || !currency?.trim()) return null
+  const code = currency.trim().toUpperCase()
   try {
     return new Intl.NumberFormat(undefined, {
       style: 'currency',

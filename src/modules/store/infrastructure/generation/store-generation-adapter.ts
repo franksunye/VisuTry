@@ -14,11 +14,10 @@ import { computeStoreAssetExpiresAt } from '../config/store-demo-limits'
 import { submitStoreTryOnTask } from './submit-store-tryon-task'
 import { ensureStoreTryOnPersistRegistered } from './ensure-store-tryon-persist-registered'
 import { isMockMode } from '@/lib/mocks'
+import { MockBlob } from '@/lib/mocks/blob'
+import { isLocalDemoDecisionResultFixtureEnabled } from '@/lib/local-demo-provider-policy'
 
-const LOCAL_DECISION_RESULT_E2E_ENABLED = process.env.APP_ENV === 'local'
-  && process.env.ENABLE_MOCKS === 'true'
-  && process.env.TEST_MODE === 'true'
-  && process.env.P1_M5_LOCAL_DECISION_RESULT_E2E === '1'
+const LOCAL_DECISION_RESULT_E2E_ENABLED = isLocalDemoDecisionResultFixtureEnabled()
 
 export function createStoreGenerationAdapter(): StoreGenerationPort {
   ensureStoreTryOnPersistRegistered()
@@ -54,7 +53,12 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
       // external generation provider. This branch is impossible outside the
       // explicitly opted-in local test process.
       if (LOCAL_DECISION_RESULT_E2E_ENABLED && isMockMode && input.preClaimedTaskId) {
-        const fixtureResult = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/pS8AAAAASUVORK5CYII='
+        const resultPathname = `tryon/result/store/${input.actor.merchantId}/${input.preClaimedTaskId}.png`
+        const fixtureBytes = Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/pS8AAAAASUVORK5CYII=',
+          'base64',
+        )
+        const fixtureResult = await MockBlob.put(resultPathname, fixtureBytes, { contentType: 'image/png' })
         const completed = await prisma.tryOnTask.updateMany({
           where: {
             id: input.preClaimedTaskId,
@@ -65,12 +69,13 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
           },
           data: {
             status: 'COMPLETED',
-            resultImageUrl: fixtureResult,
+            resultImageUrl: fixtureResult.url,
             dispatchLeaseOwner: null,
             dispatchLeaseUntil: null,
             metadata: {
               usagePolicyKind: input.usagePolicy.kind,
               telemetryOrigin: input.telemetryOrigin ?? 'STORE',
+              resultPathname,
               resultAssetAccessMode: 'PUBLIC_TEMPORARY',
               privateBlob: false,
               localDecisionResultE2EFixture: true,
@@ -78,7 +83,10 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
             },
           },
         })
-        if (completed.count !== 1) throw new Error('Local E2E Try-On claim was not available')
+        if (completed.count !== 1) {
+          await MockBlob.del(fixtureResult.url)
+          throw new Error('Local E2E Try-On claim was not available')
+        }
         return { taskId: input.preClaimedTaskId, status: 'completed', reusedExisting: false }
       }
 

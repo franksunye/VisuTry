@@ -2,7 +2,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-if [[ ! -f .env.local ]]; then
+if [[ -n "${VERCEL_ENV:-}" || -n "${VERCEL:-}" ]]; then
+  echo "❌ Refusing Local Next.js development startup inside a Vercel environment."
+  exit 1
+fi
+
+if [[ ! -f .env.local ]] && ! [[ "${APP_ENV:-}" == "local" && "${VISUTRY_LOCAL_DEMO_RUNTIME:-}" == "1" ]]; then
   echo "❌ 缺少 .env.local，请从 .env.local.example 复制并填入本地配置"
   exit 1
 fi

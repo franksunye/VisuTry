@@ -118,6 +118,6 @@ export async function assertDemoServerStopped(
   isListening: (host: string, port: number) => Promise<boolean>,
 ): Promise<void> {
   if (await isListening('127.0.0.1', 3001)) {
-    throw new Error('Refusing: stop the Local Demo app before reset so in-memory shopper photo/result data is discarded too.')
+    throw new Error('Refusing: stop the Local Demo app before reset to avoid racing active Local shopper writes.')
   }
 }

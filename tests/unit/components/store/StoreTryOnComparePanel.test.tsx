@@ -81,6 +81,7 @@ function renderPanel(overrides?: {
   initialTasks?: { merchantFrameId: string; taskId: string }[]
   onTryOnTasksChange?: (tasks: { merchantFrameId: string; taskId: string }[]) => void
   decisionJourneyStages?: ('FACE_ANALYSIS' | 'FIT_PROFILE' | 'RECOMMENDATION' | 'TRY_ON' | 'COMPARE')[]
+  decisionResultHref?: string | null
 }) {
   return render(
     <StoreTryOnComparePanel
@@ -97,6 +98,7 @@ function renderPanel(overrides?: {
       initialBatchId="batch-1"
       initialTasks={overrides?.initialTasks ?? [{ merchantFrameId: 'frame-a', taskId: 'task-a' }]}
       onTryOnTasksChange={overrides?.onTryOnTasksChange}
+      decisionResultHref={overrides?.decisionResultHref}
     />,
   )
 }
@@ -290,5 +292,17 @@ describe('StoreTryOnComparePanel retry and rehydration', () => {
     expect(onTryOnTasksChange).toHaveBeenCalledWith([
       { merchantFrameId: 'frame-a', taskId: 'task-a' },
     ])
+  })
+
+  it('offers the existing Decision Result after a completed Try-On', async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValue(jsonResponse(200, {
+      success: true,
+      data: { status: 'completed', resultImageUrl: '/api/store/sessions/try-on/task-a/result', frame },
+    }))
+
+    renderPanel({ decisionResultHref: '/en/result/real-decision-token' })
+    const continuation = await screen.findByTestId('store-decision-result-continuation')
+    expect(continuation).toHaveAttribute('href', '/en/result/real-decision-token')
+    expect(continuation).toHaveTextContent('View your result')
   })
 })
