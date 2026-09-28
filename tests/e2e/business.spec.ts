@@ -7,7 +7,7 @@ test.describe('@critical Business market-facing narrative', () => {
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
     await expect(page).toHaveTitle(/AI Commerce for Eyewear Brands & Agencies \| VisuTry/);
-    await expect(page.getByRole('heading', { name: /Be discovered\\. Help shoppers decide\\. Turn intent into action\\./i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Be discovered\. Help shoppers decide\. Turn intent into action\./i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Store for continuity\. Campaigns for focus/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /One workspace to operate Store, Campaigns, and the signals around them/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Measure what happens between discovery and action/i })).toBeVisible();
@@ -36,7 +36,7 @@ test.describe('@critical Business market-facing narrative', () => {
       expect(response!.status()).toBeLessThan(400);
       await expect(page).toHaveURL('/en/business');
       await expect(page).toHaveTitle(/AI Commerce for Eyewear Brands & Agencies \| VisuTry/);
-      await expect(page.getByRole('heading', { name: /Be discovered\\. Help shoppers decide\\. Turn intent into action\\./i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Be discovered\. Help shoppers decide\. Turn intent into action\./i })).toBeVisible();
       await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot');
       await expect(page.locator('a[href="/admin/store"]')).toHaveCount(0);
     });
