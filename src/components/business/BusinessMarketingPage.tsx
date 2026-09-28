@@ -131,7 +131,7 @@ function supplementalSlot(pageKey: BusinessPageKey, sectionIndex: number): Visua
   if (pageKey === 'overview' && sectionIndex === 3) return { id: 'B2B-VIS-06', name: 'Commerce Intelligence', status: 'NEEDS INSIGHTS CAPTURE' }
   if (pageKey === 'platform' && sectionIndex === 2) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE' }
   if (pageKey === 'platform' && sectionIndex === 4) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
-  if (pageKey === 'store' && sectionIndex === 2) return { id: 'B2B-VIS-03', name: 'Recommendation / Try-On / Compare Detail', status: 'NEEDS STORE CAPTURE', ratio: '4:3' }
+  if (pageKey === 'store' && sectionIndex === 1) return { id: 'B2B-VIS-03', name: 'Store Shopper Journey', status: 'NEEDS STORE CAPTURE', ratio: '4:3' }
   if (pageKey === 'campaigns' && sectionIndex === 1) return { id: 'B2B-VIS-04', name: 'Campaign Experience', status: 'NEEDS CAMPAIGN CAPTURE' }
   if (pageKey === 'examples' && sectionIndex === 0) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE', ratio: '4:3' }
   if (pageKey === 'integrations' && sectionIndex === 1) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
