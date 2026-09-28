@@ -12,6 +12,7 @@ interface BusinessVisualPlaceholderProps {
   ratio?: '16:10' | '4:3' | '4:5'
   status: PlaceholderStatus
   className?: string
+  priority?: boolean
 }
 
 type BusinessVisualAsset = {
@@ -72,13 +73,13 @@ export function BusinessVisualPlaceholder({
   ratio = '16:10',
   status,
   className = '',
+  priority = false,
 }: BusinessVisualPlaceholderProps) {
   const aspect = ratio === '4:3' ? 'aspect-[4/3]' : ratio === '4:5' ? 'aspect-[4/5]' : 'aspect-[16/10]'
   const asset = getBusinessVisualAsset(id, ratio)
 
   if (asset) {
     const contain = id === 'B2B-VIS-07'
-    const eager = ['B2B-VIS-01', 'B2B-VIS-02', 'B2B-VIS-03', 'B2B-VIS-04', 'B2B-VIS-06'].includes(id)
 
     return (
       <figure
@@ -89,8 +90,8 @@ export function BusinessVisualPlaceholder({
           src={asset.src}
           alt={asset.alt}
           className={`h-full w-full ${contain ? 'object-contain' : 'object-cover'}`}
-          loading={eager ? 'eager' : 'lazy'}
-          fetchPriority={eager ? 'high' : 'auto'}
+          loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : 'auto'}
         />
       </figure>
     )

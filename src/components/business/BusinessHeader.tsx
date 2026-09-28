@@ -70,7 +70,7 @@ export function BusinessHeader() {
               prefetch={false}
               className="hidden items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 sm:inline-flex"
             >
-              Start a Pilot
+              Start 30-Day Pilot
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <button
@@ -110,7 +110,7 @@ export function BusinessHeader() {
               Merchant Sign In
             </Link>
             <Link href={businessHref(locale, '/business/pilot')} prefetch={false} onClick={() => setOpen(false)} className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">
-              Start a Pilot
+              Start 30-Day Pilot
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link href={`/${locale}`} prefetch={false} onClick={() => setOpen(false)} className="px-3 py-2.5 text-sm font-medium text-slate-500">

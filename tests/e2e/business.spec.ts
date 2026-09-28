@@ -7,17 +7,54 @@ test.describe('@critical Business market-facing narrative', () => {
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
     await expect(page).toHaveTitle(/AI Commerce for Eyewear Brands & Agencies \| VisuTry/);
-    await expect(page.getByRole('heading', { name: /Be discovered\. Help shoppers decide\. Measure what drives intent\./i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Be discovered\. Help shoppers decide\. Turn intent into action\./i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Store for continuity\. Campaigns for focus/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /One workspace to operate Store, Campaigns, and the signals around them/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /See what shoppers actually do before the product click/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Start a Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot');
+    await expect(page.getByRole('heading', { name: /One workspace to operate the experiences around your catalog/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Know whether the journey is creating meaningful intent/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot');
     await expect(page.getByRole('link', { name: 'Merchant Sign In' }).first()).toHaveAttribute('href', '/en/merchant');
     await expect(page.getByRole('link', { name: 'Explore Store' }).first()).toHaveAttribute('href', '/en/business/store');
     await expect(page.locator('a[href="/admin/store"]')).toHaveCount(0);
     await expect(page.getByAltText(/VisuTry Commerce Intelligence visual with shopper engagement and intent signals/i)).toBeVisible();
     await expect(page.locator('body')).not.toContainText(/trusted by|our customers|our partners|ROAS|sales lift/i);
   });
+
+  test('core Business pages have distinct information roles under the same Merchant narrative', async ({ page }) => {
+    const expectations = [
+      ['/en/business/platform', /The system behind every VisuTry decision experience/i, /Platform architecture/i],
+      ['/en/business/store', /An always-on decision experience for your eyewear catalog/i, /When to use Store/i],
+      ['/en/business/campaigns', /Focused decision experiences for campaign traffic/i, /When to use Campaigns/i],
+      ['/en/business/commerce-intelligence', /See where the decision journey gains — or loses — momentum/i, /Questions it answers/i],
+    ] as const
+
+    for (const [route, hero, section] of expectations) {
+      const response = await page.goto(route, { waitUntil: 'domcontentloaded' })
+      expect(response).not.toBeNull()
+      expect(response!.status()).toBeLessThan(400)
+      await expect(page.getByRole('heading', { name: hero })).toBeVisible()
+      await expect(page.getByText(section)).toBeVisible()
+      await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot')
+    }
+  })
+
+  test('core Business pages preserve the visual hierarchy without mobile horizontal overflow', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+
+    for (const route of [
+      '/en/business',
+      '/en/business/platform',
+      '/en/business/store',
+      '/en/business/campaigns',
+      '/en/business/commerce-intelligence',
+    ]) {
+      const response = await page.goto(route, { waitUntil: 'domcontentloaded' })
+      expect(response).not.toBeNull()
+      expect(response!.status()).toBeLessThan(400)
+      const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+      expect(documentWidth).toBeLessThanOrEqual(390)
+      await expect(page.locator('h1')).toBeVisible()
+    }
+  })
 
   test('public Merchant CTA preserves the anonymous authentication continuation', async ({ page }) => {
     await page.goto('/en/business', { waitUntil: 'domcontentloaded' });
@@ -36,8 +73,8 @@ test.describe('@critical Business market-facing narrative', () => {
       expect(response!.status()).toBeLessThan(400);
       await expect(page).toHaveURL('/en/business');
       await expect(page).toHaveTitle(/AI Commerce for Eyewear Brands & Agencies \| VisuTry/);
-      await expect(page.getByRole('heading', { name: /Be discovered\. Help shoppers decide\. Measure what drives intent\./i })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Start a Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot');
+      await expect(page.getByRole('heading', { name: /Be discovered\. Help shoppers decide\. Turn intent into action\./i })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot');
       await expect(page.locator('a[href="/admin/store"]')).toHaveCount(0);
     });
   }
