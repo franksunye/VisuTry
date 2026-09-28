@@ -58,7 +58,7 @@ const pilotHref = '/business/pilot'
 export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   overview: {
     slug: '/business',
-    metaTitle: 'AI Commerce for Eyear Brands & Agencies | VisuTry',
+    metaTitle: 'AI Commerce for Eyewear Brands & Agencies | VisuTry',
     metaDescription: 'Turn eyewear catalogs and traffic into guided AI decision experiences that move shoppers from discovery to decision to merchant action, with observable intent signals along the way.',
     eyebrow: 'AI Commerce for Eyewear',
     title: 'Be discovered. Help shoppers decide. Turn intent into action.',
@@ -302,7 +302,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       {
         eyebrow: 'Store product preview',
         title: 'A persistent Store experience.',
-        body: 'Use the Store product preview to evaluate the always-on shopper journey without implying a customer or partner deployment.',
+        body: 'Use the current Store product surface to evaluate the always-on shopper journey. Reference Experiences below demonstrate additional campaign and merchandising patterns without implying customer relationships.',
       },
       {
         eyebrow: 'Reference Portfolio',
@@ -322,22 +322,27 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   integrations: {
     slug: '/business/integrations',
     metaTitle: 'VisuTry Business Integrations & Deployment',
-    metaDescription: 'Start hosted-first with your existing ecommerce product pages and expand integrations as the merchant relationship and product needs mature.',
+    metaDescription: 'Start hosted-first with your existing ecommerce product pages and expand integrations only as merchant needs and proven value justify them.',
     eyebrow: 'Integrations & Deployment',
     title: 'Start hosted-first. Keep your existing commerce stack.',
-    description: 'VisuTry is designed to add a guided decision layer around existing merchant commerce rather than require a platform replacement.',
+    description: 'VisuTry adds a guided decision layer around existing merchant commerce rather than requiring a platform replacement.',
     primaryCta: { label: 'Start 30-Day Pilot', href: pilotHref },
     secondaryCta: { label: 'Explore the Platform', href: '/business/platform' },
     sections: [
       {
         eyebrow: 'Current Pilot path',
         title: 'A practical launch with reviewed product data.',
-        steps: ['Catalog review', 'Merchant identity', 'Store or Campaign setup', 'Hosted launch', 'Product handoff', 'Intent review'],
+        steps: ['Catalog Review', 'Configure', 'Hosted Launch', 'Merchant Actions', 'Intent Review'],
       },
       {
-        eyebrow: 'Commerce handoff',
+        eyebrow: 'Merchant workspace proof',
+        title: 'A visible operating layer for setup and launch.',
+        body: 'The current Pilot is deliberately assisted: merchant identity, Store, Campaigns, and setup status are managed in one workspace while launch steps remain reviewed.',
+      },
+      {
+        eyebrow: 'Merchant Actions',
         title: 'Your product pages and checkout remain the source of truth.',
-        body: 'The hosted Pilot sends shoppers back to the merchant product or inquiry destination. It does not require replacing Shopify, BigCommerce, or the merchant’s existing site.',
+        body: 'The hosted Pilot can continue shoppers to configured product, appointment, inquiry, store-visit, or other supported merchant destinations. It does not require replacing Shopify, BigCommerce, or the merchant’s existing site.',
       },
       {
         eyebrow: 'Platform direction',
@@ -365,18 +370,34 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
           { title: 'Business', description: 'Brand or store name, website, and primary contact.' },
           { title: 'Catalog', description: 'Approximate frame count and the collection or products you want to test.' },
           { title: 'Traffic', description: 'Where you expect to send shoppers from first: website, paid media, email, social, QR, or another source.' },
-          { title: 'Goal', description: 'The decision problem you want to improve: discovery, recommendation, Try-On, comparison, or product intent.' },
+          { title: 'Goal', description: 'The decision problem you want to improve: discovery, Recommendation, Virtual Try-On, Frame Compare, or merchant action.' },
         ],
+      },
+      {
+        eyebrow: 'How the Pilot starts',
+        title: 'Request → scope review → confirmation → launch & review.',
+        steps: ['Request', 'Scope Review', 'Confirmation', 'Launch & Review'],
+        body: 'We confirm the frame set, Store or Campaign format, launch assumptions, Pilot terms, and payment instructions before configuration begins.',
+      },
+      {
+        eyebrow: 'Merchant workspace',
+        title: 'A visible operating model, not an invisible black box.',
+        body: 'Merchant Workspace keeps setup status, Store, Campaigns, and the operating state visible throughout the Pilot.',
       },
       {
         eyebrow: 'Pilot scope',
         title: '$149 / 30 days with assisted setup.',
-        body: 'The current Founding Merchant Pilot includes 8–50 reviewed frames, one hosted Store or Campaign Experience, guided recommendation, Standard Try-On, Frame Compare, Decision Result / continuation, configured Merchant Handoff, enabled intent signals, up to 1,500 AI-assisted shoppers, up to 3,500 Standard Try-On generations, assisted setup, and a weekly review. Kiosk-ready delivery can be configured when the Pilot use case requires it.',
+        body: 'The current Founding Merchant Pilot includes 8–50 reviewed frames, one hosted Store or Campaign Experience, guided Recommendation, Standard Try-On, Frame Compare, Decision Result / mobile continuation, configured Merchant Actions, enabled intent signals, up to 1,500 AI-assisted shoppers, up to 3,500 Standard Try-On generations, assisted setup, and a weekly review. Kiosk-ready delivery can be configured when the Pilot use case requires it.',
       },
       {
         eyebrow: 'What happens next',
         title: 'Review → configure → launch → learn.',
         steps: ['Review your catalog', 'Choose Store or Campaign', 'Configure the Experience', 'Launch hosted route', 'Review observed intent', 'Decide how to continue'],
+      },
+      {
+        eyebrow: 'After 30 days',
+        title: 'Review what happened, then decide whether to continue.',
+        body: 'There is no automatic long-term commitment. Continuation is discussed separately based on actual usage, observed shopper behavior, campaign needs, integrations, and support requirements.',
       },
     ],
   },
