@@ -42,7 +42,7 @@ export function BusinessFooter() {
       title: 'Business',
       links: [
         ['Pricing', '/business/pricing'],
-        ['Start a Pilot', '/business/pilot'],
+        ['Start 30-Day Pilot', '/business/pilot'],
         ['Merchant Sign In', '/merchant'],
       ],
     },
@@ -72,7 +72,7 @@ export function BusinessFooter() {
               </div>
             </div>
             <p className="mt-5 text-sm leading-6 text-slate-500">
-              Turn eyewear catalogs into guided shopping experiences with recommendation, Try-On, Compare, and measurable shopper intent.
+              Guide eyewear shoppers from discovery to confident decisions and Merchant Actions, with Commerce Intelligence across the journey.
             </p>
           </div>
 
