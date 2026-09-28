@@ -332,7 +332,7 @@ function FaqSection() {
   const faq = [
     ['What counts as an AI Commerce Session?', 'One shopper starts an AI-assisted shopping journey in one Store or Campaign. Recommendation, multiple Try-Ons, Compare, and Intent in that journey count as one session. Plain browsing does not.'],
     ['What happens when I reach my session limit?', 'Your Store, catalog, product browsing, product links, inquiries, and analytics remain available. Generative Try-On pauses until capacity is restored.'],
-    ['Does the Founding Pilot renew automatically?', 'No. It is a one-time $149, 30-day offer with no automatic renewal or silent conversion to a monthly plan.'],
+    ['Does the Founding Pilot renew automatically?', 'No. The Founding Pilot starts from $149 / 30 days. Final scope and fee are confirmed based on deployment configuration, with no automatic renewal or silent conversion to a monthly plan.'],
     ['Can I upgrade later?', 'Yes. Start with Free or the Founding Pilot, then choose Launch, Growth, or Scale based on the capacity you need.'],
     ['Do I keep my Store if my paid plan ends?', 'Yes. The Store and catalog are retained. Paid AI features change according to the commercial state and plan.'],
     ['How many Stores do I get?', 'One canonical Store per Merchant / Brand in the current model.'],
