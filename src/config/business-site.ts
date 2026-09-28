@@ -99,14 +99,6 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
           { title: 'Observable decision signals', description: 'Review shopper behavior in the context of product, Experience, and source where available.', href: '/business/commerce-intelligence', label: 'Explore Commerce Intelligence' },
         ],
       },
-      {
-        eyebrow: 'Founding Merchant Pilot',
-        title: 'Start with real frames before making a larger commitment.',
-        body: 'Use a focused 30-day Pilot to validate fit, shopper behavior, and operating workflow with your own catalog. Pricing and included capacity are defined on the Pricing page.',
-        cards: [
-          { title: '$149 / 30 days', description: 'Assisted setup with one hosted Store or Campaign Experience.', href: '/business/pricing', label: 'View Pricing' },
-        ],
-      },
     ],
   },
   platform: {
