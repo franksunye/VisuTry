@@ -192,7 +192,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   },
   campaigns: {
     slug: '/business/campaigns',
-    metaTitle: 'AI Shopping Campaigns for Eyear Brands & Agencies | VisuTry',
+    metaTitle: 'AI Shopping Campaigns for Eyewear Brands & Agencies | VisuTry',
     metaDescription: 'Create focused AI shopping experiences that preserve campaign context from traffic source to product edit, shopper decision, Merchant Actions, and observable intent.',
     eyebrow: 'Campaign Experiences',
     title: 'Focused decision experiences for campaign traffic.',
