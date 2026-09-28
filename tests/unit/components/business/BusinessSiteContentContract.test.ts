@@ -77,6 +77,18 @@ describe('Business public content contract', () => {
     }
   })
 
+  it('presents the Founding Pilot as one configurable offer from $149', () => {
+    expect(businessPages.pricing.metaDescription).toMatch(/Founding Pilot from \$149 \/ 30 days/i)
+    expect(businessPages.pilot.metaDescription).toMatch(/from \$149 \/ 30 days/i)
+    expect(businessPages.pilot.description).toMatch(/Final scope and pilot fee are confirmed based on your deployment configuration/i)
+
+    const pilotScope = businessPages.pilot.sections.find((section) => section.eyebrow === 'Pilot scope')
+    expect(pilotScope?.title).toBe('From $149 / 30 days.')
+    expect(pilotScope?.body).toMatch(/8–50 real frames/i)
+    expect(pilotScope?.body).toMatch(/may vary in scope and pricing/i)
+    expect(pilotScope?.body).not.toMatch(/1,500|3,500/)
+  })
+
   it('keeps Commerce Intelligence inside its evidence boundary', () => {
     expect(businessPages.intelligence.description).toMatch(/evidence layer/i)
     expect(businessPages.intelligence.sections.find((section) => section.eyebrow === 'Evidence boundary')?.note)
