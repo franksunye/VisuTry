@@ -7,13 +7,21 @@ import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const editPath = path.join(root, 'scripts/lib/local-sales-demo-rough-cut-v1.json')
+const versionIndex = process.argv.indexOf('--version')
+const version = versionIndex < 0 ? 'v1' : process.argv[versionIndex + 1]
+if (!['v1', 'v2'].includes(version)) throw new Error(`Unsupported rough-cut version: ${version || '(missing)'}`)
+const editPath = path.join(root, `scripts/lib/local-sales-demo-rough-cut-${version}.json`)
 const outputDirectory = path.join(root, '.local/sales-demo/final')
 const sourceDirectory = path.join(root, '.local/sales-demo/final/sources')
-const videoPath = path.join(outputDirectory, 'VisuTry_InStore_Retail_Demo_RoughCut_v1.mp4')
-const contactSheetPath = path.join(outputDirectory, 'rough-cut-contact-sheet.jpg')
-const reportPath = path.join(outputDirectory, 'rough-cut-manifest.json')
 const edit = JSON.parse(fs.readFileSync(editPath, 'utf8'))
+const outputs = edit.outputs || {
+  video: 'VisuTry_InStore_Retail_Demo_RoughCut_v1.mp4',
+  contactSheet: 'rough-cut-contact-sheet.jpg',
+  manifest: 'rough-cut-manifest.json',
+}
+const videoPath = path.join(outputDirectory, outputs.video)
+const contactSheetPath = path.join(outputDirectory, outputs.contactSheet)
+const reportPath = path.join(outputDirectory, outputs.manifest)
 const force = process.argv.slice(2).includes('--force')
 
 function fail(message) {
@@ -90,6 +98,9 @@ for (const segment of edit.segments) {
       fail(`video trim exceeds source duration for ${segment.id}.`)
     }
   }
+  if (segment.type === 'evidence' && segment.fit && !['contain', 'cover'].includes(segment.fit)) {
+    fail(`unsupported image fit mode for ${segment.id}.`)
+  }
   if (['cover', 'concept'].includes(segment.type) && !segment.disclosure?.toLowerCase().includes('illustrative')) {
     fail(`concept footage ${segment.id} must carry an illustrative disclosure.`)
   }
@@ -155,9 +166,16 @@ try {
     '-map', '0:v:0', '-c', 'copy', '-an', '-movflags', '+faststart', '-y', videoPath,
   ])
 
+  const contactSheetSeconds = edit.contactSheetSeconds || [0, 8, 18, 30, 40, 50, 62, 73, 80, 86]
+  const contactSheetFrameCount = Math.round(expectedSeconds * edit.target.frameRate)
+  const contactSheetFrames = contactSheetSeconds.map((seconds) => Math.min(
+    contactSheetFrameCount - 1,
+    Math.max(0, Math.round(seconds * edit.target.frameRate)),
+  ))
+  if (contactSheetFrames.length !== 10) fail('the review contact sheet must contain exactly 10 selected frames.')
   run('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-i', videoPath,
-    '-vf', "select='eq(n,0)+eq(n,240)+eq(n,540)+eq(n,900)+eq(n,1200)+eq(n,1500)+eq(n,1860)+eq(n,2190)+eq(n,2400)+eq(n,2580)',setpts=N/FRAME_RATE/TB,scale=640:360:force_original_aspect_ratio=decrease:flags=lanczos,pad=640:360:(ow-iw)/2:(oh-ih)/2,setsar=1,tile=5x2:margin=16:padding=8:color=0xf4f6fa",
+    '-vf', `select='${contactSheetFrames.map((frame) => `eq(n,${frame})`).join('+')}',setpts=N/FRAME_RATE/TB,scale=640:360:force_original_aspect_ratio=decrease:flags=lanczos,pad=640:360:(ow-iw)/2:(oh-ih)/2,setsar=1,tile=5x2:margin=16:padding=8:color=0xf4f6fa`,
     '-frames:v', '1', '-q:v', '3', '-y', contactSheetPath,
   ])
 
@@ -203,6 +221,8 @@ try {
 
   const report = {
     title: edit.title,
+    version: edit.version || 'v1',
+    supersedes: edit.supersedes || null,
     createdAt: new Date().toISOString(),
     environment: 'LOCAL',
     sourceDirectory: path.relative(root, sourceDirectory),
@@ -238,7 +258,7 @@ try {
       sourceCaptureServerErrors: captureManifest.verification?.browser?.serverErrors ?? null,
       visualReview: 'See contact sheet and inspect the delivered MP4; no new application/browser run was performed.',
     },
-    visualCompromises: [
+    visualCompromises: edit.visualCompromises || [
       'The validated Compare evidence is retained as its original 1024×768 viewport; the comparison panel begins near the lower edge, so the capture shows its real context rather than a fabricated or recomposed UI.',
       'The validated mobile continuation remains at its native 390×844 pixel dimensions in a phone-scale inset, as required.',
     ],
