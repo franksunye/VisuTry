@@ -161,6 +161,17 @@ shopper/session/media reset. Gemini fallback is not permitted.
 This command is intentionally refused in CI, Vercel, Production, or without the
 explicit `--authorized` argument.
 
+## Sales Demo Scene Capture
+
+Run `npm run demo:local:sales-demo-capture` to create short reusable customer-
+facing Store, Face Intelligence, Recommendation, and frame-selection scenes.
+The capture uses repository Playwright at 1440×810 and keeps provider mode
+blocked; it stops before Try-On submission. Raw WebM scenes and one QA still per
+scene are written under ignored `.local/sales-demo/<run-id>/`, with a scene
+manifest and sanitized server log. These clips are intended for downstream
+sales/marketing editing, not as a QA evidence workflow. Editing, narration,
+titles, and final MP4 production are intentionally outside runtime capture.
+
 ## Runtime contract
 
 | Concern | Local Demo behavior |
