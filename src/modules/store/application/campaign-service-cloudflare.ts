@@ -70,6 +70,8 @@ function dateValue(value: unknown): Date | null {
 
 function merchantCommercialFields(row: Row): MerchantCommercialFields {
   return {
+    classification: row.classification == null ? null : String(row.classification),
+    pilotType: row.pilotType == null ? null : String(row.pilotType),
     planCode: row.planCode == null ? null : String(row.planCode),
     commercialStatus: row.commercialStatus == null ? null : String(row.commercialStatus),
     commercialStage: row.commercialStage == null ? null : String(row.commercialStage),
@@ -140,7 +142,7 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
 async function fetchCampaign(merchantId: string, campaignId: string): Promise<{ row: CampaignRow; merchant: Row }> {
   const sql = getCloudflareSql()
   const [merchantRows, rows] = await Promise.all([
-    sql`SELECT "id", "slug", "referenceData", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
+    sql`SELECT "id", "slug", "referenceData", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
     sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."journeyPolicy", e."deliveryPolicy", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."brand" AS "frameBrand", mf."price" AS "framePrice", mf."currency" AS "frameCurrency", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
   ])
   const merchant = merchantRows[0]

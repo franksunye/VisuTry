@@ -115,7 +115,7 @@ export async function getMerchantOperatingAnalytics(input: { merchantId: string 
 export async function getMerchantOperatingPlan(input: { merchantId: string }): Promise<MerchantCommercialPresentation> {
   const sql = getCloudflareSql()
   const [merchantRows, activeCampaignRows, catalogRows, aiUsageRows, renderUsageRows] = await Promise.all([
-    sql`SELECT "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`,
+    sql`SELECT "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`,
     sql`SELECT count(*)::int AS "count" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "status" = 'ACTIVE'`,
     sql`SELECT count(*)::int AS "count" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId}`,
     sql`SELECT "createdAt" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = 'AI_COMMERCE_SESSION' ORDER BY "createdAt" ASC`,
@@ -124,6 +124,7 @@ export async function getMerchantOperatingPlan(input: { merchantId: string }): P
   const merchant = merchantRows[0]
   if (!merchant) throw new Error('Merchant not found')
   const fields = {
+    classification: merchant.classification == null ? null : text(merchant.classification), pilotType: merchant.pilotType == null ? null : text(merchant.pilotType),
     planCode: merchant.planCode == null ? null : text(merchant.planCode), commercialStatus: merchant.commercialStatus == null ? null : text(merchant.commercialStatus), commercialStage: merchant.commercialStage == null ? null : text(merchant.commercialStage), pricingVersion: merchant.pricingVersion == null ? null : text(merchant.pricingVersion), entitlementVersion: merchant.entitlementVersion == null ? null : text(merchant.entitlementVersion), commerceSessionAllowance: merchant.commerceSessionAllowance == null ? null : Number(merchant.commerceSessionAllowance), standardRenderAllowance: merchant.standardRenderAllowance == null ? null : Number(merchant.standardRenderAllowance), premiumRenderAllowance: merchant.premiumRenderAllowance == null ? null : Number(merchant.premiumRenderAllowance), campaignAllowance: merchant.campaignAllowance == null ? null : Number(merchant.campaignAllowance), entitlementEffectiveFrom: date(merchant.entitlementEffectiveFrom), billingPeriodEnd: date(merchant.billingPeriodEnd), commercialExceptionCode: merchant.commercialExceptionCode == null ? null : text(merchant.commercialExceptionCode), createdAt: date(merchant.createdAt),
   }
   const period = resolveMerchantCommercialCapability(fields).state.period

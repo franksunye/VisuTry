@@ -8,7 +8,7 @@ import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-us
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import { resolveMerchantHandoff, type MerchantHandoff } from '../domain/merchant-handoff'
-import type { CommercialUsage } from '../domain/merchant-commercial-state'
+import type { CommercialUsage, EntitlementDecision } from '../domain/merchant-commercial-state'
 import type {
   ExperienceRecord,
   ExperienceRepository,
@@ -34,6 +34,12 @@ export type PublicDiscoveryFrame = {
   updatedAt: Date
 }
 
+export type PublicTryOnUnavailableReason =
+  | 'PLAN_NOT_INCLUDED'
+  | 'COMMERCIAL_INACTIVE'
+  | 'USAGE_EXHAUSTED'
+  | 'TEMPORARILY_UNAVAILABLE'
+
 export type PublicExperienceDiscovery = {
   merchant: {
     id: string
@@ -44,6 +50,7 @@ export type PublicExperienceDiscovery = {
     accentColor: string | null
     /** Public capability hint only; commercial plan details never leave the server. */
     generativeTryOnAvailable: boolean
+    generativeTryOnUnavailableReason?: PublicTryOnUnavailableReason | null
     referenceData: boolean
     pilotType: string | null
     updatedAt: Date
@@ -159,6 +166,9 @@ export async function getPublicExperienceDiscovery(input: {
       generativeTryOnAvailable: input.commercialUsage
         ? resolveMerchantCommercialCapability(merchant, input.commercialUsage).decisions.GENERATIVE_TRY_ON.allowed
         : false,
+      generativeTryOnUnavailableReason: input.commercialUsage
+        ? publicTryOnUnavailableReason(resolveMerchantCommercialCapability(merchant, input.commercialUsage).decisions.GENERATIVE_TRY_ON)
+        : 'TEMPORARILY_UNAVAILABLE',
       referenceData: merchant.referenceData === true || experience.referenceData,
       pilotType: merchant.pilotType ?? null,
       updatedAt: merchant.updatedAt,
@@ -203,19 +213,39 @@ export async function resolvePublicGenerativeTryOnAvailability(input: {
   slug: string
   now?: Date
 }): Promise<boolean> {
+  return (await resolvePublicGenerativeTryOnStatus(input)).available
+}
+
+export async function resolvePublicGenerativeTryOnStatus(input: {
+  merchants: MerchantRepository
+  usage: StoreUsageRepository
+  slug: string
+  now?: Date
+}): Promise<{ available: boolean; unavailableReason: PublicTryOnUnavailableReason | null }> {
   const merchant = input.merchants.findPublicBySlug
     ? await input.merchants.findPublicBySlug(input.slug)
     : await input.merchants.findBySlug(input.slug)
-  if (!merchant || merchant.status !== 'ACTIVE') return false
+  if (!merchant || merchant.status !== 'ACTIVE') {
+    return { available: false, unavailableReason: 'TEMPORARILY_UNAVAILABLE' }
+  }
 
   const now = input.now ?? new Date()
   const baseline = resolveMerchantCommercialCapability(merchant, {}, now)
+  const baselineDecision = baseline.decisions.GENERATIVE_TRY_ON
+  if (!baselineDecision.allowed) {
+    return { available: false, unavailableReason: publicTryOnUnavailableReason(baselineDecision) }
+  }
   const sessionLimit = baseline.state.plan?.aiCommerceSessions
-  const standardTryOnGenerationLimit = baseline.state.standardTryOnGenerationLimit
+  const demoRenderLimit = baseline.state.commercialState === 'DEMO'
+    ? baseline.storeRuntime.renderLimits.maxSuccessfulRendersPerMerchant
+    : null
+  const standardTryOnGenerationLimit = baseline.state.standardTryOnGenerationLimit ?? demoRenderLimit
   let aiCommerceSessions = 0
   let standardTryOnGenerations = 0
   if (sessionLimit !== null && sessionLimit !== undefined) {
-    if (!input.usage.countAICommerceSessions) return false
+    if (!input.usage.countAICommerceSessions) {
+      return { available: false, unavailableReason: 'TEMPORARILY_UNAVAILABLE' }
+    }
     aiCommerceSessions = await input.usage.countAICommerceSessions({
       merchantId: merchant.id,
       periodStart: baseline.state.period.start,
@@ -223,13 +253,29 @@ export async function resolvePublicGenerativeTryOnAvailability(input: {
     })
   }
   if (standardTryOnGenerationLimit !== null) {
-    if (!input.usage.countSuccessfulRenders) return false
+    if (!input.usage.countSuccessfulRenders) {
+      return { available: false, unavailableReason: 'TEMPORARILY_UNAVAILABLE' }
+    }
     standardTryOnGenerations = await input.usage.countSuccessfulRenders(merchant.id)
   }
 
-  return resolveMerchantCommercialCapability(
+  const resolved = resolveMerchantCommercialCapability(
     merchant,
     { aiCommerceSessions, standardTryOnGenerations },
     now,
-  ).decisions.GENERATIVE_TRY_ON.allowed
+  )
+  if (demoRenderLimit !== null && standardTryOnGenerations >= demoRenderLimit) {
+    return { available: false, unavailableReason: 'USAGE_EXHAUSTED' }
+  }
+  const decision = resolved.decisions.GENERATIVE_TRY_ON
+  return decision.allowed
+    ? { available: true, unavailableReason: null }
+    : { available: false, unavailableReason: publicTryOnUnavailableReason(decision) }
+}
+
+function publicTryOnUnavailableReason(decision: EntitlementDecision): PublicTryOnUnavailableReason {
+  if (decision.code === 'COMMERCIAL_PERIOD_EXPIRED') return 'COMMERCIAL_INACTIVE'
+  if (decision.code === 'AI_USAGE_LIMIT_REACHED') return 'USAGE_EXHAUSTED'
+  if (decision.code === 'FEATURE_NOT_INCLUDED') return 'PLAN_NOT_INCLUDED'
+  return 'TEMPORARILY_UNAVAILABLE'
 }

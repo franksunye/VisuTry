@@ -2,8 +2,9 @@ import { unstable_cache } from 'next/cache'
 import { createPublicStoreReadRuntime } from './public-read-runtime'
 import {
   getPublicExperienceDiscovery,
-  resolvePublicGenerativeTryOnAvailability,
+  resolvePublicGenerativeTryOnStatus,
 } from './get-public-experience-discovery'
+import type { PublicTryOnUnavailableReason } from './get-public-experience-discovery'
 import {
   PUBLIC_DISCOVERY_CACHE,
   publicDiscoveryCacheKey,
@@ -57,20 +58,24 @@ export async function getPublicExperienceDiscoveryForRoute(
   // Keep rich Store/Campaign content on the existing ISR boundary while
   // refreshing the quota-sensitive capability hint against live usage.
   let generativeTryOnAvailable = false
+  let generativeTryOnUnavailableReason: PublicTryOnUnavailableReason | null = 'TEMPORARILY_UNAVAILABLE'
   let merchantHandoffAvailable = false
   let kioskDeliveryAvailable = false
   const runtime = createPublicStoreReadRuntime()
 
   try {
-    generativeTryOnAvailable = await resolvePublicGenerativeTryOnAvailability({
+    const availability = await resolvePublicGenerativeTryOnStatus({
       merchants: runtime.merchants,
       usage: runtime.usage,
       slug,
     })
+    generativeTryOnAvailable = availability.available
+    generativeTryOnUnavailableReason = availability.unavailableReason
   } catch {
     // Keep cached discovery available during a commercial-usage outage, while
     // conservatively removing only the metered Try-On capability claim.
     generativeTryOnAvailable = false
+    generativeTryOnUnavailableReason = 'TEMPORARILY_UNAVAILABLE'
   }
 
   try {
@@ -90,7 +95,7 @@ export async function getPublicExperienceDiscoveryForRoute(
   }
   return {
     ...discovery,
-    merchant: { ...discovery.merchant, generativeTryOnAvailable },
+    merchant: { ...discovery.merchant, generativeTryOnAvailable, generativeTryOnUnavailableReason },
     experience: {
       ...discovery.experience,
       primaryHandoff: merchantHandoffAvailable ? discovery.experience.primaryHandoff : null,

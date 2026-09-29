@@ -103,6 +103,7 @@ export PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001
 export VISUTRY_LOCAL_DEMO_RESULT_TOKEN_FILE="$token_file"
 
 npm run merchant:local:preflight
+npm run demo:local:entitlement:preflight
 node scripts/preflight-local-demo.mjs
 
 run_reset_in_fresh_shell() {

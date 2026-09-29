@@ -9,6 +9,7 @@ import {
   MERCHANT_CONTINUATION_PARAM,
 } from '@/lib/commerce-handoff/merchant-continuation'
 import type { PublicMerchantProfile } from '@/modules/store/application/get-public-merchant'
+import type { PublicTryOnUnavailableReason } from '@/modules/store/application/get-public-experience-discovery'
 
 const LazyStoreShopperExperience = dynamic(
   () => import('@/components/store/StoreShopperExperience').then((module) => module.StoreShopperExperience),
@@ -29,6 +30,7 @@ type InteractiveCommerceLauncherProps = {
   locale: string
   publicPocStorage: boolean
   generativeTryOnAvailable?: boolean
+  generativeTryOnUnavailableReason?: PublicTryOnUnavailableReason | null
   initialPublicMerchant?: PublicMerchantProfile | null
   initialKioskMode?: boolean
 }
@@ -44,12 +46,20 @@ export function InteractiveCommerceLauncher({
   locale,
   publicPocStorage,
   generativeTryOnAvailable = true,
+  generativeTryOnUnavailableReason,
   initialPublicMerchant = null,
   initialKioskMode = false,
 }: InteractiveCommerceLauncherProps) {
   const [started, setStarted] = useState(initialKioskMode)
   const [kioskMode, setKioskMode] = useState(initialKioskMode)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const tryOnUnavailableCopy = generativeTryOnUnavailableReason === 'COMMERCIAL_INACTIVE'
+    ? 'Virtual Try-On is unavailable because this plan period has ended.'
+    : generativeTryOnUnavailableReason === 'USAGE_EXHAUSTED'
+      ? 'Virtual Try-On is paused because included usage has been reached.'
+      : generativeTryOnUnavailableReason === 'TEMPORARILY_UNAVAILABLE'
+        ? 'Virtual Try-On is temporarily unavailable. Please try again later.'
+        : 'Virtual Try-On is available on Launch and above.'
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -161,7 +171,7 @@ export function InteractiveCommerceLauncher({
           aria-disabled={!generativeTryOnAvailable}
           className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-600 disabled:hover:bg-slate-200"
         >
-          {generativeTryOnAvailable ? 'Try on your photo' : 'Virtual Try-On is available on Launch and above.'}
+          {generativeTryOnAvailable ? 'Try on your photo' : tryOnUnavailableCopy}
           {generativeTryOnAvailable ? <ArrowRight className="h-4 w-4" aria-hidden="true" /> : <LockKeyhole className="h-4 w-4" aria-hidden="true" />}
         </button>
       </div>

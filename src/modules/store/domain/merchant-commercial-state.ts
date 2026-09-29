@@ -8,13 +8,13 @@ import {
   type MerchantPlanDefinition,
 } from '@/modules/merchant/domain/merchant-commercial-plans'
 
-export const COMMERCIAL_STATE_KINDS = ['CANONICAL', 'LEGACY_UNMIGRATED'] as const
+export const COMMERCIAL_STATE_KINDS = ['CANONICAL', 'DEMO', 'LEGACY_UNMIGRATED'] as const
 export type CommercialStateKind = (typeof COMMERCIAL_STATE_KINDS)[number]
 
 export const COMMERCIAL_STATUSES = [
   'FREE', 'PILOT_ACTIVE', 'PILOT_EXPIRED', 'PAID_ACTIVE', 'USAGE_WARNING',
   'USAGE_EXHAUSTED', 'CANCEL_AT_PERIOD_END', 'EXPIRED', 'PAYMENT_ACTION_REQUIRED', 'PAST_DUE',
-  'LEGACY_UNMIGRATED',
+  'DEMO_ACTIVE', 'LEGACY_UNMIGRATED',
 ] as const
 export type CommercialStatus = (typeof COMMERCIAL_STATUSES)[number]
 
@@ -29,6 +29,8 @@ export const USAGE_THRESHOLDS = ['NORMAL', 'NOTICE', 'WARNING', 'LIMIT_REACHED']
 export type UsageThreshold = (typeof USAGE_THRESHOLDS)[number]
 
 export type MerchantCommercialFields = {
+  classification?: string | null
+  pilotType?: string | null
   planCode?: string | null
   commercialStatus?: string | null
   commercialStage?: string | null
@@ -70,6 +72,12 @@ export type MerchantCommercialState = {
   primaryAction: 'NONE' | 'ENROLL_PLAN' | 'UNLOCK_AI_TRY_ON' | 'MANAGE_PLAN' | 'UPGRADE_CAPACITY' | 'RESTORE_AI_CAPACITY' | 'CONTINUE_AFTER_PILOT' | 'RESOLVE_PAYMENT'
 }
 
+export function isExplicitVisuTryDemoMerchant(fields: MerchantCommercialFields): boolean {
+  return fields.classification?.trim().toUpperCase() === 'TEST'
+    && fields.pilotType?.trim().toUpperCase() === 'DEMO'
+    && fields.commercialExceptionCode?.trim().toUpperCase() === 'VISUTRY_DEMO'
+}
+
 const DAY_MS = 86_400_000
 
 function addMonths(anchor: Date, months: number): Date {
@@ -98,6 +106,7 @@ function resolvePaidPeriod(fields: MerchantCommercialFields, now: Date): UsagePe
 }
 
 export function resolveMerchantCommercialPeriod(fields: MerchantCommercialFields, now = new Date()): UsagePeriod {
+  if (isExplicitVisuTryDemoMerchant(fields)) return { kind: 'none', start: null, end: null }
   if (!isCanonicalMerchantCommercialFields(fields)) return { kind: 'none', start: null, end: null }
   const planCode = resolveMerchantPlanCode(fields.planCode)
   if (planCode === 'FREE' || planCode === 'ENTERPRISE') return { kind: 'none', start: null, end: null }
@@ -142,6 +151,35 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
     activeCampaigns: Math.max(0, usage.activeCampaigns ?? 0),
     catalogItems: Math.max(0, usage.catalogItems ?? 0),
     standardTryOnGenerations: Math.max(0, usage.standardTryOnGenerations ?? 0),
+  }
+  if (isExplicitVisuTryDemoMerchant(fields)) {
+    return {
+      commercialState: 'DEMO',
+      planCode: null,
+      plan: null,
+      status: 'DEMO_ACTIVE',
+      period: { kind: 'none', start: null, end: null },
+      usage: normalizedUsage,
+      aiCommerceSessionLimit: null,
+      standardTryOnGenerationLimit: null,
+      aiCommerceSessionRemaining: null,
+      aiCommerceSessionPercentage: null,
+      threshold: null,
+      featureAvailability: {
+        STORE: true,
+        CATALOG: true,
+        CAMPAIGN: true,
+        RECOMMENDATION: true,
+        GENERATIVE_TRY_ON: true,
+        COMPARE: true,
+        DECISION_RESULT: true,
+        MERCHANT_HANDOFF: true,
+        KIOSK_DELIVERY: true,
+        BASIC_ANALYTICS: true,
+        ADVANCED_ANALYTICS: false,
+      },
+      primaryAction: 'NONE',
+    }
   }
   if (!isCanonicalMerchantCommercialFields(fields)) {
     const compatibilityEntitlement = resolveMerchantEntitlement(fields, now)
@@ -304,8 +342,8 @@ export function commercialStateForPresentation(state: MerchantCommercialState) {
     commercialState: state.commercialState,
     isCanonical: state.commercialState === 'CANONICAL',
     planCode: state.planCode,
-    planName: plan?.name ?? 'Legacy · not enrolled',
-    priceLabel: plan?.priceLabel ?? 'No canonical plan',
+    planName: plan?.name ?? (state.commercialState === 'DEMO' ? 'VisuTry Demo' : 'Legacy · not enrolled'),
+    priceLabel: plan?.priceLabel ?? (state.commercialState === 'DEMO' ? 'No commercial plan' : 'No canonical plan'),
     limits: {
       catalogItems: plan?.catalogItems ?? null,
       activeCampaigns: plan?.activeCampaigns ?? null,

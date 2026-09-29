@@ -79,6 +79,7 @@ export default async function MerchantStorePage({ params }: MerchantStorePagePro
           locale={locale}
           publicPocStorage={assetPolicy.publicPoc}
           generativeTryOnAvailable={discovery.merchant.generativeTryOnAvailable}
+          generativeTryOnUnavailableReason={discovery.merchant.generativeTryOnUnavailableReason}
           initialPublicMerchant={publicMerchantFromDiscovery(discovery)}
       />
     </RouteMessagesProvider>

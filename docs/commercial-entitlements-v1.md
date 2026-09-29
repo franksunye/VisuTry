@@ -64,6 +64,39 @@ Merchant plan identities and must not gate product features. Consumer quota
 continuations remain independently authorized and do not inherit Merchant
 commercial capability.
 
+## Governed VisuTry Demo entitlement
+
+The first-party VisuTry Demo is a separate, non-commercial entitlement—not a
+Merchant plan and not a legacy compatibility inference. The shared resolver
+recognizes it only when all three persisted markers match:
+
+```text
+classification = TEST
+pilotType = DEMO
+commercialExceptionCode = VISUTRY_DEMO
+```
+
+It resolves to `commercialState=DEMO`, `status=DEMO_ACTIVE`, `planCode=null`,
+and `primaryAction=NONE`. Demo access has no billing period and does not depend
+on a Stripe customer, subscription, or renewal. It enables Store, Catalog,
+Campaign, Recommendation, Generative Try-On, Compare, Decision Result, Merchant
+Handoff, Kiosk Delivery, and Basic Analytics; Advanced Analytics is not granted
+by this exception. `VISUTRY_DEMO` is deliberately absent from
+`MERCHANT_PLAN_CODES`.
+
+Feature entitlement does not relax provider cost or abuse controls. Demo Store
+Try-On continues through the existing `STORE_DEMO` usage origin and its bounded
+merchant/session render and attempt ceilings, together with the existing
+provider routing and safety policy. TEST classification alone, DEMO pilot type
+alone, an exception code alone, and missing plan data never select the new
+Demo state. Other no-plan rows retain the existing `LEGACY_UNMIGRATED`
+compatibility behavior.
+
+The canonical Local fixture is `VisuTry Demo Optical`
+(`visutry-demo-optical`) with the three explicit markers, no commercial plan,
+and no required BillingAccount. The Local Demo bootstrap and journey preflight
+assert that it resolves to `DEMO / DEMO_ACTIVE` before browser QA.
+
 Public Store and Campaign content remains ISR-cached. The
 `generativeTryOnAvailable` hint is overlaid after the content cache using live,
 current-period usage: AI Commerce Sessions when the plan's session allowance

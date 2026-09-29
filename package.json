@@ -54,6 +54,7 @@
     "demo:local:dev:e2e": "bash scripts/dev-local-demo.sh --deterministic-tryon-fixture",
     "demo:local:dev:grsai": "bash scripts/dev-local-demo.sh --arm-grsai",
     "demo:local:bootstrap": "bash scripts/bootstrap-local-demo.sh",
+    "demo:local:entitlement:preflight": "tsx scripts/preflight-local-demo-entitlement.ts",
     "demo:local:journey:e2e": "bash scripts/run-local-demo-journey-e2e.sh",
     "demo:local:network:verify": "node scripts/verify-local-demo-network.mjs",
     "demo:local:reset-session": "bash scripts/reset-local-demo-session.sh",

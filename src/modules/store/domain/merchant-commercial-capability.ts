@@ -29,7 +29,8 @@ export type MerchantCommercialCapability = {
   decisions: Record<CommercialFeature, EntitlementDecision>
   /** Commercial identity for logs/events; never use persistence origin here. */
   commercialIdentity: {
-    planCode: string
+    planCode: string | null
+    commercialState: MerchantCommercialState['commercialState']
     entitlementVersion: string
   }
   storeRuntime: {
@@ -60,7 +61,9 @@ export function resolveMerchantCommercialCapability(
 ): MerchantCommercialCapability {
   const state = resolveMerchantCommercialState(fields, usage, now)
   const compatibility = resolveMerchantEntitlement(fields, now)
+  const isDemo = state.commercialState === 'DEMO'
   const enforceLegacyRenderLimits = state.commercialState === 'LEGACY_UNMIGRATED'
+    || isDemo
     || state.planCode === 'FOUNDING_PILOT'
   const compatibilityRenderLimits = enforceLegacyRenderLimits
     ? compatibility.renderLimits
@@ -84,7 +87,8 @@ export function resolveMerchantCommercialCapability(
     decisions,
     commercialIdentity: {
       planCode: state.planCode
-        ?? (compatibility.planCode === 'FOUNDING_PILOT' ? 'FOUNDING_PILOT' : 'LEGACY_UNMIGRATED'),
+        ?? (isDemo ? null : compatibility.planCode === 'FOUNDING_PILOT' ? 'FOUNDING_PILOT' : 'LEGACY_UNMIGRATED'),
+      commercialState: state.commercialState,
       entitlementVersion: compatibility.entitlementVersion,
     },
     storeRuntime: {

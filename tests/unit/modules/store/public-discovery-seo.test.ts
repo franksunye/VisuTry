@@ -10,6 +10,7 @@ import { SITE_CONFIG } from '@/lib/seo'
 import {
   getPublicExperienceDiscovery,
   resolvePublicGenerativeTryOnAvailability,
+  resolvePublicGenerativeTryOnStatus,
 } from '@/modules/store/application/get-public-experience-discovery'
 import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
 
@@ -250,6 +251,44 @@ describe('Store/Campaign discovery SEO', () => {
       periodStart: merchantRecord.entitlementEffectiveFrom,
       periodEnd: merchantRecord.billingPeriodEnd,
     })
+  })
+
+  it('identifies expired paid access separately from a plan feature exclusion', async () => {
+    const merchantRecord = {
+      id: 'merchant-expired', slug: 'expired-launch-store', status: 'ACTIVE', planCode: 'LAUNCH',
+      commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: new Date('2026-07-01T00:00:00.000Z'),
+      billingPeriodEnd: new Date('2026-08-01T00:00:00.000Z'), createdAt: date,
+    }
+    const countAICommerceSessions = jest.fn()
+    const status = await resolvePublicGenerativeTryOnStatus({
+      slug: merchantRecord.slug,
+      merchants: { findPublicBySlug: jest.fn().mockResolvedValue(merchantRecord) } as never,
+      usage: { countAICommerceSessions } as never,
+      now: new Date('2026-08-15T00:00:00.000Z'),
+    })
+
+    expect(status).toEqual({ available: false, unavailableReason: 'COMMERCIAL_INACTIVE' })
+    expect(countAICommerceSessions).not.toHaveBeenCalled()
+  })
+
+  it('uses the bounded Store Demo render allowance for explicit Demo Try-On availability', async () => {
+    const merchantRecord = {
+      id: 'merchant-demo', slug: 'visutry-demo-optical', status: 'ACTIVE', planCode: null,
+      classification: 'TEST', pilotType: 'DEMO', commercialExceptionCode: 'VISUTRY_DEMO',
+      commercialStatus: null, createdAt: date,
+    }
+    const countSuccessfulRenders = jest.fn().mockResolvedValue(499)
+    const input = {
+      slug: merchantRecord.slug,
+      merchants: { findPublicBySlug: jest.fn().mockResolvedValue(merchantRecord) } as never,
+      usage: { countSuccessfulRenders } as never,
+      now: new Date('2026-08-15T00:00:00.000Z'),
+    }
+
+    await expect(resolvePublicGenerativeTryOnStatus(input)).resolves.toEqual({ available: true, unavailableReason: null })
+    countSuccessfulRenders.mockResolvedValue(500)
+    await expect(resolvePublicGenerativeTryOnStatus(input)).resolves.toEqual({ available: false, unavailableReason: 'USAGE_EXHAUSTED' })
+    expect(countSuccessfulRenders).toHaveBeenCalledWith(merchantRecord.id)
   })
 
   it('counts both Founding Pilot quotas for the live public capability overlay', async () => {
