@@ -8,10 +8,13 @@ struct Segment: Decodable {
     let title: String?
     let subtitle: String?
     let disclosure: String?
+    let fit: String?
+    let website: String?
 }
 
 struct EditManifest: Decodable {
     let segments: [Segment]
+    let showInternalDisclosures: Bool?
 }
 
 guard CommandLine.arguments.count == 4 else {
@@ -125,7 +128,7 @@ func drawEvidenceText(_ segment: Segment) {
     if let subtitle = segment.subtitle {
         drawText(subtitle, in: NSRect(x: 112, y: 382, width: 486, height: 126), size: 26, tint: color(0x49566b))
     }
-    if let disclosure = segment.disclosure {
+    if (edit.showInternalDisclosures ?? true), let disclosure = segment.disclosure {
         drawText(disclosure, in: NSRect(x: 112, y: 236, width: 500, height: 66), size: 17, weight: .medium, tint: color(0x667085))
     }
 }
@@ -153,11 +156,23 @@ for segment in edit.segments {
                 drawText(title, in: NSRect(x: 112, y: 174, width: 720, height: 164), size: 45, weight: .semibold, tint: color(0x0b1020))
             }
             if let disclosure = segment.disclosure {
-                drawText(disclosure, in: NSRect(x: 112, y: 112, width: 650, height: 30), size: 17, weight: .medium, tint: color(0x667085))
+                let subtle = !(edit.showInternalDisclosures ?? true)
+                drawText(
+                    disclosure,
+                    in: NSRect(x: 112, y: 112, width: 650, height: 30),
+                    size: subtle ? 13 : 17,
+                    weight: .medium,
+                    tint: color(0x667085, alpha: subtle ? 0.68 : 1)
+                )
             }
         case "evidence":
             fill(NSRect(origin: .zero, size: canvasSize), tint: color(0xf4f6fa))
-            try drawImage(source, in: NSRect(x: 690, y: 96, width: 1180, height: 885))
+            let imageBounds = NSRect(x: 690, y: 96, width: 1180, height: 885)
+            if segment.fit == "contain" {
+                try drawImage(source, in: try aspectFit(source, in: imageBounds))
+            } else {
+                try drawImage(source, in: imageBounds)
+            }
             drawEvidenceText(segment)
         case "mobile":
             fill(NSRect(origin: .zero, size: canvasSize), tint: color(0xf4f6fa))
@@ -168,8 +183,9 @@ for segment in edit.segments {
             fill(NSRect(origin: .zero, size: canvasSize), tint: color(0xf4f6fa))
             try drawImage(source, in: try aspectFit(source, in: NSRect(x: 160, y: 30, width: 1600, height: 1020)))
             if let disclosure = segment.disclosure {
-                fill(NSRect(x: 1300, y: 44, width: 530, height: 48), tint: color(0xffffff, alpha: 0.92), radius: 14)
-                drawText(disclosure, in: NSRect(x: 1320, y: 56, width: 495, height: 24), size: 17, weight: .medium, tint: color(0x475467))
+                let subtle = !(edit.showInternalDisclosures ?? true)
+                fill(NSRect(x: 1390, y: 52, width: 430, height: 38), tint: color(0xffffff, alpha: subtle ? 0.76 : 0.92), radius: 12)
+                drawText(disclosure, in: NSRect(x: 1408, y: 61, width: 395, height: 19), size: subtle ? 13 : 17, weight: .medium, tint: color(0x667085, alpha: subtle ? 0.75 : 1))
             }
         case "close":
             fill(NSRect(origin: .zero, size: canvasSize), tint: color(0xffffff))
@@ -181,6 +197,9 @@ for segment in edit.segments {
             }
             if let subtitle = segment.subtitle {
                 drawText(subtitle, in: NSRect(x: 270, y: 174, width: 1180, height: 50), size: 28, tint: color(0x475467))
+            }
+            if let website = segment.website {
+                drawText(website, in: NSRect(x: 270, y: 124, width: 450, height: 28), size: 19, weight: .medium, tint: color(0x667085))
             }
         default:
             throw NSError(domain: "VisuTryRoughCut", code: 5, userInfo: [NSLocalizedDescriptionKey: "Unsupported segment type: \(segment.type)"])

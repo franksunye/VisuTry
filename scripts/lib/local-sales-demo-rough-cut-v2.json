@@ -1,0 +1,162 @@
+{
+  "title": "VisuTry In-Store Retail Demo — Rough Cut v2",
+  "version": "v2",
+  "supersedes": "VisuTry_InStore_Retail_Demo_RoughCut_v1.mp4",
+  "showInternalDisclosures": false,
+  "outputs": {
+    "video": "VisuTry_InStore_Retail_Demo_RoughCut_v2.mp4",
+    "contactSheet": "rough-cut-v2-contact-sheet.jpg",
+    "manifest": "rough-cut-manifest.json"
+  },
+  "contactSheetSeconds": [0, 7, 14, 23, 35, 44, 55, 64, 75, 83],
+  "target": {
+    "width": 1920,
+    "height": 1080,
+    "frameRate": 30,
+    "minimumSeconds": 85,
+    "maximumSeconds": 90,
+    "preferredMaximumBytes": 20971520,
+    "videoCodec": "h264",
+    "audio": false
+  },
+  "visualCompromises": [
+    "Compare uses the supplied VisuTry_Compare_SalesDemo_v1.png as a curated product visual, fit proportionally without adding or reconstructing UI.",
+    "Only the phrase Illustrative retail scenario remains visible on the concept imagery; product-evidence and QA notes are retained in this manifest only."
+  ],
+  "segments": [
+    {
+      "id": "opening",
+      "type": "cover",
+      "source": "concepts/D01.png",
+      "durationSeconds": 4.5,
+      "title": "AI Eyewear Decision Experience\nfor In-Store Retail",
+      "disclosure": "Illustrative retail scenario"
+    },
+    {
+      "id": "store-entry",
+      "type": "video",
+      "source": "scenes/01-store-entry.webm",
+      "trimInSeconds": 0.5,
+      "durationSeconds": 3.7,
+      "title": "The In-Store Experience",
+      "disclosure": "Real product footage"
+    },
+    {
+      "id": "face-intelligence-motion",
+      "type": "video",
+      "source": "scenes/02-face-intelligence.webm",
+      "trimInSeconds": 7,
+      "durationSeconds": 4.8,
+      "title": "Face Intelligence",
+      "subtitle": "Understand face shape and proportions.",
+      "disclosure": "Real product footage"
+    },
+    {
+      "id": "face-intelligence-result",
+      "type": "evidence",
+      "source": "evidence/S01-face-intelligence-clean.png",
+      "durationSeconds": 7.2,
+      "title": "Face Intelligence",
+      "subtitle": "Understand face shape and proportions.",
+      "disclosure": "Real product evidence"
+    },
+    {
+      "id": "recommendation-motion",
+      "type": "video",
+      "source": "scenes/03-recommendation.webm",
+      "trimInSeconds": 5.7,
+      "durationSeconds": 5.8,
+      "title": "Personalized Recommendations",
+      "subtitle": "Turn facial signals into relevant frame choices.",
+      "disclosure": "Real product footage"
+    },
+    {
+      "id": "recommendation-result",
+      "type": "evidence",
+      "source": "evidence/S02-recommendation-clean.png",
+      "durationSeconds": 6.2,
+      "title": "Personalized Recommendations",
+      "subtitle": "Turn facial signals into relevant frame choices.",
+      "disclosure": "Real product evidence"
+    },
+    {
+      "id": "frame-selection-motion",
+      "type": "video",
+      "source": "scenes/04-frame-selection.webm",
+      "trimInSeconds": 8.4,
+      "durationSeconds": 2.5,
+      "title": "Choose What to Try",
+      "disclosure": "Stops before Try-On submission"
+    },
+    {
+      "id": "frame-selection-result",
+      "type": "evidence",
+      "source": "scenes/04-frame-selection-qa.png",
+      "durationSeconds": 6.5,
+      "title": "Choose What to Try",
+      "subtitle": "Rowan and Lane selected · Continue to Try-On",
+      "disclosure": "Real product evidence"
+    },
+    {
+      "id": "virtual-try-on",
+      "type": "evidence",
+      "source": "evidence/S03-tryon-rowan-clean.png",
+      "durationSeconds": 9,
+      "title": "Virtual Try-On",
+      "subtitle": "See selected frames on the shopper's own photo.",
+      "disclosure": "Previously validated real result · not a live generation"
+    },
+    {
+      "id": "compare",
+      "type": "evidence",
+      "source": "evidence/VisuTry_Compare_SalesDemo_v1.png",
+      "sourceClassification": "curated product visual",
+      "fit": "contain",
+      "durationSeconds": 9,
+      "title": "Compare Side by Side",
+      "subtitle": "Make visual differences easier to evaluate.",
+      "disclosure": "Curated product visual · intentionally selected for sales-demo presentation quality"
+    },
+    {
+      "id": "decision-result",
+      "type": "evidence",
+      "source": "evidence/S05-decision-result-clean.png",
+      "durationSeconds": 11,
+      "title": "Keep the Decision Together",
+      "subtitle": "Shortlist and completed looks in one private result.",
+      "disclosure": "Real product evidence"
+    },
+    {
+      "id": "mobile-concept-bridge",
+      "type": "concept",
+      "source": "concepts/D06.png",
+      "durationSeconds": 1.6,
+      "disclosure": "Illustrative retail scenario"
+    },
+    {
+      "id": "mobile-continuation",
+      "type": "mobile",
+      "source": "evidence/S06-mobile-continuation-clean.png",
+      "durationSeconds": 7.4,
+      "title": "Continue on Your Phone",
+      "subtitle": "Carry the decision beyond the shared device.",
+      "disclosure": "Real product evidence · shown at native 390 × 844 pixels"
+    },
+    {
+      "id": "shared-device-concept-bridge",
+      "type": "concept",
+      "source": "concepts/D03.png",
+      "durationSeconds": 1.6,
+      "disclosure": "Illustrative retail scenario"
+    },
+    {
+      "id": "closing",
+      "type": "close",
+      "source": "concepts/visutry-logo.png",
+      "durationSeconds": 4.6,
+      "title": "From Face Intelligence\nto Confident Eyewear Decisions",
+      "subtitle": "Ready to pilot in your store.",
+      "website": "visutry.com"
+    }
+  ]
+}
