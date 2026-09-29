@@ -81,7 +81,7 @@ on_exit() {
   stop_server
   if [[ -f "$state_file" ]]; then rm -f "$state_file"; fi
   if [[ -f "$raw_log" ]]; then
-    node -e 'const fs=require("node:fs");const input=fs.readFileSync(process.argv[1],"utf8");const safe=input.replace(/sk_(?:test|live)_[A-Za-z0-9]+/g,"[REDACTED_STRIPE_KEY]").replace(/Bearer\s+\S+/gi,"Bearer [REDACTED]").replace(/((?:GRSAI_API_KEY|GEMINI_API_KEY|BLOB_READ_WRITE_TOKEN|NEXTAUTH_SECRET)\s*[=:]\s*)\S+/gi,"$1[REDACTED]").replace(/("(?:merchantSessionId|sessionId|userId|merchantId)"\s*:\s*")[^"]+("\s*[,}])/gi,"$1[REDACTED_ID]$2").replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,"[REDACTED_EMAIL]");fs.writeFileSync(process.argv[2],safe,{mode:0o600})' "$raw_log" "$manifest_log" || true
+    node -e 'const fs=require("node:fs");const input=fs.readFileSync(process.argv[1],"utf8");const safe=input.replace(/sk_(?:test|live)_[A-Za-z0-9]+/g,"[REDACTED_STRIPE_KEY]").replace(/Bearer\s+\S+/gi,"Bearer [REDACTED]").replace(/((?:GRSAI_API_KEY|GEMINI_API_KEY|BLOB_READ_WRITE_TOKEN|NEXTAUTH_SECRET)\s*[=:]\s*)\S+/gi,"$1[REDACTED]").replace(/("(?:merchantSessionId|sessionId|userId|merchantId)"\s*:\s*")[^"]+("\s*[,}])/gi,"$1[REDACTED_ID]$2").replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,"[REDACTED_EMAIL]").replace(/(https?:\/\/[^\s?]+)\?[^\s]*/g,"$1?[REDACTED_QUERY]");fs.writeFileSync(process.argv[2],safe,{mode:0o600})' "$raw_log" "$manifest_log" || true
     rm -f "$raw_log"
   fi
   if [[ "$status" -ne 0 && "$capture_succeeded" -eq 0 ]]; then
@@ -93,7 +93,7 @@ on_exit() {
 trap on_exit EXIT INT TERM
 
 print_sanitized_tail() {
-  node -e 'const fs=require("node:fs");const input=fs.readFileSync(process.argv[1],"utf8");const safe=input.replace(/sk_(?:test|live)_[A-Za-z0-9]+/g,"[REDACTED_STRIPE_KEY]").replace(/Bearer\s+\S+/gi,"Bearer [REDACTED]").replace(/((?:GRSAI_API_KEY|GEMINI_API_KEY|BLOB_READ_WRITE_TOKEN|NEXTAUTH_SECRET)\s*[=:]\s*)\S+/gi,"$1[REDACTED]").replace(/("(?:merchantSessionId|sessionId|userId|merchantId)"\s*:\s*")[^"]+("\s*[,}])/gi,"$1[REDACTED_ID]$2").replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,"[REDACTED_EMAIL]");process.stdout.write(safe.split("\n").slice(-60).join("\n"))' "$raw_log"
+  node -e 'const fs=require("node:fs");const input=fs.readFileSync(process.argv[1],"utf8");const safe=input.replace(/sk_(?:test|live)_[A-Za-z0-9]+/g,"[REDACTED_STRIPE_KEY]").replace(/Bearer\s+\S+/gi,"Bearer [REDACTED]").replace(/((?:GRSAI_API_KEY|GEMINI_API_KEY|BLOB_READ_WRITE_TOKEN|NEXTAUTH_SECRET)\s*[=:]\s*)\S+/gi,"$1[REDACTED]").replace(/("(?:merchantSessionId|sessionId|userId|merchantId)"\s*:\s*")[^"]+("\s*[,}])/gi,"$1[REDACTED_ID]$2").replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,"[REDACTED_EMAIL]").replace(/(https?:\/\/[^\s?]+)\?[^\s]*/g,"$1?[REDACTED_QUERY]");process.stdout.write(safe.split("\n").slice(-60).join("\n"))' "$raw_log"
 }
 
 echo "LOCAL SALES DEMO CAPTURE"
