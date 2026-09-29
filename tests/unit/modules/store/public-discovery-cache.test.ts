@@ -4,7 +4,10 @@ import {
   publicDiscoveryCacheKey,
   publicDiscoveryCacheTags,
 } from '@/lib/store-discovery-cache'
-import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import {
+  invalidatePublicDiscovery,
+  withPublicDiscoveryInvalidation,
+} from '@/modules/store/application/public-discovery-invalidation'
 import { revalidatePath, revalidateTag } from 'next/cache'
 
 jest.mock('@/lib/cloudflare-public-html-purge', () => ({
@@ -97,6 +100,38 @@ describe('public discovery cache contract', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/en/c/luna-optical/petite-fit')
     expect(revalidatePath).toHaveBeenCalledWith('/en/c/luna-optical/petite-fit/kiosk')
     expect(revalidatePath).toHaveBeenCalledWith('/sitemaps/dynamic.xml')
+  })
+
+  it('supports a cache-only Store invalidation across canonical Next and Cloudflare boundaries', async () => {
+    jest.clearAllMocks()
+    const result = await invalidatePublicDiscovery({
+      target: { kind: 'store', merchantSlug: 'visutry-demo-optical' },
+    })
+
+    expect(result).toMatchObject({
+      merchantSlug: 'visutry-demo-optical',
+      scope: 'STORE',
+      tags: [
+        'public-discovery:merchant:visutry-demo-optical',
+        'public-discovery:sitemap',
+        'public-discovery:route-admission',
+        'public-discovery:merchant-catalog:visutry-demo-optical',
+        'public-discovery:experience:visutry-demo-optical:store',
+      ],
+      paths: expect.arrayContaining([
+        '/en/store/visutry-demo-optical',
+        '/en/store/visutry-demo-optical/kiosk',
+        '/[locale]/c/[merchantSlug]/[experienceSlug]',
+        '/sitemaps/dynamic.xml',
+      ]),
+      publicHtmlPurge: { attempted: true, success: true, tagCount: 1 },
+    })
+    expect(revalidateTag).toHaveBeenCalledTimes(5)
+    expect(revalidatePath).toHaveBeenCalledWith('/en/store/visutry-demo-optical')
+    expect(revalidatePath).toHaveBeenCalledWith('/sitemaps/dynamic.xml')
+    expect(purgePublicHtmlTags).toHaveBeenCalledWith([
+      'visutry:public-html:store:en:visutry-demo-optical',
+    ])
   })
 
   it('does not invalidate when the mutation rejects', async () => {

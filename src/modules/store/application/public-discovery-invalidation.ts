@@ -9,11 +9,155 @@ export type PublicDiscoveryMutationTarget =
   | { kind: 'catalog'; merchantSlug: string }
   | { kind: 'experience'; merchantSlug: string; experienceSlug: string | null }
 
+export type PublicDiscoveryInvalidationTarget = PublicDiscoveryMutationTarget
+  | { kind: 'store'; merchantSlug: string }
+
+export type PublicDiscoveryInvalidationResult = {
+  merchantSlug: string
+  scope: 'MERCHANT' | 'CATALOG' | 'CAMPAIGN' | 'STORE'
+  experienceSlug?: string
+  tags: string[]
+  paths: string[]
+  publicHtmlPurge: {
+    attempted: boolean
+    success: boolean
+    tagCount?: number
+    failedBatchCount?: number
+  }
+}
+
 type InvalidationDecision<T> = boolean | ((result: T) => boolean)
 
 type EdgeTags<T> = {
   before?: readonly string[]
   after?: readonly string[] | ((result: T) => readonly string[] | Promise<readonly string[]>)
+}
+
+type InvalidationPlan = {
+  tags: string[]
+  paths: string[]
+  edgeTags: string[]
+}
+
+function buildInvalidationPlan<T>(input: {
+  target: PublicDiscoveryInvalidationTarget
+  result?: T
+  edgeTags?: EdgeTags<T>
+}): InvalidationPlan {
+  const { target } = input
+  const tags = new Set<string>([
+    PUBLIC_DISCOVERY_CACHE.tags.merchant(target.merchantSlug),
+    PUBLIC_DISCOVERY_CACHE.tags.sitemap,
+    PUBLIC_DISCOVERY_CACHE.tags.routeAdmission,
+  ])
+  if (target.kind === 'catalog' || target.kind === 'store') {
+    tags.add(PUBLIC_DISCOVERY_CACHE.tags.catalog(target.merchantSlug))
+  }
+  if (target.kind === 'experience') {
+    tags.add(PUBLIC_DISCOVERY_CACHE.tags.experience(target.merchantSlug, target.experienceSlug))
+  }
+  if (target.kind === 'store') {
+    tags.add(PUBLIC_DISCOVERY_CACHE.tags.experience(target.merchantSlug, null))
+  }
+
+  const paths = new Set<string>()
+  for (const locale of locales) {
+    paths.add(`/${locale}/store/${target.merchantSlug}`)
+    paths.add(`/${locale}/store/${target.merchantSlug}/kiosk`)
+  }
+
+  if (target.kind === 'experience' && target.experienceSlug) {
+    for (const locale of locales) {
+      paths.add(`/${locale}/c/${target.merchantSlug}/${target.experienceSlug}`)
+      paths.add(`/${locale}/c/${target.merchantSlug}/${target.experienceSlug}/kiosk`)
+    }
+  } else if (target.kind !== 'experience') {
+    paths.add('/[locale]/c/[merchantSlug]/[experienceSlug]')
+    paths.add('/[locale]/c/[merchantSlug]/[experienceSlug]/kiosk')
+  }
+  paths.add('/sitemaps/dynamic.xml')
+
+  const result = input.result
+  const defaultTag = target.kind === 'experience' && target.experienceSlug
+    ? publicCampaignEdgeCacheTag(target.merchantSlug, target.experienceSlug)
+    : publicStoreEdgeCacheTag(target.merchantSlug)
+  const resultSlug = target.kind === 'experience'
+    && result !== null
+    && typeof result === 'object'
+    && 'slug' in result
+    && typeof result.slug === 'string'
+    ? result.slug
+    : null
+  const resultTag = target.kind === 'experience' && target.experienceSlug && resultSlug
+    ? publicCampaignEdgeCacheTag(target.merchantSlug, resultSlug)
+    : null
+
+  return {
+    tags: [...tags],
+    paths: [...paths],
+    edgeTags: [...new Set([
+      ...(input.edgeTags?.before ?? []),
+      ...(defaultTag ? [defaultTag] : []),
+      ...(resultTag ? [resultTag] : []),
+      ...(typeof input.edgeTags?.after === 'function' ? [] : input.edgeTags?.after ?? []),
+    ])],
+  }
+}
+
+async function resolveAfterEdgeTags<T>(edgeTags: EdgeTags<T> | undefined, result: T | undefined) {
+  return typeof edgeTags?.after === 'function'
+    ? edgeTags.after(result as T)
+    : edgeTags?.after ?? []
+}
+
+/**
+ * Revalidates the canonical public Store/Campaign discovery cache boundaries
+ * without performing a business mutation. Callers must supply a bounded,
+ * already-validated target; user-facing routes validate slugs before calling.
+ */
+export async function invalidatePublicDiscovery<T = unknown>(input: {
+  target: PublicDiscoveryInvalidationTarget
+  result?: T
+  edgeTags?: EdgeTags<T>
+}): Promise<PublicDiscoveryInvalidationResult> {
+  const plan = buildInvalidationPlan(input)
+  const afterTags = await resolveAfterEdgeTags(input.edgeTags, input.result)
+  const edgeTags = [...new Set([
+    ...plan.edgeTags,
+    ...afterTags,
+  ])]
+
+  plan.tags.forEach((tag) => revalidateTag(tag))
+  plan.paths.forEach((path) => {
+    if (path.startsWith('/[')) revalidatePath(path, 'page')
+    else revalidatePath(path)
+  })
+
+  const publicHtmlPurgeResult = await purgePublicHtmlTags(edgeTags)
+  const scope = input.target.kind === 'store'
+    ? 'STORE'
+    : input.target.kind === 'experience'
+      ? 'CAMPAIGN'
+      : input.target.kind === 'merchant'
+        ? 'MERCHANT'
+        : 'CATALOG'
+  return {
+    merchantSlug: input.target.merchantSlug,
+    scope,
+    ...(input.target.kind === 'experience' && input.target.experienceSlug
+      ? { experienceSlug: input.target.experienceSlug }
+      : {}),
+    tags: plan.tags,
+    paths: plan.paths,
+    publicHtmlPurge: {
+      attempted: publicHtmlPurgeResult.attempted,
+      success: publicHtmlPurgeResult.success,
+      ...(publicHtmlPurgeResult.tagCount !== undefined ? { tagCount: publicHtmlPurgeResult.tagCount } : {}),
+      ...(publicHtmlPurgeResult.failedBatchCount !== undefined
+        ? { failedBatchCount: publicHtmlPurgeResult.failedBatchCount }
+        : {}),
+    },
+  }
 }
 
 /**
@@ -32,76 +176,10 @@ export async function withPublicDiscoveryInvalidation<T>(input: {
     ? input.invalidate(result)
     : input.invalidate ?? true
   if (!shouldInvalidate) return result
-
-  const tags = new Set<string>([
-    PUBLIC_DISCOVERY_CACHE.tags.merchant(input.target.merchantSlug),
-    PUBLIC_DISCOVERY_CACHE.tags.sitemap,
-    PUBLIC_DISCOVERY_CACHE.tags.routeAdmission,
-  ])
-  if (input.target.kind === 'catalog') {
-    tags.add(PUBLIC_DISCOVERY_CACHE.tags.catalog(input.target.merchantSlug))
-  }
-  if (input.target.kind === 'experience') {
-    tags.add(PUBLIC_DISCOVERY_CACHE.tags.experience(input.target.merchantSlug, input.target.experienceSlug))
-  }
-  tags.forEach((tag) => revalidateTag(tag))
-
-  // The discovery read model is tagged, but the public page itself is an ISR
-  // artifact. Revalidating only the data tags can leave an already-rendered
-  // Store page in the Vercel route cache until its long safety TTL expires.
-  // Invalidate the concrete localized Store routes after every successful
-  // merchant/catalog/Store mutation so the next anonymous request renders the
-  // same data as the public API.
-  for (const locale of locales) {
-    revalidatePath(`/${locale}/store/${input.target.merchantSlug}`)
-    // Kiosk pages are separate ISR artifacts so discovery can stay unchanged
-    // while the delivery policy is evaluated independently. Policy writes
-    // must invalidate that artifact too (not wait for its seven-day TTL).
-    revalidatePath(`/${locale}/store/${input.target.merchantSlug}/kiosk`)
-  }
-
-  if (input.target.kind === 'experience' && input.target.experienceSlug) {
-    for (const locale of locales) {
-      revalidatePath(`/${locale}/c/${input.target.merchantSlug}/${input.target.experienceSlug}`)
-      revalidatePath(`/${locale}/c/${input.target.merchantSlug}/${input.target.experienceSlug}/kiosk`)
-    }
-  } else if (input.target.kind !== 'experience') {
-    // Merchant and catalog writes can affect any public campaign belonging to
-    // this merchant. Use the dynamic route pattern because campaign slugs are
-    // not part of the mutation boundary.
-    revalidatePath('/[locale]/c/[merchantSlug]/[experienceSlug]', 'page')
-    revalidatePath('/[locale]/c/[merchantSlug]/[experienceSlug]/kiosk', 'page')
-  }
-
-  // The dynamic sitemap is a route-level ISR artifact in addition to its
-  // tagged merchant read model. Revalidate it only after a successful write.
-  revalidatePath('/sitemaps/dynamic.xml')
-
-  const defaultTag = input.target.kind === 'experience' && input.target.experienceSlug
-    ? publicCampaignEdgeCacheTag(input.target.merchantSlug, input.target.experienceSlug)
-    : publicStoreEdgeCacheTag(input.target.merchantSlug)
-  const resultSlug = input.target.kind === 'experience'
-    && result !== null
-    && typeof result === 'object'
-    && 'slug' in result
-    && typeof result.slug === 'string'
-    ? result.slug
-    : null
-  const resultTag = input.target.kind === 'experience' && input.target.experienceSlug && resultSlug
-    ? publicCampaignEdgeCacheTag(input.target.merchantSlug, resultSlug)
-    : null
-  const after = typeof input.edgeTags?.after === 'function'
-    ? await input.edgeTags.after(result)
-    : input.edgeTags?.after ?? []
-  const edgeTags = [
-    ...(input.edgeTags?.before ?? []),
-    ...(defaultTag ? [defaultTag] : []),
-    ...(resultTag ? [resultTag] : []),
-    ...after,
-  ]
-  // This is intentionally after the database mutation and Next invalidation.
-  // A Cloudflare outage is observable but cannot turn a committed write into a
-  // false rollback.
-  await purgePublicHtmlTags([...new Set(edgeTags)])
+  await invalidatePublicDiscovery({
+    target: input.target,
+    result,
+    edgeTags: input.edgeTags,
+  })
   return result
 }
