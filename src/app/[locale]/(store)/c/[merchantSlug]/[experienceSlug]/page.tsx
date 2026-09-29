@@ -84,6 +84,7 @@ export default async function CampaignExperiencePage({ params }: CampaignExperie
           locale={locale}
           publicPocStorage={assetPolicy.publicPoc}
           generativeTryOnAvailable={discovery.merchant.generativeTryOnAvailable}
+          generativeTryOnUnavailableReason={discovery.merchant.generativeTryOnUnavailableReason}
           initialPublicMerchant={publicMerchantFromDiscovery(discovery)}
       />
     </RouteMessagesProvider>

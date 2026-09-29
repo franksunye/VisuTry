@@ -188,7 +188,7 @@ function toActivity(
 export async function getMerchantControlCenter(input: { merchantId: string }): Promise<MerchantControlCenter | null> {
   const sql = getCloudflareSql()
   const merchantRows = await sql`
-    SELECT "id", "slug", "name", "websiteUrl", "status", "referenceData", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt"
+    SELECT "id", "slug", "name", "websiteUrl", "status", "referenceData", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt"
     FROM "Merchant"
     WHERE "id" = ${input.merchantId}
     LIMIT 1
@@ -196,6 +196,8 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
   const merchant = merchantRows[0]
   if (!merchant) return null
   const merchantFields = {
+    classification: merchant.classification == null ? null : String(merchant.classification),
+    pilotType: merchant.pilotType == null ? null : String(merchant.pilotType),
     planCode: merchant.planCode == null ? null : String(merchant.planCode),
     commercialStatus: merchant.commercialStatus == null ? null : String(merchant.commercialStatus),
     commercialStage: merchant.commercialStage == null ? null : String(merchant.commercialStage),

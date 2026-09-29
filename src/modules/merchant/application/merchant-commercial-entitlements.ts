@@ -17,6 +17,8 @@ export { commercialStateForPresentation } from '@/modules/store/domain/merchant-
 
 const commercialMerchantSelect = {
   id: true,
+  classification: true,
+  pilotType: true,
   planCode: true,
   commercialStatus: true,
   commercialStage: true,

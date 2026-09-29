@@ -60,6 +60,22 @@ describe('InteractiveCommerceLauncher', () => {
     expect(screen.queryByTestId('lazy-runtime')).not.toBeInTheDocument()
   })
 
+  it('does not describe an expired paid entitlement as a plan-feature exclusion', () => {
+    render(
+      <InteractiveCommerceLauncher
+        merchantSlug="expired-launch-store"
+        locale="en"
+        publicPocStorage={false}
+        generativeTryOnAvailable={false}
+        generativeTryOnUnavailableReason="COMMERCIAL_INACTIVE"
+      />,
+    )
+
+    const button = screen.getByRole('button', { name: /plan period has ended/i })
+    expect(button).toBeDisabled()
+    expect(screen.queryByRole('button', { name: /available on launch and above/i })).not.toBeInTheDocument()
+  })
+
   it('keeps the page behind the workspace and closes on Escape', () => {
     render(
       <InteractiveCommerceLauncher

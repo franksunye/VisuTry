@@ -6,6 +6,7 @@ import { assertDatabaseEnvironment, databaseIdentityFromUrl, isLoopbackDatabaseU
 import { createRuntimePostgresAdapter, resolveRuntimePostgresProvider } from '../src/lib/postgres-runtime'
 import { mockModeEnabled } from '../src/lib/mocks'
 import { validateMerchantFrameReadiness } from '../src/modules/merchant/domain/merchant-frame-readiness'
+import { resolveMerchantCommercialState } from '../src/modules/store/domain/merchant-commercial-state'
 
 const envFile = path.join(process.cwd(), '.env.local')
 if (fs.existsSync(envFile)) dotenv.config({ path: envFile, override: false })
@@ -14,6 +15,7 @@ const MERCHANT_IDENTITY = {
   slug: 'visutry-demo-optical',
   name: 'VisuTry Demo Optical',
   ownerUserId: 'mock-user-1',
+  commercialExceptionCode: 'VISUTRY_DEMO',
   classificationSource: 'LOCAL_DEMO_FIXTURE',
   classificationReason: 'VisuTry-owned local demo Merchant and non-sale synthetic catalog for reusable product and experience QA.',
 } as const
@@ -160,6 +162,7 @@ async function main() {
             status: 'ACTIVE',
             classificationSource: MERCHANT_IDENTITY.classificationSource,
             classificationReason: MERCHANT_IDENTITY.classificationReason,
+            commercialExceptionCode: MERCHANT_IDENTITY.commercialExceptionCode,
             referenceData: false,
             tryOnEnabled: true,
             compareEnabled: true,
@@ -167,7 +170,7 @@ async function main() {
             inquiryEnabled: false,
             websiteUrl: null,
           },
-          select: { id: true, slug: true, name: true, classification: true },
+          select: { id: true, slug: true, name: true, classification: true, pilotType: true, commercialExceptionCode: true, planCode: true, commercialStatus: true, billingPeriodEnd: true },
         })
         : await tx.merchant.create({
           data: {
@@ -179,13 +182,14 @@ async function main() {
             classification: 'TEST',
             classificationSource: MERCHANT_IDENTITY.classificationSource,
             classificationReason: MERCHANT_IDENTITY.classificationReason,
+            commercialExceptionCode: MERCHANT_IDENTITY.commercialExceptionCode,
             websiteUrl: null,
             tryOnEnabled: true,
             compareEnabled: true,
             maxCompareFrames: 2,
             inquiryEnabled: false,
           },
-          select: { id: true, slug: true, name: true, classification: true },
+          select: { id: true, slug: true, name: true, classification: true, pilotType: true, commercialExceptionCode: true, planCode: true, commercialStatus: true, billingPeriodEnd: true },
         })
 
       const memberships = await tx.merchantMembership.findMany({
@@ -335,17 +339,28 @@ async function main() {
       })
 
       return {
-        merchant: { id: merchant.id, slug: merchant.slug, name: merchant.name, classification: merchant.classification },
+        merchant: { id: merchant.id, slug: merchant.slug, name: merchant.name, classification: merchant.classification, pilotType: merchant.pilotType, commercialExceptionCode: merchant.commercialExceptionCode, planCode: merchant.planCode, commercialStatus: merchant.commercialStatus, billingPeriodEnd: merchant.billingPeriodEnd },
         ownerUserId: owner.id,
         store: { id: store.id, slug: store.slug, status: store.status },
         frames: recommendationMatrix,
       }
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
 
+    const commercialState = resolveMerchantCommercialState(result.merchant)
+    if (commercialState.commercialState !== 'DEMO' || commercialState.status !== 'DEMO_ACTIVE' || commercialState.planCode !== null) {
+      throw new Error('Local Demo fixture failed the explicit Demo commercial entitlement contract.')
+    }
+
     console.log(JSON.stringify({
       environment: marker.environment,
       databaseIdentity: marker.databaseIdentity,
       merchant: result.merchant,
+      commercialState: commercialState.commercialState,
+      commercialMarkers: {
+        classification: result.merchant.classification,
+        pilotType: result.merchant.pilotType,
+        commercialExceptionCode: result.merchant.commercialExceptionCode,
+      },
       ownerIdentityClass: 'LOCAL QA EXISTING MERCHANT (mock-user-1)',
       store: result.store,
       catalogCount: result.frames.length,

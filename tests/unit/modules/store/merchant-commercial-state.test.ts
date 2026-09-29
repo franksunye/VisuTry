@@ -3,14 +3,21 @@ import {
   percentageUsed,
   commercialStateForPresentation,
   isCanonicalMerchantCommercialFields,
+  isExplicitVisuTryDemoMerchant,
   resolveMerchantCommercialState,
   resolveMerchantCommercialPeriod,
   usageThreshold,
 } from '@/modules/store/domain/merchant-commercial-state'
-import { getMerchantPlanDefinition } from '@/modules/store/domain/merchant-commercial-plans'
+import { getMerchantPlanDefinition, MERCHANT_PLAN_CODES } from '@/modules/store/domain/merchant-commercial-plans'
 import { merchantFeatureAvailable, resolveMerchantCommercialCapability } from '@/modules/store/domain/merchant-commercial-capability'
 
 const now = new Date('2026-08-27T00:00:00.000Z')
+const explicitDemo = {
+  classification: 'TEST',
+  pilotType: 'DEMO',
+  commercialExceptionCode: 'VISUTRY_DEMO',
+  planCode: null,
+} as const
 
 describe('G4-A canonical Merchant commercial contract', () => {
   it('keeps normal plan definitions canonical and separate from Pilot', () => {
@@ -69,6 +76,75 @@ describe('G4-A canonical Merchant commercial contract', () => {
     expect(legacy).toMatchObject({ commercialState: 'LEGACY_UNMIGRATED', planCode: null, plan: null, status: 'LEGACY_UNMIGRATED', primaryAction: 'ENROLL_PLAN' })
     expect(commercialStateForPresentation(legacy)).toMatchObject({ isCanonical: false, planName: 'Legacy · not enrolled', status: 'LEGACY_UNMIGRATED' })
     expect(canUseCommercialFeature(legacy, 'GENERATIVE_TRY_ON').allowed).toBe(true)
+  })
+
+  it('resolves only the three-marker VisuTry Demo identity to a non-plan DEMO state', () => {
+    const state = resolveMerchantCommercialState(explicitDemo, {}, now)
+
+    expect(isExplicitVisuTryDemoMerchant(explicitDemo)).toBe(true)
+    expect(isCanonicalMerchantCommercialFields(explicitDemo)).toBe(false)
+    expect(MERCHANT_PLAN_CODES).not.toContain('VISUTRY_DEMO')
+    expect(state).toMatchObject({
+      commercialState: 'DEMO',
+      status: 'DEMO_ACTIVE',
+      planCode: null,
+      plan: null,
+      period: { kind: 'none', start: null, end: null },
+      primaryAction: 'NONE',
+    })
+  })
+
+  it.each([
+    ['TEST only', { classification: 'TEST' }],
+    ['DEMO pilot only', { pilotType: 'DEMO' }],
+    ['VISUTRY_DEMO exception only', { commercialExceptionCode: 'VISUTRY_DEMO' }],
+  ])('does not grant Demo entitlement from %s alone', (_label, marker) => {
+    const fields = { planCode: null, ...marker }
+    expect(isExplicitVisuTryDemoMerchant(fields)).toBe(false)
+    expect(resolveMerchantCommercialState(fields, {}, now).commercialState).toBe('LEGACY_UNMIGRATED')
+  })
+
+  it('keeps explicit Demo active regardless of expired billing fields and exposes the full Demo journey', () => {
+    const state = resolveMerchantCommercialState({
+      ...explicitDemo,
+      commercialStatus: 'EXPIRED',
+      entitlementEffectiveFrom: new Date('2026-07-01T00:00:00.000Z'),
+      billingPeriodEnd: new Date('2026-07-31T00:00:00.000Z'),
+    }, {}, now)
+
+    expect(state.status).toBe('DEMO_ACTIVE')
+    expect(state.period).toEqual({ kind: 'none', start: null, end: null })
+    expect(state.featureAvailability).toEqual({
+      STORE: true,
+      CATALOG: true,
+      CAMPAIGN: true,
+      RECOMMENDATION: true,
+      GENERATIVE_TRY_ON: true,
+      COMPARE: true,
+      DECISION_RESULT: true,
+      MERCHANT_HANDOFF: true,
+      KIOSK_DELIVERY: true,
+      BASIC_ANALYTICS: true,
+      ADVANCED_ANALYTICS: false,
+    })
+  })
+
+  it('keeps Demo Try-On entitled while enforcing existing bounded Store Demo render limits', () => {
+    const capability = resolveMerchantCommercialCapability(explicitDemo, { standardTryOnGenerations: 12 }, now)
+
+    expect(capability.state).toMatchObject({ commercialState: 'DEMO', planCode: null, status: 'DEMO_ACTIVE' })
+    expect(capability.decisions.GENERATIVE_TRY_ON.allowed).toBe(true)
+    expect(capability.decisions.RECOMMENDATION.allowed).toBe(true)
+    expect(capability.decisions.COMPARE.allowed).toBe(true)
+    expect(capability.decisions.DECISION_RESULT.allowed).toBe(true)
+    expect(capability.decisions.MERCHANT_HANDOFF.allowed).toBe(true)
+    expect(capability.decisions.KIOSK_DELIVERY.allowed).toBe(true)
+    expect(capability.storeRuntime).toMatchObject({
+      persistedGenerationOrigin: 'STORE_DEMO',
+      enforceLegacyRenderLimits: true,
+      renderLimits: { maxSuccessfulRendersPerMerchant: 500, maxSuccessfulRendersPerSession: 8, maxAttemptsPerSession: 16 },
+    })
+    expect(capability.commercialIdentity).toMatchObject({ planCode: null, commercialState: 'DEMO' })
   })
 
   it('uses one capability decision for public projection and Store runtime while isolating origin as persistence compatibility', () => {

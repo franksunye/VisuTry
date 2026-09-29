@@ -56,6 +56,8 @@ async function usageCreatedAtForMerchant(
   const merchant = await prisma.merchant.findUnique({
     where: { id: merchantId },
     select: {
+      classification: true,
+      pilotType: true,
       planCode: true,
       commercialStage: true,
       pricingVersion: true,

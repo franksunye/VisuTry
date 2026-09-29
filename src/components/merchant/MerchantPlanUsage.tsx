@@ -17,6 +17,7 @@ function dateLabel(value: string | null) {
 }
 
 function statusCopy(commercial: MerchantCommercialPresentation, storeStatus?: string | null) {
+  if (commercial.status === "DEMO_ACTIVE") return "VisuTry Demo access is active. No subscription or payment is required.";
   if (commercial.status === "LEGACY_UNMIGRATED") return "This Store is still using its existing access while you choose a current plan.";
   if (commercial.status === "FREE") {
     if (storeStatus === "DRAFT") return "Your Store is in draft on the Free plan.";
@@ -44,6 +45,7 @@ function statusTone(status: string, threshold: string | null) {
   if (status === "USAGE_WARNING" && threshold === "NOTICE") return "border-blue-200 bg-blue-50 text-blue-800";
   if (["USAGE_WARNING", "PILOT_EXPIRED", "EXPIRED", "CANCEL_AT_PERIOD_END"].includes(status)) return "border-amber-200 bg-amber-50 text-amber-900";
   if (status === "FREE") return "border-blue-200 bg-blue-50 text-blue-800";
+  if (status === "DEMO_ACTIVE") return "border-emerald-200 bg-emerald-50 text-emerald-800";
   return "border-emerald-200 bg-emerald-50 text-emerald-800";
 }
 
@@ -66,15 +68,19 @@ function actionLabel(action: MerchantCommercialPresentation["primaryAction"]) {
 }
 
 export function MerchantPlanUsage({ commercial, merchantId, locale = "en", storeStatus = null }: Props) {
+  const isDemo = commercial.commercialState === "DEMO";
   useEffect(() => {
+    if (commercial.commercialState === "DEMO") return;
     analytics.trackCustomEvent(AnalyticsEvent.MerchantCommercialOfferViewed, {
       merchant_id: merchantId,
       plan_code: commercial.planCode ?? "LEGACY_UNMIGRATED",
       commercial_status: commercial.status,
       locale,
     });
-  }, [commercial.planCode, commercial.status, locale, merchantId]);
-  const periodText = commercial.status === "LEGACY_UNMIGRATED"
+  }, [commercial.commercialState, commercial.planCode, commercial.status, locale, merchantId]);
+  const periodText = isDemo
+    ? "Demo access · no subscription or billing period"
+    : commercial.status === "LEGACY_UNMIGRATED"
     ? "Not enrolled in a current plan"
     : commercial.status === "PILOT_ACTIVE" || commercial.planCode === "FOUNDING_PILOT"
     ? commercial.periodEnd ? `Ends ${dateLabel(commercial.periodEnd)}` : "30-day pilot"
@@ -83,7 +89,7 @@ export function MerchantPlanUsage({ commercial, merchantId, locale = "en", store
       : commercial.planCode === "FREE" ? "No billing period" : "Current period";
   const aiLabel = "AI Commerce Sessions";
   const aiDetail = commercial.aiCommerceSessionLimit === null
-    ? commercial.status === "LEGACY_UNMIGRATED" ? "Existing activity · not on a current plan" : commercial.planCode === "FREE" ? "Not included on Free" : "Included by custom plan"
+    ? isDemo ? "Demo access · bounded usage safety applies" : commercial.status === "LEGACY_UNMIGRATED" ? "Existing activity · not on a current plan" : commercial.planCode === "FREE" ? "Not included on Free" : "Included by custom plan"
     : `${allowance(commercial.usage.aiCommerceSessions, commercial.aiCommerceSessionLimit)}${commercial.aiCommerceSessionPercentage === null ? "" : ` · ${commercial.aiCommerceSessionPercentage}%`}`;
   return (
     <section id="commercial" className="scroll-mt-44 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="plan-usage-heading">
@@ -127,8 +133,10 @@ export function MerchantPlanUsage({ commercial, merchantId, locale = "en", store
       </div>
 
       <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center">
-        {merchantId ? <MerchantBillingActions merchantId={merchantId} locale={locale} commercial={commercial} /> : <a className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`} href="/en/business#plans">{actionLabel(commercial.primaryAction)} <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>}
-        <a className="text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-950" href="/en/business#plans">Compare plans</a>
+        {isDemo ? <p className="text-sm text-slate-500">This is a dedicated product-demo workspace, not a customer subscription.</p> : <>
+          {merchantId ? <MerchantBillingActions merchantId={merchantId} locale={locale} commercial={commercial} /> : <a className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`} href="/en/business#plans">{actionLabel(commercial.primaryAction)} <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>}
+          <a className="text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-950" href="/en/business#plans">Compare plans</a>
+        </>}
       </div>
     </section>
   );

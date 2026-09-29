@@ -36,6 +36,7 @@ export async function MerchantKioskRoute({
         locale={locale}
         publicPocStorage={assetPolicy.publicPoc}
         generativeTryOnAvailable={discovery.merchant.generativeTryOnAvailable}
+        generativeTryOnUnavailableReason={discovery.merchant.generativeTryOnUnavailableReason}
         initialPublicMerchant={publicMerchantFromDiscovery(discovery)}
         initialKioskMode
       />

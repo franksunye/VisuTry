@@ -49,6 +49,8 @@ echo "→ Guarded Local PostgreSQL, schema, LOCAL marker, and QA identity bootst
 npm run merchant:local:bootstrap
 echo "→ Reconcile the VisuTry Demo Optical fixture"
 npm run demo:local:seed
+echo "→ Verify canonical explicit Demo commercial entitlement"
+npm run demo:local:entitlement:preflight
 echo "→ Verify Local Demo runtime and exact schema parity"
 npm run merchant:local:preflight
 node scripts/preflight-local-demo.mjs

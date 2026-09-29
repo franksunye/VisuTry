@@ -63,4 +63,20 @@ describe('MerchantPlanUsage', () => {
     expect(screen.getByRole('link', { name: /choose a plan/i })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Free' })).not.toBeInTheDocument()
   })
+
+  it('presents Demo access without customer plan or billing actions', () => {
+    render(<MerchantPlanUsage commercial={commercial({
+      commercialState: 'DEMO', isCanonical: false, planCode: null, planName: 'VisuTry Demo', priceLabel: 'No commercial plan', status: 'DEMO_ACTIVE',
+      periodStart: null, periodEnd: null, daysRemaining: null, aiCommerceSessionLimit: null, aiCommerceSessionPercentage: null, aiCommerceSessionRemaining: null,
+      threshold: null, primaryAction: 'NONE',
+      limits: { catalogItems: null, activeCampaigns: null, aiCommerceSessions: null, standardTryOnGenerations: null, normalStoreTraffic: 'unlimited' },
+    })} merchantId="visutry-demo" />)
+
+    expect(screen.getByRole('heading', { name: 'VisuTry Demo' })).toBeInTheDocument()
+    expect(screen.getByText(/no subscription or payment is required/i)).toBeInTheDocument()
+    expect(screen.getByText(/bounded usage safety applies/i)).toBeInTheDocument()
+    expect(screen.getByText(/not a customer subscription/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /manage plan|upgrade|choose a plan|founding pilot/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /compare plans|plan options|upgrade/i })).not.toBeInTheDocument()
+  })
 })

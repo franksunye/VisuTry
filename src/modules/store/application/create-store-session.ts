@@ -132,6 +132,7 @@ export async function createStoreSession(input: {
     deviceType: input.deviceType ?? null,
     metadata: {
       planCode: commercialCapability.commercialIdentity.planCode,
+      commercialState: commercialCapability.commercialIdentity.commercialState,
       entitlementVersion: commercialCapability.commercialIdentity.entitlementVersion,
       ...experiencePolicyMetadata(experiencePolicy),
       ...(acquisitionMeta ?? {}),
@@ -146,6 +147,7 @@ export async function createStoreSession(input: {
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
     planCode: commercialCapability.commercialIdentity.planCode,
+    commercialState: commercialCapability.commercialIdentity.commercialState,
     source: acquisition.source,
     campaign: acquisition.campaign,
   })

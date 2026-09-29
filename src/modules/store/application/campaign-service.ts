@@ -70,6 +70,8 @@ type CampaignRow = Experience & { frames: CampaignFrame[] }
 
 const merchantCommercialSelect = {
   slug: true,
+  classification: true,
+  pilotType: true,
   referenceData: true,
   planCode: true,
   commercialStatus: true,

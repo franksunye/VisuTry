@@ -19,7 +19,7 @@ type DecisionResultShareRow = {
     merchantSessionId: string
     expiresAt: Date
     payload: unknown
-    merchant: { id: string; slug: string; name: string; status: string; accentColor: string | null; websiteUrl: string | null; planCode: string | null; commercialStatus: string | null; commercialExceptionCode: string | null }
+    merchant: { id: string; slug: string; name: string; status: string; accentColor: string | null; websiteUrl: string | null; classification: string; pilotType: string; planCode: string | null; commercialStatus: string | null; commercialExceptionCode: string | null }
     experience: {
       id: string
       type: 'STORE' | 'CAMPAIGN'
@@ -51,7 +51,7 @@ async function findShare(token: string): Promise<DecisionResultShareRow | null> 
     include: {
       result: {
         include: {
-          merchant: { select: { id: true, slug: true, name: true, status: true, accentColor: true, websiteUrl: true, planCode: true, commercialStatus: true, commercialExceptionCode: true } },
+          merchant: { select: { id: true, slug: true, name: true, status: true, accentColor: true, websiteUrl: true, classification: true, pilotType: true, planCode: true, commercialStatus: true, commercialExceptionCode: true } },
           experience: { select: { id: true, type: true, slug: true, name: true, primaryCtaType: true, primaryCtaLabel: true, primaryCtaUrl: true, secondaryCtaType: true, secondaryCtaLabel: true, secondaryCtaUrl: true, deliveryPolicy: true } },
         },
       },
