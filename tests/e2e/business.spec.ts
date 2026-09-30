@@ -46,6 +46,7 @@ test.describe('@critical Business market-facing narrative', () => {
       '/en/business/store',
       '/en/business/campaigns',
       '/en/business/commerce-intelligence',
+      '/en/business/resources',
     ]) {
       const response = await page.goto(route, { waitUntil: 'domcontentloaded' })
       expect(response).not.toBeNull()
@@ -89,6 +90,28 @@ test.describe('@critical Business market-facing narrative', () => {
     await expect(page.getByRole('button', { name: 'Request Pilot review' })).toBeVisible();
     await expect(page.getByLabel('Work email')).toHaveAttribute('type', 'email');
     await expect(page.locator('a[href^="mailto:"]').filter({ hasText: 'Request Pilot Review' })).toHaveCount(0);
+  });
+
+  test('Business Resources publishes the canonical white paper and product demo without gating', async ({ page }) => {
+    const response = await page.goto('/en/business/resources', { waitUntil: 'domcontentloaded' });
+
+    expect(response).not.toBeNull();
+    expect(response!.status()).toBeLessThan(400);
+    await expect(page).toHaveTitle(/VisuTry Business Resources/);
+    await expect(page.getByRole('heading', { name: 'See the product. Go deeper on the retail model.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'VisuTry In-Store Retail Product Demo' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'AI Eyewear Decision Experience for In-Store Retail' })).toBeVisible();
+
+    const video = page.locator('video[data-business-resource="instore-retail-demo-v2"]');
+    await expect(video).toHaveAttribute('preload', 'none');
+    await expect(video.locator('source')).toHaveAttribute('src', 'https://media.visutry.com/business/demos/visutry-instore-retail-product-demo-v2.mp4');
+
+    await expect(page.getByRole('link', { name: 'Read the white paper' })).toHaveAttribute(
+      'href',
+      'https://media.visutry.com/business/whitepapers/visutry-ai-eyewear-decision-experience-instore-retail-v1.3.pdf',
+    );
+    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' })).toHaveAttribute('href', '/en/business/pilot');
+    await expect(page.locator('form')).toHaveCount(0);
   });
 
   test('Merchant pricing page exposes the canonical plans, usage semantics, and safe CTAs', async ({ page }) => {
