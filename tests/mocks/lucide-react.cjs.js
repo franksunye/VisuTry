@@ -59,6 +59,8 @@ module.exports = {
   Globe2: createIcon('globe-2'),
   FileUp: createIcon('file-up'),
   FilePlus2: createIcon('file-plus-2'),
+  FileText: createIcon('file-text'),
+  PlayCircle: createIcon('play-circle'),
   Search: createIcon('search'),
   Edit3: createIcon('edit-3'),
   Save: createIcon('save'),

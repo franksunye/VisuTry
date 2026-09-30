@@ -33,6 +33,7 @@ export function BusinessFooter() {
     {
       title: 'Explore',
       links: [
+        ['Resources', '/business/resources'],
         ['Examples', '/business/examples'],
         ['Integrations', '/business/integrations'],
         ['Discover Brands', '/discover'],
