@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -11,6 +12,25 @@ const isLocalDemoFixtureRun = process.env.APP_ENV === 'local' &&
   process.env.VISUTRY_LOCAL_DEMO_EXECUTION_MODE === 'PREPARED_DEMO' &&
   process.env.VISUTRY_LOCAL_DEMO_PREPARED_E2E === '1' &&
   /^http:\/\/(127\.0\.0\.1|localhost):(3001|3002)$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+
+const APPROVED_RESULT_HASHES = {
+  rowan: '504fced34e90922ffe162c4abe746178777b4241afc5f262d28e93dba703b28c',
+  lane: '1c6f03785756d230fb1806572e03e9acf9eda32f150acb84ee783ee8bfac7b71',
+} as const
+
+async function expectApprovedPreparedImage(
+  page: import('@playwright/test').Page,
+  image: import('@playwright/test').Locator,
+  identity: keyof typeof APPROVED_RESULT_HASHES,
+) {
+  await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBe(1122)
+  const imageUrl = await image.getAttribute('src')
+  expect(imageUrl).toBeTruthy()
+  const response = await page.request.get(new URL(imageUrl!, page.url()).toString())
+  expect(response.ok()).toBe(true)
+  const actualHash = createHash('sha256').update(await response.body()).digest('hex')
+  expect(actualHash).toBe(APPROVED_RESULT_HASHES[identity])
+}
 
 async function localNetworkGuard(page: import('@playwright/test').Page) {
   const unexpectedOrigins: string[] = []
@@ -88,9 +108,11 @@ test('completes Store → Demo Shopper → Rowan/Lane prepared results → Compa
 
   const resultImages = page.locator('[data-testid^="store-tryon-result-"]')
   await expect(resultImages).toHaveCount(2, { timeout: 60_000 })
-  await expect(page.getByText('QA fixture · not a Try-On image')).toHaveCount(2)
+  await expect(page.getByText('Prepared demo result', { exact: true })).toHaveCount(2)
+  await expect(page.getByText('QA fixture · not a Try-On image')).toHaveCount(0)
   for (const image of await resultImages.all()) {
-    await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0)
+    const alt = await image.getAttribute('alt')
+    await expectApprovedPreparedImage(page, image, alt?.includes('VT Rowan') ? 'rowan' : 'lane')
   }
 
   await page.getByTestId('store-tryon-open-compare').click()
@@ -105,12 +127,14 @@ test('completes Store → Demo Shopper → Rowan/Lane prepared results → Compa
   await expect(page).toHaveURL(/\/en\/result\/[A-Za-z0-9_-]{40,}$/)
   await expect(page.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
   await expect(page.getByText('Prepared demo results')).toBeVisible()
-  await expect(page.getByText('QA fixture · not a Try-On image')).toHaveCount(2)
+  await expect(page.getByText('Prepared demo result', { exact: true })).toHaveCount(2)
+  await expect(page.getByText('QA fixture · not a Try-On image')).toHaveCount(0)
   await expect(page.getByAltText('Scan to open this Decision Result on another device')).toBeVisible()
   const decisionImages = page.locator('img[src*="/api/store/results/"]')
   await expect(decisionImages).toHaveCount(2)
   for (const image of await decisionImages.all()) {
-    await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0)
+    const alt = await image.getAttribute('alt')
+    await expectApprovedPreparedImage(page, image, alt?.includes('VT Rowan') ? 'rowan' : 'lane')
   }
 
   const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 } })
@@ -118,9 +142,11 @@ test('completes Store → Demo Shopper → Rowan/Lane prepared results → Compa
   await mobilePage.goto(resultHref!, { waitUntil: 'networkidle' })
   await expect(mobilePage.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
   await expect(mobilePage.getByText('Continue on your phone')).toBeVisible()
-  await expect(mobilePage.locator('img[src*="/api/store/results/"]')).toHaveCount(2)
-  for (const image of await mobilePage.locator('img[src*="/api/store/results/"]').all()) {
-    await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0)
+  const mobileImages = mobilePage.locator('img[src*="/api/store/results/"]')
+  await expect(mobileImages).toHaveCount(2)
+  for (const image of await mobileImages.all()) {
+    const alt = await image.getAttribute('alt')
+    await expectApprovedPreparedImage(mobilePage, image, alt?.includes('VT Rowan') ? 'rowan' : 'lane')
   }
   await mobilePage.close()
 
@@ -140,9 +166,14 @@ test('serves the same Decision Result media after the Local app has restarted', 
   const network = await localNetworkGuard(page)
   await page.goto(`/en/result/${encodeURIComponent(token!)}`, { waitUntil: 'networkidle' })
   await expect(page.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
-  const image = page.locator('img[src*="/api/store/results/"]').first()
-  await expect(image).toBeVisible()
-  await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0)
+  await expect(page.getByText('Prepared demo results')).toBeVisible()
+  const images = page.locator('img[src*="/api/store/results/"]')
+  await expect(images).toHaveCount(2)
+  for (const image of await images.all()) {
+    await expect(image).toBeVisible()
+    const alt = await image.getAttribute('alt')
+    await expectApprovedPreparedImage(page, image, alt?.includes('VT Rowan') ? 'rowan' : 'lane')
+  }
   expect(network.unexpectedOrigins).toEqual([])
   expect(network.errors).toEqual([])
 })

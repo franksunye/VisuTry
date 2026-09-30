@@ -77,7 +77,8 @@ describe('presentPreparedDemoResult', () => {
     expect(result).toMatchObject({
       source: 'PREPARED_DEMO',
       merchantFrameId: 'rowan-frame',
-      disclosure: 'LOCAL_QA_FIXTURE',
+      disclosure: 'PREPARED_DEMO',
+      sourceRef: { assetKey: 'visutry-demo-v1-vt-rowan-approved-local' },
       frame: { name: 'VT Rowan' },
     })
     expect(recordPreparedDemoResult).toHaveBeenCalledWith(expect.objectContaining({

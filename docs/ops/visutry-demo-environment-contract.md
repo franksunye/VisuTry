@@ -89,9 +89,9 @@ Store
 
 The default `PREPARED_DEMO` path continues from frame selection through
 Compare, Decision Result, and QR/mobile without a Provider request. Normal Demo
-readiness requires **zero Provider calls**. Local QA assets remain visibly
-identified as QA graphics; Production needs separately approved private
-assets, and missing assets fail closed. No Retry, GrsAI, or Gemini request is
+readiness requires **zero Provider calls**. Local uses approved prepared Demo
+assets; Production needs separately approved private assets, and missing
+assets fail closed. No Retry, GrsAI, or Gemini request is
 part of the default rehearsal. Any live Provider smoke is a separate
 cost-bearing operation and requires explicit Lead authorization with a
 bounded scope. Meeting readiness must never depend on a live generation.
@@ -106,12 +106,14 @@ selection, prepared-result, Compare, Decision Result, and QR/mobile continuation
 contracts. Environment-specific behavior is limited to the media adapter and
 which explicitly approved assets it may resolve.
 
-- **Local:** the complete Store → Face Intelligence → Recommendation →
-  Rowan/Lane selection → Prepared Results → Compare → Decision Result →
-  QR/mobile journey has been validated through the canonical Local E2E. Local
-  QA fixtures are visibly disclosed QA graphics; they are **not Try-On imagery,
-  shopper evidence, or customer-facing prepared assets**. They prove plumbing
-  and UX continuity only.
+- **Local:** the canonical manifest resolves the two checksum-verified,
+  Lead-approved prepared Demo outputs documented in
+  [`prepared-results/APPROVED_ASSETS.md`](../assets/local-demo/prepared-results/APPROVED_ASSETS.md).
+  They are pre-approved Demo results, not live generations from the current
+  shopper session. The canonical full browser/restart E2E has passed with exact
+  output-byte verification and a final shopper-state reset. The older
+  disclosure-only QA SVG fixtures remain `LOCAL_QA_FIXTURE` and are not
+  selected by the canonical journey.
 - **Production:** the prepared-result application path is implemented, but no
   approved Production prepared-result assets are configured yet. It fails
   closed when an allowlisted asset is absent; it never falls back to Local QA
@@ -143,8 +145,8 @@ generation, seed data, or test retries.
 | Tenant identity | Canonical `TEST` / `DEMO` / `VISUTRY_DEMO` fixture | Dedicated canonical Demo tenant with the same three markers |
 | Database | Guarded Local PostgreSQL | Production database; read-only except a separately authorized, bounded Demo operation |
 | Face Intelligence / Recommendation | Real browser inference and canonical deterministic domain path | Same product path |
-| Provider default | Zero Provider calls; shared `PREPARED_DEMO` uses visibly disclosed Local QA fixtures | Zero Provider calls by default; prepared path fails closed without approved assets |
-| Result continuation | Full prepared-result journey validated with visibly disclosed Local QA fixtures; not Try-On imagery or a sales result asset | Shared code path exists; no approved Production assets configured, so missing prepared media fails closed |
+| Provider default | Zero Provider calls; shared `PREPARED_DEMO` uses the two approved Local result assets | Zero Provider calls by default; prepared path fails closed without approved private assets |
+| Result continuation | Full journey validated with the approved prepared Demo outputs; no Try-On task or generation telemetry is created | Shared code path exists; no approved Production assets configured, so missing prepared media fails closed |
 | Paid billing | Local Stripe TEST configuration only when relevant | No BillingAccount or Stripe subscription required for Demo; no payment in Demo QA |
 
 For exact commands, reset boundaries, environment guards, and real-provider
