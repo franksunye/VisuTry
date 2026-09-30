@@ -6,11 +6,12 @@ import { ArrowRight, FileText, PlayCircle } from 'lucide-react'
 import { businessHref } from '@/config/business-site'
 import { inStoreRetailDemo, inStoreRetailWhitepaper, type BusinessResource } from '@/config/business-resources'
 import { analytics } from '@/lib/analytics'
+import { AnalyticsEvent } from '@/lib/analytics-events'
 
 type BusinessResourcePlacement = 'resources' | 'business_home' | 'platform' | 'store' | 'pilot'
 
 function trackResourceOpen(resource: BusinessResource, placement: BusinessResourcePlacement) {
-  analytics.trackCustomEvent('business_resource_opened', {
+  analytics.trackCustomEvent(AnalyticsEvent.B2bResourceOpened, {
     resource_id: resource.id,
     resource_type: resource.type,
     resource_version: resource.version,
@@ -59,7 +60,7 @@ function DemoVideo({ placement, compact = false }: { placement: BusinessResource
         onPlay={() => {
           if (started.current) return
           started.current = true
-          analytics.trackCustomEvent('business_resource_video_started', {
+          analytics.trackCustomEvent(AnalyticsEvent.B2bResourceVideoStarted, {
             resource_id: inStoreRetailDemo.id,
             resource_version: inStoreRetailDemo.version,
             placement,
@@ -67,7 +68,7 @@ function DemoVideo({ placement, compact = false }: { placement: BusinessResource
           })
         }}
         onEnded={() => {
-          analytics.trackCustomEvent('business_resource_video_completed', {
+          analytics.trackCustomEvent(AnalyticsEvent.B2bResourceVideoCompleted, {
             resource_id: inStoreRetailDemo.id,
             resource_version: inStoreRetailDemo.version,
             placement,
@@ -153,7 +154,7 @@ export function BusinessResourceStrip({
                   <Link
                     href={businessHref(locale, resource.type === 'video' ? '/business/resources#product-demo' : '/business/resources#white-paper')}
                     prefetch={false}
-                    onClick={() => analytics.trackCustomEvent('business_resource_navigated', {
+                    onClick={() => analytics.trackCustomEvent(AnalyticsEvent.B2bResourceNavigated, {
                       resource_id: resource.id,
                       resource_type: resource.type,
                       resource_version: resource.version,
