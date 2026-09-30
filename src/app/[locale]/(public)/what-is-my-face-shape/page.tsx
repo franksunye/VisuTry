@@ -10,11 +10,12 @@ import { B01VisualSeoSections } from '@/components/seo/B01VisualSeoSections'
 const pathname = '/what-is-my-face-shape'
 const routeId = 'what-is-my-face-shape' as const
 
-type Props = { params: { locale: string } }
+type Props = { params: Promise<{ locale: string }> }
 
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const copy = getSearchToToolLandingCopy(params.locale, routeId)
   return generateSearchToToolSEO({
     locale: params.locale as Locale,
@@ -24,7 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
 }
 
-export default function WhatIsMyFaceShapePage({ params }: Props) {
+export default async function WhatIsMyFaceShapePage(props: Props) {
+  const params = await props.params;
   const locale = params.locale
   const copy = getSearchToToolLandingCopy(locale, routeId)
   const sourcePage = pathname

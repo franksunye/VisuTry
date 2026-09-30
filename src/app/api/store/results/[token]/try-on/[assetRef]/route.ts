@@ -5,8 +5,9 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { token: string; assetRef: string } },
+  props: { params: Promise<{ token: string; assetRef: string }> }
 ) {
+  const params = await props.params;
   const result = await resolveDecisionResultAsset({ token: params.token, assetRef: params.assetRef })
   if (!result) return NextResponse.json({ success: false, error: 'Decision Result asset unavailable.' }, { status: 404 })
   return new NextResponse(new Uint8Array(result.body), {

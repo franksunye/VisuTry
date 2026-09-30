@@ -116,12 +116,12 @@ export function clearUserCache(userId: string) {
   console.log(`🧹 清除用户缓存: ${userId}`)
   
   // 清除所有用户相关的缓存标签
-  revalidateTag(CACHE_TAGS.USER(userId))
-  revalidateTag(CACHE_TAGS.PAYMENTS(userId))
+  revalidateTag(CACHE_TAGS.USER(userId), { expire: 0 })
+  revalidateTag(CACHE_TAGS.PAYMENTS(userId), { expire: 0 })
   
   // 清除页面级别的缓存
-  revalidateTag(CACHE_TAGS.DASHBOARD)
-  revalidateTag(CACHE_TAGS.TRYON)
+  revalidateTag(CACHE_TAGS.DASHBOARD, { expire: 0 })
+  revalidateTag(CACHE_TAGS.TRYON, { expire: 0 })
 }
 
 /**
@@ -130,5 +130,5 @@ export function clearUserCache(userId: string) {
 export function clearPageCache(page: 'dashboard' | 'tryon') {
   console.log(`🧹 清除页面缓存: ${page}`)
   const tag = page === 'dashboard' ? CACHE_TAGS.DASHBOARD : CACHE_TAGS.TRYON
-  revalidateTag(tag)
+  revalidateTag(tag, { expire: 0 })
 }

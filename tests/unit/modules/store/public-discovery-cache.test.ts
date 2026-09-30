@@ -68,9 +68,9 @@ describe('public discovery cache contract', () => {
       mutation: async () => 'merchant-updated',
     })
     expect(revalidateTag).toHaveBeenCalledTimes(3)
-    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant:luna-optical')
-    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:sitemap')
-    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:route-admission')
+    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant:luna-optical', { expire: 0 })
+    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:sitemap', { expire: 0 })
+    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:route-admission', { expire: 0 })
     expect(revalidatePath).toHaveBeenCalledWith('/en/store/luna-optical')
     expect(revalidatePath).toHaveBeenCalledWith('/en/store/luna-optical/kiosk')
     expect(revalidatePath).toHaveBeenCalledWith('/[locale]/c/[merchantSlug]/[experienceSlug]', 'page')
@@ -83,7 +83,7 @@ describe('public discovery cache contract', () => {
       mutation: async () => 'catalog-updated',
     })
     expect(revalidateTag).toHaveBeenCalledTimes(4)
-    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant-catalog:luna-optical')
+    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant-catalog:luna-optical', { expire: 0 })
     expect(revalidatePath).toHaveBeenCalledWith('/en/store/luna-optical')
     expect(revalidatePath).toHaveBeenCalledWith('/en/store/luna-optical/kiosk')
     expect(revalidatePath).toHaveBeenCalledWith('/[locale]/c/[merchantSlug]/[experienceSlug]', 'page')
@@ -96,7 +96,7 @@ describe('public discovery cache contract', () => {
       mutation: async () => 'experience-updated',
     })
     expect(revalidateTag).toHaveBeenCalledTimes(4)
-    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:experience:luna-optical:petite-fit')
+    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:experience:luna-optical:petite-fit', { expire: 0 })
     expect(revalidatePath).toHaveBeenCalledWith('/en/c/luna-optical/petite-fit')
     expect(revalidatePath).toHaveBeenCalledWith('/en/c/luna-optical/petite-fit/kiosk')
     expect(revalidatePath).toHaveBeenCalledWith('/sitemaps/dynamic.xml')

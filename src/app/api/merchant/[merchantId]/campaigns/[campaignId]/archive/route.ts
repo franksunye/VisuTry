@@ -8,7 +8,11 @@ import { campaignErrorResponse } from '../../campaign-http'
 export const dynamic = 'force-dynamic'
 const schema = z.object({ confirmed: z.literal(true) }).strict()
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string; campaignId: string } }) {
+export async function POST(
+  request: NextRequest,
+  props: { params: Promise<{ merchantId: string; campaignId: string }> }
+) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {

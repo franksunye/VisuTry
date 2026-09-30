@@ -13,7 +13,8 @@ export const metadata: Metadata = generateSEO({
   url: '/privacy',
 })
 
-export default async function PrivacyPage({ params }: { params: { locale: string } }) {
+export default async function PrivacyPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const lastUpdated = 'January 15, 2025'
 
   return (

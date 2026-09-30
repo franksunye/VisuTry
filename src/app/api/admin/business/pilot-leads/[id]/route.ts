@@ -4,7 +4,7 @@ import { businessPilotLeadErrorResponse, updateBusinessPilotLead } from '@/modul
 
 export const dynamic = 'force-dynamic'
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> | { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await requireAdmin()
     if (!auth.ok) return auth.response

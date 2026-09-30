@@ -6,7 +6,7 @@ import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
 interface HairstylesHubPageProps {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export const dynamic = 'force-static'
@@ -26,7 +26,8 @@ const faqContent = [
   },
 ]
 
-export async function generateMetadata({ params }: HairstylesHubPageProps): Promise<Metadata> {
+export async function generateMetadata(props: HairstylesHubPageProps): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as Locale,
     title: 'Best Hairstyles for Every Face Shape | VisuTry',
@@ -37,7 +38,8 @@ export async function generateMetadata({ params }: HairstylesHubPageProps): Prom
   })
 }
 
-export default function HairstylesHubPage({ params }: HairstylesHubPageProps) {
+export default async function HairstylesHubPage(props: HairstylesHubPageProps) {
+  const params = await props.params;
   const locale = params.locale
   const faqSchema = generateStructuredData('faqPage', { questions: faqContent })
 

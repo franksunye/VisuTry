@@ -2,10 +2,11 @@ import { Suspense } from 'react'
 import { HistoryPageClient } from '@/components/dashboard/HistoryPageClient'
 
 type HistoryPageProps = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export default function HistoryPage({ params }: HistoryPageProps) {
+export default async function HistoryPage(props: HistoryPageProps) {
+  const params = await props.params;
   return (
     <Suspense
       fallback={

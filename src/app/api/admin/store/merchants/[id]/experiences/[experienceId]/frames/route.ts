@@ -7,8 +7,9 @@ export const dynamic = 'force-dynamic'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; experienceId: string } },
+  props: { params: Promise<{ id: string; experienceId: string }> }
 ) {
+  const params = await props.params;
   try {
     const auth = await requireAdmin()
     if (!auth.ok) return auth.response

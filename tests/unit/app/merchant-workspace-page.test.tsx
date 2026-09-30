@@ -86,7 +86,7 @@ describe('Merchant workspace authorization', () => {
   })
 
   it('uses internal User.id and rechecks membership for the selected tenant', async () => {
-    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b', onboarding: 'created' } })
+    const result = await MerchantWorkspacePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-b', onboarding: 'created' }) })
     expect(result).toBeTruthy()
     expect(merchants).toHaveBeenCalledWith('user-a')
     expect(membership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-b', roles: ['OWNER', 'ADMIN'] })
@@ -98,40 +98,40 @@ describe('Merchant workspace authorization', () => {
     merchants.mockResolvedValue([
       { merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', status: 'ACTIVE' }, membership: { role: 'OWNER' } },
     ])
-    await expect(MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })).rejects.toThrow('NOT_FOUND')
+    await expect(MerchantWorkspacePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-b' }) })).rejects.toThrow('NOT_FOUND')
     expect(membership).not.toHaveBeenCalled()
   })
 
   it('shows first-time onboarding for a global ADMIN with no MerchantMembership', async () => {
     merchants.mockResolvedValue([])
-    const result = await MerchantWorkspacePage({ params: { locale: 'en' } })
+    const result = await MerchantWorkspacePage({ params: Promise.resolve({ locale: 'en' }) })
     expect(result).toBeTruthy()
     expect(control).not.toHaveBeenCalled()
   })
 
   it('preserves a paid purchase intent through first-time Merchant onboarding', async () => {
     merchants.mockResolvedValue([])
-    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { commercialIntent: 'growth' } })
+    const result = await MerchantWorkspacePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ commercialIntent: 'growth' }) })
     expect((result as { props: { commercialIntent?: string } }).props.commercialIntent).toBe('GROWTH')
   })
 
   it('routes an existing Merchant with a paid intent to the canonical purchase summary', async () => {
-    await expect(MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { commercialIntent: 'GROWTH' } }))
+    await expect(MerchantWorkspacePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ commercialIntent: 'GROWTH' }) }))
       .rejects.toThrow('REDIRECT:/en/merchant/purchase?merchantId=merchant-a&commercialIntent=GROWTH')
     expect(control).not.toHaveBeenCalled()
   })
 
   it('preserves the existing workspace path for a multi-merchant user', async () => {
-    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })
+    const result = await MerchantWorkspacePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-b' }) })
     expect(result).toBeTruthy()
     expect(membership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-b', roles: ['OWNER', 'ADMIN'] })
   })
 
   it('uses the dedicated Operating Home after First Value without loading the control aggregate or credentials', async () => {
     workspaceMode.mockResolvedValue({ mode: 'OPERATING', reason: 'STORE_PREVIEWED' })
-    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a' } }) as React.ReactElement
+    const result = await MerchantWorkspacePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-a' }) }) as React.ReactElement<any>
 
-    const operatingHomeElement = result.props.children as React.ReactElement
+    const operatingHomeElement = result.props.children as React.ReactElement<any>
     expect(operatingHomeElement.type).toHaveProperty('name', 'MerchantOperatingHome')
     expect(operatingHomeElement.props.home).toBeDefined()
     expect(operatingHome).toHaveBeenCalledWith({ merchantId: 'merchant-a' })
@@ -141,9 +141,9 @@ describe('Merchant workspace authorization', () => {
 
   it('uses Operating Home for an existing ACTIVE Store without synthesizing activation history', async () => {
     workspaceMode.mockResolvedValue({ mode: 'OPERATING', reason: 'ACTIVE_STORE' })
-    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a' } }) as React.ReactElement
+    const result = await MerchantWorkspacePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-a' }) }) as React.ReactElement<any>
 
-    const operatingHomeElement = result.props.children as React.ReactElement
+    const operatingHomeElement = result.props.children as React.ReactElement<any>
     expect(operatingHomeElement.type).toHaveProperty('name', 'MerchantOperatingHome')
     expect(workspaceMode).toHaveBeenCalledWith({ merchantId: 'merchant-a' })
     expect(control).not.toHaveBeenCalled()
@@ -152,7 +152,7 @@ describe('Merchant workspace authorization', () => {
 
   it('keeps unauthenticated users on the existing login redirect', async () => {
     session.mockResolvedValue(null)
-    await expect(MerchantWorkspacePage({ params: { locale: 'en' } })).rejects.toThrow('REDIRECT:/en/auth/signin?callbackUrl=/en/merchant')
+    await expect(MerchantWorkspacePage({ params: Promise.resolve({ locale: 'en' }) })).rejects.toThrow('REDIRECT:/en/auth/signin?callbackUrl=/en/merchant')
     expect(control).not.toHaveBeenCalled()
   })
 })

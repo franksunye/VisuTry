@@ -5,7 +5,8 @@ import { merchantAgentErrorResponse } from '@/modules/merchant/application/merch
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(_request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {

@@ -16,9 +16,9 @@ import {
 } from '@/config/pricing';
 
 interface UserDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 async function getUserDetails(userId: string) {
@@ -105,7 +105,8 @@ async function getUserDetails(userId: string) {
   };
 }
 
-export default async function UserDetailPage({ params }: UserDetailPageProps) {
+export default async function UserDetailPage(props: UserDetailPageProps) {
+  const params = await props.params;
   const data = await getUserDetails(params.id);
 
   if (!data) {

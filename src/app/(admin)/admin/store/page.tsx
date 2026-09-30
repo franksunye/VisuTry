@@ -83,7 +83,7 @@ async function RetentionHealthCard() {
 }
 
 type AdminStoreMerchantsPageProps = {
-  searchParams?: { view?: string }
+  searchParams?: Promise<{ view?: string }>
 }
 
 const classificationBadgeClasses: Record<string, string> = {
@@ -116,7 +116,8 @@ function money(cents: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(cents / 100)
 }
 
-export default async function AdminStoreMerchantsPage({ searchParams }: AdminStoreMerchantsPageProps) {
+export default async function AdminStoreMerchantsPage(props: AdminStoreMerchantsPageProps) {
+  const searchParams = await props.searchParams;
   const filter: MerchantPortfolioFilter = isMerchantPortfolioFilter(searchParams?.view)
     ? searchParams.view
     : 'COMMERCIAL'

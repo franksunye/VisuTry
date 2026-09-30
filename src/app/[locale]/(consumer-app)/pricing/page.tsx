@@ -27,7 +27,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export const dynamic = 'force-static'
 
-export default async function PricingPage({ params }: { params: { locale: string } }) {
+export default async function PricingPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const quotas = getPricingQuotas()
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.pricing' })

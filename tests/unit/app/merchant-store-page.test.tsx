@@ -19,9 +19,9 @@ import MerchantStorePage from '@/app/[locale]/merchant/store/page'
 
 describe('Merchant operating Store route', () => {
   it('preserves selected tenant/locale and renders the dedicated Operating workspace', async () => {
-    const result = await MerchantStorePage({ params: { locale: 'zh' }, searchParams: { merchantId: 'merchant-a' } })
-    const shell = result as React.ReactElement
-    const storeWorkspace = shell.props.children as React.ReactElement
+    const result = await MerchantStorePage({ params: Promise.resolve({ locale: 'zh' }), searchParams: Promise.resolve({ merchantId: 'merchant-a' }) })
+    const shell = result as React.ReactElement<any>
+    const storeWorkspace = shell.props.children as React.ReactElement<any>
 
     expect(shell.type).toBeDefined()
     expect(storeWorkspace.props).toMatchObject({ merchantId: 'merchant-a', locale: 'zh' })

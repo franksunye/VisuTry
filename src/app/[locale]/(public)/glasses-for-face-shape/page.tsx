@@ -8,12 +8,13 @@ import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
 
 type Props = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const copy = getFaceShapeSeoCopy(params.locale)
   return generateI18nSEO({
     locale: params.locale as Locale,
@@ -23,7 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
 }
 
-export default function GlassesForFaceShapePage({ params }: Props) {
+export default async function GlassesForFaceShapePage(props: Props) {
+  const params = await props.params;
   const locale = params.locale
   const copy = getFaceShapeSeoCopy(locale)
   const sourcePage = 'glasses-for-face-shape'

@@ -23,11 +23,13 @@ export const metadata: Metadata = {
 }
 
 type Props = {
-  params: { locale: string }
-  searchParams?: { merchantId?: string; commercialIntent?: string }
+  params: Promise<{ locale: string }>
+  searchParams?: Promise<{ merchantId?: string; commercialIntent?: string }>
 }
 
-export default async function MerchantPurchasePage({ params, searchParams }: Props) {
+export default async function MerchantPurchasePage(props: Props) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const intent = parseMerchantPurchaseIntent(searchParams?.commercialIntent)
   if (!intent || intent === 'FREE') redirect(`/${params.locale}/business/pricing`)
 

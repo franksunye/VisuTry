@@ -23,7 +23,7 @@ export const runtime = 'nodejs'
  */
 export async function GET(
   request: NextRequest,
-  context: { params: { taskId: string } },
+  context: { params: Promise<{ taskId: string }> },
 ) {
   try {
     const { searchParams } = new URL(request.url)
@@ -44,7 +44,7 @@ export async function GET(
       slug: merchantSlug,
       merchantSessionId,
       capabilityToken: readStoreCapabilityToken(request),
-      taskId: context.params.taskId,
+      taskId: (await context.params).taskId,
     })
 
     if (access.accessMode === 'PRIVATE_SIGNED' && !isMockMode) {
@@ -66,7 +66,7 @@ export async function GET(
       slug: merchantSlug,
       merchantSessionId,
       capabilityToken: readStoreCapabilityToken(request),
-      taskId: context.params.taskId,
+      taskId: (await context.params).taskId,
     })
 
     return new NextResponse(new Uint8Array(result.body), {

@@ -6,9 +6,9 @@ import FaceAnalysisActivityTable from '@/components/admin/FaceAnalysisActivityTa
 export const dynamic = 'force-dynamic';
 
 interface FaceAnalysisPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
-  };
+  }>;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -49,7 +49,8 @@ async function getFaceAnalysisTasks({ page = 1 }: { page?: number }) {
   };
 }
 
-export default async function FaceAnalysisPage({ searchParams }: FaceAnalysisPageProps) {
+export default async function FaceAnalysisPage(props: FaceAnalysisPageProps) {
+  const searchParams = await props.searchParams;
   const page = searchParams.page ? parseInt(searchParams.page, 10) : 1;
   const { tasks, currentPage, totalPages } = await getFaceAnalysisTasks({ page });
 

@@ -7,9 +7,10 @@ import { serveFaceAnalysisSourcePhoto } from '@/lib/face-analysis-source-photo'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
-type RouteParams = { params: { id: string } }
+type RouteParams = { params: Promise<{ id: string }> }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, props: RouteParams) {
+  const params = await props.params;
   const ctx = getRequestContext(request)
 
   try {

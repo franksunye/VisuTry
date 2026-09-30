@@ -8,14 +8,15 @@ import { localizedPath } from "@/lib/localized-path"
 import { publicTryOnShareResultPath } from "@/lib/tryon-media"
 
 interface UserPageProps {
-  params: {
+  params: Promise<{
     locale: string
     username: string
-  }
+  }>
 }
 
 // Generate dynamic metadata
-export async function generateMetadata({ params }: UserPageProps): Promise<Metadata> {
+export async function generateMetadata(props: UserPageProps): Promise<Metadata> {
+  const params = await props.params;
   const user = await prisma.user.findFirst({
     where: {
       OR: [
@@ -52,7 +53,8 @@ export async function generateMetadata({ params }: UserPageProps): Promise<Metad
   }
 }
 
-export default async function UserPage({ params }: UserPageProps) {
+export default async function UserPage(props: UserPageProps) {
+  const params = await props.params;
   // 查找用户
   const user = await prisma.user.findFirst({
     where: {

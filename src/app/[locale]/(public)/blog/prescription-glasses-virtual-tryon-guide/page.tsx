@@ -15,7 +15,8 @@ const structuredData = generateStructuredData('article', {
   image: '/blog-covers/ai-virtual-tryon.jpg',
 })
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as any,
     title: 'Prescription Glasses Virtual Try-On Guide - Find Your Perfect Fit Online',
@@ -25,7 +26,8 @@ export async function generateMetadata({ params }: { params: { locale: string } 
   })
 }
 
-export default function BlogPostPage({ params }: { params: { locale: string } }) {
+export default async function BlogPostPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const localePrefix = `/${params.locale}`
 
   return (

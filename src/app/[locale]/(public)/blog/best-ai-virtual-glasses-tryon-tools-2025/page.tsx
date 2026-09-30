@@ -12,7 +12,8 @@ const title = 'AI Virtual Try-On Tools in 2026 - What Actually Matters'
 const description = 'A practical 2026 guide to choosing virtual try-on tools for eyewear, including photo-based AI, real-time AR, catalog coverage, privacy, and shopping workflow fit.'
 const coverImage = '/blog-covers/ai-virtual-tryon-tools-2026.jpg'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as any,
     title,
@@ -72,7 +73,8 @@ const criteria = [
   },
 ]
 
-export default function BlogPostPage({ params }: { params: { locale: string } }) {
+export default async function BlogPostPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const localePrefix = `/${params.locale}`
 
   return (

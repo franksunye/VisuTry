@@ -71,7 +71,7 @@ describe('Merchant Experience admin routes', () => {
           method: 'PUT',
           body: JSON.stringify({ primaryCtaUrl }),
         }),
-        { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+        { params: Promise.resolve({ id: 'merchant-a', experienceId: 'experience-1' }) },
       )
       expect(response.status).toBe(400)
     }
@@ -87,7 +87,7 @@ describe('Merchant Experience admin routes', () => {
         method: 'PUT',
         body: JSON.stringify({ primaryCtaUrl }),
       }),
-      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'experience-1' }) },
     )
 
     expect(response.status).toBe(200)
@@ -105,7 +105,7 @@ describe('Merchant Experience admin routes', () => {
 
     const response = await updateExperience(
       new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', { method: 'PUT', body: JSON.stringify(patch) }),
-      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'experience-1' }) },
     )
 
     expect(response.status).toBe(200)
@@ -116,7 +116,7 @@ describe('Merchant Experience admin routes', () => {
     db.experience.findFirst.mockResolvedValue(storeExperience)
     const response = await updateExperience(
       new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', { method: 'PUT', body: JSON.stringify({ primaryCtaType: 'RUN_SCRIPT' }) }),
-      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'experience-1' }) },
     )
     expect(response.status).toBe(400)
     expect(db.experience.update).not.toHaveBeenCalled()
@@ -132,7 +132,7 @@ describe('Merchant Experience admin routes', () => {
         method: 'PUT',
         body: JSON.stringify({ journeyPolicy: valid }),
       }),
-      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'experience-1' }) },
     )
     expect(response.status).toBe(200)
     expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: { journeyPolicy: valid } }))
@@ -145,7 +145,7 @@ describe('Merchant Experience admin routes', () => {
         method: 'PUT',
         body: JSON.stringify({ journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'TRY_ON', 'RECOMMENDATION'] } }),
       }),
-      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'experience-1' }) },
     )
     expect(invalid.status).toBe(400)
     expect(db.experience.update).not.toHaveBeenCalled()
@@ -173,7 +173,7 @@ describe('Merchant Experience admin routes', () => {
       new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', {
         method: 'PUT', body: JSON.stringify(payload),
       }),
-      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'experience-1' }) },
     )
 
     expect(response.status).toBe(200)
@@ -189,7 +189,7 @@ describe('Merchant Experience admin routes', () => {
       new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', {
         method: 'PUT', body: JSON.stringify({ headline: 'Store', startAt: null }),
       }),
-      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'experience-1' }) },
     )
     expect(response.status).toBe(400)
     expect(db.experience.update).not.toHaveBeenCalled()
@@ -206,7 +206,7 @@ describe('Merchant Experience admin routes', () => {
         method: 'PUT',
         body: JSON.stringify({ journeyPolicy }),
       }),
-      { params: { id: 'merchant-a', experienceId: 'campaign-a' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'campaign-a' }) },
     )
 
     expect(response.status).toBe(200)
@@ -230,7 +230,7 @@ describe('Merchant Experience admin routes', () => {
           method: 'PUT',
           body: JSON.stringify(body),
         }),
-        { params: { id: 'merchant-a', experienceId: 'campaign-a' } },
+        { params: Promise.resolve({ id: 'merchant-a', experienceId: 'campaign-a' }) },
       )
 
       expect(response.status).toBe(400)
@@ -254,7 +254,7 @@ describe('Merchant Experience admin routes', () => {
         method: 'PUT',
         body: JSON.stringify({ frameIds: ['frame-2', 'frame-1', 'frame-2'] }),
       }),
-      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'experience-1' }) },
     )
 
     expect(response.status).toBe(200)
@@ -281,7 +281,7 @@ describe('Merchant Experience admin routes', () => {
         method: 'PUT',
         body: JSON.stringify({ frameIds: ['merchant-b-frame'] }),
       }),
-      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'experience-1' }) },
     )
 
     expect(response.status).toBe(400)
@@ -326,7 +326,7 @@ describe('Merchant Experience admin routes', () => {
         method: 'PUT',
         body: JSON.stringify({ status: 'ACTIVE', name: 'Spring' }),
       }),
-      { params: { id: 'merchant-a', experienceId: 'campaign-a' } },
+      { params: Promise.resolve({ id: 'merchant-a', experienceId: 'campaign-a' }) },
     )
 
     expect(response.status).toBe(409)

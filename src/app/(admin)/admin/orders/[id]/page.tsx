@@ -6,9 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
 interface OrderDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 async function getOrderDetails(orderId: string) {
@@ -43,7 +43,8 @@ async function getOrderDetails(orderId: string) {
   return order;
 }
 
-export default async function OrderDetailPage({ params }: OrderDetailPageProps) {
+export default async function OrderDetailPage(props: OrderDetailPageProps) {
+  const params = await props.params;
   const order = await getOrderDetails(params.id);
 
   if (!order) {

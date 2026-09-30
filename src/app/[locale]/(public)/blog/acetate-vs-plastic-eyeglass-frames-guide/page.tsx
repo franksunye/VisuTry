@@ -13,7 +13,8 @@ const title = 'Acetate vs Plastic Eyeglass Frames 2025 - Complete Comparison Gui
 const description = 'Discover the key differences between acetate and plastic eyeglass frames. Learn about durability, comfort, style, and which material is best for your needs.'
 const coverImage = '/Classic Acetate Rectangle.jpg'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as any,
     title,
@@ -36,10 +37,11 @@ const structuredData = generateStructuredData('article', {
 const articleTags = ['Eyeglass Materials', 'Frame Guide', 'Acetate Frames', 'Buying Guide', 'Eyewear Education']
 
 type BlogPostPageProps = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function BlogPostPage(props: BlogPostPageProps) {
+  const params = await props.params;
   return (
     <>
       <script

@@ -16,10 +16,8 @@ const commercialAddOnsSchema = z.object({
   addOns: z.array(z.literal(KIOSK_ADD_ON_CODE)).max(1),
 }).strict()
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
 
@@ -51,10 +49,8 @@ export async function GET(
   })
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response
 

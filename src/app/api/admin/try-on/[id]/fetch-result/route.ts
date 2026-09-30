@@ -11,14 +11,12 @@ export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/admin/try-on/[id]/fetch-result
- * 
+ *
  * Admin endpoint to manually trigger fetching result for a pending/processing task.
  * This is useful when async tasks (GrsAi) are stuck in PENDING/PROCESSING status.
  */
-export async function POST(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
     const ctx = getRequestContext(request);
     const taskId = params.id;
     const startTime = Date.now();

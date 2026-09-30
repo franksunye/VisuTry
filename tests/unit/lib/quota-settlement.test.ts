@@ -83,7 +83,7 @@ describe('settleTryOnTaskQuota', () => {
       where: { id: 'task-1' },
       data: { quotaSource: 'credit' },
     })
-    expect(revalidateTag).toHaveBeenCalledWith('user-user-1')
+    expect(revalidateTag).toHaveBeenCalledWith('user-user-1', { expire: 0 })
   })
 
   it('does not deduct again when another caller already settled the task', async () => {

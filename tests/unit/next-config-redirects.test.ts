@@ -7,7 +7,7 @@ jest.mock('@/lib/logger', () => ({
   getRequestContext: jest.fn(() => ({})),
 }))
 
-import { config as middlewareConfig } from '@/middleware'
+import { config as middlewareConfig } from '@/proxy'
 import {
   VISUTRY_DEMO_HISTORICAL_CANARY_SLUG,
   VISUTRY_DEMO_MERCHANT_SLUG,

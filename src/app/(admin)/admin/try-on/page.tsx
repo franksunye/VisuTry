@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import TryOnActivityTable from '@/components/admin/TryOnActivityTable';
 
 interface TryOnPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
-  };
+  }>;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -51,7 +51,8 @@ async function getTryOnTasks({ page = 1 }: { page?: number }) {
   };
 }
 
-export default async function TryOnPage({ searchParams }: TryOnPageProps) {
+export default async function TryOnPage(props: TryOnPageProps) {
+  const searchParams = await props.searchParams;
   const page = searchParams.page ? parseInt(searchParams.page, 10) : 1;
   const { tasks, currentPage, totalPages } = await getTryOnTasks({ page });
 

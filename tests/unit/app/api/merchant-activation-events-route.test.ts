@@ -44,7 +44,7 @@ describe('Merchant activation event route', () => {
         acquisitionSource: 'google',
         acquisitionMedium: 'organic',
       },
-    }), { params: { merchantId: 'merchant-a' } })
+    }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
 
     expect(response.status).toBe(200)
     expect(membership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
@@ -61,7 +61,7 @@ describe('Merchant activation event route', () => {
       eventType: 'merchant_delete_everything',
       sessionId: 'session-12345678',
       metadata: { arbitrary: true },
-    }), { params: { merchantId: 'merchant-a' } })
+    }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
 
     expect(response.status).toBe(400)
     expect(membership).not.toHaveBeenCalled()
@@ -75,7 +75,7 @@ describe('Merchant activation event route', () => {
     const response = await POST(request({
       eventType: 'merchant_catalog_started',
       sessionId: 'session-12345678',
-    }), { params: { merchantId: 'merchant-b' } })
+    }), { params: Promise.resolve({ merchantId: 'merchant-b' }) })
 
     expect(response.status).toBe(404)
     expect(record).not.toHaveBeenCalled()
@@ -85,7 +85,7 @@ describe('Merchant activation event route', () => {
     const response = await POST(request({
       eventType: 'merchant_commercial_intent',
       sessionId: 'session-12345678',
-    }), { params: { merchantId: 'merchant-a' } })
+    }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
 
     expect(response.status).toBe(400)
     expect(response).toBeTruthy()
@@ -99,7 +99,7 @@ describe('Merchant activation event route', () => {
       eventType: 'merchant_store_previewed',
       sessionId: 'session-12345678',
       resourceId: 'store-a',
-    }), { params: { merchantId: 'merchant-a' } })
+    }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
 
     expect(response.status).toBe(500)
     expect(await response.json()).toEqual({ success: false, error: 'INTERNAL_ERROR' })

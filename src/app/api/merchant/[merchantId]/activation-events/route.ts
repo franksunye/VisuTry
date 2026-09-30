@@ -29,7 +29,8 @@ const eventSchema = z.object({
   attribution: attributionSchema.optional(),
 }).strict()
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
 

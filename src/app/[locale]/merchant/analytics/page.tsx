@@ -5,7 +5,11 @@ import { requireOperatingMerchantPage } from '@/modules/merchant/application/mer
 
 export const dynamic = 'force-dynamic'
 
-export default async function MerchantAnalyticsPage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string } }) {
+export default async function MerchantAnalyticsPage(
+  props: { params: Promise<{ locale: string }>; searchParams?: Promise<{ merchantId?: string }> }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const { context } = await requireOperatingMerchantPage({ locale: params.locale, merchantId: searchParams?.merchantId })
   const insights = await getMerchantOperatingAnalytics({ merchantId: context.selectedMerchantId })
   return <MerchantWorkspaceShell locale={params.locale} merchants={context.merchants} selectedMerchantId={context.selectedMerchantId}>

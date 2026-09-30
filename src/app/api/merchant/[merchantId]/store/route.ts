@@ -33,7 +33,8 @@ async function merchantActor(authUserId: string, merchantId: string) {
   return actorFor(authUserId, merchantId, membership.membershipId)
 }
 
-export async function GET(_request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -45,7 +46,8 @@ export async function GET(_request: NextRequest, { params }: { params: { merchan
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -61,7 +63,8 @@ export async function POST(request: NextRequest, { params }: { params: { merchan
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -77,7 +80,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { mercha
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {

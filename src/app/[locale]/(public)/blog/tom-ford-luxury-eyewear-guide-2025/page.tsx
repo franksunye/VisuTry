@@ -13,7 +13,8 @@ const title = 'Tom Ford Luxury Eyewear Guide 2025 - Ultimate Style & Quality'
 const description = 'Explore Tom Ford luxury eyeglasses collection. Discover iconic styles, premium craftsmanship, and why Tom Ford frames are the ultimate status symbol in eyewear.'
 const coverImage = '/Tom Ford FT5873.jpg'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as any,
     title,
@@ -36,10 +37,11 @@ const structuredData = generateStructuredData('article', {
 const articleTags = ['Tom Ford', 'Luxury Eyewear', 'Designer Glasses', 'Premium Frames', 'Fashion']
 
 type BlogPostPageProps = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function BlogPostPage(props: BlogPostPageProps) {
+  const params = await props.params;
   return (
     <>
       <script

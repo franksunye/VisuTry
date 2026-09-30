@@ -59,7 +59,7 @@ describe('Decision Result bearer routes', () => {
     const token = 'decision-result-token'
     mockShareFindUnique.mockResolvedValue(shareFor(token))
 
-    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: { token } })
+    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: Promise.resolve({ token }) })
     const payload = await response.json()
 
     expect(response.status).toBe(200)
@@ -81,7 +81,7 @@ describe('Decision Result bearer routes', () => {
       },
     }))
 
-    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: { token } })
+    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: Promise.resolve({ token }) })
     const payload = await response.json()
     expect(payload.data.experience.primaryCta).toEqual({ action: 'PRODUCT', label: 'Browse frames', url: 'https://merchant.example/products' })
     expect(payload.data.experience.secondaryCta).toBeNull()
@@ -101,7 +101,7 @@ describe('Decision Result bearer routes', () => {
       },
     }))
 
-    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: { token } })
+    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: Promise.resolve({ token }) })
 
     expect(response.status).toBe(404)
   })
@@ -115,7 +115,7 @@ describe('Decision Result bearer routes', () => {
   ])('fails closed for %s', async (_label, token, override) => {
     mockShareFindUnique.mockResolvedValue(override === null ? null : shareFor(token, override as Record<string, unknown>))
 
-    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: { token } })
+    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: Promise.resolve({ token }) })
 
     expect(response.status).toBe(404)
   })
@@ -124,7 +124,7 @@ describe('Decision Result bearer routes', () => {
     const token = 'decision-result-token'
     mockShareFindUnique.mockResolvedValue(shareFor(token))
 
-    const response = await getDecisionResultAsset(new NextRequest('http://localhost/api/store/results/' + token), { params: { token, assetRef: 'not-a-result-asset-ref' } })
+    const response = await getDecisionResultAsset(new NextRequest('http://localhost/api/store/results/' + token), { params: Promise.resolve({ token, assetRef: 'not-a-result-asset-ref' }) })
 
     expect(response.status).toBe(404)
     expect(mockTaskFindFirst).not.toHaveBeenCalled()

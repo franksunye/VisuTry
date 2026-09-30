@@ -59,7 +59,7 @@ describe('Decision Result Kiosk reset capability boundary', () => {
   })
 
   it('does not allow a Result bearer token alone to reset its session', async () => {
-    const response = await POST(makeRequest(), { params: { token } })
+    const response = await POST(makeRequest(), { params: Promise.resolve({ token }) })
 
     expect(response.status).toBe(404)
     expect(mockTransaction).not.toHaveBeenCalled()
@@ -68,7 +68,7 @@ describe('Decision Result Kiosk reset capability boundary', () => {
   })
 
   it('requires the capability cookie to match the Result MerchantSession', async () => {
-    const response = await POST(makeRequest('different-session-capability'), { params: { token } })
+    const response = await POST(makeRequest('different-session-capability'), { params: Promise.resolve({ token }) })
 
     expect(response.status).toBe(404)
     expect(mockUpdateSession).not.toHaveBeenCalled()
@@ -76,7 +76,7 @@ describe('Decision Result Kiosk reset capability boundary', () => {
   })
 
   it('allows the matching Kiosk capability to expire the session and detach its photo', async () => {
-    const response = await POST(makeRequest(capability.token), { params: { token } })
+    const response = await POST(makeRequest(capability.token), { params: Promise.resolve({ token }) })
 
     expect(response.status).toBe(200)
     expect(mockUpdateSession).toHaveBeenCalledWith(expect.objectContaining({

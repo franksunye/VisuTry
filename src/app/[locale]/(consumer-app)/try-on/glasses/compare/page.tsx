@@ -7,14 +7,15 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { generateStructuredData } from '@/lib/seo'
 
 interface FrameComparePageProps {
-  params: {
+  params: Promise<{
     locale: string
-  }
+  }>
 }
 
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: FrameComparePageProps): Promise<Metadata> {
+export async function generateMetadata(props: FrameComparePageProps): Promise<Metadata> {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.compareLanding' })
   return {
@@ -32,7 +33,8 @@ export async function generateMetadata({ params }: FrameComparePageProps): Promi
   }
 }
 
-export default async function FrameComparePage({ params }: FrameComparePageProps) {
+export default async function FrameComparePage(props: FrameComparePageProps) {
+  const params = await props.params;
   setRequestLocale(params.locale)
 
   return (

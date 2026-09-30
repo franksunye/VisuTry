@@ -13,7 +13,7 @@ import { generateBreadcrumbSchema } from '@/lib/programmatic-seo'
 import { B06VisualSeoSections } from '@/components/seo/B06VisualSeoSections'
 
 interface FaceShapeGuidePageProps {
-  params: { locale: string; faceShape: string }
+  params: Promise<{ locale: string; faceShape: string }>
 }
 
 export function generateStaticParams() {
@@ -22,10 +22,13 @@ export function generateStaticParams() {
 
 // Vercel keeps this closed so unknown slugs cannot become ISR entries.
 // Cloudflare OpenNext 1.15.1 needs true to dispatch nested generated pages.
-export const dynamicParams = process.env.CLOUDFLARE_BUILD === '1'
+// Next 16 requires a literal segment config. Unknown shapes terminate in
+// notFound() below, so keep params closed to preserve the finite catalog.
+export const dynamicParams = false
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: FaceShapeGuidePageProps): Promise<Metadata> {
+export async function generateMetadata(props: FaceShapeGuidePageProps): Promise<Metadata> {
+  const params = await props.params;
   const guide = getFaceShapeContent(params.faceShape)
   if (!guide) return { title: 'Face Shape Not Found' }
 
@@ -39,7 +42,8 @@ export async function generateMetadata({ params }: FaceShapeGuidePageProps): Pro
   })
 }
 
-export default function FaceShapeGuidePage({ params }: FaceShapeGuidePageProps) {
+export default async function FaceShapeGuidePage(props: FaceShapeGuidePageProps) {
+  const params = await props.params;
   const guide = getFaceShapeContent(params.faceShape)
   if (!guide) notFound()
 

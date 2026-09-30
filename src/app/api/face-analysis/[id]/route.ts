@@ -6,9 +6,10 @@ import { getFaceAnalysisTaskForUser } from '@/lib/face-analysis-service'
 
 export const dynamic = 'force-dynamic'
 
-type RouteParams = { params: { id: string } }
+type RouteParams = { params: Promise<{ id: string }> }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, props: RouteParams) {
+  const params = await props.params;
   const ctx = getRequestContext(request)
   try {
     const auth = await requireAuth()
@@ -30,7 +31,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, props: RouteParams) {
+  const params = await props.params;
   const ctx = getRequestContext(request)
   try {
     const auth = await requireAuth()

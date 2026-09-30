@@ -7,10 +7,14 @@ import { getCampaign } from '@/modules/store/application/campaign-service'
 
 export const dynamic = 'force-dynamic'
 
-export default async function MerchantCampaignDetailPage({ params, searchParams }: {
-  params: { locale: string; campaignId: string }
-  searchParams?: { merchantId?: string }
-}) {
+export default async function MerchantCampaignDetailPage(
+  props: {
+    params: Promise<{ locale: string; campaignId: string }>
+    searchParams?: Promise<{ merchantId?: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const { context } = await requireOperatingMerchantPage({ locale: params.locale, merchantId: searchParams?.merchantId })
   let campaign
   try {

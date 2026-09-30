@@ -27,7 +27,7 @@ export function BusinessPilotLeadForm({ locale }: { locale: string }) {
   const [form, setForm] = useState(initialForm)
   const [state, setState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
   const [error, setError] = useState('')
-  const requestId = useRef<string>()
+  const requestId = useRef<string | undefined>(undefined)
   const trackedStart = useRef(false)
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {

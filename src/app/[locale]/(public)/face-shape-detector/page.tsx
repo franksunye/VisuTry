@@ -8,12 +8,13 @@ import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
 import { B01VisualSeoSections } from '@/components/seo/B01VisualSeoSections'
 
 interface FaceShapeDetectorPageProps {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: FaceShapeDetectorPageProps): Promise<Metadata> {
+export async function generateMetadata(props: FaceShapeDetectorPageProps): Promise<Metadata> {
+  const params = await props.params;
   const copy = getFaceShapeSeoCopy(params.locale)
   return generateI18nSEO({
     locale: params.locale as Locale,
@@ -23,7 +24,8 @@ export async function generateMetadata({ params }: FaceShapeDetectorPageProps): 
   })
 }
 
-export default function FaceShapeDetectorPage({ params }: FaceShapeDetectorPageProps) {
+export default async function FaceShapeDetectorPage(props: FaceShapeDetectorPageProps) {
+  const params = await props.params;
   const locale = params.locale
   const copy = getFaceShapeSeoCopy(locale)
   const faqSchema = generateStructuredData('faqPage', { questions: copy.detector.faq })

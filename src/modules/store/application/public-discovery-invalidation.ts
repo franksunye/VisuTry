@@ -127,7 +127,9 @@ export async function invalidatePublicDiscovery<T = unknown>(input: {
     ...afterTags,
   ])]
 
-  plan.tags.forEach((tag) => revalidateTag(tag))
+  // Next 14's one-argument form invalidated immediately. Keep that mutation
+  // contract explicit in Next 16; Cloudflare public HTML is purged below.
+  plan.tags.forEach((tag) => revalidateTag(tag, { expire: 0 }))
   plan.paths.forEach((path) => {
     if (path.startsWith('/[')) revalidatePath(path, 'page')
     else revalidatePath(path)

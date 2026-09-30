@@ -25,7 +25,7 @@ describe('Merchant Live Pulse API', () => {
   })
 
   it('requires owner/admin membership and returns private no-store data', async () => {
-    const response = await GET(new Request('http://localhost/api/merchant/merchant-a/live-pulse') as never, { params: { merchantId: 'merchant-a' } })
+    const response = await GET(new Request('http://localhost/api/merchant/merchant-a/live-pulse') as never, { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(200)
     expect(response.headers.get('Cache-Control')).toBe('private, no-store')
     expect(membership).toHaveBeenCalledWith({ userId: 'owner-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
@@ -34,7 +34,7 @@ describe('Merchant Live Pulse API', () => {
 
   it('does not read another merchant when membership is denied', async () => {
     membership.mockRejectedValue(new Error('wrong tenant'))
-    const response = await GET(new Request('http://localhost/api/merchant/merchant-b/live-pulse') as never, { params: { merchantId: 'merchant-b' } })
+    const response = await GET(new Request('http://localhost/api/merchant/merchant-b/live-pulse') as never, { params: Promise.resolve({ merchantId: 'merchant-b' }) })
     expect(response.status).toBe(403)
     expect(response.headers.get('Cache-Control')).toBe('private, no-store')
     expect(readPulse).not.toHaveBeenCalled()
@@ -42,7 +42,7 @@ describe('Merchant Live Pulse API', () => {
 
   it('does not read pulse data without authentication', async () => {
     auth.mockResolvedValue({ ok: false, response: new Response('unauthorized', { status: 401 }) })
-    const response = await GET(new Request('http://localhost/api/merchant/merchant-a/live-pulse') as never, { params: { merchantId: 'merchant-a' } })
+    const response = await GET(new Request('http://localhost/api/merchant/merchant-a/live-pulse') as never, { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(401)
     expect(response.headers.get('Cache-Control')).toBe('private, no-store')
     expect(membership).not.toHaveBeenCalled()

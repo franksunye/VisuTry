@@ -10,7 +10,8 @@ function actorFor(userId: string, merchantId: string, membershipId: string) {
   return { actorType: 'HUMAN' as const, actorId: userId, merchantId, membershipId }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -28,7 +29,8 @@ export async function GET(request: NextRequest, { params }: { params: { merchant
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {

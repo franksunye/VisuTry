@@ -13,7 +13,7 @@ import { adminActivitySignals, adminPerformanceCards, formatC1Percent, formatC1P
 
 export const dynamic = 'force-dynamic'
 
-interface PageProps { params: { id: string } }
+interface PageProps { params: Promise<{ id: string }> }
 type CatalogFrame = MerchantInsightsDto['catalog']['frames'][number]
 
 function price(value: number | null, currency: string | null) {
@@ -63,7 +63,8 @@ function ExperienceComparison({ experiences, merchantId }: { experiences: Mercha
   return <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead><tr className="border-b border-slate-200 text-left text-xs text-slate-500"><th className="pb-3 pr-4 font-semibold">Experience</th><th className="pb-3 pr-4 font-semibold">Visits</th><th className="pb-3 pr-4 font-semibold">Engagement</th><th className="pb-3 pr-4 font-semibold">Try-On completion</th><th className="pb-3 pr-4 font-semibold">High intent</th><th className="pb-3 pr-4 font-semibold">Favorites</th><th className="pb-3 font-semibold"> </th></tr></thead><tbody>{experiences.map((summary) => <tr key={summary.experience.id} className="border-b border-slate-100 last:border-0"><td className="py-4 pr-4"><div className="flex items-center gap-2"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${summary.experience.type === 'CAMPAIGN' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}>{summary.experience.type === 'CAMPAIGN' ? 'Campaign' : 'Store'}</span>{summary.referenceData ? <span title="Simulation data — not live merchant traffic" className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">Reference</span> : null}</div><p className="mt-2 font-semibold text-slate-900">{summary.experience.name}</p></td><td className="py-4 pr-4 tabular-nums font-semibold text-slate-900">{summary.metrics.visits}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{formatC1Percent(summary.metrics.engagementRate)}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{formatC1Percent(summary.metrics.tryOnCompletionRate)}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{formatC1Percent(summary.metrics.highIntentRate)}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{summary.metrics.favorites}</td><td className="py-4 text-right"><Link href={`/admin/store/merchants/${merchantId}/experiences/${summary.experience.id}`} className="font-semibold text-teal-700 hover:text-teal-900">Inspect</Link></td></tr>)}</tbody></table></div>
 }
 
-export default async function AdminMerchantInsightsPage({ params }: PageProps) {
+export default async function AdminMerchantInsightsPage(props: PageProps) {
+  const params = await props.params;
   const runtime = createStoreRuntime()
   let insights: MerchantInsightsDto
   const workspace = await getExperienceAdminWorkspace({ merchantId: params.id })

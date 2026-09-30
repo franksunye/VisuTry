@@ -34,7 +34,7 @@ describe('Merchant purchase summary route', () => {
   })
 
   it('returns a canonical order summary for the preserved Growth intent', async () => {
-    const result = await MerchantPurchasePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a', commercialIntent: 'GROWTH' } })
+    const result = await MerchantPurchasePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-a', commercialIntent: 'GROWTH' }) })
     expect(result).toMatchObject({ props: { merchantId: 'merchant-a', intent: 'GROWTH', action: 'CHECKOUT' } })
     expect(requireMerchantMembership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
   })
@@ -42,37 +42,37 @@ describe('Merchant purchase summary route', () => {
   it('uses the supported change-plan path for an existing subscription', async () => {
     ;(getMerchantCommercialState as jest.Mock).mockResolvedValue({ planCode: 'LAUNCH', plan: { name: 'Launch' }, status: 'PAID_ACTIVE' })
     ;(getMerchantBillingState as jest.Mock).mockResolvedValue({ state: { kind: 'VALID_SUBSCRIPTION', reason: null, providerPlanCode: 'LAUNCH', providerSubscriptionStatus: 'active', cancelAtPeriodEnd: false }, billing: { stripeSubscriptionId: 'sub-1', subscriptionStatus: 'active' }, policy: { environment: 'local', stripeMode: 'test', liveBillingAllowed: false, testBillingAllowed: true, billingWritesAllowed: true, disabledReason: null } })
-    const result = await MerchantPurchasePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a', commercialIntent: 'GROWTH' } })
+    const result = await MerchantPurchasePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-a', commercialIntent: 'GROWTH' }) })
     expect(result).toMatchObject({ props: { intent: 'GROWTH', action: 'CHANGE_PLAN' } })
   })
 
   it('routes a policy-disabled workspace to a safe non-write state', async () => {
     ;(getMerchantBillingState as jest.Mock).mockResolvedValue({ state: { kind: 'BILLING_DISABLED', reason: 'BILLING_POLICY_DISABLED', providerPlanCode: null, providerSubscriptionStatus: null, cancelAtPeriodEnd: false }, billing: null, policy: { environment: 'production', stripeMode: 'live', liveBillingAllowed: false, testBillingAllowed: false, billingWritesAllowed: false, disabledReason: 'POLICY_DISABLED' } })
-    const result = await MerchantPurchasePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a', commercialIntent: 'GROWTH' } })
+    const result = await MerchantPurchasePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-a', commercialIntent: 'GROWTH' }) })
     expect(result).toMatchObject({ props: { intent: 'GROWTH', action: 'BILLING_DISABLED' } })
   })
 
   it('routes an unverified provider subscription to recovery without checkout fallback', async () => {
     ;(getMerchantCommercialState as jest.Mock).mockResolvedValue({ planCode: 'LAUNCH', plan: { name: 'Launch' }, status: 'PAID_ACTIVE' })
     ;(getMerchantBillingState as jest.Mock).mockResolvedValue({ state: { kind: 'SUBSCRIPTION_MISSING', reason: 'SUBSCRIPTION_NOT_FOUND', providerPlanCode: null, providerSubscriptionStatus: 'active', cancelAtPeriodEnd: false }, billing: { stripeSubscriptionId: 'sub-missing', subscriptionStatus: 'active' }, policy: { environment: 'production', stripeMode: 'live', liveBillingAllowed: true, testBillingAllowed: false, billingWritesAllowed: true, disabledReason: null } })
-    const result = await MerchantPurchasePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a', commercialIntent: 'GROWTH' } })
+    const result = await MerchantPurchasePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-a', commercialIntent: 'GROWTH' }) })
     expect(result).toMatchObject({ props: { intent: 'GROWTH', action: 'BILLING_RECOVERY' } })
   })
 
   it('routes a former Pilot with a receipt away from another Pilot checkout', async () => {
     ;(getMerchantCommercialState as jest.Mock).mockResolvedValue({ planCode: 'LAUNCH', plan: { name: 'Launch' }, status: 'PAID_ACTIVE' })
     ;(hasMerchantFoundingPilotReceipt as jest.Mock).mockResolvedValue(true)
-    const result = await MerchantPurchasePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a', commercialIntent: 'FOUNDING_PILOT' } })
+    const result = await MerchantPurchasePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-a', commercialIntent: 'FOUNDING_PILOT' }) })
     expect(result).toMatchObject({ props: { intent: 'FOUNDING_PILOT', action: 'DUPLICATE_PILOT' } })
   })
 
   it('sends an authenticated user without a Merchant to the preserved onboarding flow', async () => {
     ;(listMerchantsForUser as jest.Mock).mockResolvedValue([])
-    await expect(MerchantPurchasePage({ params: { locale: 'en' }, searchParams: { commercialIntent: 'LAUNCH' } })).rejects.toThrow('REDIRECT:/en/merchant?commercialIntent=LAUNCH')
+    await expect(MerchantPurchasePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ commercialIntent: 'LAUNCH' }) })).rejects.toThrow('REDIRECT:/en/merchant?commercialIntent=LAUNCH')
   })
 
   it('does not accept an unsupported or Enterprise purchase intent', async () => {
-    await expect(MerchantPurchasePage({ params: { locale: 'en' }, searchParams: { commercialIntent: 'price_live_123' } })).rejects.toThrow('REDIRECT:/en/business/pricing')
-    await expect(MerchantPurchasePage({ params: { locale: 'en' }, searchParams: { commercialIntent: 'ENTERPRISE' } })).rejects.toThrow('REDIRECT:/en/business/pricing')
+    await expect(MerchantPurchasePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ commercialIntent: 'price_live_123' }) })).rejects.toThrow('REDIRECT:/en/business/pricing')
+    await expect(MerchantPurchasePage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ commercialIntent: 'ENTERPRISE' }) })).rejects.toThrow('REDIRECT:/en/business/pricing')
   })
 })

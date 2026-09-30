@@ -6,10 +6,8 @@ import { PUBLIC_MERCHANT_CACHE_CONTROL } from '@/lib/public-http-cache'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { slug: string } },
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   try {
     const runtime = createPublicStoreReadRuntime()
     const experienceSlug = request.nextUrl.searchParams.get('experienceSlug')

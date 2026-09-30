@@ -59,7 +59,7 @@ describe('private Store media redirects', () => {
 
     const response = await getResult(
       new NextRequest('http://localhost/api/store/sessions/try-on/task-a/result?merchantSlug=merchant-a&merchantSessionId=session-a'),
-      { params: { taskId: 'task-a' } },
+      { params: Promise.resolve({ taskId: 'task-a' }) },
     )
 
     expect(response.status).toBe(307)
@@ -82,7 +82,7 @@ describe('private Store media redirects', () => {
 
     const response = await getAsset(
       new NextRequest('http://localhost/api/store/sessions/assets/asset-a?merchantSlug=merchant-a&merchantSessionId=session-a'),
-      { params: { assetId: 'asset-a' } },
+      { params: Promise.resolve({ assetId: 'asset-a' }) },
     )
 
     expect(response.status).toBe(307)
@@ -98,7 +98,7 @@ describe('private Store media redirects', () => {
 
     const response = await getResult(
       new NextRequest('http://localhost/api/store/sessions/try-on/task-b/result?merchantSlug=merchant-b&merchantSessionId=session-b'),
-      { params: { taskId: 'task-a' } },
+      { params: Promise.resolve({ taskId: 'task-a' }) },
     )
 
     expect(response.status).toBe(403)
@@ -110,7 +110,7 @@ describe('private Store media redirects', () => {
 
     const response = await getAsset(
       new NextRequest('http://localhost/api/store/sessions/assets/asset-b?merchantSlug=merchant-b&merchantSessionId=session-b'),
-      { params: { assetId: 'asset-a' } },
+      { params: Promise.resolve({ assetId: 'asset-a' }) },
     )
 
     expect(response.status).toBe(403)

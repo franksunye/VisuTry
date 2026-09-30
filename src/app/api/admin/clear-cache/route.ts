@@ -4,13 +4,13 @@ import { revalidateTag } from 'next/cache'
 export async function POST(request: NextRequest) {
   try {
     // 清除所有用户相关的缓存
-    revalidateTag('tryon')
+    revalidateTag('tryon', { expire: 0 })
     
     // 也可以清除特定用户的缓存
     const { userId } = await request.json().catch(() => ({}))
     
     if (userId) {
-      revalidateTag(`user-${userId}`)
+      revalidateTag(`user-${userId}`, { expire: 0 })
     }
 
     return NextResponse.json({ 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     // 清除所有try-on相关的缓存
-    revalidateTag('tryon')
+    revalidateTag('tryon', { expire: 0 })
     
     return NextResponse.json({ 
       success: true, 

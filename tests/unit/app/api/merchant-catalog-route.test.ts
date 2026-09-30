@@ -47,27 +47,27 @@ describe('Human merchant catalog route', () => {
   })
 
   it('requires explicit approval before any write', async () => {
-    const response = await POST(request({ frames: [{ sku: 'A', name: 'Frame', shape: 'round' }] }), { params: { merchantId: 'merchant-a' } })
+    const response = await POST(request({ frames: [{ sku: 'A', name: 'Frame', shape: 'round' }] }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(400)
     expect(await response.json()).toMatchObject({ error: 'APPROVAL_REQUIRED' })
     expect(mockImport).not.toHaveBeenCalled()
   })
 
   it('checks membership and writes through the canonical import service', async () => {
-    const response = await POST(request({ approved: true, sourceType: 'manual', frames: [{ sku: 'A', name: 'Frame', shape: 'round', imageUrl: 'https://cdn.example.test/a.jpg' }] }), { params: { merchantId: 'merchant-a' } })
+    const response = await POST(request({ approved: true, sourceType: 'manual', frames: [{ sku: 'A', name: 'Frame', shape: 'round', imageUrl: 'https://cdn.example.test/a.jpg' }] }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(200)
     expect(mockMembership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
     expect(mockImport).toHaveBeenCalledWith(expect.objectContaining({ actor: expect.objectContaining({ actorType: 'HUMAN', actorId: 'user-a', merchantId: 'merchant-a', membershipId: 'membership-a' }) }))
   })
 
   it('keeps catalog reads tenant-scoped and cursor-paginated', async () => {
-    const response = await GET(new NextRequest('http://localhost/api/merchant/merchant-a/catalog?limit=50&cursor=frame-0'), { params: { merchantId: 'merchant-a' } })
+    const response = await GET(new NextRequest('http://localhost/api/merchant/merchant-a/catalog?limit=50&cursor=frame-0'), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(200)
     expect(mockList).toHaveBeenCalledWith(expect.objectContaining({ actor: expect.objectContaining({ merchantId: 'merchant-a' }), limit: 50, cursor: 'frame-0' }))
   })
 
   it('updates one tenant-owned resource by frame id without requiring SKU', async () => {
-    const response = await PATCH(request({ frame: { name: 'Corrected frame', imageUrl: 'https://cdn.example.test/a.jpg', productUrl: 'https://shop.example.test/a' } }, 'PATCH'), { params: { merchantId: 'merchant-a', frameId: 'frame-a' } })
+    const response = await PATCH(request({ frame: { name: 'Corrected frame', imageUrl: 'https://cdn.example.test/a.jpg', productUrl: 'https://shop.example.test/a' } }, 'PATCH'), { params: Promise.resolve({ merchantId: 'merchant-a', frameId: 'frame-a' }) })
     expect(response.status).toBe(200)
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ frameId: 'frame-a', actor: expect.objectContaining({ merchantId: 'merchant-a' }), frame: expect.objectContaining({ name: 'Corrected frame' }) }))
   })
@@ -75,7 +75,7 @@ describe('Human merchant catalog route', () => {
   it('does not let a cross-merchant frame id bypass selected-merchant membership', async () => {
     mockUpdate.mockRejectedValueOnce(new MerchantAccessError())
 
-    const response = await PATCH(request({ frame: { name: 'Tampered update', imageUrl: 'https://cdn.example.test/a.jpg' } }, 'PATCH'), { params: { merchantId: 'merchant-a', frameId: 'frame-owned-by-merchant-b' } })
+    const response = await PATCH(request({ frame: { name: 'Tampered update', imageUrl: 'https://cdn.example.test/a.jpg' } }, 'PATCH'), { params: Promise.resolve({ merchantId: 'merchant-a', frameId: 'frame-owned-by-merchant-b' }) })
 
     expect(response.status).toBe(404)
     expect(mockMembership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })

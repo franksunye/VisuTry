@@ -1,9 +1,10 @@
 import { DebugImagesPageClient } from '@/components/debug-images/DebugImagesPageClient'
 
 type DebugImagesPageProps = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export default function DebugImagesPage({ params }: DebugImagesPageProps) {
+export default async function DebugImagesPage(props: DebugImagesPageProps) {
+  const params = await props.params;
   return <DebugImagesPageClient locale={params.locale} />
 }

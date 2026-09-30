@@ -13,16 +13,16 @@ import { getValidLocale } from '@/i18n'
 import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 interface CampaignExperiencePageProps {
-  params: {
+  params: Promise<{
     locale: string
     merchantSlug: string
     experienceSlug: string
-  }
+  }>
 }
 
 // Campaign HTML is invalidated on successful public-discovery writes.
 // Keep a 7-day ISR safety net instead of hourly regeneration.
-export const revalidate = 7 * 24 * 60 * 60
+export const revalidate = 604800
 export const dynamicParams = true
 
 // Campaign slugs are published after deploy; empty build-time params keep the
@@ -32,9 +32,8 @@ export function generateStaticParams() {
   return []
 }
 
-export async function generateMetadata({
-  params,
-}: CampaignExperiencePageProps): Promise<Metadata> {
+export async function generateMetadata(props: CampaignExperiencePageProps): Promise<Metadata> {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
   const pathname = `/${locale}/c/${params.merchantSlug}/${params.experienceSlug}`
@@ -60,7 +59,8 @@ export async function generateMetadata({
   return buildExperienceDiscoveryMetadata({ discovery, locale, pathname })
 }
 
-export default async function CampaignExperiencePage({ params }: CampaignExperiencePageProps) {
+export default async function CampaignExperiencePage(props: CampaignExperiencePageProps) {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
   const admitted = await isPublicCampaignRouteAdmitted({

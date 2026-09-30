@@ -19,14 +19,15 @@ import { VISUTRY_POSITIONING } from '@/lib/product-positioning'
 import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 interface StorePageProps {
-  params: {
+  params: Promise<{
     locale: string
-  }
+  }>
 }
 
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: StorePageProps): Promise<Metadata> {
+export async function generateMetadata(props: StorePageProps): Promise<Metadata> {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.store' })
   return {
@@ -44,7 +45,8 @@ export async function generateMetadata({ params }: StorePageProps): Promise<Meta
   }
 }
 
-export default async function StoreLandingPage({ params }: StorePageProps) {
+export default async function StoreLandingPage(props: StorePageProps) {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const locale = params.locale
   const t = await getTranslations({ locale, namespace: 'marketing.store' })

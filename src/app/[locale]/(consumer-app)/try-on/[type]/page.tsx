@@ -11,19 +11,20 @@ import { GrowthFunnelLink } from "@/components/analytics/GrowthFunnelLink"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
 interface TryOnPageProps {
-  params: {
+  params: Promise<{
     locale: string
     type: string
-  }
-  searchParams?: Record<string, string | string[] | undefined>
+  }>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }
 
 // Generate metadata dynamically based on try-on type
-export async function generateMetadata({ params }: TryOnPageProps): Promise<Metadata> {
+export async function generateMetadata(props: TryOnPageProps): Promise<Metadata> {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const marketingT = await getTranslations({ locale: params.locale, namespace: 'marketing.tryOnLanding' })
   const tryOnType = urlToTryOnType(params.type)
-  
+
   if (!tryOnType) {
     return {
       title: marketingT('notFoundTitle'),
@@ -48,7 +49,7 @@ export async function generateMetadata({ params }: TryOnPageProps): Promise<Meta
       },
     }
   }
-  
+
   return {
     title: `${config.displayName} - Virtual Try-On with AI | VisuTry`,
     description: `Upload your photo and try on ${config.name.toLowerCase()} virtually with AI. See how different ${config.name.toLowerCase()} look on you before you buy.`,
@@ -64,15 +65,19 @@ export function generateStaticParams() {
 
 // Vercel keeps this closed so unknown slugs cannot become ISR entries.
 // Cloudflare OpenNext 1.15.1 needs true to dispatch nested generated pages.
-export const dynamicParams = process.env.CLOUDFLARE_BUILD === '1'
+// Next 16 requires a statically analyzable segment config. Invalid slugs
+// still terminate in notFound() below, so keep unknown params closed.
+export const dynamicParams = false
 
-export default async function TryOnTypePage({ params, searchParams }: TryOnPageProps) {
+export default async function TryOnTypePage(props: TryOnPageProps) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const { locale, type } = params
   setRequestLocale(locale)
-  
+
   // Convert URL type to TryOnType enum
   const tryOnType = urlToTryOnType(type)
-  
+
   // If type is invalid, show 404
   if (!tryOnType) {
     notFound()

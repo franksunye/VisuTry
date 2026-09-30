@@ -36,8 +36,9 @@ function isSafeCtaUrl(value: string) {
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string; experienceId: string } },
+  props: { params: Promise<{ id: string; experienceId: string }> }
 ) {
+  const params = await props.params;
   try {
     const auth = await requireAdmin()
     if (!auth.ok) return auth.response
@@ -66,8 +67,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; experienceId: string } },
+  props: { params: Promise<{ id: string; experienceId: string }> }
 ) {
+  const params = await props.params;
   try {
     const auth = await requireAdmin()
     if (!auth.ok) return auth.response

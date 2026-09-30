@@ -6,16 +6,17 @@ import { Locale } from '@/i18n'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 type Props = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export const dynamic = 'force-static'
 
 function toAnchorId(value: string) {
-  return value.toLowerCase().replace(/\s+/g, '-')
+  return value.toLowerCase().replace(/\s+/g, '-');
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.faqPage' })
   return generateI18nSEO({
@@ -26,7 +27,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
 }
 
-export default async function FaqPage({ params }: Props) {
+export default async function FaqPage(props: Props) {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.faqPage' })
   const tNav = await getTranslations({ locale: params.locale, namespace: 'nav' })

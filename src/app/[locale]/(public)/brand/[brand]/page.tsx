@@ -23,7 +23,7 @@ import {
 } from '@/lib/programmatic-seo'
 
 interface BrandPageProps {
-  params: { locale: string; brand: string }
+  params: Promise<{ locale: string; brand: string }>
 }
 
 export async function generateStaticParams() {
@@ -37,12 +37,14 @@ export async function generateStaticParams() {
 
 // Vercel: keep closed while programmatic SEO is off so bot slugs cannot become
 // ISR entries. Cloudflare OpenNext 1.15.1 needs true to dispatch nested pages.
-export const dynamicParams =
-  process.env.CLOUDFLARE_BUILD === '1' || process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
+// Next 16 requires a literal segment config. Unknown catalog slugs terminate
+// in notFound() below; generated catalog params remain deploy-time content.
+export const dynamicParams = false
 // Curated brand copy is deploy-time content. Periodic ISR is unnecessary.
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
+export async function generateMetadata(props: BrandPageProps): Promise<Metadata> {
+  const params = await props.params;
   const curated = getCuratedBrandContent(params.brand)
   if (curated) {
     return generateI18nSEO({
@@ -230,7 +232,8 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
   )
 }
 
-export default async function BrandPage({ params }: BrandPageProps) {
+export default async function BrandPage(props: BrandPageProps) {
+  const params = await props.params;
   if (getCuratedBrandContent(params.brand)) return <CuratedBrandPage locale={params.locale} slug={params.brand} />
   if (process.env.PROGRAMMATIC_SEO_ENABLED !== 'true') notFound()
 

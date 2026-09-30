@@ -16,7 +16,7 @@ import { getFaceShapeSeoCopy, interpolateSeoCopy } from '@/config/face-shape-seo
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 
 interface SunglassesGuidePageProps {
-  params: { locale: string; faceShape: string }
+  params: Promise<{ locale: string; faceShape: string }>
 }
 
 function isPreset(preset: GlassesPreset | undefined): preset is GlassesPreset {
@@ -42,7 +42,8 @@ export function generateStaticParams() {
 export const dynamicParams = false
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: SunglassesGuidePageProps): Promise<Metadata> {
+export async function generateMetadata(props: SunglassesGuidePageProps): Promise<Metadata> {
+  const params = await props.params;
   const guide = getSunglassesFaceShapeGuide(params.faceShape)
   if (!guide) return { title: 'Sunglasses Guide Not Found' }
   const copy = getFaceShapeSeoCopy(params.locale)
@@ -56,7 +57,8 @@ export async function generateMetadata({ params }: SunglassesGuidePageProps): Pr
   })
 }
 
-export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps) {
+export default async function SunglassesGuidePage(props: SunglassesGuidePageProps) {
+  const params = await props.params;
   const guide = getSunglassesFaceShapeGuide(params.faceShape)
   if (!guide) notFound()
 

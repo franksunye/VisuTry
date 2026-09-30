@@ -16,10 +16,10 @@ import {
 import { getValidLocale, isValidLocale } from '@/i18n'
 
 type DemoFramePageProps = {
-  params: {
+  params: Promise<{
     locale: string
     slug: string
-  }
+  }>
 }
 
 const getDemoFrame = cache(async (slug: string) => {
@@ -108,7 +108,8 @@ export function generateStaticParams() {
   return VISUTRY_DEMO_FRAME_ROUTES.map(({ slug }) => ({ locale: 'en', slug }))
 }
 
-export async function generateMetadata({ params }: DemoFramePageProps): Promise<Metadata> {
+export async function generateMetadata(props: DemoFramePageProps): Promise<Metadata> {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
   const pathname = `/${locale}${visutryDemoFramePath(params.slug)}`
@@ -148,7 +149,8 @@ export async function generateMetadata({ params }: DemoFramePageProps): Promise<
   }
 }
 
-export default async function DemoFramePage({ params }: DemoFramePageProps) {
+export default async function DemoFramePage(props: DemoFramePageProps) {
+  const params = await props.params;
   if (!isValidLocale(params.locale)) notFound()
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
@@ -224,5 +226,5 @@ export default async function DemoFramePage({ params }: DemoFramePageProps) {
         </section>
       </div>
     </main>
-  )
+  );
 }

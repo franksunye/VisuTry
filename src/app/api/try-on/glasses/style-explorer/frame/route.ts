@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    revalidateTag(`user-${user.id}`)
+    revalidateTag(`user-${user.id}`, { expire: 0 })
     logger.info('style-explorer', 'Style Explorer frame submitted', {
       userId: user.id,
       batchId,

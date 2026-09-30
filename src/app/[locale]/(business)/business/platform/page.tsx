@@ -3,11 +3,13 @@ import { setRequestLocale } from 'next-intl/server'
 import { BusinessMarketingPage } from '@/components/business/BusinessMarketingPage'
 import { businessPageMetadata } from '@/lib/business-metadata'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const params = await props.params;
   return businessPageMetadata(params.locale, 'platform')
 }
 
-export default function Page({ params }: { params: { locale: string } }) {
+export default async function Page(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   setRequestLocale(params.locale)
   return <BusinessMarketingPage locale={params.locale} pageKey="platform" />
 }

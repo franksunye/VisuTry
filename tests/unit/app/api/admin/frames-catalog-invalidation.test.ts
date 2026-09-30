@@ -80,7 +80,7 @@ describe('admin frame mutations invalidate glasses catalog cache', () => {
         imageUrl: '/frame.jpg',
       }),
     })
-    const response = await updateFrame(request, { params: { id: 'frame-1' } })
+    const response = await updateFrame(request, { params: Promise.resolve({ id: 'frame-1' }) })
 
     expect(response.status).toBe(200)
     expect(revalidate).toHaveBeenCalledTimes(1)
@@ -93,7 +93,7 @@ describe('admin frame mutations invalidate glasses catalog cache', () => {
     const request = new NextRequest('http://localhost/api/admin/frames/frame-1', {
       method: 'DELETE',
     })
-    const response = await deleteFrame(request, { params: { id: 'frame-1' } })
+    const response = await deleteFrame(request, { params: Promise.resolve({ id: 'frame-1' }) })
 
     expect(response.status).toBe(200)
     expect(revalidate).toHaveBeenCalledTimes(1)

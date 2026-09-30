@@ -8,7 +8,8 @@ import { clearStoreCapabilityCookie, clearStoreVisitorCookie, readStoreCapabilit
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(_request: NextRequest, { params }: { params: { token: string } }) {
+export async function POST(_request: NextRequest, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const token = params.token
   if (!token || token.length > 200 || !/^[A-Za-z0-9_-]+$/.test(token)) {
     return NextResponse.json({ success: false, error: 'Result not found' }, { status: 404 })

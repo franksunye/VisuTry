@@ -30,7 +30,8 @@ async function authorize(userId: string, merchantId: string) {
   return requireMerchantMembership({ userId, merchantId, roles: ['OWNER', 'ADMIN'] })
 }
 
-export async function GET(request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -44,7 +45,8 @@ export async function GET(request: NextRequest, { params }: { params: { merchant
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {

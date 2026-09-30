@@ -4,16 +4,17 @@ import { StyleExplorerGate } from '@/components/style-explorer/StyleExplorerGate
 import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 interface StyleExplorerPageProps {
-  params: { locale: string }
-  searchParams?: {
+  params: Promise<{ locale: string }>
+  searchParams?: Promise<{
     source?: string | string[]
     taskId?: string | string[]
-  }
+  }>
 }
 
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({ params }: StyleExplorerPageProps): Promise<Metadata> {
+export async function generateMetadata(props: StyleExplorerPageProps): Promise<Metadata> {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.styleExplorer' })
   const canonical = `https://www.visutry.com/${params.locale}/style-explorer`
@@ -38,7 +39,9 @@ export async function generateMetadata({ params }: StyleExplorerPageProps): Prom
   }
 }
 
-export default function StyleExplorerPage({ params, searchParams }: StyleExplorerPageProps) {
+export default async function StyleExplorerPage(props: StyleExplorerPageProps) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   setRequestLocale(params.locale)
   const source = typeof searchParams?.source === 'string' ? searchParams.source : null
   const taskId = typeof searchParams?.taskId === 'string' ? searchParams.taskId : null

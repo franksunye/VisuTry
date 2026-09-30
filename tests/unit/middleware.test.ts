@@ -8,11 +8,11 @@ jest.mock('@/lib/logger', () => ({
 }))
 
 import { NextRequest } from 'next/server'
-import { middleware, config } from '@/middleware'
+import { proxy, config } from '@/proxy'
 
 describe('middleware public Skill paths', () => {
   it('does not locale-redirect stable public Skill URLs', async () => {
-    const response = await middleware(new NextRequest('http://localhost/skills/merchant'))
+    const response = await proxy(new NextRequest('http://localhost/skills/merchant'))
     expect(response.status).toBe(200)
     expect(response.headers.get('x-middleware-next')).toBe('1')
   })

@@ -13,16 +13,16 @@ import { getValidLocale } from '@/i18n'
 import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 interface MerchantStorePageProps {
-  params: {
+  params: Promise<{
     locale: string
     merchantSlug: string
-  }
+  }>
 }
 
 // Newly imported merchants remain eligible through dynamic params. Public
 // discovery HTML stays on-demand ISR, but time-based refresh is a 7-day
 // safety net only — successful writes already call revalidateTag/Path.
-export const revalidate = 7 * 24 * 60 * 60
+export const revalidate = 604800
 export const dynamicParams = true
 
 // Enable on-demand ISR for merchant slugs that are not known at build time.
@@ -32,9 +32,8 @@ export function generateStaticParams() {
   return []
 }
 
-export async function generateMetadata({
-  params,
-}: MerchantStorePageProps): Promise<Metadata> {
+export async function generateMetadata(props: MerchantStorePageProps): Promise<Metadata> {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
   const pathname = `/${locale}/store/${params.merchantSlug}`
@@ -58,7 +57,8 @@ export async function generateMetadata({
   return buildExperienceDiscoveryMetadata({ discovery, locale, pathname })
 }
 
-export default async function MerchantStorePage({ params }: MerchantStorePageProps) {
+export default async function MerchantStorePage(props: MerchantStorePageProps) {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
   const admitted = await isPublicStoreRouteAdmitted({ merchantSlug: params.merchantSlug })

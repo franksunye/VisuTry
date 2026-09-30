@@ -8,8 +8,9 @@ import { billingErrorResponse, merchantBillingUrl } from '../billing-http'
 export const dynamic = 'force-dynamic'
 const inputSchema = z.object({ planCode: z.enum(['LAUNCH', 'GROWTH', 'SCALE', 'FOUNDING_PILOT']), locale: z.string().trim().optional() }).strict()
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string } }) {
-  const auth = await requireAuth(); if (!auth.ok) return auth.response
+export async function POST(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
+  const auth = await requireAuth();if (!auth.ok) return auth.response
   try {
     await requireMerchantMembership({ userId: auth.userId, merchantId: params.merchantId, roles: ['OWNER', 'ADMIN'] })
     let body: unknown

@@ -54,7 +54,7 @@ describe('Admin Try-On detail media serialization', () => {
     })
 
     const response = await GET({} as any, {
-      params: { id: 'task-1' },
+      params: Promise.resolve({ id: 'task-1' }),
     })
     const payload = await response.json()
     const serialized = JSON.stringify(payload)

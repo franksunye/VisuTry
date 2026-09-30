@@ -45,7 +45,7 @@ describe('merchant profile update route', () => {
   })
 
   it('updates only through the authenticated merchant profile application path', async () => {
-    const response = await PATCH(request({ name: 'Updated Brand', websiteUrl: null }), { params: { merchantId: 'merchant-a' } })
+    const response = await PATCH(request({ name: 'Updated Brand', websiteUrl: null }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(200)
     expect(update).toHaveBeenCalledWith({
       userId: 'session-user',
@@ -56,7 +56,7 @@ describe('merchant profile update route', () => {
   })
 
   it('rejects malformed profile input before the application path', async () => {
-    const response = await PATCH(request({ name: 42 }), { params: { merchantId: 'merchant-a' } })
+    const response = await PATCH(request({ name: 42 }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(400)
     expect(update).not.toHaveBeenCalled()
   })

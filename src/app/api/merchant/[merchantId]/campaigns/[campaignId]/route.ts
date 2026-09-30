@@ -26,7 +26,11 @@ const details = z.object({
   secondaryCtaUrl: z.string().trim().max(2000).nullable().optional(),
 }).strict().refine((value) => Object.keys(value).length > 0, 'Provide at least one Campaign change.')
 
-export async function GET(_request: NextRequest, { params }: { params: { merchantId: string; campaignId: string } }) {
+export async function GET(
+  _request: NextRequest,
+  props: { params: Promise<{ merchantId: string; campaignId: string }> }
+) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -38,7 +42,11 @@ export async function GET(_request: NextRequest, { params }: { params: { merchan
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { merchantId: string; campaignId: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  props: { params: Promise<{ merchantId: string; campaignId: string }> }
+) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {

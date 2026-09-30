@@ -6,10 +6,8 @@ import { tryOnMediaUrls } from '@/lib/tryon-media'
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // 检查用户认证
     const auth = await requireAuth()
@@ -75,10 +73,8 @@ export async function GET(
 }
 
 // 删除试戴任务
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // 检查用户认证
     const auth = await requireAuth()

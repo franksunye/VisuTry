@@ -19,7 +19,7 @@ import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { generateBreadcrumbSchema, generateCollectionPageSchema, slugify } from '@/lib/programmatic-seo'
 
 interface FaceShapePageProps {
-  params: { locale: string; faceShape: string }
+  params: Promise<{ locale: string; faceShape: string }>
 }
 
 const presetIds: Record<FaceShapeContentSlug, readonly string[]> = {
@@ -57,10 +57,13 @@ export function generateStaticParams() {
 
 // Vercel keeps this closed so unknown slugs cannot become ISR entries.
 // Cloudflare OpenNext 1.15.1 needs true to dispatch nested generated pages.
-export const dynamicParams = process.env.CLOUDFLARE_BUILD === '1'
+// Next 16 requires a literal segment config. Unknown shapes terminate in
+// notFound() below, so keep params closed to preserve the finite catalog.
+export const dynamicParams = false
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: FaceShapePageProps): Promise<Metadata> {
+export async function generateMetadata(props: FaceShapePageProps): Promise<Metadata> {
+  const params = await props.params;
   const shape = normalizeFaceShapeSlug(params.faceShape)
   if (!shape) return { title: 'Face Shape Not Found', robots: { index: false, follow: false } }
 
@@ -77,7 +80,8 @@ export async function generateMetadata({ params }: FaceShapePageProps): Promise<
   })
 }
 
-export default function FaceShapePage({ params }: FaceShapePageProps) {
+export default async function FaceShapePage(props: FaceShapePageProps) {
+  const params = await props.params;
   const shape = normalizeFaceShapeSlug(params.faceShape)
   if (!shape) notFound()
 

@@ -7,7 +7,7 @@ import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
 interface FaceShapesPageProps {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export const dynamic = 'force-static'
@@ -27,7 +27,8 @@ const faqContent = [
   },
 ]
 
-export async function generateMetadata({ params }: FaceShapesPageProps): Promise<Metadata> {
+export async function generateMetadata(props: FaceShapesPageProps): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as Locale,
     title: 'The 7 Face Shapes: How to Identify Yours | VisuTry',
@@ -38,7 +39,8 @@ export async function generateMetadata({ params }: FaceShapesPageProps): Promise
   })
 }
 
-export default function FaceShapesPage({ params }: FaceShapesPageProps) {
+export default async function FaceShapesPage(props: FaceShapesPageProps) {
+  const params = await props.params;
   const locale = params.locale
   const faqSchema = generateStructuredData('faqPage', { questions: faqContent })
 

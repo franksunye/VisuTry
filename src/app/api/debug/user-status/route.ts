@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
 
   try {
     // 清除缓存
-    revalidateTag(`user-${userId}`)
-    revalidateTag('tryon')
+    revalidateTag(`user-${userId}`, { expire: 0 })
+    revalidateTag('tryon', { expire: 0 })
     
     // 获取最新用户数据和支付记录
     const [user, payments] = await Promise.all([

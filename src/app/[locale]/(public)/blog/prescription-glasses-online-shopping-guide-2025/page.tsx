@@ -13,7 +13,8 @@ const title = 'How to Buy Prescription Glasses Online 2025 - Complete Shopping G
 const description = 'Learn how to safely buy prescription glasses online. Get tips on measuring PD, reading prescriptions, choosing lenses, and avoiding common mistakes.'
 const coverImage = '/blog-covers/prescription-online-shopping.jpg'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as any,
     title,
@@ -36,10 +37,11 @@ const structuredData = generateStructuredData('article', {
 const articleTags = ['Online Shopping', 'Prescription Glasses', 'Buying Guide', 'Eyewear Tips', 'How-To']
 
 type BlogPostPageProps = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function BlogPostPage(props: BlogPostPageProps) {
+  const params = await props.params;
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />

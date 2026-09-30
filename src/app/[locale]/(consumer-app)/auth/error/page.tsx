@@ -3,16 +3,16 @@ import Link from "next/link"
 import { localizedPath } from "@/lib/localized-path"
 
 interface ErrorPageProps {
-  params: {
+  params: Promise<{
     locale: string
-  }
-  searchParams: {
+  }>
+  searchParams: Promise<{
     error?: string
     error_description?: string
     callbackUrl?: string
     code?: string
     state?: string
-  }
+  }>
 }
 
 const getErrorMessage = (error: string) => {
@@ -56,7 +56,9 @@ const getErrorDetails = (error: string) => {
     }
 }
 
-export default function AuthErrorPage({ params, searchParams }: ErrorPageProps) {
+export default async function AuthErrorPage(props: ErrorPageProps) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const error = searchParams.error
   const errorDescription = searchParams.error_description
   const callbackUrl = searchParams.callbackUrl

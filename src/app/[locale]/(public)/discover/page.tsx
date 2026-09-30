@@ -9,12 +9,13 @@ import { isValidLocale, type Locale } from '@/i18n'
 import { generateI18nSEO } from '@/lib/seo'
 
 type DiscoverPageProps = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({ params }: DiscoverPageProps): Promise<Metadata> {
+export async function generateMetadata(props: DiscoverPageProps): Promise<Metadata> {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const copy = getDiscoverCopy(params.locale)
   const locale = isValidLocale(params.locale) ? params.locale : 'en'
@@ -27,7 +28,8 @@ export async function generateMetadata({ params }: DiscoverPageProps): Promise<M
   })
 }
 
-export default async function DiscoverRoute({ params }: DiscoverPageProps) {
+export default async function DiscoverRoute(props: DiscoverPageProps) {
+  const params = await props.params;
   if (!isValidLocale(params.locale)) notFound()
   setRequestLocale(params.locale)
   const content = await getDiscoverContent(params.locale, createStoreRuntime())

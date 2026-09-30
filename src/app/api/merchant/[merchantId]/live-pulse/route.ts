@@ -11,10 +11,8 @@ function privateNoStore(response: NextResponse): NextResponse {
   return response
 }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { merchantId: string } },
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return privateNoStore(auth.response)
 

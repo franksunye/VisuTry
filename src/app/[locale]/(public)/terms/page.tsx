@@ -13,7 +13,8 @@ export const metadata: Metadata = generateSEO({
   url: '/terms',
 })
 
-export default async function TermsPage({ params }: { params: { locale: string } }) {
+export default async function TermsPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const lastUpdated = 'January 15, 2025'
 
   return (

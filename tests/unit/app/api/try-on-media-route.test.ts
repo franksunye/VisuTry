@@ -49,7 +49,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
     mockRequireAuth.mockResolvedValue({ ok: false, response: { status: 401 } })
 
     const result = await GET({} as any, {
-      params: { id: 'task-1', kind: 'user' },
+      params: Promise.resolve({ id: 'task-1', kind: 'user' }),
     })
 
     expect(result.status).toBe(401)
@@ -66,7 +66,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
     })
 
     const result = await GET({} as any, {
-      params: { id: 'task-1', kind: 'user' },
+      params: Promise.resolve({ id: 'task-1', kind: 'user' }),
     })
 
     expect(result.status).toBe(403)
@@ -83,7 +83,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
     })
 
     const result = await GET({} as any, {
-      params: { id: 'task-1', kind: 'result' },
+      params: Promise.resolve({ id: 'task-1', kind: 'result' }),
     })
 
     expect(result.status).toBe(200)
@@ -105,7 +105,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
     })
 
     const result = await GET({} as any, {
-      params: { id: 'task-1', kind: 'result' },
+      params: Promise.resolve({ id: 'task-1', kind: 'result' }),
     })
 
     expect(result.status).toBe(200)
@@ -123,7 +123,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
     })
 
     const result = await GET({} as any, {
-      params: { id: 'task-1', kind: 'result' },
+      params: Promise.resolve({ id: 'task-1', kind: 'result' }),
     })
 
     expect(result.status).toBe(404)
@@ -141,7 +141,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
     mockServeLegacyTryOnMedia.mockRejectedValue(new Error('Failed to load private Try-On media'))
 
     const result = await GET({} as any, {
-      params: { id: 'task-1', kind: 'result' },
+      params: Promise.resolve({ id: 'task-1', kind: 'result' }),
     })
 
     expect(result.status).toBe(502)
@@ -174,7 +174,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
     ))
 
     await GET({} as any, {
-      params: { id: 'task-1', kind: 'result' },
+      params: Promise.resolve({ id: 'task-1', kind: 'result' }),
     })
 
     const loggedError = mockLoggerError.mock.calls.at(-1)?.[2] as Error
@@ -186,7 +186,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
 
   it('returns 404 for unsupported media kinds', async () => {
     const result = await GET({} as any, {
-      params: { id: 'task-1', kind: 'other' },
+      params: Promise.resolve({ id: 'task-1', kind: 'other' }),
     })
 
     expect(result.status).toBe(404)

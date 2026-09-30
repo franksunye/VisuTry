@@ -12,7 +12,8 @@ const title = 'How Virtual Try-On Helps Online Eyewear Stores Reduce Returns'
 const description = 'A practical guide for eyewear ecommerce teams on using virtual try-on to improve buyer confidence, set better expectations, and reduce avoidable frame-fit returns.'
 const coverImage = '/blog-covers/virtual-try-on-reduce-returns.jpg'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as any,
     title,
@@ -56,10 +57,11 @@ const benefits = [
 ]
 
 type BlogPostPageProps = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function BlogPostPage(props: BlogPostPageProps) {
+  const params = await props.params;
   return (
     <>
       <script

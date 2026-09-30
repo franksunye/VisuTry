@@ -77,6 +77,7 @@ function getPhotoLibraryInput() {
 
 describe('FreeFaceShapeDetector', () => {
   const mockFetch = jest.fn(() => Promise.resolve({ ok: true }))
+  const originalIntersectionObserver = globalThis.IntersectionObserver
 
   beforeEach(() => {
     mockAnalyzeFaceLandmarkFile.mockClear()
@@ -85,6 +86,21 @@ describe('FreeFaceShapeDetector', () => {
     mockSavePhotoHandoff.mockResolvedValue('handoff-1')
     mockRouterPush.mockClear()
     mockFetch.mockClear()
+    Object.defineProperty(globalThis, 'IntersectionObserver', {
+      configurable: true,
+      value: class ImmediateIntersectionObserver {
+        constructor(private readonly callback: IntersectionObserverCallback) {}
+
+        observe(target: Element) {
+          this.callback(
+            [{ isIntersecting: true, target } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          )
+        }
+
+        disconnect() {}
+      },
+    })
     global.fetch = mockFetch as unknown as typeof global.fetch
     Object.defineProperty(URL, 'createObjectURL', {
       configurable: true,
@@ -98,6 +114,14 @@ describe('FreeFaceShapeDetector', () => {
 
   afterEach(() => {
     jest.restoreAllMocks()
+    if (originalIntersectionObserver) {
+      Object.defineProperty(globalThis, 'IntersectionObserver', {
+        configurable: true,
+        value: originalIntersectionObserver,
+      })
+    } else {
+      delete (globalThis as Partial<typeof globalThis>).IntersectionObserver
+    }
   })
 
   it('tracks a measured result and its commercial continuation', async () => {
@@ -117,7 +141,9 @@ describe('FreeFaceShapeDetector', () => {
     expect(screen.getByText('oblong')).toBeInTheDocument()
     expect(screen.getByText('92% photo quality')).toBeInTheDocument()
     expect(screen.getByText('Measured face details')).toBeInTheDocument()
-    expect(screen.getAllByText('Photo Alignment')).toHaveLength(2)
+    await waitFor(() => {
+      expect(screen.getAllByText('Photo Alignment')).toHaveLength(2)
+    })
     expect(screen.getByTestId('landmark-mesh')).toBeInTheDocument()
     expect(mockAnalyzeFaceLandmarkFile).toHaveBeenCalledTimes(1)
     expect(mockCompressImage).toHaveBeenCalledWith(file, 1280, 0.88, { profile: 'user-photo' })

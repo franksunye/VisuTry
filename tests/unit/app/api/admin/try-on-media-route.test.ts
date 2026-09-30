@@ -40,7 +40,7 @@ describe('GET /api/admin/try-on/[id]/media/[kind]', () => {
     mockRequireAdmin.mockResolvedValue({ ok: false, response: { status: 401 } })
 
     const result = await GET({} as any, {
-      params: { id: 'task-1', kind: 'user' },
+      params: Promise.resolve({ id: 'task-1', kind: 'user' }),
     })
 
     expect(result.status).toBe(401)
@@ -56,7 +56,7 @@ describe('GET /api/admin/try-on/[id]/media/[kind]', () => {
     })
 
     const result = await GET({} as any, {
-      params: { id: 'task-1', kind: 'result' },
+      params: Promise.resolve({ id: 'task-1', kind: 'result' }),
     })
 
     expect(result.status).toBe(200)
@@ -68,7 +68,7 @@ describe('GET /api/admin/try-on/[id]/media/[kind]', () => {
 
   it('returns 404 for unsupported media kinds', async () => {
     const result = await GET({} as any, {
-      params: { id: 'task-1', kind: 'other' },
+      params: Promise.resolve({ id: 'task-1', kind: 'other' }),
     })
 
     expect(result.status).toBe(404)

@@ -42,7 +42,7 @@ describe('Merchant commercial add-on admin route', () => {
 
     const response = await GET(
       new NextRequest('http://localhost/api/admin/store/merchants/merchant-1/commercial-add-ons'),
-      { params: { id: 'merchant-1' } },
+      { params: Promise.resolve({ id: 'merchant-1' }) },
     )
     const payload = await response.json()
 
@@ -69,7 +69,7 @@ describe('Merchant commercial add-on admin route', () => {
     const response = await PUT(new NextRequest('http://localhost/api/admin/store/merchants/merchant-1/commercial-add-ons', {
       method: 'PUT',
       body: JSON.stringify({ addOns: ['KIOSK'] }),
-    }), { params: { id: 'merchant-1' } })
+    }), { params: Promise.resolve({ id: 'merchant-1' }) })
     const payload = await response.json()
 
     expect(response.status).toBe(200)
@@ -101,7 +101,7 @@ describe('Merchant commercial add-on admin route', () => {
     const response = await PUT(new NextRequest('http://localhost/api/admin/store/merchants/merchant-1/commercial-add-ons', {
       method: 'PUT',
       body: JSON.stringify({ addOns: ['KIOSK'] }),
-    }), { params: { id: 'merchant-1' } })
+    }), { params: Promise.resolve({ id: 'merchant-1' }) })
 
     expect(response.status).toBe(409)
     await expect(response.json()).resolves.toMatchObject({ error: 'KIOSK_ALREADY_INCLUDED' })
@@ -121,13 +121,13 @@ describe('Merchant commercial add-on admin route', () => {
     const remove = await PUT(new NextRequest('http://localhost/api/admin/store/merchants/merchant-1/commercial-add-ons', {
       method: 'PUT',
       body: JSON.stringify({ addOns: [] }),
-    }), { params: { id: 'merchant-1' } })
+    }), { params: Promise.resolve({ id: 'merchant-1' }) })
     expect(remove.status).toBe(200)
 
     const unsupported = await PUT(new NextRequest('http://localhost/api/admin/store/merchants/merchant-1/commercial-add-ons', {
       method: 'PUT',
       body: JSON.stringify({ addOns: ['UNKNOWN'] }),
-    }), { params: { id: 'merchant-1' } })
+    }), { params: Promise.resolve({ id: 'merchant-1' }) })
     expect(unsupported.status).toBe(400)
   })
 })

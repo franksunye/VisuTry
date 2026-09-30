@@ -16,10 +16,10 @@ import { ArrowLeft } from 'lucide-react'
 import { localizedPath } from '@/lib/localized-path'
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     locale: string
     category: string
-  }
+  }>
 }
 
 // Generate static params for all categories
@@ -33,16 +33,16 @@ export async function generateStaticParams() {
   }))
 }
 
-export const dynamicParams =
-  process.env.CLOUDFLARE_BUILD === '1' || process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
+// Next 16 requires a literal segment config. Unknown catalog slugs terminate
+// in notFound() below; generated catalog params remain deploy-time content.
+export const dynamicParams = false
 // Category pages are catalog snapshots. Rebuild or on-demand params are enough;
 // a 1-hour ISR clock was regenerating empty/high-cardinality routes.
 export const dynamic = 'force-static'
 
 // Generate metadata
-export async function generateMetadata({
-  params,
-}: CategoryPageProps): Promise<Metadata> {
+export async function generateMetadata(props: CategoryPageProps): Promise<Metadata> {
+  const params = await props.params;
   const categoryName = unslugify(params.category)
   const category = await getCategoryByName(categoryName)
 
@@ -78,7 +78,8 @@ export async function generateMetadata({
   }
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage(props: CategoryPageProps) {
+  const params = await props.params;
   const categoryName = unslugify(params.category)
 
   const category = await getCategoryByName(categoryName)

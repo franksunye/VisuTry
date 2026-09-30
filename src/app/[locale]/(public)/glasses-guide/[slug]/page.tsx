@@ -19,7 +19,7 @@ import { generateStructuredData } from '@/lib/seo'
 import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
 
 type Props = {
-  params: { locale: string; slug: string }
+  params: Promise<{ locale: string; slug: string }>
 }
 
 export function generateStaticParams() {
@@ -29,7 +29,8 @@ export function generateStaticParams() {
 export const dynamicParams = false
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const page = getLocalizedCombinationSearchPage(params.locale, params.slug)
   if (!page) {
     return { title: 'Guide Not Found', robots: { index: false, follow: false } }
@@ -43,7 +44,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
 }
 
-export default function CombinationSearchPage({ params }: Props) {
+export default async function CombinationSearchPage(props: Props) {
+  const params = await props.params;
   const page = getLocalizedCombinationSearchPage(params.locale, params.slug)
   if (!page) notFound()
 

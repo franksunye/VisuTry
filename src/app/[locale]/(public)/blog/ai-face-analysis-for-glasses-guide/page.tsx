@@ -17,9 +17,10 @@ const publishedAt = '2026-06-08T10:00:00Z'
 const modifiedAt = '2026-08-03T06:00:00Z'
 const pathname = '/blog/ai-face-analysis-for-glasses-guide'
 
-type PageProps = { params: { locale: string } }
+type PageProps = { params: Promise<{ locale: string }> }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const params = await props.params;
   const article = getAiGlassesAdvisorArticleCopy(params.locale)
 
   return generateI18nSEO({
@@ -34,7 +35,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 const workflowIcons = [ScanFace, Sparkles, Eye]
 
-export default function BlogPostPage({ params }: PageProps) {
+export default async function BlogPostPage(props: PageProps) {
+  const params = await props.params;
   const { locale } = params
   const localePrefix = `/${locale}`
   const article = getAiGlassesAdvisorArticleCopy(locale)

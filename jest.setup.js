@@ -6,6 +6,43 @@ if (typeof global.TextEncoder === 'undefined' || typeof global.TextDecoder === '
   global.TextDecoder = TextDecoder
 }
 
+if (typeof global.structuredClone === 'undefined') {
+  global.structuredClone = require('node:util').structuredClone
+}
+
+if (typeof global.ReadableStream === 'undefined') {
+  const {
+    ReadableStream,
+    TransformStream,
+    WritableStream,
+    TextEncoderStream,
+    TextDecoderStream,
+  } = require('node:stream/web')
+  Object.assign(global, {
+    ReadableStream,
+    TransformStream,
+    WritableStream,
+    TextEncoderStream,
+    TextDecoderStream,
+  })
+}
+
+// Next 16's cache/request modules require the Fetch API during module load.
+// jsdom does not expose Node 22's Fetch globals, so bridge the same runtime
+// primitives used by the application into the Jest environment.
+if (typeof global.Request === 'undefined') {
+  const { Request, Response, Headers, FormData, Blob, File, fetch } = require('undici')
+  Object.assign(global, {
+    Request: global.Request ?? Request,
+    Response: global.Response ?? Response,
+    Headers: global.Headers ?? Headers,
+    FormData: global.FormData ?? FormData,
+    Blob: global.Blob ?? Blob,
+    File: global.File ?? File,
+    fetch: global.fetch ?? fetch,
+  })
+}
+
 // Mock Next.js router
 jest.mock('next/router', () => ({
   useRouter() {

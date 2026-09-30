@@ -46,8 +46,8 @@ describe('Merchant Campaign HTTP boundary', () => {
   })
 
   it('requires Owner/Admin membership and scopes list/create to the route Merchant', async () => {
-    const listed = await list(request('/api/merchant/merchant-a/campaigns?limit=20', 'GET'), { params: { merchantId: 'merchant-a' } })
-    const created = await create(request('/api/merchant/merchant-a/campaigns', 'POST', { name: 'Spring edit' }), { params: { merchantId: 'merchant-a' } })
+    const listed = await list(request('/api/merchant/merchant-a/campaigns?limit=20', 'GET'), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
+    const created = await create(request('/api/merchant/merchant-a/campaigns', 'POST', { name: 'Spring edit' }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(listed.status).toBe(200)
     expect(created.status).toBe(201)
     expect(membership).toHaveBeenNthCalledWith(1, { userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
@@ -56,47 +56,47 @@ describe('Merchant Campaign HTTP boundary', () => {
   })
 
   it('keeps path resource identity authoritative and does not leak another Merchant Campaign', async () => {
-    const response = await detail(request('/api/merchant/merchant-a/campaigns/campaign-b', 'GET'), { params: { merchantId: 'merchant-a', campaignId: 'campaign-b' } })
+    const response = await detail(request('/api/merchant/merchant-a/campaigns/campaign-b', 'GET'), { params: Promise.resolve({ merchantId: 'merchant-a', campaignId: 'campaign-b' }) })
     expect(response.status).toBe(200)
     expect(getCampaign).toHaveBeenCalledWith({ merchantId: 'merchant-a', campaignId: 'campaign-b' })
     expect(updateCampaign).not.toHaveBeenCalled()
 
     ;(getCampaign as jest.Mock).mockRejectedValueOnce(new MerchantAccessError())
-    const denied = await detail(request('/api/merchant/merchant-a/campaigns/campaign-b', 'GET'), { params: { merchantId: 'merchant-a', campaignId: 'campaign-b' } })
+    const denied = await detail(request('/api/merchant/merchant-a/campaigns/campaign-b', 'GET'), { params: Promise.resolve({ merchantId: 'merchant-a', campaignId: 'campaign-b' }) })
     expect(denied.status).toBe(404)
     expect(await denied.json()).toMatchObject({ success: false, error: 'MERCHANT_ACCESS_NOT_FOUND' })
   })
 
   it('sends product selection only through the canonical campaign service and preserves path scoping', async () => {
-    const response = await setProducts(request('/api/merchant/merchant-a/campaigns/campaign-a/products', 'PUT', { frameIds: ['frame-b'] }), { params: { merchantId: 'merchant-a', campaignId: 'campaign-a' } })
+    const response = await setProducts(request('/api/merchant/merchant-a/campaigns/campaign-a/products', 'PUT', { frameIds: ['frame-b'] }), { params: Promise.resolve({ merchantId: 'merchant-a', campaignId: 'campaign-a' }) })
     expect(response.status).toBe(200)
     expect(setCampaignFrames).toHaveBeenCalledWith({ merchantId: 'merchant-a', campaignId: 'campaign-a', frameIds: ['frame-b'] })
     expect(getCampaign).toHaveBeenCalledWith({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
     expect(await response.json()).toMatchObject({ success: true, data: { id: 'campaign-a', status: 'DRAFT' } })
 
     ;(setCampaignFrames as jest.Mock).mockRejectedValueOnce(new MerchantAccessError())
-    const crossMerchantProduct = await setProducts(request('/api/merchant/merchant-a/campaigns/campaign-a/products', 'PUT', { frameIds: ['merchant-b-frame'] }), { params: { merchantId: 'merchant-a', campaignId: 'campaign-a' } })
+    const crossMerchantProduct = await setProducts(request('/api/merchant/merchant-a/campaigns/campaign-a/products', 'PUT', { frameIds: ['merchant-b-frame'] }), { params: Promise.resolve({ merchantId: 'merchant-a', campaignId: 'campaign-a' }) })
     expect(crossMerchantProduct.status).toBe(404)
   })
 
   it('requires explicit publish and archive confirmation before canonical state transitions', async () => {
-    const rejectedPublish = await publish(request('/api/merchant/merchant-a/campaigns/campaign-a/publish', 'POST', { approved: false }), { params: { merchantId: 'merchant-a', campaignId: 'campaign-a' } })
-    const rejectedArchive = await archive(request('/api/merchant/merchant-a/campaigns/campaign-a/archive', 'POST', { confirmed: false }), { params: { merchantId: 'merchant-a', campaignId: 'campaign-a' } })
+    const rejectedPublish = await publish(request('/api/merchant/merchant-a/campaigns/campaign-a/publish', 'POST', { approved: false }), { params: Promise.resolve({ merchantId: 'merchant-a', campaignId: 'campaign-a' }) })
+    const rejectedArchive = await archive(request('/api/merchant/merchant-a/campaigns/campaign-a/archive', 'POST', { confirmed: false }), { params: Promise.resolve({ merchantId: 'merchant-a', campaignId: 'campaign-a' }) })
     expect(rejectedPublish.status).toBe(400)
     expect(rejectedArchive.status).toBe(400)
     expect(publishCampaign).not.toHaveBeenCalled()
     expect(archiveCampaign).not.toHaveBeenCalled()
 
-    await publish(request('/api/merchant/merchant-a/campaigns/campaign-a/publish', 'POST', { approved: true }), { params: { merchantId: 'merchant-a', campaignId: 'campaign-a' } })
-    await archive(request('/api/merchant/merchant-a/campaigns/campaign-a/archive', 'POST', { confirmed: true }), { params: { merchantId: 'merchant-a', campaignId: 'campaign-a' } })
+    await publish(request('/api/merchant/merchant-a/campaigns/campaign-a/publish', 'POST', { approved: true }), { params: Promise.resolve({ merchantId: 'merchant-a', campaignId: 'campaign-a' }) })
+    await archive(request('/api/merchant/merchant-a/campaigns/campaign-a/archive', 'POST', { confirmed: true }), { params: Promise.resolve({ merchantId: 'merchant-a', campaignId: 'campaign-a' }) })
     expect(publishCampaign).toHaveBeenCalledWith({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })
     expect(archiveCampaign).toHaveBeenCalledWith({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
   })
 
   it('rejects cross-Merchant publish and archive before reaching canonical mutations', async () => {
     membership.mockRejectedValue(new MerchantAccessError())
-    const deniedPublish = await publish(request('/api/merchant/merchant-b/campaigns/campaign-a/publish', 'POST', { approved: true }), { params: { merchantId: 'merchant-b', campaignId: 'campaign-a' } })
-    const deniedArchive = await archive(request('/api/merchant/merchant-b/campaigns/campaign-a/archive', 'POST', { confirmed: true }), { params: { merchantId: 'merchant-b', campaignId: 'campaign-a' } })
+    const deniedPublish = await publish(request('/api/merchant/merchant-b/campaigns/campaign-a/publish', 'POST', { approved: true }), { params: Promise.resolve({ merchantId: 'merchant-b', campaignId: 'campaign-a' }) })
+    const deniedArchive = await archive(request('/api/merchant/merchant-b/campaigns/campaign-a/archive', 'POST', { confirmed: true }), { params: Promise.resolve({ merchantId: 'merchant-b', campaignId: 'campaign-a' }) })
 
     expect(deniedPublish.status).toBe(404)
     expect(deniedArchive.status).toBe(404)
@@ -105,13 +105,13 @@ describe('Merchant Campaign HTTP boundary', () => {
   })
 
   it('previews only saved Drafts and does not mutate through the route', async () => {
-    const response = await preview(request('/api/merchant/merchant-a/campaigns/campaign-a/preview', 'POST'), { params: { merchantId: 'merchant-a', campaignId: 'campaign-a' } })
+    const response = await preview(request('/api/merchant/merchant-a/campaigns/campaign-a/preview', 'POST'), { params: Promise.resolve({ merchantId: 'merchant-a', campaignId: 'campaign-a' }) })
     expect(response.status).toBe(200)
     expect(previewCampaign).toHaveBeenCalledWith({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
     expect(publishCampaign).not.toHaveBeenCalled()
 
     ;(previewCampaign as jest.Mock).mockResolvedValueOnce({ id: 'campaign-a', status: 'ACTIVE' })
-    const active = await preview(request('/api/merchant/merchant-a/campaigns/campaign-a/preview', 'POST'), { params: { merchantId: 'merchant-a', campaignId: 'campaign-a' } })
+    const active = await preview(request('/api/merchant/merchant-a/campaigns/campaign-a/preview', 'POST'), { params: Promise.resolve({ merchantId: 'merchant-a', campaignId: 'campaign-a' }) })
     expect(active.status).toBe(409)
   })
 })

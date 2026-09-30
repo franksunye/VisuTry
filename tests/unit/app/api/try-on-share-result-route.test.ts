@@ -42,7 +42,7 @@ describe('GET /api/share/try-on/[id]/result', () => {
       resultImageUrl: privateResultUrl,
     })
 
-    const response = await GET({} as Request, { params: { id: 'task-1' } })
+    const response = await GET({} as Request, { params: Promise.resolve({ id: 'task-1' }) })
 
     expect(response.status).toBe(200)
     expect(mockFindUnique).toHaveBeenCalledWith({
@@ -61,7 +61,7 @@ describe('GET /api/share/try-on/[id]/result', () => {
       resultImageUrl: 'https://public.example.com/result.png',
     })
 
-    const response = await GET({} as Request, { params: { id: 'task-1' } })
+    const response = await GET({} as Request, { params: Promise.resolve({ id: 'task-1' }) })
 
     expect(response.status).toBe(404)
     expect(mockServeLegacyTryOnMedia).not.toHaveBeenCalled()
@@ -73,7 +73,7 @@ describe('GET /api/share/try-on/[id]/result', () => {
       resultImageUrl: null,
     })
 
-    const response = await GET({} as Request, { params: { id: 'task-1' } })
+    const response = await GET({} as Request, { params: Promise.resolve({ id: 'task-1' }) })
 
     expect(response.status).toBe(404)
     expect(mockServeLegacyTryOnMedia).not.toHaveBeenCalled()

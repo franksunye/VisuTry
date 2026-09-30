@@ -9,10 +9,10 @@ import { localizedPath } from "@/lib/localized-path"
 import { publicTryOnShareResultPath } from "@/lib/tryon-media"
 
 interface SharePageProps {
-  params: {
+  params: Promise<{
     locale: string
     id: string
-  }
+  }>
 }
 
 function absoluteShareResultUrl(taskId: string): string {
@@ -21,7 +21,8 @@ function absoluteShareResultUrl(taskId: string): string {
 }
 
 // Generate dynamic metadata
-export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
+export async function generateMetadata(props: SharePageProps): Promise<Metadata> {
+  const params = await props.params;
   const task = await prisma.tryOnTask.findUnique({
     where: { id: params.id },
     include: {
@@ -78,7 +79,8 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   }
 }
 
-export default async function SharePage({ params }: SharePageProps) {
+export default async function SharePage(props: SharePageProps) {
+  const params = await props.params;
   const task = await prisma.tryOnTask.findUnique({
     where: { id: params.id },
     include: {

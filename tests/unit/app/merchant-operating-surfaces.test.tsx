@@ -40,8 +40,8 @@ describe('Merchant operating surface route boundaries', () => {
   })
 
   it('uses only the canonical route-specific Analytics read and passes the authorized Merchant context', async () => {
-    const result = await MerchantAnalyticsPage({ params: { locale: 'en' }, searchParams: { merchantId: 'tampered-merchant' } }) as React.ReactElement
-    const child = result.props.children as React.ReactElement
+    const result = await MerchantAnalyticsPage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'tampered-merchant' }) }) as React.ReactElement<any>
+    const child = result.props.children as React.ReactElement<any>
 
     expect(analytics).toHaveBeenCalledWith({ merchantId: 'merchant-authorized' })
     expect(controlCenter).not.toHaveBeenCalled()
@@ -53,8 +53,8 @@ describe('Merchant operating surface route boundaries', () => {
   })
 
   it('uses only credential metadata and safe Agent config, serialized for the selected Merchant', async () => {
-    const result = await MerchantIntegrationsPage({ params: { locale: 'en' }, searchParams: { merchantId: 'tampered-merchant' } }) as React.ReactElement
-    const child = result.props.children as React.ReactElement
+    const result = await MerchantIntegrationsPage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'tampered-merchant' }) }) as React.ReactElement<any>
+    const child = result.props.children as React.ReactElement<any>
 
     expect(credentials).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-authorized' })
     expect(config).toHaveBeenCalledTimes(1)
@@ -68,8 +68,8 @@ describe('Merchant operating surface route boundaries', () => {
 
   it('keeps the operating activation gate ahead of both route-specific reads', async () => {
     authorize.mockRejectedValue(new Error('REDIRECT:/en/merchant?merchantId=merchant-authorized'))
-    await expect(MerchantAnalyticsPage({ params: { locale: 'en' } })).rejects.toThrow('REDIRECT:')
-    await expect(MerchantIntegrationsPage({ params: { locale: 'en' } })).rejects.toThrow('REDIRECT:')
+    await expect(MerchantAnalyticsPage({ params: Promise.resolve({ locale: 'en' }) })).rejects.toThrow('REDIRECT:')
+    await expect(MerchantIntegrationsPage({ params: Promise.resolve({ locale: 'en' }) })).rejects.toThrow('REDIRECT:')
     expect(analytics).not.toHaveBeenCalled()
     expect(credentials).not.toHaveBeenCalled()
     expect(config).not.toHaveBeenCalled()

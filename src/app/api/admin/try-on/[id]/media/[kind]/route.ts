@@ -9,9 +9,10 @@ export const maxDuration = 30
 
 const MEDIA_KINDS = new Set<TryOnMediaKind>(['user', 'item', 'result'])
 
-type RouteParams = { params: { id: string; kind: string } }
+type RouteParams = { params: Promise<{ id: string; kind: string }> }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, props: RouteParams) {
+  const params = await props.params;
   try {
     const auth = await requireAdmin()
     if (!auth.ok) return auth.response

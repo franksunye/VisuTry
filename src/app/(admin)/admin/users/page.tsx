@@ -11,10 +11,10 @@ import { User } from 'lucide-react';
 // It fetches a paginated list of users from the database.
 
 interface UsersPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     search?: string;
-  };
+  }>;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -62,7 +62,8 @@ async function getUsers({ page = 1, search = '' }: { page?: number; search?: str
   };
 }
 
-export default async function UsersPage({ searchParams }: UsersPageProps) {
+export default async function UsersPage(props: UsersPageProps) {
+  const searchParams = await props.searchParams;
   const page = searchParams.page ? parseInt(searchParams.page, 10) : 1;
   const search = searchParams.search ?? '';
   const { users, currentPage, totalPages } = await getUsers({ page, search });

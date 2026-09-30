@@ -9,7 +9,8 @@ export const dynamic = 'force-dynamic'
 
 const schema = z.object({ storeId: z.string().trim().min(1).max(200), approved: z.literal(true) }).strict()
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {

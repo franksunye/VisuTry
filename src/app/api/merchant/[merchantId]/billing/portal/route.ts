@@ -6,8 +6,9 @@ import { billingErrorResponse, merchantBillingUrl } from '../billing-http'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string } }) {
-  const auth = await requireAuth(); if (!auth.ok) return auth.response
+export async function POST(request: NextRequest, props: { params: Promise<{ merchantId: string }> }) {
+  const params = await props.params;
+  const auth = await requireAuth();if (!auth.ok) return auth.response
   try {
     await requireMerchantMembership({ userId: auth.userId, merchantId: params.merchantId, roles: ['OWNER', 'ADMIN'] })
     const data = await createMerchantBillingPortalSession({ merchantId: params.merchantId, returnUrl: merchantBillingUrl(request.nextUrl.origin, params.merchantId).toString() })

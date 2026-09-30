@@ -5,7 +5,11 @@ import { listCampaigns, type CampaignReadModel } from '@/modules/store/applicati
 
 export const dynamic = 'force-dynamic'
 
-export default async function MerchantCampaignsPage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string } }) {
+export default async function MerchantCampaignsPage(
+  props: { params: Promise<{ locale: string }>; searchParams?: Promise<{ merchantId?: string }> }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const { context } = await requireOperatingMerchantPage({ locale: params.locale, merchantId: searchParams?.merchantId })
   const items: CampaignReadModel[] = []
   let cursor: string | null = null

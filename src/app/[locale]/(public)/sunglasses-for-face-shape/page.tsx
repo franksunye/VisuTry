@@ -12,12 +12,13 @@ import { getFaceShapeSeoCopy, interpolateSeoCopy } from '@/config/face-shape-seo
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 
 interface SunglassesHubPageProps {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: SunglassesHubPageProps): Promise<Metadata> {
+export async function generateMetadata(props: SunglassesHubPageProps): Promise<Metadata> {
+  const params = await props.params;
   const copy = getFaceShapeSeoCopy(params.locale)
   return generateI18nSEO({
     locale: params.locale as Locale,
@@ -27,7 +28,8 @@ export async function generateMetadata({ params }: SunglassesHubPageProps): Prom
   })
 }
 
-export default function SunglassesForFaceShapePage({ params }: SunglassesHubPageProps) {
+export default async function SunglassesForFaceShapePage(props: SunglassesHubPageProps) {
+  const params = await props.params;
   const locale = params.locale
   const copy = getFaceShapeSeoCopy(locale)
   const faqSchema = generateStructuredData('faqPage', { questions: copy.sunglasses.faq })

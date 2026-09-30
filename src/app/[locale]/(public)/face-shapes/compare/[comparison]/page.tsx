@@ -12,7 +12,7 @@ import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { generateBreadcrumbSchema } from '@/lib/programmatic-seo'
 
 interface FaceShapeComparisonPageProps {
-  params: { locale: string; comparison: string }
+  params: Promise<{ locale: string; comparison: string }>
 }
 
 export function generateStaticParams() {
@@ -22,7 +22,8 @@ export function generateStaticParams() {
 export const dynamicParams = false
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: FaceShapeComparisonPageProps): Promise<Metadata> {
+export async function generateMetadata(props: FaceShapeComparisonPageProps): Promise<Metadata> {
+  const params = await props.params;
   const comparison = getFaceShapeComparison(params.comparison)
   if (!comparison) return { title: 'Face Shape Comparison Not Found' }
 
@@ -38,7 +39,8 @@ export async function generateMetadata({ params }: FaceShapeComparisonPageProps)
   })
 }
 
-export default function FaceShapeComparisonPage({ params }: FaceShapeComparisonPageProps) {
+export default async function FaceShapeComparisonPage(props: FaceShapeComparisonPageProps) {
+  const params = await props.params;
   const comparison = getFaceShapeComparison(params.comparison)
   if (!comparison) notFound()
 

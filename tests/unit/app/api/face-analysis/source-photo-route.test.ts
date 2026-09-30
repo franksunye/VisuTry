@@ -47,7 +47,7 @@ describe('GET /api/face-analysis/[id]/photo', () => {
 
     const response = await GET(
       new NextRequest('http://localhost/api/face-analysis/analysis-1/photo'),
-      { params: { id: 'analysis-1' } },
+      { params: Promise.resolve({ id: 'analysis-1' }) },
     )
 
     expect(response.status).toBe(200)
@@ -80,7 +80,7 @@ describe('GET /api/face-analysis/[id]/photo', () => {
 
     const response = await GET(
       new NextRequest('http://localhost/api/face-analysis/analysis-private/photo'),
-      { params: { id: 'analysis-private' } },
+      { params: Promise.resolve({ id: 'analysis-private' }) },
     )
 
     expect(response.status).toBe(200)
@@ -103,7 +103,7 @@ describe('GET /api/face-analysis/[id]/photo', () => {
 
     const response = await GET(
       new NextRequest('http://localhost/api/face-analysis/analysis-2/photo'),
-      { params: { id: 'analysis-2' } },
+      { params: Promise.resolve({ id: 'analysis-2' }) },
     )
 
     expect(response.status).toBe(404)
@@ -121,7 +121,7 @@ describe('GET /api/face-analysis/[id]/photo', () => {
 
     const response = await GET(
       new NextRequest('http://localhost/api/face-analysis/analysis-3/photo'),
-      { params: { id: 'analysis-3' } },
+      { params: Promise.resolve({ id: 'analysis-3' }) },
     )
 
     expect(response.status).toBe(502)
@@ -139,7 +139,7 @@ describe('GET /api/face-analysis/[id]/photo', () => {
 
     const response = await GET(
       new NextRequest('http://localhost/api/face-analysis/analysis-4/photo'),
-      { params: { id: 'analysis-4' } },
+      { params: Promise.resolve({ id: 'analysis-4' }) },
     )
 
     expect(response.status).toBe(401)

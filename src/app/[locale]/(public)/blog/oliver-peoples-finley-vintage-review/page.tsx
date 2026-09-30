@@ -9,7 +9,8 @@ import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as any,
     title: 'Oliver Peoples Finley Vintage Review: Face Shape Fit & Try-On',
@@ -47,7 +48,8 @@ const faqSchema = generateStructuredData('faqPage', {
 
 const articleTags = ['Oliver Peoples', 'Luxury Eyewear', 'Product Review', 'Designer Glasses', 'Premium Frames']
 
-export default function BlogPostPage({ params }: { params: { locale: string } }) {
+export default async function BlogPostPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const localePrefix = `/${params.locale}`
 
   return (

@@ -5,10 +5,11 @@ import { ArrowLeft, Tag as TagIcon, Calendar, User, ArrowRight } from 'lucide-re
 import { getAllBlogPosts } from '@/lib/blog'
 
 type Props = {
-  params: { locale: string; tag: string }
+  params: Promise<{ locale: string; tag: string }>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const tag = decodeURIComponent(params.tag)
   return generateI18nSEO({
     locale: params.locale as any,
@@ -27,11 +28,12 @@ export async function generateStaticParams() {
   return uniqueTags.map((tag) => ({ tag }))
 }
 
-export default async function TagPage({ params }: Props) {
+export default async function TagPage(props: Props) {
+  const params = await props.params;
   const tag = decodeURIComponent(params.tag)
   const locale = params.locale
   const allPosts = await getAllBlogPosts()
-  
+
   // Filter posts by tag
   const filteredPosts = allPosts.filter(post => 
     post.tags.some(t => t.toLowerCase() === tag.toLowerCase())

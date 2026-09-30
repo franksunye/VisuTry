@@ -59,27 +59,27 @@ describe('Human merchant Store routes', () => {
   })
 
   it('loads Store setup only for an authenticated Owner/Admin membership', async () => {
-    const response = await GET(request('/api/merchant/merchant-a/store', undefined, 'GET'), { params: { merchantId: 'merchant-a' } })
+    const response = await GET(request('/api/merchant/merchant-a/store', undefined, 'GET'), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(200)
     expect(membership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
     expect(getMerchantStoreWorkspace).toHaveBeenCalledWith({ actor: { actorType: 'HUMAN', actorId: 'user-a', merchantId: 'merchant-a', membershipId: 'membership-a' } })
   })
 
   it('allows a Store to be created with optional details omitted', async () => {
-    const response = await POST(request('/api/merchant/merchant-a/store', {}), { params: { merchantId: 'merchant-a' } })
+    const response = await POST(request('/api/merchant/merchant-a/store', {}), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(200)
     expect(createMerchantStore).toHaveBeenCalledWith({ actor: { actorType: 'HUMAN', actorId: 'user-a', merchantId: 'merchant-a', membershipId: 'membership-a' }, name: undefined, headline: undefined, description: undefined })
   })
 
   it('updates details and selected products through tenant-scoped application services', async () => {
-    await PATCH(request('/api/merchant/merchant-a/store', { storeId: 'store-a', name: 'Luna Store' }, 'PATCH'), { params: { merchantId: 'merchant-a' } })
-    await PUT(request('/api/merchant/merchant-a/store', { storeId: 'store-a', frameIds: ['frame-a'] }, 'PUT'), { params: { merchantId: 'merchant-a' } })
+    await PATCH(request('/api/merchant/merchant-a/store', { storeId: 'store-a', name: 'Luna Store' }, 'PATCH'), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
+    await PUT(request('/api/merchant/merchant-a/store', { storeId: 'store-a', frameIds: ['frame-a'] }, 'PUT'), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(updateMerchantStore).toHaveBeenCalledWith(expect.objectContaining({ storeId: 'store-a', name: 'Luna Store' }))
     expect(setMerchantStoreFrames).toHaveBeenCalledWith(expect.objectContaining({ storeId: 'store-a', frameIds: ['frame-a'] }))
   })
 
   it('requires explicit publish approval before calling the publish service', async () => {
-    const response = await publish(request('/api/merchant/merchant-a/store/publish', { storeId: 'store-a', approved: false }), { params: { merchantId: 'merchant-a' } })
+    const response = await publish(request('/api/merchant/merchant-a/store/publish', { storeId: 'store-a', approved: false }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(400)
     expect(await response.json()).toMatchObject({ error: 'APPROVAL_REQUIRED' })
     expect(publishMerchantStore).not.toHaveBeenCalled()
@@ -87,14 +87,14 @@ describe('Human merchant Store routes', () => {
 
   it('returns a client error for malformed JSON instead of an internal error', async () => {
     const malformed = new NextRequest('http://localhost/api/merchant/merchant-a/store', { method: 'POST', body: '{', headers: { 'content-type': 'application/json' } })
-    const response = await POST(malformed, { params: { merchantId: 'merchant-a' } })
+    const response = await POST(malformed, { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(response.status).toBe(400)
     expect(createMerchantStore).not.toHaveBeenCalled()
   })
 
   it('supports preview and approved publish on the same authenticated Store boundary', async () => {
-    const previewResponse = await preview(request('/api/merchant/merchant-a/store/preview', { storeId: 'store-a' }), { params: { merchantId: 'merchant-a' } })
-    const publishResponse = await publish(request('/api/merchant/merchant-a/store/publish', { storeId: 'store-a', approved: true }), { params: { merchantId: 'merchant-a' } })
+    const previewResponse = await preview(request('/api/merchant/merchant-a/store/preview', { storeId: 'store-a' }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
+    const publishResponse = await publish(request('/api/merchant/merchant-a/store/publish', { storeId: 'store-a', approved: true }), { params: Promise.resolve({ merchantId: 'merchant-a' }) })
     expect(previewResponse.status).toBe(200)
     expect(publishResponse.status).toBe(200)
     expect(publishMerchantStore).toHaveBeenCalledWith(expect.objectContaining({ storeId: 'store-a', approved: true }))

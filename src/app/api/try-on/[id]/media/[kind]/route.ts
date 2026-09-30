@@ -10,7 +10,7 @@ export const maxDuration = 30
 
 const MEDIA_KINDS = new Set<TryOnMediaKind>(['user', 'item', 'result'])
 
-type RouteParams = { params: { id: string; kind: string } }
+type RouteParams = { params: Promise<{ id: string; kind: string }> }
 
 const MEDIA_URL_PATTERN = /\b(?:https?|blob):\/\/[^\s"'<>]+/gi
 const MEDIA_CREDENTIAL_PATTERN = /\b(?:authorization|bearer|token|access[_-]?token|refresh[_-]?token|signature|sig|secret|password|passwd|credential|api[_-]?key)\b\s*(?:[:=]\s*)?(?:bearer\s+)?[^\s"'<>]+/gi
@@ -48,7 +48,8 @@ function normalizeMediaDeliveryError(error: unknown): Error {
   return normalized
 }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, props: RouteParams) {
+  const params = await props.params;
   const ctx = getRequestContext(request)
   let authenticatedUserId: string | undefined
   let ownershipResult = 'unknown'

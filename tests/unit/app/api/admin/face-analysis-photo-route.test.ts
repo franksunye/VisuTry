@@ -46,7 +46,7 @@ describe('GET /api/admin/face-analysis/[id]/photo', () => {
 
     const response = await getAdminPhoto(
       new NextRequest('http://localhost/api/admin/face-analysis/analysis-private/photo'),
-      { params: { id: 'analysis-private' } },
+      { params: Promise.resolve({ id: 'analysis-private' }) },
     )
 
     expect(response.status).toBe(200)
@@ -64,7 +64,7 @@ describe('GET /api/admin/face-analysis/[id]/photo', () => {
 
     const response = await getAdminPhoto(
       new NextRequest('http://localhost/api/admin/face-analysis/missing/photo'),
-      { params: { id: 'missing' } },
+      { params: Promise.resolve({ id: 'missing' }) },
     )
 
     expect(response.status).toBe(404)
@@ -79,7 +79,7 @@ describe('GET /api/admin/face-analysis/[id]/photo', () => {
 
     const response = await getAdminPhoto(
       new NextRequest('http://localhost/api/admin/face-analysis/analysis-1/photo'),
-      { params: { id: 'analysis-1' } },
+      { params: Promise.resolve({ id: 'analysis-1' }) },
     )
 
     expect(response.status).toBe(403)
@@ -104,7 +104,7 @@ describe('GET /api/admin/face-analysis/[id]', () => {
 
     const response = await getAdminTask(
       new NextRequest('http://localhost/api/admin/face-analysis/analysis-1'),
-      { params: { id: 'analysis-1' } },
+      { params: Promise.resolve({ id: 'analysis-1' }) },
     )
     const body = await response.json()
 

@@ -12,7 +12,8 @@ const title = 'How to Choose the Right Glasses for Your Face Shape? Complete Gui
 const description = 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces and professional advice. Use AI try-on tool to find your perfect match.'
 const coverImage = '/blog-covers/face-shape-guide.jpg'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as any,
     title,
@@ -52,7 +53,8 @@ const faqSchema = generateStructuredData('faqPage', {
   ],
 })
 
-export default function BlogPostPage({ params }: { params: { locale: string } }) {
+export default async function BlogPostPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const localePrefix = `/${params.locale}`
 
   return (

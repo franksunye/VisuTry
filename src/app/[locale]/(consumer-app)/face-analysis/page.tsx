@@ -7,12 +7,13 @@ import { FaceAnalysisGate } from '@/components/face-analysis/FaceAnalysisGate'
 import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 type Props = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'faceAnalysis.meta' })
 
@@ -27,7 +28,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
 }
 
-export default async function FaceAnalysisPage({ params }: Props) {
+export default async function FaceAnalysisPage(props: Props) {
+  const params = await props.params;
   setRequestLocale(params.locale)
   const t = await getTranslations('common')
 

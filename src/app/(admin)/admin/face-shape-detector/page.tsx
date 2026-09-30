@@ -17,11 +17,11 @@ export const dynamic = 'force-dynamic'
 const ITEMS_PER_PAGE = 20
 
 interface FaceShapeDetectorPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string
     status?: string
     reason?: string
-  }
+  }>
 }
 
 function buildFilterUrl(page: number, status?: string, reason?: string) {
@@ -45,7 +45,8 @@ function reasonTextClass(reason: FaceShapeFailureReason) {
   return 'text-gray-600'
 }
 
-export default async function FaceShapeDetectorPage({ searchParams }: FaceShapeDetectorPageProps) {
+export default async function FaceShapeDetectorPage(props: FaceShapeDetectorPageProps) {
+  const searchParams = await props.searchParams;
   const requestedPage = Number.parseInt(searchParams.page ?? '1', 10)
   const currentPage = Number.isFinite(requestedPage) ? Math.max(requestedPage, 1) : 1
 

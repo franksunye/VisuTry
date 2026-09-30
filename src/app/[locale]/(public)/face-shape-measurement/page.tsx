@@ -5,7 +5,7 @@ import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
 interface FaceShapeMeasurementPageProps {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export const dynamic = 'force-static'
@@ -48,7 +48,8 @@ const faqContent = [
   },
 ]
 
-export async function generateMetadata({ params }: FaceShapeMeasurementPageProps): Promise<Metadata> {
+export async function generateMetadata(props: FaceShapeMeasurementPageProps): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as Locale,
     title: 'How to Measure Your Face Shape: 4 Measurements',
@@ -59,7 +60,8 @@ export async function generateMetadata({ params }: FaceShapeMeasurementPageProps
   })
 }
 
-export default function FaceShapeMeasurementPage({ params }: FaceShapeMeasurementPageProps) {
+export default async function FaceShapeMeasurementPage(props: FaceShapeMeasurementPageProps) {
+  const params = await props.params;
   const locale = params.locale
   const faqSchema = generateStructuredData('faqPage', { questions: faqContent })
   const howToSchema = generateStructuredData('howTo', {

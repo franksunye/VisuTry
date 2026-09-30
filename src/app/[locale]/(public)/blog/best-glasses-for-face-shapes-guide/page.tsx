@@ -38,7 +38,8 @@ const faqSchema = generateStructuredData('faqPage', {
   ],
 })
 
-export default function BlogPostPage({ params }: { params: { locale: string } }) {
+export default async function BlogPostPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const localePrefix = `/${params.locale}`
 
   return (

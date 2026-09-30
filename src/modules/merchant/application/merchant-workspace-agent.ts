@@ -1,7 +1,7 @@
 import { headers } from 'next/headers'
 
 export async function getMerchantWorkspaceAgentConfig() {
-  const requestHeaders = headers()
+  const requestHeaders = await headers()
   const host = requestHeaders.get('x-forwarded-host') || requestHeaders.get('host') || 'www.visutry.com'
   const protocol = requestHeaders.get('x-forwarded-proto') || 'https'
   const origin = `${protocol}://${host}`

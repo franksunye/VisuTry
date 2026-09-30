@@ -12,7 +12,8 @@ export const metadata: Metadata = generateSEO({
   url: '/refund',
 })
 
-export default async function RefundPage({ params }: { params: { locale: string } }) {
+export default async function RefundPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const lastUpdated = 'January 15, 2025'
 
   return (

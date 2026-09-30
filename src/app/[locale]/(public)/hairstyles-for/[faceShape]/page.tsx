@@ -12,7 +12,7 @@ import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { generateBreadcrumbSchema } from '@/lib/programmatic-seo'
 
 interface HairstyleGuidePageProps {
-  params: { locale: string; faceShape: string }
+  params: Promise<{ locale: string; faceShape: string }>
 }
 
 export function generateStaticParams() {
@@ -22,7 +22,8 @@ export function generateStaticParams() {
 export const dynamicParams = false
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: HairstyleGuidePageProps): Promise<Metadata> {
+export async function generateMetadata(props: HairstyleGuidePageProps): Promise<Metadata> {
+  const params = await props.params;
   const guide = getFaceShapeContent(params.faceShape)
   if (!guide) return { title: 'Hairstyle Guide Not Found' }
 
@@ -36,7 +37,8 @@ export async function generateMetadata({ params }: HairstyleGuidePageProps): Pro
   })
 }
 
-export default function HairstyleGuidePage({ params }: HairstyleGuidePageProps) {
+export default async function HairstyleGuidePage(props: HairstyleGuidePageProps) {
+  const params = await props.params;
   const guide = getFaceShapeContent(params.faceShape)
   if (!guide) notFound()
 

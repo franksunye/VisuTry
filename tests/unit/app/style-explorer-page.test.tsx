@@ -28,10 +28,10 @@ jest.mock('@/components/style-explorer/StyleExplorerGate', () => ({
 }))
 
 describe('Style Explorer page handoff context', () => {
-  it('preserves the Face Analysis source through authentication', () => {
-    render(StyleExplorerPage({
-      params: { locale: 'en' },
-      searchParams: { source: 'face-analysis', taskId: 'analysis-1' },
+  it('preserves the Face Analysis source through authentication', async () => {
+    render(await StyleExplorerPage({
+      params: Promise.resolve({ locale: 'en' }),
+      searchParams: Promise.resolve({ source: 'face-analysis', taskId: 'analysis-1' }),
     }))
 
     const gate = screen.getByTestId('style-explorer-gate')
@@ -42,10 +42,10 @@ describe('Style Explorer page handoff context', () => {
     )
   })
 
-  it('does not treat an unrecognized source as a Face Analysis handoff', () => {
-    render(StyleExplorerPage({
-      params: { locale: 'en' },
-      searchParams: { source: 'other', taskId: 'analysis-1' },
+  it('does not treat an unrecognized source as a Face Analysis handoff', async () => {
+    render(await StyleExplorerPage({
+      params: Promise.resolve({ locale: 'en' }),
+      searchParams: Promise.resolve({ source: 'other', taskId: 'analysis-1' }),
     }))
 
     const gate = screen.getByTestId('style-explorer-gate')

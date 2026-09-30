@@ -83,5 +83,5 @@ export function cacheGlassesCatalogRead<T>(key: string, loader: () => Promise<T>
 }
 
 export function revalidateGlassesCatalog(): void {
-  revalidateTag(GLASSES_CATALOG_TAG)
+  revalidateTag(GLASSES_CATALOG_TAG, { expire: 0 })
 }

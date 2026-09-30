@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
   const languageContext = getRequestLanguageContext(request)
   try {
     const body = await request.text()
-    const headersList = headers()
+    const headersList = await headers()
     const signature = headersList.get("stripe-signature")
 
     if (!signature) {

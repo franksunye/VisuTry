@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    revalidateTag(`user-${user.id}`)
+    revalidateTag(`user-${user.id}`, { expire: 0 })
 
     logger.info('frame-compare', 'Frame compare frame submitted', {
       userId: user.id,

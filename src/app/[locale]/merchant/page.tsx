@@ -24,8 +24,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-function requestOrigin() {
-  const requestHeaders = headers()
+async function requestOrigin() {
+  const requestHeaders = await headers()
   const host = requestHeaders.get('x-forwarded-host') || requestHeaders.get('host') || 'www.visutry.com'
   const protocol = requestHeaders.get('x-forwarded-proto') || 'https'
   return `${protocol}://${host}`
@@ -36,7 +36,11 @@ function billingPlan(value: string | undefined): MerchantBillablePlanCode | unde
   return normalized === 'LAUNCH' || normalized === 'GROWTH' || normalized === 'SCALE' || normalized === 'FOUNDING_PILOT' ? normalized : undefined
 }
 
-export default async function MerchantWorkspacePage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string; onboarding?: string; billing?: string; plan?: string; commercialIntent?: string } }) {
+export default async function MerchantWorkspacePage(
+  props: { params: Promise<{ locale: string }>; searchParams?: Promise<{ merchantId?: string; onboarding?: string; billing?: string; plan?: string; commercialIntent?: string }> }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const session = await getServerSession(authOptions)
   const purchaseIntent = parseMerchantPurchaseIntent(searchParams?.commercialIntent)
   if (!session?.user?.id) {
@@ -71,7 +75,7 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
   const control = await getMerchantControlCenter({ merchantId: selected.merchant.id })
   if (!control) notFound()
   const credentials = await listMerchantAgentCredentials({ userId: session.user.id, merchantId: selected.merchant.id })
-  const origin = requestOrigin()
+  const origin = await requestOrigin()
   const skills = [
     { name: 'VisuTry Merchant', purpose: 'Set up your Store, create Campaigns, and understand performance in one conversation.', url: `${origin}/skills/merchant`, prompt: 'Help me set up my VisuTry Store.' },
   ]

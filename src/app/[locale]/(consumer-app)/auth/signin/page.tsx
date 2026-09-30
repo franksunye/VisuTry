@@ -30,7 +30,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function SignInPage(props: Props) {
   const params = await props.params
-  const searchParams = props.searchParams ? await props.searchParams : undefined
+  const searchParams = (await props.searchParams) ? await props.searchParams : undefined
   const rawCallbackUrl = Array.isArray(searchParams?.callbackUrl)
     ? searchParams.callbackUrl[0]
     : searchParams?.callbackUrl

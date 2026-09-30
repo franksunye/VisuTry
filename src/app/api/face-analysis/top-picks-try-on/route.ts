@@ -464,7 +464,7 @@ export async function POST(request: NextRequest) {
 
     const persistedBatch = await findLatestBatch(user.id, faceAnalysisTask.id)
     const persistedTasks = persistedBatch?.tasks ?? existingTasks
-    revalidateTag(`user-${user.id}`)
+    revalidateTag(`user-${user.id}`, { expire: 0 })
 
     return NextResponse.json({
       success: true,

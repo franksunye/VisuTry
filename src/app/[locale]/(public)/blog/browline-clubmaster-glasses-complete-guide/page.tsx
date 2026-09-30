@@ -8,7 +8,8 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as any,
     title: 'Browline/Clubmaster Glasses Complete Guide 2025 - Retro Style Revival',
@@ -29,7 +30,8 @@ const structuredData = generateStructuredData('article', {
 
 const articleTags = ['Browline Glasses', 'Clubmaster', 'Retro Style', 'Vintage Eyewear', 'Fashion Trends']
 
-export default function BlogPostPage({ params }: { params: { locale: string } }) {
+export default async function BlogPostPage(props: { params: Promise<{ locale: string }> }) {
+  const params = await props.params;
   const localePrefix = `/${params.locale}`
 
   return (

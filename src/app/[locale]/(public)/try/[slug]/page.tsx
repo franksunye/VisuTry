@@ -14,10 +14,10 @@ import { ArrowLeft, Glasses, Heart } from 'lucide-react'
 import { localizedPath } from '@/lib/localized-path'
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     locale: string
     slug: string
-  }
+  }>
 }
 
 const FRAME_SLUG_PATTERN = /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/u
@@ -37,15 +37,15 @@ export async function generateStaticParams() {
   }))
 }
 
-export const dynamicParams =
-  process.env.CLOUDFLARE_BUILD === '1' || process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
+// Next 16 requires a literal segment config. Unknown frame slugs terminate
+// in notFound() below; generated catalog params remain deploy-time content.
+export const dynamicParams = false
 // Frame SEO pages change on catalog deploy, not on an hourly clock.
 export const dynamic = 'force-static'
 
 // Generate metadata
-export async function generateMetadata({
-  params,
-}: ProductPageProps): Promise<Metadata> {
+export async function generateMetadata(props: ProductPageProps): Promise<Metadata> {
+  const params = await props.params;
   const slug = params.slug
 
   if (!isValidFrameSlug(slug)) {
@@ -88,7 +88,8 @@ export async function generateMetadata({
   }
 }
 
-export default async function ProductPage({ params }: ProductPageProps) {
+export default async function ProductPage(props: ProductPageProps) {
+  const params = await props.params;
   const slug = params.slug
 
   if (!isValidFrameSlug(slug)) notFound()

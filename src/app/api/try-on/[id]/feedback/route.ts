@@ -5,10 +5,8 @@ import { prisma } from "@/lib/prisma"
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // 检查用户认证
     const auth = await requireAuth()

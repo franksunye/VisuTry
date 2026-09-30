@@ -21,11 +21,12 @@ function ms(value: number | null) {
   return `${Math.round(value)}ms`
 }
 
-export default async function GenerationReliabilityPage({
-  searchParams,
-}: {
-  searchParams?: { period?: string; from?: string; to?: string; includeTest?: string; environment?: string }
-}) {
+export default async function GenerationReliabilityPage(
+  props: {
+    searchParams?: Promise<{ period?: string; from?: string; to?: string; includeTest?: string; environment?: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
   const period = searchParams?.period
   const report = await queryGenerationReliabilityReport({
     period,

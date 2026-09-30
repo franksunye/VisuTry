@@ -5,7 +5,7 @@ import { serveLegacyTryOnMedia } from '@/lib/tryon-media-response'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
-type RouteParams = { params: { id: string } }
+type RouteParams = { params: Promise<{ id: string }> }
 
 /**
  * Public Share capability for a completed Try-On result only.
@@ -14,7 +14,8 @@ type RouteParams = { params: { id: string } }
  * longer receives the underlying storage URL. User/item source media are never
  * addressable through this route.
  */
-export async function GET(_request: Request, { params }: RouteParams) {
+export async function GET(_request: Request, props: RouteParams) {
+  const params = await props.params;
   try {
     const task = await prisma.tryOnTask.findUnique({
       where: { id: params.id },

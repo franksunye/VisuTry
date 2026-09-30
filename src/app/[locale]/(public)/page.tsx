@@ -1,3 +1,4 @@
+import { use } from "react";
 import Link from '@/components/layout/PublicLink'
 import { Compass, Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole, Sparkles, Store } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -7,11 +8,12 @@ import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 export const dynamic = 'force-static'
 
-export default function Home({
-  params,
-}: {
-  params: { locale: string }
-}) {
+export default function Home(
+  props: {
+    params: Promise<{ locale: string }>
+  }
+) {
+  const params = use(props.params);
   const locale = params.locale
   const t = useTranslations('marketing.home')
   const homeCopy = (key: string, fallback: string) => t.has(key) ? t(key) : fallback

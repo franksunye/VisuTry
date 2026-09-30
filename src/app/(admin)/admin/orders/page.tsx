@@ -11,10 +11,10 @@ import Link from 'next/link';
 // It fetches a paginated list of orders from the database.
 
 interface OrdersPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     status?: string;
-  };
+  }>;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -64,7 +64,8 @@ async function getOrders({ page = 1, status }: { page?: number; status?: string 
   };
 }
 
-export default async function OrdersPage({ searchParams }: OrdersPageProps) {
+export default async function OrdersPage(props: OrdersPageProps) {
+  const searchParams = await props.searchParams;
   const page = searchParams.page ? parseInt(searchParams.page, 10) : 1;
   const status = searchParams.status;
   const { orders, currentPage, totalPages } = await getOrders({ page, status });

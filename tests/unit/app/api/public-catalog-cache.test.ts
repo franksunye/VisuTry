@@ -107,7 +107,7 @@ describe('public catalog GET caching', () => {
     ;(prisma.glassesFrame.findUnique as jest.Mock).mockResolvedValue(frame)
 
     const response = await getFrameById(new Request('http://localhost/api/glasses/frames/frame-1'), {
-      params: { id: 'frame-1' },
+      params: Promise.resolve({ id: 'frame-1' }),
     })
 
     expect(prisma.glassesFrame.findUnique).toHaveBeenCalledWith(expect.objectContaining({

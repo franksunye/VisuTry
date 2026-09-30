@@ -26,7 +26,7 @@ describe('GET /api/share/[id] media contract', () => {
     })
 
     const response = await GET(new NextRequest('http://localhost/api/share/task-1'), {
-      params: { id: 'task-1' },
+      params: Promise.resolve({ id: 'task-1' }),
     })
     const payload = await response.json()
 

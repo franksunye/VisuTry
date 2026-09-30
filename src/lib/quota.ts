@@ -178,7 +178,7 @@ function logQuotaDeduction(
 export async function deductUserQuota(userId: string, ctx?: unknown): Promise<void> {
   const result = await applyQuotaDeduction(prisma, userId)
   logQuotaDeduction(userId, result, ctx)
-  revalidateTag(`user-${userId}`)
+  revalidateTag(`user-${userId}`, { expire: 0 })
 }
 
 /**
@@ -246,7 +246,7 @@ export async function settleTryOnTaskQuota(
 
       if (transactionResult.settled && transactionResult.deduction) {
         logQuotaDeduction(userId, transactionResult.deduction, ctx)
-        revalidateTag(`user-${userId}`)
+        revalidateTag(`user-${userId}`, { expire: 0 })
       }
 
       return {

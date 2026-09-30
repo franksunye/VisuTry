@@ -77,7 +77,7 @@ type ExperiencePresentationShellProps = {
   errorMessage: string | null
   onStartRuntime: () => void
   onShoppingCta: () => void
-  featuredFramesRef: RefObject<HTMLElement>
+  featuredFramesRef: RefObject<HTMLElement | null>
   showRuntimeCta?: boolean
   featuredFrameLimit?: number | null
   runtimeBlocked?: boolean

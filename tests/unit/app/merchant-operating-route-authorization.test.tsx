@@ -33,7 +33,7 @@ describe('Merchant operating route authorization', () => {
     ;(listMerchantsForUser as jest.Mock).mockResolvedValue([
       { merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha' }, membership: { role: 'OWNER' } },
     ])
-    await expect(MerchantCatalogPage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })).rejects.toThrow('NOT_FOUND')
+    await expect(MerchantCatalogPage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-b' }) })).rejects.toThrow('NOT_FOUND')
   })
 
   it('rejects Campaign list/detail routes when a query Merchant is outside the membership set', async () => {
@@ -42,7 +42,7 @@ describe('Merchant operating route authorization', () => {
       { merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha' }, membership: { role: 'OWNER' } },
     ])
 
-    await expect(MerchantCampaignsPage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })).rejects.toThrow('NOT_FOUND')
-    await expect(MerchantCampaignDetailPage({ params: { locale: 'en', campaignId: 'campaign-b' }, searchParams: { merchantId: 'merchant-b' } })).rejects.toThrow('NOT_FOUND')
+    await expect(MerchantCampaignsPage({ params: Promise.resolve({ locale: 'en' }), searchParams: Promise.resolve({ merchantId: 'merchant-b' }) })).rejects.toThrow('NOT_FOUND')
+    await expect(MerchantCampaignDetailPage({ params: Promise.resolve({ locale: 'en', campaignId: 'campaign-b' }), searchParams: Promise.resolve({ merchantId: 'merchant-b' }) })).rejects.toThrow('NOT_FOUND')
   })
 })

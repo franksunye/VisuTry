@@ -5,7 +5,11 @@ import { merchantAgentErrorResponse } from '@/modules/merchant/application/merch
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(_request: NextRequest, { params }: { params: { merchantId: string; authorizationId: string } }) {
+export async function POST(
+  _request: NextRequest,
+  props: { params: Promise<{ merchantId: string; authorizationId: string }> }
+) {
+  const params = await props.params;
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {

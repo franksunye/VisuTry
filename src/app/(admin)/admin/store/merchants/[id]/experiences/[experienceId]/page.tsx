@@ -8,7 +8,8 @@ import { resolveMerchantHandoff } from '@/modules/store/domain/merchant-handoff'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AdminExperienceDetailPage({ params }: { params: { id: string; experienceId: string } }) {
+export default async function AdminExperienceDetailPage(props: { params: Promise<{ id: string; experienceId: string }> }) {
+  const params = await props.params;
   const [merchant, experience, catalog] = await Promise.all([
     prisma.merchant.findUnique({ where: { id: params.id }, select: { id: true, slug: true, name: true, referenceData: true } }),
     prisma.experience.findFirst({

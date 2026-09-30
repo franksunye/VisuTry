@@ -110,7 +110,7 @@ describe('public Store/Campaign route admission boundary', () => {
   })
 
   it('rejects invalid Store requests before discovery in metadata and Page', async () => {
-    const params = { locale: 'en', merchantSlug: '.env' }
+    const params = Promise.resolve({ locale: 'en', merchantSlug: '.env' })
 
     const metadata = await storePage.generateMetadata({ params })
     expect(metadata.title).toBe('Store not found | VisuTry')
@@ -120,7 +120,7 @@ describe('public Store/Campaign route admission boundary', () => {
   })
 
   it('rejects invalid Campaign requests before discovery in metadata and Page', async () => {
-    const params = { locale: 'en', merchantSlug: 'merchant-a', experienceSlug: 'wp-admin.php' }
+    const params = Promise.resolve({ locale: 'en', merchantSlug: 'merchant-a', experienceSlug: 'wp-admin.php' })
 
     const metadata = await campaignPage.generateMetadata({ params })
     expect(metadata.title).toBe('Campaign not found | VisuTry')
@@ -133,8 +133,8 @@ describe('public Store/Campaign route admission boundary', () => {
     ;(isPublicStoreRouteAdmitted as jest.Mock).mockResolvedValue(true)
     ;(isPublicCampaignRouteAdmitted as jest.Mock).mockResolvedValue(true)
 
-    const storeParams = { locale: 'en', merchantSlug: 'merchant-a' }
-    const campaignParams = { locale: 'en', merchantSlug: 'merchant-a', experienceSlug: 'everyday-fit' }
+    const storeParams = Promise.resolve({ locale: 'en', merchantSlug: 'merchant-a' })
+    const campaignParams = Promise.resolve({ locale: 'en', merchantSlug: 'merchant-a', experienceSlug: 'everyday-fit' })
 
     await storePage.generateMetadata({ params: storeParams })
     await storePage.default({ params: storeParams })

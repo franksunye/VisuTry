@@ -8,10 +8,11 @@ import Image from 'next/image'
 const blogDescription = 'Practical guides for face shape, frame selection, eyewear sizing, virtual glasses try-on, frame comparison, and confident online eyewear decisions.'
 
 type Props = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   return generateI18nSEO({
     locale: params.locale as any,
     title: 'Blog - Fashion & Style Tips',
@@ -22,7 +23,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export const dynamic = 'force-static'
 
-export default async function BlogPage({ params }: Props) {
+export default async function BlogPage(props: Props) {
+  const params = await props.params;
   const posts = await getAllBlogPosts(params.locale)
   const localePrefix = `/${params.locale}`
   const getDisplayDate = (post: Awaited<ReturnType<typeof getAllBlogPosts>>[number]) =>

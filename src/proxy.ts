@@ -23,7 +23,7 @@ const intlMiddleware = createIntlMiddleware({
  *    middleware overhead. Locale is resolved from the [locale] route segment,
  *    not from middleware.
  */
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Skip middleware for static files, API routes, and special Next.js routes

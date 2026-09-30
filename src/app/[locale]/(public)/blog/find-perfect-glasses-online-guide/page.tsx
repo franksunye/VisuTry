@@ -22,10 +22,11 @@ export const metadata = {
 }
 
 type BlogPostPageProps = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function BlogPostPage(props: BlogPostPageProps) {
+  const params = await props.params;
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
