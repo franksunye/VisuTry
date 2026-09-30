@@ -19,6 +19,7 @@ const validEnvironment = {
   VISUTRY_DATABASE_IDENTITY: 'local:127.0.0.1:5433/visutry_local',
   NEXTAUTH_URL: 'http://127.0.0.1:3001',
   NEXT_PUBLIC_SITE_URL: 'http://127.0.0.1:3001',
+  VISUTRY_LOCAL_DEMO_PORT: '3001',
   STRIPE_MERCHANT_BILLING_MODE: 'test',
 }
 
@@ -86,8 +87,24 @@ describe('Local Demo shopper-session reset safety contract', () => {
   })
 
   it('refuses reset while the Local Demo server may retain shopper media in memory', async () => {
-    await expect(assertDemoServerStopped(async () => true)).rejects.toThrow(/stop the Local Demo app/)
-    await expect(assertDemoServerStopped(async () => false)).resolves.toBeUndefined()
+    const listener = jest.fn(async () => true)
+    await expect(assertDemoServerStopped(listener)).rejects.toThrow(/stop the Local Demo app/)
+    expect(listener).toHaveBeenCalledWith('127.0.0.1', 3001)
+    await expect(assertDemoServerStopped(async () => false, 3002)).resolves.toBeUndefined()
+  })
+
+  it('allows the isolated Local Demo app port without treating another worktree on 3001 as its runtime', () => {
+    const alternate = {
+      ...validEnvironment,
+      VISUTRY_LOCAL_DEMO_PORT: '3002',
+      NEXTAUTH_URL: 'http://127.0.0.1:3002',
+      NEXT_PUBLIC_SITE_URL: 'http://127.0.0.1:3002',
+    }
+    expect(() => assertLocalDemoSessionResetEnvironment(alternate)).not.toThrow()
+    expect(() => assertLocalDemoSessionResetEnvironment({
+      ...alternate,
+      VISUTRY_LOCAL_DEMO_PORT: '3003',
+    })).toThrow(/must be 3001 or 3002/)
   })
 
   it('limits provider telemetry cleanup to selected shopper Try-On tasks', () => {

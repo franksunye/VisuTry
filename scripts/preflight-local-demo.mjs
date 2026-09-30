@@ -5,6 +5,7 @@ import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 const dotenv = require('dotenv')
 const { loadEnvConfig } = require('@next/env')
+const { verifyPinnedMediaPipeAssets } = require('./lib/mediapipe-assets.cjs')
 const root = process.cwd()
 const processValues = { ...process.env }
 const envFiles = ['.env.development.local', '.env.local', '.env.development', '.env']
@@ -15,6 +16,7 @@ for (const file of envFiles) {
 }
 
 loadEnvConfig(root, true)
+const mediaPipeCache = await verifyPinnedMediaPipeAssets()
 
 function sourceFor(key) {
   if (processValues[key]) return 'process environment'
@@ -35,13 +37,17 @@ const localChecks = [
   ['NEXT_PUBLIC_SITE_URL', hostFor(process.env.NEXT_PUBLIC_SITE_URL) === '127.0.0.1'],
   ['MediaPipe WASM URL', process.env.NEXT_PUBLIC_MEDIAPIPE_WASM_BASE_URL === 'http://127.0.0.1:4100/0.10.35/wasm'],
   ['MediaPipe model URL', process.env.NEXT_PUBLIC_MEDIAPIPE_MODEL_URL === 'http://127.0.0.1:4100/0.10.35/models/face_landmarker.task'],
+  ['MediaPipe shared cache', mediaPipeCache.ok],
   ['Stripe billing mode', process.env.STRIPE_MERCHANT_BILLING_MODE?.toLowerCase() === 'test'],
   ['Stripe secret mode', !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test_')],
   ['Local Demo runtime marker', process.env.VISUTRY_LOCAL_DEMO_RUNTIME === '1'],
 ]
 
 console.log('LOCAL DEMO RUNTIME PREFLIGHT')
-for (const [label, passed] of localChecks) console.log(`${label}: ${passed ? 'PASS' : 'FAIL'}`)
+for (const [label, passed] of localChecks) {
+  const detail = label === 'MediaPipe shared cache' ? ` — ${mediaPipeCache.root}` : ''
+  console.log(`${label}: ${passed ? 'PASS' : 'FAIL'}${detail}`)
+}
 
 const providerRows = [
   ['GRSAI_API_KEY', process.env.GRSAI_API_KEY],
@@ -59,6 +65,7 @@ console.log(`Blob token: ${process.env.BLOB_READ_WRITE_TOKEN ? `PRESENT — ${so
 console.log('Store photo/result storage: filesystem-backed Local MOCK; startup makes no provider calls.')
 
 if (localChecks.some(([, passed]) => !passed)) {
+  if (!mediaPipeCache.ok) console.error('MediaPipe assets are missing or invalid. Run: npm run demo:local:bootstrap')
   process.exitCode = 1
 } else {
   const schemaCheck = spawnSync('npx', [

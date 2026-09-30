@@ -46,6 +46,8 @@ export NEXT_PUBLIC_MEDIAPIPE_WASM_BASE_URL=http://127.0.0.1:4100/0.10.35/wasm
 export NEXT_PUBLIC_MEDIAPIPE_MODEL_URL=http://127.0.0.1:4100/0.10.35/models/face_landmarker.task
 export STRIPE_MERCHANT_BILLING_MODE=test
 
+echo "→ Ensure checksum-verified MediaPipe runtime in the shared Local cache"
+npm run mediapipe:assets:ensure
 echo "→ Guarded Local PostgreSQL, schema, LOCAL marker, and QA identity bootstrap"
 npm run merchant:local:bootstrap
 echo "→ Reconcile the VisuTry Demo Optical fixture"

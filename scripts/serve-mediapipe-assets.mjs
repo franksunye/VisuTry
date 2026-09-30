@@ -2,12 +2,16 @@ import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { extname, resolve } from 'node:path'
+import mediaPipeAssets from './lib/mediapipe-assets.cjs'
 
 const port = Number(process.env.MEDIAPIPE_ASSET_PORT || 4100)
-const root = resolve(
-  process.cwd(),
-  process.env.MEDIAPIPE_ASSET_ROOT || '.local/mediapipe-assets',
-)
+const root = mediaPipeAssets.resolveMediaPipeCacheRoot()
+const cache = await mediaPipeAssets.verifyPinnedMediaPipeAssets()
+if (!cache.ok) {
+  const invalid = cache.files.filter((file) => !file.ok).map((file) => file.relativePath).join(', ')
+  console.error(`Pinned MediaPipe assets missing or invalid (${invalid}). Run: npm run demo:local:bootstrap`)
+  process.exit(1)
+}
 
 const mimeTypes = {
   '.js': 'application/javascript; charset=utf-8',

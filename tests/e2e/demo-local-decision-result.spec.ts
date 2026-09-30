@@ -10,12 +10,15 @@ const isLocalDemoFixtureRun = process.env.APP_ENV === 'local' &&
   process.env.VISUTRY_LOCAL_DEMO_PROVIDER_MODE === 'blocked' &&
   process.env.VISUTRY_LOCAL_DEMO_EXECUTION_MODE === 'PREPARED_DEMO' &&
   process.env.VISUTRY_LOCAL_DEMO_PREPARED_E2E === '1' &&
-  /^http:\/\/(127\.0\.0\.1|localhost):3001$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+  /^http:\/\/(127\.0\.0\.1|localhost):(3001|3002)$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
 
 async function localNetworkGuard(page: import('@playwright/test').Page) {
   const unexpectedOrigins: string[] = []
   const errors: string[] = []
-  const allowed = new Set(['http://127.0.0.1:3001', 'http://127.0.0.1:4100'])
+  const allowed = new Set([
+    process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3001',
+    'http://127.0.0.1:4100',
+  ])
   page.on('pageerror', (error) => errors.push(error.message))
   page.on('console', (message) => {
     if (message.type() === 'error' && !message.text().includes('INFO: Created TensorFlow Lite XNNPACK delegate for CPU.')) {
