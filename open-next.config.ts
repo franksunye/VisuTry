@@ -1,7 +1,7 @@
 import { defineCloudflareConfig } from '@opennextjs/cloudflare/config'
 import staticAssetsIncrementalCache from '@opennextjs/cloudflare/overrides/incremental-cache/static-assets-incremental-cache'
 
-// Official @opennextjs/cloudflare 1.15.1 SSG path: read-only Workers Static
+// Official @opennextjs/cloudflare 1.20.7 SSG path: read-only Workers Static
 // Assets incremental cache. Reuses the existing ASSETS binding. Do not pass
 // an empty defineCloudflareConfig() — that defaults incrementalCache to
 // "dummy" and rebuilds force-static HTML on every Worker invocation.

@@ -2,6 +2,7 @@
 
 import { ArrowRight, BarChart3, Check, Sparkles, Store } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
+import Link from "next/link";
 import type { MerchantCommercialPresentation } from "@/modules/merchant/application/merchant-control-center";
 import { MerchantBillingActions } from "@/components/merchant/MerchantBillingActions";
 import { analytics } from "@/lib/analytics";
@@ -134,8 +135,8 @@ export function MerchantPlanUsage({ commercial, merchantId, locale = "en", store
 
       <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center">
         {isDemo ? <p className="text-sm text-slate-500">This is a dedicated product-demo workspace, not a customer subscription.</p> : <>
-          {merchantId ? <MerchantBillingActions merchantId={merchantId} locale={locale} commercial={commercial} /> : <a className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`} href="/en/business#plans">{actionLabel(commercial.primaryAction)} <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>}
-          <a className="text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-950" href="/en/business#plans">Compare plans</a>
+          {merchantId ? <MerchantBillingActions merchantId={merchantId} locale={locale} commercial={commercial} /> : <Link className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`} href="/en/business#plans">{actionLabel(commercial.primaryAction)} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>}
+          <Link className="text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-950" href="/en/business#plans">Compare plans</Link>
         </>}
       </div>
     </section>

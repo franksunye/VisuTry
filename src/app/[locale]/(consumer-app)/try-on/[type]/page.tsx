@@ -63,8 +63,6 @@ export function generateStaticParams() {
   }))
 }
 
-// Vercel keeps this closed so unknown slugs cannot become ISR entries.
-// Cloudflare OpenNext 1.15.1 needs true to dispatch nested generated pages.
 // Next 16 requires a statically analyzable segment config. Invalid slugs
 // still terminate in notFound() below, so keep unknown params closed.
 export const dynamicParams = false

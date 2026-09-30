@@ -76,6 +76,9 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         : reportUnlockTaskId
         ? `${pricingHref}?source=face-analysis-unlock&taskId=${encodeURIComponent(reportUnlockTaskId)}`
         : pricingHref
+      // Auth handoff intentionally uses a full document navigation so the
+      // NextAuth callback URL starts from a clean browser request.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- Preserve the full-document auth handoff and callback URL.
       window.location.href = `${signInHref}?callbackUrl=${encodeURIComponent(returnHref)}`
       return
     }

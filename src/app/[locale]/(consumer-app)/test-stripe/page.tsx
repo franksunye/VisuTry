@@ -66,6 +66,8 @@ export default function TestStripePage() {
           <p className="text-gray-700 mb-4">
             You need to be logged in to test the Stripe payment functionality.
           </p>
+          {/* NextAuth's API endpoint requires a full-document redirect. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Full-document navigation is required for the NextAuth sign-in API route. */}
           <a
             href="/api/auth/signin"
             className="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded hover:bg-blue-700 transition"
@@ -206,4 +208,3 @@ export default function TestStripePage() {
     </div>
   )
 }
-

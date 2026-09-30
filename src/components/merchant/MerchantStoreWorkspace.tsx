@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AlertTriangle, Check, Copy, ExternalLink, Eye, Loader2, Save, Search, Store } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
@@ -44,6 +45,7 @@ function localizePath(path: string, locale: string) {
 }
 
 export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: string; locale: string }) {
+  const router = useRouter();
   const apiBase = `/api/merchant/${encodeURIComponent(merchantId)}/store`;
   const catalogHref = `/${locale}/merchant/catalog?merchantId=${encodeURIComponent(merchantId)}`;
   const [workspace, setWorkspace] = useState<MerchantStoreWorkspaceData | null>(null);
@@ -219,7 +221,7 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
     }
     if (presentation.primaryAction === "PREVIEW_STORE") void previewStore();
     else if (presentation.primaryAction === "CREATE_STORE") void createStore();
-    else if (presentation.primaryAction === "REVIEW_CATALOG") window.location.assign(catalogHref);
+    else if (presentation.primaryAction === "REVIEW_CATALOG") router.push(catalogHref);
     else document.getElementById("store-products")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 

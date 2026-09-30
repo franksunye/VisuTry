@@ -55,8 +55,6 @@ export function generateStaticParams() {
     .map((faceShape) => ({ faceShape }))
 }
 
-// Vercel keeps this closed so unknown slugs cannot become ISR entries.
-// Cloudflare OpenNext 1.15.1 needs true to dispatch nested generated pages.
 // Next 16 requires a literal segment config. Unknown shapes terminate in
 // notFound() below, so keep params closed to preserve the finite catalog.
 export const dynamicParams = false

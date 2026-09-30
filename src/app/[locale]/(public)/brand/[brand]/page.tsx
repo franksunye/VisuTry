@@ -35,8 +35,6 @@ export async function generateStaticParams() {
   return [...staticBrands, ...databaseBrands.filter(item => !CURATED_BRAND_SLUGS.some(brand => brand === item.brand))]
 }
 
-// Vercel: keep closed while programmatic SEO is off so bot slugs cannot become
-// ISR entries. Cloudflare OpenNext 1.15.1 needs true to dispatch nested pages.
 // Next 16 requires a literal segment config. Unknown catalog slugs terminate
 // in notFound() below; generated catalog params remain deploy-time content.
 export const dynamicParams = false

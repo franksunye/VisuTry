@@ -2,6 +2,9 @@
   "name": "visutry",
   "version": "0.3.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
     "dev:local": "bash scripts/dev-local.sh",
@@ -36,7 +39,7 @@
     "public-html:release": "tsx scripts/public-html-release.ts",
     "start": "next start",
     "lint": "eslint src",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:admin": "tsx scripts/seed-admin.ts",
@@ -180,7 +183,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.3.7",
-    "@opennextjs/cloudflare": "^1.20.7",
+    "@opennextjs/cloudflare": "1.20.7",
     "@playwright/test": "^1.62.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",

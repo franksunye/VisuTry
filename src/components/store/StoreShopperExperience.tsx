@@ -311,6 +311,7 @@ export function StoreShopperExperience({
     cleanUrl.searchParams.set('kioskResetReason', reason)
     // A new document navigation truncates the browser's forward list. replaceState
     // (or location.replace) only edits the current entry and preserves old Result URLs.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- Kiosk reset requires a new document to clear browser state.
     window.location.assign(`${cleanUrl.pathname}${cleanUrl.search}`)
   }, [experienceSlug, locale, merchantSlug])
 
