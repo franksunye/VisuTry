@@ -1,7 +1,7 @@
 # VisuTry Business Website v1.3 — Visual Hierarchy & Product Proof
 
 **Status:** Current implementation contract  
-**Last reconciled:** 2026-09-28
+**Last reconciled:** 2026-09-30
 
 ## 1. Objective
 
@@ -40,6 +40,7 @@ Use product proof to support the page's job, not as decoration.
 | Examples | Product proof index | Text + `B2B-VIS-07` below hero |
 | Integrations | Deployment explanation | Text-led |
 | Pilot | Low-risk engagement | Text-led |
+| Resources | Reusable proof library | Video + editorial white-paper card |
 
 Store intentionally gives more space to the product visual than to the hero copy.
 
@@ -88,6 +89,16 @@ Use `B2B-VIS-07` as the reference portfolio visual and `B2B-VIS-03` only where S
 ### Integrations / Pilot
 
 Use `B2B-VIS-05` only where Merchant Workspace proves the operating model.
+
+### Resources
+
+Resources is a proof page, not a card index.
+
+- The product demo should be the dominant media object with native controls and no autoplay.
+- The white paper should use an editorial document treatment, not a fake PDF screenshot.
+- Video uses a real approved source file; no decorative recreation.
+- Resource media should lazy-load / preload minimally so the page does not create unnecessary bandwidth before intent.
+- Contextual placements on Home / Platform / Store / Pilot must remain smaller than the owning page's primary product proof.
 
 ## 5. Visual Asset Truth Rules
 
@@ -177,4 +188,6 @@ The Business visual system is aligned when:
 - only hero visuals are high-priority loaded;
 - 4-card groups are balanced on large screens;
 - product-looking visuals remain traceable to real current UI;
+- reusable Resources use approved, versioned source assets and do not imply customer proof;
+- product demo does not autoplay or preload full media before intent;
 - desktop, tablet, and mobile critical browser coverage remains green.
