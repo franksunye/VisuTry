@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Local QA prepared-result fixture for VT Lane</title>
+  <desc id="desc">A clearly marked test fixture, not a virtual try-on image.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f1f1ed"/>
+      <stop offset="1" stop-color="#e0e2dc"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="1200" fill="url(#bg)"/>
+  <rect x="92" y="92" width="776" height="1016" rx="36" fill="#fff" stroke="#c7c9c0" stroke-width="4"/>
+  <rect x="136" y="138" width="688" height="62" rx="31" fill="#35463b"/>
+  <text x="480" y="178" fill="#fff" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="3" text-anchor="middle">LOCAL QA FIXTURE</text>
+  <circle cx="480" cy="494" r="148" fill="#f0f1eb" stroke="#d8d9d2" stroke-width="4"/>
+  <rect x="344" y="420" width="132" height="68" rx="23" fill="none" stroke="#59664f" stroke-width="8"/>
+  <rect x="484" y="420" width="132" height="68" rx="23" fill="none" stroke="#59664f" stroke-width="8"/>
+  <path d="M476 450h8M344 450l-25-13M616 450l25-13" fill="none" stroke="#59664f" stroke-width="8" stroke-linecap="round"/>
+  <text x="480" y="714" fill="#27352c" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">VT Lane</text>
+  <text x="480" y="770" fill="#526052" font-family="Arial, sans-serif" font-size="24" text-anchor="middle">Prepared-result delivery test</text>
+  <text x="480" y="828" fill="#a13a2f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">NOT A TRY-ON IMAGE</text>
+  <text x="480" y="870" fill="#626c60" font-family="Arial, sans-serif" font-size="19" text-anchor="middle">No approved output media is configured.</text>
+  <text x="480" y="1010" fill="#788076" font-family="Arial, sans-serif" font-size="16" letter-spacing="2" text-anchor="middle">DEVELOPMENT ONLY · NOT FOR CUSTOMER USE</text>
+</svg>

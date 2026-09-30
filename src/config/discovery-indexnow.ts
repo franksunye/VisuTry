@@ -1,3 +1,5 @@
+import demoIdentity from './visutry-demo-identity.json'
+
 export const INDEXNOW_HOST = 'www.visutry.com'
 export const INDEXNOW_KEY = 'c8e524ff25e25458ae2918c2362f1585'
 export const INDEXNOW_KEY_LOCATION = `https://${INDEXNOW_HOST}/${INDEXNOW_KEY}.txt`
@@ -5,7 +7,7 @@ export const INDEXNOW_KEY_LOCATION = `https://${INDEXNOW_HOST}/${INDEXNOW_KEY}.t
 const INDEXNOW_ORIGIN = `https://${INDEXNOW_HOST}`
 
 export const VISUTRY_DEMO_INDEXNOW_URLS = [
-  `${INDEXNOW_ORIGIN}/en/store/visutry-demo-optical`,
+  `${INDEXNOW_ORIGIN}/en/store/${demoIdentity.VISUTRY_DEMO_MERCHANT_SLUG}`,
   `${INDEXNOW_ORIGIN}/en/demo/frames/round`,
   `${INDEXNOW_ORIGIN}/en/demo/frames/rectangle`,
   `${INDEXNOW_ORIGIN}/en/demo/frames/oval`,

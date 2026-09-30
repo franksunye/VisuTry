@@ -1,4 +1,8 @@
 const path = require('path')
+const {
+  VISUTRY_DEMO_HISTORICAL_CANARY_SLUG,
+  VISUTRY_DEMO_MERCHANT_SLUG,
+} = require('./src/config/visutry-demo-identity.json')
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
@@ -150,7 +154,11 @@ const nextConfig = {
       ...localeLessMarketingRedirects,
       // Preserve the historical public Store URL while making the dedicated,
       // explicitly entitled Demo tenant the canonical shopper surface.
-      { source: '/:locale/store/visutry-demo', destination: '/:locale/store/visutry-demo-optical', permanent: true },
+      {
+        source: `/:locale/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`,
+        destination: `/:locale/store/${VISUTRY_DEMO_MERCHANT_SLUG}`,
+        permanent: true,
+      },
       { source: '/store/:merchantSlug', destination: '/en/store/:merchantSlug', permanent: true },
       { source: '/c/:merchantSlug/:experienceSlug', destination: '/en/c/:merchantSlug/:experienceSlug', permanent: true },
       { source: '/brand/:brand', destination: '/en/brand/:brand', permanent: true },

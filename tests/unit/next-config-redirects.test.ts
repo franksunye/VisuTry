@@ -8,6 +8,10 @@ jest.mock('@/lib/logger', () => ({
 }))
 
 import { config as middlewareConfig } from '@/middleware'
+import {
+  VISUTRY_DEMO_HISTORICAL_CANARY_SLUG,
+  VISUTRY_DEMO_MERCHANT_SLUG,
+} from '@/modules/store/domain/visutry-demo-identity'
 
 type Redirect = { source: string; destination: string; permanent?: boolean }
 
@@ -98,8 +102,8 @@ describe('locale-less marketing redirects', () => {
     { path: '/en/brand/warby-parker', expected: null, note: 'localized brand' },
     { path: '/store', expected: '/en/store', note: 'locale-less store hub' },
     { path: '/en/store', expected: null, note: 'localized store hub' },
-    { path: '/en/store/visutry-demo', expected: '/en/store/visutry-demo-optical', note: 'exact historical Demo Store URL' },
-    { path: '/ja/store/visutry-demo', expected: '/ja/store/visutry-demo-optical', note: 'preserves locale for the historical Demo Store URL' },
+    { path: `/en/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`, expected: `/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}`, note: 'exact historical Demo Store URL' },
+    { path: `/ja/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`, expected: `/ja/store/${VISUTRY_DEMO_MERCHANT_SLUG}`, note: 'preserves locale for the historical Demo Store URL' },
     { path: '/en/store/luna-optical', expected: null, note: 'localized merchant store' },
     { path: '/store/luna-optical', expected: '/en/store/luna-optical', note: 'locale-less merchant store' },
     { path: '/en/c/luna-optical/petite-fit', expected: null, note: 'localized campaign' },
@@ -132,14 +136,14 @@ describe('locale-less marketing redirects', () => {
   })
 
   it('keeps the Demo compatibility redirect exact and permanent', () => {
-    const rule = redirects.find(({ source }) => source === '/:locale/store/visutry-demo')
+    const rule = redirects.find(({ source }) => source === `/:locale/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`)
     expect(rule).toEqual({
-      source: '/:locale/store/visutry-demo',
-      destination: '/:locale/store/visutry-demo-optical',
+      source: `/:locale/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`,
+      destination: `/:locale/store/${VISUTRY_DEMO_MERCHANT_SLUG}`,
       permanent: true,
     })
-    expect(followRedirects('/en/store/visutry-demo-optical', redirects)).toEqual(['/en/store/visutry-demo-optical'])
-    expect(followRedirects('/en/store/visutry-demo-extra', redirects)).toEqual(['/en/store/visutry-demo-extra'])
+    expect(followRedirects(`/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}`, redirects)).toEqual([`/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}`])
+    expect(followRedirects(`/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}-extra`, redirects)).toEqual([`/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}-extra`])
   })
 })
 

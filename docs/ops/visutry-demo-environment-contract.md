@@ -2,11 +2,11 @@
 
 **Status:** Active operational authority
 **Last reviewed:** 2026-09-30
-**Scope:** Canonical VisuTry-owned Demo identity, public URL, provider policy,
-and Local/Production Demo operation.
+**Scope:** Canonical VisuTry-owned Demo identity, public URL, prepared-result
+parity, provider policy, and Local/Production Demo operation.
 
 This document is the source of truth for which tenant is the canonical Demo
-and what “provider-free Demo” currently means. It supersedes phase-specific
+and what provider-free Demo readiness means. It supersedes phase-specific
 Demo instructions where they conflict. It does not authorize Production data
 changes, billing changes, Provider requests, or deployments.
 
@@ -18,6 +18,7 @@ The only canonical VisuTry Demo tenant is:
 | --- | --- |
 | Merchant | `VisuTry Demo Optical` |
 | Slug | `visutry-demo-optical` |
+| Machine-readable slug contract | [`src/config/visutry-demo-identity.json`](../../src/config/visutry-demo-identity.json) |
 | Classification | `TEST` |
 | Pilot type | `DEMO` |
 | Commercial exception | `VISUTRY_DEMO` |
@@ -80,78 +81,55 @@ Store
 → personalized Recommendation
 → Explore all frames
 → select frames
-→ Try-On
+→ prepared Demo result by default (live Try-On only with separate authorization)
 → Compare
 → Decision Result
 → QR / mobile continuation
 ```
 
-The normal Demo readiness check must require **zero Provider calls**. A
-walkthrough may validate Store, Face Intelligence, Recommendation, catalog
-selection, and reach the Try-On submission boundary without submitting. No
-Retry, GrsAI, or Gemini request is part of the default rehearsal. Any live
-Provider smoke is a separate cost-bearing operation and requires explicit
-Lead authorization with a bounded scope. Meeting readiness must never depend
-on making a live generation request.
+The default `PREPARED_DEMO` path continues from frame selection through
+Compare, Decision Result, and QR/mobile without a Provider request. Normal Demo
+readiness requires **zero Provider calls**. Local QA assets remain visibly
+identified as QA graphics; Production needs separately approved private
+assets, and missing assets fail closed. No Retry, GrsAI, or Gemini request is
+part of the default rehearsal. Any live Provider smoke is a separate
+cost-bearing operation and requires explicit Lead authorization with a
+bounded scope. Meeting readiness must never depend on a live generation.
 
 Real Provider generation is not required for a normal sales demonstration.
 
-### Current provider-free continuation limitation
+### Shared `PREPARED_DEMO` capability and readiness
 
-The Production Try-On submission point is available under the explicit Demo
-entitlement, but the normal production application does not currently have an
-approved prepared-result path that continues from that point to a genuine
-Compare / Decision Result / mobile result without a Provider request.
+`PREPARED_DEMO` is a first-class application execution mode shared by the
+canonical Local and Production Demo. Both use the same authorization,
+selection, prepared-result, Compare, Decision Result, and QR/mobile continuation
+contracts. Environment-specific behavior is limited to the media adapter and
+which explicitly approved assets it may resolve.
 
-The existing result flow represents completed images through completed
-`TryOnTask` records. A Decision Result stores references to those task IDs and
-the result reader verifies tenant, session, frame, completion, retention, and
-asset ownership before serving media. There is no current first-class
-`prepared-demo-result` source in this contract or runtime. Therefore:
+- **Local:** the complete Store → Face Intelligence → Recommendation →
+  Rowan/Lane selection → Prepared Results → Compare → Decision Result →
+  QR/mobile journey has been validated through the canonical Local E2E. Local
+  QA fixtures are visibly disclosed QA graphics; they are **not Try-On imagery,
+  shopper evidence, or customer-facing prepared assets**. They prove plumbing
+  and UX continuity only.
+- **Production:** the prepared-result application path is implemented, but no
+  approved Production prepared-result assets are configured yet. It fails
+  closed when an allowlisted asset is absent; it never falls back to Local QA
+  files or manufactures a live `TryOnTask`.
+- Prepared results are source-typed and do not create Provider request/attempt
+  telemetry or paid Try-On usage. They are not represented as a live generation
+  from the current shopper request.
+- Default Demo readiness remains **Provider calls = 0**. A live Provider run
+  is a separate, bounded smoke path and requires explicit Lead authorization;
+  it is not needed for normal Demo readiness. Local `LIVE_PROVIDER` remains
+  limited to the existing authorized GrsAI smoke command; any Production live
+  Provider smoke requires its own explicit, bounded authorization. No implicit
+  Gemini fallback is allowed.
 
-- Do not manufacture `TryOnTask`, `GenerationRequest`, or `GenerationAttempt`
-  rows to make a prepared image look like a live generation.
-- The Local no-provider E2E fixture is test-only. Its deterministic placeholder
-  and fixture metadata prove application continuity, not production image
-  quality or a genuine Try-On result. Never present it as a customer-facing
-  prepared result.
-- The Local real-provider smoke completed two GrsAI generations (Rowan and
-  Lane), zero Gemini submissions, and verified the result after app restart.
-  The canonical runner then performed its scoped final reset. The run's
-  screenshots/audit remain QA evidence under ignored `.local/`; the Try-On
-  database rows and Local media bytes are not a durable reusable product
-  asset set.
-- The prior Production bounded smoke reached the Rowan + Lane Try-On submit
-  point and stopped before submission. It therefore did not validate
-  Production Compare, Decision Result, or mobile result continuation.
-
-The observed Production labels were `Try on your photo`, `I understand — continue`,
-`Fit profile detected`, `Recommended for you`, `Explore all frames`,
-`Selected 2 of 2`, and `Try on selected frames`. The Y2K walkthrough describes
-the same broad decision stages and explicitly calls for prepared real Try-On /
-Compare states instead of depending on a fresh generation during the meeting.
-The observed Store-to-selection interaction aligns; provider-free continuation
-after selection is the unresolved gap. The Playbook's Decision Result and
-QR/mobile stages were not demonstrated by that Production smoke. Use its
-existing approved video fallback if a meeting requires those later screens
-before prepared-result capability is separately approved. This is an
-operational finding, not an instruction to edit the Playbook or other approved
-sales material.
-
-If provider-free continuation is later required in Production, create a
-separate approved implementation gate. It should use explicitly approved,
-durable prepared output assets with a discriminated provenance such as
-`PREPARED_DEMO`, restricted to the canonical Demo tenant and allowlisted frame
-identities. The user-facing experience must disclose that these are prepared
-Demo results, not a live generation from the current request. It must not
-create provider telemetry or masquerade as a completed `TryOnTask`. The
-existing compare/result contracts need a deliberate extension or a separate
-prepared-result read path; a fake Try-On task is not an acceptable shortcut.
-Asset rights, input/output provenance, retention, and visual quality require
-explicit review before those assets are promoted.
-
-This is a design boundary only; this document does not implement prepared
-results or approve reusing the prior GrsAI outputs as shipped assets.
+The earlier Production smoke reached Rowan/Lane selection and stopped before
+Try-On submission. That historical run did not validate the newly implemented
+prepared-result path. It did not authorize asset provisioning or Provider
+generation. Approved sales materials remain unchanged.
 
 ## Production Demo parity state
 
@@ -165,8 +143,8 @@ generation, seed data, or test retries.
 | Tenant identity | Canonical `TEST` / `DEMO` / `VISUTRY_DEMO` fixture | Dedicated canonical Demo tenant with the same three markers |
 | Database | Guarded Local PostgreSQL | Production database; read-only except a separately authorized, bounded Demo operation |
 | Face Intelligence / Recommendation | Real browser inference and canonical deterministic domain path | Same product path |
-| Provider default | Blocked; deterministic Try-On only inside the dedicated Local E2E fixture | No Provider call by default |
-| Result continuation | Local E2E validates app plumbing with a test fixture; not a presentation asset | No prepared-result continuation is currently approved/available without a Provider request |
+| Provider default | Zero Provider calls; shared `PREPARED_DEMO` uses visibly disclosed Local QA fixtures | Zero Provider calls by default; prepared path fails closed without approved assets |
+| Result continuation | Full prepared-result journey validated with visibly disclosed Local QA fixtures; not Try-On imagery or a sales result asset | Shared code path exists; no approved Production assets configured, so missing prepared media fails closed |
 | Paid billing | Local Stripe TEST configuration only when relevant | No BillingAccount or Stripe subscription required for Demo; no payment in Demo QA |
 
 For exact commands, reset boundaries, environment guards, and real-provider

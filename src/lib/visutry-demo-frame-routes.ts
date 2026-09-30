@@ -1,7 +1,12 @@
+import identity from '@/config/visutry-demo-identity.json'
+
 /**
  * The deliberately small, first-party discovery surface for the canonical VisuTry Demo.
  * Keep this manifest explicit so public routes cannot expose arbitrary catalog rows.
  */
+export const VISUTRY_DEMO_MERCHANT_SLUG = identity.VISUTRY_DEMO_MERCHANT_SLUG
+export const VISUTRY_DEMO_HISTORICAL_CANARY_SLUG = identity.VISUTRY_DEMO_HISTORICAL_CANARY_SLUG
+
 export const VISUTRY_DEMO_FRAME_ROUTES = [
   { sku: 'VT-DEMO-001', slug: 'round' },
   { sku: 'VT-DEMO-002', slug: 'rectangle' },
@@ -10,9 +15,6 @@ export const VISUTRY_DEMO_FRAME_ROUTES = [
   { sku: 'VT-DEMO-005', slug: 'aviator' },
   { sku: 'VT-DEMO-006', slug: 'cat-eye' },
 ] as const
-
-export const VISUTRY_DEMO_MERCHANT_SLUG = 'visutry-demo-optical'
-export const VISUTRY_DEMO_HISTORICAL_CANARY_SLUG = 'visutry-demo'
 
 export function visutryDemoFramePath(slug: string): string {
   return `/demo/frames/${slug}`

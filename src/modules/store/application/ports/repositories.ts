@@ -25,7 +25,9 @@ import type {
   DecisionResultFrameReference,
   DecisionResultFaceFitSummary,
   DecisionResultJourneyContext,
+  LiveDecisionResultTryOnReference,
   DecisionResultTryOnReference,
+  PreparedDemoDecisionResultReference,
 } from '../../domain/decision-result'
 
 export type MerchantRecord = {
@@ -200,9 +202,19 @@ export interface DecisionResultRepository {
     merchantSessionId: string
     selectedFrameIds?: string[]
     favoriteFrameId?: string | null
-    tryOnResult?: DecisionResultTryOnReference
+    tryOnResult?: LiveDecisionResultTryOnReference
     compare?: { startedAt: string; frameIds: string[] }
   }): Promise<void>
+  getSessionResultItems(input: {
+    merchantId: string
+    merchantSessionId: string
+  }): Promise<DecisionResultTryOnReference[]>
+  recordPreparedDemoResult(input: {
+    merchantId: string
+    merchantSessionId: string
+    shareToken: string
+    reference: PreparedDemoDecisionResultReference
+  }): Promise<boolean>
 }
 
 export type StoreAssetRecord = {

@@ -5,7 +5,7 @@
 **Isolation:** Local PostgreSQL and Local mock auth only. Never use Preview or Production.
 
 Canonical identity, the historical Canary boundary, public URL, and the
-provider-free continuation limitation are governed by the
+shared Local/Production `PREPARED_DEMO` parity contract are governed by the
 [VisuTry Demo Environment Contract](../ops/visutry-demo-environment-contract.md).
 
 ## Operator loop
@@ -70,17 +70,32 @@ and runs database/runtime/provider preflights. It refuses non-loopback or
 unexpected Local database targets. Regular Local Demo startup checks Prisma
 schema parity and fails with the bootstrap command if the schema has drifted.
 
-For repeatable no-provider Store → Try-On → Compare → Decision Result browser
+For repeatable no-provider Store → Face Intelligence → Recommendation → frame
+selection → prepared result → Compare → Decision Result → QR/mobile browser
 verification, run `npm run demo:local:journey:e2e`. It owns both local server
-processes, refuses ports 3001/4100 if already occupied, uses the actual
-browser MediaPipe/recommendation journey, substitutes only the explicitly
-guarded deterministic Local Try-On fixture, stops and restarts the Next app,
-then verifies that the same Decision Result media still resolves. The demo
-launcher can start without a developer `.env.local` file because the no-provider
-journey only uses the explicitly exported Local/test settings; normal
-`dev-local` still requires `.env.local`. The test token is held briefly in a
-mode-0600 file under ignored `.local/` and removed on exit. This command does
-not call GrsAI or Gemini.
+processes, refuses ports 3001/4100 if already occupied, and uses the same
+application contracts as the canonical Production Demo. Only the asset
+adapter differs: Local reads checksum-verified QA fixtures from this repo;
+Production is permitted to read only an explicitly approved private Blob
+asset. The Local fixtures are visibly disclosed as QA graphics, are not
+Try-On images or shopper evidence, and are never served in Production. Missing
+Production assets fail closed rather than falling back to Local files.
+
+The default Local execution mode is `PREPARED_DEMO`: deterministic, repeatable,
+and zero-provider. It creates a source-typed prepared result reference in the
+existing private Decision Result; it does not create TryOnTask,
+GenerationRequest/Attempt, paid-usage, or provider/reliability telemetry. The
+journey stops its technical assertion at the same Compare / Decision Result /
+mobile continuation used for prepared results. Its QA fixture disclosure
+means this is plumbing/UX evidence, not a real Try-On sales demonstration.
+
+`LIVE_PROVIDER` is an explicit opt-in reserved for the existing authorized
+Local GrsAI provider-smoke command below. It is not required for normal Local
+Demo readiness. Gemini is never an implicit fallback. The no-provider journey
+can run without a developer `.env.local` because it exports only the guarded
+Local/test settings; normal `dev-local` still requires `.env.local`. Its test
+token is held briefly in a mode-0600 file under ignored `.local/` and removed
+on exit. This command does not call GrsAI or Gemini.
 
 ## One-command real-provider smoke
 
@@ -117,7 +132,7 @@ explicit `--authorized` argument.
 | MediaPipe | Real browser inference, pinned 0.10.35 WASM/model hosted from `127.0.0.1:4100`; loopback configuration disables CDN/GCS fallback |
 | Recommendation | Existing deterministic production application/domain path |
 | Store / Compare / Result | Existing Store application routes and persisted Local PostgreSQL state |
-| Try-On | Blocked by default in Local Demo. A deterministic result fixture is available only to the dedicated Local E2E command. Real GrsAI requires explicit `--arm-grsai` startup plus an explicit shopper generation action; Gemini is never a fallback |
+| Try-On | Canonical Demo defaults to shared `PREPARED_DEMO` in Local and Production; Local uses only visibly watermarked QA fixtures, Production accepts only approved private assets and currently fails closed without them. `LIVE_PROVIDER` is restricted to the existing explicitly authorized Local GrsAI provider-smoke command; Gemini is never a fallback |
 | Stripe | Local mock path and TEST mode only; no checkout is needed for the demo journey |
 | Analytics | `APP_ENV=local` suppresses Production GA/Axiom destinations |
 | Store photo/result bytes | Filesystem-backed `APP_ENV=local` mock Blob adapter under ignored `.local/mock-blob/`, isolated from Vercel Blob and durable across Next process restarts |

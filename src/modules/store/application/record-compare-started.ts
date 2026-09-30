@@ -17,12 +17,15 @@ import type {
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
+import { isCanonicalVisuTryDemo } from '../domain/prepared-demo-results'
+import { findPreparedDemoAsset } from '../infrastructure/prepared-demo/prepared-result-manifest'
 
 export async function recordCompareStarted(input: {
   merchants: MerchantRepository
   sessions: MerchantSessionRepository
   events: MerchantEventRepository
   decisionResults?: DecisionResultRepository
+  frames?: import('./ports/repositories').MerchantFrameRepository
   experiences?: ExperienceRepository
   slug: string
   merchantSessionId: string
@@ -73,7 +76,34 @@ export async function recordCompareStarted(input: {
   if (experience && selectedFrameIds.some((frameId) => !experienceContainsFrame(experience, frameId))) {
     throw new StoreDomainError('FRAME_INACTIVE', 'This frame is not part of the current experience.', 409)
   }
-  const selectedFrameCount = selectedFrameIds.length || completedTryOns
+  let preparedDemoFrameIds = new Set<string>()
+  if (isCanonicalVisuTryDemo(merchant) && input.decisionResults && input.frames) {
+    const resultItems = await input.decisionResults.getSessionResultItems({ merchantId: merchant.id, merchantSessionId: session.id })
+    for (const reference of resultItems) {
+      if (reference.source !== 'PREPARED_DEMO') continue
+      const asset = findPreparedDemoAsset(reference.sourceRef.assetKey)
+      if (
+        !asset ||
+        asset.provenanceId !== reference.sourceRef.provenanceId ||
+        asset.manifestVersion !== reference.sourceRef.manifestVersion ||
+        asset.shopperProfileId !== reference.sourceRef.shopperProfileId ||
+        asset.shopperProfileVersion !== reference.sourceRef.shopperProfileVersion ||
+        !asset.createdAt ||
+        !asset.reviewedAt ||
+        !asset.provenanceNote.trim() ||
+        !asset.rightsUseApproval.trim() ||
+        !asset.demoOnly ||
+        !asset.notForSale
+      ) continue
+      const frame = await input.frames.findActiveByMerchantAndId(merchant.id, reference.frameId)
+      if (!frame || frame.merchantId !== merchant.id || frame.sku !== asset.frameSku) continue
+      if (experience && !experienceContainsFrame(experience, frame.id)) continue
+      preparedDemoFrameIds.add(frame.id)
+    }
+  }
+
+  const selectedFrameCount = selectedFrameIds.length || completedTryOns + preparedDemoFrameIds.size
+  let selectedPreparedDemoCount = 0
   if (selectedFrameCount > experiencePolicy.maxCompareFrames) {
     throw new StoreDomainError(
       'VALIDATION_ERROR',
@@ -82,7 +112,7 @@ export async function recordCompareStarted(input: {
     )
   }
   if (selectedFrameIds.length > 0) {
-    const completedSelected = await prisma.tryOnTask.count({
+    const completedSelected = await prisma.tryOnTask.findMany({
       where: {
         merchantId: merchant.id,
         merchantSessionId: input.merchantSessionId,
@@ -90,11 +120,14 @@ export async function recordCompareStarted(input: {
         origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
         status: 'COMPLETED',
       },
+      select: { merchantFrameId: true },
     })
-    if (completedSelected !== selectedFrameIds.length) {
+    const liveFrameIds = new Set(completedSelected.map((task) => task.merchantFrameId))
+    selectedPreparedDemoCount = selectedFrameIds.filter((frameId) => preparedDemoFrameIds.has(frameId)).length
+    if (selectedFrameIds.some((frameId) => !liveFrameIds.has(frameId) && !preparedDemoFrameIds.has(frameId))) {
       throw new StoreDomainError(
         'VALIDATION_ERROR',
-        'Compare requires completed results for the selected frames.',
+        'Compare requires available results for the selected frames.',
         400,
       )
     }
@@ -102,7 +135,7 @@ export async function recordCompareStarted(input: {
   if (selectedFrameCount < 2) {
     throw new StoreDomainError(
       'VALIDATION_ERROR',
-      'Compare requires at least two completed try-on results.',
+      'Compare requires at least two available results for the selected frames.',
       400,
     )
   }
@@ -122,6 +155,7 @@ export async function recordCompareStarted(input: {
     deviceType: input.deviceType ?? null,
     metadata: experiencePolicyMetadata(experiencePolicy, {
       completedTryOns,
+      preparedDemoResults: selectedPreparedDemoCount,
       selectedFrameCount,
     }),
   })

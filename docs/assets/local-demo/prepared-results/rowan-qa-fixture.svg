@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Local QA prepared-result fixture for VT Rowan</title>
+  <desc id="desc">A clearly marked test fixture, not a virtual try-on image.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef2f5"/>
+      <stop offset="1" stop-color="#dce4e8"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="1200" fill="url(#bg)"/>
+  <rect x="92" y="92" width="776" height="1016" rx="36" fill="#fff" stroke="#b8c5cc" stroke-width="4"/>
+  <rect x="136" y="138" width="688" height="62" rx="31" fill="#173d49"/>
+  <text x="480" y="178" fill="#fff" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="3" text-anchor="middle">LOCAL QA FIXTURE</text>
+  <circle cx="480" cy="494" r="148" fill="#eef3f5" stroke="#d1dce1" stroke-width="4"/>
+  <rect x="356" y="425" width="86" height="54" rx="23" fill="none" stroke="#315563" stroke-width="8"/>
+  <rect x="518" y="425" width="86" height="54" rx="23" fill="none" stroke="#315563" stroke-width="8"/>
+  <path d="M442 451h76M356 451l-24-12M604 451l24-12" fill="none" stroke="#315563" stroke-width="8" stroke-linecap="round"/>
+  <text x="480" y="714" fill="#122b34" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle">VT Rowan</text>
+  <text x="480" y="770" fill="#40545c" font-family="Arial, sans-serif" font-size="24" text-anchor="middle">Prepared-result delivery test</text>
+  <text x="480" y="828" fill="#a13a2f" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle">NOT A TRY-ON IMAGE</text>
+  <text x="480" y="870" fill="#596b72" font-family="Arial, sans-serif" font-size="19" text-anchor="middle">No approved output media is configured.</text>
+  <text x="480" y="1010" fill="#718087" font-family="Arial, sans-serif" font-size="16" letter-spacing="2" text-anchor="middle">DEVELOPMENT ONLY · NOT FOR CUSTOMER USE</text>
+</svg>

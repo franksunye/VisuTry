@@ -19,18 +19,28 @@ demo_mode="${1:-blocked}"
 case "$demo_mode" in
   blocked)
     export VISUTRY_LOCAL_DEMO_PROVIDER_MODE=blocked
+    export VISUTRY_LOCAL_DEMO_EXECUTION_MODE=PREPARED_DEMO
+    export P1_M5_LOCAL_DECISION_RESULT_E2E=0
+    ;;
+  --prepared-demo)
+    export VISUTRY_LOCAL_DEMO_PROVIDER_MODE=blocked
+    export VISUTRY_LOCAL_DEMO_EXECUTION_MODE=PREPARED_DEMO
     export P1_M5_LOCAL_DECISION_RESULT_E2E=0
     ;;
   --deterministic-tryon-fixture)
+    # Compatibility alias for older local commands. The canonical journey now
+    # uses the shared PREPARED_DEMO result contract, never fake TryOnTask rows.
     export VISUTRY_LOCAL_DEMO_PROVIDER_MODE=blocked
-    export P1_M5_LOCAL_DECISION_RESULT_E2E=1
+    export VISUTRY_LOCAL_DEMO_EXECUTION_MODE=PREPARED_DEMO
+    export P1_M5_LOCAL_DECISION_RESULT_E2E=0
     ;;
   --arm-grsai)
     export VISUTRY_LOCAL_DEMO_PROVIDER_MODE=grsai
+    export VISUTRY_LOCAL_DEMO_EXECUTION_MODE=LIVE_PROVIDER
     export P1_M5_LOCAL_DECISION_RESULT_E2E=0
     ;;
   *)
-    echo "Usage: $0 [--deterministic-tryon-fixture|--arm-grsai]" >&2
+    echo "Usage: $0 [--prepared-demo|--arm-grsai]" >&2
     exit 2
     ;;
 esac

@@ -104,4 +104,90 @@ describe('Decision Result Prisma repository', () => {
     expect(result.resultId).toBe('result-1')
     expect(tx.decisionResult.create).not.toHaveBeenCalled()
   })
+
+  it('records a selected prepared reference under the existing scoped result token without a TryOnTask', async () => {
+    const future = new Date(Date.now() + 60_000)
+    const update = jest.fn().mockResolvedValue({ id: 'result-1' })
+    const tx = {
+      decisionResult: {
+        update,
+      },
+      decisionResultShare: {
+        findFirst: jest.fn().mockResolvedValue({
+          merchantId: 'merchant-demo',
+          result: {
+            id: 'result-1',
+            merchantId: 'merchant-demo',
+            merchantSessionId: 'session-demo',
+            expiresAt: future,
+            payload: { selectedFrameIds: ['rowan-frame'], tryOnResults: [] },
+          },
+        }),
+      },
+      merchantFrame: { findFirst: jest.fn().mockResolvedValue({ id: 'rowan-frame' }) },
+    }
+    mockTransaction.mockImplementation(async (callback: (value: typeof tx) => Promise<unknown>) => callback(tx))
+    const reference = {
+      source: 'PREPARED_DEMO' as const,
+      sourceRef: {
+        assetKey: 'demo-rowan-v1',
+        provenanceId: 'reviewed-rowan-v1',
+        manifestVersion: '1',
+        shopperProfileId: 'visutry-demo-shopper-v1',
+        shopperProfileVersion: '1',
+      },
+      frameId: 'rowan-frame',
+      status: 'PREPARED' as const,
+      presentedAt: new Date().toISOString(),
+    }
+
+    const saved = await createPrismaDecisionResultRepository().recordPreparedDemoResult({
+      merchantId: 'merchant-demo',
+      merchantSessionId: 'session-demo',
+      shareToken: 'opaque-private-result-token',
+      reference,
+    })
+
+    expect(saved).toBe(true)
+    expect(tx.decisionResultShare.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ merchantId: 'merchant-demo', tokenHash: expect.stringMatching(/^[a-f0-9]{64}$/), revokedAt: null }),
+    }))
+    expect(tx.merchantFrame.findFirst).toHaveBeenCalledWith({
+      where: { id: 'rowan-frame', merchantId: 'merchant-demo', status: 'ACTIVE' },
+      select: { id: true },
+    })
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        schemaVersion: 2,
+        payload: expect.objectContaining({ tryOnResults: [reference] }),
+      }),
+    }))
+  })
+
+  it('refuses prepared rows when the result token does not own the selected tenant/session', async () => {
+    const tx = {
+      decisionResult: { update: jest.fn() },
+      decisionResultShare: { findFirst: jest.fn().mockResolvedValue({
+        merchantId: 'merchant-demo',
+        result: { id: 'result-1', merchantId: 'merchant-demo', merchantSessionId: 'another-session', expiresAt: new Date(Date.now() + 60_000), payload: { selectedFrameIds: ['frame-1'] } },
+      }) },
+      merchantFrame: { findFirst: jest.fn() },
+    }
+    mockTransaction.mockImplementation(async (callback: (value: typeof tx) => Promise<unknown>) => callback(tx))
+    const reference = {
+      source: 'PREPARED_DEMO' as const,
+      sourceRef: { assetKey: 'asset', provenanceId: 'provenance', manifestVersion: '1', shopperProfileId: 'profile-v1', shopperProfileVersion: '1' },
+      frameId: 'frame-1',
+      status: 'PREPARED' as const,
+      presentedAt: new Date().toISOString(),
+    }
+    await expect(createPrismaDecisionResultRepository().recordPreparedDemoResult({
+      merchantId: 'merchant-demo',
+      merchantSessionId: 'session-demo',
+      shareToken: 'opaque-private-result-token',
+      reference,
+    })).resolves.toBe(false)
+    expect(tx.merchantFrame.findFirst).not.toHaveBeenCalled()
+    expect(tx.decisionResult.update).not.toHaveBeenCalled()
+  })
 })

@@ -1035,6 +1035,7 @@ export function StoreShopperExperience({
                     label={t('upload.label')}
                     description={t('upload.description')}
                     iconType="user"
+                    preserveOriginalBytes={merchant?.isCanonicalVisuTryDemo === true}
                     height="h-[340px] sm:h-[460px]"
                     currentImage={photoPreview}
                     loading={photoUploading || recommending}
@@ -1200,6 +1201,7 @@ export function StoreShopperExperience({
                       experienceSlug={merchant.experience?.type === 'CAMPAIGN' ? merchant.experience.slug : undefined}
                       locale={locale}
                       merchantSessionId={session.merchantSessionId}
+                      decisionResultToken={decisionResultToken}
                       selectedFrames={selectedFrames.map((frame) => ({ id: frame.id, name: frame.name, imageUrl: frame.imageUrl, productUrl: frame.productUrl, price: frame.price, currency: frame.currency, shape: frame.shape, productBrand: frame.productBrand }))}
                       photoPreview={photoPreview}
                       accent={accent}

@@ -7,6 +7,10 @@ import { sanitizeDecisionResultPayload } from '../domain/decision-result'
 import { resolveMerchantHandoff } from '../domain/merchant-handoff'
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
+import { isCanonicalVisuTryDemo } from '../domain/prepared-demo-results'
+import type { DecisionResultTryOnReference } from '../domain/decision-result'
+import { findPreparedDemoAsset } from '../infrastructure/prepared-demo/prepared-result-manifest'
+import { readPreparedDemoResultAsset } from '../infrastructure/prepared-demo/prepared-result-asset-store'
 
 const MAX_SHARE_TOKEN_LENGTH = 200
 
@@ -40,8 +44,30 @@ function validToken(token: string): boolean {
   return token.length > 0 && token.length <= MAX_SHARE_TOKEN_LENGTH && /^[A-Za-z0-9_-]+$/.test(token)
 }
 
-function decisionResultAssetRef(token: string, taskId: string): string {
-  return hashSessionCapability(`${token}:${taskId}`).slice(0, 32)
+export function createDecisionResultAssetRef(token: string, reference: DecisionResultTryOnReference): string {
+  const sourceIdentity = reference.source === 'LIVE_TRYON'
+    ? reference.taskId
+    : `PREPARED_DEMO:${reference.sourceRef.assetKey}:${reference.frameId}`
+  return hashSessionCapability(`${token}:${sourceIdentity}`).slice(0, 32)
+}
+
+function manifestMatchesPreparedReference(reference: Extract<DecisionResultTryOnReference, { source: 'PREPARED_DEMO' }>) {
+  const asset = findPreparedDemoAsset(reference.sourceRef.assetKey)
+  if (
+    !asset ||
+    asset.source !== 'PREPARED_DEMO' ||
+    asset.provenanceId !== reference.sourceRef.provenanceId ||
+    asset.manifestVersion !== reference.sourceRef.manifestVersion ||
+    asset.shopperProfileId !== reference.sourceRef.shopperProfileId ||
+    asset.shopperProfileVersion !== reference.sourceRef.shopperProfileVersion ||
+    !asset.createdAt ||
+    !asset.reviewedAt ||
+    !asset.provenanceNote.trim() ||
+    !asset.rightsUseApproval.trim() ||
+    !asset.demoOnly ||
+    !asset.notForSale
+  ) return null
+  return asset
 }
 
 async function findShare(token: string): Promise<DecisionResultShareRow | null> {
@@ -77,6 +103,8 @@ export type DecisionResultView = {
   compare: ReturnType<typeof sanitizeDecisionResultPayload>['compare']
   tryOnResults: Array<{
     assetRef: string
+    source: 'LIVE_TRYON' | 'PREPARED_DEMO'
+    disclosure: 'PREPARED_DEMO' | 'LOCAL_QA_FIXTURE' | null
     frameId: string
     name: string | null
     sku: string | null
@@ -90,7 +118,8 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
   const share = await findShare(token)
   if (!share) return null
   const payload = sanitizeDecisionResultPayload(share.result.payload)
-  const taskIds = payload.tryOnResults.map((result) => result.taskId)
+  const liveReferences = payload.tryOnResults.filter((result) => result.source === 'LIVE_TRYON')
+  const taskIds = liveReferences.map((result) => result.taskId)
   const tasks = taskIds.length
     ? await prisma.tryOnTask.findMany({
         where: {
@@ -111,6 +140,50 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
       })
     : []
   const taskById = new Map(tasks.filter((task) => task.resultImageUrl && (!task.expiresAt || task.expiresAt.getTime() > Date.now())).map((task) => [task.id, task]))
+  const tryOnResults = (await Promise.all(payload.tryOnResults.map(async (reference) => {
+    if (reference.source === 'LIVE_TRYON') {
+      const task = taskById.get(reference.taskId)
+      if (!task?.resultImageUrl || task.merchantFrameId !== reference.frameId) return null
+      const assetRef = createDecisionResultAssetRef(token, reference)
+      return {
+        assetRef,
+        source: 'LIVE_TRYON' as const,
+        disclosure: null,
+        frameId: reference.frameId,
+        name: task.merchantFrame?.name ?? null,
+        sku: task.merchantFrame?.sku ?? null,
+        productUrl: task.merchantFrame?.productUrl ?? null,
+        imageUrl: `/api/store/results/${encodeURIComponent(token)}/try-on/${assetRef}`,
+        completedAt: reference.completedAt,
+      }
+    }
+
+    if (!isCanonicalVisuTryDemo(share.result.merchant)) return null
+    const asset = manifestMatchesPreparedReference(reference)
+    if (!asset) return null
+    const frame = await prisma.merchantFrame.findFirst({
+      where: {
+        id: reference.frameId,
+        merchantId: share.result.merchantId,
+        sku: asset.frameSku,
+        status: 'ACTIVE',
+      },
+      select: { name: true, sku: true, productUrl: true },
+    })
+    if (!frame || !await readPreparedDemoResultAsset(asset)) return null
+    const assetRef = createDecisionResultAssetRef(token, reference)
+    return {
+      assetRef,
+      source: 'PREPARED_DEMO' as const,
+      disclosure: asset.assetClass === 'LOCAL_QA_FIXTURE' ? 'LOCAL_QA_FIXTURE' as const : 'PREPARED_DEMO' as const,
+      frameId: reference.frameId,
+      name: frame.name,
+      sku: frame.sku,
+      productUrl: frame.productUrl,
+      imageUrl: `/api/store/results/${encodeURIComponent(token)}/try-on/${assetRef}`,
+      completedAt: reference.presentedAt,
+    }
+  }))).filter((item): item is NonNullable<typeof item> => item !== null)
   return {
     expiresAt: share.result.expiresAt.toISOString(),
     merchant: share.result.merchant,
@@ -128,19 +201,7 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
     selectedFrameIds: payload.selectedFrameIds,
     favoriteFrameIds: payload.favoriteFrameIds,
     compare: payload.compare,
-    tryOnResults: payload.tryOnResults.flatMap((reference) => {
-      const task = taskById.get(reference.taskId)
-      if (!task?.resultImageUrl || task.merchantFrameId !== reference.frameId) return []
-      return [{
-        assetRef: decisionResultAssetRef(token, task.id),
-        frameId: reference.frameId,
-        name: task.merchantFrame?.name ?? null,
-        sku: task.merchantFrame?.sku ?? null,
-        productUrl: task.merchantFrame?.productUrl ?? null,
-        imageUrl: `/api/store/results/${encodeURIComponent(token)}/try-on/${decisionResultAssetRef(token, task.id)}`,
-        completedAt: reference.completedAt,
-      }]
-    }),
+    tryOnResults,
   }
 }
 
@@ -148,8 +209,32 @@ async function resolveResultAsset(token: string, assetRef: string) {
   const share = await findShare(token)
   if (!share) return null
   const payload = sanitizeDecisionResultPayload(share.result.payload)
-  const reference = payload.tryOnResults.find((result) => decisionResultAssetRef(token, result.taskId) === assetRef)
+  const reference = payload.tryOnResults.find((result) => createDecisionResultAssetRef(token, result) === assetRef)
   if (!reference) return null
+  if (reference.source === 'PREPARED_DEMO') {
+    if (!isCanonicalVisuTryDemo(share.result.merchant)) return null
+    const asset = manifestMatchesPreparedReference(reference)
+    if (!asset) return null
+    const frame = await prisma.merchantFrame.findFirst({
+      where: {
+        id: reference.frameId,
+        merchantId: share.result.merchantId,
+        sku: asset.frameSku,
+        status: 'ACTIVE',
+      },
+      select: { id: true },
+    })
+    if (!frame) return null
+    const preparedBytes = await readPreparedDemoResultAsset(asset)
+    if (!preparedBytes) return null
+    return {
+      source: 'PREPARED_DEMO' as const,
+      body: preparedBytes.body,
+      contentType: preparedBytes.contentType,
+      expiresAt: share.result.expiresAt,
+    }
+  }
+
   const taskId = reference.taskId
   const task = await prisma.tryOnTask.findFirst({
     where: {
@@ -165,6 +250,7 @@ async function resolveResultAsset(token: string, assetRef: string) {
   if (!task?.resultImageUrl || !reference || task.merchantFrameId !== reference.frameId || (task.expiresAt && task.expiresAt.getTime() <= Date.now())) return null
   const metadata = (task.metadata ?? {}) as Record<string, unknown>
   return {
+    source: 'LIVE_TRYON' as const,
     resultImageUrl: task.resultImageUrl,
     resultPathname: typeof metadata.resultPathname === 'string' ? metadata.resultPathname : null,
     accessMode: metadata.resultAssetAccessMode === 'PUBLIC_TEMPORARY' || metadata.privateBlob === false ? 'PUBLIC_TEMPORARY' as const : 'PRIVATE_SIGNED' as const,
@@ -175,6 +261,9 @@ async function resolveResultAsset(token: string, assetRef: string) {
 export async function resolveDecisionResultAsset(input: { token: string; assetRef: string }): Promise<{ body: Buffer; contentType: string; expiresAt: Date | null } | null> {
   const access = await resolveResultAsset(input.token, input.assetRef)
   if (!access) return null
+  if (access.source === 'PREPARED_DEMO') {
+    return { body: access.body, contentType: access.contentType, expiresAt: access.expiresAt }
+  }
   if (isMockMode) {
     const local = await readMockBlob(access.resultPathname || access.resultImageUrl)
     if (!local) return null

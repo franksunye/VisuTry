@@ -5,6 +5,7 @@ import {
   INDEXNOW_KEY,
   INDEXNOW_KEY_LOCATION,
 } from '@/config/discovery-indexnow'
+import { VISUTRY_DEMO_MERCHANT_SLUG } from '@/modules/store/domain/visutry-demo-identity'
 
 describe('canonical Demo IndexNow contract', () => {
   it('builds the canonical Store and six Frame canonical URL list, excluding historical Canary routes', () => {
@@ -13,7 +14,7 @@ describe('canonical Demo IndexNow contract', () => {
     expect(urls).toHaveLength(7)
     expect(new Set(urls).size).toBe(7)
     expect(urls.every((url) => new URL(url).hostname === INDEXNOW_HOST)).toBe(true)
-    expect(urls).toContain('https://www.visutry.com/en/store/visutry-demo-optical')
+    expect(urls).toContain(`https://www.visutry.com/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}`)
     expect(urls).not.toContain('https://www.visutry.com/en/store/visutry-demo')
     expect(urls).not.toContain('https://www.visutry.com/en/c/visutry-demo/everyday-fit')
     expect(urls.filter((url) => url.includes('/en/demo/frames/'))).toHaveLength(6)
