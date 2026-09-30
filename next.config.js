@@ -114,19 +114,20 @@ const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
 
+  ...(process.env.CLOUDFLARE_BUILD === '1'
+    ? {
+        outputFileTracingExcludes: {
+          '**/*': [
+            'node_modules/.prisma/**',
+            'node_modules/@prisma/client/**',
+            'node_modules/@prisma/adapter-neon/**',
+          ],
+        },
+      }
+    : {}),
+
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-select'],
-    ...(process.env.CLOUDFLARE_BUILD === '1'
-      ? {
-          outputFileTracingExcludes: {
-            '**/*': [
-              'node_modules/.prisma/**',
-              'node_modules/@prisma/client/**',
-              'node_modules/@prisma/adapter-neon/**',
-            ],
-          },
-        }
-      : {}),
   },
 
   compiler: {

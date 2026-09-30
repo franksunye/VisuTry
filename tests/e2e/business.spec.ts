@@ -110,7 +110,8 @@ test.describe('@critical Business market-facing narrative', () => {
       'href',
       'https://media.visutry.com/business/whitepapers/visutry-ai-eyewear-decision-experience-instore-retail-v1.3.pdf',
     );
-    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' })).toHaveAttribute('href', '/en/business/pilot');
+    const nextStepSection = page.locator('section').filter({ hasText: 'Ready to test this with your own eyewear catalog?' });
+    await expect(nextStepSection.getByRole('link', { name: 'Start 30-Day Pilot' })).toHaveAttribute('href', '/en/business/pilot');
     await expect(page.locator('form')).toHaveCount(0);
   });
 
