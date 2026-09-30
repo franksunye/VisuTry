@@ -75,7 +75,7 @@ describe('BusinessResources', () => {
 
   it('uses contextual proof instead of embedding every resource everywhere', () => {
     const { rerender, container } = render(<BusinessResourceStrip locale="en" placement="platform" mode="whitepaper" />)
-    expect(screen.getByRole('link', { name: 'Read white paper' })).toHaveAttribute('href', inStoreRetailWhitepaper.url)
+    expect(screen.getByRole('link', { name: 'Read white paper' })).toHaveAttribute('href', '/en/business/resources#white-paper')
     expect(container.querySelector('video')).toBeNull()
 
     rerender(<BusinessResourceStrip locale="en" placement="store" mode="video" />)
