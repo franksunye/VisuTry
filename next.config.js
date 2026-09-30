@@ -148,6 +148,9 @@ const nextConfig = {
   async redirects() {
     return [
       ...localeLessMarketingRedirects,
+      // Preserve the historical public Store URL while making the dedicated,
+      // explicitly entitled Demo tenant the canonical shopper surface.
+      { source: '/:locale/store/visutry-demo', destination: '/:locale/store/visutry-demo-optical', permanent: true },
       { source: '/store/:merchantSlug', destination: '/en/store/:merchantSlug', permanent: true },
       { source: '/c/:merchantSlug/:experienceSlug', destination: '/en/c/:merchantSlug/:experienceSlug', permanent: true },
       { source: '/brand/:brand', destination: '/en/brand/:brand', permanent: true },

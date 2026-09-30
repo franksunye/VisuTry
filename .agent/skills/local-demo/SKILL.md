@@ -5,6 +5,9 @@ description: Canonical VisuTry Local Demo / Experience QA commands. Use these co
 
 # VisuTry Local Demo
 
+Canonical Demo identity, historical Canary separation, public URL, and
+provider-free continuation rules: [VisuTry Demo Environment Contract](../../../docs/ops/visutry-demo-environment-contract.md).
+
 Use the repository-owned Local Demo commands. Do not create temporary Playwright scripts for normal Demo/QA work.
 
 ## Default routing

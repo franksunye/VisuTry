@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import { ExternalLink, Glasses, Store } from 'lucide-react'
-import Link from '@/components/layout/PublicLink'
 import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
 import { resolvePresentationMode } from '@/modules/store/domain/presentation-mode'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
@@ -106,9 +105,6 @@ export function ExperienceDiscoveryContent({
     persistedPresentationMode: experience.presentationMode,
   })
   const jsonLd = buildExperienceDiscoveryJsonLd({ discovery, pathname })
-  const demoCampaignHref = merchant.slug === 'visutry-demo' && experience.type === 'STORE'
-    ? `/${locale}/c/visutry-demo/everyday-fit?source=visutry&medium=internal&surface=discover&campaign=discovery-canary`
-    : null
 
   return (
     <main
@@ -168,14 +164,6 @@ export function ExperienceDiscoveryContent({
                     />
                   ) : null)}
                 </div>
-              ) : null}
-              {demoCampaignHref ? (
-                <Link
-                  href={demoCampaignHref}
-                  className="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-900"
-                >
-                  Explore the Everyday Fit demo campaign
-                </Link>
               ) : null}
             </div>
             <div>

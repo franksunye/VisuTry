@@ -4,9 +4,8 @@ export const INDEXNOW_KEY_LOCATION = `https://${INDEXNOW_HOST}/${INDEXNOW_KEY}.t
 
 const INDEXNOW_ORIGIN = `https://${INDEXNOW_HOST}`
 
-export const DISCOVERY_CANARY_INDEXNOW_URLS = [
-  `${INDEXNOW_ORIGIN}/en/store/visutry-demo`,
-  `${INDEXNOW_ORIGIN}/en/c/visutry-demo/everyday-fit`,
+export const VISUTRY_DEMO_INDEXNOW_URLS = [
+  `${INDEXNOW_ORIGIN}/en/store/visutry-demo-optical`,
   `${INDEXNOW_ORIGIN}/en/demo/frames/round`,
   `${INDEXNOW_ORIGIN}/en/demo/frames/rectangle`,
   `${INDEXNOW_ORIGIN}/en/demo/frames/oval`,
@@ -16,8 +15,9 @@ export const DISCOVERY_CANARY_INDEXNOW_URLS = [
 ] as const
 
 /**
- * IndexNow is intentionally constrained to the canonical first-party
- * discovery canary URLs. No caller-supplied URL list is accepted.
+ * IndexNow is intentionally constrained to the canonical first-party Demo
+ * Store and its six stable first-party frame detail URLs. No caller-supplied
+ * URL list is accepted.
  */
 export function assertIndexNowUrl(value: string): string {
   const url = new URL(value)
@@ -36,6 +36,6 @@ export function assertIndexNowUrl(value: string): string {
   return url.toString()
 }
 
-export function buildDiscoveryCanaryIndexNowUrls(): string[] {
-  return DISCOVERY_CANARY_INDEXNOW_URLS.map(assertIndexNowUrl)
+export function buildVisutryDemoIndexNowUrls(): string[] {
+  return VISUTRY_DEMO_INDEXNOW_URLS.map(assertIndexNowUrl)
 }

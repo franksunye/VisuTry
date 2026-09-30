@@ -1,6 +1,10 @@
 # VisuTry Discovery Canary — 2026-09-03
 
-Status: **PRODUCTION READY**
+Status: **HISTORICAL EVIDENCE** (originally marked PRODUCTION READY at its T0).
+
+This dated record describes the historical `visutry-demo` Canary, not the
+current canonical Demo tenant. Current Demo identity, routing, and operating
+rules are in the [VisuTry Demo Environment Contract](./visutry-demo-environment-contract.md).
 
 This evidence record covers the minimum first-party Discovery Canary built by
 reusing the existing `VisuTry Demo`. It does not claim external merchant
