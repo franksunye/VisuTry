@@ -51,7 +51,7 @@ describe('BusinessResources', () => {
     const { container } = render(<BusinessResourcesPage locale="en" />)
 
     fireEvent.click(screen.getByRole('link', { name: 'Read the white paper' }))
-    expect(analytics.trackCustomEvent).toHaveBeenCalledWith('business_resource_opened', expect.objectContaining({
+    expect(analytics.trackCustomEvent).toHaveBeenCalledWith('b2b_resource_opened', expect.objectContaining({
       resource_id: 'instore-retail-whitepaper-v1.3',
       resource_type: 'whitepaper',
       placement: 'resources',
@@ -61,13 +61,13 @@ describe('BusinessResources', () => {
     fireEvent.play(video)
     fireEvent.play(video)
     expect(analytics.trackCustomEvent).toHaveBeenCalledTimes(2)
-    expect(analytics.trackCustomEvent).toHaveBeenLastCalledWith('business_resource_video_started', expect.objectContaining({
+    expect(analytics.trackCustomEvent).toHaveBeenLastCalledWith('b2b_resource_video_started', expect.objectContaining({
       resource_id: 'instore-retail-demo-v2',
       placement: 'resources',
     }))
 
     fireEvent.ended(video)
-    expect(analytics.trackCustomEvent).toHaveBeenLastCalledWith('business_resource_video_completed', expect.objectContaining({
+    expect(analytics.trackCustomEvent).toHaveBeenLastCalledWith('b2b_resource_video_completed', expect.objectContaining({
       resource_id: 'instore-retail-demo-v2',
       placement: 'resources',
     }))
