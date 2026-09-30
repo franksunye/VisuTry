@@ -5,6 +5,7 @@ import { businessHref, businessPages, type BusinessPageKey, type BusinessSection
 import { BusinessVisualPlaceholder } from './BusinessVisualPlaceholder'
 import { BusinessPilotLeadForm } from './BusinessPilotLeadForm'
 import { BusinessPricingPage } from './BusinessPricingPage'
+import { BusinessResourceStrip, BusinessResourcesPage } from './BusinessResources'
 
 interface BusinessMarketingPageProps {
   locale: string
@@ -46,7 +47,7 @@ function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey })
   const primaryCta = page.primaryCta
   const secondaryCta = page.secondaryCta
   const slot = visualSlots[pageKey]
-  const textOnly = pageKey === 'pricing' || pageKey === 'examples' || pageKey === 'integrations' || pageKey === 'pilot'
+  const textOnly = pageKey === 'pricing' || pageKey === 'examples' || pageKey === 'integrations' || pageKey === 'pilot' || pageKey === 'resources'
   const dark = pageKey === 'intelligence'
   const storeDominant = pageKey === 'store'
   const audienceLine = pageKey === 'overview'
@@ -260,6 +261,15 @@ export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPage
     )
   }
 
+  if (pageKey === 'resources') {
+    return (
+      <main className="bg-[#f8fafc] text-slate-950">
+        <Hero locale={locale} pageKey={pageKey} />
+        <BusinessResourcesPage locale={locale} />
+      </main>
+    )
+  }
+
   const sections = page.sections
   const showPilotCta = pageKey !== 'pilot'
 
@@ -267,6 +277,7 @@ export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPage
     <main className="bg-[#f8fafc] text-slate-950">
       <Hero locale={locale} pageKey={pageKey} />
 
+      {pageKey === 'pilot' ? <BusinessResourceStrip locale={locale} placement="pilot" /> : null}
       {pageKey === 'pilot' ? <BusinessPilotLeadForm locale={locale} /> : null}
 
       {pageKey === 'examples' ? (
@@ -278,6 +289,10 @@ export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPage
       ) : null}
 
       {sections.map((section, index) => <SectionBlock key={`${pageKey}-${index}`} pageKey={pageKey} section={section} index={index} locale={locale} />)}
+
+      {pageKey === 'overview' ? <BusinessResourceStrip locale={locale} placement="business_home" /> : null}
+      {pageKey === 'platform' ? <BusinessResourceStrip locale={locale} placement="platform" mode="whitepaper" /> : null}
+      {pageKey === 'store' ? <BusinessResourceStrip locale={locale} placement="store" mode="video" /> : null}
 
       {showPilotCta ? <PilotCta locale={locale} /> : null}
     </main>
