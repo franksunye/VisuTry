@@ -35,9 +35,9 @@ async function readPrivateBlob(storageKey: string): Promise<Buffer | null> {
 
 /**
  * Shared prepared-result source contract with environment-selected storage.
- * The current Local records are conspicuously marked QA fixtures. Production
- * can read only an explicitly approved manifest record backed by private Blob;
- * no public URL or Local path is accepted there.
+ * Guarded Local can read checksum-verified QA fixtures or approved Local Demo
+ * outputs from repository-owned paths. Production can read only an explicitly
+ * approved manifest record backed by private Blob; no Local path is accepted.
  */
 export async function readPreparedDemoResultAsset(
   descriptor: PreparedDemoAssetDescriptor,
@@ -46,15 +46,18 @@ export async function readPreparedDemoResultAsset(
   let bytes: Buffer | null = null
   let contentType: string = descriptor.contentType
 
+  const localPath = descriptor.assetClass === 'LOCAL_QA_FIXTURE'
+    ? descriptor.localQaPath
+    : descriptor.localStoragePath
+
   if (
     env.APP_ENV === 'local' &&
     env.VERCEL_ENV === undefined &&
     env.VISUTRY_LOCAL_DEMO_RUNTIME === '1' &&
-    descriptor.assetClass === 'LOCAL_QA_FIXTURE' &&
-    descriptor.localQaPath
+    localPath
   ) {
     const assetRoot = path.resolve(process.cwd(), 'docs/assets/local-demo/prepared-results')
-    const assetPath = path.resolve(process.cwd(), descriptor.localQaPath)
+    const assetPath = path.resolve(process.cwd(), localPath)
     if (!assetPath.startsWith(`${assetRoot}${path.sep}`)) return null
     bytes = await readFile(assetPath)
     contentType = contentTypeForPathname(assetPath)

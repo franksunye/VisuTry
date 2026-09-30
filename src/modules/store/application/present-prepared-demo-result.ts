@@ -64,7 +64,7 @@ export async function presentPreparedDemoResult(input: {
   }
   if (!frame.sku) throw new StoreDomainError('FRAME_INACTIVE', 'The selected frame has no canonical Demo SKU.', 409)
 
-  const asset = findPreparedDemoAssetForFrameSku(frame.sku)
+  const asset = findPreparedDemoAssetForFrameSku(frame.sku, input.env ?? process.env)
   if (!asset || asset.frameSku !== frame.sku || !asset.demoOnly || !asset.notForSale) {
     throw new StoreDomainError('FRAME_INACTIVE', 'No prepared Demo result is approved for the selected frame.', 409)
   }

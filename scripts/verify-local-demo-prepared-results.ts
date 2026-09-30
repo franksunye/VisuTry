@@ -1,4 +1,6 @@
 import dotenv from 'dotenv'
+import { createHash } from 'node:crypto'
+import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { PrismaClient } from '@prisma/client'
 import { assertDatabaseEnvironment, assertLocalDatabaseUrl } from '../src/lib/app-environment'
@@ -51,7 +53,15 @@ async function main() {
     if (!result) throw new Error('Prepared Demo audit found no Decision Result created by the browser journey.')
     const payload = sanitizeDecisionResultPayload(result.payload)
     const prepared = payload.tryOnResults.filter((item) => item.source === 'PREPARED_DEMO')
-    const expectedAssets = PREPARED_DEMO_RESULT_MANIFEST.map((asset) => asset.assetKey).sort()
+    const approvedLocalAssets = PREPARED_DEMO_RESULT_MANIFEST.filter((asset) =>
+      asset.assetClass === 'APPROVED_DEMO_OUTPUT' &&
+      asset.reviewStatus === 'APPROVED' &&
+      asset.localStoragePath,
+    )
+    if (approvedLocalAssets.length !== 2 || approvedLocalAssets.some((asset) => asset.productionStorageKey !== null)) {
+      throw new Error('The Local audit requires exactly two approved Local outputs and no configured Production storage keys.')
+    }
+    const expectedAssets = approvedLocalAssets.map((asset) => asset.assetKey).sort()
     const actualAssets = prepared.map((item) => item.sourceRef.assetKey).sort()
     if (prepared.length !== 2 || JSON.stringify(actualAssets) !== JSON.stringify(expectedAssets)) {
       throw new Error('Decision Result does not contain exactly the canonical Rowan and Lane prepared references.')
@@ -66,6 +76,13 @@ async function main() {
       const descriptor = PREPARED_DEMO_RESULT_MANIFEST.find((asset) => asset.assetKey === item.sourceRef.assetKey)
       if (!descriptor || skuById.get(item.frameId) !== descriptor.frameSku) {
         throw new Error('Prepared result provenance does not resolve to its canonical tenant frame SKU.')
+      }
+      if (descriptor.assetClass !== 'APPROVED_DEMO_OUTPUT' || descriptor.reviewStatus !== 'APPROVED' || !descriptor.localStoragePath) {
+        throw new Error('The browser journey used a QA fixture or a non-approved asset instead of the approved prepared output.')
+      }
+      const bytes = await readFile(path.resolve(process.cwd(), descriptor.localStoragePath))
+      if (createHash('sha256').update(bytes).digest('hex') !== descriptor.assetSha256) {
+        throw new Error(`Prepared output checksum mismatch for ${descriptor.frameIdentity}.`)
       }
     }
 
@@ -95,6 +112,7 @@ async function main() {
     console.log('LOCAL PREPARED DEMO AUDIT: PASS')
     console.log(`merchant=${merchant.id} session=${result.merchantSessionId} decisionResult=${result.id}`)
     console.log(`preparedResults=${prepared.length} frameSkus=${[...skuById.values()].sort().join(',')}`)
+    console.log(`approvedAssets=${approvedLocalAssets.map((asset) => `${asset.frameIdentity}:${asset.assetSha256}`).join(',')}`)
     console.log(`TryOnTask=${tryOnTasks} GenerationRequest=${generationRequests} GenerationAttempt=${generationAttempts}`)
     console.log(`renderUsage=${tryOnUsageRows} tryOnEvents=${tryOnEvents}`)
   } finally {

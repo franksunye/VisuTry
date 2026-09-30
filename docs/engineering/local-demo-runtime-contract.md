@@ -85,21 +85,28 @@ schema parity and fails with the bootstrap command if the schema has drifted.
 For repeatable no-provider Store → Face Intelligence → Recommendation → frame
 selection → prepared result → Compare → Decision Result → QR/mobile browser
 verification, run `npm run demo:local:journey:e2e`. It owns both local server
-processes, refuses ports 3001/4100 if already occupied, and uses the same
-application contracts as the canonical Production Demo. Only the asset
-adapter differs: Local reads checksum-verified QA fixtures from this repo;
-Production is permitted to read only an explicitly approved private Blob
-asset. The Local fixtures are visibly disclosed as QA graphics, are not
-Try-On images or shopper evidence, and are never served in Production. Missing
-Production assets fail closed rather than falling back to Local files.
+processes, defaults to app port 3001, and supports the explicit 3002 isolation
+override when another VisuTry worktree owns 3001; it refuses any configured
+app/media port if already occupied. It uses the same application contracts as
+the canonical Production Demo. Only the asset
+adapter differs: guarded Local resolves the checksum-verified, Lead-approved
+prepared Demo result PNGs from this repo; Production is permitted to read only
+an explicitly approved private Blob asset. The older Local QA SVG fixtures
+remain separately classified as disclosure-only QA graphics and are not
+selected by the canonical journey or served in Production. Missing Production
+assets fail closed rather than falling back to Local files. The canonical
+browser E2E verifies the approved PNG bytes during the journey and after an app
+restart, then resets shopper state while preserving the Demo fixture.
 
 The default Local execution mode is `PREPARED_DEMO`: deterministic, repeatable,
 and zero-provider. It creates a source-typed prepared result reference in the
 existing private Decision Result; it does not create TryOnTask,
 GenerationRequest/Attempt, paid-usage, or provider/reliability telemetry. The
-journey stops its technical assertion at the same Compare / Decision Result /
-mobile continuation used for prepared results. Its QA fixture disclosure
-means this is plumbing/UX evidence, not a real Try-On sales demonstration.
+canonical E2E verifies this Compare / Decision Result / mobile continuation,
+including exact served-image bytes and readability after an app restart. The
+Local result image is a pre-approved Demo asset, not a live generation from
+the current shopper session; no Provider telemetry or Try-On usage is created
+by this path.
 
 `LIVE_PROVIDER` is an explicit opt-in reserved for the existing authorized
 Local GrsAI provider-smoke command below. It is not required for normal Local
@@ -144,7 +151,7 @@ explicit `--authorized` argument.
 | MediaPipe | Real browser inference, pinned 0.10.35 WASM/model hosted from `127.0.0.1:4100`; loopback configuration disables CDN/GCS fallback |
 | Recommendation | Existing deterministic production application/domain path |
 | Store / Compare / Result | Existing Store application routes and persisted Local PostgreSQL state |
-| Try-On | Canonical Demo defaults to shared `PREPARED_DEMO` in Local and Production; Local uses only visibly watermarked QA fixtures, Production accepts only approved private assets and currently fails closed without them. `LIVE_PROVIDER` is restricted to the existing explicitly authorized Local GrsAI provider-smoke command; Gemini is never a fallback |
+| Try-On | Canonical Demo defaults to shared `PREPARED_DEMO` in Local and Production; Local selects checksum-verified approved result PNGs, while older QA SVGs remain separately classified and are not selected by the canonical journey. Production accepts only approved private assets and currently fails closed without them. `LIVE_PROVIDER` is restricted to the existing explicitly authorized Local GrsAI provider-smoke command; Gemini is never a fallback |
 | Stripe | Local mock path and TEST mode only; no checkout is needed for the demo journey |
 | Analytics | `APP_ENV=local` suppresses Production GA/Axiom destinations |
 | Store photo/result bytes | Filesystem-backed `APP_ENV=local` mock Blob adapter under ignored `.local/mock-blob/`, isolated from Vercel Blob and durable across Next process restarts |
