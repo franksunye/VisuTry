@@ -57,6 +57,10 @@ const localeLessMarketingRedirects = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // Next 16 blocks local-IP image optimization by default. Local Merchant
+    // QA intentionally uses loopback product fixtures; never enable this in
+    // Preview/Production.
+    dangerouslyAllowLocalIP: process.env.APP_ENV === 'local',
     remotePatterns: [
       ...localImagePatterns,
       {
