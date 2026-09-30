@@ -6,6 +6,7 @@ import {
   emptyDecisionResultPayload,
   sanitizeDecisionResultPayload,
   uniqueBounded,
+  DECISION_RESULT_SCHEMA_VERSION,
   type CanonicalDecisionResultPayload,
 } from '../../domain/decision-result'
 import type { DecisionResultRepository } from '../../application/ports/repositories'
@@ -37,7 +38,7 @@ export function createPrismaDecisionResultRepository(): DecisionResultRepository
         const result = existing
           ? await tx.decisionResult.update({
               where: { id: existing.id },
-              data: { experienceId: input.experienceId ?? null, payload: payload as Prisma.InputJsonValue, expiresAt: input.expiresAt },
+              data: { experienceId: input.experienceId ?? null, schemaVersion: DECISION_RESULT_SCHEMA_VERSION, payload: payload as Prisma.InputJsonValue, expiresAt: input.expiresAt },
             })
           : await tx.decisionResult.create({
               data: {
@@ -81,15 +82,62 @@ export function createPrismaDecisionResultRepository(): DecisionResultRepository
           if (input.selectedFrameIds) next.selectedFrameIds = uniqueBounded(input.selectedFrameIds, 12)
           if (input.favoriteFrameId) next.favoriteFrameIds = uniqueBounded([...next.favoriteFrameIds, input.favoriteFrameId], 12)
           if (input.tryOnResult) {
-            next.tryOnResults = [...next.tryOnResults.filter((result) => result.taskId !== input.tryOnResult?.taskId), input.tryOnResult].slice(0, 12)
+            next.tryOnResults = [...next.tryOnResults.filter((result) => result.source !== 'LIVE_TRYON' || result.taskId !== input.tryOnResult?.taskId), input.tryOnResult].slice(0, 12)
           }
           if (input.compare) next.compare = input.compare
           return next
         })()
         await tx.decisionResult.update({
           where: { id: existing.id },
-          data: { payload: payload as Prisma.InputJsonValue },
+          data: { schemaVersion: DECISION_RESULT_SCHEMA_VERSION, payload: payload as Prisma.InputJsonValue },
         })
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+    },
+
+    async getSessionResultItems(input) {
+      const result = await prisma.decisionResult.findUnique({
+        where: { merchantId_merchantSessionId: { merchantId: input.merchantId, merchantSessionId: input.merchantSessionId } },
+        select: { payload: true },
+      })
+      return result ? sanitizeDecisionResultPayload(result.payload).tryOnResults : []
+    },
+
+    async recordPreparedDemoResult(input) {
+      const now = new Date()
+      const tokenHash = hashSessionCapability(input.shareToken)
+      return prisma.$transaction(async (tx) => {
+        const share = await tx.decisionResultShare.findFirst({
+          where: { merchantId: input.merchantId, tokenHash, revokedAt: null, expiresAt: { gt: now } },
+          include: { result: true },
+        })
+        if (
+          !share ||
+          share.result.merchantId !== input.merchantId ||
+          share.result.merchantSessionId !== input.merchantSessionId ||
+          share.result.expiresAt.getTime() <= now.getTime()
+        ) return false
+
+        const frame = await tx.merchantFrame.findFirst({
+          where: {
+            id: input.reference.frameId,
+            merchantId: input.merchantId,
+            status: 'ACTIVE',
+          },
+          select: { id: true },
+        })
+        if (!frame) return false
+
+        const payload = sanitizeDecisionResultPayload(share.result.payload)
+        if (!payload.selectedFrameIds.includes(input.reference.frameId)) return false
+        const previous = payload.tryOnResults.filter((item) =>
+          item.source !== 'PREPARED_DEMO' || item.frameId !== input.reference.frameId,
+        )
+        payload.tryOnResults = [...previous, input.reference].slice(0, 12)
+        await tx.decisionResult.update({
+          where: { id: share.result.id },
+          data: { schemaVersion: DECISION_RESULT_SCHEMA_VERSION, payload: payload as Prisma.InputJsonValue },
+        })
+        return true
       }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
     },
   }

@@ -35,6 +35,9 @@ type TryOnRetryAction = 'resume' | 'resubmit' | 'none'
 type TryOnTile = {
   merchantFrameId: string
   taskId: string | null
+  source: 'LIVE_TRYON' | 'PREPARED_DEMO' | null
+  sourceRef: { assetKey: string; provenanceId: string; manifestVersion: string; shopperProfileId: string; shopperProfileVersion: string } | null
+  disclosure: 'PREPARED_DEMO' | 'LOCAL_QA_FIXTURE' | null
   status: 'queued' | 'processing' | 'completed' | 'failed' | 'timed_out' | 'status_unknown'
   resultImageUrl: string | null
   errorMessage: string | null
@@ -48,6 +51,7 @@ type StoreTryOnComparePanelProps = {
   experienceSlug?: string
   locale: string
   merchantSessionId: string
+  decisionResultToken?: string | null
   selectedFrames: FrameMeta[]
   photoPreview?: string
   accent: string
@@ -73,6 +77,9 @@ function restoreTilesFromTasks(
     return [{
       merchantFrameId: task.merchantFrameId,
       taskId: task.taskId,
+      source: 'LIVE_TRYON' as const,
+      sourceRef: null,
+      disclosure: null,
       status: 'processing' as const,
       resultImageUrl: null,
       errorMessage: null,
@@ -103,6 +110,7 @@ export function StoreTryOnComparePanel({
   experienceSlug,
   locale,
   merchantSessionId,
+  decisionResultToken,
   selectedFrames,
   photoPreview,
   accent,
@@ -187,7 +195,7 @@ export function StoreTryOnComparePanel({
   const startTryOn = useCallback(async () => {
     if (!experiencePolicy.tryOnEnabled || selectedFrames.length === 0 || dispatching) return
     const framesToSubmit = selectedFrames.filter(
-      (frame) => !tiles.some((tile) => tile.merchantFrameId === frame.id && Boolean(tile.taskId)),
+      (frame) => !tiles.some((tile) => tile.merchantFrameId === frame.id && (Boolean(tile.taskId) || Boolean(tile.sourceRef))),
     )
     if (framesToSubmit.length === 0) return
     setDispatching(true)
@@ -207,10 +215,13 @@ export function StoreTryOnComparePanel({
       const byFrame = new Map(current.map((tile) => [tile.merchantFrameId, tile]))
       const next = selectedFrames.map((frame) => {
         const existing = byFrame.get(frame.id)
-        if (existing?.taskId) return existing
+        if (existing?.taskId || existing?.sourceRef) return existing
         return {
           merchantFrameId: frame.id,
           taskId: null,
+          source: null,
+          sourceRef: null,
+          disclosure: null,
           status: 'queued' as const,
           resultImageUrl: null,
           errorMessage: null,
@@ -219,7 +230,7 @@ export function StoreTryOnComparePanel({
         }
       })
       const extras = current.filter(
-        (tile) => tile.taskId && !selectedFrames.some((item) => item.id === tile.merchantFrameId),
+        (tile) => (tile.taskId || tile.sourceRef) && !selectedFrames.some((item) => item.id === tile.merchantFrameId),
       )
       return [...next, ...extras]
     })
@@ -236,6 +247,7 @@ export function StoreTryOnComparePanel({
             merchantFrameId: frame.id,
             batchId: nextBatchId,
             clientSubmissionId: `${nextBatchId}:${frame.id}`,
+            decisionResultToken: decisionResultToken ?? undefined,
             locale,
             deviceType: deviceTypeLabel(),
           }),
@@ -265,12 +277,28 @@ export function StoreTryOnComparePanel({
                 : tile,
             ),
           )
+        } else if (json.data.source === 'PREPARED_DEMO') {
+          setTiles((current) => current.map((tile) => tile.merchantFrameId === frame.id
+            ? {
+                ...tile,
+                taskId: null,
+                source: 'PREPARED_DEMO',
+                sourceRef: json.data.sourceRef,
+                disclosure: json.data.disclosure,
+                status: 'completed',
+                resultImageUrl: json.data.imageUrl,
+                errorMessage: null,
+                retryAction: 'none',
+                frame: { ...tile.frame, ...json.data.frame },
+              }
+            : tile))
         } else {
           setTiles((current) =>
             current.map((tile) =>
               tile.merchantFrameId === frame.id
                 ? {
                     ...tile,
+                    source: 'LIVE_TRYON',
                     taskId: json.data.taskId,
                     // The submit response confirms task creation but does not
                     // include the capability-protected Result asset URL. Even
@@ -306,6 +334,7 @@ export function StoreTryOnComparePanel({
     dispatching,
     merchantSlug,
     merchantSessionId,
+    decisionResultToken,
     locale,
     onError,
     batchId,
@@ -503,7 +532,7 @@ export function StoreTryOnComparePanel({
     setTiles((current) =>
       current.map((item) =>
         item.merchantFrameId === tile.merchantFrameId
-          ? { ...item, status: 'queued', errorMessage: null, taskId: null, retryAction: 'none' }
+          ? { ...item, status: 'queued', errorMessage: null, taskId: null, source: null, sourceRef: null, disclosure: null, retryAction: 'none' }
           : item,
       ),
     )
@@ -517,6 +546,7 @@ export function StoreTryOnComparePanel({
           merchantFrameId: tile.merchantFrameId,
           batchId,
           clientSubmissionId: `${batchId}:${tile.merchantFrameId}:retry:${Date.now()}`,
+          decisionResultToken: decisionResultToken ?? undefined,
           locale,
           deviceType: deviceTypeLabel(),
         }),
@@ -548,8 +578,19 @@ export function StoreTryOnComparePanel({
       setTiles((current) =>
         current.map((item) =>
           item.merchantFrameId === tile.merchantFrameId
-            ? {
+            ? json.data.source === 'PREPARED_DEMO' ? {
                 ...item,
+                source: 'PREPARED_DEMO',
+                sourceRef: json.data.sourceRef,
+                disclosure: json.data.disclosure,
+                taskId: null,
+                status: 'completed',
+                resultImageUrl: json.data.imageUrl,
+                errorMessage: null,
+                retryAction: 'none',
+              } : {
+                ...item,
+                source: 'LIVE_TRYON',
                 taskId: json.data.taskId,
                 status: 'processing',
                 retryAction: 'none',
@@ -571,7 +612,7 @@ export function StoreTryOnComparePanel({
   }
 
   const framesNeedingSubmit = selectedFrames.filter(
-    (frame) => !tiles.some((tile) => tile.merchantFrameId === frame.id && Boolean(tile.taskId)),
+    (frame) => !tiles.some((tile) => tile.merchantFrameId === frame.id && (Boolean(tile.taskId) || Boolean(tile.sourceRef))),
   )
   const tryOnStepNumber = decisionJourneyStages.indexOf('TRY_ON') + 1
 
@@ -670,7 +711,11 @@ export function StoreTryOnComparePanel({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={tile.resultImageUrl}
-                        alt={tile.frame.name}
+                        alt={tile.disclosure === 'LOCAL_QA_FIXTURE'
+                          ? `${tile.frame.name} — QA fixture, not a Try-On image`
+                          : tile.source === 'PREPARED_DEMO'
+                            ? `${tile.frame.name} — prepared demo result`
+                            : tile.frame.name}
                         data-testid={`store-tryon-result-${tile.taskId || tile.merchantFrameId}`}
                         className="h-full w-full object-cover"
                       />
@@ -722,6 +767,11 @@ export function StoreTryOnComparePanel({
                   </div>
                   <div className="space-y-1 p-4">
                     <p className="font-semibold text-slate-900">{tile.frame.name}</p>
+                    {tile.disclosure ? (
+                      <p className="text-xs font-medium text-slate-600" data-testid={`store-result-source-${tile.merchantFrameId}`}>
+                        {tile.disclosure === 'LOCAL_QA_FIXTURE' ? 'QA fixture · not a Try-On image' : 'Prepared demo result'}
+                      </p>
+                    ) : null}
                     <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">{tile.frame.productBrand || t('tryOn.storeBrand')}</p>
                     <p className="text-xs capitalize text-slate-400">{tile.frame.shape}</p>
                     {priceLabel && (
@@ -919,11 +969,16 @@ export function StoreTryOnComparePanel({
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={tile.resultImageUrl!}
-                      alt={tile.frame.name}
+                      alt={tile.disclosure === 'LOCAL_QA_FIXTURE'
+                        ? `${tile.frame.name} — QA fixture, not a Try-On image`
+                        : tile.source === 'PREPARED_DEMO'
+                          ? `${tile.frame.name} — prepared demo result`
+                          : tile.frame.name}
                       className="aspect-[4/5] w-full object-cover"
                     />
                     <div className="p-3">
                       <p className="text-sm font-semibold text-gray-900">{tile.frame.name}</p>
+                      {tile.disclosure ? <p className="mt-1 text-xs font-medium text-slate-600">{tile.disclosure === 'LOCAL_QA_FIXTURE' ? 'QA fixture · not a Try-On image' : 'Prepared demo result'}</p> : null}
                       <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.12em] text-gray-400">{tile.frame.productBrand || t('tryOn.storeBrand')}</p>
                       {tile.frame.productUrl ? (
                         <button

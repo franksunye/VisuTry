@@ -178,6 +178,7 @@ export async function pollStoreFrameTryOn(
       merchantId: merchant.id,
       merchantSessionId: session.id,
       tryOnResult: {
+        source: 'LIVE_TRYON',
         taskId: input.taskId,
         frameId: owned.merchantFrameId,
         status: 'COMPLETED',

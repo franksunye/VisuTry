@@ -1,6 +1,6 @@
 import { DECISION_JOURNEY_STAGES, type DecisionJourneyStage } from './decision-journey'
 
-export const DECISION_RESULT_SCHEMA_VERSION = 1
+export const DECISION_RESULT_SCHEMA_VERSION = 2
 export const DECISION_RESULT_TTL_HOURS = 24
 export const DECISION_RESULT_MAX_FRAME_REFS = 12
 export const DECISION_RESULT_MAX_TRYON_REFS = 12
@@ -14,12 +14,30 @@ export type DecisionResultFrameReference = {
   reason: string
 }
 
-export type DecisionResultTryOnReference = {
-  taskId: string
-  frameId: string
-  status: 'COMPLETED'
-  completedAt: string
-}
+export type DecisionResultTryOnReference =
+  | {
+      source: 'LIVE_TRYON'
+      taskId: string
+      frameId: string
+      status: 'COMPLETED'
+      completedAt: string
+    }
+  | {
+      source: 'PREPARED_DEMO'
+      sourceRef: {
+        assetKey: string
+        provenanceId: string
+        manifestVersion: string
+        shopperProfileId: string
+        shopperProfileVersion: string
+      }
+      frameId: string
+      status: 'PREPARED'
+      presentedAt: string
+    }
+
+export type LiveDecisionResultTryOnReference = Extract<DecisionResultTryOnReference, { source: 'LIVE_TRYON' }>
+export type PreparedDemoDecisionResultReference = Extract<DecisionResultTryOnReference, { source: 'PREPARED_DEMO' }>
 
 export type DecisionResultJourneyContext = {
   experienceId: string | null
@@ -107,18 +125,54 @@ export function sanitizeDecisionResultPayload(value: unknown): CanonicalDecision
       }).slice(0, DECISION_RESULT_MAX_FRAME_REFS)
     : []
   const tryOnResults = Array.isArray(input.tryOnResults)
-    ? input.tryOnResults.flatMap((result) => {
+    ? input.tryOnResults.flatMap<DecisionResultTryOnReference>((result) => {
         if (!result || typeof result !== 'object') return []
-        const candidate = result as Partial<DecisionResultTryOnReference>
+        const candidate = result as Record<string, unknown>
+        if (typeof candidate.frameId !== 'string' || candidate.frameId.length === 0) return []
+        if (
+          candidate.source === 'PREPARED_DEMO' &&
+          candidate.status === 'PREPARED' &&
+          typeof candidate.presentedAt === 'string' &&
+          candidate.sourceRef && typeof candidate.sourceRef === 'object'
+        ) {
+          const sourceRef = candidate.sourceRef as Record<string, unknown>
+          if (
+            typeof sourceRef.assetKey !== 'string' || !sourceRef.assetKey ||
+            typeof sourceRef.provenanceId !== 'string' || !sourceRef.provenanceId ||
+            typeof sourceRef.manifestVersion !== 'string' || !sourceRef.manifestVersion ||
+            typeof sourceRef.shopperProfileId !== 'string' || !sourceRef.shopperProfileId ||
+            typeof sourceRef.shopperProfileVersion !== 'string' || !sourceRef.shopperProfileVersion
+          ) return []
+          return [{
+            source: 'PREPARED_DEMO' as const,
+            sourceRef: {
+              assetKey: sourceRef.assetKey,
+              provenanceId: sourceRef.provenanceId,
+              manifestVersion: sourceRef.manifestVersion,
+              shopperProfileId: sourceRef.shopperProfileId,
+              shopperProfileVersion: sourceRef.shopperProfileVersion,
+            },
+            frameId: candidate.frameId,
+            status: 'PREPARED' as const,
+            presentedAt: candidate.presentedAt,
+          }]
+        }
+
+        // Backward compatibility: schema-v1 payloads persisted only taskId.
+        // Never reinterpret an untyped value as PREPARED_DEMO.
         if (
           typeof candidate.taskId !== 'string' ||
           candidate.taskId.length === 0 ||
-          typeof candidate.frameId !== 'string' ||
-          candidate.frameId.length === 0 ||
           candidate.status !== 'COMPLETED' ||
           typeof candidate.completedAt !== 'string'
         ) return []
-        return [{ taskId: candidate.taskId, frameId: candidate.frameId, status: 'COMPLETED' as const, completedAt: candidate.completedAt }]
+        return [{
+          source: 'LIVE_TRYON' as const,
+          taskId: candidate.taskId,
+          frameId: candidate.frameId,
+          status: 'COMPLETED' as const,
+          completedAt: candidate.completedAt,
+        }]
       }).slice(0, DECISION_RESULT_MAX_TRYON_REFS)
     : []
   const enabledStages = Array.isArray(journey.enabledStages)

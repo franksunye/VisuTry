@@ -276,6 +276,8 @@ describe('recommendMerchantFrames', () => {
     const decisionResults = {
       upsertRecommendation: jest.fn(),
       updateSessionSnapshot: jest.fn(),
+      getSessionResultItems: jest.fn().mockResolvedValue([]),
+      recordPreparedDemoResult: jest.fn().mockResolvedValue(false),
     }
 
     const result = await recommendMerchantFrames({

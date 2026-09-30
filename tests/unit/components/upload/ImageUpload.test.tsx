@@ -159,6 +159,24 @@ describe('ImageUpload', () => {
       })
     })
 
+    it('preserves original bytes only when the canonical Demo flow requests source verification', async () => {
+      render(
+        <ImageUpload
+          onImageSelect={mockOnImageSelect}
+          onImageRemove={mockOnImageRemove}
+          preserveOriginalBytes
+        />,
+      )
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+      const sourceFile = new File(['canonical-source-bytes'], 'visutry-demo-shopper-v1.png', { type: 'image/png' })
+
+      await user.upload(fileInput, sourceFile)
+
+      await waitFor(() => expect(mockOnImageSelect).toHaveBeenCalledWith(sourceFile, 'data:image/jpeg;base64,preview'))
+      expect(mockCompressImage).not.toHaveBeenCalled()
+      expect(mockCreateImagePreview).toHaveBeenCalledWith(sourceFile)
+    })
+
     it('should use the user photo compression profile for user uploads', async () => {
       render(
         <ImageUpload

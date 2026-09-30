@@ -409,6 +409,7 @@ export type StoreTryOnSubmitRequest = {
   merchantFrameId: string
   batchId: string
   clientSubmissionId: string
+  decisionResultToken?: string
   locale?: string
   deviceType?: string
 }
@@ -428,6 +429,14 @@ export function parseStoreTryOnSubmitRequest(
     requireString(record.clientSubmissionId, 'clientSubmissionId', 200),
   ].filter(Boolean) as { path: string; message: string }[]
 
+  if (record.decisionResultToken !== undefined && (
+    typeof record.decisionResultToken !== 'string' ||
+    record.decisionResultToken.length > 200 ||
+    !/^[A-Za-z0-9_-]+$/.test(record.decisionResultToken)
+  )) {
+    issues.push({ path: 'decisionResultToken', message: 'decisionResultToken must be a bounded result token' })
+  }
+
   if (issues.length) return fail(issues)
 
   return ok({
@@ -436,6 +445,7 @@ export function parseStoreTryOnSubmitRequest(
     merchantFrameId: String(record.merchantFrameId).trim(),
     batchId: String(record.batchId).trim(),
     clientSubmissionId: String(record.clientSubmissionId).trim(),
+    decisionResultToken: typeof record.decisionResultToken === 'string' ? record.decisionResultToken : undefined,
     locale: typeof record.locale === 'string' ? record.locale : undefined,
     deviceType: typeof record.deviceType === 'string' ? record.deviceType : undefined,
   })

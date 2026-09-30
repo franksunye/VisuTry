@@ -8,6 +8,7 @@ import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-us
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import { resolveMerchantHandoff, type MerchantHandoff } from '../domain/merchant-handoff'
+import { isCanonicalVisuTryDemo } from '../domain/prepared-demo-results'
 import type { CommercialUsage, EntitlementDecision } from '../domain/merchant-commercial-state'
 import type {
   ExperienceRecord,
@@ -53,6 +54,8 @@ export type PublicExperienceDiscovery = {
     generativeTryOnUnavailableReason?: PublicTryOnUnavailableReason | null
     referenceData: boolean
     pilotType: string | null
+    /** Public UI hint only; server authorization revalidates the full identity. */
+    isCanonicalVisuTryDemo?: boolean
     updatedAt: Date
   }
   experience: {
@@ -171,6 +174,7 @@ export async function getPublicExperienceDiscovery(input: {
         : 'TEMPORARILY_UNAVAILABLE',
       referenceData: merchant.referenceData === true || experience.referenceData,
       pilotType: merchant.pilotType ?? null,
+      isCanonicalVisuTryDemo: isCanonicalVisuTryDemo(merchant),
       updatedAt: merchant.updatedAt,
     },
     experience: {

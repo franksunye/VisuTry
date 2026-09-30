@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
       sessions: runtime.sessions,
       events: runtime.events,
       decisionResults: runtime.decisionResults,
+      frames: runtime.frames,
       experiences: runtime.experiences,
       slug: String(record.merchantSlug).trim(),
       merchantSessionId: String(record.merchantSessionId).trim(),

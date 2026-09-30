@@ -51,7 +51,7 @@ start_server() {
   assert_port_free 3001
   assert_port_free 4100
   echo "Starting guarded Local Demo app (log: ${server_log})"
-  env NODE_ENV=development bash scripts/dev-local-demo.sh --deterministic-tryon-fixture >"$server_log" 2>&1 &
+  env NODE_ENV=development bash scripts/dev-local-demo.sh --prepared-demo >"$server_log" 2>&1 &
   server_pid=$!
   for attempt in $(seq 1 180); do
     if ! kill -0 "$server_pid" 2>/dev/null; then
@@ -98,7 +98,8 @@ export NEXT_PUBLIC_MEDIAPIPE_MODEL_URL="${NEXT_PUBLIC_MEDIAPIPE_MODEL_URL:-http:
 export STRIPE_MERCHANT_BILLING_MODE=test
 export VISUTRY_LOCAL_DEMO_RUNTIME=1
 export VISUTRY_LOCAL_DEMO_PROVIDER_MODE=blocked
-export P1_M5_LOCAL_DECISION_RESULT_E2E=1
+export VISUTRY_LOCAL_DEMO_EXECUTION_MODE=PREPARED_DEMO
+export VISUTRY_LOCAL_DEMO_PREPARED_E2E=1
 export PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001
 export VISUTRY_LOCAL_DEMO_RESULT_TOKEN_FILE="$token_file"
 
@@ -132,6 +133,9 @@ VISUTRY_LOCAL_DEMO_RESTART_RESULT_TOKEN="$result_token" \
   npx playwright test tests/e2e/demo-local-decision-result.spec.ts --project=chromium --grep "serves the same Decision Result"
 unset result_token
 stop_server
+
+echo "→ Audit prepared provenance and prove no live generation/provider artifacts exist"
+npm run demo:local:verify-prepared-results
 
 echo "Resetting again after restart verification; Merchant/Store/catalog must remain and shopper DB/media must be empty."
 run_reset_in_fresh_shell

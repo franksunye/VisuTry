@@ -15,6 +15,7 @@ import type { PublicExperienceDiscovery } from './get-public-experience-discover
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { resolveMerchantHandoff } from '../domain/merchant-handoff'
 import type { MerchantHandoff } from '../domain/merchant-handoff'
+import { isCanonicalVisuTryDemo } from '../domain/prepared-demo-results'
 
 export type PublicMerchantFramePreview = {
   id: string
@@ -49,6 +50,8 @@ export type PublicMerchantProfile = {
   websiteUrl: string | null
   accentColor: string | null
   pilotType: string | null
+  /** Public UI hint only; server authorization revalidates the full identity. */
+  isCanonicalVisuTryDemo?: boolean
   referenceData: boolean
   experiencePolicy: StoreExperiencePolicy
   decisionJourney?: DecisionJourneyPolicy
@@ -142,6 +145,7 @@ export function toPublicMerchantProfile(
     websiteUrl: merchant.websiteUrl,
     accentColor: merchant.accentColor,
     pilotType: merchant.pilotType ?? null,
+    isCanonicalVisuTryDemo: isCanonicalVisuTryDemo(merchant),
     referenceData: merchant.referenceData === true || experience?.referenceData === true,
     experiencePolicy: resolveStoreExperiencePolicy(merchant, experience),
     decisionJourney: resolvePublicDecisionJourney(merchant, experience),
@@ -194,6 +198,7 @@ export function publicMerchantFromDiscovery(
     websiteUrl: discovery.merchant.websiteUrl,
     accentColor: discovery.merchant.accentColor,
     pilotType: discovery.merchant.pilotType ?? null,
+    isCanonicalVisuTryDemo: discovery.merchant.isCanonicalVisuTryDemo === true,
     referenceData: discovery.merchant.referenceData || discovery.experience.referenceData,
     experiencePolicy: discovery.experiencePolicy,
     decisionJourney: discovery.decisionJourney,

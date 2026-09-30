@@ -40,6 +40,7 @@ describe('canonical Decision Result payload', () => {
       reason: 'Balanced proportions',
     }])
     expect(payload.tryOnResults).toEqual([{
+      source: 'LIVE_TRYON',
       taskId: 'task-1',
       frameId: 'frame-1',
       status: 'COMPLETED',
@@ -47,6 +48,49 @@ describe('canonical Decision Result payload', () => {
     }])
     expect(payload.journey.enabledStages).toEqual(['FACE_ANALYSIS', 'RECOMMENDATION'])
     expect(JSON.stringify(payload)).not.toContain('raw-face')
+  })
+
+  it('persists prepared provenance as a distinct typed source and rejects incomplete prepared references', () => {
+    const payload = sanitizeDecisionResultPayload({
+      tryOnResults: [
+        {
+          source: 'PREPARED_DEMO',
+          sourceRef: {
+            assetKey: 'demo-rowan-v1',
+            provenanceId: 'reviewed-demo-rowan-v1',
+            manifestVersion: '1',
+            shopperProfileId: 'visutry-demo-shopper-v1',
+            shopperProfileVersion: '1',
+          },
+          frameId: 'frame-rowan',
+          status: 'PREPARED',
+          presentedAt: '2026-09-30T00:00:00.000Z',
+          taskId: 'must-not-become-a-task',
+        },
+        {
+          source: 'PREPARED_DEMO',
+          sourceRef: { assetKey: 'missing-provenance' },
+          frameId: 'frame-lane',
+          status: 'PREPARED',
+          presentedAt: '2026-09-30T00:00:00.000Z',
+        },
+      ],
+    })
+
+    expect(payload.tryOnResults).toEqual([{
+      source: 'PREPARED_DEMO',
+      sourceRef: {
+        assetKey: 'demo-rowan-v1',
+        provenanceId: 'reviewed-demo-rowan-v1',
+        manifestVersion: '1',
+        shopperProfileId: 'visutry-demo-shopper-v1',
+        shopperProfileVersion: '1',
+      },
+      frameId: 'frame-rowan',
+      status: 'PREPARED',
+      presentedAt: '2026-09-30T00:00:00.000Z',
+    }])
+    expect(JSON.stringify(payload)).not.toContain('must-not-become-a-task')
   })
 
   it('bounds all persisted shopper references', () => {

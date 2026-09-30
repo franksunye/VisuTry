@@ -18,6 +18,7 @@ interface ImageUploadProps {
   accept?: string
   height?: string
   iconType?: "image" | "user" | "glasses" | "outfit" | "shoes" | "accessories"
+  preserveOriginalBytes?: boolean
 }
 
 export function ImageUpload({
@@ -31,7 +32,8 @@ export function ImageUpload({
   description = "JPEG, PNG, or WebP",
   accept = "image/jpeg,image/png,image/webp",
   height,
-  iconType = "image"
+  iconType = "image",
+  preserveOriginalBytes = false,
 }: ImageUploadProps) {
   const [dragOver, setDragOver] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -59,9 +61,9 @@ export function ImageUpload({
       const compressionProfile = iconType === "user" ? "user-photo" : "item-photo"
 
       // Compress image
-      const compressedFile = await compressImage(file, undefined, undefined, {
-        profile: compressionProfile
-      })
+      const compressedFile = preserveOriginalBytes
+        ? file
+        : await compressImage(file, undefined, undefined, { profile: compressionProfile })
 
       // 🔍 追踪日志：记录压缩后的文件信息
       const compressedFileInfo = {
@@ -88,7 +90,7 @@ export function ImageUpload({
     } finally {
       setUploading(false)
     }
-  }, [onImageSelect, label, iconType])
+  }, [onImageSelect, label, iconType, preserveOriginalBytes])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()

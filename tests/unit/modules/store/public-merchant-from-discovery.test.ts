@@ -16,6 +16,7 @@ describe('publicMerchantFromDiscovery', () => {
         generativeTryOnAvailable: true,
         referenceData: true,
         pilotType: 'REFERENCE',
+        isCanonicalVisuTryDemo: false,
         updatedAt: date,
       },
       experience: {
@@ -62,8 +63,54 @@ describe('publicMerchantFromDiscovery', () => {
     expect(profile.slug).toBe('ello-sunglasses')
     expect(profile.guestSponsoredTryOnLimit).toBe(1)
     expect(profile.experiencePolicy.maxCompareFrames).toBe(2)
+    expect(profile.isCanonicalVisuTryDemo).toBe(false)
     expect(profile.featuredFrames).toHaveLength(1)
     expect(profile.featuredFrames[0]?.productBrand).toBe('ello')
     expect(JSON.stringify(profile)).not.toMatch(/planCode|commerceSessionAllowance|standardRenderAllowance/i)
+  })
+
+  it('preserves the canonical Demo presentation hint resolved by discovery', () => {
+    const discovery: PublicExperienceDiscovery = {
+      merchant: {
+        id: 'demo-merchant',
+        slug: 'visutry-demo-optical',
+        name: 'VisuTry Demo Optical',
+        logoUrl: null,
+        websiteUrl: null,
+        accentColor: null,
+        generativeTryOnAvailable: true,
+        referenceData: true,
+        pilotType: 'DEMO',
+        isCanonicalVisuTryDemo: true,
+        updatedAt: date,
+      },
+      experience: {
+        id: 'demo-store',
+        merchantId: 'demo-merchant',
+        type: 'STORE',
+        slug: 'store',
+        name: 'Store',
+        status: 'ACTIVE',
+        headline: null,
+        description: null,
+        heroAssetUrl: null,
+        presentationMode: null,
+        deliveryPolicy: { kioskEnabled: false, kioskIdleTimeoutSeconds: 120 },
+        referenceData: true,
+        updatedAt: date,
+      },
+      frames: [],
+      experiencePolicy: {
+        tryOnEnabled: true,
+        compareEnabled: true,
+        maxCompareFrames: 2,
+        inquiryEnabled: false,
+      },
+      guestSponsoredTryOnLimit: 1,
+      visibility: 'PUBLIC_NOINDEX',
+      lastModified: date,
+    }
+
+    expect(publicMerchantFromDiscovery(discovery).isCanonicalVisuTryDemo).toBe(true)
   })
 })
