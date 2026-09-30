@@ -19,6 +19,7 @@ This is the entry point for current VisuTry documentation. It distinguishes acti
 | Cross-product positioning / boundaries | `docs/product/product-system.md` |
 | Merchant human operating experience | `docs/product/specs/merchant-operating-experience.md` |
 | Merchant activation milestone semantics | `docs/merchant-activation-v1.md` |
+| Canonical Demo identity / Local-Production Demo operation | `docs/ops/visutry-demo-environment-contract.md` |
 | Detailed product behavior | `docs/product/specs/` |
 | Technical architecture / current system shape | `docs/project/architecture.md` + accepted ADRs |
 | Observability / analytics / attribution / data-plane ownership | `docs/project/observability-and-analytics-contract.md` |
@@ -64,6 +65,7 @@ For those specific baselines, read:
 
 - `docs/ops/traffic-ready-t0-2026-09-03.md`
 - `docs/ops/discovery-canary-2026-09-03.md`
+- `docs/ops/visutry-demo-environment-contract.md`
 - the governing plan/authority that explicitly references the baseline
 
 A newer gate or observation record supersedes “current phase” wording without rewriting the historical evidence file.

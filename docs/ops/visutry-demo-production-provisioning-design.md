@@ -1,11 +1,13 @@
 # VisuTry Demo Production Provisioning — Read-Only Design
 
-Status: design only. This document does not provision or mutate a Production
-Merchant, Store, catalog, route, or billing record.
+Status: historical provisioning design. The dedicated tenant was provisioned
+under a separately approved Production operation. This document records the
+original plan; the active identity and operating boundary is the
+[VisuTry Demo Environment Contract](./visutry-demo-environment-contract.md).
 
 ## Canonical target
 
-| Field | Proposed value |
+| Field | Approved plan value |
 | --- | --- |
 | Merchant name | `VisuTry Demo Optical` |
 | Merchant slug | `visutry-demo-optical` |
@@ -17,16 +19,16 @@ Merchant, Store, catalog, route, or billing record.
 | Catalog and media | synthetic, VisuTry-owned demo assets only |
 | Shopper/customer data | none |
 
-The shared commercial resolver must report `DEMO / DEMO_ACTIVE` before this
-tenant is linked publicly. The three marker fields are all required. Existing
+The shared commercial resolver must report `DEMO / DEMO_ACTIVE`. The three
+marker fields are all required. Existing
 `visutry-demo` Discovery Canary data is not a prerequisite and must not be
 rewritten, reclassified, expired, deleted, or have its billing/session history
 changed.
 
-## Read-only dry-run contract for a later authorized operation
+## Original read-only dry-run contract
 
-The eventual provisioning tool should default to `--dry-run` and be unable to
-write in dry-run mode. Its read-only phase should:
+The provisioning review used a dry-run-first contract. Its read-only phase was
+required to:
 
 1. Verify Production environment identity and the expected Production database
    marker without printing connection strings or credentials.
@@ -38,11 +40,12 @@ write in dry-run mode. Its read-only phase should:
 4. Print the prospective rows, references, and post-create verification steps;
    do not create a Merchant, membership, Store, frame, billing record, or
    provider request.
-5. Require a separate, explicit Production authorization before any later
-   write-capable execution is even introduced. That future operation must be
-   reviewed as a separate task.
+5. Require separate, explicit Production authorization before any write-capable
+   execution. Provisioning was later authorized and completed as a separate
+   operation; this historical design document does not assert current row
+   state or replace the active Demo Environment Contract.
 
-The future approved provisioning plan is one dedicated `TEST` Merchant with
+The approved provisioning plan was one dedicated `TEST` Merchant with
 `pilotType=DEMO` and `commercialExceptionCode=VISUTRY_DEMO`, one active Store,
 the approved synthetic catalog and Store selection, and the existing bounded
 Demo Try-On usage policy. It must not attach real customer data, a payment
@@ -50,23 +53,24 @@ method, a BillingAccount, a Stripe subscription, or a live billing lifecycle.
 Provider execution remains subject to the normal router, sponsored-usage
 controls where configured, and Store Demo attempt/render limits.
 
-## Public URL compatibility recommendation
+## Public URL compatibility decision
 
 Use `/en/store/visutry-demo-optical` as the canonical dedicated Demo URL.
 Preserve existing `/en/store/visutry-demo` links with one explicit permanent
-redirect to the new slug—but add that redirect only after the canonical target
-has been provisioned and its public route has passed an authorized smoke.
-This is a single known-slug compatibility rule, not a generic merchant alias
-subsystem. Until that later operation is approved, leave the existing route and
-the REAL/LIVE Discovery Canary behavior exactly as they are.
+redirect to the new slug, now that the target has been provisioned and its
+public route passed the authorized smoke. The implementation is an exact
+known-slug compatibility rule, not a generic merchant alias subsystem.
 
 The redirect changes public routing only; it does not rewrite or delete the
 historical canary row, its classification, plan, billing period, sessions, or
-billing records. Update first-party discovery/sitemap links to the canonical
-Demo URL in the same later, separately reviewed release.
+billing records. First-party discovery and sitemap links should resolve to the
+canonical Demo URL. Current implementation status is recorded in the active
+Demo Environment Contract.
 
-## Current Phase 1 boundary
+## Original Phase 1 boundary
 
-Phase 1 implements the shared entitlement and Local fixture only. It performs
-no Production reads or writes, Stripe calls, route redirects, deployments, or
-sales-material edits.
+Phase 1 implemented the shared entitlement and Local fixture without
+Production reads/writes, Stripe calls, route redirects, deployments, or
+sales-material edits. Later Production provisioning and cache revalidation
+were separately authorized. Current route/operation boundaries are in the
+active Demo Environment Contract.

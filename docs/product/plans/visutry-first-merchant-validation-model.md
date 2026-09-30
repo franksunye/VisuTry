@@ -39,7 +39,7 @@ For example, VisuTry may use a deliberately conservative sponsored-usage allowan
 
 Reference Experiences must also preserve explicit provenance and must never be represented as customer, partner, or case-study relationships unless such a relationship actually exists.
 
-The production validation merchant is `VisuTry Demo` (`visutry-demo`): a VisuTry-owned first-party Discovery Canary / production validation tenant. Current runtime seed truth is `pilotType=LIVE`, `classification=REAL`, `classificationSource=DISCOVERY_CANARY_2026-09-03`, `referenceData=false`, and `sponsoredUsagePolicyKey=VISUTRY_OWNED`.
+The historical Production validation tenant was `VisuTry Demo` (`visutry-demo`): a VisuTry-owned first-party Discovery Canary. Its original runtime identity was `pilotType=LIVE`, `classification=REAL`, `classificationSource=DISCOVERY_CANARY_2026-09-03`, `referenceData=false`, and `sponsoredUsagePolicyKey=VISUTRY_OWNED`. It is retained as historical data and is not the current canonical Demo tenant. The active identity, route, and operation rules are in the [VisuTry Demo Environment Contract](../../ops/visutry-demo-environment-contract.md).
 
 `classification=REAL` here does **not** make VisuTry Demo an external merchant, paying customer, partner, endorsement, or case study. Its explicit Discovery Canary provenance and VisuTry-owned policy keep it outside commercial merchant/subscription/revenue KPI treatment under the current classification contract while preserving its bounded discovery-evidence role. See `docs/project/observability-and-analytics-contract.md` for the governing attribution/exclusion semantics.
 

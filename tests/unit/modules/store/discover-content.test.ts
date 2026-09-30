@@ -127,6 +127,11 @@ describe('Discover content contract', () => {
     expect(content.featured.every((item) => item.href.includes('campaign=discover-featured'))).toBe(true)
     expect(content.merchants).toHaveLength(5)
     expect(content.merchants.every((item) => item.referenceData)).toBe(true)
+    expect(content.demo).toEqual({
+      href: '/en/store/visutry-demo-optical?source=visutry&medium=internal&surface=discover&campaign=canonical-demo',
+      name: 'VisuTry Demo Optical',
+      description: expect.any(String),
+    })
   })
 
   it('filters an inactive or empty curated Experience without hiding other merchants', async () => {
@@ -144,5 +149,6 @@ describe('Discover content contract', () => {
 
     expect(content.featured).toHaveLength(0)
     expect(content.merchants).toHaveLength(5)
+    expect(content.demo.href).toContain('/en/store/visutry-demo-optical')
   })
 })

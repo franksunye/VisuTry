@@ -207,13 +207,13 @@ export default async function DemoFramePage({ params }: DemoFramePageProps) {
             </dl>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
-                href={`/${locale}/c/${VISUTRY_DEMO_MERCHANT_SLUG}/everyday-fit?source=discovery-canary#featured-frames`}
+                href={`/${locale}/store/${VISUTRY_DEMO_MERCHANT_SLUG}?source=visutry&medium=internal&surface=demo-frame&campaign=frame-detail#featured-frames`}
                 className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
               >
-                Try this frame in VisuTry Demo
+                Find this frame in the Demo Store
               </Link>
               <Link
-                href={`/${locale}/store/${VISUTRY_DEMO_MERCHANT_SLUG}?source=discovery-canary#featured-frames`}
+                href={`/${locale}/store/${VISUTRY_DEMO_MERCHANT_SLUG}#featured-frames`}
                 className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-500"
               >
                 Back to Demo Store

@@ -3,6 +3,7 @@ import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { resolveExperienceSearchVisibility } from '@/modules/store/domain/experience-search-visibility'
 import { PUBLIC_DISCOVERY_CACHE, publicDiscoveryCacheNamespace } from '@/lib/store-discovery-cache'
+import { VISUTRY_DEMO_HISTORICAL_CANARY_SLUG } from '@/lib/visutry-demo-frame-routes'
 
 export type PublicSitemapExperience = {
   type: 'STORE' | 'CAMPAIGN'
@@ -38,6 +39,10 @@ export function buildPublicExperienceSitemapEntries(input: {
   const entries: MetadataRoute.Sitemap = []
 
   input.merchants.forEach((merchant) => {
+    // The historical Canary Store URL permanently redirects to the canonical
+    // Demo tenant. Do not advertise the retired tenant or its campaign URLs.
+    if (merchant.slug === VISUTRY_DEMO_HISTORICAL_CANARY_SLUG) return
+
     const campaigns = merchant.experiences.filter((experience) => experience.type === 'CAMPAIGN')
     const store = merchant.experiences.find((experience) => experience.type === 'STORE' && experience.status === 'ACTIVE')
       || merchant.experiences.find((experience) => experience.type === 'STORE')

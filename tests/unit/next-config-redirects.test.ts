@@ -98,6 +98,8 @@ describe('locale-less marketing redirects', () => {
     { path: '/en/brand/warby-parker', expected: null, note: 'localized brand' },
     { path: '/store', expected: '/en/store', note: 'locale-less store hub' },
     { path: '/en/store', expected: null, note: 'localized store hub' },
+    { path: '/en/store/visutry-demo', expected: '/en/store/visutry-demo-optical', note: 'exact historical Demo Store URL' },
+    { path: '/ja/store/visutry-demo', expected: '/ja/store/visutry-demo-optical', note: 'preserves locale for the historical Demo Store URL' },
     { path: '/en/store/luna-optical', expected: null, note: 'localized merchant store' },
     { path: '/store/luna-optical', expected: '/en/store/luna-optical', note: 'locale-less merchant store' },
     { path: '/en/c/luna-optical/petite-fit', expected: null, note: 'localized campaign' },
@@ -127,6 +129,17 @@ describe('locale-less marketing redirects', () => {
       expect(hops[1].startsWith('/en/')).toBe(true)
       expect(applyRedirect(hops[1], redirects)).toBeNull()
     }
+  })
+
+  it('keeps the Demo compatibility redirect exact and permanent', () => {
+    const rule = redirects.find(({ source }) => source === '/:locale/store/visutry-demo')
+    expect(rule).toEqual({
+      source: '/:locale/store/visutry-demo',
+      destination: '/:locale/store/visutry-demo-optical',
+      permanent: true,
+    })
+    expect(followRedirects('/en/store/visutry-demo-optical', redirects)).toEqual(['/en/store/visutry-demo-optical'])
+    expect(followRedirects('/en/store/visutry-demo-extra', redirects)).toEqual(['/en/store/visutry-demo-extra'])
   })
 })
 

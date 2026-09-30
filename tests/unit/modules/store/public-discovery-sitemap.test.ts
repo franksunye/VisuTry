@@ -99,4 +99,39 @@ describe('public discovery sitemap contract', () => {
     expect(entries[0].url).toBe('https://www.visutry.com/en/store/live-merchant')
     expect(entries[0].lastModified).toEqual(later)
   })
+
+  it('omits the historical Discovery Canary whose Store path redirects to the canonical Demo', () => {
+    const entries = buildPublicExperienceSitemapEntries({
+      baseUrl: 'https://www.visutry.com',
+      merchants: [
+        {
+          slug: 'visutry-demo',
+          name: 'VisuTry Demo',
+          websiteUrl: null,
+          pilotType: 'LIVE',
+          referenceData: false,
+          sponsoredUsagePolicyKey: 'VISUTRY_OWNED',
+          updatedAt: now,
+          experiences: [
+            experience({ type: 'STORE', slug: 'default' }),
+            experience({ type: 'CAMPAIGN', slug: 'everyday-fit' }),
+          ],
+        },
+        {
+          slug: 'visutry-demo-optical',
+          name: 'VisuTry Demo Optical',
+          websiteUrl: null,
+          pilotType: 'DEMO',
+          referenceData: false,
+          sponsoredUsagePolicyKey: 'VISUTRY_OWNED',
+          updatedAt: later,
+          experiences: [experience({ type: 'STORE', slug: 'default' })],
+        },
+      ],
+    })
+
+    expect(entries.map((entry) => entry.url)).toEqual([
+      'https://www.visutry.com/en/store/visutry-demo-optical',
+    ])
+  })
 })

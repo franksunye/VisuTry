@@ -71,9 +71,12 @@ Evidence: `docs/ops/discovery-canary-2026-09-03.md`.
 
 Do not reset either clock for ordinary documentation, analytics-console or schema-governance work unless the underlying measurement contract becomes invalid.
 
-## 4. Current Discovery Canary
+## 4. Historical Discovery Canary baseline (2026-09-03)
 
-The current first-party canary is `VisuTry Demo`.
+This section preserves the 2026-09-03 first-party discovery experiment. The
+current canonical Demo identity and public route are governed by the
+[VisuTry Demo Environment Contract](../../ops/visutry-demo-environment-contract.md).
+The historical first-party canary was `VisuTry Demo`.
 
 - Store: `https://www.visutry.com/en/store/visutry-demo`
 - Campaign: `https://www.visutry.com/en/c/visutry-demo/everyday-fit`
@@ -193,7 +196,7 @@ Cross-cutting data-plane and analytics ownership is governed by:
 | Useful canonical Consumer educational/tool/answer surfaces | Index according to reviewed SEO/GEO policy |
 | Reference Store/Campaign | `noindex, follow`; not organic merchant proof |
 | Legitimate active PUBLIC_INDEX Store/Campaign | May be indexed when active, meaningful, destination-backed and deliberately admitted |
-| `VisuTry Demo` Discovery Canary | PUBLIC_INDEX first-party canary; current direct-discovery experiment |
+| `VisuTry Demo` Discovery Canary | Historical 2026-09-03 PUBLIC_INDEX experiment; see the canonical Demo Environment Contract for the current Demo tenant |
 | Paid/context-only Campaign | No automatic indexing; admit only by explicit policy |
 | Draft/private/inactive/unpublished | Not publicly discoverable / not in sitemap |
 

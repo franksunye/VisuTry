@@ -1,5 +1,5 @@
 import {
-  buildDiscoveryCanaryIndexNowUrls,
+  buildVisutryDemoIndexNowUrls,
   INDEXNOW_HOST,
   INDEXNOW_KEY,
   INDEXNOW_KEY_LOCATION,
@@ -9,7 +9,7 @@ const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow'
 const INDEXNOW_TIMEOUT_MS = 10_000
 
 async function main(): Promise<void> {
-  const urlList = buildDiscoveryCanaryIndexNowUrls()
+  const urlList = buildVisutryDemoIndexNowUrls()
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), INDEXNOW_TIMEOUT_MS)
 

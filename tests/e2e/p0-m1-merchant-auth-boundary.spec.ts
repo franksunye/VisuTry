@@ -31,7 +31,9 @@ test.describe('P0-M1 Merchant acquisition/auth boundary', () => {
     await expect(page.locator('[data-auth-surface="merchant-admin"]')).toBeVisible()
     await expect(page.getByRole('button', { name: /create merchant account/i })).toBeVisible()
 
-    await openSignIn(page, '/en/c/visutry-demo/everyday-fit')
+    // Synthetic callback path: this test verifies route-family auth selection,
+    // not a dependency on the historical Discovery Canary Campaign.
+    await openSignIn(page, '/en/c/campaign-auth-boundary-test/fixture-campaign')
     await expect(page.locator('[data-auth-surface="shopper"]')).toBeVisible()
     await expect(page.getByRole('button', { name: /create shopper account/i })).toBeVisible()
     await expect(page.getByText('Need a merchant workspace')).toHaveCount(0)

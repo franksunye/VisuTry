@@ -1,5 +1,10 @@
 /**
- * Seed the VisuTry-owned first-party discovery canary.
+ * Historical seed for the VisuTry-owned first-party Discovery Canary.
+ *
+ * The canonical Demo tenant is now `visutry-demo-optical`; this script still
+ * targets the historical `visutry-demo` Canary for evidence reproduction
+ * only. Do not use it to provision or maintain the sales/QA Demo. See
+ * docs/ops/visutry-demo-environment-contract.md before any operation.
  *
  * Safety:
  * - Uses one fixed merchant slug and tenant-scoped upserts only.

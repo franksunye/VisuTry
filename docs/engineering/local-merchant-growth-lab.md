@@ -13,6 +13,8 @@ For the reusable VisuTry Demo Optical Store, use the separate
 [Local Demo Runtime Contract](./local-demo-runtime-contract.md). It owns the
 `demo:local:seed`, `demo:local:dev`, and browser network verification loop;
 the Merchant Growth Lab's clean-onboarding seed/reset remains separate.
+The canonical Demo identity and provider policy are defined in the
+[VisuTry Demo Environment Contract](../ops/visutry-demo-environment-contract.md).
 
 ## First run
 
