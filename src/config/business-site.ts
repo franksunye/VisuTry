@@ -8,6 +8,7 @@ export type BusinessPageKey =
   | 'examples'
   | 'integrations'
   | 'pilot'
+  | 'resources'
 
 export type BusinessCard = {
   title: string
@@ -298,6 +299,18 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         note: 'Reference Pilot / Simulation · Public-source catalog information · No customer or partner relationship implied.',
       },
     ],
+  },
+  resources: {
+    slug: '/business/resources',
+    metaTitle: 'VisuTry Business Resources | Product Demo & In-Store Retail White Paper',
+    metaDescription: 'Watch the VisuTry in-store retail product demo and read the white paper covering the guided eyewear decision journey, shared-device retail, deployment, and pilot-to-rollout.',
+    eyebrow: 'Business Resources',
+    title: 'See the product. Go deeper on the retail model.',
+    description: 'Watch the working in-store product experience or read the practical white paper behind the decision journey, deployment model, and pilot-to-rollout approach.',
+    primaryCta: { label: 'Watch Product Demo', href: '#product-demo' },
+    secondaryCta: { label: 'Read White Paper', href: '#white-paper' },
+    microcopy: 'No form required. Use these resources to evaluate VisuTry before starting a Pilot.',
+    sections: [],
   },
   integrations: {
     slug: '/business/integrations',
