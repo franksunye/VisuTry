@@ -1,9 +1,10 @@
 import { resolveStoreTryOnExecutionMode } from '@/modules/store/application/resolve-demo-execution-mode'
 import type { MerchantRecord } from '@/modules/store/application/ports/repositories'
+import { VISUTRY_DEMO_MERCHANT_SLUG } from '@/modules/store/domain/visutry-demo-identity'
 
 const merchant = (overrides: Record<string, unknown> = {}) => ({
   id: 'demo-merchant',
-  slug: 'visutry-demo-optical',
+  slug: VISUTRY_DEMO_MERCHANT_SLUG,
   classification: 'TEST',
   pilotType: 'DEMO',
   commercialExceptionCode: 'VISUTRY_DEMO',

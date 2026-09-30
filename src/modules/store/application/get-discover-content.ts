@@ -5,6 +5,7 @@ import {
   getDiscoverCopy,
 } from '@/config/discover'
 import { buildMerchantExperienceHref } from './build-merchant-experience-href'
+import { VISUTRY_DEMO_MERCHANT_SLUG } from '../domain/visutry-demo-identity'
 import type {
   ExperienceRecord,
   ExperienceRepository,
@@ -137,7 +138,7 @@ export async function getDiscoverContent(
     featured: featured.filter((item) => item !== null),
     merchants: merchants.filter((item) => item !== null),
     demo: {
-      href: `/${locale}/store/visutry-demo-optical?source=visutry&medium=internal&surface=discover&campaign=canonical-demo`,
+      href: `/${locale}/store/${VISUTRY_DEMO_MERCHANT_SLUG}?source=visutry&medium=internal&surface=discover&campaign=canonical-demo`,
       name: 'VisuTry Demo Optical',
       description: 'A first-party demo collection for evaluating frame discovery, virtual try-on, comparison, and shopper decision flows.',
     },

@@ -5,7 +5,7 @@
 **Isolation:** Local PostgreSQL and Local mock auth only. Never use Preview or Production.
 
 Canonical identity, the historical Canary boundary, public URL, and the
-provider-free continuation limitation are governed by the
+shared Local/Production `PREPARED_DEMO` parity contract are governed by the
 [VisuTry Demo Environment Contract](../ops/visutry-demo-environment-contract.md).
 
 ## Operator loop

@@ -1,6 +1,6 @@
 import { isExplicitVisuTryDemoMerchant } from './merchant-commercial-state'
+import { VISUTRY_DEMO_MERCHANT_SLUG } from './visutry-demo-identity'
 
-export const CANONICAL_DEMO_MERCHANT_SLUG = 'visutry-demo-optical'
 export const CANONICAL_DEMO_SHOPPER_PROFILE_ID = 'visutry-demo-shopper-v1'
 export const CANONICAL_DEMO_SHOPPER_PROFILE_VERSION = '1'
 
@@ -14,7 +14,7 @@ export type DemoMerchantIdentity = {
 }
 
 export function isCanonicalVisuTryDemo(merchant: DemoMerchantIdentity): boolean {
-  return merchant.slug.trim().toLowerCase() === CANONICAL_DEMO_MERCHANT_SLUG
+  return merchant.slug.trim().toLowerCase() === VISUTRY_DEMO_MERCHANT_SLUG
     && isExplicitVisuTryDemoMerchant(merchant)
 }
 
