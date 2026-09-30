@@ -53,6 +53,10 @@ export const AnalyticsEvent = {
   B2bSalesIntentClicked: 'b2b_sales_intent_clicked',
   B2bLeadFormStarted: 'b2b_lead_form_started',
   B2bLeadCreated: 'b2b_lead_created',
+  B2bResourceNavigated: 'b2b_resource_navigated',
+  B2bResourceOpened: 'b2b_resource_opened',
+  B2bResourceVideoStarted: 'b2b_resource_video_started',
+  B2bResourceVideoCompleted: 'b2b_resource_video_completed',
 
   // Human merchant onboarding (B2B activation)
   MerchantOnboardingStarted: 'merchant_onboarding_started',
