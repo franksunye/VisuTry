@@ -67,14 +67,23 @@ describe('Business public content contract', () => {
     expect(publicCopy).toMatch(/Commerce Intelligence/)
   })
 
-  it('standardizes the public Pilot CTA while preserving the request CTA on the Pilot page', () => {
+  it('standardizes the public Pilot CTA while keeping Resources task-specific', () => {
     for (const [key, page] of Object.entries(businessPages)) {
       if (key === 'pilot') {
         expect(page.primaryCta.label).toBe('Request Pilot Review')
+      } else if (key === 'resources') {
+        expect(page.primaryCta.label).toBe('Watch Product Demo')
       } else {
         expect(page.primaryCta.label).toBe('Start 30-Day Pilot')
       }
     }
+  })
+
+  it('keeps Resources as a proof layer rather than another product overview', () => {
+    expect(businessPages.resources.title).toBe('See the product. Go deeper on the retail model.')
+    expect(businessPages.resources.primaryCta.href).toBe('#product-demo')
+    expect(businessPages.resources.secondaryCta?.href).toBe('#white-paper')
+    expect(businessPages.resources.sections).toEqual([])
   })
 
   it('presents the Founding Pilot as one configurable offer from $149', () => {
