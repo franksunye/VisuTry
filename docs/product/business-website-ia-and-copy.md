@@ -2,7 +2,7 @@
 
 **Status:** Current canonical Business website content contract  
 **Owner:** Product / Growth / Sales  
-**Last reconciled:** 2026-09-28
+**Last reconciled:** 2026-09-30
 
 ## 1. Purpose
 
@@ -54,6 +54,7 @@ Each page has one primary information job.
 | Commerce Intelligence | Merchant operating questions, analysis context, observable intent, evidence boundary | A BI suite or revenue-attribution promise |
 | Pricing | Commercial packaging, plan capacity, AI Commerce Session semantics, Pilot and Enterprise paths | A general product overview |
 | Examples | Product proof and clearly labeled Reference Experiences | Customer proof unless the relationship is real and approved |
+| Resources | Reusable product-marketing proof: approved demo video and white paper | A generic blog, gated lead magnet, or second product overview |
 | Integrations | Hosted-first deployment, current operating boundary, deeper-integration direction | A promise of unshipped integrations |
 | Pilot | Request, scope, operating process, included Pilot experience, and review cycle | A second recurring Pricing page |
 
@@ -220,6 +221,33 @@ The site may use:
 
 Do not invent metrics, controls, integrations, or merchant relationships for marketing visuals.
 
+### Reusable Business Resources
+
+The canonical resource hub is:
+
+```text
+/en/business/resources
+```
+
+Current approved resources:
+
+- **VisuTry In-Store Retail Product Demo** — the already-approved product walkthrough.
+- **AI Eyewear Decision Experience for In-Store Retail** — the already-approved eight-page white paper.
+
+These are reusable Product Marketing Assets, not Y2K customer proof. They must not imply a Y2K customer/partner relationship.
+
+Placement rules:
+
+- Business Home: light two-resource proof layer.
+- Platform: white-paper deep dive only.
+- Store: in-page product demo.
+- Pilot: both resources before the lead form so a prospect can evaluate before submitting.
+- Footer: canonical Resources link.
+- Pricing: no additional resource block; preserve commercial clarity.
+- Campaigns / Commerce Intelligence: no default resource block unless a future asset is directly specific to those pages.
+
+The approved PDF/video bytes must not be silently edited or re-exported when publishing them to the website. New versions require a new versioned resource ID / object key.
+
 ## 8. Navigation
 
 Desktop primary navigation:
@@ -230,6 +258,8 @@ Merchant Sign In | Start 30-Day Pilot
 ```
 
 Mobile uses the same primary information architecture.
+
+Resources belongs in the Footer and contextual page placements, not the primary header navigation at the current product stage.
 
 Do not add large solution / industry / resource mega-menus at the current product stage.
 
@@ -242,6 +272,8 @@ src/config/business-site.ts
 ```
 
 `BusinessMarketingPage` renders that contract and should not maintain a second runtime copy layer.
+
+Reusable external media metadata is canonical in `src/config/business-resources.ts`. Public asset URLs use versioned object keys under `media.visutry.com` so replacing an approved asset requires an explicit version change rather than mutating history.
 
 Automated tests protect:
 
