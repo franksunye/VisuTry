@@ -1,6 +1,6 @@
 # Business Media Delivery — Cloudflare R2
 
-**Status:** Implementation contract; live publication tracked in GitHub Issue #268  
+**Status:** Production active; live publication verified in GitHub Issue #268  
 **Owner:** Product / Engineering  
 **Last reconciled:** 2026-09-30
 
@@ -87,17 +87,17 @@ Re-evaluate Cloudflare Stream when the library develops one or more of these cha
 
 The page IA and resource IDs must remain stable if the underlying video delivery provider changes.
 
-## Verification gate
+## Production verification
 
-Website publication must not merge solely because the expected URLs are known.
+Issue #268 verification passed on 2026-09-30.
 
-Before release, Issue #268 must provide evidence that:
+- Bucket: `visutry-business-media` (Standard).
+- Custom domain: `media.visutry.com` — Active.
+- Public `r2.dev` development URL remains disabled.
+- White paper object returns HTTP 200 as `application/pdf`; production object size is 18,718,045 bytes and opens as the approved 8-page Master document.
+- Product demo returns HTTP 200 as `video/mp4`; production object size is 1,670,608 bytes.
+- MP4 byte-range verification returns HTTP 206 and Chrome playback / seeking passed.
+- Only the two versioned production object keys are retained.
+- No unrelated `www`, Worker Route, NS, SSL, or other Cloudflare configuration was changed.
 
-- the bucket and custom domain are active;
-- both versioned objects return HTTP 200;
-- content types are correct;
-- PDF opens in a normal browser;
-- MP4 playback and seeking work through the public custom domain;
-- no unrelated DNS, SSL, Worker Route, cache-contract, or application-hosting setting changed.
-
-After evidence passes, this document may be updated from implementation contract to production active.
+Future resource versions must use new versioned object keys rather than replacing the production history in place.
