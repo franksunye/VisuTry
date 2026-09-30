@@ -150,12 +150,21 @@ export function BusinessResourceStrip({
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{resource.formatLabel}</p>
                   <h3 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-slate-950">{resource.title}</h3>
                   <p className="mt-3 text-sm leading-6 text-slate-600">{resource.description}</p>
-                  <ResourceLink
-                    resource={resource}
-                    placement={placement}
-                    label={resource.type === 'video' ? 'Open product demo' : 'Read white paper'}
+                  <Link
+                    href={businessHref(locale, resource.type === 'video' ? '/business/resources#product-demo' : '/business/resources#white-paper')}
+                    prefetch={false}
+                    onClick={() => analytics.trackCustomEvent('business_resource_navigated', {
+                      resource_id: resource.id,
+                      resource_type: resource.type,
+                      resource_version: resource.version,
+                      placement,
+                      source_page: typeof window !== 'undefined' ? window.location.pathname : undefined,
+                    })}
                     className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
-                  />
+                  >
+                    {resource.type === 'video' ? 'Watch product demo' : 'Read white paper'}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
                 </div>
               </div>
             </article>
