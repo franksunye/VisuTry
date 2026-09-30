@@ -1,6 +1,16 @@
 export type TryOnBlobAccessMode = 'public' | 'private'
 
-export const TRY_ON_BLOB_DELETE_TOKEN_ENV = 'RPIVATE_BLOB_READ_WRITE_TOKEN'
+// Retain the existing environment variable spelling as part of the deployed
+// private Blob store contract; both Try-On retention and prepared Demo reads
+// must pass it explicitly rather than falling back to BLOB_READ_WRITE_TOKEN.
+export const PRIVATE_BLOB_READ_WRITE_TOKEN_ENV = 'RPIVATE_BLOB_READ_WRITE_TOKEN'
+export const TRY_ON_BLOB_DELETE_TOKEN_ENV = PRIVATE_BLOB_READ_WRITE_TOKEN_ENV
+
+export function getPrivateBlobReadWriteToken(
+  env: Record<string, string | undefined> = process.env,
+): string | null {
+  return env[PRIVATE_BLOB_READ_WRITE_TOKEN_ENV]?.trim() || null
+}
 
 export function resolveTryOnBlobAccessMode(
   configured = process.env.TRY_ON_BLOB_ACCESS_MODE ?? process.env.FACE_ANALYSIS_BLOB_ACCESS_MODE,
@@ -27,7 +37,7 @@ export function getTryOnBlobStoreId(
  * falls back to BLOB_READ_WRITE_TOKEN, which may belong to another store.
  */
 export function getTryOnBlobDeleteToken(): string {
-  const token = process.env[TRY_ON_BLOB_DELETE_TOKEN_ENV]?.trim()
+  const token = getPrivateBlobReadWriteToken()
   if (!token) {
     throw new Error(
       `${TRY_ON_BLOB_DELETE_TOKEN_ENV} is required for Try-On Blob retention cleanup`,

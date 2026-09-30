@@ -13,7 +13,7 @@ export type PreparedDemoAssetDescriptor = {
   provenanceId: string
   manifestVersion: string
   source: 'PREPARED_DEMO'
-  provenanceType: 'VISUTRY_AUTHORED_QA_FIXTURE' | 'LEAD_SUPPLIED_APPROVED_DEMO_OUTPUT'
+  provenanceType: 'VISUTRY_AUTHORED_QA_FIXTURE' | 'OPENAI_CURATED_LEAD_APPROVED_DEMO_OUTPUT'
   reviewStatus: 'QA_ONLY' | 'APPROVED'
   shopperProfileId: string
   shopperProfileVersion: string
@@ -105,7 +105,7 @@ export const PREPARED_DEMO_RESULT_MANIFEST: readonly PreparedDemoAssetDescriptor
     provenanceId: 'prepared-demo-rowan-lead-approved-2026-09-30',
     manifestVersion: PREPARED_DEMO_MANIFEST_VERSION,
     source: 'PREPARED_DEMO',
-    provenanceType: 'LEAD_SUPPLIED_APPROVED_DEMO_OUTPUT',
+    provenanceType: 'OPENAI_CURATED_LEAD_APPROVED_DEMO_OUTPUT',
     reviewStatus: 'APPROVED',
     shopperProfileId: CANONICAL_DEMO_SHOPPER_PROFILE_ID,
     shopperProfileVersion: CANONICAL_DEMO_SHOPPER_PROFILE_VERSION,
@@ -119,14 +119,14 @@ export const PREPARED_DEMO_RESULT_MANIFEST: readonly PreparedDemoAssetDescriptor
     contentType: 'image/png',
     createdAt: '2026-09-30',
     reviewedAt: '2026-09-30',
-    provenanceNote: 'Lead-supplied approved prepared Demo output for the canonical synthetic shopper and VT Rowan. Original PNG bytes are preserved unchanged; no Provider telemetry or generation provenance is asserted by this local asset record.',
+    provenanceNote: 'Curated prepared Demo visual generated with OpenAI image generation from the approved synthetic shopper and approved VT Rowan frame source, then approved by the Product Lead. This is not a GrsAI or Gemini output and is not a live result generated for a current shopper session.',
     rightsUseApproval: 'Product Lead approved this prepared Demo output for canonical VisuTry Demo use; demo-only and not for sale.',
     demoOnly: true,
     notForSale: true,
     assetClass: 'APPROVED_DEMO_OUTPUT',
     localQaPath: null,
     localStoragePath: 'docs/assets/local-demo/prepared-results/approved/rowan-prepared-result.png',
-    productionStorageKey: null,
+    productionStorageKey: 'visutry-demo/prepared/v1/rowan-prepared-result.png',
   },
   {
     assetName: 'VT Lane approved prepared Demo result',
@@ -134,7 +134,7 @@ export const PREPARED_DEMO_RESULT_MANIFEST: readonly PreparedDemoAssetDescriptor
     provenanceId: 'prepared-demo-lane-lead-approved-2026-09-30',
     manifestVersion: PREPARED_DEMO_MANIFEST_VERSION,
     source: 'PREPARED_DEMO',
-    provenanceType: 'LEAD_SUPPLIED_APPROVED_DEMO_OUTPUT',
+    provenanceType: 'OPENAI_CURATED_LEAD_APPROVED_DEMO_OUTPUT',
     reviewStatus: 'APPROVED',
     shopperProfileId: CANONICAL_DEMO_SHOPPER_PROFILE_ID,
     shopperProfileVersion: CANONICAL_DEMO_SHOPPER_PROFILE_VERSION,
@@ -148,14 +148,14 @@ export const PREPARED_DEMO_RESULT_MANIFEST: readonly PreparedDemoAssetDescriptor
     contentType: 'image/png',
     createdAt: '2026-09-30',
     reviewedAt: '2026-09-30',
-    provenanceNote: 'Lead-supplied approved prepared Demo output for the canonical synthetic shopper and VT Lane. Original PNG bytes are preserved unchanged; no Provider telemetry or generation provenance is asserted by this local asset record.',
+    provenanceNote: 'Curated prepared Demo visual generated with OpenAI image generation from the approved synthetic shopper and approved VT Lane frame source, then approved by the Product Lead. This is not a GrsAI or Gemini output and is not a live result generated for a current shopper session.',
     rightsUseApproval: 'Product Lead approved this prepared Demo output for canonical VisuTry Demo use; demo-only and not for sale.',
     demoOnly: true,
     notForSale: true,
     assetClass: 'APPROVED_DEMO_OUTPUT',
     localQaPath: null,
     localStoragePath: 'docs/assets/local-demo/prepared-results/approved/lane-prepared-result.png',
-    productionStorageKey: null,
+    productionStorageKey: 'visutry-demo/prepared/v1/lane-prepared-result.png',
   },
 ]
 

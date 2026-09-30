@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
-import { get } from '@vercel/blob'
+import { BlobNotFoundError, get } from '@vercel/blob'
+import { getPrivateBlobReadWriteToken } from '@/lib/tryon-blob-access'
 import type { PreparedDemoAssetDescriptor } from './prepared-result-manifest'
 
 export type PreparedDemoAssetBytes = {
@@ -20,9 +21,21 @@ function contentTypeForPathname(pathname: string): string {
   return 'image/png'
 }
 
-async function readPrivateBlob(storageKey: string): Promise<Buffer | null> {
-  const result = await get(storageKey, { access: 'private' })
-  if (!result?.stream) return null
+async function readPrivateBlob(
+  storageKey: string,
+  expectedContentType: string,
+  env: Record<string, string | undefined>,
+): Promise<Buffer | null> {
+  const token = getPrivateBlobReadWriteToken(env)
+  if (!token) return null
+  let result
+  try {
+    result = await get(storageKey, { access: 'private', token })
+  } catch (error) {
+    if (error instanceof BlobNotFoundError) return null
+    throw error
+  }
+  if (!result?.stream || result.blob.contentType !== expectedContentType) return null
   const reader = result.stream.getReader()
   const chunks: Uint8Array[] = []
   for (;;) {
@@ -66,7 +79,7 @@ export async function readPreparedDemoResultAsset(
     descriptor.assetClass === 'APPROVED_DEMO_OUTPUT' &&
     descriptor.productionStorageKey
   ) {
-    bytes = await readPrivateBlob(descriptor.productionStorageKey)
+    bytes = await readPrivateBlob(descriptor.productionStorageKey, descriptor.contentType, env)
     contentType = descriptor.contentType
   } else {
     return null
