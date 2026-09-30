@@ -1,6 +1,7 @@
 # Local Demo Runtime Contract
 
 **Status:** Active Local QA contract
+**Owner:** Merchant Platform
 **Scope:** Reusable VisuTry Demo Optical Store for Merchant Demo, Kiosk Demo, White Paper, Sales walkthroughs, and Store experience QA.
 **Isolation:** Local PostgreSQL and Local mock auth only. Never use Preview or Production.
 
@@ -56,13 +57,24 @@ preserved fixture cardinalities before commit.
 Re-run `npm run demo:local:seed` afterward to confirm the fixture seed remains
 idempotent and the Store still contains ten products.
 
-`demo:local:dev` fails closed unless the Local PostgreSQL preflight passes,
-the pinned local MediaPipe files exist, and the effective Stripe secret is
-absent or a TEST key. It serves the local MediaPipe files on loopback port 4100
-and runs Next on loopback port 3001. The script owns and stops the asset server
-when the Next process exits. If the assets are absent, run
-`npm run mediapipe:assets:download` once; that command downloads pinned files
-and verifies their SHA-256 before writing to ignored `.local/mediapipe-assets/`.
+`demo:local:bootstrap` ensures the pinned MediaPipe runtime before printing
+`LOCAL DEMO BOOTSTRAP: READY`. The checksum-verified cache is shared by all of
+the current user's worktrees at
+`${VISUTRY_LOCAL_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/visutry}/mediapipe-assets/0.10.35`.
+The default is outside the Git worktree; set `VISUTRY_LOCAL_CACHE_DIR` to an
+absolute path to override it. Existing non-empty files are reused only when
+their SHA-256 matches the pinned 0.10.35 manifest. Missing or invalid files
+are downloaded to temporary files, verified, and atomically installed. No
+runtime binaries are committed.
+
+`demo:local:dev` verifies the same shared cache and fails with an actionable
+`Run: npm run demo:local:bootstrap` message if it is unexpectedly incomplete.
+It serves MediaPipe files on loopback port 4100 and runs Next on loopback port
+3001 by default. If another worktree already owns 3001, set
+`VISUTRY_LOCAL_DEMO_PORT=3002` for an isolated run; the Local reset guard uses
+that same app port. The script owns and stops the asset server when Next exits.
+The canonical journey E2E checks this cache before resetting shopper state, so
+a missing runtime cannot cause a partial reset-first run.
 
 `npm run demo:local:bootstrap` starts/reuses the guarded Local PostgreSQL,
 reconciles its schema and LOCAL marker, seeds the deterministic demo fixture,

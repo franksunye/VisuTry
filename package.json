@@ -9,6 +9,8 @@
     "dev:test": "next dev --port 3001",
     "docs:audit": "node scripts/audit-docs.mjs",
     "docs:audit:strict": "node scripts/audit-docs.mjs --strict",
+    "mediapipe:assets:ensure": "node scripts/prepare-mediapipe-assets.mjs",
+    "mediapipe:assets:check": "node scripts/prepare-mediapipe-assets.mjs --check",
     "mediapipe:assets:download": "node scripts/prepare-mediapipe-assets.mjs",
     "mediapipe:assets:serve": "node scripts/serve-mediapipe-assets.mjs",
     "mail": "tsx scripts/mail.ts",

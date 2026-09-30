@@ -67,7 +67,8 @@ async function main(): Promise<void> {
   if (resolveRuntimePostgresProvider(process.env) !== 'PRISMA_PG') {
     throw new Error('Refusing: PrismaPg Local runtime is not selected.')
   }
-  await assertDemoServerStopped(isTcpPortListening)
+  const localDemoPort = Number(process.env.VISUTRY_LOCAL_DEMO_PORT || 3001)
+  await assertDemoServerStopped(isTcpPortListening, localDemoPort)
 
   const prisma = new PrismaClient({ adapter: createRuntimePostgresAdapter(process.env) })
   try {

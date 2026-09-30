@@ -49,9 +49,15 @@ export APP_ENV=local
 export VISUTRY_LOCAL_DEMO_RUNTIME=1
 export ENABLE_MOCKS=true
 export TEST_MODE=true
-export NEXTAUTH_URL=http://127.0.0.1:3001
+local_demo_port="${VISUTRY_LOCAL_DEMO_PORT:-3001}"
+if [[ "$local_demo_port" != "3001" && "$local_demo_port" != "3002" ]]; then
+  echo "VISUTRY_LOCAL_DEMO_PORT must be 3001 or 3002." >&2
+  exit 2
+fi
+export VISUTRY_LOCAL_DEMO_PORT="$local_demo_port"
+export NEXTAUTH_URL="http://127.0.0.1:${local_demo_port}"
 export NEXTAUTH_SECRET="${NEXTAUTH_SECRET:-local-only-development-secret}"
-export NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3001
+export NEXT_PUBLIC_SITE_URL="http://127.0.0.1:${local_demo_port}"
 export DATABASE_URL="${DATABASE_URL:-postgresql://visutry_local@127.0.0.1:5433/visutry_local}"
 export DATABASE_URL_UNPOOLED="${DATABASE_URL_UNPOOLED:-$DATABASE_URL}"
 export VISUTRY_DATABASE_IDENTITY="${VISUTRY_DATABASE_IDENTITY:-local:127.0.0.1:5433/visutry_local}"
@@ -59,17 +65,10 @@ export STRIPE_MERCHANT_BILLING_MODE=test
 export NEXT_PUBLIC_MEDIAPIPE_WASM_BASE_URL=http://127.0.0.1:4100/0.10.35/wasm
 export NEXT_PUBLIC_MEDIAPIPE_MODEL_URL=http://127.0.0.1:4100/0.10.35/models/face_landmarker.task
 
-asset_root=".local/mediapipe-assets/0.10.35"
-for asset in \
-  "$asset_root/wasm/vision_wasm_internal.js" \
-  "$asset_root/wasm/vision_wasm_internal.wasm" \
-  "$asset_root/models/face_landmarker.task"; do
-  if [[ ! -s "$asset" ]]; then
-    echo "Missing local MediaPipe asset: $asset"
-    echo "Run npm run mediapipe:assets:download once, then retry."
-    exit 1
-  fi
-done
+if ! npm run mediapipe:assets:check; then
+  echo "Local MediaPipe runtime is missing or invalid. Run: npm run demo:local:bootstrap" >&2
+  exit 1
+fi
 
 npm run merchant:local:preflight
 node scripts/preflight-local-demo.mjs
@@ -105,7 +104,7 @@ for attempt in {1..40}; do
   sleep 0.25
 done
 
-echo "Local Demo runtime ready — app :3001, MediaPipe assets :4100."
+echo "Local Demo runtime ready — app :${local_demo_port}, MediaPipe assets :4100."
 bash scripts/dev-local.sh &
 app_pid=$!
 wait "$app_pid"

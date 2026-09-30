@@ -154,6 +154,11 @@ export function assertLocalDemoSessionResetEnvironment(env: Record<string, strin
   assertDatabaseTarget(env.DATABASE_URL, 'DATABASE_URL')
   if (env.DATABASE_URL_UNPOOLED) assertDatabaseTarget(env.DATABASE_URL_UNPOOLED, 'DATABASE_URL_UNPOOLED')
 
+  const localDemoPort = env.VISUTRY_LOCAL_DEMO_PORT?.trim() || '3001'
+  if (!['3001', '3002'].includes(localDemoPort)) {
+    throw new Error('Refusing: VISUTRY_LOCAL_DEMO_PORT must be 3001 or 3002.')
+  }
+
   for (const key of ['NEXTAUTH_URL', 'NEXT_PUBLIC_SITE_URL'] as const) {
     let parsed: URL
     try {
@@ -161,8 +166,8 @@ export function assertLocalDemoSessionResetEnvironment(env: Record<string, strin
     } catch {
       throw new Error(`Refusing: ${key} must point to the Local Demo application.`)
     }
-    if (parsed.protocol !== 'http:' || parsed.hostname !== '127.0.0.1' || parsed.port !== '3001') {
-      throw new Error(`Refusing: ${key} must point to http://127.0.0.1:3001.`)
+    if (parsed.protocol !== 'http:' || parsed.hostname !== '127.0.0.1' || parsed.port !== localDemoPort) {
+      throw new Error(`Refusing: ${key} must point to http://127.0.0.1:${localDemoPort}.`)
     }
   }
 
@@ -173,7 +178,7 @@ export function assertLocalDemoSessionResetEnvironment(env: Record<string, strin
     } catch {
       throw new Error('Refusing: MCP_RESOURCE_URL is invalid.')
     }
-    if (parsed.protocol !== 'http:' || parsed.hostname !== '127.0.0.1' || parsed.port !== '3001') {
+    if (parsed.protocol !== 'http:' || parsed.hostname !== '127.0.0.1' || parsed.port !== localDemoPort) {
       throw new Error('Refusing: MCP_RESOURCE_URL must be absent or point to the Local Demo application.')
     }
   }
@@ -218,8 +223,9 @@ export function assertDemoStoreIdentity(input: {
 
 export async function assertDemoServerStopped(
   isListening: (host: string, port: number) => Promise<boolean>,
+  port = 3001,
 ): Promise<void> {
-  if (await isListening('127.0.0.1', 3001)) {
+  if (await isListening('127.0.0.1', port)) {
     throw new Error('Refusing: stop the Local Demo app before reset to avoid racing active Local shopper writes.')
   }
 }

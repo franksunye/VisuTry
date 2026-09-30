@@ -21,8 +21,14 @@ export TEST_MODE=true
 export DATABASE_URL="${DATABASE_URL:-postgresql://visutry_local@127.0.0.1:5433/visutry_local}"
 export DATABASE_URL_UNPOOLED="${DATABASE_URL_UNPOOLED:-$DATABASE_URL}"
 export VISUTRY_DATABASE_IDENTITY="${VISUTRY_DATABASE_IDENTITY:-local:127.0.0.1:5433/visutry_local}"
-export NEXTAUTH_URL="${NEXTAUTH_URL:-http://127.0.0.1:3001}"
-export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-http://127.0.0.1:3001}"
+local_demo_port="${VISUTRY_LOCAL_DEMO_PORT:-3001}"
+if [[ "$local_demo_port" != "3001" && "$local_demo_port" != "3002" ]]; then
+  echo "VISUTRY_LOCAL_DEMO_PORT must be 3001 or 3002." >&2
+  exit 2
+fi
+export VISUTRY_LOCAL_DEMO_PORT="$local_demo_port"
+export NEXTAUTH_URL="http://127.0.0.1:${local_demo_port}"
+export NEXT_PUBLIC_SITE_URL="http://127.0.0.1:${local_demo_port}"
 export NEXT_PUBLIC_MEDIAPIPE_WASM_BASE_URL=http://127.0.0.1:4100/0.10.35/wasm
 export NEXT_PUBLIC_MEDIAPIPE_MODEL_URL=http://127.0.0.1:4100/0.10.35/models/face_landmarker.task
 export STRIPE_MERCHANT_BILLING_MODE=test
