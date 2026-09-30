@@ -27,7 +27,7 @@ export const businessResources: Readonly<Record<BusinessResourceId, BusinessReso
     id: 'instore-retail-demo-v2',
     type: 'video',
     title: 'VisuTry In-Store Retail Product Demo',
-    description: 'A short walkthrough of the working shopper experience from Face Analysis and recommendations through Virtual Try-On, Compare, Decision Result, and mobile continuation.',
+    description: 'A short walkthrough of the current working VisuTry in-store retail product and shopper experience.',
     url: `${mediaBaseUrl}/demos/visutry-instore-retail-product-demo-v2.mp4`,
     version: 'v2',
     formatLabel: 'Product demo video',
