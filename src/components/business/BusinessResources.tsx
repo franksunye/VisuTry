@@ -99,7 +99,7 @@ export function BusinessResourceStrip({
   if (mode === 'video') {
     return (
       <section className="border-y border-slate-200 bg-white" data-business-resource-placement={placement}>
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-18 lg:grid-cols-[0.72fr_1.28fr] lg:items-center lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[0.72fr_1.28fr] lg:items-center lg:px-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Product demo</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">See the in-store decision journey in action.</h2>
@@ -120,7 +120,7 @@ export function BusinessResourceStrip({
 
   return (
     <section className="border-y border-slate-200 bg-[#f8fafc]" data-business-resource-placement={placement}>
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-18 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">{mode === 'whitepaper' ? 'Platform resource' : 'Product resources'}</p>
