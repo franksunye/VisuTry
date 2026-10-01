@@ -18,6 +18,39 @@ const APPROVED_RESULT_HASHES = {
   lane: '1c6f03785756d230fb1806572e03e9acf9eda32f150acb84ee783ee8bfac7b71',
 } as const
 
+type RecommendationFrame = {
+  name: string
+  sku: string | null
+  score: number
+  reason: string
+  imageUrl: string | null
+}
+
+async function expectDecisionResultShortlist(
+  page: import('@playwright/test').Page,
+  frames: RecommendationFrame[],
+) {
+  const images = page.locator('img[alt$="product thumbnail"]')
+  await expect(images).toHaveCount(frames.length)
+  const renderedNames = await images.evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute('alt')?.replace(/ product thumbnail$/, '')),
+  )
+  expect(renderedNames).toEqual(frames.map((frame) => frame.name))
+
+  for (let index = 0; index < frames.length; index += 1) {
+    const frame = frames[index]
+    const image = images.nth(index)
+    const renderedUrl = await image.getAttribute('src')
+    expect(renderedUrl && new URL(renderedUrl, page.url()).toString()).toBe(new URL(frame.imageUrl!, page.url()).toString())
+    await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0)
+
+    const card = page.getByText(frame.name, { exact: true }).locator('xpath=ancestor::div[contains(@class, "rounded-2xl")][1]')
+    await expect(card).toContainText(frame.sku || 'Merchant frame')
+    await expect(card).toContainText(String(Math.round(frame.score)))
+    await expect(card).toContainText(frame.reason)
+  }
+}
+
 async function expectApprovedPreparedImage(
   page: import('@playwright/test').Page,
   image: import('@playwright/test').Locator,
@@ -126,7 +159,9 @@ test('completes Store → Demo Shopper → Rowan/Lane prepared results → Compa
   await resultLink.click()
   await expect(page).toHaveURL(/\/en\/result\/[A-Za-z0-9_-]{40,}$/)
   await expect(page.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
+  await page.setViewportSize({ width: 1440, height: 900 })
   await expect(page.getByText('Prepared demo results')).toBeVisible()
+  await expectDecisionResultShortlist(page, recommendationPayload.data.frames)
   await expect(page.getByText('Prepared demo result', { exact: true })).toHaveCount(2)
   await expect(page.getByText('QA fixture · not a Try-On image')).toHaveCount(0)
   await expect(page.getByAltText('Scan to open this Decision Result on another device')).toBeVisible()
@@ -141,6 +176,7 @@ test('completes Store → Demo Shopper → Rowan/Lane prepared results → Compa
   const mobileNetwork = await localNetworkGuard(mobilePage)
   await mobilePage.goto(resultHref!, { waitUntil: 'networkidle' })
   await expect(mobilePage.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
+  await expectDecisionResultShortlist(mobilePage, recommendationPayload.data.frames)
   await expect(mobilePage.getByText('Continue on your phone')).toBeVisible()
   const mobileImages = mobilePage.locator('img[src*="/api/store/results/"]')
   await expect(mobileImages).toHaveCount(2)
@@ -148,7 +184,11 @@ test('completes Store → Demo Shopper → Rowan/Lane prepared results → Compa
     const alt = await image.getAttribute('alt')
     await expectApprovedPreparedImage(mobilePage, image, alt?.includes('VT Rowan') ? 'rowan' : 'lane')
   }
+  const screenshotDirectory = path.resolve('.local/demo-evidence/phase-2b3d-shortlist')
+  fs.mkdirSync(screenshotDirectory, { recursive: true })
+  await mobilePage.screenshot({ path: path.join(screenshotDirectory, 'decision-result-mobile.png'), fullPage: true })
   await mobilePage.close()
+  await page.screenshot({ path: path.join(screenshotDirectory, 'decision-result-desktop.png'), fullPage: true })
 
   const tokenFile = process.env.VISUTRY_LOCAL_DEMO_RESULT_TOKEN_FILE
   if (!tokenFile || !resultHref) throw new Error('Local restart verification token destination is not configured.')

@@ -58,8 +58,12 @@ async function main() {
       asset.reviewStatus === 'APPROVED' &&
       asset.localStoragePath,
     )
-    if (approvedLocalAssets.length !== 2 || approvedLocalAssets.some((asset) => asset.productionStorageKey !== null)) {
-      throw new Error('The Local audit requires exactly two approved Local outputs and no configured Production storage keys.')
+    // The canonical manifest may record both Local and Production locations
+    // for the same approved assets. This Local-only audit reads the explicit
+    // localStoragePath below; Production keys are metadata and are never used
+    // as evidence of a Production read or write.
+    if (approvedLocalAssets.length !== 2) {
+      throw new Error('The Local audit requires exactly two approved outputs with Local storage paths.')
     }
     const expectedAssets = approvedLocalAssets.map((asset) => asset.assetKey).sort()
     const actualAssets = prepared.map((item) => item.sourceRef.assetKey).sort()

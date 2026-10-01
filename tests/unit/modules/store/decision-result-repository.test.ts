@@ -33,11 +33,20 @@ describe('Decision Result Prisma repository', () => {
       journey: { experienceId: 'experience-1', experienceType: 'STORE', experienceSlug: 'store', enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION'] },
       faceFit: { faceShape: 'oval', alternativeShapes: [], preferredWidthClass: 'medium', geometryQualityBand: 'high', qualityScore: 90, signalCount: 3 },
       rankingVersion: 'rank-v1',
-      frames: [{ frameId: 'frame-1', sku: 'SKU-1', name: 'Round', productUrl: null, score: 92, reason: 'Balanced' }],
+      frames: [{ frameId: 'frame-1', sku: 'SKU-1', name: 'Round', imageUrl: 'https://cdn.example.test/round.png', productUrl: null, score: 92, reason: 'Balanced' }],
     })
 
     expect(result.resultId).toBe('result-1')
     expect(result.shareToken).toMatch(/^[A-Za-z0-9_-]{40,}$/)
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        payload: expect.objectContaining({
+          recommendation: expect.objectContaining({
+            frames: [{ frameId: 'frame-1', sku: 'SKU-1', name: 'Round', imageUrl: 'https://cdn.example.test/round.png', productUrl: null, score: 92, reason: 'Balanced' }],
+          }),
+        }),
+      }),
+    }))
     expect(shareCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
         merchantId: 'merchant-1',
@@ -80,7 +89,7 @@ describe('Decision Result Prisma repository', () => {
       journey: { experienceId: 'experience-1', experienceType: 'STORE', experienceSlug: 'store', enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION'] },
       faceFit: { faceShape: 'oval', alternativeShapes: [], preferredWidthClass: 'medium', geometryQualityBand: 'high', qualityScore: 95, signalCount: 4 },
       rankingVersion: 'rank-new',
-      frames: [{ frameId: 'frame-new', sku: 'NEW', name: 'New', productUrl: null, score: 95, reason: 'new' }],
+      frames: [{ frameId: 'frame-new', sku: 'NEW', name: 'New', imageUrl: 'https://cdn.example.test/new.png', productUrl: null, score: 95, reason: 'new' }],
     })
 
     expect(update).toHaveBeenCalledWith(expect.objectContaining({
@@ -88,7 +97,7 @@ describe('Decision Result Prisma repository', () => {
       data: expect.objectContaining({
         payload: expect.objectContaining({
           faceFit: expect.objectContaining({ faceShape: 'oval' }),
-          recommendation: expect.objectContaining({ rankingVersion: 'rank-new', frames: [{ frameId: 'frame-new', sku: 'NEW', name: 'New', productUrl: null, score: 95, reason: 'new' }] }),
+          recommendation: expect.objectContaining({ rankingVersion: 'rank-new', frames: [{ frameId: 'frame-new', sku: 'NEW', name: 'New', imageUrl: 'https://cdn.example.test/new.png', productUrl: null, score: 95, reason: 'new' }] }),
           selectedFrameIds: [],
           favoriteFrameIds: [],
           tryOnResults: [],
