@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for product execution
 **Created:** 2026-07-08
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-01
 **Owner:** Product
 **Review cadence:** Weekly
 **Scope:** Current product focus, Now / Next / Later priorities, execution posture, standing initiatives, decisions needed, and execution board.
@@ -46,6 +46,7 @@ This plan is derived from:
 | `docs/product/business-website-ia-and-copy.md` | Defines current Business Website product truth, claims, Pilot and CTA baseline. |
 | `docs/product/plans/agent-native-merchant-self-service.md` | Historical Agent-native implementation plan; retained for architecture/tooling history. |
 | `docs/product/specs/merchant-operating-experience.md` | Defines the current human Merchant operating IA, lifecycle semantics, workspace-mode boundary, and Human/Agent responsibility model. |
+| `docs/product/specs/visutry-demo-capability.md` | Defines the canonical Demo as a productized capability, including Local/Production parity, product-upgrade obligations, and reusable sales/marketing operation. |
 | `docs/product/plans/universal-agent-access.md` | Records production OAuth/MCP evidence and the remaining external-Pilot hardening boundary. |
 | `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md` | Defines the controlled founder-led outreach and evidence loop that may begin only after the Product Advantage Gate passes. |
 
@@ -99,6 +100,7 @@ Current execution posture:
 4. Keep existing evidence-gated commercial/distribution work as supporting validation; do not infer a new build phase from older dated gate documents.
 5. Keep P1-M3 bounded to the explicitly approved Live Commerce Pulse; select any later gate explicitly before further feature development.
 6. Keep Shopify, CRM/marketing automation, generalized Campaign Builder, verified revenue attribution, and similar expansion evidence-gated.
+7. Treat the canonical Demo as a standing release surface: every material change to the supported Demo journey must classify Demo impact and keep Local/Production parity current.
 
 P1-M2 remains the closed historical/product baseline; P1-M3 is the only currently authorized implementation gate.
 
@@ -127,6 +129,7 @@ P1-M2 remains the closed historical/product baseline; P1-M3 is the only currentl
 | --- | --- | --- | --- |
 | P0 | Consumer production stability | Merchant work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / continuously guarded |
 | P0 | Merchant Operating baseline | Keep the Production-accepted Home/Catalog/Store/Campaigns/Analytics/Integrations/Plan/Settings baseline stable and truthful. | Production Accepted / Closed |
+| P0 | Productized Demo parity | Keep the canonical Local and Production Demo aligned with the supported shopper/product journey and suitable for repeatable QA, sales, and content production. | Shipped / continuously guarded |
 | P1 | Merchant Live Experience (Issue #235) | Make real current commerce activity legible on Home without noisy or costly realtime infrastructure. | In Progress; Local only |
 | P1 | Production observation and defect response | New work should be triggered by evidence, not by reopening completed M2 implementation. | Active operating posture |
 
@@ -177,6 +180,7 @@ Workspace Operating eligibility is a runtime compatibility decision, not a rewri
 | --- | --- | --- | --- | --- |
 | P0 | Consumer stability boundary | Engineering | Shipped / guarded | Keep Consumer critical and revenue gates green. |
 | P0 | P1-M2 Merchant Operating Experience | Product / Engineering | **Production Accepted / Closed** | Observe; open a new narrow gate only for a real regression or new product phase. |
+| P0 | Productized Demo capability | Product / Engineering / Growth / Sales | **Shipped / guarded** | For Demo-relevant product changes, classify impact, keep Local/Production parity current, and refresh reusable evidence/material only when behavior materially changes. |
 | P1 | Merchant Production observation | Product / Engineering | Active | Watch runtime/product evidence; do not mutate Production for QA without explicit bounded approval. |
 | P1 | Next product gate | Product | Not authorized | Select explicitly from current evidence; do not inherit an August sprint by default. |
 | P1 | Real merchant validation / outreach | Product / Growth | Evidence-gated | Follow its governing current commercial/gate documents when explicitly activated. |
@@ -198,6 +202,12 @@ These are durable capability areas, not authorization to start a new phase. Curr
 **Purpose:** Maintain clear one-time / credits-based paid continuation for high-intent decision users without forcing a subscription-first story.
 
 **Current posture:** Production product; pricing/checkout changes remain evidence-driven and revenue-safety gated.
+
+### Productized Demo capability
+
+**Purpose:** Maintain one reusable, truthful product demonstration surface that follows the product rather than becoming a one-off sales branch.
+
+**Current posture:** Shipped and Production-validated. Local is the repeatable regression/rehearsal/content environment; Production is the canonical customer-facing walkthrough. `PREPARED_DEMO` is the default provider-free execution path. Relevant product upgrades must classify Demo impact and update fixture, E2E, assets, documentation, or customer-facing material where required. See `docs/product/specs/visutry-demo-capability.md`.
 
 ### Merchant acquisition and validation
 
