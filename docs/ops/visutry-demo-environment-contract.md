@@ -134,10 +134,11 @@ which explicitly approved assets it may resolve.
   Provider smoke requires its own explicit, bounded authorization. No implicit
   Gemini fallback is allowed.
 
-The earlier Production smoke reached Rowan/Lane selection and stopped before
-Try-On submission. That historical run did not validate the newly implemented
-prepared-result path. It did not authorize asset provisioning or Provider
-generation. Approved sales materials remain unchanged.
+An earlier pre-asset Production smoke reached Rowan/Lane selection and stopped
+before Try-On submission. That run is historical evidence only and is
+superseded for readiness by the 2026-10-01 provider-free Production Golden
+Path, clean mobile continuation, and shortlist-thumbnail validation. It did not
+and does not authorize unbounded Provider generation.
 
 ## Production Demo parity state
 
