@@ -2,12 +2,15 @@
 
 **Status:** Active Local QA contract
 **Owner:** Merchant Platform
-**Scope:** Reusable VisuTry Demo Optical Store for Merchant Demo, Kiosk Demo, White Paper, Sales walkthroughs, and Store experience QA.
+**Last updated:** 2026-10-01
+**Scope:** Reusable, productized VisuTry Demo Optical capability for Merchant Demo, Kiosk Demo, White Paper/content production, Sales walkthroughs, and Store experience QA.
 **Isolation:** Local PostgreSQL and Local mock auth only. Never use Preview or Production.
 
 Canonical identity, the historical Canary boundary, public URL, and the
 shared Local/Production `PREPARED_DEMO` parity contract are governed by the
 [VisuTry Demo Environment Contract](../ops/visutry-demo-environment-contract.md).
+Product ownership, upgrade obligations, and sales/marketing reuse are governed
+by the [Productized Demo Capability](../product/specs/visutry-demo-capability.md).
 
 ## Operator loop
 
@@ -90,11 +93,12 @@ override when another VisuTry worktree owns 3001; it refuses any configured
 app/media port if already occupied. It uses the same application contracts as
 the canonical Production Demo. Only the asset
 adapter differs: guarded Local resolves the checksum-verified, Lead-approved
-prepared Demo result PNGs from this repo; Production is permitted to read only
-an explicitly approved private Blob asset. The older Local QA SVG fixtures
-remain separately classified as disclosure-only QA graphics and are not
-selected by the canonical journey or served in Production. Missing Production
-assets fail closed rather than falling back to Local files. The canonical
+prepared Demo result PNGs from this repo; Production reads the corresponding
+approved private Blob assets through the bounded private-media adapter. The
+older Local QA SVG fixtures remain separately classified as disclosure-only QA
+graphics and are not selected by the canonical journey or served in
+Production. Missing or mismatched Production assets fail closed rather than
+falling back to Local files. The canonical
 browser E2E verifies the approved PNG bytes during the journey and after an app
 restart, then resets shopper state while preserving the Demo fixture.
 
@@ -115,6 +119,22 @@ can run without a developer `.env.local` because it exports only the guarded
 Local/test settings; normal `dev-local` still requires `.env.local`. Its test
 token is held briefly in a mode-0600 file under ignored `.local/` and removed
 on exit. This command does not call GrsAI or Gemini.
+
+## Product evolution contract
+
+The Local Demo is a maintained product regression/rehearsal surface, not a
+frozen fixture from a single sales cycle. When a product change affects the
+supported Demo journey, update the canonical Local journey, fixture, evidence,
+or assertions as required by the Productized Demo Capability spec.
+
+Keep Demo behavior on shared production application/domain contracts. Do not
+solve parity drift by creating a second recommendation path, Compare flow,
+Decision Result model, or merchant business-rule stack for Local Demo only.
+
+For externally visible changes, Local is the preferred repeatable environment
+for rehearsal and content capture; run a bounded Production smoke as well when
+the changed behavior depends on Production routing, entitlement, private media,
+or other Production-only boundaries.
 
 ## One-command real-provider smoke
 
@@ -151,7 +171,7 @@ explicit `--authorized` argument.
 | MediaPipe | Real browser inference, pinned 0.10.35 WASM/model hosted from `127.0.0.1:4100`; loopback configuration disables CDN/GCS fallback |
 | Recommendation | Existing deterministic production application/domain path |
 | Store / Compare / Result | Existing Store application routes and persisted Local PostgreSQL state |
-| Try-On | Canonical Demo defaults to shared `PREPARED_DEMO` in Local and Production; Local selects checksum-verified approved result PNGs, while older QA SVGs remain separately classified and are not selected by the canonical journey. Production accepts only approved private assets and currently fails closed without them. `LIVE_PROVIDER` is restricted to the existing explicitly authorized Local GrsAI provider-smoke command; Gemini is never a fallback |
+| Try-On | Canonical Demo defaults to shared `PREPARED_DEMO` in Local and Production; Local selects checksum-verified approved result PNGs, while older QA SVGs remain separately classified and are not selected by the canonical journey. Production selects the approved private result assets and still fails closed on missing/mismatched media. `LIVE_PROVIDER` is restricted to the existing explicitly authorized Local GrsAI provider-smoke command; Gemini is never a fallback |
 | Stripe | Local mock path and TEST mode only; no checkout is needed for the demo journey |
 | Analytics | `APP_ENV=local` suppresses Production GA/Axiom destinations |
 | Store photo/result bytes | Filesystem-backed `APP_ENV=local` mock Blob adapter under ignored `.local/mock-blob/`, isolated from Vercel Blob and durable across Next process restarts |
