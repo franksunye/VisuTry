@@ -258,9 +258,9 @@ async function captureScene(page: Page, origin: string, merchantId: string, outp
   if (scene.id === 'home-mobile-navigation') {
     await page.getByRole('button', { name: 'Open navigation' }).click()
     const nav = page.locator('#merchant-mobile-navigation')
-    const closeButton = page.locator('header').getByRole('button', { name: 'Close navigation', exact: true })
+    const navigationTrigger = page.locator('header button[aria-haspopup="dialog"]')
     mobileNavigation = {
-      expanded: await closeButton.getAttribute('aria-expanded').then((value) => value === 'true'),
+      expanded: await navigationTrigger.getAttribute('aria-expanded').then((value) => value === 'true'),
       linksVisible: await nav.getByRole('link', { name: 'Analytics' }).isVisible() && await nav.getByRole('link', { name: 'Home' }).isVisible(),
     }
     if (!mobileNavigation.expanded || !mobileNavigation.linksVisible) throw new Error('Local mobile navigation failed its open/visibility check.')

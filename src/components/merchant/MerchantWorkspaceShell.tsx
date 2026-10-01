@@ -14,10 +14,10 @@ import {
   Settings2,
   Sparkles,
   Store,
-  X,
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { analytics } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 import { getMerchantActivationContext, recordMerchantActivationClientEvent } from '@/lib/merchant-activation-client'
@@ -100,15 +100,6 @@ export function MerchantWorkspaceShell({
     setMobileNavigationOpen(false)
   }, [pathname])
 
-  useEffect(() => {
-    if (!mobileNavigationOpen) return
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMobileNavigationOpen(false)
-    }
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
-  }, [mobileNavigationOpen])
-
   const href = (section: MerchantWorkspaceSection) => merchantWorkspaceHref({ locale, section, merchantId: selectedMerchantId })
   const switchMerchant = (merchantId: string) => {
     const section = allNavigation.find(({ section: candidate }) => activePath(pathname, candidate))?.section ?? 'home'
@@ -149,6 +140,7 @@ export function MerchantWorkspaceShell({
   )
 
   return (
+    <Dialog open={mobileNavigationOpen} onOpenChange={setMobileNavigationOpen}>
     <main className="min-h-screen bg-[#f5f7fa] text-slate-950 lg:pl-[248px]">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-slate-200 bg-white px-4 py-5 lg:flex">
         <Link href={href('home')} className="flex items-center gap-3 rounded-lg px-2 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
@@ -175,16 +167,15 @@ export function MerchantWorkspaceShell({
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[60px] max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-7 lg:h-[68px] lg:px-10 xl:px-12">
           <div className="flex min-w-0 items-center gap-3 lg:hidden">
-            <button
-              type="button"
-              aria-label={mobileNavigationOpen ? 'Close navigation' : 'Open navigation'}
-              aria-expanded={mobileNavigationOpen}
-              aria-controls="merchant-mobile-navigation"
-              onClick={() => setMobileNavigationOpen((open) => !open)}
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
-            >
-              {mobileNavigationOpen ? <X className="h-4 w-4" aria-hidden="true" /> : <Menu className="h-4 w-4" aria-hidden="true" />}
-            </button>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                aria-label={mobileNavigationOpen ? 'Close navigation' : 'Open navigation'}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+              >
+                <Menu className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </DialogTrigger>
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white">
               <Sparkles className="h-4 w-4" aria-hidden="true" />
             </span>
@@ -206,35 +197,34 @@ export function MerchantWorkspaceShell({
         </div>
       </header>
 
-      {mobileNavigationOpen ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button type="button" aria-label="Close navigation backdrop" onClick={() => setMobileNavigationOpen(false)} className="absolute inset-0 bg-slate-950/25" />
-          <aside id="merchant-mobile-navigation" className="absolute inset-y-0 left-0 flex w-[min(86vw,320px)] flex-col border-r border-slate-200 bg-white px-4 py-5 shadow-2xl" aria-label="Merchant navigation">
-            <div className="flex items-center justify-between gap-3 px-2">
-              <Link href={href('home')} onClick={() => setMobileNavigationOpen(false)} className="flex min-w-0 items-center gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white"><Sparkles className="h-[18px] w-[18px]" aria-hidden="true" /></span>
-                <span className="min-w-0"><span className="block text-sm font-semibold text-slate-950">VisuTry Merchant</span><span className="block truncate text-xs text-slate-500">{selected?.name ?? 'Workspace'}</span></span>
-              </Link>
-              <button type="button" aria-label="Close navigation" onClick={() => setMobileNavigationOpen(false)} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"><X className="h-4 w-4" aria-hidden="true" /></button>
-            </div>
-            <div className="mt-5 px-2">
-              {merchantPicker('w-full')}
-            </div>
-            <nav aria-label="Merchant primary navigation" className="mt-7 space-y-1">
-              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Workspace</p>
-              {primary.map((item) => navLink(item, () => setMobileNavigationOpen(false)))}
-            </nav>
-            <nav aria-label="Merchant utility navigation" className="mt-auto space-y-1 border-t border-slate-100 pt-4">
-              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Manage</p>
-              {utility.map((item) => navLink(item, () => setMobileNavigationOpen(false)))}
-            </nav>
-          </aside>
-        </div>
-      ) : null}
+      <DialogContent aria-modal="true" overlayClassName="bg-slate-950/25" className="!left-0 !top-0 !h-dvh !w-[min(86vw,320px)] !max-w-none !translate-x-0 !translate-y-0 !gap-0 !rounded-none border-r border-slate-200 !p-0 shadow-2xl lg:hidden">
+        <DialogTitle className="sr-only">Merchant navigation</DialogTitle>
+        <DialogDescription className="sr-only">Choose a section in your merchant workspace.</DialogDescription>
+        <aside id="merchant-mobile-navigation" className="flex h-full flex-col bg-white px-4 py-5" aria-label="Merchant navigation">
+          <div className="flex items-center justify-between gap-3 px-2">
+            <Link href={href('home')} onClick={() => setMobileNavigationOpen(false)} className="flex min-w-0 items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white"><Sparkles className="h-[18px] w-[18px]" aria-hidden="true" /></span>
+              <span className="min-w-0"><span className="block text-sm font-semibold text-slate-950">VisuTry Merchant</span><span className="block truncate text-xs text-slate-500">{selected?.name ?? 'Workspace'}</span></span>
+            </Link>
+          </div>
+          <div className="mt-5 px-2">
+            {merchantPicker('w-full')}
+          </div>
+          <nav aria-label="Merchant primary navigation" className="mt-7 space-y-1">
+            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Workspace</p>
+            {primary.map((item) => navLink(item, () => setMobileNavigationOpen(false)))}
+          </nav>
+          <nav aria-label="Merchant utility navigation" className="mt-auto space-y-1 border-t border-slate-100 pt-4">
+            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Manage</p>
+            {utility.map((item) => navLink(item, () => setMobileNavigationOpen(false)))}
+          </nav>
+        </aside>
+      </DialogContent>
 
       <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-7 sm:py-8 lg:px-10 lg:py-9 xl:px-12">
         {children}
       </div>
     </main>
+    </Dialog>
   )
 }

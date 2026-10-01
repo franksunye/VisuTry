@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MerchantWorkspaceShell } from '@/components/merchant/MerchantWorkspaceShell'
 
@@ -52,13 +52,68 @@ describe('MerchantWorkspaceShell', () => {
     )
 
     await user.click(screen.getByRole('button', { name: 'Open navigation' }))
-    const drawer = screen.getByLabelText('Merchant navigation')
+    const dialog = screen.getByRole('dialog', { name: 'Merchant navigation' })
+    const drawer = within(dialog).getByLabelText('Merchant navigation')
     expect(drawer).toBeInTheDocument()
     expect(drawer).toHaveTextContent('Home')
     expect(drawer).toHaveTextContent('Analytics')
     expect(drawer).toHaveTextContent('Integrations')
     expect(drawer).toHaveTextContent('Plan & Usage')
     expect(drawer).toHaveTextContent('Settings')
+  })
+
+  it('moves focus into the mobile navigation, isolates the background, and restores focus on Escape', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <MerchantWorkspaceShell
+        locale="en"
+        merchants={[{ id: 'merchant-a', slug: 'alpha', name: 'Alpha', role: 'OWNER' }]}
+        selectedMerchantId="merchant-a"
+      >
+        <div>analytics content</div>
+      </MerchantWorkspaceShell>,
+    )
+    const trigger = screen.getByRole('button', { name: 'Open navigation' })
+    const background = container
+
+    await user.click(trigger)
+
+    const dialog = screen.getByRole('dialog', { name: 'Merchant navigation' })
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    expect(dialog).toContainElement(document.activeElement as HTMLElement)
+    expect(background).toHaveAttribute('aria-hidden', 'true')
+
+    await user.keyboard('{Escape}')
+
+    expect(screen.queryByRole('dialog', { name: 'Merchant navigation' })).not.toBeInTheDocument()
+    expect(background).not.toHaveAttribute('aria-hidden', 'true')
+    expect(trigger).toHaveFocus()
+  })
+
+  it('contains keyboard focus at both ends of the mobile navigation', async () => {
+    const user = userEvent.setup()
+    render(
+      <MerchantWorkspaceShell
+        locale="en"
+        merchants={[{ id: 'merchant-a', slug: 'alpha', name: 'Alpha', role: 'OWNER' }]}
+        selectedMerchantId="merchant-a"
+      >
+        <div>analytics content</div>
+      </MerchantWorkspaceShell>,
+    )
+    await user.click(screen.getByRole('button', { name: 'Open navigation' }))
+
+    const dialog = screen.getByRole('dialog', { name: 'Merchant navigation' })
+    const firstLink = within(dialog).getByRole('link', { name: /VisuTry Merchant/ })
+    const closeButton = within(dialog).getByRole('button', { name: 'Close' })
+    firstLink.focus()
+    expect(firstLink).toHaveFocus()
+
+    await user.tab({ shift: true })
+    expect(closeButton).toHaveFocus()
+
+    await user.tab()
+    expect(firstLink).toHaveFocus()
   })
 
   it('records workspace entry once per Merchant browser session, not once per route mount', () => {
