@@ -1,7 +1,8 @@
 # VisuTry Reference Portfolio Index
 
 **Status:** Sales reference source of truth
-**Date:** 2026-08-12
+**Date:** 2026-08-12  
+**Last updated:** 2026-10-01
 **Use:** Founder-led sales demos, prospect matching, internal enablement
 **Naming rule:** Reference Experience / Reference Pilot / Concept Implementation
 
@@ -14,6 +15,20 @@ Never describe the brands below as customers, clients, partners, authorized pilo
 The preferred sales sentence is:
 
 > “Here is a Reference Experience showing how the same VisuTry Store/Campaign workflow can be adapted to this merchant archetype. We can build the equivalent experience from your catalog.”
+
+### Canonical Demo vs Reference Portfolio
+
+The five Reference Experiences are **not** the canonical product demo. Use them to map a prospect to a merchant archetype or merchandising pattern.
+
+For a repeatable end-to-end product walkthrough, meeting rehearsal, screenshots/video, or a neutral first demo, use the productized **VisuTry Demo Optical** capability governed by `docs/product/specs/visutry-demo-capability.md`.
+
+| Surface | Default sales use |
+| --- | --- |
+| Productized VisuTry Demo | Repeatable neutral walkthrough of current product behavior; sales meetings; rehearsal; content production |
+| Reference Experience | Prospect-specific archetype / merchandising conversation using clearly labeled simulation data |
+| Customer Pilot | Customer-specific catalog/configuration and commercial validation after qualification |
+
+Do not mutate the canonical Demo into a prospect-specific tenant merely to personalize an early sales call.
 
 ## 2. Portfolio map
 
@@ -81,7 +96,7 @@ All entries have one Store and two Campaign experiences. Stores are not counted 
 
 ## 4. Shared capability proof
 
-Across the portfolio, the repeatable proof is:
+Across the Reference portfolio, the repeatable proof is:
 
 ```text
 Merchant catalog
@@ -99,6 +114,6 @@ The factory result is delivery repeatability, not five customer success stories.
 - Only ello currently has committed entry screenshots in its evidence folder.
 - The other four references have production route/QA/read-back evidence but no committed reference-card screenshot set.
 - Admin visual evidence is not available for these references because the verification environment did not have an authenticated Admin session; route behavior and workspace data contracts were verified instead.
-- A 60–90 second demo video is still a sales-asset task, not a product capability claim.
+- The productized canonical Demo can now be reused to produce or refresh generic screenshots/video/white-paper visuals as the product evolves. Reference-specific capture gaps remain separate evidence tasks and do not block use of the canonical Demo.
 
 Until those assets exist, use live links plus the production-verification/QA documents and a prepared shopper-photo demo. Do not imply that a screenshot is merchant-submitted or live customer activity.
