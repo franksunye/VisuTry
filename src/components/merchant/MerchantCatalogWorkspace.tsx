@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { ChevronDown, Edit3, FilePlus2, Loader2, Search, Save, X } from "lucide-react";
+import { AlertCircle, Boxes, CheckCircle2, ChevronDown, Edit3, FilePlus2, Loader2, Search, Save, Sparkles, X, type LucideIcon } from "lucide-react";
 import { MerchantCatalogSelfService } from "@/components/merchant/MerchantCatalogSelfService";
 
 type PresentationState = "READY" | "NEEDS_REVIEW" | "NEEDS_ATTENTION";
@@ -89,6 +89,12 @@ export function MerchantCatalogWorkspace({ merchantId, locale }: { merchantId: s
   useEffect(() => { void load(); }, [load]);
 
   const summary = workspace?.summary ?? { total: 0, ready: 0, needsReview: 0, needsAttention: 0 };
+  const healthMetrics: Array<{ label: string; value: number; Icon: LucideIcon; cardTone: string; iconTone: string }> = [
+    { label: "Total", value: summary.total, Icon: Boxes, cardTone: "border-slate-100 bg-slate-50/70", iconTone: "bg-blue-50 text-blue-600" },
+    { label: "Ready", value: summary.ready, Icon: CheckCircle2, cardTone: "border-emerald-100 bg-emerald-50/40", iconTone: "bg-emerald-50 text-emerald-600" },
+    { label: "Needs enrichment", value: summary.needsReview, Icon: Sparkles, cardTone: "border-blue-100 bg-blue-50/40", iconTone: "bg-blue-50 text-blue-600" },
+    { label: "Needs attention", value: summary.needsAttention, Icon: AlertCircle, cardTone: "border-amber-100 bg-amber-50/40", iconTone: "bg-amber-50 text-amber-700" },
+  ];
   const hasNoProducts = !loading && summary.total === 0;
   const updateSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -142,34 +148,34 @@ export function MerchantCatalogWorkspace({ merchantId, locale }: { merchantId: s
     }
   }
 
-  return <section className="space-y-6" aria-labelledby="merchant-catalog-heading">
-    <header className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
+  return <section className="space-y-4 sm:space-y-5" aria-labelledby="merchant-catalog-heading">
+    <header className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:pb-5">
       <div>
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Catalog workspace</p>
-        <h1 id="merchant-catalog-heading" className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Catalog</h1>
+        <h1 id="merchant-catalog-heading" className="mt-2 text-[32px] font-semibold leading-none tracking-[-0.045em] text-slate-950">Catalog</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Manage the products available to your Store and review anything that needs attention.</p>
       </div>
-      <button type="button" onClick={() => setIntakeOpen((value) => !value)} className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`} aria-expanded={intakeOpen}>
+      <button type="button" onClick={() => setIntakeOpen((value) => !value)} className={`${buttonClass} min-h-11 w-full bg-slate-950 text-white hover:bg-slate-800 sm:w-auto`} aria-expanded={intakeOpen}>
         <FilePlus2 className="h-4 w-4" aria-hidden="true" /> Add products
       </button>
     </header>
 
-    <div className="grid gap-3 sm:grid-cols-4" aria-label="Catalog health">
-      <div className="rounded-xl border border-slate-200 bg-white px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Total</p><p className="mt-1 text-2xl font-semibold text-slate-950">{summary.total}</p></div>
-      <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">Ready</p><p className="mt-1 text-2xl font-semibold text-emerald-950">{summary.ready}</p></div>
-      <div className="rounded-xl border border-blue-100 bg-blue-50/50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-blue-700">Needs enrichment</p><p className="mt-1 text-2xl font-semibold text-blue-950">{summary.needsReview}</p></div>
-      <div className="rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-800">Needs attention</p><p className="mt-1 text-2xl font-semibold text-amber-950">{summary.needsAttention}</p></div>
-    </div>
+    <dl aria-label="Catalog health" className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+      {healthMetrics.map(({ label, value, Icon, cardTone, iconTone }) => <div key={label} className={`grid min-h-[76px] min-w-0 grid-cols-[32px_minmax(0,1fr)] items-center gap-2.5 rounded-xl border px-3 py-2.5 sm:grid-cols-[36px_minmax(0,1fr)] sm:gap-3 sm:px-3.5 ${cardTone}`}>
+        <span aria-hidden="true" className={`flex h-8 w-8 items-center justify-center rounded-full sm:h-9 sm:w-9 ${iconTone}`}><Icon className="h-4 w-4" /></span>
+        <div className="min-w-0"><dt className="break-words text-[11px] font-medium leading-4 tracking-normal text-slate-500 sm:truncate sm:text-[10px] sm:font-semibold sm:uppercase sm:tracking-[0.1em]">{label}</dt><dd className="mt-0.5 text-[23px] font-semibold leading-none tracking-[-0.04em] tabular-nums text-slate-950">{value}</dd></div>
+      </div>)}
+    </dl>
 
     {intakeOpen ? <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-slate-950">Add products</p><p className="mt-1 text-xs text-slate-600">Inspect first. Nothing is written until you approve the import.</p></div><button type="button" onClick={() => setIntakeOpen(false)} aria-label="Close add products" className="rounded-lg p-2 text-slate-500 hover:bg-white"><X className="h-4 w-4" aria-hidden="true" /></button></div>
       {workspace ? <MerchantCatalogSelfService merchantId={merchantId} initialTotal={summary.total} showResourceList={false} onCatalogChanged={() => void load({ query: appliedSearch, readiness: filter })} /> : null}
     </div> : null}
 
-    <form onSubmit={updateSearch} className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-3 sm:flex-row">
+    <form onSubmit={updateSearch} className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-2.5 sm:grid-cols-[minmax(0,1fr)_180px_auto] sm:items-center sm:p-3">
       <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input aria-label="Search full catalog" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search the full catalog" className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /></div>
-      <select aria-label="Filter catalog readiness" value={filter} onChange={(event) => changeFilter(event.target.value as Filter)} className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"><option value="all">All products</option><option value="READY">Ready</option><option value="NEEDS_REVIEW">Needs enrichment</option><option value="NEEDS_ATTENTION">Needs attention</option></select>
-      <button type="submit" className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>Search</button>
+      <select aria-label="Filter catalog readiness" value={filter} onChange={(event) => changeFilter(event.target.value as Filter)} className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"><option value="all">All products</option><option value="READY">Ready</option><option value="NEEDS_REVIEW">Needs enrichment</option><option value="NEEDS_ATTENTION">Needs attention</option></select>
+      <button type="submit" className={`${buttonClass} min-h-10 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>Search</button>
     </form>
 
     {error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{error}</p> : null}
@@ -177,13 +183,15 @@ export function MerchantCatalogWorkspace({ merchantId, locale }: { merchantId: s
     {hasNoProducts ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center"><h2 className="text-lg font-semibold text-slate-950">Your Catalog is empty</h2><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">Add one product to make it available for your Store.</p><button type="button" onClick={() => setIntakeOpen(true)} className={`${buttonClass} mt-5 bg-slate-950 text-white hover:bg-slate-800`}><FilePlus2 className="h-4 w-4" aria-hidden="true" /> Add your first product</button></div> : null}
     {!loading && !hasNoProducts && workspace?.items.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center"><h2 className="text-lg font-semibold text-slate-950">No products match this view</h2><p className="mt-2 text-sm text-slate-600">Try another search or readiness filter.</p></div> : null}
 
-    {workspace && workspace.items.length > 0 ? <div className="space-y-3">
-      {workspace.items.map((item) => <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100">{item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : null}</div>
-        <div className="min-w-0 flex-1"><div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start"><div><h2 className="text-base font-semibold text-slate-950">{item.name}</h2><p className="mt-1 text-sm text-slate-600">{item.sku || item.productUrl || "Stable product identity"}{item.brand ? ` · ${item.brand}` : ""}{priceLabel(item) ? ` · ${priceLabel(item)}` : ""}</p></div><button type="button" onClick={() => startEditing(item)} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><Edit3 className="h-4 w-4" aria-hidden="true" /> Edit</button></div><div className="mt-3 flex flex-wrap items-center gap-2 text-xs"><span className={`rounded-full px-2.5 py-1 font-semibold ${stateClass(item.presentation.state)}`}>{item.presentation.label}</span>{item.source ? <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">{item.source === "EXTERNAL" ? "Website" : item.source}</span> : null}{item.presentation.issueSummary ? <span className="text-amber-800">{item.presentation.issueSummary}</span> : null}</div></div>
-      </div>
+    {workspace && workspace.items.length > 0 ? <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="divide-y divide-slate-100">
+      {workspace.items.map((item) => <article key={item.id} className="grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-3 py-3.5 sm:grid-cols-[56px_minmax(0,1.4fr)_minmax(190px,0.9fr)_auto] sm:gap-x-4 sm:px-4 sm:py-3">
+        <div className="col-start-1 row-span-2 row-start-1 h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50/80 p-1.5 sm:row-span-1 sm:h-14 sm:w-14">{item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-contain" /> : null}</div>
+        <div className="col-start-2 row-start-1 min-w-0"><h2 title={item.name} className="truncate text-sm font-semibold tracking-tight text-slate-950">{item.name}</h2><p title={`${item.sku || item.productUrl || "Stable product identity"}${item.brand ? ` · ${item.brand}` : ""}${priceLabel(item) ? ` · ${priceLabel(item)}` : ""}`} className="mt-0.5 truncate text-xs text-slate-500">{item.sku || item.productUrl || "Stable product identity"}{item.brand ? ` · ${item.brand}` : ""}{priceLabel(item) ? ` · ${priceLabel(item)}` : ""}</p></div>
+        <div className="col-start-2 row-start-2 flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] sm:col-start-3 sm:row-start-1"><span className={`rounded-full px-2 py-1 font-semibold ${stateClass(item.presentation.state)}`}>{item.presentation.label}</span>{item.source ? <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">{item.source === "EXTERNAL" ? "Website" : item.source}</span> : null}{item.presentation.issueSummary ? <span className="text-amber-800">{item.presentation.issueSummary}</span> : null}</div>
+        <button type="button" onClick={() => startEditing(item)} className={`${buttonClass} col-start-3 row-start-1 min-h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 hover:bg-slate-50 sm:col-start-4 sm:px-3 sm:text-sm`}><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button>
       {editing?.id === item.id && edit ? (
-        <div className="mt-5 border-t border-slate-200 pt-4">
+        <div className="col-span-full border-t border-slate-100 pt-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-semibold text-slate-700">Product name<input value={edit.name} onChange={(event) => setEdit({ ...edit, name: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal" /></label>
             <label className="text-xs font-semibold text-slate-700">Image URL<input value={edit.imageUrl} onChange={(event) => setEdit({ ...edit, imageUrl: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal" /></label>
@@ -201,7 +209,8 @@ export function MerchantCatalogWorkspace({ merchantId, locale }: { merchantId: s
         </div>
       ) : null}
       </article>)}
-      {workspace.nextCursor ? <button type="button" disabled={loadingMore} onClick={() => void load({ append: true, query: appliedSearch, readiness: filter })} className={`${buttonClass} w-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50`}>{loadingMore ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />} Load more products</button> : null}
+      </div>
+      {workspace.nextCursor ? <div className="border-t border-slate-100 px-3 py-2"><button type="button" disabled={loadingMore} onClick={() => void load({ append: true, query: appliedSearch, readiness: filter })} className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50">{loadingMore ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />} Load more products</button></div> : null}
     </div> : null}
   </section>;
 }

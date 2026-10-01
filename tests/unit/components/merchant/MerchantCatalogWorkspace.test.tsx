@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MerchantCatalogWorkspace } from '@/components/merchant/MerchantCatalogWorkspace'
 
 jest.mock('@/components/merchant/MerchantCatalogSelfService', () => ({
@@ -31,6 +31,35 @@ describe('MerchantCatalogWorkspace', () => {
     fireEvent.submit(screen.getByRole('textbox', { name: 'Search full catalog' }).closest('form')!)
 
     await waitFor(() => expect(global.fetch).toHaveBeenLastCalledWith(expect.stringContaining('search=beyond'), expect.objectContaining({ cache: 'no-store' })))
+  })
+
+  it('renders canonical health counts and keeps readiness filtering server-backed', async () => {
+    render(<MerchantCatalogWorkspace merchantId="merchant-a" locale="en" />)
+
+    const health = await screen.findByLabelText('Catalog health')
+    expect(within(health).getByText('Total').parentElement).toHaveTextContent('2')
+    expect(within(health).getByText('Ready').parentElement).toHaveTextContent('1')
+    expect(within(health).getByText('Needs enrichment').parentElement).toHaveTextContent('1')
+    expect(within(health).getByText('Needs attention').parentElement).toHaveTextContent('0')
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Filter catalog readiness' }), { target: { value: 'NEEDS_ATTENTION' } })
+    await waitFor(() => expect(global.fetch).toHaveBeenLastCalledWith(expect.stringContaining('readiness=NEEDS_ATTENTION'), expect.objectContaining({ cache: 'no-store' })))
+  })
+
+  it('keeps Add products and edit cancel as UI-only until an explicit save', async () => {
+    render(<MerchantCatalogWorkspace merchantId="merchant-a" locale="en" />)
+
+    const addProducts = await screen.findByRole('button', { name: 'Add products' })
+    fireEvent.click(addProducts)
+    expect(addProducts).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('catalog intake')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(await screen.findByRole('textbox', { name: 'Product name' })).toHaveValue(item.name)
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Product name' })).not.toBeInTheDocument())
+    expect(global.fetch).toHaveBeenCalledTimes(1)
   })
 
   it('shows and persists the existing product price in the correction form', async () => {
