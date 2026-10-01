@@ -31,7 +31,7 @@ The main goal is to make it clear what should be built next, why it matters, how
 | `docs/product/business-website-v1.2-layout-and-visual-system.md` | Current `/business` layout and production visual asset contract. | **v1.2 shipped.** |
 | `docs/product/plans/agent-native-merchant-self-service.md` | Historical Agent-native implementation plan. | **Implemented historical plan; current UX authority is Merchant Operating Experience spec.** |
 | `docs/product/plans/universal-agent-access.md` | Remote MCP OAuth architecture, production evidence, compatibility and external-Pilot limitations. | **Codex Golden Path passed; external hardening remains.** |
-| `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md` | Controlled founder-led outreach, evidence pack, tracker fields and first-batch operating plan. | **Active merchant-validation operating guide.** |
+| `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md` | Dated founder-led outreach/readiness evidence; current Demo execution is governed by the productized Demo spec and current commercial terms must be re-checked before reuse. | **Dated supporting sales evidence.** |
 | `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory Store/Commerce architecture, tenancy, usage, privacy, idempotency and test constraints. | **Implemented baseline; still mandatory.** |
 | `docs/product/specs/visutry-store-mvp.md` | Acceptance contract for a real merchant Pilot. | **Technical core implemented; real merchant acceptance pending.** |
 | `docs/ops/store-d0-production-verification-2026-08-05.md` | Immutable historical D0 production evidence. | **Historical evidence, not current execution state.** |
