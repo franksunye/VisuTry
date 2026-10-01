@@ -94,8 +94,8 @@ Store
 The default `PREPARED_DEMO` path continues from frame selection through
 Compare, Decision Result, and QR/mobile without a Provider request. Normal Demo
 readiness requires **zero Provider calls**. Local uses approved prepared Demo
-assets; Production needs separately approved private assets, and missing
-assets fail closed. No Retry, GrsAI, or Gemini request is
+assets; Production uses the separately approved private prepared assets, and
+missing or mismatched assets fail closed. No Retry, GrsAI, or Gemini request is
 part of the default rehearsal. Any live Provider smoke is a separate
 cost-bearing operation and requires explicit Lead authorization with a
 bounded scope. Meeting readiness must never depend on a live generation.
