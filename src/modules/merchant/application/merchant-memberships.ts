@@ -14,6 +14,7 @@ export type MerchantSummary = {
   slug: string
   name: string
   status: string
+  referenceData?: boolean
 }
 
 export type MerchantForUser = {
@@ -38,6 +39,7 @@ const membershipWithMerchantSelect = {
       slug: true,
       name: true,
       status: true,
+      referenceData: true,
     },
   },
 } as const

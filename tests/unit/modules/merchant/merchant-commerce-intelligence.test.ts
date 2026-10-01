@@ -8,8 +8,8 @@ describe('merchant commerce intelligence overview', () => {
         { id: 'campaign-a', type: 'CAMPAIGN' as const, name: 'Campaign A', status: 'ACTIVE', referenceData: true },
       ],
       sessions: [
-        { id: 'session-1', experienceId: 'store-a', source: 'direct', medium: null, referrer: null, aiAgentSource: null },
-        { id: 'session-2', experienceId: 'campaign-a', source: null, medium: null, referrer: null, aiAgentSource: 'chatgpt' },
+        { id: 'session-1', experienceId: 'store-a', createdAt: '2026-08-02T12:00:00.000Z', source: 'direct', medium: null, referrer: null, aiAgentSource: null },
+        { id: 'session-2', experienceId: 'campaign-a', createdAt: '2026-08-03T12:00:00.000Z', source: null, medium: null, referrer: null, aiAgentSource: 'chatgpt' },
       ],
       events: [
         { merchantSessionId: 'session-1', experienceId: 'store-a', merchantFrameId: 'frame-1', type: 'merchant_tryon_started', count: 1 },
@@ -19,11 +19,13 @@ describe('merchant commerce intelligence overview', () => {
       intents: [
         { merchantSessionId: 'session-1', experienceId: 'store-a', merchantFrameId: 'frame-1', type: 'FAVORITE', count: 1 },
         { merchantSessionId: 'session-2', experienceId: 'campaign-a', merchantFrameId: null, type: 'PRODUCT_CLICK', count: 1 },
+        { merchantSessionId: 'session-2', experienceId: 'campaign-a', merchantFrameId: null, type: 'INQUIRY', count: 1 },
       ],
+      frames: [{ id: 'frame-1', sku: 'SKU-1', name: 'Aster · Round acetate', imageUrl: '/assets/aster.png' }],
     }
     const result = buildMerchantCommerceIntelligence({
       current: activity,
-      previous: { ...activity, sessions: [], events: [], intents: [] },
+      previous: { ...activity, sessions: [{ id: 'previous-session', experienceId: 'store-a', createdAt: '2026-07-03T12:00:00.000Z', source: 'direct', medium: null, referrer: null, aiAgentSource: null }], events: [], intents: [] },
       currentPeriod: { from: new Date('2026-07-28T00:00:00.000Z'), to: new Date('2026-08-27T00:00:00.000Z') },
       previousPeriod: { from: new Date('2026-06-28T00:00:00.000Z'), to: new Date('2026-07-28T00:00:00.000Z') },
     })
@@ -34,10 +36,26 @@ describe('merchant commerce intelligence overview', () => {
     expect(result.totals.highIntentShoppers).toBe(1)
     expect(result.totals.recommendationActivity).toBe(1)
     expect(result.totals.productClicks).toBe(1)
+    expect(result.totals.favorites).toBe(1)
+    expect(result.totals.inquiries).toBe(1)
     expect(result.experiences.find((experience) => experience.id === 'store-a')?.visitors).toBe(1)
     expect(result.experiences.find((experience) => experience.id === 'campaign-a')?.visitors).toBe(1)
     expect(result.period.timezone).toBe('UTC')
     expect(result.experiences.find((experience) => experience.id === 'store-a')?.recommendationActivity).toBe(1)
+    expect(result.decisionTrend).toHaveLength(30)
+    expect(result.decisionTrend.reduce((total, bucket) => total + bucket.visitors, 0)).toBe(result.totals.visitors)
+    expect(result.decisionTrend.reduce((total, bucket) => total + bucket.engagedShoppers, 0)).toBe(result.totals.engagedShoppers)
+    expect(result.decisionTrend.reduce((total, bucket) => total + bucket.highIntentShoppers, 0)).toBe(result.totals.highIntentShoppers)
+    expect(result.previousDecisionTrend?.find((bucket) => bucket.date === '2026-07-03')?.visitors).toBe(1)
+    expect(result.decisionJourney.filter((stage) => stage.available).map((stage) => stage.stage)).toContain('TRY_ON_COMPLETED')
+    expect(result.topFrames).toEqual([expect.objectContaining({
+      frameId: 'frame-1',
+      name: 'Aster · Round acetate',
+      imageUrl: '/assets/aster.png',
+      tryOnCount: 1,
+      favoriteCount: 1,
+      intentScore: 5,
+    })])
     expect(JSON.stringify(result)).not.toContain('email')
   })
 
@@ -58,6 +76,7 @@ describe('merchant commerce intelligence overview', () => {
     expect(result.totals.engagedShoppers).toBe(0)
     expect(result.totals.recommendationActivity).toBe(1)
     expect(result.rates.engagement).toBe(0)
+    expect(result.decisionTrend).toHaveLength(0)
   })
 
   it('returns a zero-data overview without inventing rates', () => {

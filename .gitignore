@@ -18,6 +18,7 @@
 /.local/mock-blob/
 /.local/mock-blob-test-*/
 /.local/demo-evidence/
+/.local/merchant-dashboard-capture/
 
 # production
 /build

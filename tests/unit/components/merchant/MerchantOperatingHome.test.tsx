@@ -4,11 +4,11 @@ import type { MerchantOperatingHomeReadModel } from '@/modules/merchant/domain/m
 
 function home(overrides: Partial<MerchantOperatingHomeReadModel> = {}): MerchantOperatingHomeReadModel {
   return {
-    merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha' },
+    merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', referenceData: false },
     store: { exists: true, status: 'DRAFT', selectedProductCount: 1, eligibleProductCount: 1, readiness: 'READY' },
     catalog: { total: 1, ready: 1, issueCount: 0 },
     campaigns: { total: 0, active: 0, draft: 0, archived: 0, needsAttention: 0 },
-    shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 0 }] },
+    shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 0 }], decisionTrend: [] },
     commercial: { status: 'FREE', planName: 'Free', threshold: null, attention: false },
     ...overrides,
   }
@@ -17,7 +17,7 @@ function home(overrides: Partial<MerchantOperatingHomeReadModel> = {}): Merchant
 describe('MerchantOperatingHome', () => {
   it('shows one Store recommendation and a truthful empty activity state', () => {
     render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home()} />)
-    expect(screen.getByRole('heading', { name: 'Workspace overview' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Home' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Review Store' })).toHaveAttribute('href', '/en/merchant/store?merchantId=merchant-a')
     expect(screen.getByText('No shopper activity yet')).toBeInTheDocument()
     expect(screen.queryByText('Connect your Agent')).not.toBeInTheDocument()
@@ -33,11 +33,17 @@ describe('MerchantOperatingHome', () => {
   it('shows real shopper outcomes and routes to Analytics', () => {
     render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({
       store: { exists: true, status: 'ACTIVE', selectedProductCount: 2, eligibleProductCount: 2, readiness: 'READY' },
-      shopper: { hasActivity: true, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 12 }, { label: 'High-intent shoppers', value: 3 }] },
+      merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', referenceData: true },
+      shopper: { hasActivity: true, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 12 }, { label: 'High-intent shoppers', value: 3 }], decisionTrend: [
+        { date: '2026-09-28', visitors: 2, engagedShoppers: 1, highIntentShoppers: 0 },
+        { date: '2026-09-29', visitors: 3, engagedShoppers: 2, highIntentShoppers: 1 },
+      ] },
     })} />)
     expect(screen.getByRole('link', { name: 'Review Analytics' })).toHaveAttribute('href', '/en/merchant/analytics?merchantId=merchant-a')
     expect(screen.getByText('12')).toBeInTheDocument()
     expect(screen.queryByText('No shopper activity yet')).not.toBeInTheDocument()
+    expect(screen.queryByText('Reference / simulation')).not.toBeInTheDocument()
+    expect(screen.getByRole('figure', { name: /Visitors over the last 7 days/ })).toBeInTheDocument()
   })
 
   it('does not treat Agent absence or archived Campaigns as Home attention', () => {

@@ -43,13 +43,19 @@ describe('Merchant operating surface route boundaries', () => {
     const result = await MerchantAnalyticsPage({ params: { locale: 'en' }, searchParams: { merchantId: 'tampered-merchant' } }) as React.ReactElement
     const child = result.props.children as React.ReactElement
 
-    expect(analytics).toHaveBeenCalledWith({ merchantId: 'merchant-authorized' })
+    expect(analytics).toHaveBeenCalledTimes(1)
+    const analyticsInput = analytics.mock.calls[0][0] as { merchantId: string; from: Date; to: Date }
+    expect(analyticsInput.merchantId).toBe('merchant-authorized')
+    expect(analyticsInput.from).toBeInstanceOf(Date)
+    expect(analyticsInput.to).toBeInstanceOf(Date)
+    expect(analyticsInput.to.getTime() - analyticsInput.from.getTime()).toBe(30 * 86_400_000)
     expect(controlCenter).not.toHaveBeenCalled()
     expect(credentials).not.toHaveBeenCalled()
     expect(config).not.toHaveBeenCalled()
     expect(child.type).toHaveProperty('name', 'MerchantAnalyticsWorkspace')
     expect(child.props.merchantId).toBe('merchant-authorized')
     expect(child.props.locale).toBe('en')
+    expect(child.props.rangeDays).toBe(30)
   })
 
   it('uses only credential metadata and safe Agent config, serialized for the selected Merchant', async () => {

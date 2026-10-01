@@ -5,6 +5,7 @@ export type MerchantOperatingHomeReadModel = {
     id: string
     slug: string
     name: string
+    referenceData: boolean
   }
   store: {
     exists: boolean
@@ -29,6 +30,7 @@ export type MerchantOperatingHomeReadModel = {
     hasActivity: boolean
     periodLabel: string
     metrics: Array<{ label: string; value: number }>
+    decisionTrend: Array<{ date: string; visitors: number; engagedShoppers: number; highIntentShoppers: number }>
   }
   commercial: {
     status: string
