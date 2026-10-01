@@ -1,6 +1,7 @@
 # VisuTry Demo Environment Contract
 
 **Status:** Active operational authority
+**Owner:** Product / Engineering / Operations
 **Last reviewed:** 2026-10-01
 **Scope:** Canonical VisuTry-owned Demo identity, public URL, prepared-result
 parity, provider policy, Local/Production Demo operation, and the operational
