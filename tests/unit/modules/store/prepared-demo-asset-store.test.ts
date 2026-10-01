@@ -152,6 +152,7 @@ describe('shared PREPARED_DEMO asset storage contract', () => {
     expect(getBlob).toHaveBeenCalledWith('visutry-demo/prepared/v1/rowan-prepared-result.png', {
       access: 'private',
       token: 'private-demo-store-token',
+      useCache: false,
     })
   })
 
@@ -177,6 +178,7 @@ describe('shared PREPARED_DEMO asset storage contract', () => {
     expect(getBlob).toHaveBeenCalledWith(descriptor.productionStorageKey, {
       access: 'private',
       token: 'private-demo-store-token',
+      useCache: false,
     })
   })
 

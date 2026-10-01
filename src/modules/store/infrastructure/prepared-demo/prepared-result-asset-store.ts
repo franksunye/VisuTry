@@ -30,7 +30,7 @@ async function readPrivateBlob(
   if (!token) return null
   let result
   try {
-    result = await get(storageKey, { access: 'private', token })
+    result = await get(storageKey, { access: 'private', token, useCache: false })
   } catch (error) {
     if (error instanceof BlobNotFoundError) return null
     throw error
