@@ -2,7 +2,7 @@
 
 **Status:** Active documentation entry point
 **Created:** 2026-07-08
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-01
 **Owner:** Product / Engineering
 **Review cadence:** Monthly, or whenever product direction / production architecture materially changes.
 
@@ -19,7 +19,8 @@ This is the entry point for current VisuTry documentation. It distinguishes acti
 | Cross-product positioning / boundaries | `docs/product/product-system.md` |
 | Merchant human operating experience | `docs/product/specs/merchant-operating-experience.md` |
 | Merchant activation milestone semantics | `docs/merchant-activation-v1.md` |
-| Canonical Demo identity / Local-Production Demo operation | `docs/ops/visutry-demo-environment-contract.md` |
+| Productized Demo capability / lifecycle | `docs/product/specs/visutry-demo-capability.md` |
+| Canonical Demo identity / Local-Production Demo operation | `docs/ops/visutry-demo-environment-contract.md` + `docs/engineering/local-demo-runtime-contract.md` |
 | Detailed product behavior | `docs/product/specs/` |
 | Technical architecture / current system shape | `docs/project/architecture.md` + accepted ADRs |
 | Observability / analytics / attribution / data-plane ownership | `docs/project/observability-and-analytics-contract.md` |
@@ -79,6 +80,16 @@ A newer gate or observation record supersedes “current phase” wording withou
 3. relevant `docs/product/specs/`
 4. the current product gate/plan when a decision is evidence-bound
 
+### Demo / sales enablement
+
+1. `docs/product/specs/visutry-demo-capability.md`
+2. `docs/ops/visutry-demo-environment-contract.md` for canonical identity / Production safety
+3. `docs/engineering/local-demo-runtime-contract.md` for repeatable Local rehearsal / QA / capture
+4. `docs/product/sales/visutry-store-sales-pitch.md` for customer-facing narrative
+5. `docs/product/sales/visutry-reference-portfolio-index.md` when matching a prospect to a Reference Experience
+
+The canonical Demo is a maintained product capability. Reuse it for sales, rehearsal, screenshots/video, and product proof; do not create ad-hoc prospect branches when the reusable Demo is sufficient.
+
 ### Merchant product
 
 1. `docs/product/product-plan.md`
@@ -123,7 +134,8 @@ Do not start a new analytics architecture from historical Campaign Intelligence 
 1. `docs/engineering/environment-isolation-contract.md`
 2. `docs/guides/development-guide.md`
 3. `docs/engineering/quality-assurance-strategy.md`
-4. current QA fixtures and implementation
+4. `docs/engineering/local-demo-runtime-contract.md` for the canonical repeatable Demo environment
+5. current QA fixtures and implementation
 
 ## 6. Documentation lifecycle
 
@@ -177,3 +189,4 @@ See `docs/document-inventory.md` for lifecycle and cleanup governance.
 | 2026-09-13 | Refreshed the active documentation contract for the P0.5A Public Web / Consumer App boundary, P0.5B prefetch guardrail, P0.5C image-delivery boundary, P0.5D intentional ISR boundary, and transitional D1 position; no P0.5E conclusion was added. |
 | 2026-09-17 | Reconciled the documentation governance contract with current Merchant Discovery/Activation and Cloudflare traffic-layer changes; recorded the final P0.5E result as unresolved and retained D1 as `KEEP_FOR_NOW` pending a clean observation window. |
 | 2026-09-23 | Reconciled documentation after P1-M2 Production acceptance; added the Merchant Operating Experience authority and separated activation-ledger semantics from runtime Operating eligibility. |
+| 2026-10-01 | Registered the productized Demo capability as a current authority and added the Demo/sales-enablement reading path across product, operations, Local QA, and sales docs. |

@@ -2,7 +2,7 @@
 
 **Status:** Active documentation governance registry
 **Created:** 2026-07-08
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-01
 **Owner:** Product / Engineering
 **Review cadence:** Monthly, and at every major milestone close
 **Scope:** Authoritative documents, directory lifecycle, exceptions, and cleanup debt. This is intentionally not a file-by-file catalog.
@@ -22,6 +22,7 @@ An unlisted document does not become authoritative merely because it is newer or
 | Cross-product positioning | `docs/product/product-system.md` | Product / Engineering | Product boundary or positioning changes |
 | Product execution priority | `docs/product/product-plan.md` | Product | Milestone, gate, or priority changes |
 | Merchant human operating experience | `docs/product/specs/merchant-operating-experience.md` | Product / Engineering | Merchant IA, lifecycle, First Value/Operating boundary, or Human/Agent responsibility changes |
+| Productized Demo capability | `docs/product/specs/visutry-demo-capability.md` + `docs/ops/visutry-demo-environment-contract.md` + `docs/engineering/local-demo-runtime-contract.md` | Product / Engineering / Growth / Sales | Any material Demo-path product change, Demo identity/runtime change, or major customer-facing Demo use |
 | Merchant activation milestone semantics | `docs/merchant-activation-v1.md` | Merchant Product / Engineering | Activation event, cohort, milestone, or First Value semantics change |
 | Commercial direction | `docs/strategy/commercial-strategy.md` | Product / Strategy | Commercial thesis changes |
 | GTM execution | `docs/strategy/analytics/gtm.md` | Growth / Product / Analytics | Experiment or acquisition model changes |
@@ -57,7 +58,7 @@ Architecture governance follows these rules:
 | `docs/product/audits/` | Point-in-time evidence | Retain when evidence is reusable; do not treat as current priority |
 | `docs/audits/` | Cross-cutting engineering/product audits | Retain as evidence; merge durable conclusions into ADRs / architecture / relevant authority |
 | `docs/project/` | Cross-cutting current project/technical authorities | Keep small; update in place; do not duplicate with phase reports |
-| `docs/product/sales/` | Sales enablement or validation evidence | Review when offer, pricing, or product boundary changes |
+| `docs/product/sales/` | Sales enablement or validation evidence | Review when offer, pricing, product boundary, or canonical Demo behavior changes |
 | `docs/strategy/` | Current strategy plus dated supporting research | Dated execution plans expire when their window closes; route durable conclusions into an authority |
 | `docs/operations/` | Current runbooks plus migration/incident records | Keep active runbooks small; classify completed migration records through `ARCHIVE.md` |
 | `docs/ops/` | Dated release/observation records | Retain as evidence; create a new record for a new observation window |
@@ -126,6 +127,7 @@ Use the audit during monthly review and before merging broad documentation-gover
 | P1 | GA4 console reconciliation against observed current events/dimensions/key events | Open; operator task, no code change implied |
 | P1 | Add missing metadata to active plans/specs/operations/guides | Open; reduce by area, not mass editing |
 | P1 | Post-P1-M2 Merchant documentation reconciliation | **Done 2026-09-23** — current Merchant Operating authority added; active authorities refreshed; completed M2/Agent phase plans retained as historical evidence rather than current UX authority |
+| P1 | Productized Demo documentation governance | **Done 2026-10-01** — registered Demo as a first-class product capability with Local/Production parity, release impact assessment, and reusable sales/marketing operation |
 | P2 | Review large Markdown files over 30 KB for extraction/consolidation | Open |
 | P2 | Convert operations archive-by-status into physical archive folders only when links/forensic workflows remain clear | Deferred |
 
@@ -167,3 +169,4 @@ At milestone close or monthly review:
 | 2026-09-13 | Refreshed the active architecture authorities for P0.5A–D; preserved P0.5E as an evidence-gated observation and kept D1 removal undecided. |
 | 2026-09-17 | Reconciled the governance registry with current Merchant Discovery/Activation and Cloudflare production traffic-layer changes; recorded P0.5E as unresolved and retained D1 as `KEEP_FOR_NOW` pending a clean observation window. |
 | 2026-09-23 | Registered Merchant Operating Experience and Activation semantics as explicit authorities; reconciled post-P1-M2 active docs and marked completed phase plans as historical/superseded where appropriate. |
+| 2026-10-01 | Registered the Productized Demo capability and its Product/Engineering/Growth/Sales ownership, release-impact rule, and Local/Production operating authorities. |

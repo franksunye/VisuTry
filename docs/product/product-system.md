@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for cross-repository product positioning
 **Created:** 2026-07-08
-**Last reviewed:** 2026-09-23
+**Last reviewed:** 2026-10-01
 **Owner:** Product / Engineering
 **Review cadence:** Monthly, or when Web, SDK, Mobile, or Merchant product ownership changes
 **Scope:** Relationship between `VisuTry`, `visutry-tryon-sdk`, and `visutry-mobile`, including the current Consumer and Merchant product faces.
@@ -79,6 +79,19 @@ The human Merchant Operating Experience currently provides Home, Catalog, Store,
 
 The platform also owns Remote MCP / Agent access. Human UI and Agent/MCP use shared canonical application/domain capabilities; Agent access is optional and is not implemented by automating the human UI.
 
+### Productized Demo capability
+
+The main platform also owns the canonical **VisuTry Demo** as a first-class product capability. It is not a temporary sales fixture or a parallel application stack.
+
+The Demo reuses the same Store, Face Intelligence, Recommendation, selection, Compare, Decision Result, QR/mobile, and Merchant product contracts as the supported product surfaces. Demo-specific behavior is limited to explicit Demo entitlement, synthetic fixture/provenance, prepared-result media resolution, and bounded QA/reset tooling.
+
+The Demo has two environment roles:
+
+- **Local** — repeatable regression, rehearsal, and content-production surface;
+- **Production** — canonical customer-facing walkthrough surface.
+
+Normal Demo operation is provider-free through `PREPARED_DEMO`; live Provider validation is a separate bounded reliability test. Product releases that materially affect the supported Demo journey must perform the impact assessment defined in `docs/product/specs/visutry-demo-capability.md`.
+
 ## 4. VisuTry Try-On SDK
 
 `franksunye/visutry-tryon-sdk` is the reusable capability layer behind the VisuTry product system.
@@ -128,6 +141,7 @@ It must not become a separate backend, billing system, or independent commercial
 - analytics/business truth boundaries
 - SEO/GEO and business acquisition
 - product/commercial documentation
+- productized Demo capability, entitlement, parity, and reusable sales/QA/content surface
 
 ### SDK-owned
 
@@ -170,11 +184,13 @@ Standing boundaries:
 - preserve Consumer stability while Merchant evolves;
 - keep Consumer and Merchant as co-equal product faces;
 - validate merchant demand before broad Shopify/CRM/revenue-attribution expansion;
-- keep Agent optional and approval-bounded for consequential actions.
+- keep Agent optional and approval-bounded for consequential actions;
+- keep the productized Demo materially aligned with supported product behavior and assess Demo impact when relevant product capabilities change.
 
 ## 9. Related documents
 
 - `docs/product/product-plan.md`
+- `docs/product/specs/visutry-demo-capability.md`
 - `docs/product/specs/merchant-operating-experience.md`
 - `docs/merchant-activation-v1.md`
 - `docs/product/specs/merchant-experience-architecture.md`
@@ -189,3 +205,4 @@ Standing boundaries:
 | --- | --- |
 | 2026-07-08 | Created product system overview for Web, SDK, and Mobile repositories. |
 | 2026-09-23 | Reconciled the product system after P1-M2: established current Consumer + Merchant product faces, production Merchant Operating ownership, shared Human/Agent application boundaries, and the modular-monolith rule. |
+| 2026-10-01 | Registered the canonical Demo as a first-class platform capability with Local/Production parity, provider-free default execution, and explicit product-upgrade obligations. |

@@ -1,10 +1,10 @@
 # VisuTry Store Sales Demo Spec
 
-**Status:** Implemented — controlled production validation active; Gate A1 closed; Market-Capture Competitive Offer v8
+**Status:** Active commercial/sales-demo reference; runtime Demo behavior is governed by the productized Demo capability
 **Owner:** Product / Engineering / Growth  
 **Created:** 2026-08-05  
-**Last updated:** 2026-08-06  
-**Primary purpose:** Merchant sales validation before full Store productization  
+**Last updated:** 2026-10-01  
+**Primary purpose:** Merchant sales-demo narrative and commercial context; reusable Demo runtime/product lifecycle is governed by `docs/product/specs/visutry-demo-capability.md`  
 **Related pricing:** `docs/strategy/merchant-pricing-packaging-unit-economics.md`  
 **Related commercial entitlement:** `docs/product/specs/merchant-commercial-entitlements.md`
 
@@ -12,7 +12,9 @@
 
 ## 1. Decision
 
-The Store Sales Demo remains the reusable working merchant-specific experience for the first paid Pilots.
+The VisuTry Demo is now a **productized, reusable product capability** rather than a temporary pre-productization sales fixture. This document retains the sales narrative and Market-Capture commercial context; canonical Demo identity, repeatability, Local/Production parity, prepared-result behavior, and upgrade obligations are owned by `docs/product/specs/visutry-demo-capability.md` and the runtime/ops contracts it references.
+
+Default customer-facing walkthroughs should use the canonical VisuTry Demo Optical environment with the provider-free `PREPARED_DEMO` path. Live Provider generation is a separate bounded reliability test and must not be a dependency for a sales meeting.
 
 The product story is:
 
@@ -121,10 +123,12 @@ Say:
 
 ### Minute 3–6 — Try-On and Compare
 
-1. Select 2–4 frames.
-2. Generate Try-On results.
+1. Select the intended demo frames (Rowan + Lane for the canonical walkthrough).
+2. Present the approved prepared Demo results by default.
 3. Compare finalists.
 4. Keep merchant product identity visible.
+
+Do not describe a prepared result as a live generation from the current session. If a separately authorized live Provider smoke is being demonstrated, label it as such and keep it outside the normal meeting-readiness dependency.
 
 Say:
 
@@ -186,14 +190,19 @@ Do not present revenue attribution or incremental GMV unless those evidence laye
 
 ## 7. Current Demo Product Requirements
 
-The existing shopper flow remains:
+The canonical productized Demo flow is:
 
-1. merchant context;
-2. photo upload;
-3. AI-assisted shortlist;
-4. Try-On;
-5. Compare;
-6. intent action.
+1. canonical merchant context;
+2. consent + approved synthetic shopper;
+3. on-device Face Intelligence;
+4. AI-assisted merchant-catalog shortlist;
+5. frame selection;
+6. `PREPARED_DEMO` result by default;
+7. Compare;
+8. Decision Result;
+9. QR / clean mobile continuation.
+
+The Demo follows shared product application/domain contracts. Normal merchants do not receive Demo entitlement or prepared-result behavior merely because the Demo capability exists.
 
 The current Pilot does not require:
 
@@ -300,3 +309,4 @@ The next pricing version may change price, capacity, support scope, or packaging
 | 2026-08-05 | Created and implemented reusable Store Sales Demo. |
 | 2026-08-06 | v7: aligned demo to a sales-first $149 Intent-First Pilot. |
 | 2026-08-06 | **v8: aligned Sales Demo to the finalized Market Capture offer: $149 / 30 days, 1,500 AI-assisted shoppers, 3,500 Standard Try-On generations, optional 5,000-generation Founding Launch Bonus; replaced defensive VTO positioning with competitive-floor + differentiated-upside sales language.** |
+| 2026-10-01 | Separated commercial/sales-demo narrative from the now-productized Demo runtime authority; made the canonical provider-free Prepared Demo the default live walkthrough and added Decision Result/mobile continuation. |

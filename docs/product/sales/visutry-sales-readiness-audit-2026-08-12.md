@@ -1,8 +1,13 @@
 # VisuTry Sales Readiness Audit & Launch Plan
 
+**Status:** Dated supporting sales evidence
+**Owner:** Product / Growth / Sales
+**Last reviewed:** 2026-10-01
 **Date:** 2026-08-12
 **Scope:** Reference Factory → founder-led merchant outreach
 **Decision:** Ready for a controlled first batch of founder-led outreach; not yet ready for a scaled, fully measured inbound funnel.
+
+> **2026-10-01 operating note:** This dated audit remains useful for the original outreach/readiness evidence, but its Demo execution details are superseded by the productized Demo authority at `docs/product/specs/visutry-demo-capability.md`. Use the canonical VisuTry Demo Optical environment for repeatable walkthroughs, rehearsal, and content capture; use the Reference Portfolio for archetype mapping. Re-check current commercial/pricing authorities before reusing the 2026-08 offer numbers below.
 
 ## A. Current readiness verdict
 
