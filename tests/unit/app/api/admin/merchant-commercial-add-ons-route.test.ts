@@ -37,7 +37,7 @@ describe('Merchant commercial add-on admin route', () => {
       commercialStatus: 'PAID_ACTIVE',
       commercialAddOns: ['KIOSK'],
       entitlementEffectiveFrom: new Date('2026-09-01T00:00:00.000Z'),
-      billingPeriodEnd: new Date('2026-10-01T00:00:00.000Z'),
+      billingPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     })
 
     const response = await GET(
