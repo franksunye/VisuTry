@@ -266,10 +266,11 @@ active journey.
 | 12. QR/mobile continuation | Result/Store continuation link in mobile viewport | Read-only link navigation; any new Store session only after explicit shopper continuation | None | Mobile-emulated QR/continuation; verify target route and retained result context |
 | 13. Reset / new shopper | Use the explicit kiosk New shopper/reset action only if testing kiosk mode | `POST /api/store/sessions/kiosk-reset` performs the canonical Local reset for kiosk session state | None | Clean start state; confirm prior shopper content is not visible |
 
-Exact consent/session UI and whether Compare Result links expose a QR are to be
-confirmed in the walkthrough; do not fabricate a QR or force kiosk mode.
+The canonical journey now validates consent/session behavior, Decision Result,
+QR presentation, and clean mobile continuation. Do not fabricate a QR, private
+result token, or kiosk behavior outside the implemented path.
 
-## Phase 2C-R1 — targeted shopper UX rehearsal
+## Historical evidence — Phase 2C-R1 targeted shopper UX rehearsal
 
 The Store recommendation ranker remains unchanged. “Recommended for you” stays
 first; “Explore all frames” lazily reveals the other active Store-selected
@@ -278,12 +279,12 @@ both lists and capped by the existing two-frame policy. A missing product
 price is omitted rather than labeled unavailable or represented as zero, and
 recommendation rationale is headed “Why we recommend it.”
 
-The bounded Local browser rehearsal uses the repository-owned Demo Shopper v1
-image and real browser MediaPipe, then reaches the existing deterministic
-recommendation API. Verify the original six-frame order, reveal all ten Store
-frames, select Rowan and Lane, and confirm “Selected 2 of 2.” Stop before
-confirming the selection or submitting Try-On; this phase makes no GrsAI or
-Gemini request. Afterward stop the dev server and run the guarded reset above.
+This section records the earlier bounded Phase 2C-R1 rehearsal and no longer
+defines the current stop boundary. The current canonical no-provider journey
+continues through prepared results, Compare, Decision Result, and QR/mobile as
+defined earlier in this contract. The historical rehearsal used Demo Shopper
+v1 and real browser MediaPipe, verified catalog exploration and Rowan/Lane
+selection, and intentionally stopped before Try-On at that time.
 
 The earlier Store landing observation is deliberately deferred: at 1024×768
 the full page is approximately 2291px tall and requires scrolling before the
