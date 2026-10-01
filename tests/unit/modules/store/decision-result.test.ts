@@ -6,7 +6,7 @@ import {
 } from '@/modules/store/domain/decision-result'
 
 describe('canonical Decision Result payload', () => {
-  it('keeps only bounded, non-photo decision references', () => {
+  it('keeps catalog thumbnails while excluding shopper media and unsafe image URLs', () => {
     const payload = sanitizeDecisionResultPayload({
       journey: { experienceType: 'STORE', enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'NOT_A_STAGE'] },
       recommendation: {
@@ -19,9 +19,10 @@ describe('canonical Decision Result payload', () => {
             productUrl: 'https://merchant.test/frame-1',
             score: 92,
             reason: 'Balanced proportions',
-            imageUrl: 'https://private.test/shopper-photo.png',
+            imageUrl: 'https://cdn.example.test/round-frame.png',
           },
-          { imageUrl: 'https://private.test/raw-face.png' },
+          { frameId: 'frame-2', name: 'Unsafe image', imageUrl: 'data:image/png;base64,raw-face', score: 80, reason: 'reason' },
+          { frameId: 'frame-3', name: 'Private route', imageUrl: '/api/store/session/photo', score: 70, reason: 'reason' },
         ],
       },
       tryOnResults: [
@@ -35,9 +36,26 @@ describe('canonical Decision Result payload', () => {
       frameId: 'frame-1',
       sku: 'SKU-1',
       name: 'Round frame',
+      imageUrl: 'https://cdn.example.test/round-frame.png',
       productUrl: 'https://merchant.test/frame-1',
       score: 92,
       reason: 'Balanced proportions',
+    }, {
+      frameId: 'frame-2',
+      sku: null,
+      name: 'Unsafe image',
+      imageUrl: null,
+      productUrl: null,
+      score: 80,
+      reason: 'reason',
+    }, {
+      frameId: 'frame-3',
+      sku: null,
+      name: 'Private route',
+      imageUrl: null,
+      productUrl: null,
+      score: 70,
+      reason: 'reason',
     }])
     expect(payload.tryOnResults).toEqual([{
       source: 'LIVE_TRYON',
@@ -114,6 +132,20 @@ describe('canonical Decision Result payload', () => {
 
     expect(payload.recommendation?.frames).toHaveLength(DECISION_RESULT_MAX_FRAME_REFS)
     expect(payload.tryOnResults).toHaveLength(DECISION_RESULT_MAX_TRYON_REFS)
+  })
+
+  it('keeps older recommendation snapshots compatible when no thumbnail was stored', () => {
+    const payload = sanitizeDecisionResultPayload({
+      recommendation: {
+        rankingVersion: 'rank-v1',
+        frames: [{ frameId: 'legacy-frame', name: 'Legacy frame', score: 81, reason: 'A useful alternative.' }],
+      },
+    })
+
+    expect(payload.recommendation?.frames).toEqual([expect.objectContaining({
+      frameId: 'legacy-frame',
+      imageUrl: null,
+    })])
   })
 
   it('uses an explicit expiry boundary', () => {

@@ -204,11 +204,18 @@ describe('recommendMerchantFrames', () => {
 
   it('returns merchant-only shortlist with reasons and ranking version', async () => {
     const { merchants, frameRepo, sessions, events } = repos()
+    const decisionResults = {
+      upsertRecommendation: jest.fn().mockResolvedValue({ shareToken: 'decision-token', expiresAt: new Date(Date.now() + 60_000) }),
+      updateSessionSnapshot: jest.fn(),
+      getSessionResultItems: jest.fn().mockResolvedValue([]),
+      recordPreparedDemoResult: jest.fn().mockResolvedValue(false),
+    }
     const result = await recommendMerchantFrames({
       merchants,
       frames: frameRepo,
       sessions,
       events,
+      decisionResults,
       slug: 'luna-optical',
       merchantSessionId: 's1',
       capabilityToken: capability.token,
@@ -232,6 +239,12 @@ describe('recommendMerchantFrames', () => {
     )
     expect(result.frames[0]?.reason).toBeTruthy()
     expect(result.rankingVersion).toMatch(/^store-rank-/)
+    expect(decisionResults.upsertRecommendation).toHaveBeenCalledWith(expect.objectContaining({
+      frames: expect.arrayContaining([
+        expect.objectContaining({ frameId: 'f-round', imageUrl: 'https://example.com/r.jpg' }),
+        expect.objectContaining({ frameId: 'f-rect', imageUrl: 'https://example.com/x.jpg' }),
+      ]),
+    }))
     expect(events.appendIdempotent).toHaveBeenCalled()
     expect(events.appendIdempotent).toHaveBeenCalledWith(
       expect.objectContaining({

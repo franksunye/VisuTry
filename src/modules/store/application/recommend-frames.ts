@@ -236,6 +236,7 @@ export async function recommendMerchantFrames(
           frameId: frame.id,
           sku: frame.sku ?? null,
           name: frame.name,
+          imageUrl: frame.imageUrl,
           productUrl: frame.productUrl,
           score: frame.score,
           reason: frame.reason,

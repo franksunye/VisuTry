@@ -11,6 +11,31 @@ function formatExpiry(value: string): string {
   return new Date(value).toISOString().replace('.000Z', ' UTC').replace('T', ' ')
 }
 
+function DecisionResultFrameThumbnail({ imageUrl, name }: { imageUrl: string | null; name: string }) {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
+  const unavailable = !imageUrl || failedUrl === imageUrl
+
+  return (
+    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-white sm:h-20 sm:w-20">
+      {unavailable ? (
+        <div role="img" aria-label={`${name} image unavailable`} className="flex h-full w-full items-center justify-center text-slate-300">
+          <Glasses className="h-6 w-6" aria-hidden="true" />
+        </div>
+      ) : (
+        <Image
+          src={imageUrl}
+          alt={`${name} product thumbnail`}
+          fill
+          unoptimized
+          sizes="(min-width: 640px) 80px, 56px"
+          className="object-contain p-1"
+          onError={() => setFailedUrl(imageUrl)}
+        />
+      )}
+    </div>
+  )
+}
+
 export function DecisionResultPageClient({ locale, token, result, kioskMode = false }: { locale: string; token: string; result: DecisionResultView; kioskMode?: boolean }) {
   const [copied, setCopied] = useState(false)
   const [resetting, setResetting] = useState(false)
@@ -112,7 +137,13 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   {result.recommendation.frames.map((frame) => (
                     <div key={frame.frameId} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                      <div className="flex items-start justify-between gap-3"><div><p className="font-semibold">{frame.name}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-slate-400">{frame.sku || 'Merchant frame'}</p></div><span className="text-sm font-semibold text-blue-700">{Math.round(frame.score)}</span></div>
+                      <div className="flex items-start gap-3">
+                        <DecisionResultFrameThumbnail imageUrl={frame.imageUrl} name={frame.name} />
+                        <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
+                          <div className="min-w-0"><p className="font-semibold">{frame.name}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-slate-400">{frame.sku || 'Merchant frame'}</p></div>
+                          <span className="shrink-0 text-sm font-semibold text-blue-700">{Math.round(frame.score)}</span>
+                        </div>
+                      </div>
                       <p className="mt-3 text-sm leading-5 text-slate-600">{frame.reason}</p>
                       {frame.productUrl ? <a href={frame.productUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-700">View product <ArrowUpRight className="h-3.5 w-3.5" /></a> : null}
                     </div>

@@ -9,6 +9,7 @@ export type DecisionResultFrameReference = {
   frameId: string
   sku: string | null
   name: string
+  imageUrl: string | null
   productUrl: string | null
   score: number
   reason: string
@@ -103,6 +104,26 @@ export function uniqueBounded(values: string[], limit: number): string[] {
   return [...new Set(values.filter((value) => typeof value === 'string' && value.length > 0))].slice(0, limit)
 }
 
+function sanitizeCatalogImageUrl(value: unknown): string | null {
+  if (typeof value !== 'string' || value.length === 0 || value.length > 2048 || value.trim() !== value) return null
+  if (/^[\u0000-\u0020]/.test(value) || /[\u0000-\u001f]/.test(value)) return null
+
+  if (value.startsWith('/')) {
+    // Keep repository-owned/public root assets, but never persist a private API
+    // route (which could refer to shopper media or another session resource).
+    if (value.startsWith('//') || value.startsWith('/api/')) return null
+    return value
+  }
+
+  try {
+    const url = new URL(value)
+    if (!['http:', 'https:'].includes(url.protocol) || !url.hostname || url.username || url.password) return null
+    return value
+  } catch {
+    return null
+  }
+}
+
 export function sanitizeDecisionResultPayload(value: unknown): CanonicalDecisionResultPayload {
   const fallback = emptyDecisionResultPayload()
   if (!value || typeof value !== 'object') return fallback
@@ -118,6 +139,7 @@ export function sanitizeDecisionResultPayload(value: unknown): CanonicalDecision
           frameId: candidate.frameId,
           sku: typeof candidate.sku === 'string' ? candidate.sku : null,
           name: typeof candidate.name === 'string' ? candidate.name : 'Recommended frame',
+          imageUrl: sanitizeCatalogImageUrl(candidate.imageUrl),
           productUrl: typeof candidate.productUrl === 'string' ? candidate.productUrl : null,
           score: typeof candidate.score === 'number' && Number.isFinite(candidate.score) ? candidate.score : 0,
           reason: typeof candidate.reason === 'string' ? candidate.reason : '',
