@@ -30,7 +30,12 @@ describe('Merchant commercial add-on admin route', () => {
     admin.mockResolvedValue({ ok: true, userId: 'admin-1' })
   })
 
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   it('reports effective Kiosk availability from plan plus provisioned add-ons', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-09-15T12:00:00.000Z'))
     db.merchant.findUnique.mockResolvedValue({
       id: 'merchant-1',
       planCode: 'LAUNCH',

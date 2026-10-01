@@ -49,7 +49,7 @@ function periodLabel(from: string, to: string): string {
 
 export async function getMerchantOperatingHome(input: { merchantId: string }): Promise<MerchantOperatingHomeReadModel | null> {
   const sql = getCloudflareSql()
-  const merchantRows = await sql`SELECT "id", "slug", "name" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
+  const merchantRows = await sql`SELECT "id", "slug", "name", "referenceData" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
   const merchantRow = merchantRows[0] as Record<string, unknown> | undefined
   if (!merchantRow) return null
 
@@ -111,7 +111,7 @@ export async function getMerchantOperatingHome(input: { merchantId: string }): P
   })
 
   return {
-    merchant: { id: text(merchantRow.id), slug: text(merchantRow.slug), name: text(merchantRow.name) },
+    merchant: { id: text(merchantRow.id), slug: text(merchantRow.slug), name: text(merchantRow.name), referenceData: Boolean(merchantRow.referenceData) },
     store: {
       exists: Boolean(store),
       status: store?.status ?? null,
@@ -134,6 +134,7 @@ export async function getMerchantOperatingHome(input: { merchantId: string }): P
     shopper: {
       hasActivity: intelligence.hasActivity,
       periodLabel: periodLabel(intelligence.period.from, intelligence.period.to),
+      decisionTrend: intelligence.decisionTrend,
       metrics: [
         { label: 'Visitors', value: intelligence.totals.visitors },
         { label: 'Engaged shoppers', value: intelligence.totals.engagedShoppers },

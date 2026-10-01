@@ -4,8 +4,12 @@ import {
   computeExperienceAnalytics,
   resolveAnalyticsPeriod,
   type AnalyticsEventRow,
+  type MerchantAnalyticsFunnelStage,
   type AnalyticsIntentRow,
   type AnalyticsRangeInput,
+  type AnalyticsFrameRow,
+  type MerchantAnalyticsTopFrame,
+  referencedAnalyticsFrameIds,
 } from '@/modules/store/application/merchant-analytics-compute'
 import { buildMerchantDistributionReport, MERCHANT_DISTRIBUTION_SOURCE_LABELS, type MerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
 import { safeRate } from '@/modules/store/domain/merchant-analytics'
@@ -24,6 +28,10 @@ import {
 export type MerchantCommerceIntelligence = {
   period: { from: string; to: string; timezone: 'UTC' }
   hasActivity: boolean
+  decisionTrend: MerchantDecisionTrendBucket[]
+  previousDecisionTrend?: MerchantDecisionTrendBucket[]
+  decisionJourney: MerchantAnalyticsFunnelStage[]
+  topFrames: MerchantAnalyticsTopFrame[]
   totals: {
     visitors: number
     engagedShoppers: number
@@ -32,6 +40,8 @@ export type MerchantCommerceIntelligence = {
     compareActivity: number
     productClicks: number
     highIntentShoppers: number
+    favorites: number
+    inquiries: number
   }
   rates: { engagement: number | null; recommendation: number | null; tryOn: number | null; compare: number | null }
   comparison: MerchantCommerceComparison
@@ -56,6 +66,13 @@ export type MerchantCommerceIntelligence = {
   }>
 }
 
+export type MerchantDecisionTrendBucket = {
+  date: string
+  visitors: number
+  engagedShoppers: number
+  highIntentShoppers: number
+}
+
 export type MerchantCommerceActivityExperience = {
   id: string
   type: 'STORE' | 'CAMPAIGN'
@@ -67,6 +84,7 @@ export type MerchantCommerceActivityExperience = {
 export type MerchantCommerceActivitySession = {
   id: string
   experienceId: string | null
+  createdAt?: Date | string
   source: string | null
   medium: string | null
   referrer: string | null
@@ -81,6 +99,7 @@ export type MerchantCommerceActivity = {
   sessions: MerchantCommerceActivitySession[]
   events: MerchantCommerceActivityEvent[]
   intents: MerchantCommerceActivityIntent[]
+  frames?: AnalyticsFrameRow[]
 }
 
 function percentRate(value: number | null): number | null {
@@ -121,12 +140,59 @@ function overlayCounts(events: readonly MerchantCommerceActivityEvent[], intents
   }
 }
 
+/**
+ * Attribute canonical session-level signals to the UTC day the session began.
+ * This is a cohort view: all in-window events/intents belonging to that session
+ * stay with its visit day, so daily buckets sum to the same canonical totals.
+ */
+function dailyDecisionTrend(
+  activity: MerchantCommerceActivity,
+  period: { from: Date; to: Date },
+): MerchantDecisionTrendBucket[] {
+  const datedSessions = activity.sessions.flatMap((session) => {
+    if (!session.createdAt) return []
+    const createdAt = session.createdAt instanceof Date ? session.createdAt : new Date(session.createdAt)
+    return Number.isNaN(createdAt.getTime()) ? [] : [{ ...session, createdAt }]
+  })
+  if (datedSessions.length === 0) return []
+
+  const scoped = scopedActivity(activity, null)
+  const cursor = new Date(Date.UTC(period.from.getUTCFullYear(), period.from.getUTCMonth(), period.from.getUTCDate()))
+  const buckets: MerchantDecisionTrendBucket[] = []
+  while (cursor < period.to) {
+    const dayStart = cursor.getTime()
+    const nextDay = dayStart + 86_400_000
+    const sessionIds = datedSessions
+      .filter((session) => session.createdAt.getTime() >= Math.max(dayStart, period.from.getTime())
+        && session.createdAt.getTime() < Math.min(nextDay, period.to.getTime()))
+      .map((session) => session.id)
+    const computed = computeExperienceAnalytics({
+      sessionIds,
+      events: scoped.events,
+      intents: scoped.intents,
+      includeTopFrames: false,
+    })
+    buckets.push({
+      date: cursor.toISOString().slice(0, 10),
+      visitors: computed.metrics.visits,
+      engagedShoppers: computed.metrics.engagedSessions,
+      highIntentShoppers: computed.metrics.highIntentSessions,
+    })
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+  return buckets
+}
+
 function snapshot(
   activity: MerchantCommerceActivity,
   from: Date,
   to: Date,
 ): Omit<MerchantCommerceIntelligence, 'comparison' | 'experiencePerformance' | 'sourceHighlights' | 'interpretation'> {
-  const overall = computeExperienceAnalytics({ ...scopedActivity(activity, null), includeTopFrames: false })
+  const overall = computeExperienceAnalytics({
+    ...scopedActivity(activity, null),
+    frames: activity.frames ?? [],
+    includeTopFrames: true,
+  })
   const extras = overlayCounts(activity.events, activity.intents)
   const sources = new Map<string, number>()
   for (const session of activity.sessions) {
@@ -140,6 +206,9 @@ function snapshot(
   return {
     period: analyticsPeriodDto({ from, to }),
     hasActivity: overall.metrics.visits > 0,
+    decisionTrend: dailyDecisionTrend(activity, { from, to }),
+    decisionJourney: overall.funnelStages.filter((stage) => stage.available),
+    topFrames: overall.topFrames,
     totals: {
       visitors: overall.metrics.visits,
       engagedShoppers: overall.metrics.engagedSessions,
@@ -148,6 +217,8 @@ function snapshot(
       compareActivity: overall.metrics.compares,
       productClicks: extras.productClicks,
       highIntentShoppers: overall.metrics.highIntentSessions,
+      favorites: overall.metrics.favorites,
+      inquiries: intentTypeCount(activity.intents, 'INQUIRY'),
     },
     rates: {
       engagement: percentRate(overall.metrics.engagementRate),
@@ -228,7 +299,7 @@ export function buildMerchantCommerceIntelligence(input: {
     sources: sourceHighlights,
     experienceNames,
   })
-  return { ...currentInsights, comparison, experiencePerformance, sourceHighlights, interpretation }
+  return { ...currentInsights, previousDecisionTrend: previousInsights.decisionTrend, comparison, experiencePerformance, sourceHighlights, interpretation }
 }
 
 function mapGroup(row: { merchantSessionId: string | null; merchantFrameId?: string | null; experienceId: string | null; type: string; _count: { _all: number } }): MerchantCommerceActivityEvent {
@@ -244,7 +315,7 @@ function mapGroup(row: { merchantSessionId: string | null; merchantFrameId?: str
 export async function getMerchantCommerceIntelligence(input: {
   merchantId: string
 } & AnalyticsRangeInput): Promise<MerchantCommerceIntelligence> {
-  const currentPeriod = resolveAnalyticsPeriod({ from: input.from, to: input.to })
+  const currentPeriod = resolveAnalyticsPeriod(input)
   const windowMs = currentPeriod.to.getTime() - currentPeriod.from.getTime()
   const previousPeriod = { from: new Date(currentPeriod.from.getTime() - windowMs), to: currentPeriod.from }
   const experiences = await prisma.experience.findMany({
@@ -253,10 +324,10 @@ export async function getMerchantCommerceIntelligence(input: {
   })
   const loadWindow = async (from: Date, until: Date): Promise<MerchantCommerceActivity> => {
     const scope = { merchantId: input.merchantId, createdAt: { gte: from, lt: until } }
-    const [sessions, events, intents] = await Promise.all([
+    const [sessions, eventGroups, intentGroups] = await Promise.all([
       prisma.merchantSession.findMany({
         where: scope,
-        select: { id: true, experienceId: true, source: true, medium: true, referrer: true, aiAgentSource: true },
+        select: { id: true, experienceId: true, createdAt: true, source: true, medium: true, referrer: true, aiAgentSource: true },
       }),
       prisma.merchantEvent.groupBy({
         by: ['merchantSessionId', 'experienceId', 'merchantFrameId', 'type'],
@@ -269,17 +340,27 @@ export async function getMerchantCommerceIntelligence(input: {
         _count: { _all: true },
       }),
     ])
+    const events = (eventGroups as Array<{ merchantSessionId: string | null; experienceId: string | null; merchantFrameId: string | null; type: string; _count: { _all: number } }>).map(mapGroup)
+    const intents = (intentGroups as Array<{ merchantSessionId: string; experienceId: string | null; merchantFrameId: string | null; type: string; _count: { _all: number } }>).map((row) => ({
+      merchantSessionId: row.merchantSessionId,
+      merchantFrameId: row.merchantFrameId,
+      experienceId: row.experienceId,
+      type: row.type,
+      count: row._count._all,
+    }))
+    const frameIds = referencedAnalyticsFrameIds(events, intents)
+    const frames = frameIds.length
+      ? await prisma.merchantFrame.findMany({
+        where: { merchantId: input.merchantId, id: { in: frameIds } },
+        select: { id: true, sku: true, name: true, imageUrl: true },
+      })
+      : []
     return {
       experiences: experiences as MerchantCommerceActivityExperience[],
       sessions: sessions as MerchantCommerceActivitySession[],
-      events: (events as Array<{ merchantSessionId: string | null; experienceId: string | null; merchantFrameId: string | null; type: string; _count: { _all: number } }>).map(mapGroup),
-      intents: (intents as Array<{ merchantSessionId: string; experienceId: string | null; merchantFrameId: string | null; type: string; _count: { _all: number } }>).map((row) => ({
-        merchantSessionId: row.merchantSessionId,
-        merchantFrameId: row.merchantFrameId,
-        experienceId: row.experienceId,
-        type: row.type,
-        count: row._count._all,
-      })),
+      events,
+      intents,
+      frames: frames as AnalyticsFrameRow[],
     }
   }
   const [current, previous] = await Promise.all([

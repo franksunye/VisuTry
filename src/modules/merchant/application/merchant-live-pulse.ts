@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
   buildMerchantLivePulse,
@@ -7,6 +8,10 @@ import {
   merchantLivePulseWindows,
   type MerchantLivePulseActivityRow,
 } from '../domain/merchant-live-pulse'
+import {
+  LOCAL_DASHBOARD_SIMULATION_MARKER,
+  LOCAL_DASHBOARD_SIMULATION_MERCHANT_SLUG,
+} from '../domain/local-dashboard-simulation'
 
 const LIVE_EVENT_TYPES = [
   'merchant_tryon_completed',
@@ -39,15 +44,73 @@ function activityRows(rows: RelatedActivityRow[]): MerchantLivePulseActivityRow[
 export async function getMerchantLivePulse(input: { merchantId: string; now?: Date }) {
   const now = input.now ?? new Date()
   const { activeSince, activitySince } = merchantLivePulseWindows(now)
-  const merchantScope = { is: { referenceData: false } }
+  const localReferenceMerchant = process.env.APP_ENV?.trim().toLowerCase() === 'local'
+    && !process.env.VERCEL
+    && !process.env.VERCEL_ENV
+    ? await prisma.merchant.findFirst({
+      where: {
+        id: input.merchantId,
+        slug: LOCAL_DASHBOARD_SIMULATION_MERCHANT_SLUG,
+        classification: 'TEST',
+        classificationSource: LOCAL_DASHBOARD_SIMULATION_MARKER,
+        pilotType: 'REFERENCE',
+        referenceData: true,
+      },
+      select: { id: true },
+    })
+    : null
+  const includeLocalReference = Boolean(localReferenceMerchant)
+  const referenceData = includeLocalReference
+  const merchantWhere: Prisma.MerchantWhereInput = includeLocalReference
+    ? {
+        id: input.merchantId,
+        slug: LOCAL_DASHBOARD_SIMULATION_MERCHANT_SLUG,
+        classification: 'TEST',
+        classificationSource: LOCAL_DASHBOARD_SIMULATION_MARKER,
+        pilotType: 'REFERENCE',
+        referenceData: true,
+      }
+    : { referenceData: false }
+  const merchantScope = {
+    is: merchantWhere,
+  }
+  const fixtureSessionScope = includeLocalReference
+    ? { campaign: LOCAL_DASHBOARD_SIMULATION_MARKER, acquisitionSurface: LOCAL_DASHBOARD_SIMULATION_MARKER }
+    : {}
+  const fixtureEventScope = includeLocalReference
+    ? { metadata: { path: ['fixture'], equals: LOCAL_DASHBOARD_SIMULATION_MARKER } }
+    : {}
+  const fixtureIntentScope = includeLocalReference
+    ? { idempotencyKey: { startsWith: `${LOCAL_DASHBOARD_SIMULATION_MARKER}:` } }
+    : {}
+  const fixtureSessionRelation = { is: { referenceData, ...fixtureSessionScope, merchant: merchantScope } }
   const sessionScope = {
     merchantId: input.merchantId,
-    referenceData: false,
+    referenceData,
     merchant: merchantScope,
+    ...fixtureSessionScope,
   }
   const activityScope = {
     merchantId: input.merchantId,
     createdAt: { gte: activitySince, lt: now },
+    merchant: merchantScope,
+  }
+  const eventScope = {
+    ...activityScope,
+    referenceData,
+    ...fixtureEventScope,
+    ...(includeLocalReference ? { session: fixtureSessionRelation } : {}),
+  }
+  const intentScope = {
+    ...activityScope,
+    ...fixtureIntentScope,
+    ...(includeLocalReference ? { session: fixtureSessionRelation } : {}),
+  }
+  const activeSessionScope = {
+    referenceData,
+    status: 'ACTIVE' as const,
+    expiresAt: { gt: now },
+    ...fixtureSessionScope,
     merchant: merchantScope,
   }
 
@@ -63,51 +126,38 @@ export async function getMerchantLivePulse(input: { merchantId: string; now?: Da
     }),
     prisma.merchantEvent.findMany({
       where: {
-        ...activityScope,
+        ...eventScope,
         createdAt: { gte: activeSince, lt: now },
-        referenceData: false,
         merchantSessionId: { not: null },
         type: { in: [...MERCHANT_LIVE_PRESENCE_EVENT_TYPES] },
-        session: {
-          is: {
-            referenceData: false,
-            status: 'ACTIVE',
-            expiresAt: { gt: now },
-          },
-        },
+        session: { is: activeSessionScope },
       },
       distinct: ['merchantSessionId'],
       select: { merchantSessionId: true },
     }),
     prisma.merchantIntent.findMany({
       where: {
-        ...activityScope,
+        ...intentScope,
         createdAt: { gte: activeSince, lt: now },
         type: { in: [...MERCHANT_LIVE_PRESENCE_INTENT_TYPES] },
-        session: {
-          is: {
-            referenceData: false,
-            status: 'ACTIVE',
-            expiresAt: { gt: now },
-          },
-        },
+        session: { is: activeSessionScope },
       },
       distinct: ['merchantSessionId'],
       select: { merchantSessionId: true },
     }),
     prisma.merchantSession.count({ where: { ...sessionScope, createdAt: { gte: activitySince, lt: now } } }),
     prisma.merchantEvent.count({
-      where: { ...activityScope, referenceData: false, type: 'merchant_tryon_completed' },
+      where: { ...eventScope, type: 'merchant_tryon_completed' },
     }),
     prisma.merchantIntent.count({
       where: {
-        ...activityScope,
+        ...intentScope,
         type: 'PRODUCT_CLICK',
-        session: { is: { referenceData: false } },
+        session: fixtureSessionRelation,
       },
     }),
     prisma.merchantEvent.findMany({
-      where: { ...activityScope, referenceData: false, type: { in: [...LIVE_EVENT_TYPES] } },
+      where: { ...eventScope, type: { in: [...LIVE_EVENT_TYPES] } },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: 10,
       select: {
@@ -120,9 +170,9 @@ export async function getMerchantLivePulse(input: { merchantId: string; now?: Da
     }),
     prisma.merchantIntent.findMany({
       where: {
-        ...activityScope,
+        ...intentScope,
         type: 'PRODUCT_CLICK',
-        session: { is: { referenceData: false } },
+        session: fixtureSessionRelation,
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: 10,
@@ -146,7 +196,7 @@ export async function getMerchantLivePulse(input: { merchantId: string; now?: Da
     visitors,
     tryOnCompletions,
     productClicks,
-    events: activityRows(events as RelatedActivityRow[]),
-    intents: activityRows(intents as RelatedActivityRow[]),
+    events: activityRows(events as unknown as RelatedActivityRow[]),
+    intents: activityRows(intents as unknown as RelatedActivityRow[]),
   })
 }

@@ -57,7 +57,7 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
     redirect(`/${params.locale}/merchant/purchase?merchantId=${encodeURIComponent(selected.merchant.id)}&commercialIntent=${purchaseIntent}`)
   }
   await requireMerchantMembership({ userId: session.user.id, merchantId: selected.merchant.id, roles: ['OWNER', 'ADMIN'] })
-  const navigationMerchants = merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role }))
+  const navigationMerchants = merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role, referenceData: merchant.referenceData }))
   const workspaceMode = await getMerchantWorkspaceMode({ merchantId: selected.merchant.id })
   if (workspaceMode.mode === 'OPERATING') {
     const home = await getMerchantOperatingHome({ merchantId: selected.merchant.id })

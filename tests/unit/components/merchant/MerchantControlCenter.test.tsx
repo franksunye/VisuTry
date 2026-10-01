@@ -102,7 +102,10 @@ describe('MerchantControlCenter', () => {
     render(<MerchantControlCenter {...baseProps} control={{ ...baseProps.control, commerceIntelligence: {
       period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-24T00:00:00.000Z', timezone: 'UTC' },
       hasActivity: true,
-      totals: { visitors: 12, engagedShoppers: 8, recommendationActivity: 7, tryOnCompletions: 5, compareActivity: 3, productClicks: 2, highIntentShoppers: 2 },
+      decisionTrend: [],
+      topFrames: [],
+      decisionJourney: [],
+      totals: { visitors: 12, engagedShoppers: 8, recommendationActivity: 7, tryOnCompletions: 5, compareActivity: 3, productClicks: 2, highIntentShoppers: 2, favorites: 4, inquiries: 1 },
       rates: { engagement: 66.7, recommendation: 58.3, tryOn: 41.7, compare: 25 },
       comparison: { previousPeriod: { from: '2026-07-08T00:00:00.000Z', to: '2026-08-01T00:00:00.000Z', timezone: 'UTC' }, previous: { visitors: 6, engagedShoppers: 4, recommendationActivity: 4, tryOnCompletions: 2, compareActivity: 1, productClicks: 1, highIntentShoppers: 1 }, deltas: { visitors: 100, engagedShoppers: 100, recommendationActivity: 75, tryOnCompletions: 150, compareActivity: 200, productClicks: 100, highIntentShoppers: 100 }, reliable: true },
       experiencePerformance: { reliable: true, ranked: [{ id: 'experience-a', type: 'STORE', name: 'Reference Store', visitors: 12, engagedShoppers: 8, tryOnCompletions: 5, productClicks: 2, highIntentShoppers: 2 }], topExperienceId: null, topMetric: null, needsAttentionExperienceId: null },
@@ -133,7 +136,10 @@ describe('MerchantControlCenter', () => {
     render(<MerchantControlCenter {...baseProps} control={{ ...baseProps.control, commerceIntelligence: {
       period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-24T00:00:00.000Z', timezone: 'UTC' },
       hasActivity: false,
-      totals: { visitors: 0, engagedShoppers: 0, recommendationActivity: 0, tryOnCompletions: 0, compareActivity: 0, productClicks: 0, highIntentShoppers: 0 },
+      decisionTrend: [],
+      topFrames: [],
+      decisionJourney: [],
+      totals: { visitors: 0, engagedShoppers: 0, recommendationActivity: 0, tryOnCompletions: 0, compareActivity: 0, productClicks: 0, highIntentShoppers: 0, favorites: 0, inquiries: 0 },
       rates: { engagement: null, recommendation: null, tryOn: null, compare: null },
       comparison: { previousPeriod: { from: '2026-07-08T00:00:00.000Z', to: '2026-08-01T00:00:00.000Z', timezone: 'UTC' }, previous: { visitors: 0, engagedShoppers: 0, recommendationActivity: 0, tryOnCompletions: 0, compareActivity: 0, productClicks: 0, highIntentShoppers: 0 }, deltas: { visitors: 0, engagedShoppers: 0, recommendationActivity: 0, tryOnCompletions: 0, compareActivity: 0, productClicks: 0, highIntentShoppers: 0 }, reliable: false },
       experiencePerformance: { reliable: false, ranked: [], topExperienceId: null, topMetric: null, needsAttentionExperienceId: null },

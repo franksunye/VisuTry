@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MerchantWorkspaceShell } from '@/components/merchant/MerchantWorkspaceShell'
 
 jest.mock('next/navigation', () => ({ usePathname: () => '/en/merchant/catalog' }))
@@ -16,11 +17,11 @@ describe('MerchantWorkspaceShell', () => {
     jest.clearAllMocks()
   })
 
-  it('renders focused primary navigation and a compact utility menu', () => {
+  it('renders the product navigation rail and merchant switcher', () => {
     render(
       <MerchantWorkspaceShell
         locale="en"
-        merchants={[{ id: 'merchant-a', slug: 'alpha', name: 'Alpha', role: 'OWNER' }]}
+        merchants={[{ id: 'merchant-a', slug: 'alpha', name: 'Alpha', role: 'OWNER', referenceData: true }]}
         selectedMerchantId="merchant-a"
       >
         <div>catalog content</div>
@@ -29,38 +30,35 @@ describe('MerchantWorkspaceShell', () => {
     expect(screen.getByText('catalog content')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/en/merchant?merchantId=merchant-a')
     expect(screen.getByRole('link', { name: 'Catalog' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByText('More')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Integrations' })).toHaveClass('block', 'whitespace-nowrap')
-    expect(screen.getByRole('link', { name: 'Plan & Usage' })).toHaveClass('block', 'whitespace-nowrap')
-    expect(screen.getByRole('link', { name: 'Settings' })).toHaveClass('block', 'whitespace-nowrap')
+    expect(screen.getByRole('navigation', { name: 'Merchant primary navigation' })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Merchant utility navigation' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Integrations' })).toHaveAttribute('href', '/en/merchant/integrations?merchantId=merchant-a')
+    expect(screen.getByRole('link', { name: 'Plan & Usage' })).toHaveAttribute('href', '/en/merchant/plan?merchantId=merchant-a')
+    expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/en/merchant/settings?merchantId=merchant-a')
     expect(screen.getByRole('combobox', { name: 'Active merchant' })).toHaveValue('merchant-a')
+    expect(screen.getAllByText('Reference data').length).toBeGreaterThan(0)
   })
 
-  it('brings the active primary route into the horizontal navigation viewport', () => {
-    const originalScrollIntoView = HTMLElement.prototype.scrollIntoView
-    const scrollIntoView = jest.fn()
-    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: scrollIntoView })
+  it('opens a full mobile navigation drawer instead of relying on clipped horizontal links', async () => {
+    const user = userEvent.setup()
+    render(
+      <MerchantWorkspaceShell
+        locale="en"
+        merchants={[{ id: 'merchant-a', slug: 'alpha', name: 'Alpha', role: 'OWNER' }]}
+        selectedMerchantId="merchant-a"
+      >
+        <div>analytics content</div>
+      </MerchantWorkspaceShell>,
+    )
 
-    try {
-      render(
-        <MerchantWorkspaceShell
-          locale="en"
-          merchants={[{ id: 'merchant-a', slug: 'alpha', name: 'Alpha', role: 'OWNER' }]}
-          selectedMerchantId="merchant-a"
-        >
-          <div>analytics content</div>
-        </MerchantWorkspaceShell>,
-      )
-
-      expect(screen.getByRole('link', { name: 'Catalog' })).toHaveAttribute('aria-current', 'page')
-      expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' })
-    } finally {
-      if (originalScrollIntoView) {
-        Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: originalScrollIntoView })
-      } else {
-        Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView')
-      }
-    }
+    await user.click(screen.getByRole('button', { name: 'Open navigation' }))
+    const drawer = screen.getByLabelText('Merchant navigation')
+    expect(drawer).toBeInTheDocument()
+    expect(drawer).toHaveTextContent('Home')
+    expect(drawer).toHaveTextContent('Analytics')
+    expect(drawer).toHaveTextContent('Integrations')
+    expect(drawer).toHaveTextContent('Plan & Usage')
+    expect(drawer).toHaveTextContent('Settings')
   })
 
   it('records workspace entry once per Merchant browser session, not once per route mount', () => {

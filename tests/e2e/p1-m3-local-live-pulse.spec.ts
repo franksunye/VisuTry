@@ -102,7 +102,7 @@ test.describe('P1-M3 Local Live Commerce Pulse', () => {
     // Complete the existing First Value Preview through the normal UI so the
     // operating-mode page gate is proven from canonical state, not fabricated.
     await page.goto(`/en/merchant?merchantId=${encodeURIComponent(merchant!.id)}`, { waitUntil: 'networkidle' })
-    const alreadyOperating = await page.getByRole('heading', { name: 'Workspace overview' }).count() > 0
+    const alreadyOperating = await page.getByTestId('merchant-operating-home').count() > 0
     if (!alreadyOperating) {
       const previewMilestone = page.waitForResponse((response) =>
         response.url().includes(`/api/merchant/${merchant!.id}/activation-events`)
@@ -118,10 +118,10 @@ test.describe('P1-M3 Local Live Commerce Pulse', () => {
       await readApi<unknown>(publishResponse, 200, 'Explicitly publish the Local-only QA Store')
     }
     await page.goto(`/en/merchant?merchantId=${encodeURIComponent(merchant!.id)}`, { waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Live activity' })).toBeVisible()
+    await expect(page.getByTestId('merchant-operating-home')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Recent shopper activity' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Shopper outcomes' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Current work' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Business status' })).toBeVisible()
 
     const initialPulse = await page.request.get(`/api/merchant/${encodeURIComponent(merchant!.id)}/live-pulse`)
       .then((response) => readApi<{ activeShoppers: number; recentWindow: { visitors: number; tryOnCompletions: number; productClicks: number }; recentActivity: unknown[] }>(response, 200, 'Read Local empty Pulse'))
@@ -153,7 +153,7 @@ test.describe('P1-M3 Local Live Commerce Pulse', () => {
     const firstSession = await createShopperSession()
     await clickProduct(firstSession.merchantSessionId, `p1-m3-baseline-${Date.now()}`)
     await page.goto(`/en/merchant?merchantId=${encodeURIComponent(merchant!.id)}`, { waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { name: 'Live activity' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Recent shopper activity' })).toBeVisible()
     await expect(page.getByText('Product clicked').first()).toBeVisible({ timeout: 15_000 })
     await expect(page.locator('[aria-label="Live data status: Live"]')).toBeVisible()
     const desktopLiveMetrics = await capture('02-home-desktop-live')
@@ -171,7 +171,7 @@ test.describe('P1-M3 Local Live Commerce Pulse', () => {
 
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(`/en/merchant?merchantId=${encodeURIComponent(merchant!.id)}`, { waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { name: 'Live activity' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Recent shopper activity' })).toBeVisible()
     await expect(page.getByText('Product clicked').first()).toBeVisible({ timeout: 15_000 })
     const mobileLiveMetrics = await capture('03-home-mobile-live')
     console.log(JSON.stringify({ startedEmpty, desktopQuietMetrics, desktopLiveMetrics, activityMoment, activityMomentPosition, mobileLiveMetrics, activityUpdatedWithoutReload: pulseRequestsAfter > pulseRequestsBefore }))

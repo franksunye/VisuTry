@@ -18,7 +18,7 @@ jest.mock('@/modules/merchant/application/merchant-commerce-intelligence', () =>
   getMerchantCommerceIntelligence: jest.fn(async () => ({
     period: { from: '2026-07-28T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z', timezone: 'UTC' },
     hasActivity: true,
-    totals: { visitors: 2, engagedShoppers: 1, recommendationActivity: 0, tryOnCompletions: 1, compareActivity: 0, productClicks: 0, highIntentShoppers: 1 },
+    totals: { visitors: 2, engagedShoppers: 1, recommendationActivity: 0, tryOnCompletions: 1, compareActivity: 0, productClicks: 0, highIntentShoppers: 1, favorites: 0, inquiries: 0 },
     rates: { engagement: 50, recommendation: null, tryOn: 50, compare: null },
     comparison: { previousPeriod: { from: '2026-06-28T00:00:00.000Z', to: '2026-07-28T00:00:00.000Z', timezone: 'UTC' }, previous: { visitors: 0, engagedShoppers: 0, recommendationActivity: 0, tryOnCompletions: 0, compareActivity: 0, productClicks: 0, highIntentShoppers: 0 }, deltas: { visitors: null, engagedShoppers: null, recommendationActivity: null, tryOnCompletions: null, compareActivity: null, productClicks: null, highIntentShoppers: null }, reliable: false },
     experiencePerformance: { reliable: false, ranked: [], topExperienceId: null, topMetric: null, needsAttentionExperienceId: null },
@@ -69,6 +69,8 @@ describe('merchant control center read model', () => {
       compareActivity: 0,
       productClicks: 0,
       highIntentShoppers: 1,
+      favorites: 0,
+      inquiries: 0,
     })
     expect(result?.store?.policy).toEqual({ objective: null, gate: null, presentation: 'PRODUCT_FIRST' })
     expect(result?.experiences.find((experience) => experience.type === 'CAMPAIGN')?.policy).toEqual({ objective: 'INTENT', gate: 'NONE', presentation: 'EDITORIAL_FIRST' })

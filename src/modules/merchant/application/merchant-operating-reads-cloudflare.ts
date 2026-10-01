@@ -1,5 +1,5 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
-import { resolveAnalyticsPeriod } from '@/modules/store/application/merchant-analytics-compute'
+import { referencedAnalyticsFrameIds, resolveAnalyticsPeriod, type AnalyticsFrameRow, type AnalyticsRangeInput } from '@/modules/store/application/merchant-analytics-compute'
 import { buildMerchantCommerceIntelligence, type MerchantCommerceActivity, type MerchantCommerceIntelligence } from './merchant-commerce-intelligence'
 import { commercialStateForPresentation } from '@/modules/store/domain/merchant-commercial-state'
 import { resolveMerchantCommercialCapability } from '@/modules/store/domain/merchant-commercial-capability'
@@ -87,29 +87,39 @@ export async function getMerchantCampaignExperiences(input: { merchantId: string
   })
 }
 
-function toActivity(experiences: MerchantCommerceActivity['experiences'], sessions: unknown[], events: unknown[], intents: unknown[]): MerchantCommerceActivity {
+function toActivity(experiences: MerchantCommerceActivity['experiences'], sessions: unknown[], events: unknown[], intents: unknown[], frames: unknown[]): MerchantCommerceActivity {
   return {
     experiences,
-    sessions: (sessions as Array<Record<string, unknown>>).map((row) => ({ id: text(row.id), experienceId: row.experienceId == null ? null : text(row.experienceId), source: row.source == null ? null : text(row.source), medium: row.medium == null ? null : text(row.medium), referrer: row.referrer == null ? null : text(row.referrer), aiAgentSource: row.aiAgentSource == null ? null : text(row.aiAgentSource) })),
+    sessions: (sessions as Array<Record<string, unknown>>).map((row) => ({ id: text(row.id), experienceId: row.experienceId == null ? null : text(row.experienceId), createdAt: date(row.createdAt) ?? undefined, source: row.source == null ? null : text(row.source), medium: row.medium == null ? null : text(row.medium), referrer: row.referrer == null ? null : text(row.referrer), aiAgentSource: row.aiAgentSource == null ? null : text(row.aiAgentSource) })),
     events: (events as Array<Record<string, unknown>>).map((row) => ({ merchantSessionId: row.merchantSessionId == null ? null : text(row.merchantSessionId), experienceId: row.experienceId == null ? null : text(row.experienceId), merchantFrameId: row.merchantFrameId == null ? null : text(row.merchantFrameId), type: text(row.type), count: Number(row.count ?? 0) })),
     intents: (intents as Array<Record<string, unknown>>).map((row) => ({ merchantSessionId: text(row.merchantSessionId), experienceId: row.experienceId == null ? null : text(row.experienceId), merchantFrameId: row.merchantFrameId == null ? null : text(row.merchantFrameId), type: text(row.type), count: Number(row.count ?? 0) })),
+    frames: (frames as Array<Record<string, unknown>>).map((row) => ({ id: text(row.id), sku: row.sku == null ? null : text(row.sku), name: text(row.name), imageUrl: row.imageUrl == null ? null : text(row.imageUrl) })),
   }
 }
 
-export async function getMerchantOperatingAnalytics(input: { merchantId: string }): Promise<MerchantCommerceIntelligence> {
+export async function getMerchantOperatingAnalytics(input: { merchantId: string } & AnalyticsRangeInput): Promise<MerchantCommerceIntelligence> {
   const sql = getCloudflareSql()
-  const currentPeriod = resolveAnalyticsPeriod({})
+  const currentPeriod = resolveAnalyticsPeriod(input)
   const windowMs = currentPeriod.to.getTime() - currentPeriod.from.getTime()
   const previousPeriod = { from: new Date(currentPeriod.from.getTime() - windowMs), to: currentPeriod.from }
   const experienceRows = await sql`SELECT "id", "type", "name", "status", "referenceData" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" IN ('STORE', 'CAMPAIGN')`
   const experiences = (experienceRows as Array<Record<string, unknown>>).map((row) => ({ id: text(row.id), type: text(row.type) as 'STORE' | 'CAMPAIGN', name: text(row.name), status: text(row.status), referenceData: Boolean(row.referenceData) }))
-  const loadWindow = async (from: Date, until: Date) => Promise.all([
-    sql`SELECT "id", "experienceId", "source", "medium", "referrer", "aiAgentSource" FROM "MerchantSession" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} ORDER BY "createdAt" DESC`,
+  const loadWindow = async (from: Date, until: Date) => {
+    const [sessions, events, intents] = await Promise.all([
+    sql`SELECT "id", "experienceId", "createdAt", "source", "medium", "referrer", "aiAgentSource" FROM "MerchantSession" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} ORDER BY "createdAt" DESC`,
     sql`SELECT "merchantSessionId", "experienceId", "merchantFrameId", "type", count(*)::int AS "count" FROM "MerchantEvent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} GROUP BY "merchantSessionId", "experienceId", "merchantFrameId", "type"`,
     sql`SELECT "merchantSessionId", "experienceId", "merchantFrameId", "type", count(*)::int AS "count" FROM "MerchantIntent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} GROUP BY "merchantSessionId", "experienceId", "merchantFrameId", "type"`,
-  ])
+    ])
+    const eventRows = (events as Array<Record<string, unknown>>).map((row) => ({ merchantSessionId: row.merchantSessionId == null ? null : text(row.merchantSessionId), merchantFrameId: row.merchantFrameId == null ? null : text(row.merchantFrameId), type: text(row.type), count: Number(row.count ?? 0) }))
+    const intentRows = (intents as Array<Record<string, unknown>>).map((row) => ({ merchantSessionId: text(row.merchantSessionId), merchantFrameId: row.merchantFrameId == null ? null : text(row.merchantFrameId), type: text(row.type), count: Number(row.count ?? 0) }))
+    const frameIds = referencedAnalyticsFrameIds(eventRows, intentRows)
+    const frames = frameIds.length
+      ? await sql`SELECT "id", "sku", "name", "imageUrl" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId} AND "id" = ANY(${frameIds})`
+      : []
+    return [sessions, events, intents, frames] as const
+  }
   const [current, previous] = await Promise.all([loadWindow(currentPeriod.from, currentPeriod.to), loadWindow(previousPeriod.from, previousPeriod.to)])
-  return buildMerchantCommerceIntelligence({ current: toActivity(experiences, current[0], current[1], current[2]), previous: toActivity(experiences, previous[0], previous[1], previous[2]), currentPeriod, previousPeriod })
+  return buildMerchantCommerceIntelligence({ current: toActivity(experiences, current[0], current[1], current[2], current[3] as AnalyticsFrameRow[]), previous: toActivity(experiences, previous[0], previous[1], previous[2], previous[3] as AnalyticsFrameRow[]), currentPeriod, previousPeriod })
 }
 
 export async function getMerchantOperatingPlan(input: { merchantId: string }): Promise<MerchantCommercialPresentation> {

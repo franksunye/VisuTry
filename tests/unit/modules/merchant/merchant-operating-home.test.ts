@@ -2,11 +2,11 @@ import { resolveMerchantHomePresentation, type MerchantOperatingHomeReadModel } 
 
 function read(overrides: Partial<MerchantOperatingHomeReadModel> = {}): MerchantOperatingHomeReadModel {
   return {
-    merchant: { id: 'm', slug: 'm', name: 'M' },
+    merchant: { id: 'm', slug: 'm', name: 'M', referenceData: false },
     store: { exists: true, status: 'DRAFT', selectedProductCount: 1, eligibleProductCount: 1, readiness: 'READY' },
     catalog: { total: 1, ready: 1, issueCount: 0 },
     campaigns: { total: 0, active: 0, draft: 0, archived: 0, needsAttention: 0 },
-    shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [] },
+    shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [], decisionTrend: [] },
     commercial: { status: 'FREE', planName: 'Free', threshold: null, attention: false },
     ...overrides,
   }
@@ -47,7 +47,7 @@ describe('resolveMerchantHomePresentation', () => {
   it('prefers Analytics only for an active Store with real activity', () => {
     const result = resolveMerchantHomePresentation(read({
       store: { exists: true, status: 'ACTIVE', selectedProductCount: 1, eligibleProductCount: 1, readiness: 'READY' },
-      shopper: { hasActivity: true, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 4 }] },
+      shopper: { hasActivity: true, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 4 }], decisionTrend: [] },
     }))
     expect(result.recommendedAction).toMatchObject({ section: 'analytics', label: 'Review Analytics' })
     expect(result.outcome.kind).toBe('ACTIVITY')

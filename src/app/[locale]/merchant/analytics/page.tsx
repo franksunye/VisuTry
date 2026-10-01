@@ -5,10 +5,19 @@ import { requireOperatingMerchantPage } from '@/modules/merchant/application/mer
 
 export const dynamic = 'force-dynamic'
 
-export default async function MerchantAnalyticsPage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string } }) {
+type AnalyticsWindow = 7 | 30 | 90
+
+function requestedWindow(value: string | undefined): AnalyticsWindow {
+  return value === '7' || value === '7d' ? 7 : value === '90' || value === '90d' ? 90 : 30
+}
+
+export default async function MerchantAnalyticsPage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string; range?: string } }) {
   const { context } = await requireOperatingMerchantPage({ locale: params.locale, merchantId: searchParams?.merchantId })
-  const insights = await getMerchantOperatingAnalytics({ merchantId: context.selectedMerchantId })
+  const rangeDays = requestedWindow(searchParams?.range)
+  const to = new Date()
+  const from = new Date(to.getTime() - rangeDays * 86_400_000)
+  const insights = await getMerchantOperatingAnalytics({ merchantId: context.selectedMerchantId, from, to })
   return <MerchantWorkspaceShell locale={params.locale} merchants={context.merchants} selectedMerchantId={context.selectedMerchantId}>
-    <MerchantAnalyticsWorkspace locale={params.locale} merchantId={context.selectedMerchantId} insights={insights} />
+    <MerchantAnalyticsWorkspace locale={params.locale} merchantId={context.selectedMerchantId} insights={insights} rangeDays={rangeDays} />
   </MerchantWorkspaceShell>
 }

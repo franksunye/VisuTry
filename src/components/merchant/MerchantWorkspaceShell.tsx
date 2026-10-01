@@ -2,27 +2,42 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChevronDown, Sparkles } from 'lucide-react'
-import { useEffect, useRef, type ReactNode } from 'react'
+import {
+  BarChart3,
+  Boxes,
+  ChevronDown,
+  CreditCard,
+  Home,
+  Menu,
+  Megaphone,
+  Plug,
+  Settings2,
+  Sparkles,
+  Store,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { analytics } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 import { getMerchantActivationContext, recordMerchantActivationClientEvent } from '@/lib/merchant-activation-client'
 import { merchantWorkspaceHref, type MerchantWorkspaceSection } from '@/modules/merchant/application/merchant-workspace-routes'
 
-type Merchant = { id: string; slug: string; name: string; role: string }
+type Merchant = { id: string; slug: string; name: string; role: string; referenceData?: boolean }
+type NavigationItem = { section: MerchantWorkspaceSection; label: string; icon: LucideIcon }
 
-const primary: Array<{ section: MerchantWorkspaceSection; label: string }> = [
-  { section: 'home', label: 'Home' },
-  { section: 'catalog', label: 'Catalog' },
-  { section: 'store', label: 'Store' },
-  { section: 'campaigns', label: 'Campaigns' },
-  { section: 'analytics', label: 'Analytics' },
+const primary: NavigationItem[] = [
+  { section: 'home', label: 'Home', icon: Home },
+  { section: 'catalog', label: 'Catalog', icon: Boxes },
+  { section: 'store', label: 'Store', icon: Store },
+  { section: 'campaigns', label: 'Campaigns', icon: Megaphone },
+  { section: 'analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
-const utility: Array<{ section: MerchantWorkspaceSection; label: string }> = [
-  { section: 'integrations', label: 'Integrations' },
-  { section: 'plan', label: 'Plan & Usage' },
-  { section: 'settings', label: 'Settings' },
+const utility: NavigationItem[] = [
+  { section: 'integrations', label: 'Integrations', icon: Plug },
+  { section: 'plan', label: 'Plan & Usage', icon: CreditCard },
+  { section: 'settings', label: 'Settings', icon: Settings2 },
 ]
 
 const allNavigation = [...primary, ...utility]
@@ -30,6 +45,15 @@ const allNavigation = [...primary, ...utility]
 function activePath(pathname: string, section: MerchantWorkspaceSection) {
   if (section === 'home') return pathname.endsWith('/merchant')
   return pathname.includes(`/merchant/${section}`)
+}
+
+function EnvironmentLabel({ referenceData }: { referenceData?: boolean }) {
+  return referenceData ? (
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-900">
+      <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-amber-600" />
+      Reference data
+    </span>
+  ) : null
 }
 
 export function MerchantWorkspaceShell({
@@ -44,8 +68,8 @@ export function MerchantWorkspaceShell({
   children: ReactNode
 }) {
   const pathname = usePathname()
+  const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false)
   const selected = merchants.find((merchant) => merchant.id === selectedMerchantId)
-  const primaryNavigationRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const entryKey = `visutry_merchant_workspace_entered:${selectedMerchantId}`
@@ -73,9 +97,17 @@ export function MerchantWorkspaceShell({
   }, [pathname, selectedMerchantId])
 
   useEffect(() => {
-    const activeLink = primaryNavigationRef.current?.querySelector<HTMLElement>('a[aria-current="page"]')
-    activeLink?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+    setMobileNavigationOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    if (!mobileNavigationOpen) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileNavigationOpen(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [mobileNavigationOpen])
 
   const href = (section: MerchantWorkspaceSection) => merchantWorkspaceHref({ locale, section, merchantId: selectedMerchantId })
   const switchMerchant = (merchantId: string) => {
@@ -83,63 +115,126 @@ export function MerchantWorkspaceShell({
     window.location.assign(merchantWorkspaceHref({ locale, section, merchantId }))
   }
 
-  const navLink = (section: MerchantWorkspaceSection, label: string, variant: 'primary' | 'utility' = 'primary') => (
-    <Link
-      key={section}
-      href={href(section)}
-      aria-current={activePath(pathname, section) ? 'page' : undefined}
-      className={variant === 'utility'
-        ? `block w-full whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition ${activePath(pathname, section) ? 'bg-slate-100 text-slate-950' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'}`
-        : `rounded-lg px-2.5 py-2 text-sm font-semibold transition ${activePath(pathname, section) ? 'bg-slate-100 text-slate-950' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'}`}
-    >
-      {label}
-    </Link>
+  const navLink = ({ section, label, icon: Icon }: NavigationItem, onNavigate?: () => void) => {
+    const active = activePath(pathname, section)
+    return (
+      <Link
+        key={section}
+        href={href(section)}
+        aria-current={active ? 'page' : undefined}
+        onClick={onNavigate}
+        className={`group flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${active ? 'bg-slate-100 text-slate-950' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`}
+      >
+        <Icon aria-hidden="true" className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-blue-700' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.8} />
+        <span>{label}</span>
+        {active ? <span aria-hidden="true" className="ml-auto h-1.5 w-1.5 rounded-full bg-blue-700" /> : null}
+      </Link>
+    )
+  }
+
+  const merchantPicker = (className: string) => (
+    <label className={`relative block ${className}`}>
+      <span className="sr-only">Active merchant</span>
+      <select
+        aria-label="Active merchant"
+        value={selectedMerchantId}
+        onChange={(event) => switchMerchant(event.target.value)}
+        className="min-h-10 w-full appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-9 text-sm font-medium text-slate-800 outline-none transition hover:border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+      >
+        <option value={selectedMerchantId}>{selected?.name ?? 'Merchant workspace'}</option>
+        {merchants.filter((merchant) => merchant.id !== selectedMerchantId).map((merchant) => <option key={merchant.id} value={merchant.id}>{merchant.name}</option>)}
+      </select>
+      <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-3 h-4 w-4 text-slate-400" />
+    </label>
   )
 
   return (
-    <main className="min-h-screen bg-[#f7f8fb] text-slate-950">
+    <main className="min-h-screen bg-[#f5f7fa] text-slate-950 lg:pl-[248px]">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-slate-200 bg-white px-4 py-5 lg:flex">
+        <Link href={href('home')} className="flex items-center gap-3 rounded-lg px-2 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white">
+            <Sparkles className="h-[18px] w-[18px]" aria-hidden="true" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold tracking-tight text-slate-950">VisuTry</span>
+            <span className="mt-0.5 block text-xs text-slate-500">Merchant workspace</span>
+          </span>
+        </Link>
+
+        <nav aria-label="Merchant primary navigation" className="mt-8 space-y-1">
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Workspace</p>
+          {primary.map((item) => navLink(item))}
+        </nav>
+
+        <nav aria-label="Merchant utility navigation" className="mt-auto space-y-1 border-t border-slate-100 pt-4">
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Manage</p>
+          {utility.map((item) => navLink(item))}
+        </nav>
+      </aside>
+
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
-          <div className="flex min-h-14 items-center gap-3 sm:min-h-16 sm:justify-between sm:gap-4">
-            <Link href={href('home')} className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white sm:h-10 sm:w-10 sm:rounded-2xl">
-                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold tracking-tight">VisuTry Merchant</span>
-                <span className="hidden text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400 sm:block">Your workspace</span>
-              </span>
-            </Link>
-            <label className="relative min-w-0 shrink-0">
-              <span className="sr-only">Active merchant</span>
-              <select
-                aria-label="Active merchant"
-                value={selectedMerchantId}
-                onChange={(event) => switchMerchant(event.target.value)}
-                className="w-[min(42vw,13rem)] appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-2.5 pr-7 text-xs font-semibold text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:w-56 sm:rounded-xl sm:py-2.5 sm:pl-3.5 sm:pr-9 sm:text-sm"
-              >
-                <option value={selectedMerchantId}>{selected?.name ?? 'Merchant workspace'}</option>
-                {merchants.filter((merchant) => merchant.id !== selectedMerchantId).map((merchant) => <option key={merchant.id} value={merchant.id}>{merchant.name}</option>)}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-slate-400 sm:right-3 sm:top-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
-            </label>
+        <div className="mx-auto flex h-[60px] max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-7 lg:h-[68px] lg:px-10 xl:px-12">
+          <div className="flex min-w-0 items-center gap-3 lg:hidden">
+            <button
+              type="button"
+              aria-label={mobileNavigationOpen ? 'Close navigation' : 'Open navigation'}
+              aria-expanded={mobileNavigationOpen}
+              aria-controls="merchant-mobile-navigation"
+              onClick={() => setMobileNavigationOpen((open) => !open)}
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+            >
+              {mobileNavigationOpen ? <X className="h-4 w-4" aria-hidden="true" /> : <Menu className="h-4 w-4" aria-hidden="true" />}
+            </button>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white">
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 truncate text-sm font-semibold text-slate-950">{selected?.name ?? 'Merchant workspace'}</span>
           </div>
-          <nav className="-mx-1 flex min-w-0 gap-0.5 pb-1.5 sm:mx-0 sm:gap-1 sm:pb-2" aria-label="Merchant workspace">
-            <div ref={primaryNavigationRef} data-testid="merchant-primary-navigation" className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1">
-              {primary.map(({ section, label }) => navLink(section, label))}
-            </div>
-            <details className="relative ml-auto shrink-0 sm:ml-2">
-              <summary className="flex cursor-pointer list-none items-center gap-1 rounded-lg px-2.5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
-                More <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
-              </summary>
-              <div className="absolute right-0 top-10 z-50 w-max min-w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
-                {utility.map(({ section, label }) => navLink(section, label, 'utility'))}
-              </div>
-            </details>
-          </nav>
+
+          <div className="hidden min-w-0 items-center gap-3 lg:flex">
+            <span className="text-xs font-medium text-slate-500">Workspace</span>
+            <span aria-hidden="true" className="h-4 w-px bg-slate-200" />
+            {merchantPicker('w-[min(34vw,18rem)]')}
+            <EnvironmentLabel referenceData={selected?.referenceData} />
+          </div>
+
+          <div className="hidden items-center gap-3 lg:flex">
+            <span className="text-xs text-slate-500">{selected?.role === 'OWNER' ? 'Owner' : selected?.role}</span>
+          </div>
+
+          <div className="lg:hidden"><EnvironmentLabel referenceData={selected?.referenceData} /></div>
         </div>
       </header>
-      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">{children}</div>
+
+      {mobileNavigationOpen ? (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <button type="button" aria-label="Close navigation backdrop" onClick={() => setMobileNavigationOpen(false)} className="absolute inset-0 bg-slate-950/25" />
+          <aside id="merchant-mobile-navigation" className="absolute inset-y-0 left-0 flex w-[min(86vw,320px)] flex-col border-r border-slate-200 bg-white px-4 py-5 shadow-2xl" aria-label="Merchant navigation">
+            <div className="flex items-center justify-between gap-3 px-2">
+              <Link href={href('home')} onClick={() => setMobileNavigationOpen(false)} className="flex min-w-0 items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white"><Sparkles className="h-[18px] w-[18px]" aria-hidden="true" /></span>
+                <span className="min-w-0"><span className="block text-sm font-semibold text-slate-950">VisuTry Merchant</span><span className="block truncate text-xs text-slate-500">{selected?.name ?? 'Workspace'}</span></span>
+              </Link>
+              <button type="button" aria-label="Close navigation" onClick={() => setMobileNavigationOpen(false)} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"><X className="h-4 w-4" aria-hidden="true" /></button>
+            </div>
+            <div className="mt-5 px-2">
+              {merchantPicker('w-full')}
+            </div>
+            <nav aria-label="Merchant primary navigation" className="mt-7 space-y-1">
+              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Workspace</p>
+              {primary.map((item) => navLink(item, () => setMobileNavigationOpen(false)))}
+            </nav>
+            <nav aria-label="Merchant utility navigation" className="mt-auto space-y-1 border-t border-slate-100 pt-4">
+              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Manage</p>
+              {utility.map((item) => navLink(item, () => setMobileNavigationOpen(false)))}
+            </nav>
+          </aside>
+        </div>
+      ) : null}
+
+      <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-7 sm:py-8 lg:px-10 lg:py-9 xl:px-12">
+        {children}
+      </div>
     </main>
   )
 }

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getMerchantCommerceIntelligence, type MerchantCommerceIntelligence } from './merchant-commerce-intelligence'
+import type { AnalyticsRangeInput } from '@/modules/store/application/merchant-analytics-compute'
 import { commercialStateForPresentation, getMerchantCommercialState } from './merchant-commercial-entitlements'
 import type { MerchantCommercialPresentation, MerchantControlExperience, MerchantCatalogFrameSummary } from './merchant-control-center'
 import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign-policy'
@@ -145,8 +146,8 @@ export async function getMerchantCampaignExperiences(input: { merchantId: string
   })
 }
 
-export async function getMerchantOperatingAnalytics(input: { merchantId: string }): Promise<MerchantCommerceIntelligence> {
-  return getMerchantCommerceIntelligence({ merchantId: input.merchantId })
+export async function getMerchantOperatingAnalytics(input: { merchantId: string } & AnalyticsRangeInput): Promise<MerchantCommerceIntelligence> {
+  return getMerchantCommerceIntelligence(input)
 }
 
 export async function getMerchantOperatingPlan(input: { merchantId: string }): Promise<MerchantCommercialPresentation> {

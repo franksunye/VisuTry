@@ -9,6 +9,7 @@ export type MerchantWorkspaceNavigationMerchant = {
   slug: string
   name: string
   role: string
+  referenceData?: boolean
 }
 
 export type MerchantWorkspaceContext = {
@@ -49,6 +50,7 @@ export async function requireMerchantWorkspaceContext(input: {
       slug: merchant.slug,
       name: merchant.name,
       role: membership.role,
+      referenceData: merchant.referenceData,
     })),
     selectedMerchantId: selected.merchant.id,
   }

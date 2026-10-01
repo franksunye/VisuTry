@@ -55,6 +55,7 @@ describe('MerchantLivePulse polling and activity moment', () => {
     const { unmount } = render(<MerchantLivePulse merchantId="merchant-a" />)
     await flushFetch()
     expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('heading', { name: 'Recent shopper activity' })).toBeInTheDocument()
     expect(screen.getByText('No live shopper activity right now')).toBeInTheDocument()
     expect(screen.queryByText('just now')).not.toBeInTheDocument()
 
@@ -68,6 +69,38 @@ describe('MerchantLivePulse polling and activity moment', () => {
     await flushFetch()
     expect(fetchMock).toHaveBeenCalledTimes(2)
     unmount()
+  })
+
+  it('renders anonymous canonical activity as a compact Analytics timeline', async () => {
+    fetchMock.mockResolvedValue(result(pulse({
+      recentActivity: [{
+        id: 'event-analytics',
+        kind: 'TRY_ON_COMPLETED',
+        occurredAt: new Date(baseTime - 180_000).toISOString(),
+        experience: { id: 'experience-a', type: 'STORE', name: 'Main Store' },
+        frame: { id: 'frame-a', name: 'Round Classic' },
+      }],
+    })) as never)
+
+    render(<MerchantLivePulse merchantId="merchant-a" variant="analytics" />)
+    await flushFetch()
+
+    expect(screen.getByTestId('merchant-analytics-recent-activity')).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Anonymous recent shopper actions' })).toBeInTheDocument()
+    expect(screen.getByText('Try-On completed')).toBeInTheDocument()
+    expect(screen.getByText('Round Classic · Store · Main Store')).toBeInTheDocument()
+    expect(screen.getByText('3m ago')).toBeInTheDocument()
+    expect(screen.getByLabelText('Live data status: Live')).toBeInTheDocument()
+    expect(screen.queryByText(/customer #|shopper #|\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i)).not.toBeInTheDocument()
+  })
+
+  it('keeps the Analytics empty state truthful when no canonical event is present', async () => {
+    fetchMock.mockResolvedValue(result(pulse()) as never)
+    render(<MerchantLivePulse merchantId="merchant-a" variant="analytics" />)
+    await flushFetch()
+
+    expect(screen.getByText('No recent activity')).toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'Anonymous recent shopper actions' })).not.toBeInTheDocument()
   })
 
   it('announces one post-baseline meaningful event and deduplicates its stable id', async () => {

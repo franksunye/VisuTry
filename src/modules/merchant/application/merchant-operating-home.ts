@@ -52,6 +52,7 @@ export async function getMerchantOperatingHome(input: { merchantId: string }): P
       id: true,
       slug: true,
       name: true,
+      referenceData: true,
     },
   })
   if (!merchant) return null
@@ -111,7 +112,7 @@ export async function getMerchantOperatingHome(input: { merchantId: string }): P
 
   const commercial = commercialStateForPresentation(commercialState)
   return {
-    merchant,
+      merchant,
     store: {
       exists: Boolean(store),
       status: store?.status ?? null,
@@ -134,6 +135,7 @@ export async function getMerchantOperatingHome(input: { merchantId: string }): P
     shopper: {
       hasActivity: intelligence.hasActivity,
       periodLabel: periodLabel(intelligence.period.from, intelligence.period.to),
+      decisionTrend: intelligence.decisionTrend,
       metrics: [
         { label: 'Visitors', value: intelligence.totals.visitors },
         { label: 'Engaged shoppers', value: intelligence.totals.engagedShoppers },

@@ -43,6 +43,54 @@ npm run merchant:local:reset-clean
 npm run merchant:local:campaign:e2e
 ```
 
+### Merchant dashboard visual QA
+
+Use the repository-owned deterministic seed and capture commands for Home and
+Analytics visual review; do not create one-off `/tmp` Playwright scripts for
+normal Merchant UX review. The seed writes only canonical Local
+`MerchantSession`, `MerchantEvent`, and `MerchantIntent` rows for the exactly
+marked `Local Commerce Intelligence Lab` TEST merchant. It never writes
+dashboard aggregates or real shopper identity/photo data. The separate capture
+command is read-only: it validates Local mock-auth, TEST Stripe, the loopback
+database, and the fixture; starts its own Local Next server; blocks browser
+requests outside loopback; and writes a machine-readable manifest and
+screenshots only under the ignored `.local/merchant-dashboard-capture/<run-id>/`
+directory.
+
+```bash
+npm run merchant:local:dashboard:seed -- --preset showcase
+npm run merchant:local:dashboard:capture
+
+npm run merchant:local:dashboard:seed -- --preset low-volume
+npm run merchant:local:dashboard:capture
+
+npm run merchant:local:dashboard:seed -- --preset empty
+npm run merchant:local:dashboard:capture
+```
+
+`showcase` is the visual-review default and has complete 30-day current and
+previous periods, natural weekly cadence, several campaign lifts, four
+distinct Store/Campaign contexts, eight TEST frames, varied canonical shopper
+events/intents/sources, and anonymous activity within 15 minutes. `low-volume`
+retains the sparse 34-session reliability-boundary sample; `empty` contains no
+session, event, or intent rows. Re-seeding one preset replaces only rows proven
+to belong to this exact fixture. Seed and capture are deliberately separate so
+re-running capture cannot mutate data.
+
+The capture includes Home and Analytics at 1440×900 and 390×844; current
+30-day and 7-day views where applicable; viewport and full-page captures; the
+mobile navigation open state; anonymous Recent Activity; and keyboard
+chart-tooltip verification when a chart exists. The manifest records the
+checked-out Git SHA, preset, fixture/database identity, period and activity
+counts, event/intent/source distributions, routes, viewport/state, screenshot
+names, HTTP and browser errors, smooth-curve/overflow/broken-image checks, and
+a stable scene/step contract for a future WebM capture mode. Screenshot output
+is Local-only evidence; capture does not reset or reseed the fixture, call
+providers, or access Preview/Production. If Local DB settings are not already
+exported or present in `.env.local`, provide explicit loopback `DATABASE_URL`,
+matching `DATABASE_URL_UNPOOLED` and `VISUTRY_DATABASE_IDENTITY` values with
+mock auth and TEST Stripe enabled.
+
 The golden path is:
 
 ```text
