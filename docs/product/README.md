@@ -2,7 +2,7 @@
 
 **Status:** Active product documentation guide
 **Created:** 2026-07-08
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-01
 **Owner:** Product
 **Review cadence:** Weekly for active plan, monthly for document structure.
 
@@ -23,6 +23,7 @@ The main goal is to make it clear what should be built next, why it matters, how
 | `docs/product/product-plan.md` | Current product operating plan: Now / Next / Later, execution posture, standing initiatives, and decisions needed. | Active source of truth for product execution. |
 | `docs/product/specs/` | Detailed specs for individual product capabilities. | Created as needed. |
 | `docs/product/specs/merchant-operating-experience.md` | Current Merchant human operating experience, Activation/Operating boundary, IA, lifecycle and Human/Agent responsibility contract. | **Active source of truth for Merchant operating behavior.** |
+| `docs/product/specs/visutry-demo-capability.md` | Productized Demo ownership, Local/Production parity, product-upgrade obligations, and sales/marketing reuse. | **Active source of truth for Demo product behavior and lifecycle.** |
 | `docs/product/plans/market-facing-productization-plan.md` | Historical Reference Factory → Discover/distribution → Business Website sequence. | **Historical; retained as supporting productization evidence.** |
 | `docs/product/plans/product-advantage-gate.md` | Consumer Distribution, Merchant Experience, and Agent-Native pre-outreach evidence gate. | **Supporting evidence/gate; not the current engineering phase after P1-M2 closure.** |
 | `docs/product/plans/pilot-delivery-factory-plan.md` | Five-brand Reference portfolio and repeatable assisted delivery model. | **Factory core complete; retained as delivery contract.** |
@@ -48,6 +49,7 @@ The main goal is to make it clear what should be built next, why it matters, how
 6. When an approved implementation plan exists for a scoped initiative, engineering should follow its gates and work breakdown rather than infer sequencing from older roadmap documents.
 7. Store merchant-facing wording, outreach, pilot packaging, and sales claims should follow `docs/product/sales/visutry-store-sales-pitch.md` so Sales does not outrun implemented product boundaries.
 8. Do not begin structured merchant outreach while `docs/product/plans/product-advantage-gate.md` is not fully evidenced as PASS for Gates A, B, and C.
+9. Treat the canonical Demo as a maintained product capability: Demo-relevant product changes must classify impact and keep the supported Local/Production journey materially aligned.
 
 ---
 
@@ -83,6 +85,8 @@ Engineering should start with:
 5. the scoped plan/gate only after Product/Lead authorizes it.
 
 Do not add generalized Campaign Builder, CRM, Shopify integration, revenue attribution, or another platform layer merely because P1-M2 is complete. Promote only repeated, evidenced merchant pain into new scope.
+
+For sales/rehearsal/content work, start with `docs/product/specs/visutry-demo-capability.md`; use the canonical Demo repeatedly rather than creating ad-hoc prospect-specific product branches.
 
 ---
 
