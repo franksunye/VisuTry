@@ -1,14 +1,18 @@
 # VisuTry Demo Environment Contract
 
 **Status:** Active operational authority
-**Last reviewed:** 2026-09-30
+**Last reviewed:** 2026-10-01
 **Scope:** Canonical VisuTry-owned Demo identity, public URL, prepared-result
-parity, provider policy, and Local/Production Demo operation.
+parity, provider policy, Local/Production Demo operation, and the operational
+boundary for the productized Demo capability.
 
 This document is the source of truth for which tenant is the canonical Demo
-and what provider-free Demo readiness means. It supersedes phase-specific
-Demo instructions where they conflict. It does not authorize Production data
-changes, billing changes, Provider requests, or deployments.
+and what provider-free Demo readiness means. Product ownership, lifecycle, and
+sales/marketing reuse are governed by the
+[Productized Demo Capability](../product/specs/visutry-demo-capability.md).
+This document supersedes phase-specific Demo instructions where they conflict.
+It does not authorize Production data changes, billing changes, Provider
+requests, or deployments.
 
 ## Canonical identity
 
@@ -27,7 +31,7 @@ The only canonical VisuTry Demo tenant is:
 | Store | One active Store |
 | Catalog | Ten synthetic, VisuTry-owned, non-sale demo frames from [`visutry-demo-catalog-v1.json`](../assets/local-demo/visutry-demo-catalog-v1.json) |
 | Shopper input | The approved synthetic Demo Shopper asset in [`ASSET_PROVENANCE.md`](../assets/local-demo/ASSET_PROVENANCE.md) |
-| Purpose | Sales demonstration, product QA, and Playbook rehearsal |
+| Purpose | Productized demonstration, product QA, sales/presales walkthroughs, Playbook rehearsal, and reusable marketing/content production |
 
 The three identity markers are conjunctive. `TEST`, `DEMO`, or
 `VISUTRY_DEMO` alone does not grant Demo entitlement. Demo is not a commercial
@@ -114,10 +118,12 @@ which explicitly approved assets it may resolve.
   output-byte verification and a final shopper-state reset. The older
   disclosure-only QA SVG fixtures remain `LOCAL_QA_FIXTURE` and are not
   selected by the canonical journey.
-- **Production:** the prepared-result application path is implemented, but no
-  approved Production prepared-result assets are configured yet. It fails
-  closed when an allowlisted asset is absent; it never falls back to Local QA
-  files or manufactures a live `TryOnTask`.
+- **Production:** the canonical Demo resolves the two approved private prepared-result
+  assets through the Production private-media adapter. The deployed path has
+  passed checksum-validated Rowan/Lane reads, Compare, Decision Result, and
+  clean mobile continuation. Missing or mismatched allowlisted assets still
+  fail closed; Production never falls back to Local QA files or manufactures a
+  live `TryOnTask`.
 - Prepared results are source-typed and do not create Provider request/attempt
   telemetry or paid Try-On usage. They are not represented as a live generation
   from the current shopper request.
@@ -145,8 +151,8 @@ generation, seed data, or test retries.
 | Tenant identity | Canonical `TEST` / `DEMO` / `VISUTRY_DEMO` fixture | Dedicated canonical Demo tenant with the same three markers |
 | Database | Guarded Local PostgreSQL | Production database; read-only except a separately authorized, bounded Demo operation |
 | Face Intelligence / Recommendation | Real browser inference and canonical deterministic domain path | Same product path |
-| Provider default | Zero Provider calls; shared `PREPARED_DEMO` uses the two approved Local result assets | Zero Provider calls by default; prepared path fails closed without approved private assets |
-| Result continuation | Full journey validated with the approved prepared Demo outputs; no Try-On task or generation telemetry is created | Shared code path exists; no approved Production assets configured, so missing prepared media fails closed |
+| Provider default | Zero Provider calls; shared `PREPARED_DEMO` uses the two approved Local result assets | Zero Provider calls; shared `PREPARED_DEMO` uses the approved private Production result assets |
+| Result continuation | Full journey validated with the approved prepared Demo outputs; no Try-On task or generation telemetry is created | Full provider-free journey validated through Compare, Decision Result, and clean mobile continuation with approved private prepared assets |
 | Paid billing | Local Stripe TEST configuration only when relevant | No BillingAccount or Stripe subscription required for Demo; no payment in Demo QA |
 
 For exact commands, reset boundaries, environment guards, and real-provider
@@ -162,8 +168,11 @@ For the original Production tenant dry-run/provisioning decision, see the
 - Do not mutate the historical `visutry-demo` Canary to make the canonical Demo
   work.
 - Never use real shopper/customer photos in Demo evidence.
-- Do not edit the Y2K Playbook, White Paper, Demo Video, Pilot Configuration,
-  Commercial Proposal, or other approved sales material as part of an
-  environment-parity task.
+- Environment-parity work must not silently rewrite approved customer material.
+  When a product change materially changes the Demo story, route the resulting
+  content refresh through the Productized Demo Capability lifecycle rather than
+  treating sales assets as infrastructure side effects.
 - Any public route, asset, Provider, retention, billing, or entitlement change
   must be reviewed as its own bounded implementation/operations gate.
+- Any product release that changes the supported Demo journey must perform the
+  Demo impact assessment defined in `docs/product/specs/visutry-demo-capability.md`.
