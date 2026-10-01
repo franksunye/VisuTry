@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MerchantOperatingHome } from '@/components/merchant/MerchantOperatingHome'
 import type { MerchantOperatingHomeReadModel } from '@/modules/merchant/domain/merchant-operating-home'
 
@@ -22,6 +22,19 @@ describe('MerchantOperatingHome', () => {
     expect(screen.getByText('No shopper activity yet')).toBeInTheDocument()
     expect(screen.queryByText('Connect your Agent')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Attention' })).not.toBeInTheDocument()
+  })
+
+  it('keeps Business status as one flat surface with only list-row separators', () => {
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home()} />)
+    const businessStatus = screen.getByRole('region', { name: 'Business status' })
+    const list = within(businessStatus).getByRole('list')
+    const rows = within(list).getAllByRole('listitem')
+
+    expect(businessStatus).toHaveClass('rounded-2xl', 'bg-white')
+    expect(list).toHaveClass('divide-y')
+    expect(rows).toHaveLength(3)
+    expect(list.querySelectorAll(':scope > li article, :scope > li section')).toHaveLength(0)
+    expect(rows.every((row) => !row.className.split(/\s+/).some((className) => /^border(?:-|$)/.test(className)))).toBe(true)
   })
 
   it('surfaces Catalog attention before Store work', () => {

@@ -239,13 +239,14 @@ export function MerchantLivePulse({ merchantId, variant = 'home' }: { merchantId
   }
 
   return (
-    <section aria-labelledby="merchant-live-pulse-title" className="relative border-t border-slate-200 pt-4">
+    <section aria-labelledby="merchant-live-pulse-title" className="relative rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.11em] text-slate-500">
-            <Activity aria-hidden="true" className="h-3.5 w-3.5" />Anonymous · last 15 minutes
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold uppercase tracking-[0.11em] text-slate-500">
+            <Activity aria-hidden="true" className="h-3.5 w-3.5 text-blue-600" />Live activity
+            <span className="font-medium normal-case tracking-normal text-slate-500">Anonymous · last 15 minutes</span>
           </p>
-          <h2 id="merchant-live-pulse-title" className="mt-1 text-sm font-semibold text-slate-900">Recent shopper activity</h2>
+          <h2 id="merchant-live-pulse-title" className="sr-only">Recent shopper activity</h2>
         </div>
         <span aria-label={`Live data status: ${statusLabel}`} className={`inline-flex items-center gap-1.5 text-xs font-semibold ${freshness === 'LIVE' ? 'text-emerald-700' : freshness === 'PAUSED' ? 'text-amber-800' : 'text-slate-500'}`}>
           <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${freshness === 'LIVE' ? 'bg-emerald-600' : freshness === 'PAUSED' ? 'bg-amber-600' : 'bg-slate-400'}`} />
@@ -262,7 +263,7 @@ export function MerchantLivePulse({ merchantId, variant = 'home' }: { merchantId
       )}
 
       {hasRecentActivity && pulse ? <>
-        <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(140px,0.6fr)_minmax(0,1.4fr)] sm:items-center">
+        <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(140px,0.6fr)_minmax(0,1.4fr)] sm:items-center">
           <div className="flex items-baseline gap-2">
             <p className="text-xl font-semibold tracking-tight tabular-nums text-slate-950">{number(pulse.activeShoppers)}</p>
             <p className="text-sm text-slate-600">active now</p>
