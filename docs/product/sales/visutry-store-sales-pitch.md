@@ -3,8 +3,9 @@
 **Status:** Active sales validation playbook  
 **Owner:** Product / Growth / Sales  
 **Created:** 2026-08-06  
-**Last updated:** 2026-08-06  
-**Related sales demo:** `docs/product/specs/visutry-store-sales-demo.md`  
+**Last updated:** 2026-10-01  
+**Productized Demo authority:** `docs/product/specs/visutry-demo-capability.md`  
+**Historical / commercial sales-demo context:** `docs/product/specs/visutry-store-sales-demo.md`  
 **Related landing page:** `docs/product/specs/visutry-store-landing-page.md`  
 **Related implementation plan:** `docs/product/plans/visutry-store-implementation-plan.md`  
 **Related MVP spec:** `docs/product/specs/visutry-store-mvp.md`
@@ -26,6 +27,16 @@ Internal product direction remains:
 > **Storefront is the delivery surface. AI Commerce / Campaign Engine is the business.**
 
 These statements do not conflict.
+
+### Productized Demo operating rule
+
+The default live sales walkthrough is now the canonical **VisuTry Demo Optical** productized Demo, not a one-off merchant fixture. Use Production for customer-facing walkthroughs and Local for rehearsal, deterministic capture, and repeatable content production.
+
+The normal sales-demo path uses `PREPARED_DEMO` so the meeting does not depend on Provider latency or availability. It follows the same Store → Face Intelligence → Recommendation → shortlist → selection → Compare → Decision Result → QR/mobile application contracts used by the product.
+
+Do not use the historical `visutry-demo` Discovery Canary as the sales environment. Do not describe prepared results as current-session live generation. When a prospect requires its own catalog, rules, kiosk setup, or integration, move from the reusable Demo into a scoped Pilot configuration instead of forking the canonical Demo.
+
+The productized Demo is also the preferred source for repeatable screenshots, short videos, white-paper visuals, training, and meeting rehearsal. See `docs/product/specs/visutry-demo-capability.md`.
 
 - **Storefront** is the first SaaS product surface and first pilot unit.
 - **Campaign** is the growth and usage expansion model around different traffic, audience, and intent contexts.
@@ -237,18 +248,19 @@ Then:
 
 ### Minute 5-12 — working demo
 
-Follow the implemented Sales Demo flow:
+Use the canonical productized Demo flow by default:
 
-1. merchant-branded entry;
-2. shopper photo upload;
-3. merchant-catalog recommendation;
-4. shortlist and recommendation reason;
-5. try-on;
-6. compare;
-7. product click / favorite / inquiry;
-8. merchant insight.
+1. open the canonical Demo Store;
+2. use the approved synthetic shopper;
+3. show Face Intelligence and merchant-catalog recommendation;
+4. show the visual shortlist and recommendation reasons;
+5. select Rowan + Lane and present the approved prepared Demo results;
+6. compare finalists;
+7. open the Decision Result;
+8. show QR / clean mobile continuation;
+9. show relevant Merchant operating/insight surfaces only if they support the meeting objective.
 
-The working demo already uses real merchant-scoped Store records, recommendation, Try-On, Compare, and intent/insight surfaces. Do not imply unsupported checkout, physical-fit measurement, or medical capability.
+The default meeting path is intentionally provider-free. Do not wait for live generation to prove the product, and do not imply that a prepared result was generated live in the current session. Use the same Demo repeatedly across prospects; customer-specific catalog/configuration work begins only when the conversation advances into Pilot scope.
 
 ### Minute 12-15 — identify the first pilot use case
 
