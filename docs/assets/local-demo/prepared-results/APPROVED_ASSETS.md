@@ -4,10 +4,13 @@
 **Owner:** VisuTry Product Lead
 **Last updated:** 2026-09-30
 
-Status: approved Local Demo assets, supplied by the Product Lead on 2026-09-30.
-These files are copied byte-for-byte from Downloads. This record does not claim
-Provider telemetry or a Provider/model identity; none was supplied with the
-files, and this integration creates no generation records.
+Status: approved Demo assets, supplied by the Product Lead on 2026-09-30.
+These curated prepared visuals were created with OpenAI image generation from
+the approved synthetic shopper and the corresponding approved Rowan/Lane frame
+source images, then reviewed and approved by the Product Lead. The repository
+copies are byte-for-byte identical to the supplied PNGs. This provenance does
+not represent GrsAI/Gemini output or a live Try-On generated for a current
+shopper session; this integration creates no generation records.
 
 Both outputs are for the canonical VisuTry Demo Shopper v1 and are demo-only,
 not for sale. The approved shopper input is
@@ -25,8 +28,11 @@ The Rowan source frame is `/assets/glasses-presets/round-classic.jpg`
 the Lane source frame is `/assets/glasses-presets/rectangle-classic.jpg`
 (SHA-256 `3ad4eb05ca2a6b00149bf8a63d71de472b0674fc4bcfa4cb9592d111286c97ad`).
 
-The manifest marks these as `APPROVED_DEMO_OUTPUT` and keeps the older
+The shared manifest marks these as `APPROVED_DEMO_OUTPUT` with curated,
+Lead-approved provenance and keeps the older
 `LOCAL_QA_FIXTURE` SVGs separately identified. Guarded Local Demo resolves the
 approved PNGs by frame SKU. Production remains fail-closed: both descriptors
-have `productionStorageKey = null`; no Production Blob object was uploaded or
-configured by this work.
+use deterministic private Blob keys in Production and the application reads
+them only with the dedicated private-store credential, then verifies the exact
+manifest SHA-256. The older QA SVGs remain Local-only and never resolve in
+Production.
