@@ -1,5 +1,8 @@
 # VisuTry Sales Readiness Audit & Launch Plan
 
+**Status:** Dated supporting sales evidence
+**Owner:** Product / Growth / Sales
+**Last reviewed:** 2026-10-01
 **Date:** 2026-08-12
 **Scope:** Reference Factory → founder-led merchant outreach
 **Decision:** Ready for a controlled first batch of founder-led outreach; not yet ready for a scaled, fully measured inbound funnel.
