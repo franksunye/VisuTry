@@ -1,6 +1,7 @@
 # VisuTry Reference Portfolio Index
 
 **Status:** Sales reference source of truth
+**Owner:** Product / Growth / Sales
 **Date:** 2026-08-12  
 **Last updated:** 2026-10-01
 **Use:** Founder-led sales demos, prospect matching, internal enablement
