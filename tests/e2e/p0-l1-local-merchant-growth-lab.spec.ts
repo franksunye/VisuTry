@@ -108,7 +108,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     }
     await page.goto('/en/merchant', { waitUntil: 'networkidle' })
     await page.screenshot({ path: `${evidenceDir}/home-desktop.png`, fullPage: true })
-    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible()
     const catalogLink = page.getByRole('link', { name: 'Catalog' }).first()
     const storeLink = page.getByRole('link', { name: 'Store' }).first()
     const analyticsLink = page.getByRole('link', { name: 'Analytics' }).first()
@@ -137,40 +137,37 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(`/en/merchant/analytics?merchantId=${encodeURIComponent(m26MerchantId)}`, { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'No shopper activity yet' })).toBeVisible()
-    const mobileNavigation = page.getByRole('navigation', { name: 'Merchant workspace' })
-    const activeAnalyticsLink = mobileNavigation.getByRole('link', { name: 'Analytics', exact: true })
+    await page.getByRole('button', { name: 'Open navigation' }).click()
+    const mobileNavigation = page.getByRole('dialog', { name: 'Merchant navigation' })
+    await expect(mobileNavigation).toBeVisible()
+    const primaryNavigation = mobileNavigation.getByRole('navigation', { name: 'Merchant primary navigation' })
+    const activeAnalyticsLink = primaryNavigation.getByRole('link', { name: 'Analytics', exact: true })
     await expect(activeAnalyticsLink).toHaveAttribute('aria-current', 'page')
     const analyticsNavigationMetrics = await page.evaluate(() => {
-      const nav = document.querySelector('nav[aria-label="Merchant workspace"]')
-      const primary = nav?.querySelector<HTMLElement>('[data-testid="merchant-primary-navigation"]')
-      const active = primary?.querySelector<HTMLElement>('a[aria-current="page"]')
-      const more = nav?.querySelector<HTMLElement>('summary')
-      if (!nav || !primary || !active || !more) return null
-      const primaryRect = primary.getBoundingClientRect()
+      const dialog = document.querySelector<HTMLElement>('[role="dialog"][aria-modal="true"]')
+      const nav = dialog?.querySelector<HTMLElement>('nav[aria-label="Merchant primary navigation"]')
+      const active = nav?.querySelector<HTMLElement>('a[aria-current="page"]')
+      if (!dialog || !nav || !active) return null
+      const dialogRect = dialog.getBoundingClientRect()
       const activeRect = active.getBoundingClientRect()
-      const moreRect = more.getBoundingClientRect()
       return {
-        activeFullyVisible: activeRect.left >= primaryRect.left - 1 && activeRect.right <= primaryRect.right + 1,
-        moreRemainsBesidePrimary: moreRect.left >= primaryRect.right - 1,
-        moreFullyVisible: moreRect.left >= nav.getBoundingClientRect().left && moreRect.right <= nav.getBoundingClientRect().right,
+        activeFullyVisible: activeRect.left >= dialogRect.left - 1 && activeRect.right <= dialogRect.right + 1,
+        drawerWithinViewport: dialogRect.left >= 0 && dialogRect.right <= innerWidth,
         noViewportOverflow: document.documentElement.scrollWidth <= innerWidth,
       }
     })
     expect(analyticsNavigationMetrics).toEqual({
       activeFullyVisible: true,
-      moreRemainsBesidePrimary: true,
-      moreFullyVisible: true,
+      drawerWithinViewport: true,
       noViewportOverflow: true,
     })
     console.log(JSON.stringify({ p1m27AnalyticsNavigation: analyticsNavigationMetrics }))
     await page.screenshot({ path: `${m27EvidenceDir}/analytics-active-mobile.png`, fullPage: false })
     await captureM26('02-analytics-empty-mobile')
-    const moreSummary = mobileNavigation.locator('summary')
-    await moreSummary.focus()
-    await moreSummary.press('Enter')
-    await expect(mobileNavigation.getByRole('link', { name: 'Integrations' })).toBeVisible()
-    await expect(mobileNavigation.getByRole('link', { name: 'Plan & Usage' })).toBeVisible()
-    await expect(mobileNavigation.getByRole('link', { name: 'Settings' })).toBeVisible()
+    const utilityNavigation = mobileNavigation.getByRole('navigation', { name: 'Merchant utility navigation' })
+    await expect(utilityNavigation.getByRole('link', { name: 'Integrations' })).toBeVisible()
+    await expect(utilityNavigation.getByRole('link', { name: 'Plan & Usage' })).toBeVisible()
+    await expect(utilityNavigation.getByRole('link', { name: 'Settings' })).toBeVisible()
     await page.screenshot({ path: `${m27EvidenceDir}/more-open-mobile.png`, fullPage: false })
     await page.goto(`/en/merchant/integrations?merchantId=${encodeURIComponent(m26MerchantId)}`, { waitUntil: 'networkidle' })
     await expect(page.getByText('No active key')).toBeVisible()
@@ -245,13 +242,14 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
 
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/en/merchant', { waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Catalog' }).first()).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Store' }).first()).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Analytics' }).first()).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/home-mobile.png`, fullPage: true })
-    await page.getByText('More', { exact: true }).click()
-    await expect(page.getByRole('link', { name: 'Plan & Usage' })).toBeVisible()
+    await page.getByRole('button', { name: 'Open navigation' }).click()
+    const homeNavigation = page.getByRole('dialog', { name: 'Merchant navigation' })
+    await expect(homeNavigation.getByRole('navigation', { name: 'Merchant primary navigation' }).getByRole('link', { name: 'Catalog' })).toBeVisible()
+    await expect(homeNavigation.getByRole('navigation', { name: 'Merchant primary navigation' }).getByRole('link', { name: 'Store' })).toBeVisible()
+    await expect(homeNavigation.getByRole('navigation', { name: 'Merchant primary navigation' }).getByRole('link', { name: 'Analytics' })).toBeVisible()
+    await expect(homeNavigation.getByRole('navigation', { name: 'Merchant utility navigation' }).getByRole('link', { name: 'Plan & Usage' })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/utilities-mobile.png`, fullPage: false })
     const mobileMetrics = await page.evaluate(() => ({
       headerHeight: document.querySelector('header')?.getBoundingClientRect().height ?? null,
