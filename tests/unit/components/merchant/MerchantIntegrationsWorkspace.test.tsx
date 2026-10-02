@@ -25,13 +25,17 @@ describe('MerchantIntegrationsWorkspace', () => {
 
   it('labels the active-key state narrowly and does not imply OAuth MCP status', () => {
     render(<MerchantIntegrationsWorkspace {...props} initialCredentials={[credential()]} />)
-    expect(screen.getByRole('heading', { name: 'Agent key access' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Workspace integration' })).toBeInTheDocument()
+    expect(screen.getByText('Agent key access')).toBeInTheDocument()
     expect(screen.getByText('Key created · not yet used')).toBeInTheDocument()
     expect(screen.getByText(/OAuth MCP authorization is separate/)).toBeInTheDocument()
     expect(screen.getByText(/has no recorded successful use yet/)).toBeInTheDocument()
     expect(screen.getByText('Not used yet')).toBeInTheDocument()
     expect(screen.queryByText('Successful key use recorded')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Create another key' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'VisuTry Merchant' })).toHaveAttribute('href', props.skills[0].url)
+    expect(screen.getByText(props.endpoint)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Refresh status' })).toBeInTheDocument()
   })
 
   it('shows actual use evidence and keeps revoked credentials visible but inactive', () => {
@@ -67,6 +71,61 @@ describe('MerchantIntegrationsWorkspace', () => {
     expect(screen.queryByText(new RegExp(testSecret))).not.toBeInTheDocument()
     expect(screen.getByText('Key created · not yet used')).toBeInTheDocument()
     expect(screen.queryByText(testSecret)).not.toBeInTheDocument()
+  })
+
+  it('focuses the one-time dialog and allows Escape to hide its secret', async () => {
+    const testSecret = 'vt_live_0123456789abcdef_escape_test_secret'
+    ;(global.fetch as jest.Mock)
+      .mockResolvedValueOnce(response({ credential: credential(), secret: testSecret }, true))
+      .mockResolvedValueOnce(response({ credentials: [credential()] }, true))
+    render(<MerchantIntegrationsWorkspace {...props} initialCredentials={[]} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create Agent key' }))
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close and hide key' }))
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.queryByText(new RegExp(testSecret))).not.toBeInTheDocument()
+  })
+
+  it('refreshes actual key-use evidence from the canonical credential list', async () => {
+    const usedCredential = credential({ lastUsedAt: '2026-09-10T08:30:00.000Z' })
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce(response({ credentials: [usedCredential] }, true))
+    render(<MerchantIntegrationsWorkspace {...props} initialCredentials={[credential()]} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh status' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Key usage status refreshed.')
+    expect(screen.getByText('Successful key use recorded')).toBeInTheDocument()
+    expect(screen.getByText(/Last used/)).toBeInTheDocument()
+  })
+
+  it('shows create and refresh errors without claiming that a key was used', async () => {
+    ;(global.fetch as jest.Mock)
+      .mockResolvedValueOnce(response(undefined, false, 'INVALID_REQUEST'))
+      .mockResolvedValueOnce(response(undefined, false, 'TEMPORARY_FAILURE'))
+    render(<MerchantIntegrationsWorkspace {...props} initialCredentials={[]} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create Agent key' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('The key request could not be validated.')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh status' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to refresh Agent keys.')
+    expect(screen.getByText('No active key')).toBeInTheDocument()
+    expect(screen.queryByText('Successful key use recorded')).not.toBeInTheDocument()
+  })
+
+  it('copies the existing MCP endpoint as a presentation-only action', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    render(<MerchantIntegrationsWorkspace {...props} initialCredentials={[]} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy MCP endpoint' }))
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(props.endpoint))
+    expect(await screen.findByRole('button', { name: 'MCP endpoint copied' })).toBeInTheDocument()
   })
 
   it('rotates only after explicit confirmation and discloses the replacement one time', async () => {
