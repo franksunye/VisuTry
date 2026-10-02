@@ -132,7 +132,7 @@ Runs on release, when risk requires it, or manually before significant productio
 
 Examples:
 
-- `npm run test:integration:new`
+- `npm run test:integration:all`
 - `npm run test:api`
 - `npm run test:workflows`
 - `npm run test:e2e:playwright`
@@ -235,21 +235,44 @@ At minimum:
 - commercial exceptions
 - renewal/reset behavior
 
-## 6. Legacy Test Runner
+## 6. Jest and Playwright ownership
 
-`tests/scripts/run-all-tests.js` is retained as a legacy/manual orchestration utility.
+`npm test` is the deterministic local Jest core contract. It invokes Jest once
+with explicit roots:
 
-It is NOT a PR merge gate.
+- `tests/unit/`
+- `tests/integration/data/`
+- `tests/integration/modules/`
 
-Reasons:
+The selected integration tests use in-process adapters/mocks and do not need a
+running app, database, provider, or browser. The runner supplies a deliberately
+unreachable loopback database URL so ambient developer, Preview, or Production
+credentials cannot become a test dependency. Jest propagates its actual test
+summary and exit status; it does not parse output or start a server.
 
-- it starts a development server even for suites that do not require one
-- it mixes unit, integration, E2E, and environment concerns
-- historical pattern assumptions do not represent all current TypeScript tests
+The existing blocking CI contract is unchanged:
 
-CI must call Jest directly through the explicit package scripts instead of relying on this runner.
+- `npm run test:unit:ci` runs `tests/unit/` and remains the Quality Gate suite.
+- `npm run test:integration:core` runs only the deterministic in-process
+  integration roots included by `npm test`.
 
-Do not expand the legacy runner. New QA automation belongs in GitHub Actions and explicit npm scripts.
+Other integration suites are explicitly opt-in L4 checks:
+
+- `tests/integration/api/`, `tests/integration/e2e/`, and
+  `tests/integration/workflows/` contain legacy HTTP/server-backed Jest tests.
+  Use `test:api`, `test:integration:e2e:jest`, or `test:workflows` only with an
+  explicitly configured Local test server and disposable Local test database.
+- `tests/integration/auth/` includes environment-configuration checks; it is
+  not part of the credential-free core suite.
+- `npm run test:integration:all` collects the full Jest integration tree and
+  therefore has those L4 environment preconditions.
+
+Playwright owns browser specs under `tests/e2e/`, `tests/e2e-playwright/`, and
+the root-level `*.spec.*` files. Jest's `testMatch` is restricted to explicit
+`*.test.*` files in `tests/unit/` and `tests/integration/`, with browser E2E
+directories ignored as a second guard. Browser execution remains explicit via
+`npm run test:e2e:playwright` (or the `npm run test:e2e` alias); Jest never
+collects or executes Playwright specs.
 
 ## 7. Merge Gate Policy
 

@@ -264,10 +264,9 @@ class CommitPreparer {
         '测试最佳实践指南'
       ],
       nextSteps: [
-        '运行 npm run test:all 验证测试',
-        '查看 tests/README.md 了解使用方法',
-        '使用 npm run test:start 启动测试模式',
-        '参考 tests/manual/ 进行手动测试'
+        '运行 npm test 验证确定性的 Jest core suite',
+        '运行 npm run test:unit:ci 验证 GitHub Quality Gate 的 unit 回归集',
+        '需要浏览器验证时使用明确的 Playwright 命令'
       ]
     }
 
@@ -303,7 +302,7 @@ async function main() {
     preparer.generateCommitSummary()
     
     console.log('\n🎉 所有提交已完成!')
-    console.log('💡 建议运行 npm run test:all 验证测试系统')
+    console.log('💡 建议运行 npm test 验证确定性的 Jest core suite')
     
   } catch (error) {
     console.error('❌ 提交准备失败:', error)

@@ -29,6 +29,7 @@ import { prisma } from '@/lib/prisma'
 import { fetchMerchantSourceDocument } from '@/modules/merchant/application/merchant-source-network'
 import { merchantCatalogSourceIntake } from '@/modules/merchant/application/merchant-catalog-source-intake'
 import { merchantOnboarding } from '@/modules/merchant/application/merchant-onboarding'
+import { MERCHANT_ACTIVATION_EVENT } from '@/modules/merchant/domain/merchant-activation'
 import type { AgentMerchantActor } from '@/modules/merchant/domain/actor'
 
 const mockMerchant = prisma.merchant.findUnique as jest.Mock
@@ -37,6 +38,7 @@ const mockFrameFindMany = prisma.merchantFrame.findMany as jest.Mock
 const mockExperienceFindFirst = prisma.experience.findFirst as jest.Mock
 const mockTransaction = prisma.$transaction as jest.Mock
 const mockFetch = fetchMerchantSourceDocument as jest.Mock
+const mockActivationEventCreateMany = jest.fn()
 const actor: AgentMerchantActor = {
   actorType: 'AGENT_CREDENTIAL',
   actorId: 'credential-golden-path',
@@ -47,6 +49,7 @@ const actor: AgentMerchantActor = {
 describe('Merchant no-Store Delivery Factory Golden Path', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockActivationEventCreateMany.mockResolvedValue({ count: 1 })
     const catalog: Array<Record<string, unknown>> = []
     let store: Record<string, unknown> | null = null
     mockMerchant.mockResolvedValue({ slug: 'merchant-a' })
@@ -86,6 +89,9 @@ describe('Merchant no-Store Delivery Factory Golden Path', () => {
           if (store) store.frames = data.map((item) => ({ merchantFrameId: item.merchantFrameId }))
         }),
       },
+      merchantActivationEvent: {
+        createMany: mockActivationEventCreateMany,
+      },
     }))
     mockFetch.mockResolvedValue({
       url: 'https://catalog.example.test/products/round-acetate',
@@ -108,6 +114,20 @@ describe('Merchant no-Store Delivery Factory Golden Path', () => {
 
     const approvedImport = await merchantOnboarding.importMerchantFrames({ actor, frames: proposal.importReady })
     expect(approvedImport.imported).toBe(1)
+    expect(mockActivationEventCreateMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      data: expect.objectContaining({
+        merchantId: 'merchant-a',
+        eventType: MERCHANT_ACTIVATION_EVENT.FIRST_ITEM_ADDED,
+      }),
+      skipDuplicates: true,
+    }))
+    expect(mockActivationEventCreateMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      data: expect.objectContaining({
+        merchantId: 'merchant-a',
+        eventType: MERCHANT_ACTIVATION_EVENT.CATALOG_READY,
+      }),
+      skipDuplicates: true,
+    }))
     const catalogStatus = await merchantOnboarding.validateMerchantCatalog({ actor })
     expect(catalogStatus.valid).toBe(1)
 

@@ -9,11 +9,25 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
+  // Jest owns only the repository's explicit .test.* unit/integration trees.
+  // Browser specs (including *.spec.* files) are owned by Playwright.
+  testMatch: [
+    '<rootDir>/tests/unit/**/*.test.js',
+    '<rootDir>/tests/unit/**/*.test.jsx',
+    '<rootDir>/tests/unit/**/*.test.ts',
+    '<rootDir>/tests/unit/**/*.test.tsx',
+    '<rootDir>/tests/integration/**/*.test.js',
+    '<rootDir>/tests/integration/**/*.test.jsx',
+    '<rootDir>/tests/integration/**/*.test.ts',
+    '<rootDir>/tests/integration/**/*.test.tsx',
+  ],
   testPathIgnorePatterns: [
     '<rootDir>/.next/',
     '<rootDir>/node_modules/',
     '<rootDir>/tests/temp/',
-    '<rootDir>/tests/legacy/'
+    '<rootDir>/tests/legacy/',
+    '<rootDir>/tests/e2e/',
+    '<rootDir>/tests/e2e-playwright/',
   ],
   transformIgnorePatterns: [
     '/node_modules/(?!(lucide-react)/)',
