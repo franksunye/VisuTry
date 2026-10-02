@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState, type FormEvent } from 'react'
-import { ArrowRight, CalendarDays, Plus } from 'lucide-react'
+import Image from 'next/image'
+import { Archive, ArrowRight, CalendarDays, CircleDot, FileText, Glasses, Layers3, Plus } from 'lucide-react'
 import type { CampaignReadModel } from '@/modules/store/application/campaign-service'
 import { resolveMerchantCampaignPresentation } from '@/modules/merchant/domain/merchant-campaign-presentation'
 
@@ -21,6 +22,29 @@ function dateWindow(campaign: CampaignReadModel) {
   if (!campaign.startAt && !campaign.endAt) return null
   const format = (value: Date | null) => value ? new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value)) : null
   return [format(campaign.startAt), format(campaign.endAt)].filter(Boolean).join(' – ')
+}
+
+function safeCampaignImageUrl(value: string | null | undefined) {
+  const imageUrl = value?.trim()
+  if (!imageUrl) return null
+  if (imageUrl.startsWith('/') && !imageUrl.startsWith('//')) return imageUrl
+  try {
+    const url = new URL(imageUrl)
+    return url.protocol === 'https:' || url.protocol === 'http:' ? imageUrl : null
+  } catch {
+    return null
+  }
+}
+
+function CampaignThumbnail({ campaign }: { campaign: Pick<CampaignReadModel, 'name' | 'selectedFrames'> }) {
+  const [imageFailed, setImageFailed] = useState(false)
+  const imageUrl = safeCampaignImageUrl(campaign.selectedFrames[0]?.imageUrl)
+
+  return <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 sm:h-16 sm:w-16">
+    {imageUrl && !imageFailed
+      ? <Image src={imageUrl} alt="" fill unoptimized sizes="64px" className="object-contain p-1.5" onError={() => setImageFailed(true)} />
+      : <span className="grid h-full w-full place-items-center text-slate-300" aria-hidden="true"><Glasses className="h-6 w-6" /></span>}
+  </div>
 }
 
 export function MerchantCampaignsWorkspace({
@@ -70,24 +94,38 @@ export function MerchantCampaignsWorkspace({
     }
   }
 
-  return <section data-testid="merchant-campaign-workspace" className="space-y-5" aria-labelledby="campaigns-heading">
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+  const summary = [
+    { key: 'ALL', label: 'All campaigns', count: counts.ALL, Icon: Layers3, tone: 'bg-blue-50 text-blue-700' },
+    { key: 'DRAFT', label: 'Draft', count: counts.DRAFT, Icon: FileText, tone: 'bg-slate-100 text-slate-600' },
+    { key: 'ACTIVE', label: 'Live', count: counts.ACTIVE, Icon: CircleDot, tone: 'bg-emerald-50 text-emerald-700' },
+    { key: 'ARCHIVED', label: 'Archived', count: counts.ARCHIVED, Icon: Archive, tone: 'bg-slate-100 text-slate-500' },
+  ] as const
+
+  return <section data-testid="merchant-campaign-workspace" className="space-y-4 sm:space-y-5" aria-labelledby="campaigns-heading">
+    <header className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:pb-5">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Merchant workspace</p>
-        <h1 id="campaigns-heading" className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Campaigns</h1>
-        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">Create focused product experiences, review them privately, then choose when to make them live.</p>
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-700">Merchant workspace</p>
+        <h1 id="campaigns-heading" className="mt-2 text-[32px] font-semibold leading-none tracking-[-0.045em] text-slate-950">Campaigns</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Create focused product experiences, review them privately, then choose when to make them live.</p>
       </div>
       <button type="button" onClick={() => { setCreating(true); setError(null) }} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
         <Plus className="h-4 w-4" aria-hidden="true" /> Create Campaign
       </button>
-    </div>
+    </header>
 
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
-      <p className="text-sm text-slate-600"><span className="font-semibold text-slate-950">{campaigns.length}</span> Campaign{campaigns.length === 1 ? '' : 's'} · {counts.ACTIVE} live</p>
+    <dl aria-label="Campaign lifecycle summary" className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+      {summary.map(({ key, label, count, Icon, tone }) => <div key={key} className="grid min-h-[76px] min-w-0 grid-cols-[32px_minmax(0,1fr)] items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 sm:grid-cols-[36px_minmax(0,1fr)] sm:gap-3 sm:px-3.5">
+        <span aria-hidden="true" className={`flex h-8 w-8 items-center justify-center rounded-full sm:h-9 sm:w-9 ${tone}`}><Icon className="h-4 w-4" /></span>
+        <div className="min-w-0"><dt className="truncate text-[11px] font-medium leading-4 text-slate-500 sm:text-xs">{label}</dt><dd className="mt-0.5 text-[23px] font-semibold leading-none tracking-[-0.04em] tabular-nums text-slate-950">{count}</dd></div>
+      </div>)}
+    </dl>
+
+    <div className="flex flex-col gap-2 border-b border-slate-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Lifecycle</p>
       <div className="flex max-w-full gap-1 overflow-x-auto" role="group" aria-label="Filter Campaigns">
         {(['ALL', 'DRAFT', 'ACTIVE', 'ARCHIVED'] as const).map((key) => {
           const label = key === 'ALL' ? 'All' : key === 'ACTIVE' ? 'Live' : key === 'DRAFT' ? 'Draft' : 'Archived'
-          return <button key={key} type="button" aria-pressed={filter === key} onClick={() => setFilter(key)} className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold ${filter === key ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>{label}<span className="ml-1.5 text-xs opacity-75">{counts[key]}</span></button>
+          return <button key={key} type="button" aria-pressed={filter === key} onClick={() => setFilter(key)} className={`min-h-10 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${filter === key ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>{label}<span className="ml-1.5 text-xs tabular-nums opacity-75">{counts[key]}</span></button>
         })}
       </div>
     </div>
@@ -105,25 +143,26 @@ export function MerchantCampaignsWorkspace({
       <div className="mt-4 flex justify-end"><button type="submit" disabled={busy} className="min-h-10 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-60">{busy ? 'Creating…' : 'Create draft'}</button></div>
     </form> : null}
 
-    {visible.length === 0 ? <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center">
+    {visible.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center">
       <h2 className="text-base font-semibold text-slate-950">{campaigns.length === 0 ? 'No Campaigns yet' : `No ${filter === 'ACTIVE' ? 'live' : filter.toLowerCase()} Campaigns`}</h2>
       <p className="mx-auto mt-1.5 max-w-lg text-sm leading-6 text-slate-600">Campaigns are optional. Use one to bring a focused selection of products together for shoppers.</p>
       {campaigns.length === 0 ? <button type="button" onClick={() => setCreating(true)} className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white">Create Campaign <ArrowRight className="h-4 w-4" aria-hidden="true" /></button> : null}
-    </div> : <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+    </div> : <ul aria-label="Campaigns" className="overflow-hidden rounded-2xl border border-slate-200 bg-white divide-y divide-slate-100">
       {visible.map((campaign) => {
         const presentation = resolveMerchantCampaignPresentation(campaign)
         const window = dateWindow(campaign)
         return <li key={campaign.id}>
-          <Link href={campaignHref(locale, merchantId, campaign.id)} className="group flex flex-col gap-3 p-4 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <Link href={campaignHref(locale, merchantId, campaign.id)} className="group grid grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 px-3.5 py-3.5 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 sm:grid-cols-[72px_minmax(0,1fr)_auto] sm:gap-4 sm:px-5 sm:py-4">
+            <CampaignThumbnail key={`${campaign.id}:${campaign.selectedFrames[0]?.imageUrl ?? ''}`} campaign={campaign} />
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${campaign.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-800' : campaign.status === 'ARCHIVED' ? 'bg-slate-100 text-slate-600' : 'bg-blue-50 text-blue-800'}`}>{lifecycleLabel(campaign.status)}</span>
-                {campaign.status !== 'ARCHIVED' ? <span className={`text-xs font-medium ${campaign.readiness.ready ? 'text-emerald-700' : 'text-amber-800'}`}>{campaign.readiness.ready ? 'Ready' : 'Needs attention'}</span> : null}
+                {campaign.status !== 'ARCHIVED' ? <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${campaign.readiness.ready ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}`}>{campaign.readiness.ready ? 'Ready' : 'Needs attention'}</span> : null}
               </div>
-              <h2 className="mt-2 truncate text-base font-semibold text-slate-950">{campaign.name}</h2>
-              <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600"><span>{campaign.frameCount} product{campaign.frameCount === 1 ? '' : 's'}</span>{window ? <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />{window}</span> : null}<span>{presentation.visibility}</span></p>
+              <h2 className="mt-1.5 truncate text-sm font-semibold tracking-tight text-slate-950 sm:text-base">{campaign.name}</h2>
+              <p className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs leading-5 text-slate-600 sm:text-sm"><span>{campaign.frameCount} product{campaign.frameCount === 1 ? '' : 's'}</span>{window ? <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{window}</span> : null}<span>{presentation.visibility}</span></p>
             </div>
-            <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-blue-700 group-hover:text-blue-900">Open <ArrowRight className="h-4 w-4" aria-hidden="true" /></span>
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-blue-700 transition-colors group-hover:bg-blue-50 group-hover:text-blue-900 sm:h-10 sm:w-auto sm:gap-1 sm:px-2"><span className="sr-only sm:not-sr-only sm:text-sm sm:font-semibold">Open</span><ArrowRight className="h-4 w-4" aria-hidden="true" /></span>
           </Link>
         </li>
       })}
