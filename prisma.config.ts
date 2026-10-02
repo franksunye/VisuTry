@@ -2,9 +2,11 @@ import dotenv from "dotenv";
 import { defineConfig } from "prisma/config";
 import { resolvePrismaCliDatasourceUrl } from "./prisma/resolve-cli-datasource-url";
 
-// Load .env first, then .env.local with override (matches Next.js semantics).
+// Load .env first, then .env.local, while keeping injected process values authoritative.
+const injectedEnvironment = { ...process.env };
 dotenv.config();
 dotenv.config({ path: ".env.local", override: true });
+Object.assign(process.env, injectedEnvironment);
 
 /**
  * Prisma 7 CLI configuration.

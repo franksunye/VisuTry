@@ -6,7 +6,7 @@ const isLocalLabRun = process.env.NODE_ENV === 'test'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
   && process.env.P0_L1_LOCAL_MERCHANT_E2E === '1'
-  && /^http:\/\/(127\.0\.0\.1|localhost):3001$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+  && /^http:\/\/(127\.0\.0\.1|localhost):(3001|3002|3003)$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
 
 test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
   test('runs the real local acquisition-to-private-preview journey', async ({ page, request, context }) => {
@@ -214,7 +214,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.getByRole('tab', { name: 'Add manually' }).click()
     await page.getByLabel('Product name for product 1').fill('Local Growth Pending Frame')
     await page.getByLabel('Product image URL for product 1').fill(`${process.env.PLAYWRIGHT_BASE_URL}/assets/glasses-presets/large-round-classic.jpg`)
-    await page.getByLabel('Product page URL for product 1').fill('http://127.0.0.1:3001/local/pending-frame')
+    await page.getByLabel('Product page URL for product 1').fill(`${process.env.PLAYWRIGHT_BASE_URL}/local/pending-frame`)
     await page.getByRole('button', { name: 'Review product' }).click()
     await expect(page.getByRole('heading', { name: '1 product is ready to add' })).toBeVisible()
     await page.getByRole('button', { name: /Approve and import 1/ }).click()

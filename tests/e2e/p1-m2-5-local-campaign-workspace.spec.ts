@@ -6,7 +6,7 @@ const isLocalCampaignRun = process.env.NODE_ENV === 'test'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
   && process.env.P1_M2_5_LOCAL_CAMPAIGN_E2E === '1'
-  && /^http:\/\/(127\.0\.0\.1|localhost):3001$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+  && /^http:\/\/(127\.0\.0\.1|localhost):(3001|3002|3003)$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
 
 type ApiEnvelope<T> = { success?: boolean; data?: T; error?: string; message?: string }
 
@@ -72,8 +72,8 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
               sku,
               name: `Local Campaign Frame ${merchantSlug}`,
               brand: 'Local QA',
-              imageUrl: 'http://127.0.0.1:3001/assets/glasses-presets/large-round-classic.jpg',
-              productUrl: `http://127.0.0.1:3001/local/campaign-product/${merchantSlug}`,
+              imageUrl: `${process.env.PLAYWRIGHT_BASE_URL}/assets/glasses-presets/large-round-classic.jpg`,
+              productUrl: `${process.env.PLAYWRIGHT_BASE_URL}/local/campaign-product/${merchantSlug}`,
               price: 12900,
               currency: 'USD',
               shape: 'round',

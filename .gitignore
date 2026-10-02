@@ -8,6 +8,7 @@
 
 # testing
 /coverage
+/test-results/
 
 # next.js
 /.next/
@@ -19,6 +20,7 @@
 /.local/mock-blob-test-*/
 /.local/demo-evidence/
 /.local/merchant-dashboard-capture/
+/.local/merchant-e2e/
 
 # production
 /build
