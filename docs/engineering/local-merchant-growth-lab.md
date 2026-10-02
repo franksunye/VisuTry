@@ -46,7 +46,9 @@ repository-local PostgreSQL server is not running, the gate starts it through
 repository-owned mock identities plus TEST Merchant fixtures. A database with
 that reserved name but a missing or different marker is never reset. The gate
 serves the browser journey at `http://127.0.0.1:3003`, refuses an occupied port,
-and shuts down the server on completion. Runs are serialized with a local lock.
+and shuts down the server on completion. Runs share a lock in the Git common
+directory, so parallel linked worktrees cannot reset this shared Local test DB
+while another E2E is using it.
 
 `clean@local.test` is owned by the test harness and must have no Merchant at
 the start of each run; `existing@local.test` owns the four seeded QA TEST

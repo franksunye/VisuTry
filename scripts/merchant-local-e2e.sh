@@ -35,11 +35,12 @@ readonly TEST_IDENTITY="local:${PGHOST}:${PGPORT}/${TEST_DB}"
 readonly APP_PORT="3003"
 readonly BASE_URL="http://${PGHOST}:${APP_PORT}"
 readonly LOG_DIR="$PWD/.local/merchant-e2e"
-readonly LOCK_DIR="$LOG_DIR/runner.lock"
+readonly GIT_COMMON_DIR="$(git rev-parse --path-format=absolute --git-common-dir)"
+readonly LOCK_DIR="$GIT_COMMON_DIR/visutry-merchant-local-e2e.lock"
 
 mkdir -p "$LOG_DIR"
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-  echo "❌ Another Local Merchant E2E appears to be running ($LOCK_DIR exists)." >&2
+  echo "❌ Another Local Merchant E2E in this Git repository appears to be running ($LOCK_DIR exists)." >&2
   echo "   Confirm no runner is active before removing that stale lock directory." >&2
   exit 1
 fi
