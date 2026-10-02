@@ -6,7 +6,7 @@ import type { MerchantStorePreview, MerchantStoreWorkspace as WorkspaceData, Mer
 jest.mock('@/lib/analytics', () => ({ analytics: { trackCustomEvent: jest.fn() } }))
 
 jest.mock('@/components/merchant/MerchantStorePrivatePreview', () => ({
-  MerchantStorePrivatePreview: ({ preview }: { preview: MerchantStorePreview }) => <div data-testid="private-preview">DRAFT · not public · {preview.store.name}</div>,
+  MerchantStorePrivatePreview: ({ preview, variant = 'DRAFT', hasUnsavedChanges = false }: { preview: MerchantStorePreview; variant?: 'DRAFT' | 'LIVE'; hasUnsavedChanges?: boolean }) => <div data-testid={variant === 'LIVE' ? 'saved-preview' : 'private-preview'}>{variant === 'LIVE' ? 'LIVE · saved state' : 'DRAFT · not public'} · {preview.store.name}{hasUnsavedChanges ? ' · saved snapshot only' : ''}</div>,
 }))
 
 function frame(id: string, name: string): MerchantStoreWorkspaceFrame {
@@ -30,17 +30,19 @@ function ok(data: unknown) {
   return { ok: true, json: async () => ({ success: true, data }) }
 }
 
+function storePreview(status: 'DRAFT' | 'ACTIVE' = 'DRAFT') {
+  return {
+    store: { id: 'store-a', name: 'North Star Store', status, headline: null, description: null, publicPath: '/en/store/north-star' },
+    frameCount: 1, frames: [{ id: 'frame-a', name: 'Round frame', imageUrl: 'https://cdn.example.test/frame.png', shape: 'round', color: null, productBrand: 'North Star' }],
+    readiness: { ready: true, readyFrameCount: 1, blockingIssues: [] }, preview: { sideEffectFree: true, publicPath: '/en/store/north-star' },
+  }
+}
+
 describe('MerchantStoreWorkspace lifecycle UX', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     global.fetch = jest.fn().mockImplementation(async (input: string, init?: RequestInit) => {
-      if (input.endsWith('/preview')) {
-        return ok({
-          store: { id: 'store-a', name: 'North Star Store', status: 'DRAFT', headline: null, description: null, publicPath: '/en/store/north-star' },
-          frameCount: 1, frames: [{ id: 'frame-a', name: 'Round frame', imageUrl: 'https://cdn.example.test/frame.png', shape: 'round', color: null, productBrand: 'North Star' }],
-          readiness: { ready: true, readyFrameCount: 1, blockingIssues: [] }, preview: { sideEffectFree: true, publicPath: '/en/store/north-star' },
-        })
-      }
+      if (input.endsWith('/preview')) return ok(storePreview())
       if (init?.method === 'PATCH') return ok({ id: 'store-a', status: 'ACTIVE' })
       if (init?.method === 'PUT') return ok({ storeId: 'store-a', frameIds: ['frame-a', 'frame-b'], frameCount: 2 })
       if (input.endsWith('/publish')) return ok({ id: 'store-a', status: 'ACTIVE', publicPath: '/en/store/north-star', approvalRecorded: true })
@@ -101,6 +103,7 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
 
   it('keeps Live status and public link while warning before details save changes reach shoppers', async () => {
     global.fetch = jest.fn().mockImplementation(async (input: string, init?: RequestInit) => {
+      if (input.endsWith('/preview')) return ok(storePreview('ACTIVE'))
       if (init?.method === 'PATCH') return ok({ id: 'store-a', status: 'ACTIVE' })
       return ok(workspace('ACTIVE'))
     }) as jest.Mock
@@ -108,11 +111,13 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
 
     expect(await screen.findByText('LIVE')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'View live Store' })).toHaveAttribute('href', '/en/store/north-star')
+    expect(await screen.findByTestId('saved-preview')).toHaveTextContent('LIVE · saved state')
     expect(screen.queryByRole('button', { name: 'Publish Store' })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Store details'))
     fireEvent.change(screen.getByLabelText(/Headline/), { target: { value: 'New live headline' } })
-    expect(screen.getAllByText(/become visible to shoppers after saving/i).length).toBeGreaterThan(0)
+    expect(screen.getByText('Saving these details makes them live immediately.')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: 'Live Store consequence' })).toHaveTextContent('Saved product and Store detail changes become visible immediately.')
     fireEvent.click(screen.getByRole('button', { name: 'Save details' }))
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/api/merchant/merchant-a/store', expect.objectContaining({ method: 'PATCH' })))
@@ -120,13 +125,15 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
   })
 
   it('warns before saving a Live product selection change', async () => {
-    global.fetch = jest.fn().mockImplementation(async (_input: string, init?: RequestInit) => init?.method === 'PUT'
-      ? ok({ storeId: 'store-a', frameIds: ['frame-a', 'frame-b'], frameCount: 2 })
-      : ok(workspace('ACTIVE'))) as jest.Mock
+    global.fetch = jest.fn().mockImplementation(async (input: string, init?: RequestInit) => {
+      if (input.endsWith('/preview')) return ok(storePreview('ACTIVE'))
+      if (init?.method === 'PUT') return ok({ storeId: 'store-a', frameIds: ['frame-a', 'frame-b'], frameCount: 2 })
+      return ok(workspace('ACTIVE'))
+    }) as jest.Mock
     render(<MerchantStoreWorkspace merchantId="merchant-a" locale="en" />)
 
     fireEvent.click(await screen.findByRole('checkbox', { name: 'Add Square frame to Store' }))
-    expect(screen.getByText('Saving this selection updates the live Store immediately.')).toBeInTheDocument()
+    expect(screen.getByText('Saving this selection makes it live immediately.')).toBeInTheDocument()
     fireEvent.click(screen.getAllByRole('button', { name: 'Save products' })[0])
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/api/merchant/merchant-a/store', expect.objectContaining({ method: 'PUT' })))

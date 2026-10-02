@@ -35,7 +35,7 @@ test.describe('P1-M2.4 Local Store workspace', () => {
     await context.addCookies(await request.storageState().then((state) => state.cookies))
 
     await page.goto('/en/merchant', { waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible()
     await page.getByRole('link', { name: 'Store' }).first().click()
     await expect(page).toHaveURL(/\/en\/merchant\/store\?merchantId=/)
     await expect(page.getByTestId('merchant-operating-store')).toBeVisible()
@@ -80,7 +80,7 @@ test.describe('P1-M2.4 Local Store workspace', () => {
 
     await page.getByText('Store details').click()
     await page.getByLabel(/Headline/).fill('Saved directly to the live Store')
-    await expect(page.getByText(/become visible to shoppers after saving/i).first()).toBeVisible()
+    await expect(page.getByText('Saving these details makes them live immediately.')).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/live-edit-mobile.png`, fullPage: true })
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.screenshot({ path: `${evidenceDir}/live-edit-desktop.png`, fullPage: true })

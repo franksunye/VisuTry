@@ -39,6 +39,15 @@ async function readResponse<T>(response: Response): Promise<T> {
   return body.data;
 }
 
+async function readStorePreview(apiBase: string, storeId: string) {
+  return readResponse<MerchantStorePreview>(await fetch(`${apiBase}/preview`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ storeId }),
+    cache: "no-store",
+  }));
+}
+
 function localizePath(path: string, locale: string) {
   return path.replace(/^\/[^/]+(?=\/)/, `/${locale}`);
 }
@@ -47,6 +56,7 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
   const apiBase = `/api/merchant/${encodeURIComponent(merchantId)}/store`;
   const catalogHref = `/${locale}/merchant/catalog?merchantId=${encodeURIComponent(merchantId)}`;
   const [workspace, setWorkspace] = useState<MerchantStoreWorkspaceData | null>(null);
+  const [loadedMerchantId, setLoadedMerchantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,15 +67,18 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
   const [selectedFrameIds, setSelectedFrameIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [preview, setPreview] = useState<MerchantStorePreview | null>(null);
+  const [livePreviewLoading, setLivePreviewLoading] = useState(false);
+  const [livePreviewError, setLivePreviewError] = useState<string | null>(null);
   const [publishApproved, setPublishApproved] = useState(false);
 
   const applyWorkspace = useCallback((next: MerchantStoreWorkspaceData) => {
     setWorkspace(next);
+    setLoadedMerchantId(merchantId);
     setName(next.store?.name ?? "");
     setHeadline(next.store?.headline ?? "");
     setDescription(next.store?.description ?? "");
     setSelectedFrameIds(next.store?.selectedFrameIds ?? []);
-  }, []);
+  }, [merchantId]);
 
   const loadWorkspace = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
@@ -80,6 +93,27 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
   }, [apiBase, applyWorkspace]);
 
   useEffect(() => { void loadWorkspace(true); }, [loadWorkspace]);
+
+  useEffect(() => {
+    const liveStore = workspace?.store?.status === "ACTIVE" ? workspace.store : null;
+    if (loading || loadedMerchantId !== merchantId || !liveStore || preview?.store.id === liveStore.id) return;
+
+    let cancelled = false;
+    setLivePreviewLoading(true);
+    setLivePreviewError(null);
+    void readStorePreview(apiBase, liveStore.id)
+      .then((next) => {
+        if (!cancelled) setPreview(next);
+      })
+      .catch((previewError) => {
+        if (!cancelled) setLivePreviewError(previewError instanceof Error ? previewError.message : "Saved Store preview is unavailable.");
+      })
+      .finally(() => {
+        if (!cancelled) setLivePreviewLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [apiBase, loadedMerchantId, loading, merchantId, preview?.store.id, workspace?.store]);
 
   const catalog = workspace?.catalog ?? EMPTY_CATALOG;
   const presentation = useMemo(() => workspace ? resolveMerchantStoreWorkspacePresentation(workspace) : null, [workspace]);
@@ -99,15 +133,15 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
       .filter(Boolean).join(" ").toLocaleLowerCase().includes(needle));
   }, [catalog, search]);
   const live = store?.status === "ACTIVE";
-  const availableCount = catalog.filter((frame) => frame.storeReadiness.storeEligible).length;
   const statusSummary = !store
     ? "Create a private draft, choose products, and preview your shopper experience."
     : live
       ? `Live · ${presentation?.selectedCount ?? 0} product${presentation?.selectedCount === 1 ? "" : "s"} selected${presentation?.attention.length ? " · needs attention" : ""}`
       : `Draft · ${presentation?.selectedCount ?? 0} product${presentation?.selectedCount === 1 ? "" : "s"} selected${presentation?.attention.length ? " · needs attention" : " · ready to preview"}`;
 
-  function clearPreview() {
-    setPreview(null);
+  function clearPreview(force = false) {
+    if (force || workspace?.store?.status !== "ACTIVE") setPreview(null);
+    setLivePreviewError(null);
     setPublishApproved(false);
   }
 
@@ -133,7 +167,7 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
         body: JSON.stringify({ storeId: store.id, name, headline: headline.trim() || null, description: description.trim() || null }),
       }));
       setNotice(live ? "Saved. These changes are now visible in your live Store." : "Store details saved to your private draft.");
-      clearPreview();
+      clearPreview(true);
       await loadWorkspace();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Unable to save Store details.");
@@ -150,7 +184,7 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
         body: JSON.stringify({ storeId: store.id, frameIds: selectedFrameIds }),
       }));
       setNotice(live ? "Saved. This product selection is now visible in your live Store." : "Store products saved to your private draft.");
-      clearPreview();
+      clearPreview(true);
       await loadWorkspace();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Unable to save Store products.");
@@ -165,12 +199,9 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
     }
     setBusy(true); setError(null); setNotice(null);
     try {
-      const next = await readResponse<MerchantStorePreview>(await fetch(`${apiBase}/preview`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ storeId: store.id }),
-      }));
+      const next = await readStorePreview(apiBase, store.id);
       setPreview(next);
+      setLivePreviewError(null);
       setPublishApproved(false);
     } catch (previewError) {
       setError(previewError instanceof Error ? previewError.message : "Unable to preview your Store.");
@@ -188,7 +219,7 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
       }));
       analytics.trackCustomEvent(AnalyticsEvent.MerchantStorePublished, { merchant_id: merchantId, source_journey: "merchant_workspace_store" });
       analytics.trackCustomEvent(AnalyticsEvent.MerchantFirstStorePublished, { merchant_id: merchantId, source_journey: "merchant_workspace_store" });
-      clearPreview();
+      clearPreview(true);
       setNotice("Your Store is live. Share the public link with shoppers.");
       await loadWorkspace();
     } catch (publishError) {
@@ -240,26 +271,55 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
   if (!workspace || !presentation) return <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error ?? "Unable to load your Store."}</div>;
 
   return (
-    <div data-testid="merchant-operating-store" data-public-path={publicPath || undefined} className="space-y-5">
-      <header className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:p-6">
+    <div data-testid="merchant-operating-store" data-public-path={publicPath || undefined} className="space-y-4 sm:space-y-5">
+      <header className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:pb-5">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Store</h1>
-            <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${live ? "bg-emerald-50 text-emerald-800" : store ? "bg-blue-50 text-blue-800" : "bg-slate-100 text-slate-600"}`}>{live ? "LIVE" : store ? "DRAFT" : "NOT CREATED"}</span>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">Store workspace</p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2.5">
+            <h1 className="text-[32px] font-semibold leading-none tracking-[-0.045em] text-slate-950">Store</h1>
+            <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold tracking-wide ${live ? "bg-emerald-50 text-emerald-800" : store ? "bg-blue-50 text-blue-800" : "bg-slate-100 text-slate-600"}`}>{live ? "LIVE" : store ? "DRAFT" : "NOT CREATED"}</span>
           </div>
-          <p className="mt-2 text-sm text-slate-600">{statusSummary}</p>
+          <p className="mt-2 max-w-2xl text-sm leading-5 text-slate-600">{statusSummary}</p>
           {live && publicPath ? <a href={publicPath} target="_blank" rel="noreferrer" className="mt-2 inline-flex max-w-full items-center gap-1.5 break-all text-sm font-medium text-blue-700 underline underline-offset-2">{publicPath}<ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /></a> : null}
         </div>
         {presentation.primaryAction === "VIEW_LIVE_STORE" && publicPath ? (
-          <a href={publicPath} target="_blank" rel="noreferrer" className={`${buttonClass} shrink-0 bg-slate-950 text-white hover:bg-slate-800`}>{primaryIcon}{primaryLabel}</a>
+          <a href={publicPath} target="_blank" rel="noreferrer" className={`${buttonClass} min-h-11 w-full shrink-0 bg-slate-950 text-white hover:bg-slate-800 sm:w-auto`}>{primaryIcon}{primaryLabel}</a>
         ) : (
-          <button type="button" onClick={primaryAction} disabled={busy || (presentation.primaryAction === "PREVIEW_STORE" && hasUnsavedChanges)} className={`${buttonClass} shrink-0 bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : primaryIcon}{primaryLabel}</button>
+          <button type="button" onClick={primaryAction} disabled={busy || (presentation.primaryAction === "PREVIEW_STORE" && hasUnsavedChanges)} className={`${buttonClass} min-h-11 w-full shrink-0 bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : primaryIcon}{primaryLabel}</button>
         )}
       </header>
 
       {error ? <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div> : null}
       {notice ? <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div> : null}
-      {live ? <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"><strong>Live Store changes:</strong> changes to this live Store become visible to shoppers after saving.</div> : null}
+
+      <section role="status" aria-label={live ? "Live Store consequence" : store ? "Draft Store visibility" : "Store setup status"} className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${live ? "border-emerald-200 bg-emerald-50/70 text-emerald-950" : store ? "border-blue-100 bg-blue-50/60 text-slate-800" : "border-slate-200 bg-white text-slate-700"}`}>
+        <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${live ? "bg-emerald-100 text-emerald-700" : store ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"}`}>
+          {live ? <Check className="h-4 w-4" aria-hidden="true" /> : store ? <Eye className="h-4 w-4" aria-hidden="true" /> : <Store className="h-4 w-4" aria-hidden="true" />}
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold">{live ? "Your Store is visible to shoppers" : store ? "This Store is a private draft" : "Your Store is not created yet"}</p>
+          <p className="mt-0.5 text-sm leading-5 text-slate-600">{live ? "Saved product and Store detail changes become visible immediately." : store ? "Saved changes stay private. Preview is private too; publishing remains a separate approval." : "Create a private draft, choose products, and preview the shopper experience before publishing."}</p>
+        </div>
+      </section>
+
+      <dl aria-label="Store operating summary" className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+        <div className="flex min-h-[76px] items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600"><Store className="h-4 w-4" aria-hidden="true" /></span>
+          <div className="min-w-0"><dt className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">Store status</dt><dd className="mt-0.5 truncate text-lg font-semibold leading-5 text-slate-950">{live ? "Live" : store ? "Draft" : "Not created"}</dd></div>
+        </div>
+        <div className="flex min-h-[76px] items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600"><Check className="h-4 w-4" aria-hidden="true" /></span>
+          <div className="min-w-0"><dt className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">Products selected</dt><dd className="mt-0.5 text-lg font-semibold leading-5 tabular-nums text-slate-950">{presentation.selectedCount}</dd></div>
+        </div>
+        <div className="flex min-h-[76px] items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700"><Check className="h-4 w-4" aria-hidden="true" /></span>
+          <div className="min-w-0"><dt className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">Ready for Store</dt><dd className="mt-0.5 text-lg font-semibold leading-5 tabular-nums text-slate-950">{presentation.eligibleSelectedCount}</dd></div>
+        </div>
+        <div className={`flex min-h-[76px] items-center gap-3 rounded-xl border px-3.5 py-3 ${presentation.attention.length ? "border-amber-200 bg-amber-50/50" : "border-slate-200 bg-white"}`}>
+          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${presentation.attention.length ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"}`}><AlertTriangle className="h-4 w-4" aria-hidden="true" /></span>
+          <div className="min-w-0"><dt className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">Needs attention</dt><dd className="mt-0.5 text-lg font-semibold leading-5 tabular-nums text-slate-950">{presentation.attention.length}</dd></div>
+        </div>
+      </dl>
 
       {presentation.attention.length > 0 ? (
         <section aria-labelledby="store-attention-heading" className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
@@ -273,35 +333,35 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
         </section>
       ) : null}
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
-        <div className="min-w-0">
-          {preview && !live ? <MerchantStorePrivatePreview preview={preview} compact /> : live ? (
-            <section className="rounded-2xl border border-emerald-200 bg-white p-5 sm:p-6" aria-label="Live Store status">
+      <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
+        <div className="min-w-0 self-start">
+          {live && preview ? <MerchantStorePrivatePreview preview={preview} compact variant="LIVE" hasUnsavedChanges={hasUnsavedChanges} /> : preview && !live ? <MerchantStorePrivatePreview preview={preview} compact /> : live ? (
+            <section className="flex min-h-40 flex-col items-start justify-center rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" aria-label="Saved shopper-facing Store presentation" role="status">
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-emerald-700">Shopper-facing Store</p>
-              <h2 className="mt-2 text-lg font-semibold text-slate-950">Your Store is live</h2>
-              <p className="mt-1 text-sm text-slate-600">The public link above opens the current version shoppers can see.</p>
-              <button type="button" onClick={() => void copyStoreLink()} className={`${buttonClass} mt-4 border border-slate-300 bg-white text-slate-800 hover:bg-slate-50`}><Copy className="h-4 w-4" aria-hidden="true" />Copy Store link</button>
+              <h2 className="mt-2 text-lg font-semibold text-slate-950">{livePreviewError ? "Saved presentation unavailable" : livePreviewLoading ? "Loading saved Store…" : "Saved presentation not available"}</h2>
+              <p className="mt-1 max-w-xl text-sm text-slate-600">{livePreviewError ?? "Preparing a read-only view of the current saved Store."}</p>
             </section>
           ) : (
-            <section className="flex min-h-52 flex-col items-start justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-5 sm:p-6">
+            <section className="flex min-h-40 flex-col items-start justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-5 sm:p-6">
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-blue-700">Shopper-facing view</p>
               <h2 className="mt-2 text-lg font-semibold text-slate-950">Private preview</h2>
               <p className="mt-1 max-w-xl text-sm text-slate-600">Preview shows the saved Draft Store and its selected products. It stays private and does not start a shopper session.</p>
               {hasUnsavedChanges ? <p role="status" className="mt-3 text-sm font-medium text-amber-800">Save your changes before previewing the saved Store.</p> : null}
             </section>
           )}
+          {live && publicPath ? <div className="mt-2 flex justify-end"><button type="button" onClick={() => void copyStoreLink()} className={`${buttonClass} min-h-9 border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 hover:bg-slate-50`}><Copy className="h-3.5 w-3.5" aria-hidden="true" />Copy Store link</button></div> : null}
         </div>
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" aria-labelledby="store-selected-heading">
-          <div className="flex items-start justify-between gap-3">
-            <div><h2 id="store-selected-heading" className="text-lg font-semibold text-slate-950">Products in Store</h2><p className="mt-1 text-sm text-slate-600">{presentation.selectedCount} selected · {presentation.eligibleSelectedCount} ready to display</p></div>
-            <Link href={catalogHref} className="shrink-0 text-sm font-semibold text-blue-700 underline underline-offset-2">Catalog</Link>
+        <section className="h-fit min-w-0 self-start rounded-2xl border border-slate-200 bg-white p-4 sm:p-5" aria-labelledby="store-selected-heading">
+          <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+            <div><h2 id="store-selected-heading" className="text-base font-semibold tracking-tight text-slate-950">Products in Store</h2><p className="mt-1 text-xs text-slate-500">{presentation.selectedCount} selected · {presentation.eligibleSelectedCount} ready to display</p></div>
+            <Link href={catalogHref} className="shrink-0 text-xs font-semibold text-blue-700 underline underline-offset-2">Catalog</Link>
           </div>
-          {presentation.selectedProducts.length ? <ul className="mt-4 divide-y divide-slate-100">
-            {presentation.selectedProducts.map(({ id, frame, eligible, issues }) => <li key={id} className="flex gap-3 py-3 first:pt-0">
-              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">{frame && safeImageUrl(frame.imageUrl) ? <img src={safeImageUrl(frame.imageUrl) ?? undefined} alt="" loading="lazy" className="h-full w-full object-contain" /> : null}</div>
-              <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{frame?.name ?? "Product missing from Catalog"}</p><p className={`mt-1 text-xs font-medium ${eligible ? "text-emerald-700" : "text-amber-800"}`}>{eligible ? "Ready for Store" : "Needs attention"}</p>{!eligible && issues.length ? <p className="mt-1 text-xs text-amber-900">{merchantStoreEligibilityMessage(issues)}</p> : null}{frame?.price != null ? <p className="mt-1 text-xs text-slate-600">{priceLabel(frame.price, frame.currency)}</p> : null}</div>
+          {presentation.selectedProducts.length ? <ul className="divide-y divide-slate-100">
+            {presentation.selectedProducts.map(({ id, frame, eligible, issues }) => <li key={id} className="flex items-center gap-3 py-2.5 first:pt-3">
+              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">{frame && safeImageUrl(frame.imageUrl) ? <img src={safeImageUrl(frame.imageUrl) ?? undefined} alt="" loading="lazy" className="h-full w-full object-contain" /> : null}</div>
+              <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{frame?.name ?? "Product missing from Catalog"}</p><p className={`mt-0.5 text-[11px] font-medium ${eligible ? "text-emerald-700" : "text-amber-800"}`}>{eligible ? "Ready for Store" : "Needs attention"}</p>{!eligible && issues.length ? <p className="mt-1 text-xs text-amber-900">{merchantStoreEligibilityMessage(issues)}</p> : null}{frame?.price != null ? <p className="mt-0.5 text-xs text-slate-500">{priceLabel(frame.price, frame.currency)}</p> : null}</div>
             </li>)}
-          </ul> : <p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">No products are selected yet.</p>}
+          </ul> : <p className="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">No products are selected yet.</p>}
           {store?.status === "DRAFT" && preview?.readiness.ready ? <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700"><Check className="h-3.5 w-3.5" aria-hidden="true" />Ready to publish after your explicit approval</p> : null}
         </section>
       </section>
@@ -324,7 +384,7 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
           <div><h2 id="store-products-heading" className="text-lg font-semibold text-slate-950">Manage products</h2><p className="mt-1 text-sm text-slate-600">Choose which Store-ready Catalog products shoppers can browse.</p></div>
           <div className="flex flex-wrap items-center gap-2"><Link href={catalogHref} className="text-sm font-semibold text-blue-700 underline underline-offset-2">Add or fix products in Catalog</Link>{productsDirty ? <button type="button" onClick={() => void saveProducts()} disabled={busy} className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" />Save products</button> : <span className="text-xs font-medium text-slate-500">Selection saved</span>}</div>
         </div>
-        {live && productsDirty ? <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">Saving this selection updates the live Store immediately.</p> : null}
+        {live && productsDirty ? <p className="mt-3 text-xs text-slate-500">Saving this selection makes it live immediately.</p> : null}
         <label className="relative mt-4 block max-w-md"><span className="sr-only">Search Catalog products</span><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search all Catalog products" className="w-full rounded-lg border border-slate-200 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></label>
         <div className="mt-4 max-h-[32rem] divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200" data-testid="store-catalog-selection">
           {filteredCatalog.map((frame) => {
@@ -351,7 +411,7 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
           </div>
           <label className="mt-4 block text-sm font-medium text-slate-700">Description <span className="font-normal text-slate-500">(optional)</span><textarea value={description} onChange={(event) => { setDescription(event.target.value); clearPreview(); }} maxLength={5000} rows={4} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></label>
           {detailsDirty ? <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm text-amber-800" role="status">Unsaved Store details</p><button type="button" onClick={() => void saveDetails()} disabled={busy} className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" />Save details</button></div> : <p className="mt-4 text-xs text-slate-500">Details saved</p>}
-          {live && detailsDirty ? <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-950">Saving these details updates the live Store immediately.</p> : null}
+          {live && detailsDirty ? <p className="mt-3 text-xs text-slate-500">Saving these details makes them live immediately.</p> : null}
         </div>
       </details> : null}
     </div>

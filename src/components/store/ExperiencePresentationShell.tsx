@@ -81,14 +81,17 @@ type ExperiencePresentationShellProps = {
   showRuntimeCta?: boolean
   featuredFrameLimit?: number | null
   runtimeBlocked?: boolean
+  compact?: boolean
 }
 
 function ExperienceHeroVisual({
   merchant,
   mode,
+  compact = false,
 }: {
   merchant: PresentationMerchant
   mode: PresentationMode
+  compact?: boolean
 }) {
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const heroTitle = isCampaign ? merchant.experience?.name : `Shop the ${merchant.name} eyewear collection`
@@ -96,11 +99,11 @@ function ExperienceHeroVisual({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[1.75rem] px-6 py-10 ${
+      className={`relative overflow-hidden ${compact ? 'rounded-2xl px-4 py-6 sm:px-5 sm:py-7' : 'rounded-[1.75rem] px-6 py-10'} ${
         isCampaign
           ? 'bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)]'
           : 'bg-[linear-gradient(145deg,#edf3fb,#faf7f2)]'
-      } ${mode === 'EDITORIAL_FIRST' ? 'aspect-[16/9]' : 'aspect-[16/10]'}`}
+      } ${compact ? 'aspect-[16/9]' : mode === 'EDITORIAL_FIRST' ? 'aspect-[16/9]' : 'aspect-[16/10]'}`}
     >
       {merchant.experience?.heroAssetUrl ? (
         /* eslint-disable-next-line @next/next/no-img-element */
@@ -115,10 +118,10 @@ function ExperienceHeroVisual({
         className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/18 to-transparent"
         aria-hidden="true"
       />
-      <div className="absolute inset-x-6 bottom-6 text-white sm:inset-x-8 sm:bottom-8">
+      {!compact ? <div className="absolute inset-x-6 bottom-6 text-white sm:inset-x-8 sm:bottom-8">
         <p className="font-serif text-2xl font-semibold sm:text-3xl">{heroTitle}</p>
         <p className="mt-2 max-w-md text-sm leading-6 text-white/85">{heroDescription}</p>
-      </div>
+      </div> : null}
     </div>
   )
 }
@@ -127,17 +130,19 @@ function FeaturedFrameGrid({
   merchant,
   frames,
   limit,
+  compact = false,
 }: {
   merchant: PresentationMerchant
   frames: PresentationFrame[]
   limit: number | null
+  compact?: boolean
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className={`grid grid-cols-2 gap-2.5 ${compact ? 'lg:grid-cols-2' : 'sm:grid-cols-4 sm:gap-3'}`}>
       {frames.slice(0, limit ?? frames.length).map((frame, index) => (
         <article
           key={frame.id}
-          className={`group rounded-2xl border bg-white p-2.5 ${
+          className={`group rounded-2xl border bg-white ${compact ? 'p-2' : 'p-2.5'} ${
             index === 0 ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200'
           }`}
         >
@@ -235,6 +240,7 @@ function PrivacyGate({
   onStartRuntime,
   showCta,
   runtimeBlocked = false,
+  compact = false,
 }: {
   accent: string
   copy: ExperiencePresentationCopy
@@ -244,11 +250,12 @@ function PrivacyGate({
   onStartRuntime: () => void
   showCta?: boolean
   runtimeBlocked?: boolean
+  compact?: boolean
 }) {
   return (
     <section
       id="privacy-details"
-      className="rounded-3xl border border-slate-200/80 bg-white/95 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)] sm:p-6"
+      className={`rounded-3xl border border-slate-200/80 bg-white/95 ${compact ? 'p-4 shadow-none' : 'p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)] sm:p-6'}`}
     >
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex gap-3">
@@ -311,19 +318,21 @@ export function ExperiencePresentationShell({
   showRuntimeCta = true,
   featuredFrameLimit = 4,
   runtimeBlocked = false,
+  compact = false,
 }: ExperiencePresentationShellProps) {
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const headline = merchant.experience?.headline || (isCampaign ? merchant.experience?.name : copy.storeHero) || copy.storeHero
   const description = merchant.experience?.description || copy.storeSubhead
+  const PresentationRoot = compact ? 'div' : 'main'
 
   if (mode === 'ACTION_FIRST') {
     return (
-      <main
+      <PresentationRoot
         data-presentation-mode={mode}
-        className="grid items-start gap-8 py-8 lg:min-h-[calc(100vh-150px)] lg:grid-cols-[0.82fr_1.18fr] lg:gap-14 lg:py-12"
+        className={compact ? 'grid items-start gap-4 py-4' : 'grid items-start gap-8 py-8 lg:min-h-[calc(100vh-150px)] lg:grid-cols-[0.82fr_1.18fr] lg:gap-14 lg:py-12'}
       >
         <section className="max-w-xl">
-          <h1 className="font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">
+          <h1 className={`font-serif font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 ${compact ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'}`}>
             {headline}
           </h1>
           <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">{description}</p>
@@ -343,10 +352,10 @@ export function ExperiencePresentationShell({
           </p>
         </section>
         <section className="relative mx-auto w-full max-w-3xl">
-          <div className="relative overflow-hidden rounded-[2.25rem] border border-white bg-white/90 p-4 shadow-[0_35px_100px_rgba(30,64,175,0.12)] sm:p-6">
-            <ExperienceHeroVisual merchant={merchant} mode={mode} />
+          <div className={`relative overflow-hidden rounded-[2.25rem] border border-white bg-white/90 ${compact ? 'p-2 shadow-none' : 'p-4 shadow-[0_35px_100px_rgba(30,64,175,0.12)] sm:p-6'}`}>
+            <ExperienceHeroVisual merchant={merchant} mode={mode} compact={compact} />
             <div className="mt-4">
-              <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} limit={featuredFrameLimit} />
+              <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} limit={featuredFrameLimit} compact={compact} />
             </div>
           </div>
         </section>
@@ -360,42 +369,43 @@ export function ExperiencePresentationShell({
             onStartRuntime={onStartRuntime}
             showCta={false}
             runtimeBlocked={runtimeBlocked}
+            compact={compact}
           />
         </div>
-      </main>
+      </PresentationRoot>
     )
   }
 
   const isEditorial = mode === 'EDITORIAL_FIRST'
   return (
-    <main data-presentation-mode={mode} className="py-8 sm:py-12">
-      <section className={`grid items-center gap-8 ${isEditorial ? 'lg:grid-cols-[0.88fr_1.12fr]' : 'lg:grid-cols-[0.78fr_1.22fr]'}`}>
+    <PresentationRoot data-presentation-mode={mode} className={compact ? 'py-4' : 'py-8 sm:py-12'}>
+      <section className={compact ? 'grid items-start gap-5 lg:grid-cols-1' : `grid items-center gap-8 ${isEditorial ? 'lg:grid-cols-[0.88fr_1.12fr]' : 'lg:grid-cols-[0.78fr_1.22fr]'}`}>
         <div>
-          <h1 className="font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">{headline}</h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">{description}</p>
+          <h1 className={`font-serif font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 ${compact ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'}`}>{headline}</h1>
+          <p className={`${compact ? 'mt-3 max-w-2xl text-sm leading-6' : 'mt-5 max-w-xl text-base leading-7 sm:text-lg'} text-slate-600`}>{description}</p>
           <div className="mt-6">
             <ShoppingCta copy={copy} mode={mode} onShoppingCta={onShoppingCta} />
           </div>
         </div>
-        <ExperienceHeroVisual merchant={merchant} mode={mode} />
+        <ExperienceHeroVisual merchant={merchant} mode={mode} compact={compact} />
       </section>
 
       <section
         ref={featuredFramesRef}
-        className="mt-8 scroll-mt-6 border-t border-slate-200/80 pt-7"
+        className={`scroll-mt-6 border-t border-slate-200/80 ${compact ? 'mt-5 pt-4' : 'mt-8 pt-7'}`}
         aria-labelledby="featured-frames-heading"
       >
         <div className="mb-4">
-          <h2 id="featured-frames-heading" className="font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{copy.featuredTitle}</h2>
+          <h2 id="featured-frames-heading" className={`font-serif font-semibold text-slate-950 ${compact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'}`}>{copy.featuredTitle}</h2>
         </div>
-        <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} limit={featuredFrameLimit} />
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+        <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} limit={featuredFrameLimit} compact={compact} />
+        {!compact ? <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
           <ShoppingCta copy={copy} mode={mode} onShoppingCta={onShoppingCta} />
           <p className="flex items-center gap-2 text-xs text-slate-400"><LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />{copy.privacyPoint2}</p>
-        </div>
+        </div> : null}
       </section>
 
-      <div className="mt-8">
+      {!compact ? <div className="mt-8">
         <PrivacyGate
           accent={accent}
           copy={copy}
@@ -406,7 +416,7 @@ export function ExperiencePresentationShell({
           showCta={showRuntimeCta}
           runtimeBlocked={runtimeBlocked}
         />
-      </div>
-    </main>
+      </div> : null}
+    </PresentationRoot>
   )
 }
