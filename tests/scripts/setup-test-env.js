@@ -130,9 +130,8 @@ NEXTAUTH_SECRET=test-secret-key-for-testing-only
 
     // 验证关键文件
     const requiredFiles = [
-      'tests/README.md',
       'tests/utils/test-helpers.js',
-      'tests/scripts/run-all-tests.js'
+      'tests/scripts/run-jest-suite.js'
     ]
 
     for (const file of requiredFiles) {
@@ -179,9 +178,11 @@ NEXTAUTH_SECRET=test-secret-key-for-testing-only
     const scripts = packageJson.scripts || {}
     const testScripts = [
       'test',
-      'test:all',
-      'test:integration:new',
-      'test:api'
+      'test:unit:ci',
+      'test:integration:core',
+      'test:integration:all',
+      'test:api',
+      'test:e2e:playwright'
     ]
 
     console.log('📋 检查测试脚本:')
@@ -209,15 +210,15 @@ NEXTAUTH_SECRET=test-secret-key-for-testing-only
       setupSteps: this.setupSteps,
       testDirectories: this.getTestDirectories(),
       recommendations: [
-        '运行 npm run test:start 启动测试服务器',
-        '运行 npm run test:all 执行完整测试套件',
-        '查看 tests/README.md 了解测试框架使用方法',
-        '参考 tests/manual/ 目录进行手动测试'
+        '运行 npm test 执行确定性的 Jest unit + in-process integration 核心套件',
+        '运行 npm run test:unit:ci 执行 GitHub Quality Gate 使用的 unit 回归集',
+        'API/workflow 集成测试仅使用明确配置的 Local test server 与 disposable test DB',
+        '浏览器 E2E 使用独立的 Playwright 命令，不由 Jest 收集'
       ],
       quickStart: [
-        'npm run test:start    # 启动测试服务器',
-        'npm run test:api      # 运行API测试',
-        'npm run test:all      # 运行所有测试'
+        'npm test                         # deterministic Jest core',
+        'npm run test:integration:core    # in-process integration only',
+        'npm run test:e2e:playwright      # browser E2E via Playwright'
       ]
     }
 

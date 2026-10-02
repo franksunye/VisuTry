@@ -224,7 +224,7 @@ ad-hoc Preview merchants for repeatable tests.
   npm run build
   ```
 
-- **Run all tests**:
+- **Run the deterministic Jest core suite** (unit + in-process integration; no server or database):
 
   ```bash
   npm test
@@ -236,14 +236,20 @@ ad-hoc Preview merchants for repeatable tests.
   npm run test:unit
   ```
 
-- **API / integration tests**:
+- **Deterministic in-process integration tests**:
+
+  ```bash
+  npm run test:integration:core
+  ```
+
+- **Server-backed API / integration Jest tests** (Local test server and disposable Local test DB required):
 
   ```bash
   npm run test:api
-  npm run test:integration:new
+  npm run test:integration:all
   ```
 
-- **Playwright e2e tests**:
+- **Browser E2E tests** (Playwright; separate from Jest):
 
   ```bash
   npm run test:e2e:playwright
