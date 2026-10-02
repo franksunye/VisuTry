@@ -136,4 +136,32 @@ describe('ExperiencePresentationShell', () => {
     collectionCtas[1].click()
     expect(onShoppingCta).toHaveBeenCalledTimes(1)
   })
+
+  it('renders a compact embedded saved-state presentation without a nested main landmark or duplicate guidance', () => {
+    const featuredFramesRef = { current: null as HTMLElement | null }
+    render(
+      <ExperiencePresentationShell
+        mode="PRODUCT_FIRST"
+        merchant={merchant}
+        accent="#1F4B5A"
+        featuredFrames={frames}
+        copy={copy}
+        publicPocStorage={false}
+        sessionStarting={false}
+        errorMessage={null}
+        onStartRuntime={jest.fn()}
+        onShoppingCta={jest.fn()}
+        featuredFramesRef={featuredFramesRef}
+        showRuntimeCta={false}
+        compact
+      />,
+    )
+
+    expect(screen.queryByRole('main')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Find smaller-face frames' })).toBeInTheDocument()
+    expect(screen.getByText('Harper')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /Explore the collection/i })).toHaveLength(1)
+    expect(screen.queryByText('Privacy & photo retention')).not.toBeInTheDocument()
+    expect(screen.queryByText('Expired photos are deleted.')).not.toBeInTheDocument()
+  })
 })
