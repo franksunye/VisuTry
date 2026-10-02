@@ -16,6 +16,8 @@ const localImagePatterns = process.env.APP_ENV === 'local'
   ? [
       { protocol: 'http', hostname: '127.0.0.1', port: '3001' },
       { protocol: 'http', hostname: 'localhost', port: '3001' },
+      { protocol: 'http', hostname: '127.0.0.1', port: '3003' },
+      { protocol: 'http', hostname: 'localhost', port: '3003' },
     ]
   : []
 

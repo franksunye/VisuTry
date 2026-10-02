@@ -2,7 +2,7 @@
 
 **Status:** Active operating procedure
 **Owner:** Product / Engineering
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-02
 **Scope:** Guarded Local development and QA for Merchant activation, operating workspaces, Store/Campaign lifecycle, and Merchant regressions without Preview/Production mutation.
 
 The Local Merchant Growth Lab is the primary development and QA environment
@@ -27,21 +27,36 @@ npm run merchant:local:dev
 
 Open `http://127.0.0.1:3001/en/business`.
 
-## Repeatable QA loop
+## Repeatable browser QA loop
 
 ```bash
-npm run merchant:local:preflight
-npm run merchant:local:reset-clean
-npm run merchant:local:dev
-# in another terminal
+# Each gate prepares its own marked disposable E2E database and starts/stops
+# its own Local Next server. Run sequentially; both commands are repeatable.
 npm run merchant:local:e2e
-# P1-M1 first-value journey (same guarded Local path)
 npm run merchant:local:p1-m1:e2e
-# Reset again before the Campaign journey: it creates a fresh workspace for
-# LOCAL-MERCHANT-CLEAN, then uses the seeded Growth TEST Merchant.
-npm run merchant:local:reset-clean
 npm run merchant:local:campaign:e2e
 ```
+
+The browser gates require the repository Local PostgreSQL endpoint
+(`127.0.0.1:5433`) with the normal `visutry_local` database marker. If the
+repository-local PostgreSQL server is not running, the gate starts it through
+`db:local:up`. Each command then resets only the separately owned
+`visutry_local_merchant_e2e` database after verifying its exact `LOCAL`
+`EnvironmentMetadata` marker, reapplies the current schema, and seeds the
+repository-owned mock identities plus TEST Merchant fixtures. A database with
+that reserved name but a missing or different marker is never reset. The gate
+serves the browser journey at `http://127.0.0.1:3003`, refuses an occupied port,
+and shuts down the server on completion. Runs share a lock in the Git common
+directory, so parallel linked worktrees cannot reset this shared Local test DB
+while another E2E is using it.
+
+`clean@local.test` is owned by the test harness and must have no Merchant at
+the start of each run; `existing@local.test` owns the four seeded QA TEST
+Merchants, including `Local QA-USAGE`. Those identities and fixture rows are
+recreated on each isolated-database bootstrap, not inferred from the state of
+the interactive `visutry_local` development database. No whole-cluster reset is
+needed for these browser gates. `merchant:local:reset-clean` remains a separate
+manual development command and must not be used as an E2E fixture reset.
 
 ### Merchant dashboard visual QA
 
