@@ -18,7 +18,7 @@ datasource db {
 /// Safe, non-secret marker proving which environment owns this database.
 /// It is registered only by guarded local/Preview bootstrap commands.
 model EnvironmentMetadata {
-  id               String   @id @default("primary")
+  id               String   @id
   environment      String
   databaseIdentity String   @unique
   createdAt        DateTime @default(now())
@@ -172,7 +172,7 @@ model TryOnTask {
   @@index([expiresAt])                           // Index for expiry cleanup cron
   @@index([retentionStatus, expiresAt])
   @@index([origin, status, dispatchLeaseUntil])
-  @@index([retentionStatus, deleteFailCount, lastDeleteAttemptAt])
+  @@index([retentionStatus, deleteFailCount, lastDeleteAttemptAt], map: "TryOnTask_retentionStatus_deleteFailCount_lastDeleteAttemptAt_i")
   @@index([origin])
   @@index([merchantId, createdAt(sort: Desc)])
   @@index([merchantSessionId])
@@ -1350,7 +1350,7 @@ model StoreAsset {
   @@index([merchantSessionId])
   @@index([storageKey])
   @@index([retentionStatus, expiresAt])
-  @@index([retentionStatus, deleteFailCount, lastDeleteAttemptAt])
+  @@index([retentionStatus, deleteFailCount, lastDeleteAttemptAt], map: "StoreAsset_retentionStatus_deleteFailCount_lastDeleteAttemptAt_")
 }
 
 model MerchantUsageLedger {
@@ -1408,8 +1408,8 @@ model MerchantSponsoredUsage {
   experience      Experience?      @relation(fields: [experienceId], references: [id], onDelete: SetNull)
   user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  @@index([merchantId, shopperIdentityHash, usageType, createdAt])
-  @@index([merchantId, userId, usageType, createdAt])
+  @@index([merchantId, shopperIdentityHash, usageType, createdAt], map: "MerchantSponsoredUsage_merchantId_shopperIdentityHash_usageType")
+  @@index([merchantId, userId, usageType, createdAt], map: "MerchantSponsoredUsage_merchantId_userId_usageType_createdAt_id")
   @@index([status, reservedAt])
 }
 
@@ -1428,7 +1428,7 @@ model StoreOrphanBlob {
   merchant Merchant? @relation(fields: [merchantId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([deletedAt, failCount, lastDeleteAttemptAt])
   @@index([merchantId])
@@ -1448,7 +1448,7 @@ model StoreAbuseCounter {
   merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@unique([merchantId, bucket, windowStart])
   @@index([merchantId, bucket])

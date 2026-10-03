@@ -14,6 +14,9 @@ cat > "$STUB_BIN/npx" <<'STUB'
 set -euo pipefail
 
 case "$*" in
+  "tsx scripts/check-migration-baseline-anchor.ts 20261003000000_canonical_schema_baseline")
+    echo "MIGRATION_BASELINE_ANCHOR=applied"
+    ;;
   "tsx scripts/clear-stale-migration-locks.ts")
     exit 0
     ;;
@@ -23,19 +26,33 @@ case "$*" in
         echo "Database schema is up to date!"
         ;;
       pending)
+        echo "Your local migration history and the migrations table from your database are different!"
+        echo "The last common migration is: 20261003000000_canonical_schema_baseline"
         echo "Following migration have not yet been applied:"
-        echo "20260831120000_test_pending_migration"
+        echo "20261004120000_test_pending_migration"
         exit 1
         ;;
       pending-interrupted)
+        echo "Your local migration history and the migrations table from your database are different!"
+        echo "The last common migration is: 20261003000000_canonical_schema_baseline"
         echo "Following migration have not yet been applied:"
-        echo "20260831120000_test_pending_migration"
+        echo "20261004120000_test_pending_migration"
         exit 130
         ;;
       pending-unexpected)
+        echo "Your local migration history and the migrations table from your database are different!"
+        echo "The last common migration is: 20261003000000_canonical_schema_baseline"
         echo "Following migration have not yet been applied:"
-        echo "20260831120000_test_pending_migration"
+        echo "20261004120000_test_pending_migration"
         exit 2
+        ;;
+      failed-migration)
+        echo "Your local migration history and the migrations table from your database are different!"
+        echo "The last common migration is: 20261003000000_canonical_schema_baseline"
+        echo "A migration failed to apply. New migrations cannot be applied before the error is recovered from."
+        echo "Following migration have not yet been applied:"
+        echo "20261004120000_test_pending_migration"
+        exit 1
         ;;
       divergent)
         echo "The database schema is not in sync with the migration history."
@@ -104,6 +121,7 @@ run_case() {
 
 run_case "up-to-date" "up-to-date" 0 no
 run_case "pending-exit-1" "pending" 0 yes
+run_case "failed-migration" "failed-migration" 1 no
 run_case "pending-like-exit-130" "pending-interrupted" 1 no
 run_case "pending-like-exit-2" "pending-unexpected" 1 no
 run_case "divergent" "divergent" 1 no

@@ -8,7 +8,7 @@
 
 Only `REAL` is included in commercial KPIs. A self-service signup is not proof of commercial activation, so a newly created workspace starts as `POSSIBLE_EXTERNAL`. Classification is metadata for Admin/business analysis only; it never grants or removes tenant access.
 
-The additive migration is [20260826170000_add_merchant_classification](../prisma/migrations/20260826170000_add_merchant_classification/migration.sql). It stores a stable audit source and a non-PII reason, preserves all existing rows, and does not rewrite sessions, events, intents, catalog, campaigns, credentials, billing, or published routes.
+The additive migration is [20260826170000_add_merchant_classification](../prisma/migrations-archive/legacy/20260826170000_add_merchant_classification/migration.sql). It stores a stable audit source and a non-PII reason, preserves all existing rows, and does not rewrite sessions, events, intents, catalog, campaigns, credentials, billing, or published routes.
 
 ## Classification rules
 

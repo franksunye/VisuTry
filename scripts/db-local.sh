@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+source scripts/migration-baseline-contract.sh
+assert_canonical_baseline_contract "$PWD"
 
 ACTION="${1:-status}"
 PGDATA="${VISUTRY_LOCAL_PGDATA:-$PWD/.local/postgres}"
@@ -72,26 +74,35 @@ case "$ACTION" in
   migrate)
     refuse_remote
     "$0" up >/dev/null
-    if [[ "$(psql "$LOCAL_URL" -Atc "SELECT to_regclass('_prisma_migrations') IS NULL")" == "t" ]]; then
-      echo "→ Bootstrapping the historical baseline migrations in dependency order"
-      psql "$LOCAL_URL" -f prisma/migrations/20250918030414_init/migration.sql >/dev/null
-      psql "$LOCAL_URL" -f prisma/migrations/20250116_add_premium_usage_count/migration.sql >/dev/null
-      psql "$LOCAL_URL" -f prisma/migrations/20250118_add_promo_product_types/migration.sql >/dev/null
-      DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma migrate resolve --applied 20250918030414_init
-      DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma migrate resolve --applied 20250116_add_premium_usage_count
-      DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma migrate resolve --applied 20250118_add_promo_product_types
+    MIGRATIONS_TABLE_EXISTS="$(psql "$LOCAL_URL" -X -Atc "SELECT to_regclass('public._prisma_migrations') IS NOT NULL")"
+    if [[ "$MIGRATIONS_TABLE_EXISTS" == "t" ]]; then
+      ANCHOR_OUTPUT=""
+      ANCHOR_EXIT=0
+      set +e
+      ANCHOR_OUTPUT=$(DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx tsx scripts/check-migration-baseline-anchor.ts "$CANONICAL_BASELINE_MIGRATION" 2>&1)
+      ANCHOR_EXIT=$?
+      set -e
+      if [[ "$ANCHOR_EXIT" -ne 0 ]] || ! echo "$ANCHOR_OUTPUT" | grep -Fxq "MIGRATION_BASELINE_ANCHOR=applied"; then
+        echo "$ANCHOR_OUTPUT" >&2
+        echo "❌ Existing Local migration history has no valid canonical baseline anchor; refusing to replay it." >&2
+        echo "   Use a separately created disposable database for fresh-baseline verification. Existing Local data was not changed." >&2
+        exit 1
+      fi
+    else
+      PUBLIC_RELATION_COUNT="$(psql "$LOCAL_URL" -X -Atc "SELECT COUNT(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p', 'v', 'm', 'S')")"
+      if [[ "$PUBLIC_RELATION_COUNT" != "0" ]]; then
+        echo "❌ Local database has public relations but no Prisma migration ledger; refusing to apply the baseline over an unknown schema." >&2
+        exit 1
+      fi
+      echo "→ Empty Local database detected; applying the canonical baseline"
     fi
     DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma migrate deploy
-    # The historical repository contains fields that were resolved into the
-    # production baseline without a replayable migration. Keep Local usable
-    # from an empty cluster by reconciling the schema after the migration run;
-    # this path is never used by Vercel/Production.
-    DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx prisma db push >/dev/null
+    DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx tsx scripts/check-migration-baseline-anchor.ts "$CANONICAL_BASELINE_MIGRATION"
     APP_ENV=local VISUTRY_DATABASE_IDENTITY="$VISUTRY_DATABASE_IDENTITY" DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx tsx scripts/db-environment.ts register
     ;;
   seed)
     refuse_remote
-    "$0" up >/dev/null
+    "$0" migrate >/dev/null
     APP_ENV=local VISUTRY_DATABASE_IDENTITY="$VISUTRY_DATABASE_IDENTITY" DATABASE_URL="$LOCAL_URL" DATABASE_URL_UNPOOLED="$LOCAL_URL" npx tsx scripts/seed-local-qa.ts
     ;;
   reset)

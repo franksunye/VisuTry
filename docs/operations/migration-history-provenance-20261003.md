@@ -1,13 +1,14 @@
 # Migration History Provenance — 2026-10-03
 
-This immutable repository-history manifest makes the exact bytes of all **53 active migration SQL files** at DB1A base recoverable without copying them under Prisma’s configured migrations path.
+This immutable repository-history manifest identifies the exact bytes of all **53 historical migration SQL files** at DB1A base. DB1B preserves them byte-for-byte under `prisma/migrations-archive/legacy/`, outside Prisma’s configured active path.
 
 - Source commit: `acbb581c03c1931e4e14c2e8715b8ef902dc9a47`
 - Configured active path: `prisma/migrations`
 - Entry count: 53 `migration.sql` files
 - Each Git blob SHA-1 identifies the exact Git object and therefore the exact file bytes at the immutable source commit.
 - Recover a row with `git show <source-commit>:prisma/migrations/<directory>/migration.sql`; verify its object identity with `git rev-parse <source-commit>:prisma/migrations/<directory>/migration.sql` (or hash stdin with `git hash-object --stdin`).
-- No archive directory is placed under `prisma/migrations`; the active migration files are not changed by DB1A.
+- DB1B archive path: `prisma/migrations-archive/legacy/<directory>/migration.sql`.
+- The archive is not configured as a Prisma migration path and must never be replayed as fresh-database history.
 
 | Migration directory | Git blob SHA-1 |
 | --- | --- |
@@ -67,9 +68,9 @@ This immutable repository-history manifest makes the exact bytes of all **53 act
 
 ## Production-specific provenance
 
-- Production ledger-only `00000000000000_canonical_baseline`: checksum `f9a2b98a7ec4fc519bbd38edcb95c76d29ecddeacbf4eb55a6eb2d8f01d2326e`; exact SQL bytes are recoverable from `b1d5442ac8aa9d3297db12ca77abc498b2bc83a6:prisma/migrations/00000000000000_canonical_baseline/migration.sql`.
+- Production ledger-only `00000000000000_canonical_baseline`: checksum `f9a2b98a7ec4fc519bbd38edcb95c76d29ecddeacbf4eb55a6eb2d8f01d2326e`; exact SQL bytes are archived at `prisma/migrations-archive/production-ledger-only/00000000000000_canonical_baseline/migration.sql` and recoverable from `b1d5442ac8aa9d3297db12ca77abc498b2bc83a6:prisma/migrations/00000000000000_canonical_baseline/migration.sql`.
 - Production ledger-only `20241121_add_try_on_type`: recorded checksum `0`; source not found in the audited repository history.
-- `20260805180000_store_gate_a1_four_epics` as applied in Production: commit `3cb445f8c96b2e4ee547aac1e7db1f439621629a`, file SHA-256 `0a188ff7e5ef2abf6311247f7c5e7e436952f0facd384ded4b0c1bbb0cc5e4c9`.
+- `20260805180000_store_gate_a1_four_epics` as applied in Production: commit `3cb445f8c96b2e4ee547aac1e7db1f439621629a`, file SHA-256 `0a188ff7e5ef2abf6311247f7c5e7e436952f0facd384ded4b0c1bbb0cc5e4c9`; exact SQL bytes are archived at `prisma/migrations-archive/production-applied-variants/20260805180000_store_gate_a1_four_epics/migration.sql`.
 - Same migration at DB1A base: Git blob `35ce3fcabdb6d1ac1d886ae31b48172c61e7a424`, file SHA-256 `6cbfc91e29ff2e176cfff1fce8f3da46f55390347474107d3de1ff36df53ccc4`. This mismatch is recorded, not repaired.
 - `20260605120000_add_face_analysis_task` has one rolled-back and one finished Production row. Historical row count at DB0 was 56 rows / 55 unique names, 55 finished / one rolled back.
 

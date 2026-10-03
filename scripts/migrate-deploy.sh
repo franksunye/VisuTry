@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$SCRIPT_DIR/migration-baseline-contract.sh"
 BASELINE_MIGRATION_SQL="$REPO_ROOT/prisma/migrations/$CANONICAL_BASELINE_MIGRATION/migration.sql"
+assert_canonical_baseline_contract "$REPO_ROOT"
 
 # ============================================================
 # prisma migrate deploy — pooled/direct PostgreSQL safety checks
@@ -97,26 +98,25 @@ STATUS_EXIT=$?
 set -e
 echo "$STATUS_OUTPUT" | sed 's/^/  /'
 
-BASELINE_TREE_ACTIVE=0
-if [[ -f "$BASELINE_MIGRATION_SQL" ]]; then
-  BASELINE_TREE_ACTIVE=1
-  echo "→ Canonical baseline migration is present: $CANONICAL_BASELINE_MIGRATION"
-  ANCHOR_OUTPUT=""
-  ANCHOR_EXIT=0
-  set +e
-  ANCHOR_OUTPUT=$(npx tsx scripts/check-migration-baseline-anchor.ts "$CANONICAL_BASELINE_MIGRATION" 2>&1)
-  ANCHOR_EXIT=$?
-  set -e
-  echo "$ANCHOR_OUTPUT" | sed 's/^/  /'
+echo "→ Canonical baseline migration is present: $CANONICAL_BASELINE_MIGRATION"
+ANCHOR_OUTPUT=""
+ANCHOR_EXIT=0
+set +e
+ANCHOR_OUTPUT=$(npx tsx scripts/check-migration-baseline-anchor.ts "$CANONICAL_BASELINE_MIGRATION" 2>&1)
+ANCHOR_EXIT=$?
+set -e
+echo "$ANCHOR_OUTPUT" | sed 's/^/  /'
 
-  if [[ "$ANCHOR_EXIT" -ne 0 ]] || ! echo "$ANCHOR_OUTPUT" | grep -Fxq "MIGRATION_BASELINE_ANCHOR=applied"; then
-    echo "❌ Canonical baseline adoption is required before migrations can deploy."
-    echo "   The baseline ledger row must be uniquely finished and not rolled back; refusing to run migrate deploy."
-    exit 1
-  fi
+if [[ "$ANCHOR_EXIT" -ne 0 ]] || ! echo "$ANCHOR_OUTPUT" | grep -Fxq "MIGRATION_BASELINE_ANCHOR=applied"; then
+  echo "❌ Canonical baseline adoption is required before migrations can deploy."
+  echo "   The baseline ledger row must be uniquely finished and not rolled back; refusing to run migrate deploy."
+  exit 1
 fi
 
-UNSAFE_STATUS_PATTERN='(error|failed|failure|checksum|divergen|drift|not in sync|rolled back)'
+# Match Prisma status-level failure signals, not arbitrary migration names.
+# Archived history legitimately includes `...failure_reason` in its name, so
+# a broad substring search would reject safe future deltas after the baseline.
+UNSAFE_STATUS_PATTERN='(^Error([[:space:]:]|$)|^P[0-9]{4}([:[:space:]]|$)|^The database schema is not in sync|^Migration .*checksum mismatch|^A migration failed to apply|^The following migration.*(failed|rolled back)|^Migration .*rolled back)'
 if [[ "$STATUS_EXIT" -eq 0 ]] \
   && echo "$STATUS_OUTPUT" | grep -Eqi "database schema is up to date" \
   && ! echo "$STATUS_OUTPUT" | grep -Eqi "$UNSAFE_STATUS_PATTERN"; then
@@ -125,19 +125,14 @@ if [[ "$STATUS_EXIT" -eq 0 ]] \
 elif [[ "$STATUS_EXIT" -eq 1 ]] \
   && echo "$STATUS_OUTPUT" | grep -Eqi "not yet been applied" \
   && ! echo "$STATUS_OUTPUT" | grep -Eqi "$UNSAFE_STATUS_PATTERN"; then
-  if [[ "$BASELINE_TREE_ACTIVE" -eq 1 ]]; then
-    # With a baseline tree, Prisma 7.1 can report the intentionally archived
-    # pre-baseline ledger names as absent from the local active tree. A future
-    # delta is safe only when the common migration is exactly the adopted
-    # baseline; this avoids treating arbitrary history divergence as pending.
-    if ! echo "$STATUS_OUTPUT" | grep -Eqi "^The last common migration is: ${CANONICAL_BASELINE_MIGRATION}[[:space:]]*$"; then
-      echo "❌ Pending status does not share the adopted canonical baseline as its last common migration; refusing to deploy."
-      exit 1
-    fi
-    echo "→ Future migration delta detected after the adopted baseline — proceeding to migrate deploy"
-  else
-    echo "→ Pending migrations detected — proceeding to migrate deploy"
+  # Prisma 7.1 can report intentionally archived pre-baseline ledger names as
+  # absent from the active tree. A future delta is safe only when the common
+  # migration is exactly the adopted baseline; there is no legacy fallback.
+  if ! echo "$STATUS_OUTPUT" | grep -Eqi "^The last common migration is: ${CANONICAL_BASELINE_MIGRATION}[[:space:]]*$"; then
+    echo "❌ Pending status does not share the adopted canonical baseline as its last common migration; refusing to deploy."
+    exit 1
   fi
+  echo "→ Future migration delta detected after the adopted baseline — proceeding to migrate deploy"
 else
   echo "❌ Migration status was not a recognized safe state (exit ${STATUS_EXIT}); refusing to run migrate deploy."
   echo "   Resolve the migration state explicitly before retrying."
