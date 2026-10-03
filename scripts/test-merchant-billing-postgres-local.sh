@@ -45,8 +45,8 @@ export NODE_ENV=test
 export APP_ENV=local
 export STRIPE_MERCHANT_LAUNCH_MONTHLY_PRICE_ID=price_local_launch
 
-echo "→ bootstrap current Prisma schema in empty PostgreSQL database"
-npx prisma db push >/dev/null
+echo "→ apply canonical migration history to empty disposable PostgreSQL database"
+npx prisma migrate deploy >/dev/null
 
 echo "→ run Merchant Billing PostgreSQL concurrency smoke"
 npx tsx scripts/merchant-billing-postgres-smoke.ts

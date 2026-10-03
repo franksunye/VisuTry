@@ -63,8 +63,8 @@ jobs:
       - name: Validate Prisma schema
         run: npx prisma validate
 
-      - name: Bootstrap disposable PostgreSQL schema
-        run: npx prisma db push
+      - name: Apply canonical migration history to disposable PostgreSQL
+        run: npx prisma migrate deploy
 
       - name: Run Sponsored PostgreSQL smoke
         run: npx tsx scripts/sponsored-postgres-smoke.ts

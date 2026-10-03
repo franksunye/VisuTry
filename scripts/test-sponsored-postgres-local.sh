@@ -42,11 +42,8 @@ export NODE_ENV=test
 echo "→ generate Prisma Client"
 npx prisma generate
 
-# The repository's historical migrations predate the current init migration and
-# are not replayable from an empty database. Production still uses migrate deploy;
-# this disposable local harness bootstraps the exact current schema instead.
-echo "→ bootstrap current Prisma schema in empty PostgreSQL database"
-npx prisma db push
+echo "→ apply canonical migration history to empty disposable PostgreSQL database"
+npx prisma migrate deploy
 
 echo "→ run PostgreSQL sponsored usage smoke"
 npx tsx scripts/sponsored-postgres-smoke.ts
