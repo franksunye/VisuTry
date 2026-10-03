@@ -105,7 +105,7 @@ CREATE TYPE "MerchantSponsoredUsageStatus" AS ENUM ('RESERVED', 'CONSUMED', 'REL
 
 -- CreateTable
 CREATE TABLE "EnvironmentMetadata" (
-    "id" TEXT NOT NULL DEFAULT 'primary',
+    "id" TEXT NOT NULL,
     "environment" TEXT NOT NULL,
     "databaseIdentity" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -931,7 +931,7 @@ CREATE TABLE "StoreOrphanBlob" (
     "lastDeleteAttemptAt" TIMESTAMP(3),
     "deletedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "StoreOrphanBlob_pkey" PRIMARY KEY ("id")
 );
@@ -945,7 +945,7 @@ CREATE TABLE "StoreAbuseCounter" (
     "count" INTEGER NOT NULL DEFAULT 0,
     "bytes" BIGINT NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "StoreAbuseCounter_pkey" PRIMARY KEY ("id")
 );
@@ -1011,7 +1011,7 @@ CREATE INDEX "TryOnTask_retentionStatus_expiresAt_idx" ON "TryOnTask"("retention
 CREATE INDEX "TryOnTask_origin_status_dispatchLeaseUntil_idx" ON "TryOnTask"("origin", "status", "dispatchLeaseUntil");
 
 -- CreateIndex
-CREATE INDEX "TryOnTask_retentionStatus_deleteFailCount_lastDeleteAttempt_idx" ON "TryOnTask"("retentionStatus", "deleteFailCount", "lastDeleteAttemptAt");
+CREATE INDEX "TryOnTask_retentionStatus_deleteFailCount_lastDeleteAttemptAt_i" ON "TryOnTask"("retentionStatus", "deleteFailCount", "lastDeleteAttemptAt");
 
 -- CreateIndex
 CREATE INDEX "TryOnTask_origin_idx" ON "TryOnTask"("origin");
@@ -1446,7 +1446,7 @@ CREATE INDEX "StoreAsset_storageKey_idx" ON "StoreAsset"("storageKey");
 CREATE INDEX "StoreAsset_retentionStatus_expiresAt_idx" ON "StoreAsset"("retentionStatus", "expiresAt");
 
 -- CreateIndex
-CREATE INDEX "StoreAsset_retentionStatus_deleteFailCount_lastDeleteAttemp_idx" ON "StoreAsset"("retentionStatus", "deleteFailCount", "lastDeleteAttemptAt");
+CREATE INDEX "StoreAsset_retentionStatus_deleteFailCount_lastDeleteAttemptAt_" ON "StoreAsset"("retentionStatus", "deleteFailCount", "lastDeleteAttemptAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "MerchantUsageLedger_dedupeKey_key" ON "MerchantUsageLedger"("dedupeKey");
@@ -1467,10 +1467,10 @@ CREATE UNIQUE INDEX "MerchantUsageLedger_tryOnTaskId_kind_key" ON "MerchantUsage
 CREATE UNIQUE INDEX "MerchantSponsoredUsage_idempotencyKey_key" ON "MerchantSponsoredUsage"("idempotencyKey");
 
 -- CreateIndex
-CREATE INDEX "MerchantSponsoredUsage_merchantId_shopperIdentityHash_usage_idx" ON "MerchantSponsoredUsage"("merchantId", "shopperIdentityHash", "usageType", "createdAt");
+CREATE INDEX "MerchantSponsoredUsage_merchantId_shopperIdentityHash_usageType" ON "MerchantSponsoredUsage"("merchantId", "shopperIdentityHash", "usageType", "createdAt");
 
 -- CreateIndex
-CREATE INDEX "MerchantSponsoredUsage_merchantId_userId_usageType_createdA_idx" ON "MerchantSponsoredUsage"("merchantId", "userId", "usageType", "createdAt");
+CREATE INDEX "MerchantSponsoredUsage_merchantId_userId_usageType_createdAt_id" ON "MerchantSponsoredUsage"("merchantId", "userId", "usageType", "createdAt");
 
 -- CreateIndex
 CREATE INDEX "MerchantSponsoredUsage_status_reservedAt_idx" ON "MerchantSponsoredUsage"("status", "reservedAt");

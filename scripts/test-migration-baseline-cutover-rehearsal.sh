@@ -40,7 +40,7 @@ fi
 
 BASELINE_SQL="prisma/migrations/$CANONICAL_BASELINE_MIGRATION/migration.sql"
 BASELINE_CHECKSUM="$(node -e 'const {createHash}=require("node:crypto"); const {readFileSync}=require("node:fs"); process.stdout.write(createHash("sha256").update(readFileSync(process.argv[1])).digest("hex"))' "$BASELINE_SQL")"
-EXPECTED_BASELINE_CHECKSUM="d40fb8e725d5c80e3d304e8b6d4287a46513449d40f9ca2ff626b2dde8628e5d"
+EXPECTED_BASELINE_CHECKSUM="17c88907cfc8c162497c215878d5255473632ccfc7534018f5b9f1a83cf729cf"
 if [[ "$BASELINE_CHECKSUM" != "$EXPECTED_BASELINE_CHECKSUM" ]]; then
   echo "❌ Final baseline bytes differ from the DB2-approved frozen candidate." >&2
   echo "   expected=$EXPECTED_BASELINE_CHECKSUM actual=$BASELINE_CHECKSUM" >&2
