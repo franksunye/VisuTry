@@ -123,6 +123,9 @@ jobs:
       - name: TypeScript gate
         run: npm run typecheck
 
+      - name: Migration deployment boundary and baseline anchor gate
+        run: npm run test:migration-boundary && npm run test:migration-fail-closed && npm run test:migration-baseline-anchor
+
       - name: Critical business journey gate
         run: npm run test:critical:ci
 
