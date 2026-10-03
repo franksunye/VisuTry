@@ -1,6 +1,6 @@
 # Database Migration Baseline Governance
 
-**Status:** DB1B implementation and Local verification complete on an unmerged branch; awaiting Lead Review. No Production/Preview database was changed.\
+**Status:** DB1B implementation and DB2 Local proof complete on an unmerged branch; Production adoption remains separately gated. No Production/Preview database was changed.\
 **Frozen future baseline identity:** `20261003000000_canonical_schema_baseline`\
 **DB1A merged base:** `3300b77d8e9dd0424e81b3e5dc90ef7d239cafff`\
 **Immutable file provenance:** [`migration-history-provenance-20261003.md`](./migration-history-provenance-20261003.md)
@@ -78,3 +78,17 @@ Production presence of all four custom raw-query indexes is a **DB3 read-only pr
 4. **DB3:** read-only Production prerequisite checks, separately authorized adoption, then controlled cutover.
 
 No gate authorizes Preview or Production as a debugging environment. A failed status, uncertain ledger state, or missing structural prerequisite stops the sequence for explicit review.
+
+## DB2 disposable proof recorded on DB1B
+
+The final frozen baseline bytes were rechecked before the rehearsal:
+
+- Migration: `20261003000000_canonical_schema_baseline`.
+- SHA-256: `d40fb8e725d5c80e3d304e8b6d4287a46513449d40f9ca2ff626b2dde8628e5d`.
+- Real PostgreSQL anchor probe: absent → `absent`/exit 2; one matching finished row → `applied`/exit 0; checksum mismatch, rolled-back, unfinished/failed, and duplicate rows → `invalid`/exit 3. The probe executes against an actual Prisma ledger table and the final SQL checksum.
+- Cutover rehearsal: active baseline with no anchor was rejected before deploy; Prisma `migrate resolve --applied` on the disposable database added one baseline row; Prisma status reported up to date; two baseline deploys added no rows; an ephemeral future delta passed through the real deployment wrapper and applied once.
+- Historical ledger snapshot: 56 old rows / 55 names / 55 finished / 1 rolled back. All old row fields remained stable as JSONB snapshot hash `8cce70f6975141454b4a50c528d8e89a2f3992469f6956ff868e352e9abf7f20`; total count progressed 56 → 57 (baseline) → 58 (future delta).
+- The rehearsal is a **Production-like fixture**, not a Production export: migration names, known historical statuses, Production-only entries, and known SQL variants/checksums derive from DB0 provenance; stable row IDs and timestamps are synthetic. No Production ledger was read during DB2.
+- Two separate fresh Local PostgreSQL databases completed `npm run db:local:migrate` in **1.71s** and **1.68s**, including baseline deploy, real anchor verification, and `EnvironmentMetadata` registration. Local QA seed passed on both; Merchant preflight reported `READY: YES` on the first. DB0's former cold-cluster legacy bootstrap was 59.65s; timings are not a strict cold-start comparison because DB2 reused an already-running isolated PostgreSQL process.
+
+The local future-delta rehearsal confirmed Prisma reports archived legacy names as absent from the active tree while naming the canonical baseline as the exact last common migration. One Neon-specific advisory-lock cleanup probe could not use the loopback endpoint and emitted the existing non-fatal warning; the actual Prisma future-delta deployment then succeeded. The disposable cluster was stopped after evidence capture; its database directory was retained.

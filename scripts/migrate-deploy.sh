@@ -113,7 +113,10 @@ if [[ "$ANCHOR_EXIT" -ne 0 ]] || ! echo "$ANCHOR_OUTPUT" | grep -Fxq "MIGRATION_
   exit 1
 fi
 
-UNSAFE_STATUS_PATTERN='(error|failed|failure|checksum|divergen|drift|not in sync|rolled back)'
+# Match Prisma status-level failure signals, not arbitrary migration names.
+# Archived history legitimately includes `...failure_reason` in its name, so
+# a broad substring search would reject safe future deltas after the baseline.
+UNSAFE_STATUS_PATTERN='(^Error([[:space:]:]|$)|^P[0-9]{4}([:[:space:]]|$)|^The database schema is not in sync|^Migration .*checksum mismatch|^A migration failed to apply|^The following migration.*(failed|rolled back)|^Migration .*rolled back)'
 if [[ "$STATUS_EXIT" -eq 0 ]] \
   && echo "$STATUS_OUTPUT" | grep -Eqi "database schema is up to date" \
   && ! echo "$STATUS_OUTPUT" | grep -Eqi "$UNSAFE_STATUS_PATTERN"; then

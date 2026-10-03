@@ -69,7 +69,16 @@ case "$*" in
         echo "The migrations from the database are not found locally in prisma/migrations:"
         echo "20260805180000_store_gate_a1_four_epics"
         echo "20260605120000_add_face_analysis_task"
+        echo "20260709090000_add_face_shape_detection_failure_reason"
         echo "00000000000000_canonical_baseline"
+        exit 1
+        ;;
+      baseline-failed-migration)
+        echo "Your local migration history and the migrations table from your database are different!"
+        echo "The last common migration is: $BASELINE_NAME"
+        echo "A migration failed to apply. New migrations cannot be applied before the error is recovered from."
+        echo "The migration have not yet been applied:"
+        echo "20261004120000_test_future_delta"
         exit 1
         ;;
       divergent)
@@ -171,6 +180,7 @@ run_case "baseline-anchor-absent" baseline baseline-missing-anchor absent 1 no
 run_case "baseline-anchor-up-to-date" baseline up-to-date applied 0 no
 run_case "baseline-future-pending" baseline baseline-future-pending applied 0 yes
 run_case "baseline-future-pending-archived-history" baseline baseline-future-pending-with-archive applied 0 yes
+run_case "baseline-failed-migration" baseline baseline-failed-migration applied 1 no
 
 # Divergence, checksum problems, bad adoption rows, and Prisma's nonstandard
 # exit codes remain fail-closed and must never reach deploy.
@@ -209,4 +219,4 @@ if [[ "$unauthorized_exit" -eq 0 || -s "$STUB_LOG" ]]; then
 fi
 grep -Fq "requires VISUTRY_PRODUCTION_MIGRATION_AUTHORIZED=1" "$TEST_ROOT/unauthorized.log"
 
-echo "Migration baseline anchor state matrix passed (13 migration-status cases + missing/renamed cutover contract + 4 environment/authorization gates)."
+echo "Migration baseline anchor state matrix passed (14 migration-status cases + missing/renamed cutover contract + 4 environment/authorization gates)."
