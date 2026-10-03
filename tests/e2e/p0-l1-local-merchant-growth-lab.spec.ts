@@ -7,13 +7,70 @@ const isLocalLabRun = process.env.NODE_ENV === 'test'
   && process.env.TEST_MODE === 'true'
   && process.env.P0_L1_LOCAL_MERCHANT_E2E === '1'
   && /^http:\/\/(127\.0\.0\.1|localhost):(3001|3002|3003)$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+const localMerchantGoldenPathTimeoutMs = 360_000
 
 test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
   test('runs the real local acquisition-to-private-preview journey', async ({ page, request, context }) => {
     test.skip(!isLocalLabRun, 'Run npm run merchant:local:e2e with the Local server already running.')
+    // This deliberately long, Local-only journey compiles and visits multiple
+    // Merchant surfaces. Keep the larger budget scoped to this test only.
+    test.setTimeout(localMerchantGoldenPathTimeoutMs)
+
+    const journeyStartedAt = Date.now()
+    let phaseStartedAt = journeyStartedAt
+    let activePhase = 'auth/session establishment'
+    const logPhaseStart = (phase: string) => {
+      const now = Date.now()
+      console.log(JSON.stringify({
+        localMerchantGoldenPath: {
+          event: 'phase_complete',
+          phase: activePhase,
+          phaseDurationMs: now - phaseStartedAt,
+          elapsedMs: now - journeyStartedAt,
+        },
+      }))
+      activePhase = phase
+      phaseStartedAt = now
+      console.log(JSON.stringify({
+        localMerchantGoldenPath: {
+          event: 'phase_start',
+          phase: activePhase,
+          elapsedMs: now - journeyStartedAt,
+        },
+      }))
+    }
+    const logJourneyComplete = () => {
+      const now = Date.now()
+      console.log(JSON.stringify({
+        localMerchantGoldenPath: {
+          event: 'phase_complete',
+          phase: activePhase,
+          phaseDurationMs: now - phaseStartedAt,
+          elapsedMs: now - journeyStartedAt,
+        },
+      }))
+      console.log(JSON.stringify({
+        localMerchantGoldenPath: {
+          event: 'journey_complete',
+          elapsedMs: now - journeyStartedAt,
+          timeoutMs: localMerchantGoldenPathTimeoutMs,
+        },
+      }))
+    }
+    console.log(JSON.stringify({
+      localMerchantGoldenPath: {
+        event: 'phase_start',
+        phase: activePhase,
+        elapsedMs: 0,
+        timeoutMs: localMerchantGoldenPathTimeoutMs,
+      },
+    }))
 
     const browserErrors: string[] = []
     const serverErrors: number[] = []
+    // Cold local route compilation can exceed Playwright's 30s navigation
+    // default; keep this allowance local to this test's page instance.
+    page.setDefaultNavigationTimeout(45_000)
     page.on('pageerror', (error) => browserErrors.push(error.message))
     page.on('console', (message) => {
       if (message.type() === 'error') browserErrors.push(message.text())
@@ -53,6 +110,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByRole('heading', { name: /set up visutry for your business/i })).toBeVisible()
     const nameField = page.getByLabel(/business, brand, or store name/i)
     await expect(nameField).toHaveAttribute('required', '')
+    logPhaseStart('merchant activation / first value')
     await page.waitForLoadState('networkidle')
     await nameField.fill('Local Growth Lab Eyewear')
     await page.getByRole('button', { name: /create merchant workspace/i }).click()
@@ -64,7 +122,15 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.getByLabel('Product image URL for product 1').fill(`${process.env.PLAYWRIGHT_BASE_URL}/assets/glasses-presets/large-round-classic.jpg`)
     await page.getByLabel('Merchant SKU for product 1').fill('LOCAL-FRAME-001')
     await expect(page.getByRole('button', { name: 'Review product' })).toBeEnabled()
+    const merchantId = await page.getByLabel('Active merchant').inputValue()
+    const inspectResponsePromise = page.waitForResponse((response) => (
+      response.url().includes(`/api/merchant/${encodeURIComponent(merchantId)}/catalog/inspect`)
+      && response.request().method() === 'POST'
+    ), { timeout: 45_000 })
     await page.getByRole('button', { name: 'Review product' }).click()
+    const inspectResponse = await inspectResponsePromise
+    expect(inspectResponse.status(), 'Local manual catalog inspection completes').toBe(200)
+    expect((await inspectResponse.json() as { success?: boolean }).success).toBe(true)
     await expect(page.getByRole('heading', { name: '1 product is ready to add' })).toBeVisible()
     await page.getByRole('button', { name: /Approve and import 1/ }).click()
     await expect(page.getByText('Your first product is in the Catalog.', { exact: true })).toBeVisible()
@@ -72,7 +138,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
 
     await expect(page.getByRole('heading', { name: 'Create your Store' })).toBeVisible()
     await expect(page.locator('#catalog').getByRole('link', { name: 'Create your Store' })).toBeVisible()
-    await expect(page.getByText('Add Store details (optional)')).toBeVisible()
+    await expect(page.getByText('Add Store details (optional)')).toBeVisible({ timeout: 45_000 })
     await page.locator('#store').getByRole('button', { name: 'Create your Store' }).click()
     await expect(page.getByRole('heading', { name: 'Set up your Store' })).toBeVisible()
     await expect(page.getByText('Your Store draft is ready with your first product selected.', { exact: true })).toBeVisible()
@@ -83,6 +149,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByText('DRAFT · not public')).toBeVisible()
     await expect(page.getByRole('checkbox', { name: /confirm this store is ready/i })).not.toBeChecked()
     const activationPageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
+    logPhaseStart('operating workspace checks')
 
     // Operating-shell route QA starts only after the real First Value event.
     // Screenshots stay outside the repository so this remains evidence, not
@@ -115,14 +182,20 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(catalogLink).toHaveAttribute('href', /\/en\/merchant\/catalog\?merchantId=/)
     await expect(storeLink).toHaveAttribute('href', /\/en\/merchant\/store\?merchantId=/)
     await expect(analyticsLink).toHaveAttribute('href', /\/en\/merchant\/analytics\?merchantId=/)
-    await catalogLink.click()
-    await expect(page).toHaveURL(/\/en\/merchant\/catalog\?merchantId=/)
+    await Promise.all([
+      page.waitForURL(/\/en\/merchant\/catalog\?merchantId=/, { timeout: 45_000 }),
+      catalogLink.click(),
+    ])
     await page.goto('/en/merchant', { waitUntil: 'networkidle' })
-    await storeLink.click()
-    await expect(page).toHaveURL(/\/en\/merchant\/store\?merchantId=/)
+    await Promise.all([
+      page.waitForURL(/\/en\/merchant\/store\?merchantId=/, { timeout: 45_000 }),
+      storeLink.click(),
+    ])
     await page.goto('/en/merchant', { waitUntil: 'networkidle' })
-    await analyticsLink.click()
-    await expect(page).toHaveURL(/\/en\/merchant\/analytics\?merchantId=/)
+    await Promise.all([
+      page.waitForURL(/\/en\/merchant\/analytics\?merchantId=/, { timeout: 45_000 }),
+      analyticsLink.click(),
+    ])
     await expect(page.getByRole('heading', { name: 'Analytics' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'No shopper activity yet' })).toBeVisible()
     const m26MerchantId = await page.getByLabel('Active merchant').inputValue()
@@ -173,6 +246,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByText('No active key')).toBeVisible()
     await captureM26('04-integrations-empty-mobile')
 
+    logPhaseStart('Integrations credential lifecycle')
     const createdKeyResponse = page.waitForResponse((response) => response.url().endsWith(`/api/merchant/${m26MerchantId}/agent-credentials`) && response.request().method() === 'POST')
     await page.getByRole('button', { name: 'Create Agent key' }).click()
     const createdKey = await createdKeyResponse
@@ -203,6 +277,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByText('No active key')).toBeVisible()
     await captureM26('07-integrations-revoked-desktop')
 
+    logPhaseStart('remaining desktop/mobile route checks')
     await page.goto('/en/merchant', { waitUntil: 'networkidle' })
     const operatingPageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
     console.log(JSON.stringify({ activationPageHeight, operatingPageHeight }))
@@ -215,7 +290,14 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.getByLabel('Product name for product 1').fill('Local Growth Pending Frame')
     await page.getByLabel('Product image URL for product 1').fill(`${process.env.PLAYWRIGHT_BASE_URL}/assets/glasses-presets/large-round-classic.jpg`)
     await page.getByLabel('Product page URL for product 1').fill(`${process.env.PLAYWRIGHT_BASE_URL}/local/pending-frame`)
+    const pendingInspectResponsePromise = page.waitForResponse((response) => (
+      response.url().includes(`/api/merchant/${encodeURIComponent(merchantId)}/catalog/inspect`)
+      && response.request().method() === 'POST'
+    ), { timeout: 45_000 })
     await page.getByRole('button', { name: 'Review product' }).click()
+    const pendingInspectResponse = await pendingInspectResponsePromise
+    expect(pendingInspectResponse.status(), 'Local pending-product inspection completes').toBe(200)
+    expect((await pendingInspectResponse.json() as { success?: boolean }).success).toBe(true)
     await expect(page.getByRole('heading', { name: '1 product is ready to add' })).toBeVisible()
     await page.getByRole('button', { name: /Approve and import 1/ }).click()
     await expect(page.getByText('Catalog updated successfully.', { exact: true })).toBeVisible()
@@ -288,5 +370,6 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
       `HTTP 5xx responses: ${serverErrors.length}`,
       '',
     ].join('\n'))
+    logJourneyComplete()
   })
 })
