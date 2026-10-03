@@ -114,7 +114,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.waitForLoadState('networkidle')
     await nameField.fill('Local Growth Lab Eyewear')
     await page.getByRole('button', { name: /create merchant workspace/i }).click()
-    await expect(page.getByRole('status')).toContainText('Workspace created')
+    await expect(page.locator('[data-onboarding-state="created"]')).toContainText('Workspace created')
     await expect(page.getByRole('link', { name: 'Add your first product' })).toBeVisible()
 
     await page.getByRole('tab', { name: 'Add manually' }).click()
