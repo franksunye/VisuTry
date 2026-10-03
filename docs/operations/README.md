@@ -2,7 +2,12 @@
 
 **Status:** Active operations documentation index  
 **Owner:** Product / Engineering  
-**Last updated:** 2026-09-20
+**Last updated:** 2026-10-03
+
+## Database migration baseline governance
+
+- [Database Migration Baseline Governance](./database-migration-baseline-governance.md) — staged cutover safety, baseline contract, and historical ledger provenance.
+- [Migration History Provenance — 2026-10-03](./migration-history-provenance-20261003.md) — immutable per-file Git object identities for the 53 active migration SQL files at the DB1A base.
 
 ## Current production authority
 

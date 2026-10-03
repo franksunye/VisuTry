@@ -122,6 +122,7 @@
     "test:sponsored:postgres": "bash scripts/test-sponsored-postgres-local.sh",
     "test:migration-boundary": "bash scripts/test-migration-boundary.sh",
     "test:migration-fail-closed": "bash scripts/test-migrate-deploy-fail-closed.sh",
+    "test:migration-baseline-anchor": "bash scripts/test-migration-baseline-anchor.sh",
     "release": "node scripts/release.js",
     "release:patch": "node scripts/release.js patch",
     "release:minor": "node scripts/release.js minor",

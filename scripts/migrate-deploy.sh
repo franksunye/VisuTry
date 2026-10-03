@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/migration-baseline-contract.sh"
+BASELINE_MIGRATION_SQL="$REPO_ROOT/prisma/migrations/$CANONICAL_BASELINE_MIGRATION/migration.sql"
+
 # ============================================================
 # prisma migrate deploy — pooled/direct PostgreSQL safety checks
 # ============================================================
@@ -18,8 +23,9 @@ set -euo pipefail
 # FIX LAYERS (defense in depth)
 #   1. prisma.config.ts forces the CLI onto a DIRECT (unpooled) connection,
 #      so the lock is tied to a real backend that releases it on disconnect.
-#   2. Classify `migrate status` strictly. Skip `migrate deploy` when the
-#      schema is explicitly up to date, deploy only for explicit pending
+#   2. Classify `migrate status` strictly. If a future baseline is active,
+#      require its successful adoption row before permitting any deploy.
+#      Skip `migrate deploy` when up to date, deploy only for explicit pending
 #      migrations, and fail closed for every other result.
 #   3. Clear stale advisory locks held by idle backends (>60s) before
 #      migrating — recovers from any pre-existing leaked lock on the first
@@ -78,17 +84,7 @@ if [[ -z "$DIRECT_URL" ]]; then
 fi
 echo "→ Migrations will use a direct (unpooled) connection via prisma.config.ts"
 
-# --- Step 1: Clear stale advisory locks held by idle backends ---------------
-# Recovers from any leaked lock left by previous pooled-connection builds.
-# Non-fatal: if the cleanup itself fails, we still attempt migrate deploy.
-echo "→ Checking for stale migration advisory locks..."
-if npx tsx scripts/clear-stale-migration-locks.ts; then
-  :
-else
-  echo "  ⚠️ stale lock cleanup reported a failure (continuing anyway)"
-fi
-
-# --- Step 2: Classify migration status fail-closed --------------------------
+# --- Step 1: Classify migration status fail-closed --------------------------
 # `migrate status` only reads the _prisma_migrations table — it does NOT
 # acquire the advisory lock, so it cannot itself cause P1002. Skipping the
 # deploy when there is nothing to do avoids the lock entirely on most builds.
@@ -101,7 +97,26 @@ STATUS_EXIT=$?
 set -e
 echo "$STATUS_OUTPUT" | sed 's/^/  /'
 
-UNSAFE_STATUS_PATTERN='(error|failed|failure|divergen|drift|not in sync|missing|rolled back)'
+BASELINE_TREE_ACTIVE=0
+if [[ -f "$BASELINE_MIGRATION_SQL" ]]; then
+  BASELINE_TREE_ACTIVE=1
+  echo "→ Canonical baseline migration is present: $CANONICAL_BASELINE_MIGRATION"
+  ANCHOR_OUTPUT=""
+  ANCHOR_EXIT=0
+  set +e
+  ANCHOR_OUTPUT=$(npx tsx scripts/check-migration-baseline-anchor.ts "$CANONICAL_BASELINE_MIGRATION" 2>&1)
+  ANCHOR_EXIT=$?
+  set -e
+  echo "$ANCHOR_OUTPUT" | sed 's/^/  /'
+
+  if [[ "$ANCHOR_EXIT" -ne 0 ]] || ! echo "$ANCHOR_OUTPUT" | grep -Fxq "MIGRATION_BASELINE_ANCHOR=applied"; then
+    echo "❌ Canonical baseline adoption is required before migrations can deploy."
+    echo "   The baseline ledger row must be uniquely finished and not rolled back; refusing to run migrate deploy."
+    exit 1
+  fi
+fi
+
+UNSAFE_STATUS_PATTERN='(error|failed|failure|checksum|divergen|drift|not in sync|rolled back)'
 if [[ "$STATUS_EXIT" -eq 0 ]] \
   && echo "$STATUS_OUTPUT" | grep -Eqi "database schema is up to date" \
   && ! echo "$STATUS_OUTPUT" | grep -Eqi "$UNSAFE_STATUS_PATTERN"; then
@@ -110,11 +125,35 @@ if [[ "$STATUS_EXIT" -eq 0 ]] \
 elif [[ "$STATUS_EXIT" -eq 1 ]] \
   && echo "$STATUS_OUTPUT" | grep -Eqi "not yet been applied" \
   && ! echo "$STATUS_OUTPUT" | grep -Eqi "$UNSAFE_STATUS_PATTERN"; then
-  echo "→ Pending migrations detected — proceeding to migrate deploy"
+  if [[ "$BASELINE_TREE_ACTIVE" -eq 1 ]]; then
+    # With a baseline tree, Prisma 7.1 can report the intentionally archived
+    # pre-baseline ledger names as absent from the local active tree. A future
+    # delta is safe only when the common migration is exactly the adopted
+    # baseline; this avoids treating arbitrary history divergence as pending.
+    if ! echo "$STATUS_OUTPUT" | grep -Eqi "^The last common migration is: ${CANONICAL_BASELINE_MIGRATION}[[:space:]]*$"; then
+      echo "❌ Pending status does not share the adopted canonical baseline as its last common migration; refusing to deploy."
+      exit 1
+    fi
+    echo "→ Future migration delta detected after the adopted baseline — proceeding to migrate deploy"
+  else
+    echo "→ Pending migrations detected — proceeding to migrate deploy"
+  fi
 else
   echo "❌ Migration status was not a recognized safe state (exit ${STATUS_EXIT}); refusing to run migrate deploy."
   echo "   Resolve the migration state explicitly before retrying."
   exit 1
+fi
+
+# --- Step 2: Clear stale advisory locks before an authorized deploy ----------
+# Recovers from any leaked lock left by previous pooled-connection builds.
+# Non-fatal: if the cleanup itself fails, migrate deploy still has its own
+# bounded retries. It is deliberately after the baseline/status guards so an
+# unsafe history never causes this cleanup side effect.
+echo "→ Checking for stale migration advisory locks..."
+if npx tsx scripts/clear-stale-migration-locks.ts; then
+  :
+else
+  echo "  ⚠️ stale lock cleanup reported a failure (continuing anyway)"
 fi
 
 # --- Step 3: Run migrate deploy with retries + jitter -----------------------
