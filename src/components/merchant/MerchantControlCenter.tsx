@@ -1276,13 +1276,13 @@ function Experiences({
           Nothing here yet. Start a conversation with your VisuTry Skill.
         </p>
       ) : (
-        <div className="mt-6 grid gap-3">
+        <div className="mt-6 grid min-w-0 grid-cols-1 gap-3">
           {experiences.map((experience) => (
             <article
               key={experience.id}
-              className="rounded-2xl border border-slate-200 p-4 sm:p-5"
+              className="min-w-0 rounded-2xl border border-slate-200 p-4 sm:p-5"
             >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
@@ -1311,7 +1311,7 @@ function Experiences({
                     {experience.status === "ACTIVE" ? <span className="font-semibold text-emerald-700">Live</span> : experience.status === "DRAFT" ? <span className="text-slate-500">Private draft</span> : null}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex min-w-0 flex-wrap gap-2">
                   <a
                     href={
                       experience.status === "DRAFT"
@@ -1353,7 +1353,7 @@ function Experiences({
                   {experience.description ? <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">{experience.description}</p> : null}
                 </div>
               ) : null}
-              <dl className="mt-4 grid gap-2 border-t border-slate-100 pt-4 text-sm sm:grid-cols-3">
+              <dl className="mt-4 grid min-w-0 grid-cols-1 gap-2 border-t border-slate-100 pt-4 text-sm sm:grid-cols-3">
                 <div>
                   <dt className="text-xs text-slate-500">Objective</dt>
                   <dd className="mt-1 font-semibold text-slate-900">
