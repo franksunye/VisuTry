@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft, ArrowRight, Check, Loader2, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Loader2, ShieldCheck, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { analytics } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
@@ -117,21 +117,40 @@ export function MerchantPurchaseSummary({ locale, merchantId, merchantName, inte
 
   return (
     <main className="min-h-screen bg-[#f7f8fb] px-4 py-10 text-slate-950 sm:px-6 sm:py-16 lg:px-8" data-purchase-intent={intent} data-purchase-action={action}>
-      <section className="mx-auto max-w-3xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_25px_80px_-55px_rgba(15,23,42,0.55)] sm:p-10">
-        <a href={`/${locale}/business/pricing`} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-950">
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to pricing
-        </a>
-        <div className="mt-8 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-700">
-          <ShieldCheck className="h-4 w-4" aria-hidden="true" /> Secure plan selection
-        </div>
-        <p className="mt-4 text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Order summary</p>
-        <p className="mt-5 text-sm font-semibold text-slate-500">{merchantName}</p>
-        <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-4xl font-semibold tracking-[-0.05em] text-slate-950 sm:text-5xl">{plan.name}</h1>
-            {action === 'CHECKOUT' ? <p className="mt-2 text-sm text-slate-600">Current plan: {currentPlanName ?? 'No active billing plan'}</p> : currentPlanName && action !== 'CURRENT' ? <p className="mt-2 text-sm text-slate-600">Current plan: {currentPlanName}</p> : null}
+      <section className="mx-auto max-w-3xl rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_25px_80px_-55px_rgba(15,23,42,0.55)] sm:p-10">
+        <header className="flex flex-col gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white"><Sparkles className="h-[18px] w-[18px]" /></span>
+            <div className="min-w-0">
+              <p className="font-semibold leading-5 text-slate-950">VisuTry</p>
+              <p className="truncate text-xs text-slate-500">Merchant workspace · {merchantName}</p>
+            </div>
           </div>
-          <p className="text-2xl font-semibold text-slate-950">{plan.priceLabel}</p>
+          <a href={`/${locale}/merchant?merchantId=${encodeURIComponent(merchantId)}`} className="inline-flex min-h-10 items-center gap-2 self-start text-sm font-semibold text-slate-600 hover:text-slate-950 sm:self-auto">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to Merchant workspace
+          </a>
+        </header>
+        <a href={`/${locale}/business/pricing`} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-950">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Plan options
+        </a>
+        <div className="mt-7 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-700">
+          <ShieldCheck className="h-4 w-4" aria-hidden="true" /> Secure plan review
+        </div>
+        <p className="mt-4 text-xs font-bold uppercase tracking-[0.16em] text-slate-400">{isChangePlan ? 'Plan change' : isManageBilling ? 'Billing access' : 'Order summary'}</p>
+        <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            {isChangePlan && currentPlanName ? <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+              <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600">Current · {currentPlanName}</span>
+              <ArrowRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
+              <span className="rounded-full bg-blue-50 px-3 py-1 font-semibold text-blue-800">New plan</span>
+            </div> : null}
+            <h1 className="text-4xl font-semibold tracking-[-0.05em] text-slate-950 sm:text-5xl">{plan.name}</h1>
+            {isCheckout ? <p className="mt-2 text-sm text-slate-600">Current plan: {currentPlanName ?? 'No active billing plan'}</p> : currentPlanName && !isChangePlan && action !== 'CURRENT' ? <p className="mt-2 text-sm text-slate-600">Current plan: {currentPlanName}</p> : null}
+          </div>
+          <div className="shrink-0 border-t border-slate-100 pt-3 sm:border-0 sm:pt-0 sm:text-right">
+            <p className="text-xs font-semibold text-slate-500">Plan price</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-950">{plan.priceLabel}</p>
+          </div>
         </div>
         <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">What is included</p>
@@ -146,7 +165,7 @@ export function MerchantPurchaseSummary({ locale, merchantId, merchantName, inte
         {action === 'CURRENT' ? <p className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900" role="status">This is your current plan. No new checkout is needed.</p> : null}
         {action === 'BILLING_DISABLED' ? <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900" role="status"><p className="font-semibold">{billingState.kind === 'BILLING_DISABLED' ? 'Test or internal workspace' : 'Billing is disabled'}</p><p>Live billing is disabled for this workspace.</p></div> : null}
         {recovery ? <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950" role="alert"><p className="font-semibold">{recovery.title}</p><p>{recovery.body}</p><p className="mt-1">{recovery.detail}</p></div> : null}
-        {error ? <p className="mt-4 text-sm text-red-700" role="alert">{error}</p> : null}
+        {error ? <p className="mt-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-800" role="alert">{error}</p> : null}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
           {isBlocked ? <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {action === 'BILLING_RECOVERY' && billingState.kind === 'PROVIDER_UNAVAILABLE' ? <button type="button" onClick={retryBillingState} className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white hover:bg-slate-800">Try again <ArrowRight className="h-4 w-4" aria-hidden="true" /></button> : null}

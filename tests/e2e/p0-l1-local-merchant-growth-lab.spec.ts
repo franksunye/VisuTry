@@ -79,6 +79,17 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
       if (response.status() >= 500) serverErrors.push(response.status())
     })
     await page.setViewportSize({ width: 1440, height: 900 })
+    const responsiveEvidenceDir = '/tmp/visutry-purchase-billing-responsive'
+    mkdirSync(responsiveEvidenceDir, { recursive: true })
+    const assertNoHorizontalOverflow = async (surface: string) => {
+      const metrics = await page.evaluate(() => ({
+        route: `${location.pathname}${location.search}`,
+        viewportWidth: window.innerWidth,
+        documentWidth: document.documentElement.scrollWidth,
+      }))
+      expect(metrics.documentWidth, `${surface} must fit its ${metrics.viewportWidth}px viewport`).toBeLessThanOrEqual(metrics.viewportWidth)
+      console.log(JSON.stringify({ responsiveSurface: surface, ...metrics, horizontalOverflow: false }))
+    }
 
     await page.goto('/en/business', { waitUntil: 'domcontentloaded' })
     await page.getByRole('link', { name: 'Merchant Sign In' }).first().click()
@@ -142,6 +153,28 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.locator('#store').getByRole('button', { name: 'Create your Store' }).click()
     await expect(page.getByRole('heading', { name: 'Set up your Store' })).toBeVisible()
     await expect(page.getByText('Your Store draft is ready with your first product selected.', { exact: true })).toBeVisible()
+    await expect(page.locator('#store').getByRole('button', { name: 'Preview your Store' }).first()).toBeEnabled()
+
+    // Exercise the pre-first-value Merchant control center, including its
+    // experience rows, at desktop and phone widths before the preview event
+    // switches the workspace to the operating Home surface.
+    await page.screenshot({ path: `${responsiveEvidenceDir}/control-center-desktop.png`, fullPage: true })
+    await assertNoHorizontalOverflow('Merchant control center / desktop')
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(`/en/merchant?merchantId=${encodeURIComponent(merchantId)}`, { waitUntil: 'networkidle' })
+    await expect(page.locator('#store')).toBeVisible()
+    await page.screenshot({ path: `${responsiveEvidenceDir}/control-center-mobile.png`, fullPage: true })
+    await assertNoHorizontalOverflow('Merchant control center / mobile')
+
+    // The real Local pending return is read-only; it exercises the processing
+    // notice together with Store/Catalog/experience content at the 390px target.
+    await page.goto(`/en/merchant?merchantId=${encodeURIComponent(merchantId)}&billing=processing&plan=GROWTH`, { waitUntil: 'networkidle' })
+    await expect(page.getByText('Plan update in progress')).toBeVisible()
+    await page.screenshot({ path: `${responsiveEvidenceDir}/processing-pending-mobile.png`, fullPage: true })
+    await assertNoHorizontalOverflow('Processing return pending / mobile')
+
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`/en/merchant?merchantId=${encodeURIComponent(merchantId)}`, { waitUntil: 'networkidle' })
     await expect(page.locator('#store').getByRole('button', { name: 'Preview your Store' }).first()).toBeEnabled()
     await page.locator('#store').getByRole('button', { name: 'Preview your Store' }).first().click()
     await expect(page.getByTestId('store-draft-preview')).toBeVisible()
@@ -284,6 +317,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.goto('/en/merchant/catalog', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'Catalog' })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/catalog-desktop.png`, fullPage: true })
+    await assertNoHorizontalOverflow('Catalog / desktop')
     await page.getByRole('button', { name: 'Add products' }).click()
     await page.screenshot({ path: `${catalogEvidenceDir}/add-products-desktop.png`, fullPage: true })
     await page.getByRole('tab', { name: 'Add manually' }).click()
@@ -308,6 +342,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.goto('/en/merchant/store', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'Store', exact: true })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/store-desktop.png`, fullPage: true })
+    await assertNoHorizontalOverflow('Store / desktop')
     await page.goto('/en/merchant/campaigns', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'Campaigns', exact: true })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/campaigns-desktop.png`, fullPage: true })
@@ -341,6 +376,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.goto('/en/merchant/catalog', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'Catalog' })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/catalog-mobile.png`, fullPage: true })
+    await assertNoHorizontalOverflow('Catalog / mobile')
     await page.getByRole('button', { name: 'Add products' }).click()
     await page.screenshot({ path: `${catalogEvidenceDir}/add-products-mobile.png`, fullPage: true })
     await page.getByRole('button', { name: 'Edit' }).first().click()
@@ -348,6 +384,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.goto('/en/merchant/store', { waitUntil: 'networkidle' })
     await expect(page.getByRole('heading', { name: 'Store', exact: true })).toBeVisible()
     await page.screenshot({ path: `${evidenceDir}/store-mobile.png`, fullPage: true })
+    await assertNoHorizontalOverflow('Store / mobile')
 
     expect(browserErrors).toEqual([])
     expect(serverErrors).toEqual([])

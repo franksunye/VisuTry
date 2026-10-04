@@ -330,8 +330,8 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
               <span className="hidden text-xs font-medium text-slate-500 group-open:inline">Collapse</span>
             </summary>
             <div className="border-t border-slate-100 px-4 pb-4 pt-4">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-            <div className="rounded-xl border border-slate-200 p-4">
+          <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+            <div className="min-w-0 rounded-xl border border-slate-200 p-4">
               <h3 className="font-semibold text-slate-900">1. Store details</h3>
               <div className="mt-4 space-y-3">
                 <input aria-label="Store name" value={name} onChange={(event) => { setName(event.target.value); clearPreview(); }} maxLength={120} placeholder="Store name" className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
@@ -341,17 +341,17 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 p-4">
+            <div className="min-w-0 rounded-xl border border-slate-200 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div><h3 className="font-semibold text-slate-900">2. Products</h3><p className="mt-1 text-sm text-slate-500">{selectedCount} selected · {eligibleCount} available · {recommendationReadyCount} recommendation-ready</p></div>
                 {productsDirty ? <button type="button" onClick={saveProducts} disabled={busy} className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" /> Save products</button> : <span className="text-xs font-medium text-slate-500">Selection saved</span>}
               </div>
-              <div className="mt-4 grid max-h-[34rem] gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
+              <div className="mt-4 grid min-w-0 max-h-[34rem] grid-cols-1 gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
                 {catalog.map((frame) => {
                   const isSelected = selectedFrameIds.includes(frame.id);
                   const isEligible = frame.storeReadiness.storeEligible;
                   const recommendationPending = !frame.validation.recommendationReady;
-                  return <label key={frame.id} className={`relative rounded-xl border p-3 transition ${isSelected ? "border-blue-500 bg-blue-50/50" : "border-slate-200 bg-white"} ${!isEligible && !isSelected ? "opacity-60" : ""}`}>
+                  return <label key={frame.id} className={`relative min-w-0 rounded-xl border p-3 transition ${isSelected ? "border-blue-500 bg-blue-50/50" : "border-slate-200 bg-white"} ${!isEligible && !isSelected ? "opacity-60" : ""}`}>
                     <input type="checkbox" className="absolute right-3 top-3 h-4 w-4 accent-blue-600" checked={isSelected} disabled={!isEligible && !isSelected} onChange={() => toggleFrame(frame)} />
                     <div className="flex gap-3 pr-6">
                       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100">{safeImageUrl(frame.imageUrl) ? <img src={safeImageUrl(frame.imageUrl) ?? undefined} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[10px] text-slate-400">No image</div>}</div>

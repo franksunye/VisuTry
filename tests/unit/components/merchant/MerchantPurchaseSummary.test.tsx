@@ -27,6 +27,22 @@ describe('MerchantPurchaseSummary billing states', () => {
     renderSummary('CHECKOUT')
     expect(screen.getByRole('button', { name: /start secure checkout/i })).toBeInTheDocument()
     expect(screen.queryByText(/billing is disabled/i)).not.toBeInTheDocument()
+    expect(screen.getByText('Current plan: Launch')).toBeInTheDocument()
+    expect(screen.getByText('Plan price')).toBeInTheDocument()
+  })
+
+  it('keeps merchant identity and workspace return separate from plan options', () => {
+    renderSummary('CHECKOUT')
+    expect(screen.getByText('Merchant workspace · Demo Merchant')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /back to merchant workspace/i })).toHaveAttribute('href', '/en/merchant?merchantId=merchant-1')
+    expect(screen.getByRole('link', { name: /plan options/i })).toHaveAttribute('href', '/en/business/pricing')
+  })
+
+  it('makes the current-to-target relationship explicit for a plan change', () => {
+    renderSummary('CHANGE_PLAN')
+    expect(screen.getByText('Current · Launch')).toBeInTheDocument()
+    expect(screen.getByText('New plan')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /continue with growth/i })).toBeInTheDocument()
   })
 
   it('records commercial intent without blocking checkout navigation', () => {
@@ -58,5 +74,16 @@ describe('MerchantPurchaseSummary billing states', () => {
     renderSummary('BILLING_RECOVERY', { kind: 'PROVIDER_UNAVAILABLE', ...baseState, reason: 'PROVIDER_UNAVAILABLE' })
     expect(screen.getByRole('alert')).toHaveTextContent('We could not reach the billing provider.')
     expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
+  })
+
+  it('keeps checkout errors visible in the same restrained feedback surface on retry', async () => {
+    const originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, message: 'Local test error' }) }) as jest.Mock
+    renderSummary('CHECKOUT')
+    fireEvent.click(screen.getByRole('button', { name: /start secure checkout/i }))
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Local test error')
+    expect(alert).toHaveClass('rounded-xl', 'bg-red-50')
+    global.fetch = originalFetch
   })
 })
