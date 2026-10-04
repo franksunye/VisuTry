@@ -35,6 +35,7 @@ import { MerchantStoreSelfService } from "@/components/merchant/MerchantStoreSel
 import { MerchantActivationChecklist } from "@/components/merchant/MerchantActivationChecklist";
 import { MerchantPlanUsage } from "@/components/merchant/MerchantPlanUsage";
 import { MerchantBillingProcessingNotice } from "@/components/merchant/MerchantBillingProcessingNotice";
+import { MerchantWorkspaceDetailsForm } from "@/components/merchant/MerchantWorkspaceDetailsForm";
 import type { MerchantBillablePlanCode } from "@/modules/merchant/domain/merchant-billing";
 
 type SkillCard = { name: string; purpose: string; url: string; prompt: string };
@@ -329,39 +330,7 @@ function WorkspaceDetails({
   initialName: string;
   initialWebsiteUrl?: string | null;
 }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState(initialName);
-  const [websiteUrl, setWebsiteUrl] = useState(initialWebsiteUrl ?? "");
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const save = async () => {
-    setBusy(true);
-    setMessage(null);
-    try {
-      const response = await fetch(`/api/merchant/${merchantId}/profile`, {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name, websiteUrl: websiteUrl || null }),
-      });
-      const body = (await response.json()) as {
-        data?: unknown;
-        error?: string;
-      };
-      if (!response.ok)
-        throw new Error(body.error || "Unable to save workspace details.");
-      setMessage("Saved");
-      router.refresh();
-    } catch (requestError) {
-      setMessage(
-        requestError instanceof Error
-          ? requestError.message
-          : "Unable to save workspace details.",
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
   return (
     <section className="rounded-2xl border border-slate-200 bg-white">
       <button
@@ -383,61 +352,14 @@ function WorkspaceDetails({
           aria-hidden="true"
         />
       </button>
-      {open ? (
-        <div className="border-t border-slate-100 px-5 py-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label
-                className="text-xs font-semibold text-slate-700"
-                htmlFor="workspace-name"
-              >
-                Brand or store name
-              </label>
-              <input
-                id="workspace-name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div>
-              <label
-                className="text-xs font-semibold text-slate-700"
-                htmlFor="workspace-website"
-              >
-                Website{" "}
-                <span className="font-normal text-slate-400">(optional)</span>
-              </label>
-              <input
-                id="workspace-website"
-                type="url"
-                value={websiteUrl}
-                onChange={(event) => setWebsiteUrl(event.target.value)}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                placeholder="https://your-store.example"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              disabled={busy || name.trim().length < 2}
-              className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 disabled:opacity-50`}
-              onClick={() => void save()}
-            >
-              {busy ? "Saving…" : "Save details"}
-            </button>
-            {message ? (
-              <span
-                className={`text-xs ${message === "Saved" ? "text-emerald-700" : "text-red-700"}`}
-                role="status"
-              >
-                {message}
-              </span>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+      <MerchantWorkspaceDetailsForm
+        id={`workspace-details-form-${merchantId}`}
+        hidden={!open}
+        merchantId={merchantId}
+        initialName={initialName}
+        initialWebsiteUrl={initialWebsiteUrl}
+        variant="compact"
+      />
     </section>
   );
 }
@@ -1743,5 +1665,4 @@ export function MerchantControlCenter(props: Props) {
 export {
   AgentAccess as MerchantAgentAccess,
   CommerceIntelligence as MerchantCommerceIntelligence,
-  WorkspaceDetails as MerchantWorkspaceDetails,
 };
