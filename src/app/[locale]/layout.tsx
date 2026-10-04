@@ -13,7 +13,8 @@
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
-import { Inter, Noto_Sans_Arabic } from 'next/font/google'
+import '@fontsource-variable/inter/wght.css'
+import '@fontsource-variable/noto-sans-arabic/wght.css'
 import { locales, localeDirections, type Locale } from '@/i18n'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 import { GoogleTagManager } from '@/components/analytics/GoogleTagManager'
@@ -23,24 +24,6 @@ import { Metadata } from 'next'
 import { ReactNode } from 'react'
 import { pickMessages } from '@/components/i18n/RouteMessagesProvider'
 import '../globals.css'
-
-// Inter: default font for Latin-script locales (en, id, de, es, pt, fr, ru)
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
-
-// Noto Sans Arabic: optimized font for Arabic locale
-// preload is disabled because the font is only needed on /ar pages;
-// next/font will still inline the @font-face and load on demand
-const notoSansArabic = Noto_Sans_Arabic({
-  subsets: ['arabic'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-arabic',
-  display: 'swap',
-  preload: false,
-})
 
 type Props = {
   children: ReactNode
@@ -94,14 +77,11 @@ export default async function LocaleLayout(props: Props) {
   return (
     <html lang={locale} dir={direction} suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://www.google-analytics.com" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
-      <body className={`${inter.variable} ${notoSansArabic.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         {analytics.mode === 'gtm' ? <GoogleTagManager gtmId={analytics.gtmId} /> : null}
         {analytics.mode === 'gtag' ? <GoogleAnalytics gaId={analytics.gaId} locale={locale} /> : null}
         <NextIntlClientProvider messages={clientMessages}>{children}</NextIntlClientProvider>

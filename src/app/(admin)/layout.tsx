@@ -10,15 +10,9 @@
  * affecting admin pages.
  */
 
-import { Inter } from 'next/font/google'
+import '@fontsource-variable/inter/wght.css'
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import '../globals.css'
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
 
 export default function AdminGroupLayout({
   children,
@@ -27,11 +21,7 @@ export default function AdminGroupLayout({
 }) {
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
-      <body className={inter.variable} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <SessionProvider>
           {children}
         </SessionProvider>
