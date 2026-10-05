@@ -110,6 +110,7 @@ export function MerchantStorePrivatePreview({
           showRuntimeCta={false}
           featuredFrameLimit={live ? 4 : null}
           compact={compact}
+          heroHeadingLevel={2}
         />
       </div>
     </section>

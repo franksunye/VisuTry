@@ -72,12 +72,16 @@ const frames = [{
   productBrand: 'ello',
 }]
 
-function renderShell(mode: 'ACTION_FIRST' | 'PRODUCT_FIRST' | 'EDITORIAL_FIRST') {
+function renderShell(mode: 'ACTION_FIRST' | 'PRODUCT_FIRST' | 'EDITORIAL_FIRST', experienceType: 'STORE' | 'CAMPAIGN' = 'CAMPAIGN') {
   const featuredFramesRef = { current: null as HTMLElement | null }
+  const shellMerchant: PresentationMerchant = {
+    ...merchant,
+    experience: merchant.experience ? { ...merchant.experience, type: experienceType } : null,
+  }
   return render(
     <ExperiencePresentationShell
       mode={mode}
-      merchant={merchant}
+      merchant={shellMerchant}
       accent="#1F4B5A"
       featuredFrames={frames}
       copy={copy}
@@ -92,6 +96,20 @@ function renderShell(mode: 'ACTION_FIRST' | 'PRODUCT_FIRST' | 'EDITORIAL_FIRST')
 }
 
 describe('ExperiencePresentationShell', () => {
+  it.each([
+    ['ACTION_FIRST', 'STORE'],
+    ['PRODUCT_FIRST', 'STORE'],
+    ['EDITORIAL_FIRST', 'STORE'],
+    ['ACTION_FIRST', 'CAMPAIGN'],
+    ['PRODUCT_FIRST', 'CAMPAIGN'],
+    ['EDITORIAL_FIRST', 'CAMPAIGN'],
+  ] as const)('%s %s presentation retains one primary hero H1 by default', (mode, experienceType) => {
+    renderShell(mode, experienceType)
+
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    expect(screen.getByRole('heading', { level: 1, name: 'Find smaller-face frames' })).toBeInTheDocument()
+  })
+
   it('renders the editorial hierarchy without system badges', () => {
     renderShell('EDITORIAL_FIRST')
     const shell = screen.getByRole('main')
@@ -163,5 +181,30 @@ describe('ExperiencePresentationShell', () => {
     expect(screen.getAllByRole('button', { name: /Explore the collection/i })).toHaveLength(1)
     expect(screen.queryByText('Privacy & photo retention')).not.toBeInTheDocument()
     expect(screen.queryByText('Expired photos are deleted.')).not.toBeInTheDocument()
+  })
+
+  it('supports an explicit subordinate hero heading for an embedded presentation', () => {
+    const featuredFramesRef = { current: null as HTMLElement | null }
+    render(
+      <ExperiencePresentationShell
+        mode="PRODUCT_FIRST"
+        merchant={merchant}
+        accent="#1F4B5A"
+        featuredFrames={frames}
+        copy={copy}
+        publicPocStorage={false}
+        sessionStarting={false}
+        errorMessage={null}
+        onStartRuntime={jest.fn()}
+        onShoppingCta={jest.fn()}
+        featuredFramesRef={featuredFramesRef}
+        showRuntimeCta={false}
+        compact
+        heroHeadingLevel={2}
+      />,
+    )
+
+    expect(screen.queryByRole('heading', { level: 1, name: 'Find smaller-face frames' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Find smaller-face frames' })).toBeInTheDocument()
   })
 })

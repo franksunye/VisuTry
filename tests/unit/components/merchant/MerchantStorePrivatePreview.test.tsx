@@ -23,7 +23,8 @@ describe('MerchantStorePrivatePreview', () => {
     expect(screen.getByRole('region', { name: 'Saved shopper-facing Store presentation' })).toBeInTheDocument()
     expect(screen.getByText('LIVE · saved state')).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('This preview shows the saved Store only. Unsaved changes are not shown.')
-    expect(screen.getByRole('heading', { name: 'Frames for everyday' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Frames for everyday' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 1, name: 'Frames for everyday' })).not.toBeInTheDocument()
     expect(screen.queryByRole('main')).not.toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Explore the collection' })).toHaveLength(1)
   })
@@ -33,6 +34,7 @@ describe('MerchantStorePrivatePreview', () => {
 
     expect(screen.getByTestId('store-draft-preview')).toHaveAttribute('aria-label', 'Private draft preview')
     expect(screen.getByText('DRAFT · not public')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Frames for everyday' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /start shopping/i })).not.toBeInTheDocument()
     expect(screen.getByText(/Private draft preview — no shopper session is started/i)).toBeInTheDocument()
   })

@@ -82,6 +82,7 @@ type ExperiencePresentationShellProps = {
   featuredFrameLimit?: number | null
   runtimeBlocked?: boolean
   compact?: boolean
+  heroHeadingLevel?: 1 | 2
 }
 
 function ExperienceHeroVisual({
@@ -319,11 +320,13 @@ export function ExperiencePresentationShell({
   featuredFrameLimit = 4,
   runtimeBlocked = false,
   compact = false,
+  heroHeadingLevel = 1,
 }: ExperiencePresentationShellProps) {
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const headline = merchant.experience?.headline || (isCampaign ? merchant.experience?.name : copy.storeHero) || copy.storeHero
   const description = merchant.experience?.description || copy.storeSubhead
   const PresentationRoot = compact ? 'div' : 'main'
+  const HeroHeading = heroHeadingLevel === 1 ? 'h1' : 'h2'
 
   if (mode === 'ACTION_FIRST') {
     return (
@@ -332,9 +335,9 @@ export function ExperiencePresentationShell({
         className={compact ? 'grid items-start gap-4 py-4' : 'grid items-start gap-8 py-8 lg:min-h-[calc(100vh-150px)] lg:grid-cols-[0.82fr_1.18fr] lg:gap-14 lg:py-12'}
       >
         <section className="max-w-xl">
-          <h1 className={`font-serif font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 ${compact ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'}`}>
+          <HeroHeading className={`font-serif font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 ${compact ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'}`}>
             {headline}
-          </h1>
+          </HeroHeading>
           <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">{description}</p>
           <div className="mt-6">
             <RuntimeCta
@@ -381,7 +384,7 @@ export function ExperiencePresentationShell({
     <PresentationRoot data-presentation-mode={mode} className={compact ? 'py-4' : 'py-8 sm:py-12'}>
       <section className={compact ? 'grid items-start gap-5 lg:grid-cols-1' : `grid items-center gap-8 ${isEditorial ? 'lg:grid-cols-[0.88fr_1.12fr]' : 'lg:grid-cols-[0.78fr_1.22fr]'}`}>
         <div>
-          <h1 className={`font-serif font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 ${compact ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'}`}>{headline}</h1>
+          <HeroHeading className={`font-serif font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 ${compact ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'}`}>{headline}</HeroHeading>
           <p className={`${compact ? 'mt-3 max-w-2xl text-sm leading-6' : 'mt-5 max-w-xl text-base leading-7 sm:text-lg'} text-slate-600`}>{description}</p>
           <div className="mt-6">
             <ShoppingCta copy={copy} mode={mode} onShoppingCta={onShoppingCta} />
