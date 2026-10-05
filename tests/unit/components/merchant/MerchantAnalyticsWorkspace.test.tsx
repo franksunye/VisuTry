@@ -71,7 +71,12 @@ describe('MerchantAnalyticsWorkspace', () => {
       topFrames: [{ frameId: 'frame-1', sku: 'VT-01', name: 'Aster Round Acetate', imageUrl: '/assets/aster.png', tryOnCount: 3, favoriteCount: 2, compareCount: 1, ctaCount: null, highIntentInteractions: 2, intentScore: 14 }],
       interpretation: { summary: 'Observed shopper signals are available.', evidence: ['Observed shopper signals are available.', 'The comparison is not reliable.'], nextAction: 'Ask Agent to analyze this Experience' },
     })} />)
-    expect(screen.getByRole('region', { name: 'Shopper outcome metrics' })).toBeInTheDocument()
+    const outcomeMetrics = screen.getByRole('region', { name: 'Shopper outcome metrics' })
+    expect(outcomeMetrics).toHaveClass('grid-cols-2', 'sm:grid-cols-4')
+    expect(within(outcomeMetrics).getByRole('heading', { name: 'High-intent shoppers' })).toHaveClass('line-clamp-2', 'sm:line-clamp-none', 'sm:truncate')
+    expect(within(outcomeMetrics).getByRole('heading', { name: 'Visitors' })).toBeInTheDocument()
+    expect(within(outcomeMetrics).getByRole('heading', { name: 'Engaged shoppers' })).toBeInTheDocument()
+    expect(within(outcomeMetrics).getByRole('heading', { name: 'Product clicks' })).toBeInTheDocument()
     const visitorCard = screen.getAllByRole('heading', { name: 'Visitors' })[0].closest('article') as HTMLElement
     expect(within(visitorCard).getByText('8')).toBeInTheDocument()
     expect(screen.getByText('No prior activity')).toBeInTheDocument()

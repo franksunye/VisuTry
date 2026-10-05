@@ -148,7 +148,7 @@ export function MerchantAnalyticsWorkspace({
           return <article key={metric.key} className="relative flex min-h-[102px] min-w-0 items-center gap-3 overflow-hidden rounded-2xl border border-slate-100/90 bg-white px-3 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.025)] sm:min-h-[110px] sm:gap-3.5 sm:px-4">
             <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 sm:h-10 sm:w-10"><Icon className="h-[17px] w-[17px]" /></span>
             <div className="relative z-10 min-w-0 pb-3 sm:pb-0">
-              <h2 className="truncate text-[11px] font-medium text-slate-600 sm:text-xs">{metric.label}</h2>
+              <h2 className="line-clamp-2 text-[11px] font-medium text-slate-600 sm:line-clamp-none sm:truncate sm:text-xs">{metric.label}</h2>
               <p className="mt-1 text-[25px] font-semibold leading-none tracking-[-0.04em] tabular-nums text-slate-950 sm:text-[27px]">{metric.value.toLocaleString(locale)}</p>
               <p className={`mt-1.5 truncate text-[10px] font-semibold tabular-nums sm:text-[11px] ${deltaTone}`} aria-label={comparisonCopy === 'Low volume · comparison withheld' ? comparisonCopy : undefined}>
                 {isComparable && delta !== 0 ? <span aria-hidden="true" className="mr-0.5">{delta! > 0 ? '↑' : '↓'}</span> : null}
