@@ -18,7 +18,7 @@ import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials-cloudflare'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
-import { createMerchantStore, getMerchantStoreWorkspace, importMerchantFrames, publishMerchantStore, setMerchantStoreFrames, updateMerchantFrame, updateMerchantStore } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+import { createMerchantStore, getMerchantCatalogWorkspace, getMerchantStoreWorkspace, importMerchantFrames, publishMerchantStore, setMerchantStoreFrames, updateMerchantFrame, updateMerchantStore } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
 import { createCampaignDraft, previewCampaign, publishCampaign, archiveCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
 import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
 
@@ -66,6 +66,33 @@ const activeLaunchPeriodEnd = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
 describe('Cloudflare direct-Neon merchant and experience writes', () => {
   afterEach(() => jest.clearAllMocks())
+
+  it('resolves an exact Catalog focus outside the visible page with tenant-scoped SQL and no writes', async () => {
+    const target = { ...activeFrame, id: 'frame-50', name: 'Frame outside first page' }
+    const sql = sqlMock([[activeFrame], [target]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await getMerchantCatalogWorkspace({ actor: { ...actor, scopes: [...actor.scopes, 'catalog:read'] }, limit: 50, frameId: target.id })
+
+    expect(result.items.map((item) => item.id)).toEqual(['frame-a'])
+    expect(result.focusedFrame).toMatchObject({ id: target.id, name: target.name })
+    const focusedQuery = sql.mock.calls.find((call) => String(call[0]?.join?.('') ?? '').includes('AND "id" ='))
+    expect(focusedQuery?.[1]).toBe('merchant-a')
+    expect(focusedQuery?.[2]).toBe('frame-50')
+    expect(sql.transaction).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the same ordinary Catalog result when a focused ID is absent or foreign', async () => {
+    const sql = sqlMock([[activeFrame], []])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await getMerchantCatalogWorkspace({ actor: { ...actor, scopes: [...actor.scopes, 'catalog:read'] }, frameId: 'foreign-frame' })
+
+    expect(result.items.map((item) => item.id)).toEqual(['frame-a'])
+    expect(result.focusedFrame).toBeNull()
+    expect(sql.mock.calls[1]?.[1]).toBe('merchant-a')
+    expect(sql.mock.calls[1]?.[2]).toBe('foreign-frame')
+  })
 
   it('creates one Store DRAFT idempotently inside a Serializable transaction', async () => {
     const sql = sqlMock([

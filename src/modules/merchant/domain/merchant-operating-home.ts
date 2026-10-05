@@ -18,6 +18,7 @@ export type MerchantOperatingHomeReadModel = {
     total: number
     ready: number
     issueCount: number
+    primaryIssueFrameId: string | null
   }
   campaigns: {
     total: number

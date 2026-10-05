@@ -21,7 +21,7 @@ type CatalogItem = {
   presentation: { state: PresentationState; label: string; issueSummary: string | null };
 };
 type CatalogSummary = { total: number; ready: number; needsReview: number; needsAttention: number };
-type WorkspaceData = { items: CatalogItem[]; nextCursor: string | null; summary: CatalogSummary };
+type WorkspaceData = { items: CatalogItem[]; nextCursor: string | null; summary: CatalogSummary; focusedFrame?: CatalogItem | null };
 type Filter = "all" | PresentationState;
 type EditValues = { sku: string; name: string; imageUrl: string; productUrl: string; shape: string; brand: string; price: string };
 
@@ -49,7 +49,7 @@ function stateClass(state: PresentationState) {
   return "bg-amber-50 text-amber-800";
 }
 
-export function MerchantCatalogWorkspace({ merchantId, locale }: { merchantId: string; locale: string }) {
+export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }: { merchantId: string; locale: string; initialFrameId?: string }) {
   const apiBase = `/api/merchant/${encodeURIComponent(merchantId)}/catalog`;
   const [workspace, setWorkspace] = useState<WorkspaceData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,29 +64,50 @@ export function MerchantCatalogWorkspace({ merchantId, locale }: { merchantId: s
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const cursorRef = useRef<string | null>(null);
+  const focusedFrameRef = useRef<HTMLElement | null>(null);
 
   const load = useCallback(async ({ append = false, query = "", readiness = "all" }: { append?: boolean; query?: string; readiness?: Filter } = {}) => {
+    const requestFocusId = !append && !query && readiness === "all" ? initialFrameId : undefined;
     if (append) setLoadingMore(true);
-    else setLoading(true);
+    else {
+      setLoading(true);
+      setWorkspace((current) => current && current.focusedFrame?.id !== requestFocusId
+        ? { ...current, focusedFrame: null }
+        : current);
+    }
     setError(null);
     try {
       const params = new URLSearchParams({ limit: "50", readiness });
       if (query) params.set("search", query);
       if (append && cursorRef.current) params.set("cursor", cursorRef.current);
+      if (requestFocusId) params.set("frameId", requestFocusId);
       const response = await fetch(`${apiBase}?${params.toString()}`, { cache: "no-store" });
       const body = await response.json() as { success?: boolean; data?: WorkspaceData; message?: string };
       if (!response.ok || !body.success || !body.data) throw new Error(body.message || "Unable to load Catalog.");
       cursorRef.current = body.data.nextCursor;
-      setWorkspace((current) => append && current ? { ...body.data!, items: [...current.items, ...body.data!.items] } : body.data!);
+      setWorkspace((current) => append && current
+        ? {
+            ...body.data!,
+            items: [...current.items, ...body.data!.items.filter((item) => !current.items.some((existing) => existing.id === item.id))],
+            focusedFrame: body.data!.focusedFrame ?? current.focusedFrame ?? null,
+          }
+        : body.data!);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to load Catalog.");
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [apiBase]);
+  }, [apiBase, initialFrameId]);
 
   useEffect(() => { void load(); }, [load]);
+
+  const focusedFrameId = workspace?.focusedFrame?.id
+  useEffect(() => {
+    if (!loading && focusedFrameId) {
+      focusedFrameRef.current?.scrollIntoView?.({ block: "center" });
+    }
+  }, [loading, focusedFrameId]);
 
   const summary = workspace?.summary ?? { total: 0, ready: 0, needsReview: 0, needsAttention: 0 };
   const healthMetrics: Array<{ label: string; value: number; Icon: LucideIcon; cardTone: string; iconTone: string }> = [
@@ -96,6 +117,11 @@ export function MerchantCatalogWorkspace({ merchantId, locale }: { merchantId: s
     { label: "Needs attention", value: summary.needsAttention, Icon: AlertCircle, cardTone: "border-amber-100 bg-amber-50/40", iconTone: "bg-amber-50 text-amber-700" },
   ];
   const hasNoProducts = !loading && summary.total === 0;
+  const resourceItems = workspace
+    ? workspace.focusedFrame
+      ? [workspace.focusedFrame, ...workspace.items.filter((item) => item.id !== workspace.focusedFrame?.id)]
+      : workspace.items
+    : [];
   const updateSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const query = search.trim();
@@ -183,13 +209,22 @@ export function MerchantCatalogWorkspace({ merchantId, locale }: { merchantId: s
     {hasNoProducts ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center"><h2 className="text-lg font-semibold text-slate-950">Your Catalog is empty</h2><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">Add one product to make it available for your Store.</p><button type="button" onClick={() => setIntakeOpen(true)} className={`${buttonClass} mt-5 bg-slate-950 text-white hover:bg-slate-800`}><FilePlus2 className="h-4 w-4" aria-hidden="true" /> Add your first product</button></div> : null}
     {!loading && !hasNoProducts && workspace?.items.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center"><h2 className="text-lg font-semibold text-slate-950">No products match this view</h2><p className="mt-2 text-sm text-slate-600">Try another search or readiness filter.</p></div> : null}
 
-    {workspace && workspace.items.length > 0 ? <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-      <div className="divide-y divide-slate-100">
-      {workspace.items.map((item) => <article key={item.id} className="grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-3 py-3.5 sm:grid-cols-[56px_minmax(0,1.4fr)_minmax(190px,0.9fr)_auto] sm:gap-x-4 sm:px-4 sm:py-3">
+      {workspace && resourceItems.length > 0 ? <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div className="divide-y divide-slate-100">
+      {resourceItems.map((item) => {
+        const focused = item.id === workspace.focusedFrame?.id
+        return <article
+          key={item.id}
+          id={`merchant-catalog-frame-${item.id}`}
+          ref={focused ? focusedFrameRef : undefined}
+          data-focused-frame={focused ? "true" : undefined}
+          aria-label={focused ? `Focused product ${item.name}` : undefined}
+          className={`grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-3 py-3.5 sm:grid-cols-[56px_minmax(0,1.4fr)_minmax(190px,0.9fr)_auto] sm:gap-x-4 sm:px-4 sm:py-3 ${focused ? "bg-blue-50/50 ring-1 ring-inset ring-blue-200" : ""}`}
+        >
         <div className="col-start-1 row-span-2 row-start-1 h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50/80 p-1.5 sm:row-span-1 sm:h-14 sm:w-14">{item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-contain" /> : null}</div>
-        <div className="col-start-2 row-start-1 min-w-0"><h2 title={item.name} className="truncate text-sm font-semibold tracking-tight text-slate-950">{item.name}</h2><p title={`${item.sku || item.productUrl || "Stable product identity"}${item.brand ? ` · ${item.brand}` : ""}${priceLabel(item) ? ` · ${priceLabel(item)}` : ""}`} className="mt-0.5 truncate text-xs text-slate-500">{item.sku || item.productUrl || "Stable product identity"}{item.brand ? ` · ${item.brand}` : ""}{priceLabel(item) ? ` · ${priceLabel(item)}` : ""}</p></div>
+        <div className="col-start-2 row-start-1 min-w-0"><h2 title={item.name} className="truncate text-sm font-semibold tracking-tight text-slate-950">{focused ? <><span className="sr-only">Focused product: </span>{item.name}</> : item.name}</h2><p title={`${item.sku || item.productUrl || "Stable product identity"}${item.brand ? ` · ${item.brand}` : ""}${priceLabel(item) ? ` · ${priceLabel(item)}` : ""}`} className="mt-0.5 truncate text-xs text-slate-500">{item.sku || item.productUrl || "Stable product identity"}{item.brand ? ` · ${item.brand}` : ""}{priceLabel(item) ? ` · ${priceLabel(item)}` : ""}</p></div>
         <div className="col-start-2 row-start-2 flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] sm:col-start-3 sm:row-start-1"><span className={`rounded-full px-2 py-1 font-semibold ${stateClass(item.presentation.state)}`}>{item.presentation.label}</span>{item.source ? <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">{item.source === "EXTERNAL" ? "Website" : item.source}</span> : null}{item.presentation.issueSummary ? <span className="text-amber-800">{item.presentation.issueSummary}</span> : null}</div>
-        <button type="button" onClick={() => startEditing(item)} className={`${buttonClass} col-start-3 row-start-1 min-h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 hover:bg-slate-50 sm:col-start-4 sm:px-3 sm:text-sm`}><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button>
+        <button type="button" onClick={() => startEditing(item)} className={`${buttonClass} col-start-3 row-start-1 ${focused ? "min-h-11" : "min-h-9"} rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 hover:bg-slate-50 sm:col-start-4 sm:px-3 sm:text-sm`}><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button>
       {editing?.id === item.id && edit ? (
         <div className="col-span-full border-t border-slate-100 pt-4">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -208,7 +243,8 @@ export function MerchantCatalogWorkspace({ merchantId, locale }: { merchantId: s
           </div>
         </div>
       ) : null}
-      </article>)}
+      </article>
+      })}
       </div>
       {workspace.nextCursor ? <div className="border-t border-slate-100 px-3 py-2"><button type="button" disabled={loadingMore} onClick={() => void load({ append: true, query: appliedSearch, readiness: filter })} className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50">{loadingMore ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />} Load more products</button></div> : null}
     </div> : null}

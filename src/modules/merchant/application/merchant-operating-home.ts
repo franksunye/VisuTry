@@ -5,6 +5,7 @@ import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/
 import { commercialStateForPresentation } from '@/modules/store/domain/merchant-commercial-state'
 import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
+import { selectPrimaryMerchantCatalogIssueFrameId } from '../domain/merchant-catalog-presentation'
 import type { MerchantOperatingHomeReadModel } from '../domain/merchant-operating-home'
 
 type HomeFrame = {
@@ -82,7 +83,9 @@ export async function getMerchantOperatingHome(input: { merchantId: string }): P
     getMerchantCommercialState({ merchantId: input.merchantId }),
   ])
 
-  const catalogReadiness = (catalogFrames as HomeFrame[]).map((frame) => validateMerchantFrameReadiness(frame))
+  const homeFrames = catalogFrames as HomeFrame[]
+  const catalogReadiness = homeFrames.map((frame) => validateMerchantFrameReadiness(frame))
+  const primaryIssueFrameId = selectPrimaryMerchantCatalogIssueFrameId(homeFrames)
   const store = experiences.find((experience) => experience.type === 'STORE')
   const storeFrames = store?.frames.map(({ merchantFrame }) => merchantFrame as HomeFrame) ?? []
   const storeChecks = storeFrames.map((frame) => validateMerchantFrameStoreReadiness(frame))
@@ -124,6 +127,7 @@ export async function getMerchantOperatingHome(input: { merchantId: string }): P
       total: catalogFrames.length,
       ready: catalogReadiness.filter((readiness) => readiness.recommendationReady).length,
       issueCount: catalogReadiness.filter((readiness) => !readiness.recommendationReady).length,
+      primaryIssueFrameId,
     },
     campaigns: {
       total: campaigns.length,

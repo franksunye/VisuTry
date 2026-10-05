@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { merchantCampaignHref, merchantWorkspaceHref } from '@/modules/merchant/application/merchant-workspace-routes'
 import { Area, AreaChart, CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartContainer, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart'
 import type { MerchantDecisionTrendBucket } from '@/modules/merchant/application/merchant-commerce-intelligence'
@@ -215,6 +216,7 @@ export function MerchantExperiencePerformanceChart({
   experiences,
   performance,
   locale,
+  merchantId,
 }: {
   experiences: Array<{
     id: string
@@ -228,6 +230,7 @@ export function MerchantExperiencePerformanceChart({
   }>
   performance: MerchantExperiencePerformance
   locale: string
+  merchantId: string
 }) {
   const maxVisitors = Math.max(1, ...experiences.map((experience) => experience.visitors))
   const referenceIncluded = experiences.some((experience) => experience.referenceData)
@@ -257,7 +260,13 @@ export function MerchantExperiencePerformanceChart({
             {performance.reliable && performance.topExperienceId === experience.id && topMetricLabel ? <span aria-hidden="true" className="absolute bottom-3 left-0 top-3 w-0.5 rounded-full bg-blue-600" /> : null}
             <div className="flex min-w-0 items-center justify-between gap-3 pl-2 md:pl-0">
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold tracking-tight text-slate-950">{experience.name}</p>
+                {experience.type === 'CAMPAIGN'
+                  ? <Link
+                      href={merchantCampaignHref({ locale, merchantId, campaignId: experience.id })}
+                      aria-label={`Open ${experience.name}`}
+                      className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-sm text-left text-sm font-semibold tracking-tight text-slate-950 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    ><span className="truncate">{experience.name}</span><span aria-hidden="true" className="shrink-0 text-blue-600">→</span></Link>
+                  : <p className="truncate text-sm font-semibold tracking-tight text-slate-950">{experience.name}</p>}
                 <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[10px] leading-4 text-slate-500">
                   <span>{experience.type === 'CAMPAIGN' ? 'Campaign' : 'Store'}</span>
                   <span aria-hidden="true" className="text-slate-300">·</span>
@@ -285,7 +294,7 @@ export function MerchantExperiencePerformanceChart({
   </div>
 }
 
-export function MerchantTopFramesInterest({ frames, locale, viewAllHref }: { frames: MerchantAnalyticsTopFrame[]; locale: string; viewAllHref?: string }) {
+export function MerchantTopFramesInterest({ frames, locale, merchantId, viewAllHref }: { frames: MerchantAnalyticsTopFrame[]; locale: string; merchantId?: string; viewAllHref?: string }) {
   return <section data-testid="analytics-top-frames" aria-labelledby="top-frames-interest-heading" className="min-w-0 rounded-2xl border border-slate-100 bg-white p-4 sm:p-5">
     <div className="mb-3 flex items-center justify-between gap-2">
       <h2 id="top-frames-interest-heading" className="text-base font-semibold tracking-tight text-slate-950">Top frames driving interest</h2>
@@ -307,7 +316,9 @@ export function MerchantTopFramesInterest({ frames, locale, viewAllHref }: { fra
             {frame.imageUrl ? <Image src={frame.imageUrl} alt="" fill sizes="(min-width: 1280px) 170px, 150px" unoptimized className="object-contain p-2" /> : <span className="flex h-full items-center justify-center text-[10px] text-slate-400">Frame</span>}
           </div>
           <div className="px-2.5 pb-2.5 pt-2">
-            <h3 aria-label={frame.name} title={frame.name} className="truncate text-sm font-semibold text-slate-900">{displayName}</h3>
+            <h3 aria-label={frame.name} title={frame.name} className="truncate text-sm font-semibold text-slate-900">{merchantId
+              ? <Link href={merchantWorkspaceHref({ locale, section: 'catalog', merchantId, frameId: frame.frameId })} aria-label={`Open ${frame.name} in Catalog`} className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-sm hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"><span className="truncate">{displayName}</span><span aria-hidden="true" className="shrink-0 text-blue-600">→</span></Link>
+              : displayName}</h3>
             {frame.sku ? <p className="sr-only">SKU {frame.sku}</p> : null}
             <ul aria-label={`${frame.name} observed signals`} className="mt-2 grid grid-cols-2 gap-x-2">
               {signals.map((signal) => <li key={signal.label} className="min-w-0">

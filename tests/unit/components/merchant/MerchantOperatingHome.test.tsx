@@ -6,7 +6,7 @@ function home(overrides: Partial<MerchantOperatingHomeReadModel> = {}): Merchant
   return {
     merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', referenceData: false },
     store: { exists: true, status: 'DRAFT', selectedProductCount: 1, eligibleProductCount: 1, readiness: 'READY' },
-    catalog: { total: 1, ready: 1, issueCount: 0 },
+    catalog: { total: 1, ready: 1, issueCount: 0, primaryIssueFrameId: null },
     campaigns: { total: 0, active: 0, draft: 0, archived: 0, needsAttention: 0 },
     shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 0 }], decisionTrend: [] },
     commercial: { status: 'FREE', planName: 'Free', threshold: null, attention: false },
@@ -38,9 +38,25 @@ describe('MerchantOperatingHome', () => {
   })
 
   it('surfaces Catalog attention before Store work', () => {
-    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({ catalog: { total: 2, ready: 1, issueCount: 1 } })} />)
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({ catalog: { total: 2, ready: 1, issueCount: 1, primaryIssueFrameId: 'frame-1' } })} />)
     expect(screen.getAllByRole('link', { name: 'Review Catalog' })).toHaveLength(2)
     expect(screen.getByText('Catalog needs review')).toBeInTheDocument()
+  })
+
+  it('carries a deterministic Catalog issue ID only on Catalog actions and falls back when unavailable', () => {
+    const { rerender } = render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({
+      store: { exists: true, status: 'ACTIVE', selectedProductCount: 1, eligibleProductCount: 1, readiness: 'READY' },
+      catalog: { total: 2, ready: 1, issueCount: 1, primaryIssueFrameId: 'frame-issue' },
+    })} />)
+
+    expect(screen.getAllByRole('link', { name: 'Review Catalog' }).every((link) => link.getAttribute('href') === '/en/merchant/catalog?merchantId=merchant-a&frameId=frame-issue')).toBe(true)
+    expect(within(screen.getByRole('region', { name: 'Needs attention' })).getByRole('link', { name: 'Review Catalog' })).toHaveClass('min-h-11', 'focus-visible:ring-2')
+    expect(screen.getByRole('link', { name: 'Manage Catalog' })).toHaveAttribute('href', '/en/merchant/catalog?merchantId=merchant-a')
+
+    rerender(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({
+      catalog: { total: 2, ready: 1, issueCount: 1, primaryIssueFrameId: null },
+    })} />)
+    expect(screen.getAllByRole('link', { name: 'Review Catalog' }).every((link) => link.getAttribute('href') === '/en/merchant/catalog?merchantId=merchant-a')).toBe(true)
   })
 
   it('shows real shopper outcomes and routes to Analytics', () => {

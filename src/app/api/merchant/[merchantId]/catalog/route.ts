@@ -19,9 +19,11 @@ export async function GET(request: NextRequest, { params }: { params: { merchant
     const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 100) : 50
     const cursor = request.nextUrl.searchParams.get('cursor') ?? undefined
     const search = request.nextUrl.searchParams.get('search')?.trim() || undefined
+    const rawFrameId = request.nextUrl.searchParams.get('frameId')?.trim()
+    const frameId = rawFrameId && rawFrameId.length <= 120 ? rawFrameId : undefined
     const readinessValue = request.nextUrl.searchParams.get('readiness')
     const readiness = readinessValue === 'all' || readinessValue === 'READY' || readinessValue === 'NEEDS_REVIEW' || readinessValue === 'NEEDS_ATTENTION' ? readinessValue : undefined
-    const data = await listMerchantFrames({ actor: actorFor(auth.userId, params.merchantId, membership.membershipId), cursor, limit, search, readiness: readiness ?? undefined })
+    const data = await listMerchantFrames({ actor: actorFor(auth.userId, params.merchantId, membership.membershipId), cursor, limit, search, readiness: readiness ?? undefined, frameId })
     return NextResponse.json({ success: true, data })
   } catch (error) {
     return catalogErrorResponse(error)

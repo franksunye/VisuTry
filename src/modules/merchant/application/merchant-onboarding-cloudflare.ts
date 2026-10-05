@@ -241,6 +241,7 @@ type CatalogWorkspaceQuery = {
   limit?: number
   search?: string
   readiness?: 'all' | MerchantCatalogPresentationState
+  frameId?: string
 }
 
 function matchesCatalogSearch(frame: ReturnType<typeof mapFrame>, search?: string) {
@@ -259,6 +260,10 @@ export async function getMerchantCatalogWorkspace(input: CatalogWorkspaceQuery) 
   const sql = getCloudflareSql()
   const rows = await sql`SELECT * FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId} ORDER BY "id" ASC`
   const allItems = rows.map(mapFrame)
+  const focusedRows = input.frameId
+    ? await sql`SELECT * FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId} AND "id" = ${input.frameId} LIMIT 1`
+    : []
+  const focusedFrame = focusedRows[0] ? mapFrame(focusedRows[0] as Row) : null
   const summary = {
     total: allItems.length,
     ready: allItems.filter((item) => item.presentation.state === 'READY').length,
@@ -269,7 +274,7 @@ export async function getMerchantCatalogWorkspace(input: CatalogWorkspaceQuery) 
     .filter((item) => !input.readiness || input.readiness === 'all' || item.presentation.state === input.readiness)
   const start = input.cursor ? Math.max(filtered.findIndex((item) => item.id === input.cursor) + 1, 0) : 0
   const items = filtered.slice(start, start + limit)
-  return { items, nextCursor: start + limit < filtered.length ? items.at(-1)?.id ?? null : null, summary }
+  return { items, nextCursor: start + limit < filtered.length ? items.at(-1)?.id ?? null : null, summary, focusedFrame }
 }
 
 export async function listMerchantFrames(input: CatalogWorkspaceQuery) {

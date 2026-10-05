@@ -183,7 +183,12 @@ export function MerchantAnalyticsWorkspace({
       </section>
 
       <section aria-label="Shopper intelligence details" className="grid min-w-0 gap-3 lg:grid-cols-2 xl:grid-cols-[minmax(0,1.35fr)_minmax(250px,0.9fr)_minmax(0,1fr)]">
-        <MerchantTopFramesInterest frames={insights.topFrames} locale={locale} viewAllHref={href('catalog')} />
+        <MerchantTopFramesInterest
+          frames={insights.topFrames}
+          locale={locale}
+          merchantId={merchantId}
+          viewAllHref={href('catalog')}
+        />
         <MerchantLivePulse merchantId={merchantId} variant="analytics" />
 
         <section data-testid="analytics-intent-sources" aria-label="Intent signals at a glance" aria-labelledby="intent-signals-heading" className="min-w-0 rounded-2xl border border-slate-100 bg-white p-4 sm:p-5">
@@ -220,7 +225,7 @@ export function MerchantAnalyticsWorkspace({
             <Link href={href('campaigns')} className="text-xs font-semibold text-blue-700 hover:text-blue-900">Campaigns</Link>
           </div>
         </div>
-        <MerchantExperiencePerformanceChart experiences={insights.experiences} performance={insights.experiencePerformance} locale={locale} />
+        <MerchantExperiencePerformanceChart experiences={insights.experiences} performance={insights.experiencePerformance} locale={locale} merchantId={merchantId} />
         {insights.interpretation.summary ? <details className="group mt-3 border-t border-slate-100 pt-2.5">
           <summary className="cursor-pointer list-none text-xs font-medium text-slate-500 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 [&::-webkit-details-marker]:hidden">Read decision insight<span aria-hidden="true" className="ml-1.5 inline-block transition-transform group-open:rotate-180">⌄</span></summary>
           <p className="mt-2 text-xs leading-5 text-slate-600">{insights.interpretation.summary}</p>

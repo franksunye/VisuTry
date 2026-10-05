@@ -40,3 +40,18 @@ export function resolveMerchantCatalogPresentation(frame: MerchantFrameReadiness
   return { state, label, issueCodes, issueSummary, readiness }
 }
 
+/** Select one issue target consistently for contextual merchant links. */
+export function selectPrimaryMerchantCatalogIssueFrameId(
+  frames: readonly (MerchantFrameReadinessInput & { id: string })[],
+): string | null {
+  const priority: Record<MerchantCatalogPresentationState, number> = {
+    NEEDS_ATTENTION: 0,
+    NEEDS_REVIEW: 1,
+    READY: 2,
+  }
+  const issues = frames
+    .map((frame) => ({ id: frame.id, state: resolveMerchantCatalogPresentation(frame).state }))
+    .filter((frame) => frame.state !== 'READY')
+    .sort((left, right) => priority[left.state] - priority[right.state] || (left.id < right.id ? -1 : left.id > right.id ? 1 : 0))
+  return issues[0]?.id ?? null
+}
