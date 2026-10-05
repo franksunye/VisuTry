@@ -160,6 +160,7 @@ type CatalogWorkspaceQuery = {
   limit?: number
   search?: string
   readiness?: 'all' | MerchantCatalogPresentationState
+  frameId?: string
 }
 
 function matchesCatalogSearch(frame: ReturnType<typeof publicFrame>, search?: string) {
@@ -180,6 +181,10 @@ export async function getMerchantCatalogWorkspace(input: CatalogWorkspaceQuery) 
     orderBy: { id: 'asc' },
   })
   const allItems = rows.map(publicFrame)
+  const focusedRow = input.frameId
+    ? await prisma.merchantFrame.findFirst({ where: { id: input.frameId, merchantId: input.actor.merchantId } })
+    : null
+  const focusedFrame = focusedRow ? publicFrame(focusedRow) : null
   const summary = {
     total: allItems.length,
     ready: allItems.filter((item) => item.presentation.state === 'READY').length,
@@ -190,7 +195,7 @@ export async function getMerchantCatalogWorkspace(input: CatalogWorkspaceQuery) 
     .filter((item) => !input.readiness || input.readiness === 'all' || item.presentation.state === input.readiness)
   const start = input.cursor ? Math.max(filtered.findIndex((item) => item.id === input.cursor) + 1, 0) : 0
   const items = filtered.slice(start, start + limit)
-  return { items, nextCursor: start + limit < filtered.length ? items.at(-1)?.id ?? null : null, summary }
+  return { items, nextCursor: start + limit < filtered.length ? items.at(-1)?.id ?? null : null, summary, focusedFrame }
 }
 
 export async function listMerchantFrames(input: CatalogWorkspaceQuery) {

@@ -102,6 +102,7 @@ describe('MerchantAnalyticsWorkspace', () => {
     expect(screen.getByRole('heading', { name: 'Top frames driving interest' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Aster Round Acetate' })).toBeInTheDocument()
     const topFrame = screen.getByRole('heading', { name: 'Aster Round Acetate' }).closest('li') as HTMLElement
+    expect(screen.getByRole('link', { name: 'Open Aster Round Acetate in Catalog' })).toHaveAttribute('href', '/en-GB/merchant/catalog?merchantId=merchant-a&frameId=frame-1')
     expect(within(topFrame).getByText('3')).toBeInTheDocument()
     expect(within(topFrame).getByText('Try-Ons')).toBeInTheDocument()
     expect(within(topFrame).getByText('Favorites')).toBeInTheDocument()
@@ -114,6 +115,8 @@ describe('MerchantAnalyticsWorkspace', () => {
     expect(within(intentMetrics).getByText('5')).toBeInTheDocument()
     expect(within(intentMetrics).getByText('Inquiries')).toBeInTheDocument()
     expect(within(intentMetrics).getByText('1')).toBeInTheDocument()
+    expect(intentSignals.querySelectorAll('a')).toHaveLength(0)
+    expect(within(decisionPath).queryByRole('link')).not.toBeInTheDocument()
     expect(screen.queryByText(/Ask Agent/)).not.toBeInTheDocument()
     expect(screen.getByText('Observed shopper actions only; no purchase or revenue attribution.')).toBeInTheDocument()
     expect(screen.queryByText(/ROAS|conversion rate|attributed sales/i)).not.toBeInTheDocument()
@@ -133,12 +136,14 @@ describe('MerchantAnalyticsWorkspace', () => {
     expect(within(experience).getByText(/Live/)).toBeInTheDocument()
     expect(within(experience).getByText('High intent lead')).toBeInTheDocument()
     expect(within(experience).getByRole('img', { name: '5 of 5 visitors on the relative count scale' })).toBeInTheDocument()
+    expect(within(experience).getByRole('link', { name: 'Open Summer frames' })).toHaveAttribute('href', '/en/merchant/campaigns/campaign-1?merchantId=merchant-a')
     expect(screen.queryByText(/led on .* in this window/)).not.toBeInTheDocument()
   })
 
   it('keeps the quiet row insight limited to reliable metrics displayed in the module', () => {
     render(<MerchantExperiencePerformanceChart
       locale="en"
+      merchantId="merchant-a"
       experiences={[
         { id: 'store-a', type: 'STORE', name: 'Flagship Store', status: 'ACTIVE', referenceData: false, visitors: 8, highIntentShoppers: 2, productClicks: 5 },
         { id: 'campaign-b', type: 'CAMPAIGN', name: 'Summer Campaign', status: 'DRAFT', referenceData: false, visitors: 4, highIntentShoppers: 1, productClicks: 2 },
@@ -150,6 +155,8 @@ describe('MerchantAnalyticsWorkspace', () => {
     expect(within(leader).getByText('Product clicks lead')).toBeInTheDocument()
     expect(within(leader).getByText('5')).toHaveClass('text-blue-700')
     expect(within(leader).getByRole('img', { name: '8 of 8 visitors on the relative count scale' })).toBeInTheDocument()
+    expect(within(leader).queryByRole('link')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open Summer Campaign' })).toHaveAttribute('href', '/en/merchant/campaigns/campaign-b?merchantId=merchant-a')
     expect(screen.queryByText('High intent lead')).not.toBeInTheDocument()
   })
 })

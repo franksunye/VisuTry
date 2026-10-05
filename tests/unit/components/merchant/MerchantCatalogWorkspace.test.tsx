@@ -12,7 +12,7 @@ const item = {
 }
 
 function response() {
-  return { success: true, data: { items: [item], nextCursor: null, summary: { total: 2, ready: 1, needsReview: 1, needsAttention: 0 } } }
+  return { success: true, data: { items: [item], nextCursor: null, summary: { total: 2, ready: 1, needsReview: 1, needsAttention: 0 }, focusedFrame: null } }
 }
 
 describe('MerchantCatalogWorkspace', () => {
@@ -78,5 +78,54 @@ describe('MerchantCatalogWorkspace', () => {
         body: expect.stringContaining('14550'),
       }),
     ))
+  })
+
+  it('resolves a contextual frame outside the first page, focuses it, and waits for explicit Edit', async () => {
+    const focused = { ...item, id: 'frame-51', name: 'Frame outside first 50' }
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ...response(), data: { ...response().data, focusedFrame: focused } }),
+    }) as jest.Mock
+
+    render(<MerchantCatalogWorkspace merchantId="merchant-a" locale="en" initialFrameId="frame-51" />)
+
+    const row = await screen.findByRole('article', { name: 'Focused product Frame outside first 50' })
+    expect(row).toHaveAttribute('id', 'merchant-catalog-frame-frame-51')
+    expect(row).toHaveAttribute('data-focused-frame', 'true')
+    expect(within(row).getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('frameId=frame-51'), expect.objectContaining({ cache: 'no-store' }))
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+    expect(global.fetch).not.toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ method: 'PATCH' }))
+  })
+
+  it('stops pinning the contextual frame when the merchant changes the active filter', async () => {
+    const focused = { ...item, id: 'frame-51', name: 'Frame outside first 50' }
+    let resolveFilteredResponse: ((value: { ok: boolean; json: () => Promise<ReturnType<typeof response>> }) => void) | undefined
+    const filteredResponse = new Promise<{ ok: boolean; json: () => Promise<ReturnType<typeof response>> }>((resolve) => {
+      resolveFilteredResponse = resolve
+    })
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ ...response(), data: { ...response().data, focusedFrame: focused } }) })
+      .mockReturnValueOnce(filteredResponse) as jest.Mock
+
+    render(<MerchantCatalogWorkspace merchantId="merchant-a" locale="en" initialFrameId="frame-51" />)
+    expect(await screen.findByRole('article', { name: 'Focused product Frame outside first 50' })).toBeInTheDocument()
+    fireEvent.change(screen.getByRole('combobox', { name: 'Filter catalog readiness' }), { target: { value: 'NEEDS_REVIEW' } })
+
+    expect(screen.queryByLabelText('Focused product Frame outside first 50')).not.toBeInTheDocument()
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2))
+    const fetchMock = global.fetch as jest.Mock
+    expect(fetchMock.mock.calls[0][0]).toContain('frameId=frame-51')
+    expect(fetchMock.mock.calls[1][0]).not.toContain('frameId=frame-51')
+    resolveFilteredResponse?.({ ok: true, json: async () => response() })
+    await waitFor(() => expect(screen.queryByLabelText('Focused product Frame outside first 50')).not.toBeInTheDocument())
+  })
+
+  it('uses the ordinary Catalog list for a missing or foreign focused frame', async () => {
+    render(<MerchantCatalogWorkspace merchantId="merchant-a" locale="en" initialFrameId="not-owned-here" />)
+
+    expect(await screen.findByText('Far beyond the first page')).toBeInTheDocument()
+    expect(screen.queryByLabelText(/Focused product/)).not.toBeInTheDocument()
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('frameId=not-owned-here'), expect.objectContaining({ cache: 'no-store' }))
   })
 })

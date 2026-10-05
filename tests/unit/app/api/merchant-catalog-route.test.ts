@@ -66,6 +66,17 @@ describe('Human merchant catalog route', () => {
     expect(mockList).toHaveBeenCalledWith(expect.objectContaining({ actor: expect.objectContaining({ merchantId: 'merchant-a' }), limit: 50, cursor: 'frame-0' }))
   })
 
+  it('passes an optional exact frame ID through the existing membership-checked GET path', async () => {
+    const response = await GET(new NextRequest('http://localhost/api/merchant/merchant-a/catalog?frameId=frame-51'), { params: { merchantId: 'merchant-a' } })
+
+    expect(response.status).toBe(200)
+    expect(mockMembership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
+    expect(mockList).toHaveBeenCalledWith(expect.objectContaining({
+      actor: expect.objectContaining({ merchantId: 'merchant-a', membershipId: 'membership-a' }),
+      frameId: 'frame-51',
+    }))
+  })
+
   it('updates one tenant-owned resource by frame id without requiring SKU', async () => {
     const response = await PATCH(request({ frame: { name: 'Corrected frame', imageUrl: 'https://cdn.example.test/a.jpg', productUrl: 'https://shop.example.test/a' } }, 'PATCH'), { params: { merchantId: 'merchant-a', frameId: 'frame-a' } })
     expect(response.status).toBe(200)

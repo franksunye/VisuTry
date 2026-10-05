@@ -70,7 +70,7 @@ describe('Merchant workspace authorization', () => {
     operatingHome.mockResolvedValue({
       merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha' },
       store: { exists: true, status: 'DRAFT', selectedProductCount: 1, eligibleProductCount: 1, readiness: 'READY' },
-      catalog: { total: 1, ready: 1, issueCount: 0 },
+      catalog: { total: 1, ready: 1, issueCount: 0, primaryIssueFrameId: null },
       campaigns: { total: 0, active: 0, draft: 0, archived: 0, needsAttention: 0 },
       shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [] },
       commercial: { status: 'FREE', planName: 'Free', threshold: null, attention: false },

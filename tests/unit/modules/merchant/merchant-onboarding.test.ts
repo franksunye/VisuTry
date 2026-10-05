@@ -59,6 +59,29 @@ describe('merchant onboarding catalog validation', () => {
     expect(result.nextCursor).toBeNull()
   })
 
+  it('resolves a focused frame outside the first page under the selected merchant', async () => {
+    const rows = Array.from({ length: 51 }, (_, index) => frame(`frame-${String(index).padStart(2, '0')}`))
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue(rows)
+    ;(prisma.merchantFrame.findFirst as jest.Mock).mockResolvedValue(frame('frame-50', { name: 'Frame outside first page' }))
+
+    const result = await merchantOnboarding.getMerchantCatalogWorkspace({ actor: { ...actor, scopes: ['catalog:read'] }, limit: 50, frameId: 'frame-50' })
+
+    expect(result.items).toHaveLength(50)
+    expect(result.focusedFrame).toMatchObject({ id: 'frame-50', name: 'Frame outside first page' })
+    expect(prisma.merchantFrame.findFirst).toHaveBeenCalledWith({ where: { id: 'frame-50', merchantId: 'merchant-a' } })
+  })
+
+  it('returns the same ordinary-list fallback for an absent or foreign focused frame', async () => {
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-local')])
+    ;(prisma.merchantFrame.findFirst as jest.Mock).mockResolvedValue(null)
+
+    const result = await merchantOnboarding.getMerchantCatalogWorkspace({ actor: { ...actor, scopes: ['catalog:read'] }, frameId: 'foreign-frame' })
+
+    expect(result.focusedFrame).toBeNull()
+    expect(result.items.map((item) => item.id)).toEqual(['frame-local'])
+    expect(prisma.merchantFrame.findFirst).toHaveBeenCalledWith({ where: { id: 'foreign-frame', merchantId: 'merchant-a' } })
+  })
+
   it('updates a Catalog resource by id without requiring a merchant SKU', async () => {
     const existing = {
       ...frame('frame-url', { sku: null, shape: '' }),

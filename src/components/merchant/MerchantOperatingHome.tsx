@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Activity, ArrowRight, AlertCircle, Boxes, CheckCircle2, MessageCircle, Megaphone, MousePointerClick, Sparkles, Store, User, type LucideIcon } from 'lucide-react'
-import { merchantWorkspaceHref } from '@/modules/merchant/application/merchant-workspace-routes'
+import { merchantWorkspaceHref, type MerchantWorkspaceSection } from '@/modules/merchant/application/merchant-workspace-routes'
 import { resolveMerchantHomePresentation, type MerchantOperatingHomeReadModel } from '@/modules/merchant/domain/merchant-operating-home'
 import { MerchantLivePulse } from './MerchantLivePulse'
 import { MerchantMiniTrend } from './MerchantCommerceCharts'
@@ -27,7 +27,10 @@ export function MerchantOperatingHome({
   home: MerchantOperatingHomeReadModel
 }) {
   const presentation = resolveMerchantHomePresentation(home)
-  const href = (section: Parameters<typeof merchantWorkspaceHref>[0]['section']) => merchantWorkspaceHref({ locale, section, merchantId })
+  const href = (section: MerchantWorkspaceSection) => merchantWorkspaceHref({ locale, section, merchantId })
+  const catalogIssueHref = home.catalog.primaryIssueFrameId
+    ? merchantWorkspaceHref({ locale, section: 'catalog', merchantId, frameId: home.catalog.primaryIssueFrameId })
+    : href('catalog')
   const workItems = [presentation.currentWork.store, presentation.currentWork.catalog, presentation.currentWork.campaigns]
 
   return (
@@ -42,7 +45,7 @@ export function MerchantOperatingHome({
           <span aria-hidden="true" className="col-start-1 row-span-2 hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 text-blue-600 shadow-sm sm:col-start-1 sm:row-start-1 sm:flex"><Sparkles className="h-5 w-5" /></span>
           <p className="col-span-2 row-start-1 text-[10px] font-semibold uppercase tracking-[0.13em] text-blue-700/75 sm:col-span-1 sm:col-start-2 sm:row-start-1">Recommended next step</p>
           <p className="col-start-1 row-start-2 min-w-0 text-sm leading-5 text-slate-800 sm:col-start-2 sm:row-start-2">{presentation.recommendedAction.reason}</p>
-          <Link href={href(presentation.recommendedAction.section)} className="col-start-2 row-start-2 inline-flex min-h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-slate-950 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 sm:col-start-3 sm:row-span-2 sm:row-start-1 sm:min-h-11 sm:px-4">
+          <Link href={presentation.recommendedAction.section === 'catalog' ? catalogIssueHref : href(presentation.recommendedAction.section)} className="col-start-2 row-start-2 inline-flex min-h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-slate-950 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 sm:col-start-3 sm:row-span-2 sm:row-start-1 sm:min-h-11 sm:px-4">
             {presentation.recommendedAction.label}<ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
@@ -61,7 +64,7 @@ export function MerchantOperatingHome({
                   <p className="text-sm font-semibold text-slate-900">{item.title}</p>
                   <p className="mt-0.5 text-sm text-slate-600">{item.body}</p>
                 </div>
-                <Link href={href(item.section)} className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-amber-900 hover:text-amber-700">{item.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>
+                <Link href={item.section === 'catalog' ? catalogIssueHref : href(item.section)} className="inline-flex min-h-11 w-fit shrink-0 items-center gap-1 rounded-sm px-1 text-sm font-semibold text-amber-900 hover:text-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2">{item.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>
               </li>
             ))}
           </ul>
