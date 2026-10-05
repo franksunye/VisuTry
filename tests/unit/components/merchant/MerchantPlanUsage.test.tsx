@@ -138,7 +138,8 @@ describe('MerchantPlanUsage', () => {
 
   it('keeps the Plan heading and status/capability regions accessible', () => {
     render(<MerchantPlanUsage commercial={commercial()} />)
-    expect(screen.getByRole('heading', { level: 2, name: 'Growth' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    expect(screen.getByRole('heading', { level: 1, name: 'Growth' })).toHaveAttribute('id', 'plan-usage-heading')
     expect(screen.getByRole('status')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Available capabilities' })).toBeInTheDocument()
   })

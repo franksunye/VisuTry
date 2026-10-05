@@ -1,12 +1,17 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { analytics } from '@/lib/analytics'
 import { MerchantStoreWorkspace } from '@/components/merchant/MerchantStoreWorkspace'
-import type { MerchantStorePreview, MerchantStoreWorkspace as WorkspaceData, MerchantStoreWorkspaceFrame } from '@/modules/merchant/application/merchant-store-workspace'
+import type { MerchantStoreWorkspace as WorkspaceData, MerchantStoreWorkspaceFrame } from '@/modules/merchant/application/merchant-store-workspace'
 
 jest.mock('@/lib/analytics', () => ({ analytics: { trackCustomEvent: jest.fn() } }))
 
-jest.mock('@/components/merchant/MerchantStorePrivatePreview', () => ({
-  MerchantStorePrivatePreview: ({ preview, variant = 'DRAFT', hasUnsavedChanges = false }: { preview: MerchantStorePreview; variant?: 'DRAFT' | 'LIVE'; hasUnsavedChanges?: boolean }) => <div data-testid={variant === 'LIVE' ? 'saved-preview' : 'private-preview'}>{variant === 'LIVE' ? 'LIVE · saved state' : 'DRAFT · not public'} · {preview.store.name}{hasUnsavedChanges ? ' · saved snapshot only' : ''}</div>,
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props: React.ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean }) => {
+    const { fill, ...imageProps } = props
+    void fill
+    return <img {...imageProps} alt={imageProps.alt || ''} />
+  },
 }))
 
 function frame(id: string, name: string): MerchantStoreWorkspaceFrame {
@@ -59,7 +64,10 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
     expect(screen.queryByRole('link', { name: 'View live Store' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Preview Store' }))
 
-    expect(await screen.findByTestId('private-preview')).toHaveTextContent('DRAFT · not public')
+    expect(await screen.findByTestId('store-draft-preview')).toHaveTextContent('DRAFT · not public')
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    expect(screen.getByRole('heading', { level: 1, name: 'Store' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Explore this Store' })).toBeInTheDocument()
     const approval = screen.getByRole('checkbox', { name: 'I approve publishing this Store publicly' })
     expect(approval).not.toBeChecked()
     expect(screen.getByRole('button', { name: 'Publish Store' })).toBeDisabled()
@@ -84,7 +92,7 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
     render(<MerchantStoreWorkspace merchantId="merchant-a" locale="en" />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Preview Store' }))
-    expect(await screen.findByTestId('private-preview')).toHaveTextContent('DRAFT · not public')
+    expect(await screen.findByTestId('store-draft-preview')).toHaveTextContent('DRAFT · not public')
     expect(analytics.trackCustomEvent).not.toHaveBeenCalled()
 
     fireEvent.click(screen.getByRole('checkbox', { name: 'I approve publishing this Store publicly' }))
@@ -111,7 +119,7 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
 
     expect(await screen.findByText('LIVE')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'View live Store' })).toHaveAttribute('href', '/en/store/north-star')
-    expect(await screen.findByTestId('saved-preview')).toHaveTextContent('LIVE · saved state')
+    expect(await screen.findByTestId('store-saved-preview')).toHaveTextContent('LIVE · saved state')
     expect(screen.queryByRole('button', { name: 'Publish Store' })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Store details'))
