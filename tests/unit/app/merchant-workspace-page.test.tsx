@@ -73,7 +73,7 @@ describe('Merchant workspace authorization', () => {
       catalog: { total: 1, ready: 1, issueCount: 0, primaryIssueFrameId: null },
       campaigns: { total: 0, active: 0, draft: 0, archived: 0, needsAttention: 0 },
       shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [] },
-      commercial: { status: 'FREE', planName: 'Free', threshold: null, attention: false },
+      commercial: { status: 'FREE', planName: 'Free', threshold: null, primaryAction: 'UNLOCK_AI_TRY_ON', attention: false },
     })
     control.mockResolvedValue({
       merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', websiteUrl: null, status: 'ACTIVE', referenceData: false },

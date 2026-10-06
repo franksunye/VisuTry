@@ -3,6 +3,7 @@
 import { AlertTriangle, ArrowRight, BarChart3, Boxes, Check, CheckCircle2, Info, Megaphone, Sparkles } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import type { MerchantCommercialPresentation } from "@/modules/merchant/application/merchant-control-center";
+import { merchantCommercialActionLabel, merchantCommercialStatusCopy } from "@/modules/merchant/domain/merchant-commercial-copy";
 import { MerchantBillingActions } from "@/components/merchant/MerchantBillingActions";
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
@@ -14,29 +15,6 @@ const buttonClass = "inline-flex min-h-11 items-center justify-center gap-2 roun
 function dateLabel(value: string | null) {
   if (!value) return null;
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(value));
-}
-
-function statusCopy(commercial: MerchantCommercialPresentation, storeStatus?: string | null) {
-  if (commercial.status === "DEMO_ACTIVE") return "VisuTry Demo access is active. No subscription or payment is required.";
-  if (commercial.status === "LEGACY_UNMIGRATED") return "This Store is still using its existing access while you choose a current plan.";
-  if (commercial.status === "FREE") {
-    if (storeStatus === "DRAFT") return "Your Store is in draft on the Free plan.";
-    if (storeStatus === "ACTIVE") return "Your Store is live on the Free plan.";
-    return "Your Store access is on the Free plan.";
-  }
-  if (commercial.status === "PILOT_ACTIVE") {
-    const days = commercial.daysRemaining;
-    if (days !== null && days <= 3) return `Your Founding Pilot ends in ${days} day${days === 1 ? "" : "s"}. Choose how to continue.`;
-    if (days !== null && days <= 7) return `Your Founding Pilot ends in ${days} days.`;
-    return days === null ? "Your Founding Pilot is active." : `${days} day${days === 1 ? "" : "s"} remaining in your Founding Pilot.`;
-  }
-  if (commercial.status === "PILOT_EXPIRED") return "Your Founding Pilot has ended. Your Store and catalog remain available.";
-  if (commercial.status === "USAGE_WARNING") return commercial.threshold === "WARNING" ? "You’re close to your monthly AI Commerce Session limit." : "You’ve used most of this period’s AI Commerce Sessions.";
-  if (commercial.status === "USAGE_EXHAUSTED") return "AI Try-On is paused. Your Store remains live.";
-  if (commercial.status === "PAYMENT_ACTION_REQUIRED" || commercial.status === "PAST_DUE") return "Action is needed to restore paid features.";
-  if (commercial.status === "CANCEL_AT_PERIOD_END") return "Your current plan remains active through the end of this period.";
-  if (commercial.status === "EXPIRED") return "This commercial period has ended. Your Store and catalog remain available.";
-  return "Your commercial plan is active.";
 }
 
 function statusTone(status: string, threshold: string | null) {
@@ -61,19 +39,6 @@ function allowance(value: number, limit: number | null) {
   if (limit === 0) return { value: "Not included", detail: null };
   if (limit === null) return { value: value.toLocaleString(), detail: "Not metered" };
   return { value: `${value.toLocaleString()} / ${limit.toLocaleString()}`, detail: "Plan limit" };
-}
-
-function actionLabel(action: MerchantCommercialPresentation["primaryAction"]) {
-  switch (action) {
-    case "ENROLL_PLAN": return "Choose a plan";
-    case "UNLOCK_AI_TRY_ON": return "Unlock AI Try-On";
-    case "UPGRADE_CAPACITY": return "Upgrade capacity";
-    case "RESTORE_AI_CAPACITY": return "Restore AI capacity";
-    case "CONTINUE_AFTER_PILOT": return "Continue after Pilot";
-    case "RESOLVE_PAYMENT": return "Review payment status";
-    case "MANAGE_PLAN": return "Manage plan";
-    default: return "View plan options";
-  }
 }
 
 export function MerchantPlanUsage({ commercial, merchantId, locale = "en", storeStatus = null }: Props) {
@@ -130,7 +95,7 @@ export function MerchantPlanUsage({ commercial, merchantId, locale = "en", store
         </div>
         <div role="status" className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-5 lg:mt-1 lg:max-w-[25rem] ${statusTone(commercial.status, commercial.threshold)}`}>
           <StatusIcon status={commercial.status} />
-          <p>{statusCopy(commercial, storeStatus)}</p>
+          <p>{merchantCommercialStatusCopy(commercial, storeStatus)}</p>
         </div>
       </header>
 
@@ -171,7 +136,7 @@ export function MerchantPlanUsage({ commercial, merchantId, locale = "en", store
           <p className="text-sm text-slate-600">This is a dedicated product-demo workspace, not a customer subscription.</p>
         ) : (
           <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-start sm:gap-4">
-            {merchantId ? <MerchantBillingActions merchantId={merchantId} locale={locale} commercial={commercial} /> : <a className={`${buttonClass} w-full bg-slate-950 text-white hover:bg-slate-800 sm:w-auto`} href="/en/business#plans">{actionLabel(commercial.primaryAction)} <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>}
+            {merchantId ? <MerchantBillingActions merchantId={merchantId} locale={locale} commercial={commercial} /> : <a className={`${buttonClass} w-full bg-slate-950 text-white hover:bg-slate-800 sm:w-auto`} href="/en/business#plans">{merchantCommercialActionLabel(commercial.primaryAction)} <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>}
             <a className="inline-flex min-h-11 w-full items-center justify-center text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 sm:w-auto" href="/en/business#plans">Compare plans</a>
           </div>
         )}
