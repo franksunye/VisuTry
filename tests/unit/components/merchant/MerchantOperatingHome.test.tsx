@@ -9,7 +9,7 @@ function home(overrides: Partial<MerchantOperatingHomeReadModel> = {}): Merchant
     catalog: { total: 1, ready: 1, issueCount: 0, primaryIssueFrameId: null },
     campaigns: { total: 0, active: 0, draft: 0, archived: 0, needsAttention: 0 },
     shopper: { hasActivity: false, periodLabel: 'Last 30 days', metrics: [{ label: 'Visitors', value: 0 }], decisionTrend: [] },
-    commercial: { status: 'FREE', planName: 'Free', threshold: null, attention: false },
+    commercial: { status: 'FREE', planName: 'Free', threshold: null, primaryAction: 'UNLOCK_AI_TRY_ON', attention: false },
     ...overrides,
   }
 }
@@ -84,16 +84,22 @@ describe('MerchantOperatingHome', () => {
     expect(screen.queryByText('Connect your Agent')).not.toBeInTheDocument()
   })
 
-  it('shows commercial attention without offering a billing mutation', () => {
-    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({ commercial: { status: 'PAST_DUE', planName: 'Growth', threshold: null, attention: true } })} />)
+  it('promotes a hard commercial blocker and keeps Plan attention status-only', () => {
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({
+      catalog: { total: 2, ready: 1, issueCount: 1, primaryIssueFrameId: 'frame-issue' },
+      commercial: { status: 'PAST_DUE', planName: 'Growth', threshold: null, primaryAction: 'RESOLVE_PAYMENT', attention: true },
+    })} />)
     expect(screen.getByText('Plan & Usage needs attention')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Review Plan & Usage' })).toHaveAttribute('href', '/en/merchant/plan?merchantId=merchant-a')
+    expect(screen.getByRole('link', { name: 'Review payment status' })).toHaveAttribute('href', '/en/merchant/plan?merchantId=merchant-a')
+    expect(screen.getByRole('link', { name: 'Review Catalog' })).toHaveAttribute('href', '/en/merchant/catalog?merchantId=merchant-a&frameId=frame-issue')
+    expect(within(screen.getByRole('region', { name: 'Needs attention' })).queryByRole('link', { name: 'Review Plan & Usage' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /payment|plan & usage/i })).toHaveLength(1)
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('keeps a 70% NOTICE informational instead of showing commercial Attention', () => {
     render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home({
-      commercial: { status: 'USAGE_WARNING', planName: 'Growth', threshold: 'NOTICE', attention: false },
+      commercial: { status: 'USAGE_WARNING', planName: 'Growth', threshold: 'NOTICE', primaryAction: 'UPGRADE_CAPACITY', attention: false },
     })} />)
     expect(screen.queryByText('Plan & Usage needs attention')).not.toBeInTheDocument()
   })

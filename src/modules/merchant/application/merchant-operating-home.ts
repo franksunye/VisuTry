@@ -6,7 +6,7 @@ import { commercialStateForPresentation } from '@/modules/store/domain/merchant-
 import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import { selectPrimaryMerchantCatalogIssueFrameId } from '../domain/merchant-catalog-presentation'
-import type { MerchantOperatingHomeReadModel } from '../domain/merchant-operating-home'
+import { projectMerchantCommercialForHome, type MerchantOperatingHomeReadModel } from '../domain/merchant-operating-home'
 
 type HomeFrame = {
   id: string
@@ -33,11 +33,6 @@ const homeFrameSelect = {
   status: true,
   enrichmentStatus: true,
 } as const
-
-function commercialAttention(status: string, threshold: string | null): boolean {
-  return ['PAYMENT_ACTION_REQUIRED', 'PAST_DUE', 'USAGE_EXHAUSTED', 'EXPIRED', 'PILOT_EXPIRED'].includes(status)
-    || (status === 'USAGE_WARNING' && threshold === 'WARNING')
-}
 
 function periodLabel(from: string, to: string): string {
   const start = new Date(from)
@@ -147,11 +142,6 @@ export async function getMerchantOperatingHome(input: { merchantId: string }): P
         { label: 'Product clicks', value: intelligence.totals.productClicks },
       ],
     },
-    commercial: {
-      status: commercial.status,
-      planName: commercial.planName,
-      threshold: commercial.threshold,
-      attention: commercialAttention(commercial.status, commercial.threshold),
-    },
+    commercial: projectMerchantCommercialForHome(commercial),
   }
 }

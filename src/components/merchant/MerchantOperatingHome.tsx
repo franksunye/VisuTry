@@ -64,7 +64,7 @@ export function MerchantOperatingHome({
                   <p className="text-sm font-semibold text-slate-900">{item.title}</p>
                   <p className="mt-0.5 text-sm text-slate-600">{item.body}</p>
                 </div>
-                <Link href={item.section === 'catalog' ? catalogIssueHref : href(item.section)} className="inline-flex min-h-11 w-fit shrink-0 items-center gap-1 rounded-sm px-1 text-sm font-semibold text-amber-900 hover:text-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2">{item.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>
+                {item.label ? <Link href={item.section === 'catalog' ? catalogIssueHref : href(item.section)} className="inline-flex min-h-11 w-fit shrink-0 items-center gap-1 rounded-sm px-1 text-sm font-semibold text-amber-900 hover:text-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2">{item.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></Link> : null}
               </li>
             ))}
           </ul>

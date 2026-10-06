@@ -1,4 +1,19 @@
+import type { MerchantCommercialState } from '@/modules/store/domain/merchant-commercial-state'
+import { merchantCommercialActionLabel, merchantCommercialStatusCopy } from './merchant-commercial-copy'
+
 export type MerchantHomeSection = 'catalog' | 'store' | 'campaigns' | 'analytics' | 'plan'
+
+const HARD_COMMERCIAL_BLOCKERS = new Set<MerchantCommercialState['status']>([
+  'PAYMENT_ACTION_REQUIRED',
+  'PAST_DUE',
+  'USAGE_EXHAUSTED',
+  'EXPIRED',
+  'PILOT_EXPIRED',
+])
+
+type HomeCommercialSource = Pick<MerchantCommercialState, 'status' | 'threshold' | 'primaryAction'> & {
+  planName: string
+}
 
 export type MerchantOperatingHomeReadModel = {
   merchant: {
@@ -34,9 +49,10 @@ export type MerchantOperatingHomeReadModel = {
     decisionTrend: Array<{ date: string; visitors: number; engagedShoppers: number; highIntentShoppers: number }>
   }
   commercial: {
-    status: string
+    status: MerchantCommercialState['status']
     planName: string
-    threshold: 'NORMAL' | 'NOTICE' | 'WARNING' | 'LIMIT_REACHED' | null
+    threshold: MerchantCommercialState['threshold']
+    primaryAction: MerchantCommercialState['primaryAction']
     attention: boolean
   }
 }
@@ -51,7 +67,7 @@ export type MerchantHomePresentation = {
     title: string
     body: string
     section: MerchantHomeSection
-    label: string
+    label: string | null
   }>
   outcome: {
     kind: 'ACTIVITY' | 'EMPTY'
@@ -62,6 +78,18 @@ export type MerchantHomePresentation = {
     store: { status: string; detail: string; section: 'store'; label: string }
     catalog: { status: string; detail: string; section: 'catalog'; label: string }
     campaigns: { status: string; detail: string; section: 'campaigns'; label: string }
+  }
+}
+
+/** Shared Prisma/Cloudflare projection from the canonical commercial presentation. */
+export function projectMerchantCommercialForHome(commercial: HomeCommercialSource): MerchantOperatingHomeReadModel['commercial'] {
+  return {
+    status: commercial.status,
+    planName: commercial.planName,
+    threshold: commercial.threshold,
+    primaryAction: commercial.primaryAction,
+    attention: HARD_COMMERCIAL_BLOCKERS.has(commercial.status)
+      || (commercial.status === 'USAGE_WARNING' && commercial.threshold === 'WARNING'),
   }
 }
 
@@ -81,6 +109,27 @@ function productLabel(count: number): string {
 export function resolveMerchantHomePresentation(
   read: MerchantOperatingHomeReadModel,
 ): MerchantHomePresentation {
+  const isHardCommercialBlocker = HARD_COMMERCIAL_BLOCKERS.has(read.commercial.status)
+
+  let recommendedAction: MerchantHomePresentation['recommendedAction']
+  if (isHardCommercialBlocker) {
+    recommendedAction = {
+      label: merchantCommercialActionLabel(read.commercial.primaryAction),
+      section: 'plan',
+      reason: merchantCommercialStatusCopy(read.commercial, read.store.status),
+    }
+  } else if (read.catalog.issueCount > 0) {
+    recommendedAction = { label: 'Review Catalog', section: 'catalog', reason: 'Resolve product readiness issues.' }
+  } else if (!read.store.exists || read.store.readiness === 'INCOMPLETE' || read.store.readiness === 'NEEDS_ATTENTION' || read.store.status === 'DRAFT') {
+    recommendedAction = { label: 'Review Store', section: 'store', reason: 'Keep your Store ready for shoppers.' }
+  } else if (read.campaigns.needsAttention > 0) {
+    recommendedAction = { label: 'Review Campaigns', section: 'campaigns', reason: 'Resolve Campaign work that needs attention.' }
+  } else if (read.store.status === 'ACTIVE' && read.shopper.hasActivity) {
+    recommendedAction = { label: 'Review Analytics', section: 'analytics', reason: 'See how shoppers are using your Store.' }
+  } else {
+    recommendedAction = { label: 'Open Store', section: 'store', reason: 'Review your current Store experience.' }
+  }
+
   const attention: MerchantHomePresentation['attention'] = []
 
   if (read.catalog.issueCount > 0) {
@@ -117,21 +166,8 @@ export function resolveMerchantHomePresentation(
       title: 'Plan & Usage needs attention',
       body: 'Review your current commercial status and available capacity.',
       section: 'plan',
-      label: 'Review Plan & Usage',
+      label: recommendedAction.section === 'plan' ? null : 'Review Plan & Usage',
     })
-  }
-
-  let recommendedAction: MerchantHomePresentation['recommendedAction']
-  if (read.catalog.issueCount > 0) {
-    recommendedAction = { label: 'Review Catalog', section: 'catalog', reason: 'Resolve product readiness issues.' }
-  } else if (!read.store.exists || read.store.readiness === 'INCOMPLETE' || read.store.readiness === 'NEEDS_ATTENTION' || read.store.status === 'DRAFT') {
-    recommendedAction = { label: 'Review Store', section: 'store', reason: 'Keep your Store ready for shoppers.' }
-  } else if (read.campaigns.needsAttention > 0) {
-    recommendedAction = { label: 'Review Campaigns', section: 'campaigns', reason: 'Resolve Campaign work that needs attention.' }
-  } else if (read.store.status === 'ACTIVE' && read.shopper.hasActivity) {
-    recommendedAction = { label: 'Review Analytics', section: 'analytics', reason: 'See how shoppers are using your Store.' }
-  } else {
-    recommendedAction = { label: 'Open Store', section: 'store', reason: 'Review your current Store experience.' }
   }
 
   const campaignBody = read.campaigns.total === 0

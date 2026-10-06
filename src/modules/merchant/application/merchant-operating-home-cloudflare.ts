@@ -4,7 +4,7 @@ import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/
 import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import { selectPrimaryMerchantCatalogIssueFrameId } from '../domain/merchant-catalog-presentation'
-import type { MerchantOperatingHomeReadModel } from '../domain/merchant-operating-home'
+import { projectMerchantCommercialForHome, type MerchantOperatingHomeReadModel } from '../domain/merchant-operating-home'
 
 function text(value: unknown, fallback = ''): string {
   return value == null ? fallback : String(value)
@@ -36,11 +36,6 @@ function mapFrame(row: Record<string, unknown>): HomeFrame {
     status: text(row.status, 'UNKNOWN'),
     enrichmentStatus: text(row.enrichmentStatus, 'UNKNOWN'),
   }
-}
-
-function commercialAttention(status: string, threshold: string | null): boolean {
-  return ['PAYMENT_ACTION_REQUIRED', 'PAST_DUE', 'USAGE_EXHAUSTED', 'EXPIRED', 'PILOT_EXPIRED'].includes(status)
-    || (status === 'USAGE_WARNING' && threshold === 'WARNING')
 }
 
 function periodLabel(from: string, to: string): string {
@@ -145,11 +140,6 @@ export async function getMerchantOperatingHome(input: { merchantId: string }): P
         { label: 'Product clicks', value: intelligence.totals.productClicks },
       ],
     },
-    commercial: {
-      status: commercial.status,
-      planName: commercial.planName,
-      threshold: commercial.threshold,
-      attention: commercialAttention(commercial.status, commercial.threshold),
-    },
+    commercial: projectMerchantCommercialForHome(commercial),
   }
 }
