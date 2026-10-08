@@ -4,6 +4,9 @@ import { merchantWorkspaceHref, type MerchantWorkspaceSection } from '@/modules/
 import { resolveMerchantHomePresentation, type MerchantOperatingHomeReadModel } from '@/modules/merchant/domain/merchant-operating-home'
 import { MerchantLivePulse } from './MerchantLivePulse'
 import { MerchantMiniTrend } from './MerchantCommerceCharts'
+import { MerchantBillingCancelledNotice, MerchantBillingProcessingNotice } from './MerchantBillingProcessingNotice'
+import type { MerchantCommercialPresentation } from '@/modules/merchant/application/merchant-control-center'
+import type { MerchantBillablePlanCode } from '@/modules/merchant/domain/merchant-billing'
 
 function number(value: number) {
   return new Intl.NumberFormat('en-US').format(value)
@@ -21,10 +24,16 @@ export function MerchantOperatingHome({
   locale,
   merchantId,
   home,
+  billingState,
+  billingCommercial,
+  billingPlan,
 }: {
   locale: string
   merchantId: string
   home: MerchantOperatingHomeReadModel
+  billingState?: 'processing' | 'cancelled'
+  billingCommercial?: MerchantCommercialPresentation
+  billingPlan?: MerchantBillablePlanCode
 }) {
   const presentation = resolveMerchantHomePresentation(home)
   const href = (section: MerchantWorkspaceSection) => merchantWorkspaceHref({ locale, section, merchantId })
@@ -50,6 +59,9 @@ export function MerchantOperatingHome({
           </Link>
         </div>
       </header>
+
+      {billingState === 'processing' && billingCommercial ? <MerchantBillingProcessingNotice merchantId={merchantId} commercial={billingCommercial} targetPlan={billingPlan} /> : null}
+      {billingState === 'cancelled' ? <MerchantBillingCancelledNotice /> : null}
 
       {presentation.attention.length > 0 ? (
         <section aria-labelledby="merchant-home-attention" className="border-l-2 border-amber-500 pl-4">

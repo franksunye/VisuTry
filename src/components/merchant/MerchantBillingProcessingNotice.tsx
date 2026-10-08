@@ -56,3 +56,10 @@ export function MerchantBillingProcessingNotice({ merchantId, commercial, target
 
   return <section role="status" className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-blue-950 sm:px-6"><div className="flex items-start gap-3"><RefreshCw className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-blue-700" aria-hidden="true" /><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Plan update in progress</p><p className="mt-2 text-sm leading-6 text-blue-900">Your payment is being confirmed. Your plan and feature access will update after confirmation.</p>{timedOut ? <p className="mt-2 text-xs leading-5 text-blue-800">This is taking longer than usual. Refresh this page shortly or contact support if your plan does not update.</p> : null}</div></div></section>;
 }
+
+export function MerchantBillingCancelledNotice() {
+  return <section role="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-800 sm:px-6">
+    <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-600">No changes were made</p>
+    <p className="mt-2 text-sm leading-6 text-slate-700">You can choose a plan whenever you’re ready. Your current Store and access remain unchanged.</p>
+  </section>
+}

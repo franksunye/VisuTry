@@ -18,6 +18,7 @@ jest.mock('@/modules/merchant/application/merchant-control-center', () => ({
 }))
 jest.mock('@/modules/merchant/application/merchant-operating-reads', () => ({
   getMerchantWorkspaceMode: jest.fn(),
+  getMerchantOperatingPlan: jest.fn(),
 }))
 jest.mock('@/modules/merchant/application/merchant-operating-home', () => ({
   getMerchantOperatingHome: jest.fn(),
@@ -26,10 +27,10 @@ jest.mock('@/modules/merchant/application/merchant-access', () => ({
   requireMerchantMembership: jest.fn(),
 }))
 jest.mock('@/components/merchant/MerchantControlCenter', () => ({
-  MerchantControlCenter: (props: { selectedMerchantId: string; onboardingState?: string }) => <div data-selected-merchant={props.selectedMerchantId} data-onboarding-state={props.onboardingState} />,
+  MerchantControlCenter: (props: { selectedMerchantId: string; onboardingState?: string; billingState?: string; billingPlan?: string }) => <div data-selected-merchant={props.selectedMerchantId} data-onboarding-state={props.onboardingState} data-billing-state={props.billingState} data-billing-plan={props.billingPlan} />,
 }))
 jest.mock('@/components/merchant/MerchantOperatingHome', () => ({
-  MerchantOperatingHome: () => <div data-testid="merchant-operating-home" />,
+  MerchantOperatingHome: (props: { merchantId: string; billingState?: string; billingPlan?: string; billingCommercial?: { planCode?: string } }) => <div data-testid="merchant-operating-home" data-merchant-id={props.merchantId} data-billing-state={props.billingState} data-billing-plan={props.billingPlan} data-commercial-plan={props.billingCommercial?.planCode} />,
 }))
 jest.mock('@/components/merchant/MerchantWorkspaceShell', () => ({
   MerchantWorkspaceShell: (props: { children: React.ReactNode }) => <div data-testid="merchant-workspace-shell">{props.children}</div>,
@@ -44,7 +45,7 @@ import { getServerSession } from 'next-auth'
 import { listMerchantsForUser } from '@/modules/merchant/application/merchant-memberships'
 import { listMerchantAgentCredentials } from '@/modules/merchant/application/merchant-agent-credentials'
 import { getMerchantControlCenter } from '@/modules/merchant/application/merchant-control-center'
-import { getMerchantWorkspaceMode } from '@/modules/merchant/application/merchant-operating-reads'
+import { getMerchantOperatingPlan, getMerchantWorkspaceMode } from '@/modules/merchant/application/merchant-operating-reads'
 import { getMerchantOperatingHome } from '@/modules/merchant/application/merchant-operating-home'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import MerchantWorkspacePage from '@/app/[locale]/merchant/page'
@@ -54,6 +55,7 @@ const merchants = listMerchantsForUser as jest.Mock
 const credentials = listMerchantAgentCredentials as jest.Mock
 const control = getMerchantControlCenter as jest.Mock
 const workspaceMode = getMerchantWorkspaceMode as jest.Mock
+const operatingPlan = getMerchantOperatingPlan as jest.Mock
 const operatingHome = getMerchantOperatingHome as jest.Mock
 const membership = requireMerchantMembership as jest.Mock
 
@@ -67,6 +69,7 @@ describe('Merchant workspace authorization', () => {
     ])
     credentials.mockResolvedValue([])
     workspaceMode.mockResolvedValue({ mode: 'ACTIVATION', reason: 'FIRST_VALUE_NOT_REACHED' })
+    operatingPlan.mockResolvedValue({ planCode: 'FREE', status: 'FREE', planName: 'Free' })
     operatingHome.mockResolvedValue({
       merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha' },
       store: { exists: true, status: 'DRAFT', selectedProductCount: 1, eligibleProductCount: 1, readiness: 'READY' },
@@ -135,6 +138,7 @@ describe('Merchant workspace authorization', () => {
     expect(operatingHomeElement.type).toHaveProperty('name', 'MerchantOperatingHome')
     expect(operatingHomeElement.props.home).toBeDefined()
     expect(operatingHome).toHaveBeenCalledWith({ merchantId: 'merchant-a' })
+    expect(operatingPlan).not.toHaveBeenCalled()
     expect(control).not.toHaveBeenCalled()
     expect(credentials).not.toHaveBeenCalled()
   })
@@ -146,8 +150,54 @@ describe('Merchant workspace authorization', () => {
     const operatingHomeElement = result.props.children as React.ReactElement
     expect(operatingHomeElement.type).toHaveProperty('name', 'MerchantOperatingHome')
     expect(workspaceMode).toHaveBeenCalledWith({ merchantId: 'merchant-a' })
+    expect(operatingPlan).not.toHaveBeenCalled()
     expect(control).not.toHaveBeenCalled()
     expect(credentials).not.toHaveBeenCalled()
+  })
+
+  it('loads canonical billing state for the selected Operating merchant and keeps the validated target plan', async () => {
+    workspaceMode.mockResolvedValue({ mode: 'OPERATING', reason: 'ACTIVE_STORE' })
+    operatingPlan.mockResolvedValue({ planCode: 'FREE', status: 'FREE', planName: 'Free' })
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b', billing: 'processing', plan: 'launch' } }) as React.ReactElement
+    const homeElement = (result.props.children as React.ReactElement)
+
+    expect(homeElement.props.merchantId).toBe('merchant-b')
+    expect(homeElement.props.billingState).toBe('processing')
+    expect(homeElement.props.billingPlan).toBe('LAUNCH')
+    expect(homeElement.props.billingCommercial).toEqual({ planCode: 'FREE', status: 'FREE', planName: 'Free' })
+    expect(operatingPlan).toHaveBeenCalledTimes(1)
+    expect(operatingPlan).toHaveBeenCalledWith({ merchantId: 'merchant-b' })
+    expect(membership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-b', roles: ['OWNER', 'ADMIN'] })
+    expect(control).not.toHaveBeenCalled()
+  })
+
+  it('does not infer a target plan from an invalid processing query', async () => {
+    workspaceMode.mockResolvedValue({ mode: 'OPERATING', reason: 'ACTIVE_STORE' })
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { billing: 'processing', plan: 'NOT_A_PLAN' } }) as React.ReactElement
+    const homeElement = (result.props.children as React.ReactElement)
+
+    expect(homeElement.props.billingState).toBe('processing')
+    expect(homeElement.props.billingPlan).toBeUndefined()
+    expect(operatingPlan).toHaveBeenCalledWith({ merchantId: 'merchant-a' })
+  })
+
+  it('preserves cancellation feedback without a billing-state read in Operating mode', async () => {
+    workspaceMode.mockResolvedValue({ mode: 'OPERATING', reason: 'ACTIVE_STORE' })
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { billing: 'cancelled' } }) as React.ReactElement
+    const homeElement = (result.props.children as React.ReactElement)
+
+    expect(homeElement.props.billingState).toBe('cancelled')
+    expect(homeElement.props.billingCommercial).toBeUndefined()
+    expect(operatingPlan).not.toHaveBeenCalled()
+  })
+
+  it('keeps Onboarding billing return props and behavior unchanged', async () => {
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { billing: 'processing', plan: 'SCALE' } }) as React.ReactElement
+
+    expect(result.props.billingState).toBe('processing')
+    expect(result.props.billingPlan).toBe('SCALE')
+    expect(operatingPlan).not.toHaveBeenCalled()
+    expect(control).toHaveBeenCalledTimes(1)
   })
 
   it('keeps unauthenticated users on the existing login redirect', async () => {
