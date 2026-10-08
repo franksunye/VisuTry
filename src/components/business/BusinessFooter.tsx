@@ -83,7 +83,7 @@ export function BusinessFooter() {
               <ul className="mt-4 space-y-2.5">
                 {column.links.map(([label, href]) => (
                   <li key={href}>
-                    <Link href={businessHref(locale, href)} prefetch={false} onClick={label === 'Merchant Sign In' ? trackMerchantEntry : undefined} className="text-sm text-slate-500 transition hover:text-slate-950">
+                    <Link href={businessHref(locale, href)} prefetch={false} onClick={label === 'Start 30-Day Pilot' ? () => analytics.trackBusinessCtaClicked({ locale, ctaLocation: 'business_footer', intentType: 'pilot_request' }) : label === 'Merchant Sign In' ? trackMerchantEntry : undefined} className="text-sm text-slate-500 transition hover:text-slate-950">
                       {label}
                     </Link>
                   </li>

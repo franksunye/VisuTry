@@ -454,4 +454,42 @@ describe('campaign intelligence analytics migration', () => {
       expect.objectContaining({ photo_source: 'detector_handoff' }),
     )
   })
+
+  it('separates Business-site Pilot CTA and form events from the Store landing source', () => {
+    window.history.pushState({}, '', '/en/business/commerce-intelligence?utm_source=partner&utm_campaign=fall')
+
+    analytics.trackBusinessCtaClicked({ locale: 'en', ctaLocation: 'hero_primary', intentType: 'pilot_request' })
+    analytics.trackBusinessPilotLeadFormStarted({ locale: 'en' })
+    analytics.trackBusinessPilotLeadCreated({ locale: 'en', businessType: 'eyewear-brand', goal: 'campaign', frameCount: '21-50' })
+
+    expect(window.gtag).toHaveBeenCalledWith('event', AnalyticsEvent.B2bSalesIntentClicked, expect.objectContaining({
+      source: 'business_site',
+      source_page: '/en/business/commerce-intelligence',
+      cta_location: 'hero_primary',
+      intent_type: 'pilot_request',
+      actor_type: 'merchant_prospect',
+    }))
+    expect(window.gtag).toHaveBeenCalledWith('event', AnalyticsEvent.B2bLeadFormStarted, expect.objectContaining({
+      source: 'business_site',
+      journey_type: 'visutry_b2b_acquisition',
+    }))
+    expect(window.gtag).toHaveBeenCalledWith('event', AnalyticsEvent.B2bLeadCreated, expect.objectContaining({
+      source: 'business_site',
+      user_intent: 'campaign',
+      pilot_goal: 'campaign',
+      lead_type: 'pilot_request',
+      frame_count: '21-50',
+    }))
+
+    const payloads = (window.gtag as jest.Mock).mock.calls
+      .filter((call) => call[0] === 'event')
+      .map((call) => call[2] as Record<string, unknown>)
+    expect(payloads.every((payload) => payload.source !== 'store_landing')).toBe(true)
+    for (const payload of payloads) {
+      expect(payload).not.toHaveProperty('email')
+      expect(payload).not.toHaveProperty('contact_name')
+      expect(payload).not.toHaveProperty('message')
+      expect(payload).not.toHaveProperty('href')
+    }
+  })
 })

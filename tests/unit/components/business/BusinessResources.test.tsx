@@ -12,6 +12,7 @@ jest.mock('next/link', () => ({
 jest.mock('@/lib/analytics', () => ({
   analytics: {
     trackCustomEvent: jest.fn(),
+    trackBusinessCtaClicked: jest.fn(),
   },
 }))
 
@@ -81,5 +82,13 @@ describe('BusinessResources', () => {
     rerender(<BusinessResourceStrip locale="en" placement="store" mode="video" />)
     expect(container.querySelector('video')).not.toBeNull()
     expect(screen.getByRole('link', { name: 'Explore all resources' })).toHaveAttribute('href', '/en/business/resources')
+  })
+
+  it('measures the Resources Pilot CTA without treating it as a submitted lead', () => {
+    render(<BusinessResourcesPage locale="en" />)
+
+    fireEvent.click(screen.getByRole('link', { name: 'Start 30-Day Pilot' }))
+
+    expect(analytics.trackBusinessCtaClicked).toHaveBeenCalledWith({ locale: 'en', ctaLocation: 'business_resources', intentType: 'pilot_request' })
   })
 })

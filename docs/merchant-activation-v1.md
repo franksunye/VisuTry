@@ -165,6 +165,13 @@ purposes and must not be conflated.
 truth. First Value is still the private Store Preview and the post-v1
 denominator still begins at the durable `merchant_workspace_created` event.
 
+The published self-service cohort additionally requires
+`classificationSource=SELF_SERVICE_SIGNUP`, a trusted Merchant classification
+of `REAL` or `POSSIBLE_EXTERNAL`, and `referenceData=false`. Other classes
+(`TEST`, `AUTOMATION`, `INTERNAL`, `REFERENCE`, `SUSPICIOUS`, and `UNKNOWN`)
+are excluded rather than inferred into the cohort. This is a reporting filter;
+it does not reclassify Merchants or modify activation events.
+
 The Merchant Operating Experience resolves runtime Operating eligibility
 read-only from authoritative current evidence. A Merchant may enter Operating
 Mode when any of these is true:

@@ -39,7 +39,9 @@ function percentage(count: number, denominator: number): number | null {
 /**
  * Read-only post-Activation-v1 cohort report. The workspace-created event is
  * the denominator, so pre-instrumentation Merchants are never presented as
- * if they had a newly observed activation journey.
+ * if they had a newly observed activation journey. Only explicitly classified
+ * self-service workspaces without reference data enter the operating cohort;
+ * TEST, INTERNAL, REFERENCE, AUTOMATION, SUSPICIOUS, and UNKNOWN fail closed.
  */
 export async function getMerchantActivationReport(input: ReportInput = {}): Promise<MerchantActivationReport> {
   const occurredAt = {
@@ -50,7 +52,11 @@ export async function getMerchantActivationReport(input: ReportInput = {}): Prom
     where: {
       eventType: MERCHANT_ACTIVATION_EVENT.WORKSPACE_CREATED,
       ...(Object.keys(occurredAt).length ? { occurredAt } : {}),
-      merchant: { classificationSource: 'SELF_SERVICE_SIGNUP' },
+      merchant: {
+        classificationSource: 'SELF_SERVICE_SIGNUP',
+        classification: { in: ['REAL', 'POSSIBLE_EXTERNAL'] },
+        referenceData: false,
+      },
     },
     orderBy: [{ occurredAt: 'asc' }, { createdAt: 'asc' }],
     select: { merchantId: true, occurredAt: true },

@@ -1,5 +1,16 @@
-import { render, within } from '@testing-library/react'
+import React from 'react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { BusinessMarketingPage } from '@/components/business/BusinessMarketingPage'
+import { analytics } from '@/lib/analytics'
+
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({ href, children, prefetch: _prefetch, ...props }: React.PropsWithChildren<{ href: string; prefetch?: boolean }>) => <a href={href} {...props}>{children}</a>,
+}))
+
+jest.mock('@/lib/analytics', () => ({
+  analytics: { trackBusinessCtaClicked: jest.fn(), trackCustomEvent: jest.fn() },
+}))
 
 describe('BusinessMarketingPage visual hierarchy', () => {
   it('uses one hero-priority image and lazy-loads supporting product proof', () => {
@@ -48,5 +59,16 @@ describe('BusinessMarketingPage visual hierarchy', () => {
     expect(surfaces?.querySelector('[data-business-visual="B2B-VIS-03"]')).toBeTruthy()
     expect(workspace?.querySelector('[data-business-visual="B2B-VIS-05"]')).toBeTruthy()
     expect(intelligence?.querySelector('[data-business-visual="B2B-VIS-06"]')).toBeTruthy()
+  })
+
+  it('measures hero and closing Pilot CTA clicks as distinct Business-site placements', () => {
+    const { getAllByRole } = render(<BusinessMarketingPage locale="en" pageKey="overview" />)
+    const pilotLinks = getAllByRole('link', { name: /Start 30-Day Pilot/ })
+
+    fireEvent.click(pilotLinks[0])
+    fireEvent.click(pilotLinks[1])
+
+    expect(analytics.trackBusinessCtaClicked).toHaveBeenNthCalledWith(1, { locale: 'en', ctaLocation: 'hero_primary', intentType: 'pilot_request' })
+    expect(analytics.trackBusinessCtaClicked).toHaveBeenNthCalledWith(2, { locale: 'en', ctaLocation: 'business_closing_cta', intentType: 'pilot_request' })
   })
 })

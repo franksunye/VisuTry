@@ -3,6 +3,7 @@
 import { FormEvent, useRef, useState } from 'react'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import { analytics, getAcquisitionContext } from '@/lib/analytics'
+import type { BusinessPilotGoal } from '@/lib/analytics'
 
 type FormState = {
   contactName: string
@@ -12,7 +13,7 @@ type FormState = {
   websiteUrl: string
   frameCountRange: string
   trafficSource: string
-  goal: string
+  goal: BusinessPilotGoal
   message: string
   consentToContact: boolean
   companyFax: string
@@ -37,7 +38,7 @@ export function BusinessPilotLeadForm({ locale }: { locale: string }) {
   function trackStart() {
     if (trackedStart.current) return
     trackedStart.current = true
-    analytics.trackStoreLeadFormStarted({ locale })
+    analytics.trackBusinessPilotLeadFormStarted({ locale })
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -72,11 +73,10 @@ export function BusinessPilotLeadForm({ locale }: { locale: string }) {
         const body = await response.json().catch(() => null)
         throw new Error(body?.message || 'We could not send your request.')
       }
-      analytics.trackStoreLeadCreated({
+      analytics.trackBusinessPilotLeadCreated({
         locale,
         businessType: form.businessType,
-        intent: form.goal === 'partnership' ? 'partnership' : form.goal === 'demo' ? 'demo' : 'catalog',
-        leadType: form.goal === 'partnership' ? 'partnership' : form.goal === 'demo' ? 'demo' : 'catalog',
+        goal: form.goal,
         frameCount: form.frameCountRange,
       })
       setState('success')
@@ -118,7 +118,7 @@ export function BusinessPilotLeadForm({ locale }: { locale: string }) {
           <label className="text-sm font-semibold text-slate-800 sm:col-span-2">Website or store URL<input type="url" maxLength={500} placeholder="https://" className={inputClass} value={form.websiteUrl} onChange={(e) => update('websiteUrl', e.target.value)} /></label>
           <label className="text-sm font-semibold text-slate-800">Approximate frame count<select className={inputClass} value={form.frameCountRange} onChange={(e) => update('frameCountRange', e.target.value)}><option value="8-20">8–20</option><option value="21-50">21–50</option><option value="51-200">51–200</option><option value="200+">200+</option><option value="not-sure">Not sure yet</option></select></label>
           <label className="text-sm font-semibold text-slate-800">First traffic source<input maxLength={120} placeholder="Website, paid social, email…" className={inputClass} value={form.trafficSource} onChange={(e) => update('trafficSource', e.target.value)} /></label>
-          <label className="text-sm font-semibold text-slate-800 sm:col-span-2">What do you want to start with?<select className={inputClass} value={form.goal} onChange={(e) => update('goal', e.target.value)}><option value="store">Hosted Store</option><option value="campaign">Campaign Experience</option><option value="demo">Product demo first</option><option value="partnership">Agency / partnership</option><option value="not-sure">Help me choose</option></select></label>
+          <label className="text-sm font-semibold text-slate-800 sm:col-span-2">What do you want to start with?<select className={inputClass} value={form.goal} onChange={(e) => update('goal', e.target.value as BusinessPilotGoal)}><option value="store">Hosted Store</option><option value="campaign">Campaign Experience</option><option value="demo">Product demo first</option><option value="partnership">Agency / partnership</option><option value="not-sure">Help me choose</option></select></label>
           <label className="text-sm font-semibold text-slate-800 sm:col-span-2">Anything else we should know?<textarea rows={4} maxLength={2000} className={inputClass} value={form.message} onChange={(e) => update('message', e.target.value)} /></label>
           <label className="sr-only" aria-hidden="true">Company fax<input tabIndex={-1} autoComplete="off" value={form.companyFax} onChange={(e) => update('companyFax', e.target.value)} /></label>
           <label className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:col-span-2"><input required type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300" checked={form.consentToContact} onChange={(e) => update('consentToContact', e.target.checked)} /><span>I agree that VisuTry may contact me about this Pilot request.</span></label>
