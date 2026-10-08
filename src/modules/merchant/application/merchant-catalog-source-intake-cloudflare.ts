@@ -1,5 +1,7 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
+import { getMerchantOperatingPlan } from './merchant-operating-reads-cloudflare'
 import { requireAgentScope, type MerchantActorContext } from '../domain/actor'
+import { resolveMerchantCatalogCapacity } from '../domain/merchant-catalog-capacity'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials-cloudflare'
 import type { CatalogFrameInput } from './merchant-onboarding-cloudflare'
 import { inspectCatalogUrlProgressively } from './merchant-catalog-url-progressive'
@@ -148,8 +150,16 @@ export async function inspectHumanMerchantCatalogSource(input: {
     maxProducts,
     initialSourceIssues,
   })
+  const commercial = await getMerchantOperatingPlan({ merchantId: input.actor.merchantId })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'catalog.source_inspected', resourceType: 'CatalogSource', result: 'SUCCESS' })
-  return result
+  return {
+    ...result,
+    catalogCapacity: resolveMerchantCatalogCapacity({
+      current: commercial.usage.catalogItems,
+      limit: commercial.limits.catalogItems,
+      proposedNew: result.importReady.length,
+    }),
+  }
 }
 
 export const merchantCatalogSourceIntakeCloudflare = { inspectHumanMerchantCatalogSource }

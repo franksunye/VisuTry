@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { ArrowRight, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { MerchantCommercialPresentation } from "@/modules/merchant/application/merchant-control-center";
-import { analytics } from "@/lib/analytics";
-import { AnalyticsEvent } from "@/lib/analytics-events";
 import { recordMerchantActivationClientEvent } from "@/lib/merchant-activation-client";
+import { merchantPurchaseReviewHref } from "@/modules/merchant/domain/merchant-purchase-intent";
 
 type Props = { merchantId: string; locale: string; commercial: MerchantCommercialPresentation };
 type PlanCode = "LAUNCH" | "GROWTH" | "SCALE" | "FOUNDING_PILOT";
@@ -27,6 +27,7 @@ function nextPlan(commercial: MerchantCommercialPresentation): PlanCode {
 }
 
 export function MerchantBillingActions({ merchantId, locale, commercial }: Props) {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [showPlans, setShowPlans] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export function MerchantBillingActions({ merchantId, locale, commercial }: Props
     }
   }
 
-  function checkout(planCode: PlanCode) {
+  function reviewPlan(planCode: PlanCode) {
     void recordMerchantActivationClientEvent({
       merchantId,
       eventType: "merchant_commercial_intent",
@@ -55,8 +56,7 @@ export function MerchantBillingActions({ merchantId, locale, commercial }: Props
     }).catch(() => {
       // Activation telemetry must never block billing navigation.
     });
-    analytics.trackCustomEvent(AnalyticsEvent.MerchantCheckoutStarted, { merchant_id: merchantId, plan_code: planCode });
-    void call(`/api/merchant/${encodeURIComponent(merchantId)}/billing/checkout`, { planCode, locale });
+    router.push(merchantPurchaseReviewHref({ locale, merchantId, intent: planCode }));
   }
 
   if (action === "NONE") return null;
@@ -67,12 +67,12 @@ export function MerchantBillingActions({ merchantId, locale, commercial }: Props
   return (
     <div className="w-full min-w-0 space-y-3 sm:w-auto">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-        <button type="button" disabled={busy} className={primaryButtonClass} onClick={() => checkout(targetPlan)}>
+        <button type="button" disabled={busy} className={primaryButtonClass} onClick={() => reviewPlan(targetPlan)}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {action === "CONTINUE_AFTER_PILOT" ? "Continue after Pilot" : action === "RESTORE_AI_CAPACITY" ? "Restore AI capacity" : action === "UPGRADE_CAPACITY" ? "Upgrade capacity" : action === "UNLOCK_AI_TRY_ON" ? "Unlock AI Try-On" : "Choose a plan"}
           {!busy ? <ArrowRight className="h-4 w-4" aria-hidden="true" /> : null}
         </button>
-        {action === "UNLOCK_AI_TRY_ON" ? <button type="button" disabled={busy} className={secondaryButtonClass} onClick={() => checkout("FOUNDING_PILOT")}>Start Founding Pilot</button> : null}
+        {action === "UNLOCK_AI_TRY_ON" ? <button type="button" disabled={busy} className={secondaryButtonClass} onClick={() => reviewPlan("FOUNDING_PILOT")}>Start Founding Pilot</button> : null}
         <button
           type="button"
           aria-expanded={showPlans}
@@ -90,7 +90,7 @@ export function MerchantBillingActions({ merchantId, locale, commercial }: Props
             {plans.map((plan) => {
               const [name, price] = plan.label.split(" · ");
               return (
-                <button key={plan.code} type="button" aria-label={plan.label} disabled={busy} className="flex min-h-14 flex-col items-start justify-center rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-left transition hover:border-blue-300 hover:bg-blue-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 disabled:opacity-60" onClick={() => checkout(plan.code)}>
+                <button key={plan.code} type="button" aria-label={plan.label} disabled={busy} className="flex min-h-14 flex-col items-start justify-center rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-left transition hover:border-blue-300 hover:bg-blue-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 disabled:opacity-60" onClick={() => reviewPlan(plan.code)}>
                   <span className="text-sm font-semibold text-slate-900">{name}</span>
                   <span className="mt-0.5 text-xs text-slate-500">{price}</span>
                 </button>

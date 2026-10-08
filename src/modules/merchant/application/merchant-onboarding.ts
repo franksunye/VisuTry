@@ -316,11 +316,20 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
       after: () => getPublicEdgeTagsForMerchant(merchant.slug),
     },
     mutation: () => prisma.$transaction(async (tx) => {
+      // Serialize every Catalog import for this tenant before reading quota or
+      // identities. READ COMMITTED gives the next statement a fresh snapshot
+      // after a competing importer releases this row lock.
+      await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} FOR UPDATE`
+      const lockedMerchant = await tx.merchant.findUnique({
+        where: { id: input.actor.merchantId },
+        select: { planCode: true, commercialStatus: true },
+      })
+      if (!lockedMerchant) throw new MerchantAccessError()
       const ids: string[] = []
       let created = 0
       let updated = 0
-      const canonicalPlan = isCanonicalMerchantCommercialFields(merchant)
-      const catalogLimit = canonicalPlan ? getMerchantPlanDefinition(resolveMerchantPlanCode(merchant.planCode)).catalogItems : null
+      const canonicalPlan = isCanonicalMerchantCommercialFields(lockedMerchant)
+      const catalogLimit = canonicalPlan ? getMerchantPlanDefinition(resolveMerchantPlanCode(lockedMerchant.planCode)).catalogItems : null
       const currentCatalogCount = catalogLimit === null
         ? 0
         : await tx.merchantFrame.count({ where: { merchantId: input.actor.merchantId } })
@@ -334,7 +343,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
         if (!existing && catalogLimit !== null && currentCatalogCount + created >= catalogLimit) {
           throw new MerchantOnboardingError(
             'CATALOG_LIMIT_REACHED',
-            `Your current plan includes up to ${catalogLimit} catalog items.`,
+            `Catalog capacity changed before this import completed. Your plan allows up to ${catalogLimit} items; no products were added. Revise the source and inspect again.`,
             409,
           )
         }
@@ -384,7 +393,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
         }
       }
       return { ids, created, updated }
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted }),
   })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'catalog.imported', resourceType: 'MerchantFrame', result: 'SUCCESS' })
   logger.info('store', 'Merchant catalog import completed', {
