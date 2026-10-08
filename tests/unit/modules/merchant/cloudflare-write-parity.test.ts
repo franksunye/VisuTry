@@ -22,7 +22,7 @@ import { createMerchantStore, getMerchantCatalogWorkspace, getMerchantStoreWorks
 import { createCampaignDraft, previewCampaign, publishCampaign, archiveCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
 import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
 
-type SqlMock = jest.Mock & { transaction: jest.Mock; unsafe: jest.Mock }
+type SqlMock = jest.Mock & { transaction: jest.Mock; unsafe: jest.Mock; query: jest.Mock }
 
 function sqlMock(results: unknown[][], transactions: unknown[][][] = []): SqlMock {
   const seenRows: Record<string, unknown>[] = []
@@ -48,6 +48,7 @@ function sqlMock(results: unknown[][], transactions: unknown[][][] = []): SqlMoc
     return Promise.resolve(rows)
   }) as SqlMock
   sql.unsafe = jest.fn((value: string) => value)
+  sql.query = jest.fn((text: string, params: unknown[]) => ({ text, params }))
   sql.transaction = jest.fn(() => Promise.resolve(transactions.shift() ?? []))
   return sql
 }
@@ -533,9 +534,14 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     const calls: Array<{ values: unknown[] }> = []
     const sql = jest.fn((strings: TemplateStringsArray, ...values: unknown[]) => {
       calls.push({ values })
+      const query = strings.join('')
+      if (query.includes('FROM "Merchant" WHERE "id"')) {
+        return Promise.resolve([{ id: 'merchant-a', slug: 'merchant-a', planCode: null, commercialStatus: null }])
+      }
       return Promise.resolve([])
     }) as SqlMock
-    sql.transaction = jest.fn(() => Promise.resolve([[{ id: 'frame-url', created: true }]]))
+    sql.query = jest.fn((text: string, params: unknown[]) => ({ text, params }))
+    sql.transaction = jest.fn(() => Promise.resolve([[], [{ capacityGuard: 1 }], [{ id: 'frame-url', created: true }]]))
     sql.unsafe = jest.fn((value: string) => value)
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
@@ -557,8 +563,7 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
 
   it('does not report a catalog mutation when the atomic milestone transaction fails', async () => {
     const sql = sqlMock([
-      [{ planCode: null, commercialStatus: null }],
-      [{ count: 0 }],
+      [{ id: 'merchant-a', slug: 'merchant-a', planCode: null, commercialStatus: null }],
       [],
     ])
     sql.transaction = jest.fn().mockRejectedValue(new Error('activation insert failed'))

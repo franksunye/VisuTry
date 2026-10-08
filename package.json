@@ -120,6 +120,7 @@
     "test:e2e:install": "playwright install chromium",
     "test:smoke:production": "node scripts/production-smoke.mjs",
     "test:sponsored:postgres": "bash scripts/test-sponsored-postgres-local.sh",
+    "test:merchant-catalog-capacity:postgres": "bash scripts/test-merchant-catalog-capacity-postgres.sh",
     "test:migration-boundary": "bash scripts/test-migration-boundary.sh",
     "test:migration-fail-closed": "bash scripts/test-migrate-deploy-fail-closed.sh",
     "test:migration-baseline-anchor": "bash scripts/test-migration-baseline-anchor.sh",

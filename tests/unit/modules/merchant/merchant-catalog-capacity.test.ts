@@ -1,4 +1,9 @@
-import { resolveMerchantCatalogCapacity } from '@/modules/merchant/domain/merchant-catalog-capacity'
+import {
+  buildMerchantCatalogCapacityGuardQuery,
+  isMerchantCatalogTransactionConflict,
+  merchantCatalogCapacityErrorCode,
+  resolveMerchantCatalogCapacity,
+} from '@/modules/merchant/domain/merchant-catalog-capacity'
 
 describe('resolveMerchantCatalogCapacity', () => {
   it('allows an exactly-full proposed import when remaining slots match new rows', () => {
@@ -54,5 +59,36 @@ describe('resolveMerchantCatalogCapacity', () => {
       remaining: 0,
       overLimit: 1,
     })
+  })
+})
+
+describe('merchant Catalog PostgreSQL capacity guard', () => {
+  it('builds a tenant-scoped transactional assertion for all proposed identities', () => {
+    const query = buildMerchantCatalogCapacityGuardQuery({
+      merchantId: 'merchant-a',
+      expectedPlanCode: 'FREE',
+      expectedCommercialStatus: 'ACTIVE',
+      limit: 50,
+      frames: [
+        { sku: 'SKU-A', source: 'CSV', externalId: null, productUrl: 'https://catalog.test/a' },
+        { sku: null, source: 'EXTERNAL', externalId: 'external-b', productUrl: 'https://catalog.test/b' },
+      ],
+    })
+
+    expect(query.text).toContain('frame."merchantId" = merchant."id"')
+    expect(query.text).toContain('WHERE "id" = $1') // every capacity read is rooted in the selected tenant.
+    expect(query.text).toContain('1 / CASE WHEN') // rejection aborts the enclosing transaction before any DML.
+    expect(query.params).toEqual([
+      'merchant-a', 'FREE', 'ACTIVE', 50,
+      'SKU-A', 'CSV', null, 'https://catalog.test/a',
+      null, 'EXTERNAL', 'external-b', 'https://catalog.test/b',
+    ])
+  })
+
+  it('classifies only database serialization conflicts for bounded retry', () => {
+    expect(isMerchantCatalogTransactionConflict({ cause: { code: '40001' } })).toBe(true)
+    expect(isMerchantCatalogTransactionConflict({ code: 'P2034' })).toBe(true)
+    expect(isMerchantCatalogTransactionConflict({ code: '23505' })).toBe(false)
+    expect(merchantCatalogCapacityErrorCode({ cause: { code: '22012' } })).toBe('22012')
   })
 })

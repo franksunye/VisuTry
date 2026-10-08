@@ -18,6 +18,11 @@ import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merc
 import { merchantCatalogItemIsReady, MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
 import { resolveMerchantCatalogPresentation, type MerchantCatalogPresentationState } from '../domain/merchant-catalog-presentation'
 import {
+  buildMerchantCatalogCapacityGuardQuery,
+  isMerchantCatalogTransactionConflict,
+  merchantCatalogCapacityErrorCode,
+} from '../domain/merchant-catalog-capacity'
+import {
   logMerchantActivationEventIfInserted,
   merchantActivationEventInsertStatement,
 } from './merchant-activation-cloudflare'
@@ -395,9 +400,8 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     identities.add(identity)
   }
   const sql = getCloudflareSql()
-  const [merchantRows, countRows, existingRows] = await Promise.all([
+  const [merchantRows, existingRows] = await Promise.all([
     sql`SELECT "slug", "planCode", "commercialStatus" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`,
-    sql`SELECT count(*)::int AS "count" FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId}`,
     Promise.all(normalized.map((frame) => sql`
       SELECT "id" FROM "MerchantFrame"
       WHERE "merchantId" = ${input.actor.merchantId}
@@ -411,20 +415,12 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     `)),
   ])
   const merchantRow = merchantRows[0]
-  // Preserve the existing mutation error path when the merchant read is
-  // empty; an empty slug simply produces no purge candidate.
+  if (!merchantRow) throw new MerchantAccessError()
   const merchantSlug = merchantRow?.slug == null ? '' : String(merchantRow.slug)
+  if (!merchantSlug) throw new MerchantAccessError()
   const edgeTagsBefore = merchantSlug ? await getPublicEdgeTagsForCloudflareMerchant(merchantSlug) : []
-  const canonicalPlan = isCanonicalMerchantCommercialFields({
-    planCode: merchantRow?.planCode == null ? null : String(merchantRow.planCode),
-    commercialStatus: merchantRow?.commercialStatus == null ? null : String(merchantRow.commercialStatus),
-  })
-  const catalogLimit = canonicalPlan ? getMerchantPlanDefinition(resolveMerchantPlanCode(merchantRow?.planCode == null ? null : String(merchantRow.planCode))).catalogItems : null
   const existingIdSet = new Set(existingRows.flatMap((rows) => rows.map((row) => String(row.id))))
   const additions = normalized.filter((_, index) => !existingIdSet.has(String(existingRows[index]?.[0]?.id ?? ''))).length
-  if (catalogLimit !== null && Number(countRows[0]?.count ?? 0) + additions > catalogLimit) {
-    throw new MerchantOnboardingError('CATALOG_LIMIT_REACHED', `Catalog capacity changed before this import completed. Your plan allows up to ${catalogLimit} items; no products were added. Revise the source and inspect again.`, 409)
-  }
   const activationInputs = [] as Array<{ eventType: typeof MERCHANT_ACTIVATION_EVENT[keyof typeof MERCHANT_ACTIVATION_EVENT]; metadata: Record<string, unknown> }>
   if (additions > 0) {
     activationInputs.push({
@@ -485,15 +481,111 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
       metadata: activation.metadata,
     }))
   }
+  const activationStatementOffset = 2 + normalized.length
   const results = await withPublicDiscoveryInvalidation({
     target: { kind: 'catalog', merchantSlug },
     edgeTags: {
       before: edgeTagsBefore,
       after: () => merchantSlug ? getPublicEdgeTagsForCloudflareMerchant(merchantSlug) : [],
     },
-    mutation: () => sql.transaction(statements, { isolationLevel: 'Serializable' }),
+    mutation: async () => {
+      let lastConflict: unknown = null
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const attemptMerchantRows = attempt === 0
+          ? merchantRows
+          : await sql`SELECT "slug", "planCode", "commercialStatus" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`
+        const attemptMerchant = attemptMerchantRows[0]
+        if (!attemptMerchant) throw new MerchantAccessError()
+        const attemptPlanCode = attemptMerchant.planCode == null ? null : String(attemptMerchant.planCode)
+        const attemptCommercialStatus = attemptMerchant.commercialStatus == null ? null : String(attemptMerchant.commercialStatus)
+        const canonicalPlan = isCanonicalMerchantCommercialFields({ planCode: attemptPlanCode, commercialStatus: attemptCommercialStatus })
+        const catalogLimit = canonicalPlan
+          ? getMerchantPlanDefinition(resolveMerchantPlanCode(attemptPlanCode)).catalogItems
+          : null
+        const guardQuery = buildMerchantCatalogCapacityGuardQuery({
+          merchantId: input.actor.merchantId,
+          expectedPlanCode: attemptPlanCode,
+          expectedCommercialStatus: attemptCommercialStatus,
+          limit: catalogLimit,
+          frames: normalized.map((frame) => ({
+            sku: frame.sku,
+            source: frame.source ?? 'MANUAL',
+            externalId: frame.externalId ?? null,
+            productUrl: frame.productUrl ?? null,
+          })),
+        })
+        const transactionStatements = [
+          // Keep this as a separate first statement: under READ COMMITTED the
+          // guard below receives a fresh snapshot after a competing import
+          // releases the merchant row lock.
+          sql`SELECT "id" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} FOR UPDATE`,
+          sql.query(guardQuery.text, guardQuery.params),
+          ...statements,
+        ]
+
+        try {
+          return await sql.transaction(transactionStatements, { isolationLevel: 'ReadCommitted' })
+        } catch (error) {
+          const code = merchantCatalogCapacityErrorCode(error)
+          if (code === '22012') {
+            const latestRows = await sql`SELECT "planCode", "commercialStatus" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`
+            const latest = latestRows[0]
+            if (!latest) throw new MerchantAccessError()
+            const planUnchanged = (latest.planCode == null ? null : String(latest.planCode)) === attemptPlanCode
+            const statusUnchanged = (latest.commercialStatus == null ? null : String(latest.commercialStatus)) === attemptCommercialStatus
+            if ((!planUnchanged || !statusUnchanged) && attempt < 2) continue
+            if (!planUnchanged || !statusUnchanged) throw error
+            throw new MerchantOnboardingError(
+              'CATALOG_LIMIT_REACHED',
+              `Catalog capacity changed before this import completed. Your plan allows up to ${catalogLimit ?? 'the current limit'} items; no products were added. Revise the source and inspect again.`,
+              409,
+            )
+          }
+          if (isMerchantCatalogTransactionConflict(error) && attempt < 2) {
+            lastConflict = error
+            continue
+          }
+          throw error
+        }
+      }
+
+      if (lastConflict) {
+        const latestRows = await sql`SELECT "planCode", "commercialStatus" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`
+        const latest = latestRows[0]
+        if (!latest) throw new MerchantAccessError()
+        const latestCanonical = isCanonicalMerchantCommercialFields({
+          planCode: latest.planCode == null ? null : String(latest.planCode),
+          commercialStatus: latest.commercialStatus == null ? null : String(latest.commercialStatus),
+        })
+        const latestLimit = latestCanonical
+          ? getMerchantPlanDefinition(resolveMerchantPlanCode(latest.planCode == null ? null : String(latest.planCode))).catalogItems
+          : null
+        if (latestLimit !== null) {
+          const [countRows, currentIdentityRows] = await Promise.all([
+            sql`SELECT count(*)::int AS "count" FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId}`,
+            Promise.all(normalized.map((frame) => sql`
+              SELECT "id" FROM "MerchantFrame"
+              WHERE "merchantId" = ${input.actor.merchantId}
+                AND (
+                  ("sku" IS NOT NULL AND "sku" = ${frame.sku})
+                  OR ("externalId" IS NOT NULL AND "source" = ${frame.source} AND "externalId" = ${frame.externalId})
+                  OR ("productUrl" IS NOT NULL AND "productUrl" = ${frame.productUrl})
+                )
+              LIMIT 1
+            `)),
+          ])
+          const existingIds = new Set(currentIdentityRows.flatMap((rows) => rows.map((row) => String(row.id))))
+          const currentAdditions = normalized.filter((_, index) => !existingIds.has(String(currentIdentityRows[index]?.[0]?.id ?? ''))).length
+          if (Number(countRows[0]?.count ?? 0) + currentAdditions > latestLimit) {
+            throw new MerchantOnboardingError('CATALOG_LIMIT_REACHED', `Catalog capacity changed before this import completed. Your plan allows up to ${latestLimit} items; no products were added. Revise the source and inspect again.`, 409)
+          }
+        }
+        throw lastConflict
+      }
+      throw new Error('Catalog import concurrency retry limit exceeded.')
+    },
   })
-  const frameResults = results.slice(0, normalized.length)
+  const frameResults = results.slice(2, 2 + normalized.length)
   const ids = frameResults.flatMap((result) => result.map((row) => String(row.id)))
   const created = frameResults.flatMap((result) => result).filter((row) => Boolean(row.created)).length
   activationInputs.forEach((activation, index) => {
@@ -502,7 +594,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
       eventType: activation.eventType,
       source: 'SERVER',
       metadata: activation.metadata,
-    }, results[normalized.length + index])
+    }, results[activationStatementOffset + index])
   })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'catalog.imported', resourceType: 'MerchantFrame', result: 'SUCCESS' })
   return { ids, created, updated: normalized.length - created, imported: normalized.length }

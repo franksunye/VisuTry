@@ -265,6 +265,8 @@ describe('merchant onboarding catalog validation', () => {
     const writeActor: AgentMerchantActor = { ...actor, scopes: ['catalog:write'] }
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([{ id: 'merchant-a' }]),
+      merchant: { findUnique: jest.fn().mockResolvedValue({ planCode: null, commercialStatus: null }) },
       merchantFrame: {
         findFirst: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockResolvedValue({ id: 'frame-a' }),
@@ -287,6 +289,8 @@ describe('merchant onboarding catalog validation', () => {
     const create = jest.fn().mockResolvedValue({ id: 'frame-external' })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([{ id: 'merchant-a' }]),
+      merchant: { findUnique: jest.fn().mockResolvedValue({ planCode: null, commercialStatus: null }) },
       merchantFrame: { findFirst: jest.fn().mockResolvedValue(null), create },
       merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
@@ -317,6 +321,8 @@ describe('merchant onboarding catalog validation', () => {
     const create = jest.fn().mockResolvedValue({ id: 'frame-url-only' })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([{ id: 'merchant-a' }]),
+      merchant: { findUnique: jest.fn().mockResolvedValue({ planCode: null, commercialStatus: null }) },
       merchantFrame: { findFirst: jest.fn().mockResolvedValue(null), create },
       merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
@@ -341,6 +347,8 @@ describe('merchant onboarding catalog validation', () => {
     const create = jest.fn()
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([{ id: 'merchant-a' }]),
+      merchant: { findUnique: jest.fn().mockResolvedValue({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' }) },
       merchantFrame: {
         count: jest.fn().mockResolvedValue(100),
         findFirst: jest.fn().mockResolvedValue(null),
