@@ -7,7 +7,7 @@ import { requireMerchantMembership } from '@/modules/merchant/application/mercha
 import { listMerchantsForUser } from '@/modules/merchant/application/merchant-memberships'
 import { listMerchantAgentCredentials } from '@/modules/merchant/application/merchant-agent-credentials'
 import { getMerchantControlCenter } from '@/modules/merchant/application/merchant-control-center'
-import { getMerchantWorkspaceMode } from '@/modules/merchant/application/merchant-operating-reads'
+import { getMerchantOperatingPlan, getMerchantWorkspaceMode } from '@/modules/merchant/application/merchant-operating-reads'
 import { getMerchantOperatingHome } from '@/modules/merchant/application/merchant-operating-home'
 import { MerchantControlCenter } from '@/components/merchant/MerchantControlCenter'
 import { MerchantWorkspaceOnboarding } from '@/components/merchant/MerchantWorkspaceOnboarding'
@@ -59,12 +59,21 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
   await requireMerchantMembership({ userId: session.user.id, merchantId: selected.merchant.id, roles: ['OWNER', 'ADMIN'] })
   const navigationMerchants = merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role, referenceData: merchant.referenceData }))
   const workspaceMode = await getMerchantWorkspaceMode({ merchantId: selected.merchant.id })
+  const billingState = searchParams?.billing === 'processing' || searchParams?.billing === 'cancelled'
+    ? searchParams.billing
+    : undefined
+  const targetPlan = billingPlan(searchParams?.plan)
   if (workspaceMode.mode === 'OPERATING') {
-    const home = await getMerchantOperatingHome({ merchantId: selected.merchant.id })
+    const [home, billingCommercial] = await Promise.all([
+      getMerchantOperatingHome({ merchantId: selected.merchant.id }),
+      billingState === 'processing'
+        ? getMerchantOperatingPlan({ merchantId: selected.merchant.id })
+        : Promise.resolve(undefined),
+    ])
     if (!home) notFound()
     return (
       <MerchantWorkspaceShell locale={params.locale} merchants={navigationMerchants} selectedMerchantId={selected.merchant.id}>
-        <MerchantOperatingHome locale={params.locale} merchantId={selected.merchant.id} home={home} />
+        <MerchantOperatingHome locale={params.locale} merchantId={selected.merchant.id} home={home} billingState={billingState} billingCommercial={billingCommercial} billingPlan={targetPlan} />
       </MerchantWorkspaceShell>
     )
   }
@@ -78,8 +87,5 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
   const onboardingState = searchParams?.onboarding === 'created' || searchParams?.onboarding === 'existing'
     ? searchParams.onboarding
     : undefined
-  const billingState = searchParams?.billing === 'processing' || searchParams?.billing === 'cancelled'
-    ? searchParams.billing
-    : undefined
-  return <MerchantControlCenter locale={params.locale} merchants={navigationMerchants} selectedMerchantId={selected.merchant.id} control={control} credentials={credentials} endpoint={`${origin}/api/mcp`} skills={skills} onboardingState={onboardingState} billingState={billingState} billingPlan={billingPlan(searchParams?.plan)} />
+  return <MerchantControlCenter locale={params.locale} merchants={navigationMerchants} selectedMerchantId={selected.merchant.id} control={control} credentials={credentials} endpoint={`${origin}/api/mcp`} skills={skills} onboardingState={onboardingState} billingState={billingState} billingPlan={targetPlan} />
 }

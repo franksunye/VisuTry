@@ -2,6 +2,11 @@ import { render, screen, within } from '@testing-library/react'
 import { MerchantOperatingHome } from '@/components/merchant/MerchantOperatingHome'
 import type { MerchantOperatingHomeReadModel } from '@/modules/merchant/domain/merchant-operating-home'
 
+const mockRefresh = jest.fn()
+
+jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }) }))
+jest.mock('@/lib/analytics', () => ({ analytics: { trackCustomEvent: jest.fn() } }))
+
 function home(overrides: Partial<MerchantOperatingHomeReadModel> = {}): MerchantOperatingHomeReadModel {
   return {
     merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', referenceData: false },
@@ -22,6 +27,21 @@ describe('MerchantOperatingHome', () => {
     expect(screen.getByText('No shopper activity yet')).toBeInTheDocument()
     expect(screen.queryByText('Connect your Agent')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Attention' })).not.toBeInTheDocument()
+  })
+
+  it('shows the existing processing confirmation inside Operating Home without changing query-free Home', () => {
+    const { rerender } = render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home()} />)
+    expect(screen.queryByText('Plan update in progress')).not.toBeInTheDocument()
+
+    rerender(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home()} billingState="processing" billingPlan="LAUNCH" billingCommercial={{ planCode: 'FREE', status: 'FREE', planName: 'Free' } as never} />)
+    expect(screen.getByRole('status')).toHaveTextContent('Your payment is being confirmed')
+    expect(screen.getByRole('status')).toHaveTextContent('Your plan and feature access will update after confirmation')
+  })
+
+  it('shows the same no-change cancellation feedback in Operating Home', () => {
+    render(<MerchantOperatingHome locale="en" merchantId="merchant-a" home={home()} billingState="cancelled" />)
+    expect(screen.getByRole('status')).toHaveTextContent('No changes were made')
+    expect(screen.getByRole('status')).toHaveTextContent('Your current Store and access remain unchanged')
   })
 
   it('keeps Business status as one flat surface with only list-row separators', () => {

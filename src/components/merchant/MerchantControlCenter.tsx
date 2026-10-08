@@ -34,7 +34,7 @@ import { MerchantCatalogSelfService } from "@/components/merchant/MerchantCatalo
 import { MerchantStoreSelfService } from "@/components/merchant/MerchantStoreSelfService";
 import { MerchantActivationChecklist } from "@/components/merchant/MerchantActivationChecklist";
 import { MerchantPlanUsage } from "@/components/merchant/MerchantPlanUsage";
-import { MerchantBillingProcessingNotice } from "@/components/merchant/MerchantBillingProcessingNotice";
+import { MerchantBillingCancelledNotice, MerchantBillingProcessingNotice } from "@/components/merchant/MerchantBillingProcessingNotice";
 import { MerchantWorkspaceDetailsForm } from "@/components/merchant/MerchantWorkspaceDetailsForm";
 import type { MerchantBillablePlanCode } from "@/modules/merchant/domain/merchant-billing";
 
@@ -1542,12 +1542,7 @@ function MerchantControlCenterView({
       </header>
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
         {billingState === "processing" && control.commercial ? <MerchantBillingProcessingNotice merchantId={control.merchant.id} commercial={control.commercial} targetPlan={billingPlan} /> : null}
-        {billingState === "cancelled" ? (
-          <section role="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-800 sm:px-6">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-600">No changes were made</p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">You can choose a plan whenever you’re ready. Your current Store and access remain unchanged.</p>
-          </section>
-        ) : null}
+        {billingState === "cancelled" ? <MerchantBillingCancelledNotice /> : null}
         {onboardingState && !catalogState.hasAny ? (
           <section
             data-onboarding-state={onboardingState}
