@@ -50,12 +50,12 @@ function getBusinessVisualAsset(id: string, ratio: '16:10' | '4:3' | '4:5'): Bus
     case 'B2B-VIS-05':
       return {
         src: '/images/business/b2b-vis-05-merchant-workspace-main.png',
-        alt: 'VisuTry Merchant Workspace operating Store, Campaigns, and insights',
+        alt: 'VisuTry Merchant Home workspace showing shopper outcomes, Store status, and live activity using Local reference data',
       }
     case 'B2B-VIS-06':
       return {
         src: '/images/business/b2b-vis-06-commerce-intelligence-main.png',
-        alt: 'VisuTry Commerce Intelligence visual with shopper engagement and intent signals',
+        alt: 'VisuTry Analytics workspace showing a 30-day shopper trend, decision path, frame interest, recent activity, and intent signals using Local reference data',
       }
     case 'B2B-VIS-07':
       return {
