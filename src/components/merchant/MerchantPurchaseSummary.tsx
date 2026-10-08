@@ -80,11 +80,13 @@ export function MerchantPurchaseSummary({ locale, merchantId, merchantName, inte
     }).catch(() => {
       // Activation telemetry must never block billing navigation.
     })
-    analytics.trackCustomEvent(AnalyticsEvent.MerchantCheckoutStarted, {
-      plan_code: intent,
-      source: 'business_pricing',
-      merchant_flow: action.toLowerCase(),
-    })
+    if (isCheckout || isChangePlan) {
+      analytics.trackCustomEvent(AnalyticsEvent.MerchantCheckoutStarted, {
+        plan_code: intent,
+        source: 'merchant_purchase_review',
+        merchant_flow: action.toLowerCase(),
+      })
+    }
     const path = isCheckout
       ? `/api/merchant/${encodeURIComponent(merchantId)}/billing/checkout`
       : isChangePlan

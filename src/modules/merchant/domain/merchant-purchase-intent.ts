@@ -34,6 +34,18 @@ export function merchantPurchasePath(intent: MerchantPurchaseIntent): string {
   return `/merchant?commercialIntent=${intent}`
 }
 
+export function merchantPurchaseReviewHref(input: {
+  locale: string
+  merchantId: string
+  intent: Exclude<MerchantPurchaseIntent, 'FREE'>
+}): string {
+  const query = new URLSearchParams({
+    merchantId: input.merchantId,
+    commercialIntent: input.intent,
+  })
+  return `/${encodeURIComponent(input.locale)}/merchant/purchase?${query.toString()}`
+}
+
 export function merchantBillablePlanFromPurchaseIntent(
   intent: Exclude<MerchantPurchaseIntent, 'FREE'>,
 ): MerchantBillablePlanCode {

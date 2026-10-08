@@ -334,7 +334,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
         if (!existing && catalogLimit !== null && currentCatalogCount + created >= catalogLimit) {
           throw new MerchantOnboardingError(
             'CATALOG_LIMIT_REACHED',
-            `Your current plan includes up to ${catalogLimit} catalog items.`,
+            `Catalog capacity changed before this import completed. Your plan allows up to ${catalogLimit} items; no products were added. Revise the source and inspect again.`,
             409,
           )
         }

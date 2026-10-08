@@ -423,7 +423,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
   const existingIdSet = new Set(existingRows.flatMap((rows) => rows.map((row) => String(row.id))))
   const additions = normalized.filter((_, index) => !existingIdSet.has(String(existingRows[index]?.[0]?.id ?? ''))).length
   if (catalogLimit !== null && Number(countRows[0]?.count ?? 0) + additions > catalogLimit) {
-    throw new MerchantOnboardingError('CATALOG_LIMIT_REACHED', `Your current plan includes up to ${catalogLimit} catalog items.`, 409)
+    throw new MerchantOnboardingError('CATALOG_LIMIT_REACHED', `Catalog capacity changed before this import completed. Your plan allows up to ${catalogLimit} items; no products were added. Revise the source and inspect again.`, 409)
   }
   const activationInputs = [] as Array<{ eventType: typeof MERCHANT_ACTIVATION_EVENT[keyof typeof MERCHANT_ACTIVATION_EVENT]; metadata: Record<string, unknown> }>
   if (additions > 0) {

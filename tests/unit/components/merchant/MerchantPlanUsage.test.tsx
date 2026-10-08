@@ -1,6 +1,10 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MerchantPlanUsage } from '@/components/merchant/MerchantPlanUsage'
 import type { MerchantCommercialPresentation } from '@/modules/merchant/application/merchant-control-center'
+
+const mockRouterPush = jest.fn()
+
+jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockRouterPush }) }))
 
 function commercial(overrides: Partial<MerchantCommercialPresentation> = {}): MerchantCommercialPresentation {
   return {
@@ -16,6 +20,10 @@ function commercial(overrides: Partial<MerchantCommercialPresentation> = {}): Me
 }
 
 describe('MerchantPlanUsage', () => {
+  beforeEach(() => {
+    mockRouterPush.mockReset()
+  })
+
   it('explains a paid warning state with readable usage and action', () => {
     render(<MerchantPlanUsage commercial={commercial()} />)
     expect(screen.getByRole('heading', { name: 'Growth' })).toBeInTheDocument()
@@ -101,7 +109,7 @@ describe('MerchantPlanUsage', () => {
     }
   })
 
-  it('starts checkout only after a plan option is selected', () => {
+  it('routes an explicit plan choice to Purchase without starting checkout', () => {
     const originalFetch = globalThis.fetch
     const fetchSpy = jest.fn().mockImplementation(() => new Promise(() => {}))
     Object.defineProperty(globalThis, 'fetch', { configurable: true, writable: true, value: fetchSpy })
@@ -113,14 +121,35 @@ describe('MerchantPlanUsage', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Launch · $199/month' }))
       expect(fetchSpy).toHaveBeenCalledWith('/api/merchant/merchant-legacy/activation-events', expect.objectContaining({ method: 'POST' }))
-      expect(fetchSpy).toHaveBeenCalledWith('/api/merchant/merchant-legacy/billing/checkout', expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planCode: 'LAUNCH', locale: 'en' }),
-      }))
+      expect(mockRouterPush).toHaveBeenCalledWith('/en/merchant/purchase?merchantId=merchant-legacy&commercialIntent=LAUNCH')
+      expect(fetchSpy.mock.calls.some(([url]) => String(url).includes('/billing/checkout'))).toBe(false)
     } finally {
       if (originalFetch) Object.defineProperty(globalThis, 'fetch', { configurable: true, writable: true, value: originalFetch })
       else Reflect.deleteProperty(globalThis, 'fetch')
+    }
+  })
+
+  it('routes Continue after Pilot to a merchant-scoped Purchase review', () => {
+    render(<MerchantPlanUsage commercial={commercial({
+      planCode: 'FOUNDING_PILOT', planName: 'Founding Pilot', status: 'PILOT_ACTIVE', primaryAction: 'CONTINUE_AFTER_PILOT',
+      limits: { catalogItems: 50, activeCampaigns: 1, aiCommerceSessions: 1500, standardTryOnGenerations: 3500, normalStoreTraffic: 'unlimited' },
+    })} merchantId="merchant/pilot" locale="zh-CN" />)
+
+    fireEvent.click(screen.getByRole('button', { name: /continue after pilot/i }))
+    expect(mockRouterPush).toHaveBeenCalledWith('/zh-CN/merchant/purchase?merchantId=merchant%2Fpilot&commercialIntent=LAUNCH')
+  })
+
+  it('keeps direct billing portal actions separate from plan selection', async () => {
+    const originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, message: 'Local portal harness stop' }) }) as jest.Mock
+    try {
+      render(<MerchantPlanUsage commercial={commercial({ primaryAction: 'MANAGE_PLAN' })} merchantId="merchant-paid" />)
+      fireEvent.click(screen.getByRole('button', { name: /manage plan/i }))
+      expect(global.fetch).toHaveBeenCalledWith('/api/merchant/merchant-paid/billing/portal', expect.objectContaining({ method: 'POST' }))
+      expect(mockRouterPush).not.toHaveBeenCalled()
+      await screen.findByRole('alert')
+    } finally {
+      global.fetch = originalFetch
     }
   })
 

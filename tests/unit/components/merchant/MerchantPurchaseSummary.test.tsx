@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MerchantPurchaseSummary } from '@/components/merchant/MerchantPurchaseSummary'
+import { analytics } from '@/lib/analytics'
 import { recordMerchantActivationClientEvent } from '@/lib/merchant-activation-client'
 import { getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 import type { MerchantBillingState } from '@/modules/merchant/domain/merchant-billing-state'
@@ -18,11 +19,15 @@ const baseState = {
   cancelAtPeriodEnd: false,
 } as const
 
-function renderSummary(action: 'CHECKOUT' | 'CHANGE_PLAN' | 'CURRENT' | 'MANAGE_BILLING' | 'BILLING_DISABLED' | 'BILLING_RECOVERY', billingState: MerchantBillingState = { kind: 'NO_SUBSCRIPTION', ...baseState }) {
+function renderSummary(action: 'CHECKOUT' | 'CHANGE_PLAN' | 'CURRENT' | 'MANAGE_BILLING' | 'BILLING_DISABLED' | 'BILLING_RECOVERY' | 'DUPLICATE_PILOT', billingState: MerchantBillingState = { kind: 'NO_SUBSCRIPTION', ...baseState }) {
   return render(<MerchantPurchaseSummary locale="en" merchantId="merchant-1" merchantName="Demo Merchant" intent="GROWTH" plan={getMerchantPlanDefinition('GROWTH')} action={action} currentPlanName="Launch" billingState={billingState} />)
 }
 
 describe('MerchantPurchaseSummary billing states', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
   it('shows secure checkout only for an explicit checkout action', () => {
     renderSummary('CHECKOUT')
     expect(screen.getByRole('button', { name: /start secure checkout/i })).toBeInTheDocument()
@@ -45,15 +50,101 @@ describe('MerchantPurchaseSummary billing states', () => {
     expect(screen.getByRole('button', { name: /continue with growth/i })).toBeInTheDocument()
   })
 
-  it('records commercial intent without blocking checkout navigation', () => {
+  it('records commercial intent without blocking checkout navigation', async () => {
+    const originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, message: 'Local harness stop' }) }) as jest.Mock
     mockRecordMerchantActivationClientEvent.mockClear()
-    renderSummary('CHECKOUT')
-    fireEvent.click(screen.getByRole('button', { name: /start secure checkout/i }))
-    expect(mockRecordMerchantActivationClientEvent).toHaveBeenCalledWith(expect.objectContaining({
-      merchantId: 'merchant-1',
-      eventType: 'merchant_commercial_intent',
-      commercialIntent: 'GROWTH',
-    }))
+    try {
+      renderSummary('CHECKOUT')
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /start secure checkout/i }))
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+      expect(mockRecordMerchantActivationClientEvent).toHaveBeenCalledWith(expect.objectContaining({
+        merchantId: 'merchant-1',
+        eventType: 'merchant_commercial_intent',
+        commercialIntent: 'GROWTH',
+      }))
+      expect(screen.getByRole('alert')).toHaveTextContent('Local harness stop')
+    } finally {
+      global.fetch = originalFetch
+    }
+  })
+
+  it('starts checkout telemetry and POST only after explicit Purchase confirmation', async () => {
+    const originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, message: 'Local harness stop' }) }) as jest.Mock
+    try {
+      renderSummary('CHECKOUT')
+      expect(global.fetch).not.toHaveBeenCalled()
+      expect(analytics.trackCustomEvent).not.toHaveBeenCalled()
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /start secure checkout/i }))
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+
+      expect(analytics.trackCustomEvent).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+        plan_code: 'GROWTH',
+        source: 'merchant_purchase_review',
+        merchant_flow: 'checkout',
+      }))
+      expect(global.fetch).toHaveBeenCalledWith('/api/merchant/merchant-1/billing/checkout', expect.objectContaining({ method: 'POST' }))
+      expect(screen.getByRole('alert')).toHaveTextContent('Local harness stop')
+    } finally {
+      global.fetch = originalFetch
+    }
+  })
+
+  it('calls the change-plan mutation only after explicit Purchase confirmation', async () => {
+    const originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, message: 'Local harness stop' }) }) as jest.Mock
+    try {
+      renderSummary('CHANGE_PLAN', { kind: 'VALID_SUBSCRIPTION', ...baseState, providerPlanCode: 'LAUNCH', providerSubscriptionStatus: 'active' })
+      expect(global.fetch).not.toHaveBeenCalled()
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /continue with growth/i }))
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+      expect(global.fetch).toHaveBeenCalledWith('/api/merchant/merchant-1/billing/change-plan', expect.objectContaining({ method: 'POST' }))
+      expect(screen.getByRole('alert')).toHaveTextContent('Local harness stop')
+    } finally {
+      global.fetch = originalFetch
+    }
+  })
+
+  it('keeps CURRENT and duplicate Pilot states mutation-free', () => {
+    const originalFetch = global.fetch
+    global.fetch = jest.fn() as jest.Mock
+    try {
+      const current = renderSummary('CURRENT', { kind: 'VALID_SUBSCRIPTION', ...baseState, providerPlanCode: 'GROWTH', providerSubscriptionStatus: 'active' })
+      expect(screen.getByRole('status')).toHaveTextContent('This is your current plan.')
+      expect(global.fetch).not.toHaveBeenCalled()
+      current.unmount()
+
+      renderSummary('DUPLICATE_PILOT')
+      expect(screen.getByRole('status')).toHaveTextContent('A second $149 Pilot checkout is not available.')
+      expect(global.fetch).not.toHaveBeenCalled()
+    } finally {
+      global.fetch = originalFetch
+    }
+  })
+
+  it('does not label Manage Billing portal access as checkout started', async () => {
+    const originalFetch = global.fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, message: 'Local harness stop' }) }) as jest.Mock
+    try {
+      renderSummary('MANAGE_BILLING', { kind: 'PAYMENT_ATTENTION', ...baseState, reason: 'SUBSCRIPTION_STATUS_INVALID' })
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /manage billing/i }))
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+      expect(global.fetch).toHaveBeenCalledWith('/api/merchant/merchant-1/billing/portal', expect.objectContaining({ method: 'POST' }))
+      expect(analytics.trackCustomEvent).not.toHaveBeenCalled()
+      expect(screen.getByRole('alert')).toHaveTextContent('Local harness stop')
+    } finally {
+      global.fetch = originalFetch
+    }
   })
 
   it('shows a non-write disabled state for test/internal workspaces', () => {
@@ -71,17 +162,30 @@ describe('MerchantPurchaseSummary billing states', () => {
   })
 
   it('offers retry guidance only for a provider outage', () => {
-    renderSummary('BILLING_RECOVERY', { kind: 'PROVIDER_UNAVAILABLE', ...baseState, reason: 'PROVIDER_UNAVAILABLE' })
-    expect(screen.getByRole('alert')).toHaveTextContent('We could not reach the billing provider.')
-    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
+    const originalFetch = global.fetch
+    global.fetch = jest.fn() as jest.Mock
+    refresh.mockClear()
+    try {
+      renderSummary('BILLING_RECOVERY', { kind: 'PROVIDER_UNAVAILABLE', ...baseState, reason: 'PROVIDER_UNAVAILABLE' })
+      expect(screen.getByRole('alert')).toHaveTextContent('We could not reach the billing provider.')
+      expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: /try again/i }))
+      expect(refresh).toHaveBeenCalled()
+      expect(global.fetch).not.toHaveBeenCalled()
+    } finally {
+      global.fetch = originalFetch
+    }
   })
 
   it('keeps checkout errors visible in the same restrained feedback surface on retry', async () => {
     const originalFetch = global.fetch
     global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, message: 'Local test error' }) }) as jest.Mock
     renderSummary('CHECKOUT')
-    fireEvent.click(screen.getByRole('button', { name: /start secure checkout/i }))
-    const alert = await screen.findByRole('alert')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /start secure checkout/i }))
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
+    const alert = screen.getByRole('alert')
     expect(alert).toHaveTextContent('Local test error')
     expect(alert).toHaveClass('rounded-xl', 'bg-red-50')
     global.fetch = originalFetch

@@ -6,6 +6,8 @@ import { fetchMerchantSourceDocument, MERCHANT_SOURCE_MAX_REDIRECTS, MERCHANT_SO
 import type { CatalogFrameInput } from './merchant-onboarding'
 import { inspectCatalogUrlProgressively } from './merchant-catalog-url-progressive'
 import { createMerchantBrowserRenderedFetch } from './merchant-catalog-browser-render'
+import { getMerchantCommercialState } from './merchant-commercial-entitlements'
+import { resolveMerchantCatalogCapacity } from '../domain/merchant-catalog-capacity'
 import {
   buildCatalogInspectionProposal,
   MAX_CSV_BYTES,
@@ -53,6 +55,7 @@ export async function inspectHumanMerchantCatalogSource(input: {
     maxProducts,
     initialSourceIssues,
   })
+  const commercial = await getMerchantCommercialState({ merchantId: input.actor.merchantId })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'catalog.source_inspected', resourceType: 'CatalogSource', result: 'SUCCESS' })
   logger.info('store', 'Human merchant catalog source inspected', {
     merchantId: input.actor.merchantId,
@@ -63,5 +66,12 @@ export async function inspectHumanMerchantCatalogSource(input: {
     importReadyCount: result.sourceSummary.readyToImport,
     result: 'SUCCESS',
   })
-  return result
+  return {
+    ...result,
+    catalogCapacity: resolveMerchantCatalogCapacity({
+      current: commercial.usage.catalogItems,
+      limit: commercial.plan?.catalogItems ?? null,
+      proposedNew: result.importReady.length,
+    }),
+  }
 }
