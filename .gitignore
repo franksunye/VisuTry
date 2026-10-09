@@ -21,6 +21,7 @@
 /.local/demo-evidence/
 /.local/merchant-dashboard-capture/
 /.local/merchant-e2e/
+/.local/sales-demo/
 
 # production
 /build

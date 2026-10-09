@@ -15,8 +15,15 @@ Use the repository-owned Local Demo commands. Do not create temporary Playwright
 - Prepare or reconcile the environment: `npm run demo:local:bootstrap`
 - Interactive Local product work, providers blocked: `npm run demo:local:dev`
 - Full deterministic no-provider regression: `npm run demo:local:journey:e2e`
+- Capture reusable sales-demo product scenes, providers blocked: `npm run demo:local:sales-demo-capture`
 - Reset only the dedicated Demo shopper state/media: `npm run demo:local:reset-session`
 - Real GrsAI validation **only after explicit human authorization**: `npm run demo:local:provider-smoke -- --authorized`
+
+For sales-demo footage, use `demo:local:sales-demo-capture` rather than
+desktop manual recording, temporary Playwright scripts, or a full Provider
+walkthrough. It records only short Store, Face Intelligence, Recommendation,
+and frame-selection scenes, and stops before Try-On submission. It is product
+footage, not a QA evidence workflow.
 
 ## Provider rule
 
