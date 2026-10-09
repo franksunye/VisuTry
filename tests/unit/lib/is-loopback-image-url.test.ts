@@ -29,7 +29,7 @@ describe('public Merchant media trust boundary', () => {
 
     const previousNodeEnv = process.env.NODE_ENV
     try {
-      process.env.NODE_ENV = 'production'
+      Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', writable: true, configurable: true })
       jest.isolateModules(() => {
         const production = jest.requireActual<typeof import('@/lib/is-loopback-image-url')>('@/lib/is-loopback-image-url')
         for (const address of [
@@ -41,7 +41,7 @@ describe('public Merchant media trust boundary', () => {
         }
       })
     } finally {
-      process.env.NODE_ENV = previousNodeEnv
+      Object.defineProperty(process.env, 'NODE_ENV', { value: previousNodeEnv, writable: true, configurable: true })
     }
   })
 })
