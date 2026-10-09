@@ -75,6 +75,41 @@ describe('MerchantExperienceConfiguration', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
+
+  it('clears the primary and secondary handoff fields when No action is selected', () => {
+    const onChange = jest.fn()
+    const value: ExperienceConfigurationDraft = {
+      journeyPolicy: { enabledStages: [...DEFAULT_DECISION_JOURNEY_POLICY.enabledStages] },
+      deliveryPolicy: { ...DEFAULT_EXPERIENCE_DELIVERY_POLICY },
+      presentationMode: 'PRODUCT_FIRST',
+      primaryHandoff: { action: 'VISIT_STORE', label: 'Visit us', url: 'https://example.com' },
+      secondaryHandoff: { action: 'BOOK_APPOINTMENT', label: 'Book', url: '/appointments' },
+    }
+    const view = render(<MerchantExperienceConfiguration
+      experienceType="CAMPAIGN"
+      value={value}
+      capabilities={{ tryOnEnabled: true, compareEnabled: true }}
+      onChange={onChange}
+    />)
+    fireEvent.change(screen.getByRole('combobox', { name: 'Primary action' }), { target: { value: '' } })
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({
+      primaryHandoff: { action: '', label: '', url: '' },
+      secondaryHandoff: value.secondaryHandoff,
+    }))
+    view.rerender(<MerchantExperienceConfiguration
+      experienceType="CAMPAIGN"
+      value={{ ...value, primaryHandoff: { action: '', label: '', url: '' } }}
+      capabilities={{ tryOnEnabled: true, compareEnabled: true }}
+      onChange={onChange}
+    />)
+    expect(screen.getAllByRole('textbox', { name: 'Button label' })[0]).toBeDisabled()
+    fireEvent.change(screen.getByRole('combobox', { name: 'Secondary action' }), { target: { value: '' } })
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({
+      primaryHandoff: { action: '', label: '', url: '' },
+      secondaryHandoff: { action: '', label: '', url: '' },
+    }))
+  })
+
   it('offers a specific live-impact warning and a reversible saved-state action', () => {
     const onReset = jest.fn()
     const value: ExperienceConfigurationDraft = {

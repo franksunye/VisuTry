@@ -96,7 +96,13 @@ export function MerchantExperienceConfiguration({
   const kioskAvailable = capabilities.kioskDeliveryEnabled ?? true
 
   function updateHandoff(which: 'primaryHandoff' | 'secondaryHandoff', patch: Partial<HandoffDraft>) {
-    onChange({ ...value, [which]: { ...value[which], ...patch } })
+    // Selecting "No action" clears stale label/URL as one atomic draft change.
+    onChange({
+      ...value,
+      [which]: patch.action === ''
+        ? { action: '', label: '', url: '' }
+        : { ...value[which], ...patch },
+    })
   }
 
   return <div className="space-y-4" data-testid="merchant-experience-configuration">

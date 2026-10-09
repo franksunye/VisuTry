@@ -217,12 +217,13 @@ export function MerchantCampaignDetailWorkspace({
         deliveryPolicy: draft.deliveryPolicy,
         startAt: isoOrNull(draft.startAt),
         endAt: isoOrNull(draft.endAt),
-        primaryCtaType: draft.primaryCtaLabel || draft.primaryCtaUrl ? draft.primaryCtaType || 'CUSTOM_LINK' : null,
-        primaryCtaLabel: draft.primaryCtaLabel || null,
-        primaryCtaUrl: draft.primaryCtaUrl || null,
-        secondaryCtaType: draft.secondaryCtaLabel || draft.secondaryCtaUrl ? draft.secondaryCtaType || 'CUSTOM_LINK' : null,
-        secondaryCtaLabel: draft.secondaryCtaLabel || null,
-        secondaryCtaUrl: draft.secondaryCtaUrl || null,
+        // "No action" must never resurrect a legacy label/URL as CUSTOM_LINK.
+        primaryCtaType: draft.primaryCtaType || null,
+        primaryCtaLabel: draft.primaryCtaType ? draft.primaryCtaLabel.trim() || null : null,
+        primaryCtaUrl: draft.primaryCtaType ? draft.primaryCtaUrl.trim() || null : null,
+        secondaryCtaType: draft.secondaryCtaType || null,
+        secondaryCtaLabel: draft.secondaryCtaType ? draft.secondaryCtaLabel.trim() || null : null,
+        secondaryCtaUrl: draft.secondaryCtaType ? draft.secondaryCtaUrl.trim() || null : null,
       }
       const saved = await responseData<Campaign>(await fetch(campaignEndpoint, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }))
       const savedDraft = initialDraft(saved)
