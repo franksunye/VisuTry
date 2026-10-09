@@ -10,7 +10,9 @@ export type MerchantActivationReport = {
   cohort: {
     from: string | null
     to: string | null
-    workspacesCreated: number
+    candidateWorkspacesCreated: number
+    confirmedRealWorkspacesCreated: number
+    possibleExternalCandidates: number
   }
   counts: {
     workspacesReturned: number
@@ -39,7 +41,9 @@ function percentage(count: number, denominator: number): number | null {
 /**
  * Read-only post-Activation-v1 cohort report. The workspace-created event is
  * the denominator, so pre-instrumentation Merchants are never presented as
- * if they had a newly observed activation journey.
+ * if they had a newly observed activation journey. Only explicitly classified
+ * self-service workspaces without reference data enter the operating cohort;
+ * TEST, INTERNAL, REFERENCE, AUTOMATION, SUSPICIOUS, and UNKNOWN fail closed.
  */
 export async function getMerchantActivationReport(input: ReportInput = {}): Promise<MerchantActivationReport> {
   const occurredAt = {
@@ -50,15 +54,29 @@ export async function getMerchantActivationReport(input: ReportInput = {}): Prom
     where: {
       eventType: MERCHANT_ACTIVATION_EVENT.WORKSPACE_CREATED,
       ...(Object.keys(occurredAt).length ? { occurredAt } : {}),
-      merchant: { classificationSource: 'SELF_SERVICE_SIGNUP' },
+      merchant: {
+        classificationSource: 'SELF_SERVICE_SIGNUP',
+        classification: { in: ['REAL', 'POSSIBLE_EXTERNAL'] },
+        referenceData: false,
+      },
     },
     orderBy: [{ occurredAt: 'asc' }, { createdAt: 'asc' }],
-    select: { merchantId: true, occurredAt: true },
+    select: { merchantId: true, occurredAt: true, merchant: { select: { classification: true } } },
   })
-  const merchantIds = workspaceEvents.map((event) => event.merchantId)
+  const classificationByMerchant = new Map<string, 'REAL' | 'POSSIBLE_EXTERNAL'>()
+  for (const event of workspaceEvents) {
+    const classification = event.merchant.classification
+    if (classification === 'REAL' || classification === 'POSSIBLE_EXTERNAL') {
+      classificationByMerchant.set(event.merchantId, classification)
+    }
+  }
+  const merchantIds = [...classificationByMerchant.keys()]
+  const confirmedRealWorkspacesCreated = [...classificationByMerchant.values()].filter((classification) => classification === 'REAL').length
+  const possibleExternalCandidates = [...classificationByMerchant.values()].filter((classification) => classification === 'POSSIBLE_EXTERNAL').length
+  const candidateWorkspacesCreated = merchantIds.length
   if (merchantIds.length === 0) {
     return {
-      cohort: { from: input.from?.toISOString() ?? null, to: input.to?.toISOString() ?? null, workspacesCreated: 0 },
+      cohort: { from: input.from?.toISOString() ?? null, to: input.to?.toISOString() ?? null, candidateWorkspacesCreated: 0, confirmedRealWorkspacesCreated: 0, possibleExternalCandidates: 0 },
       counts: { workspacesReturned: 0, firstItem: 0, catalogReady: 0, storeConfigured: 0, storePreviewed: 0, storePublished: 0, firstShopperSession: 0, commercialIntent: 0, checkoutStarted: 0 },
       rates: { workspaceReturnRate: null, firstItemActivationRate: null, catalogReadyRate: null, storePublishedRate: null },
       averageTimeToFirstItemMs: null,
@@ -90,7 +108,6 @@ export async function getMerchantActivationReport(input: ReportInput = {}): Prom
   const summaries = merchantIds.map((merchantId) => summarizeMerchantActivationEvents(byMerchant.get(merchantId) ?? []))
   const count = (predicate: (summary: ReturnType<typeof summarizeMerchantActivationEvents>) => boolean) => summaries.filter(predicate).length
   const times = summaries.map((summary) => summary.timeToFirstItemMs).filter((value): value is number => value != null)
-  const workspacesCreated = summaries.length
   const workspacesReturned = count((summary) => summary.returnSessionCount > 0)
   const firstItem = count((summary) => summary.firstItemAt != null)
   const catalogReady = count((summary) => summary.catalogReadyAt != null)
@@ -105,13 +122,13 @@ export async function getMerchantActivationReport(input: ReportInput = {}): Prom
   }, 0)
 
   return {
-    cohort: { from: input.from?.toISOString() ?? null, to: input.to?.toISOString() ?? null, workspacesCreated },
+    cohort: { from: input.from?.toISOString() ?? null, to: input.to?.toISOString() ?? null, candidateWorkspacesCreated, confirmedRealWorkspacesCreated, possibleExternalCandidates },
     counts: { workspacesReturned, firstItem, catalogReady, storeConfigured, storePreviewed, storePublished, firstShopperSession, commercialIntent, checkoutStarted },
     rates: {
-      workspaceReturnRate: percentage(workspacesReturned, workspacesCreated),
-      firstItemActivationRate: percentage(firstItem, workspacesCreated),
-      catalogReadyRate: percentage(catalogReady, workspacesCreated),
-      storePublishedRate: percentage(storePublished, workspacesCreated),
+      workspaceReturnRate: percentage(workspacesReturned, candidateWorkspacesCreated),
+      firstItemActivationRate: percentage(firstItem, candidateWorkspacesCreated),
+      catalogReadyRate: percentage(catalogReady, candidateWorkspacesCreated),
+      storePublishedRate: percentage(storePublished, candidateWorkspacesCreated),
     },
     averageTimeToFirstItemMs: times.length > 0 ? Math.round(times.reduce((sum, value) => sum + value, 0) / times.length) : null,
   }

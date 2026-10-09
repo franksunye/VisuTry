@@ -6,10 +6,13 @@ import { BusinessVisualPlaceholder } from './BusinessVisualPlaceholder'
 import { BusinessPilotLeadForm } from './BusinessPilotLeadForm'
 import { BusinessPricingPage } from './BusinessPricingPage'
 import { BusinessResourceStrip, BusinessResourcesPage } from './BusinessResources'
+import { BusinessTrackedCtaLink } from './BusinessTrackedCtaLink'
+import type { BusinessCtaLocation } from '@/lib/analytics'
 
 interface BusinessMarketingPageProps {
   locale: string
   pageKey: BusinessPageKey
+  pilotIntent?: 'pilot_request' | 'enterprise_inquiry'
 }
 
 type VisualSlot = {
@@ -27,7 +30,7 @@ const visualSlots: Partial<Record<BusinessPageKey, VisualSlot>> = {
   intelligence: { id: 'B2B-VIS-06', name: 'Commerce Intelligence', status: 'NEEDS INSIGHTS CAPTURE' },
 }
 
-function CtaLink({ locale, href, label, primary = false, inverse = false }: { locale: string; href: string; label: string; primary?: boolean; inverse?: boolean }) {
+function CtaLink({ locale, href, label, primary = false, inverse = false, ctaLocation }: { locale: string; href: string; label: string; primary?: boolean; inverse?: boolean; ctaLocation?: BusinessCtaLocation }) {
   const target = businessHref(locale, href)
   const external = target.startsWith('mailto:') || target.startsWith('http')
   const className = primary
@@ -39,6 +42,10 @@ function CtaLink({ locale, href, label, primary = false, inverse = false }: { lo
       : 'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50'
 
   if (external) return <a href={target} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
+  const isPilotCta = href.startsWith('/business/pilot') || href === '#pilot-request'
+  if (isPilotCta && ctaLocation) {
+    return <BusinessTrackedCtaLink href={target} locale={locale} ctaLocation={ctaLocation} intentType="pilot_request" className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></BusinessTrackedCtaLink>
+  }
   return <Link href={target} prefetch={false} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
 }
 
@@ -68,8 +75,8 @@ function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey })
           {audienceLine ? <p className={`mt-5 text-xs font-semibold uppercase tracking-[0.14em] ${dark ? 'text-slate-400' : 'text-slate-400'}`}>{audienceLine}</p> : null}
           {pageKey === 'campaigns' ? <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Search · Social · Email · QR → Campaign Experience</p> : null}
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <CtaLink locale={locale} {...primaryCta} primary inverse={dark} />
-            {secondaryCta ? <CtaLink locale={locale} {...secondaryCta} inverse={dark} /> : null}
+            <CtaLink locale={locale} {...primaryCta} primary inverse={dark} ctaLocation="hero_primary" />
+            {secondaryCta ? <CtaLink locale={locale} {...secondaryCta} inverse={dark} ctaLocation="hero_primary" /> : null}
           </div>
           {pageKey === 'pricing' ? <p className="mt-5 text-xs font-semibold text-slate-500">No surprise usage billing.</p> : null}
           {page.microcopy ? <p className={`mt-5 text-xs leading-5 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{page.microcopy}</p> : null}
@@ -239,7 +246,7 @@ function PilotCta({ locale }: { locale: string }) {
           <p className="mt-3 text-sm leading-6 text-slate-300">Use your real frames, one hosted Experience, and observable shopper intent before making a larger commitment.</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Link href={businessHref(locale, '/business/pilot')} prefetch={false} className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">Start 30-Day Pilot<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+          <BusinessTrackedCtaLink href={businessHref(locale, '/business/pilot')} locale={locale} ctaLocation="business_closing_cta" intentType="pilot_request" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">Start 30-Day Pilot<ArrowRight className="h-4 w-4" aria-hidden="true" /></BusinessTrackedCtaLink>
           <Link href={businessHref(locale, '/business/pricing')} prefetch={false} className="inline-flex items-center justify-center rounded-xl border border-white/20 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">View Pricing</Link>
         </div>
       </div>
@@ -247,7 +254,7 @@ function PilotCta({ locale }: { locale: string }) {
   )
 }
 
-export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPageProps) {
+export function BusinessMarketingPage({ locale, pageKey, pilotIntent = 'pilot_request' }: BusinessMarketingPageProps) {
   const page = businessPages[pageKey]
 
   if (locale !== 'en') redirect(`/en${page.slug}`)
@@ -278,7 +285,7 @@ export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPage
       <Hero locale={locale} pageKey={pageKey} />
 
       {pageKey === 'pilot' ? <BusinessResourceStrip locale={locale} placement="pilot" /> : null}
-      {pageKey === 'pilot' ? <BusinessPilotLeadForm locale={locale} /> : null}
+      {pageKey === 'pilot' ? <BusinessPilotLeadForm locale={locale} initialIntent={pilotIntent} /> : null}
 
       {pageKey === 'examples' ? (
         <section className="bg-white">

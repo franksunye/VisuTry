@@ -9,6 +9,7 @@ import {
 } from '@/modules/merchant/domain/merchant-commercial-plans'
 import { merchantPurchasePath, type MerchantPurchaseIntent } from '@/modules/merchant/domain/merchant-purchase-intent'
 import { PricingTooltip } from './PricingTooltip'
+import { BusinessTrackedCtaLink } from './BusinessTrackedCtaLink'
 
 const primaryPlanCodes = ['LAUNCH', 'GROWTH', 'SCALE'] as const
 const comparisonPlanCodes = ['FREE', 'LAUNCH', 'GROWTH', 'SCALE', 'ENTERPRISE'] as const
@@ -228,10 +229,10 @@ function PilotSection({ locale }: { locale: string }) {
           <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">Start with a focused, real-world pilot using your own eyewear catalog. Final scope and pilot fee are confirmed based on your deployment configuration.</p>
           <p className="mt-7 text-5xl font-semibold tracking-[-0.05em] text-slate-950">From {FOUNDING_PILOT_OFFER.priceLabel}</p>
           <p className="mt-3 text-sm font-semibold text-violet-950">30 days · No auto-renew · Scope confirmed before billing</p>
-          <Link href={businessHref(locale, planPath('FOUNDING_PILOT'))} prefetch={false} className="mt-7 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800">
+          <BusinessTrackedCtaLink href={businessHref(locale, planPath('FOUNDING_PILOT'))} locale={locale} ctaLocation="pricing_pilot" intentType="pilot_request" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800">
             {planCta('FOUNDING_PILOT')}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          </BusinessTrackedCtaLink>
         </div>
         <div className="rounded-2xl border border-violet-200 bg-white p-6 shadow-sm sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Typical pilot includes</p>
@@ -268,10 +269,10 @@ function EnterpriseSection({ locale }: { locale: string }) {
             <li>Scoped integration work</li>
             <li>Custom support / SLA</li>
           </ul>
-          <Link href={businessHref(locale, planPath('ENTERPRISE'))} prefetch={false} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800">
+          <BusinessTrackedCtaLink href={businessHref(locale, planPath('ENTERPRISE'))} locale={locale} ctaLocation="pricing_enterprise" intentType="enterprise_inquiry" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800">
             {planCta('ENTERPRISE')}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          </BusinessTrackedCtaLink>
         </div>
       </div>
     </section>

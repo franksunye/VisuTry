@@ -218,7 +218,7 @@ export function BusinessResourcesPage({ locale }: { locale: string }) {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Next step</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Ready to test this with your own eyewear catalog?</h2>
           </div>
-          <Link href={businessHref(locale, '/business/pilot')} prefetch={false} className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800">
+          <Link href={businessHref(locale, '/business/pilot')} prefetch={false} onClick={() => analytics.trackBusinessCtaClicked({ locale, ctaLocation: 'business_resources', intentType: 'pilot_request' })} className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800">
             Start 30-Day Pilot<ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>

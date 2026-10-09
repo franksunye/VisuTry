@@ -302,17 +302,18 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Post-v1 activation</p>
             <h2 id="activation-report-heading" className="mt-1 text-xl font-semibold text-slate-950">Self-service activation report</h2>
-            <p className="mt-1 text-sm text-slate-600">Durable Merchant events only. The cohort begins when Activation v1 starts; historical signups are not backfilled.</p>
+            <p className="mt-1 text-sm text-slate-600">Durable events only. The candidate cohort includes confirmed REAL workspaces and unverified POSSIBLE_EXTERNAL candidates; it does not represent confirmed merchants.</p>
           </div>
-          <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 ring-1 ring-blue-200">{activationReport.cohort.workspacesCreated} workspaces</span>
+          <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 ring-1 ring-blue-200">{activationReport.cohort.candidateWorkspacesCreated} candidates</span>
         </div>
+        <p className="mt-3 text-xs font-medium text-slate-600">{activationReport.cohort.confirmedRealWorkspacesCreated} confirmed REAL · {activationReport.cohort.possibleExternalCandidates} POSSIBLE_EXTERNAL (unverified). Rates below use the combined candidate cohort.</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             ['Returned', activationReport.counts.workspacesReturned, activationReport.rates.workspaceReturnRate],
             ['First product', activationReport.counts.firstItem, activationReport.rates.firstItemActivationRate],
             ['Catalog ready', activationReport.counts.catalogReady, activationReport.rates.catalogReadyRate],
             ['Store published', activationReport.counts.storePublished, activationReport.rates.storePublishedRate],
-          ].map(([label, value, rate]) => <div key={String(label)} className="rounded-xl bg-white p-4 ring-1 ring-blue-100"><p className="text-xs text-slate-500">{label}</p><p className="mt-2 text-xl font-semibold tabular-nums text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{rate == null ? '—' : `${rate}% of cohort`}</p></div>)}
+          ].map(([label, value, rate]) => <div key={String(label)} className="rounded-xl bg-white p-4 ring-1 ring-blue-100"><p className="text-xs text-slate-500">{label}</p><p className="mt-2 text-xl font-semibold tabular-nums text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{rate == null ? '—' : `${rate}% of candidates`}</p></div>)}
         </div>
         <p className="mt-4 text-xs text-slate-500">Preview path: {activationReport.counts.storePreviewed} previewed · {activationReport.counts.commercialIntent} commercial intent · {activationReport.counts.checkoutStarted} checkout started · average time to first product {activationReport.averageTimeToFirstItemMs == null ? '—' : `${Math.round(activationReport.averageTimeToFirstItemMs / 60000)} min`}.</p>
       </section>

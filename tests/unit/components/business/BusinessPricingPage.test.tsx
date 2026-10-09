@@ -2,10 +2,26 @@ import React from 'react'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BusinessPricingPage } from '@/components/business/BusinessPricingPage'
+import { analytics } from '@/lib/analytics'
+
+jest.mock('@/lib/analytics', () => ({
+  analytics: { trackBusinessCtaClicked: jest.fn() },
+}))
 
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ href, children, prefetch: _prefetch, ...props }: { href: string; children: React.ReactNode; prefetch?: boolean }) => <a href={href} {...props}>{children}</a>,
+  default: ({ href, children, prefetch: _prefetch, onClick, ...props }: { href: string; children: React.ReactNode; prefetch?: boolean; onClick?: React.MouseEventHandler<HTMLAnchorElement> }) => (
+    <a
+      href={href}
+      {...props}
+      onClick={(event) => {
+        event.preventDefault()
+        onClick?.(event)
+      }}
+    >
+      {children}
+    </a>
+  ),
 }))
 
 jest.mock('lucide-react', () => ({
@@ -104,6 +120,11 @@ describe('BusinessPricingPage v2 product-market narrative', () => {
     expect(screen.queryByText('AI-assisted shoppers')).not.toBeInTheDocument()
     expect(screen.queryByText('Standard Try-On generations')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Contact Sales' })).toHaveAttribute('href', '/en/business/pilot?plan=enterprise')
+
+    await user.click(screen.getByRole('link', { name: 'Request Pilot Review' }))
+    expect(analytics.trackBusinessCtaClicked).toHaveBeenCalledWith({ locale: 'en', ctaLocation: 'pricing_pilot', intentType: 'pilot_request' })
+    await user.click(screen.getByRole('link', { name: 'Contact Sales' }))
+    expect(analytics.trackBusinessCtaClicked).toHaveBeenLastCalledWith({ locale: 'en', ctaLocation: 'pricing_enterprise', intentType: 'enterprise_inquiry' })
 
     expect(screen.getAllByRole('button', { name: /explanation$/i })).toHaveLength(9)
     await user.click(screen.getByRole('button', { name: 'AI Commerce Sessions explanation' }))

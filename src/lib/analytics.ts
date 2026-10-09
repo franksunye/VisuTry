@@ -36,6 +36,18 @@ import type { JourneyDestination, StoreLeadType } from '@/lib/analytics-events'
 import { setCampaignAnalyticsContext, trackCampaignEvent } from '@/lib/analytics-v2'
 import { isValidLocale } from '@/i18n'
 
+export type BusinessPilotGoal = 'store' | 'campaign' | 'demo' | 'partnership' | 'not-sure' | 'enterprise'
+export type BusinessCtaIntentType = 'pilot_request' | 'enterprise_inquiry'
+export type BusinessCtaLocation =
+  | 'hero_primary'
+  | 'business_header_desktop'
+  | 'business_header_mobile'
+  | 'business_closing_cta'
+  | 'business_resources'
+  | 'pricing_pilot'
+  | 'pricing_enterprise'
+  | 'business_footer'
+
 const LANDING_PAGE_KEY = 'visutry_landing_page'
 const ACQUISITION_SOURCE_KEY = 'visutry_acquisition_source'
 const ACQUISITION_MEDIUM_KEY = 'visutry_acquisition_medium'
@@ -822,6 +834,57 @@ export const analytics = {
       journey_type: 'visutry_b2b_acquisition',
       entry_point: 'b2b',
       product_path: 'visutry_store_b2b',
+    })
+  },
+
+  /** Business-site Pilot funnel. Store /store events deliberately retain their own source. */
+  trackBusinessCtaClicked(params: { locale: string; ctaLocation: BusinessCtaLocation; intentType: BusinessCtaIntentType }) {
+    const sourcePage = typeof window !== 'undefined' ? window.location.pathname : undefined
+    sendEvent(AnalyticsEvent.B2bSalesIntentClicked, {
+      source: 'business_site',
+      locale: params.locale,
+      cta_location: params.ctaLocation,
+      intent_type: params.intentType,
+      ...(sourcePage ? { source_page: sourcePage } : {}),
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+      entry_point: 'b2b',
+      product_path: 'visutry_b2b_acquisition',
+    })
+  },
+
+  trackBusinessPilotLeadFormStarted(params: { locale: string; intentType: BusinessCtaIntentType }) {
+    sendEvent(AnalyticsEvent.B2bLeadFormStarted, {
+      source: 'business_site',
+      locale: params.locale,
+      intent_type: params.intentType,
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+      entry_point: 'b2b',
+      product_path: 'visutry_b2b_acquisition',
+    })
+  },
+
+  trackBusinessPilotLeadCreated(params: {
+    locale: string
+    businessType: string
+    goal: BusinessPilotGoal
+    frameCount?: string
+  }) {
+    const enterpriseInquiry = params.goal === 'enterprise'
+    sendEvent(AnalyticsEvent.B2bLeadCreated, {
+      source: 'business_site',
+      locale: params.locale,
+      business_type: params.businessType,
+      user_intent: params.goal,
+      ...(enterpriseInquiry ? {} : { pilot_goal: params.goal }),
+      intent_type: enterpriseInquiry ? 'enterprise_inquiry' : 'pilot_request',
+      lead_type: enterpriseInquiry ? 'enterprise_inquiry' : 'pilot_request',
+      ...(params.frameCount ? { frame_count: params.frameCount } : {}),
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+      entry_point: 'b2b',
+      product_path: 'visutry_b2b_acquisition',
     })
   },
 
