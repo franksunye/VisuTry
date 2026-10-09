@@ -230,7 +230,7 @@ export async function createCampaignDraft(input: {
 }
 
 export async function updateCampaign(input: {
-  merchantId: string; campaignId: string; name?: string; headline?: string | null; description?: string | null; objective?: CampaignObjective; gate?: CampaignGate; presentationMode?: PresentationMode; startAt?: string | null; endAt?: string | null; primaryCtaType?: string | null; primaryCtaLabel?: string | null; primaryCtaUrl?: string | null; secondaryCtaType?: string | null; secondaryCtaLabel?: string | null; secondaryCtaUrl?: string | null; journeyPolicy?: unknown | null; deliveryPolicy?: unknown | null
+  merchantId: string; campaignId: string; name?: string; headline?: string | null; description?: string | null; objective?: CampaignObjective; gate?: CampaignGate; presentationMode?: PresentationMode; startAt?: string | null; endAt?: string | null; primaryCtaType?: string | null; primaryCtaLabel?: string | null; primaryCtaUrl?: string | null; secondaryCtaType?: string | null; secondaryCtaLabel?: string | null; secondaryCtaUrl?: string | null; journeyPolicy?: unknown | null; deliveryPolicy?: unknown | null; agentDraftOnly?: boolean
 }) {
   const current = await fetchCampaign(input.merchantId, input.campaignId)
   const objective = input.objective ?? (current.row.campaignObjective == null ? 'INTENT' : String(current.row.campaignObjective) as CampaignObjective)
@@ -266,6 +266,7 @@ export async function updateCampaign(input: {
     merchantId: input.merchantId,
     experienceId: input.campaignId,
     patch,
+    draftOnly: input.agentDraftOnly,
   })
   return getCampaign({ merchantId: input.merchantId, campaignId: input.campaignId })
 }
@@ -376,7 +377,7 @@ export async function updateAndPublishCampaign(input: {
   return mapCampaign(candidate, String(current.merchant.slug), Boolean(current.merchant.referenceData))
 }
 
-export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[] }) {
+export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[]; agentDraftOnly?: boolean }) {
   if (input.frameIds.length > MAX_CAMPAIGN_FRAMES) throw new CampaignServiceError('INVALID_REQUEST', `frameIds cannot exceed ${MAX_CAMPAIGN_FRAMES}.`)
   const frameIds = [...new Set(input.frameIds)]
   const current = await fetchCampaign(input.merchantId, input.campaignId)
@@ -388,6 +389,7 @@ export async function setCampaignFrames(input: { merchantId: string; campaignId:
     experienceId: input.campaignId,
     frameIds,
     expectedType: 'CAMPAIGN',
+    draftOnly: input.agentDraftOnly,
   })
   return { frameIds }
 }

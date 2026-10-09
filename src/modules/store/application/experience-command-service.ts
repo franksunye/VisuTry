@@ -17,6 +17,7 @@ export type ExperienceCommandRepository<TTransaction = unknown> = {
   update(merchantId: string, experienceId: string, patch: Record<string, unknown>, options?: {
     afterUpdate?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
+    draftOnly?: boolean
   }): Promise<unknown>
   replaceCatalogSelection(input: {
     merchantId: string
@@ -24,6 +25,7 @@ export type ExperienceCommandRepository<TTransaction = unknown> = {
     frameIds: string[]
     afterReplace?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
+    draftOnly?: boolean
   }): Promise<unknown>
 }
 
@@ -131,6 +133,7 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
     expectedType?: 'STORE' | 'CAMPAIGN'
     afterUpdate?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
+    draftOnly?: boolean
   }) {
     const patch = validateExperienceCommandPatch(input.patch, { campaignFields: input.campaignFields === true })
     if (Object.keys(patch).length === 0) throw new ExperienceCommandError('Experience command has no fields to update')
@@ -147,6 +150,7 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
       mutation: () => repository.update(input.merchantId, current.id, patch, {
         afterUpdate: input.afterUpdate,
         atomicEffects: input.atomicEffects,
+        draftOnly: input.draftOnly,
       }),
     })
   }
@@ -158,6 +162,7 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
     expectedType?: 'STORE' | 'CAMPAIGN'
     afterReplace?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
+    draftOnly?: boolean
   }) {
     const frameIds = [...new Set(input.frameIds)]
     const current = await repository.findTarget(input.merchantId, input.experienceId)
@@ -172,6 +177,7 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
         frameIds,
         afterReplace: input.afterReplace,
         atomicEffects: input.atomicEffects,
+        draftOnly: input.draftOnly,
       }),
     })
     return { frameIds, mutationResult }

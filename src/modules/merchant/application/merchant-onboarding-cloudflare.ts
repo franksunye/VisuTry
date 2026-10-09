@@ -5,7 +5,7 @@ import { experienceCommandsCloudflare } from '@/modules/store/application/experi
 import { getMerchantProfile } from './get-merchant-profile-cloudflare'
 import { MerchantAccessError } from './merchant-access-cloudflare'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials-cloudflare'
-import { requireAgentScope, type MerchantActorContext } from '../domain/actor'
+import { isAgentMerchantActor, requireAgentScope, type MerchantActorContext } from '../domain/actor'
 import {
   resolveMerchantFrameCorrectionEnrichmentStatus,
   resolveMerchantFrameEnrichmentStatus,
@@ -18,6 +18,7 @@ import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merc
 import { merchantCatalogItemIsReady, MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
 import { resolveMerchantCatalogPresentation, type MerchantCatalogPresentationState } from '../domain/merchant-catalog-presentation'
 import {
+  buildMerchantAgentCatalogLiveGuard,
   buildMerchantCatalogCapacityGuardQuery,
   isMerchantCatalogTransactionConflict,
   merchantCatalogCapacityErrorCode,
@@ -481,7 +482,13 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
       metadata: activation.metadata,
     }))
   }
-  const activationStatementOffset = 2 + normalized.length
+  const activationStatementOffset = 2 + normalized.length + (isAgentMerchantActor(input.actor) ? 1 : 0)
+  const agentLiveGuard = isAgentMerchantActor(input.actor)
+    ? buildMerchantAgentCatalogLiveGuard({
+        merchantId: input.actor.merchantId,
+        frames: normalized.map((frame) => ({ sku: frame.sku, source: frame.source ?? 'MANUAL', externalId: frame.externalId ?? null, productUrl: frame.productUrl ?? null })),
+      })
+    : null
   const results = await withPublicDiscoveryInvalidation({
     target: { kind: 'catalog', merchantSlug },
     edgeTags: {
@@ -519,6 +526,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
           // guard below receives a fresh snapshot after a competing import
           // releases the merchant row lock.
           sql`SELECT "id" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} FOR UPDATE`,
+          ...(agentLiveGuard ? [sql.query(agentLiveGuard.guardText, agentLiveGuard.params)] : []),
           sql.query(guardQuery.text, guardQuery.params),
           ...statements,
         ]
@@ -528,6 +536,16 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
         } catch (error) {
           const code = merchantCatalogCapacityErrorCode(error)
           if (code === '22012') {
+            if (agentLiveGuard) {
+              const liveCheck = await sql.query(agentLiveGuard.existsText, agentLiveGuard.params)
+              if (Boolean(liveCheck[0]?.blocked)) {
+                throw new MerchantOnboardingError(
+                  'LIVE_CATALOG_UPDATE_REQUIRES_HUMAN',
+                  'An Agent cannot change a Catalog product selected by an active Store or Campaign. Ask the merchant to make the change in the authenticated workspace.',
+                  409,
+                )
+              }
+            }
             const latestRows = await sql`SELECT "planCode", "commercialStatus" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`
             const latest = latestRows[0]
             if (!latest) throw new MerchantAccessError()
@@ -585,7 +603,8 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
       throw new Error('Catalog import concurrency retry limit exceeded.')
     },
   })
-  const frameResults = results.slice(2, 2 + normalized.length)
+  const writeStatementOffset = 2 + (agentLiveGuard ? 1 : 0)
+  const frameResults = results.slice(writeStatementOffset, writeStatementOffset + normalized.length)
   const ids = frameResults.flatMap((result) => result.map((row) => String(row.id)))
   const created = frameResults.flatMap((result) => result).filter((row) => Boolean(row.created)).length
   activationInputs.forEach((activation, index) => {
@@ -675,6 +694,7 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
     experienceId: input.storeId,
     expectedType: 'STORE',
     patch: { name, headline, description },
+    draftOnly: isAgentMerchantActor(input.actor),
     atomicEffects: meaningfulChange ? [merchantActivationEventInsertStatement(sql, activationInput)] : [],
   })
   const updated = updatedResult as { experience: Row; effects: unknown[][] }
@@ -712,6 +732,7 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
     experienceId: input.storeId,
     expectedType: 'STORE',
     frameIds,
+    draftOnly: isAgentMerchantActor(input.actor),
     atomicEffects: frameIds.length ? [merchantActivationEventInsertStatement(sql, activationInput)] : [],
   })
   const transactionResults = selection.mutationResult as unknown[][]

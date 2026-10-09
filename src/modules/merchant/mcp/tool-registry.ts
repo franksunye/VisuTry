@@ -75,7 +75,12 @@ export const MCP_TOOL_SCOPES: Record<McpToolName, readonly string[]> = {
  */
 export const MCP_AGENT_DISABLED_HIGH_IMPACT_TOOLS = ['publish_store', 'publish_campaign', 'archive_campaign'] as const
 
-export const MCP_HIGH_IMPACT_TOOLS = new Set<McpToolName>()
+export const MCP_HIGH_IMPACT_TOOLS = new Set<McpToolName>([
+  'import_frames',
+  'set_store_frames',
+  'set_campaign_frames',
+  'update_campaign',
+])
 
 export const MCP_WRITE_TOOLS = new Set<McpToolName>([
   'import_frames',

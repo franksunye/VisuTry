@@ -39,6 +39,7 @@ import {
   updateCampaign,
 } from '@/modules/store/application/campaign-service'
 import { MerchantCommercialError } from '../application/merchant-commercial-entitlements'
+import { ExperienceCommandError } from '@/modules/store/application/experience-command-service'
 import {
   MCP_HIGH_IMPACT_TOOLS,
   MCP_LIVE_RUNTIME,
@@ -109,7 +110,7 @@ function enrichToolConfig(name: string, config: Record<string, unknown>) {
     ...(config.annotations as ToolAnnotations | undefined),
     readOnlyHint: readOnly,
     destructiveHint: HIGH_IMPACT_TOOLS.has(toolName),
-    idempotentHint: readOnly || toolName === 'import_frames' || toolName === 'create_campaign',
+    idempotentHint: readOnly || toolName === 'import_frames' || toolName === 'create_store' || toolName === 'create_campaign',
     openWorldHint: false,
   }
   const scopes = [...(TOOL_SCOPES[toolName] ?? [])]
@@ -137,6 +138,7 @@ function errorResult(error: unknown) {
   if (error instanceof MerchantSourceIntakeError) return { code: error.code, message: error.message }
   if (error instanceof CampaignServiceError) return { code: error.code, message: error.message }
   if (error instanceof MerchantCommercialError) return { code: error.code, message: error.message, decision: error.decision }
+  if (error instanceof ExperienceCommandError) return { code: 'ACTIVE_EXPERIENCE_WRITE_REQUIRES_HUMAN', message: error.message }
   if (error instanceof MerchantAnalyticsComparisonError) return { code: error.code, message: error.message }
   if (error instanceof MerchantAnalyticsError) {
     if (error.code === 'EXPERIENCE_NOT_FOUND') return { code: 'RESOURCE_NOT_FOUND', message: 'The requested merchant resource was not found.' }
@@ -194,7 +196,7 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
 
   server.registerTool('import_frames', {
     title: 'Import frames',
-    description: 'Create or update up to 1,000 structured catalog frames, idempotently by merchant SKU. This never deletes frames.',
+    description: 'Create or update up to 1,000 structured catalog frames, idempotently by merchant SKU. This never deletes frames. An Agent cannot change products selected by an active Store or Campaign; ask the merchant to edit those products in the authenticated workspace.',
     inputSchema: { frames: z.array(frameInput).min(1).max(1000) },
   }, async ({ frames }) => safe(() => merchantOnboarding.importMerchantFrames({ actor, frames: frames as CatalogFrameInput[] })))
 
@@ -225,7 +227,7 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
 
   server.registerTool('set_store_frames', {
     title: 'Set Store frames',
-    description: 'Replace the authenticated merchant Store frame selection using active catalog frame IDs. Cross-merchant IDs are rejected as not found.',
+    description: 'Replace the authenticated merchant Store DRAFT frame selection using active catalog frame IDs. Active Stores are read-only to Agents; ask the merchant to make live changes in the authenticated workspace. Cross-merchant IDs are rejected as not found.',
     inputSchema: { storeId: z.string().min(1), frameIds: z.array(z.string().min(1)).max(MAX_CATALOG_IMPORT) },
   }, async ({ storeId, frameIds }) => safe(() => merchantOnboarding.setMerchantStoreFrames({ actor, storeId, frameIds })))
 
@@ -288,7 +290,7 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
 
   server.registerTool('set_campaign_frames', {
     title: 'Set Campaign frames',
-    description: 'Replace a tenant-scoped Campaign frame selection with active, eligible catalog frames.',
+    description: 'Replace a tenant-scoped Campaign DRAFT frame selection with active, eligible catalog frames. Active Campaigns are read-only to Agents; ask the merchant to make live changes in the authenticated workspace.',
     inputSchema: { campaignId, frameIds: z.array(z.string().min(1).max(120)).max(100) },
   }, async ({ campaignId: id, frameIds }) => safe(async () => {
     requireAgentScope(actor, 'experience:write')
@@ -296,13 +298,13 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
       actor,
       action: 'campaign.frames_updated',
       resourceId: id,
-      work: () => setCampaignFrames({ merchantId: actor.merchantId, campaignId: id, frameIds }),
+      work: () => setCampaignFrames({ merchantId: actor.merchantId, campaignId: id, frameIds, agentDraftOnly: true }),
     })
   }))
 
   server.registerTool('update_campaign', {
     title: 'Update Campaign',
-    description: 'Update bounded Campaign policy, copy, date, and safe CTA fields for the authenticated merchant.',
+    description: 'Update bounded Campaign DRAFT policy, copy, date, and safe CTA fields for the authenticated merchant. Active Campaigns are read-only to Agents; ask the merchant to make live changes in the authenticated workspace.',
     inputSchema: {
       campaignId,
       name: z.string().min(1).max(240).optional(),
@@ -326,7 +328,7 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
       actor,
       action: 'campaign.updated',
       resourceId: id,
-      work: () => updateCampaign({ merchantId: actor.merchantId, campaignId: id, ...input, gate: conversionGate }),
+      work: () => updateCampaign({ merchantId: actor.merchantId, campaignId: id, ...input, gate: conversionGate, agentDraftOnly: true }),
     })
   }))
 

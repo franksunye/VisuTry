@@ -1,5 +1,23 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
-import { createExperienceCommandService, type ExperienceCommandRepository } from './experience-command-service'
+import { createExperienceCommandService, ExperienceCommandError, type ExperienceCommandRepository } from './experience-command-service'
+
+function postgresCode(error: unknown): string | null {
+  const seen = new Set<unknown>()
+  let current: unknown = error
+  while (current && typeof current === 'object' && !seen.has(current)) {
+    seen.add(current)
+    const value = current as { code?: unknown; cause?: unknown }
+    if (typeof value.code === 'string') return value.code
+    current = value.cause
+  }
+  return null
+}
+
+function draftGuard(sql: ReturnType<typeof getCloudflareSql>, merchantId: string, experienceId: string) {
+  return sql`SELECT 1 / CASE WHEN EXISTS (
+    SELECT "id" FROM "Experience" WHERE "id" = ${experienceId} AND "merchantId" = ${merchantId} AND "status" = 'DRAFT' FOR UPDATE
+  ) THEN 1 ELSE 0 END AS "draftGuard"`
+}
 
 const repository: ExperienceCommandRepository = {
   async findTarget(merchantId, experienceId) {
@@ -43,12 +61,21 @@ const repository: ExperienceCommandRepository = {
       WHERE "id" = ${experienceId} AND "merchantId" = ${merchantId}
       RETURNING *
     `
-    const results = options?.atomicEffects?.length
-      ? await sql.transaction([updateStatement, ...options.atomicEffects] as never, { isolationLevel: 'Serializable' })
-      : [await updateStatement]
-    const rows = results[0] ?? []
+    let results: unknown[][]
+    try {
+      results = options?.draftOnly
+        ? await sql.transaction([draftGuard(sql, merchantId, experienceId), updateStatement, ...(options.atomicEffects ?? [])] as never, { isolationLevel: 'Serializable' })
+        : options?.atomicEffects?.length
+          ? await sql.transaction([updateStatement, ...options.atomicEffects] as never, { isolationLevel: 'Serializable' })
+          : [await updateStatement]
+    } catch (error) {
+      if (options?.draftOnly && postgresCode(error) === '22012') throw new ExperienceCommandError('Agent changes are limited to Draft Experiences.')
+      throw error
+    }
+    const resultOffset = options?.draftOnly ? 1 : 0
+    const rows = results[resultOffset] ?? []
     if (!rows[0]) throw new Error('Experience not found')
-    return { experience: rows[0], effects: results.slice(1) }
+    return { experience: rows[0], effects: results.slice(resultOffset + 1) }
   },
   async replaceCatalogSelection(input) {
     if (input.afterReplace) throw new Error('Cloudflare Experience commands accept SQL effects instead of Prisma callbacks')
@@ -63,7 +90,14 @@ const repository: ExperienceCommandRepository = {
       `),
       ...(input.atomicEffects ?? []),
     ]
-    return sql.transaction(statements as never, { isolationLevel: 'Serializable' })
+    try {
+      return input.draftOnly
+        ? await sql.transaction([draftGuard(sql, input.merchantId, input.experienceId), ...statements] as never, { isolationLevel: 'Serializable' })
+        : await sql.transaction(statements as never, { isolationLevel: 'Serializable' })
+    } catch (error) {
+      if (input.draftOnly && postgresCode(error) === '22012') throw new ExperienceCommandError('Agent changes are limited to Draft Experiences.')
+      throw error
+    }
   },
 }
 

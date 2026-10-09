@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { createExperienceCommandService, type ExperienceCommandRepository } from './experience-command-service'
+import { createExperienceCommandService, ExperienceCommandError, type ExperienceCommandRepository } from './experience-command-service'
 
 const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
   async findTarget(merchantId, experienceId) {
@@ -23,8 +23,12 @@ const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
     const data = { ...patch }
     if (data.journeyPolicy === null) data.journeyPolicy = Prisma.JsonNull
     if (data.deliveryPolicy === null) data.deliveryPolicy = Prisma.JsonNull
-    if (options?.afterUpdate) {
+    if (options?.afterUpdate || options?.draftOnly) {
       return prisma.$transaction(async (tx) => {
+        if (options?.draftOnly) {
+          const draft = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Experience" WHERE "id" = ${experienceId} AND "merchantId" = ${merchantId} AND "status" = 'DRAFT' FOR UPDATE`
+          if (!draft.length) throw new ExperienceCommandError('Agent changes are limited to Draft Experiences.')
+        }
         const updated = await tx.experience.update({
           where: { id: experienceId, merchantId },
           data: data as Prisma.ExperienceUpdateInput,
@@ -51,6 +55,10 @@ const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
   },
   async replaceCatalogSelection(input) {
     await prisma.$transaction(async (tx) => {
+      if (input.draftOnly) {
+        const draft = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Experience" WHERE "id" = ${input.experienceId} AND "merchantId" = ${input.merchantId} AND "status" = 'DRAFT' FOR UPDATE`
+        if (!draft.length) throw new ExperienceCommandError('Agent changes are limited to Draft Experiences.')
+      }
       await tx.experienceFrame.deleteMany({
         where: { experienceId: input.experienceId, merchantId: input.merchantId },
       })

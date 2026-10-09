@@ -214,7 +214,7 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     ], [[[{ id: 'store-a', slug: 'store', name: 'Store A', status: 'ACTIVE', headline: 'Live headline', description: null }], [{ id: 'activation-a' }]]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
-    const result = await updateMerchantStore({ actor, storeId: 'store-a', headline: 'Live headline' })
+    const result = await updateMerchantStore({ actor: { actorType: 'HUMAN', actorId: 'owner-a', merchantId: 'merchant-a' }, storeId: 'store-a', headline: 'Live headline' })
 
     expect(result).toMatchObject({ status: 'ACTIVE', headline: 'Live headline', publicPath: '/en/store/merchant-a' })
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
@@ -541,7 +541,7 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
       return Promise.resolve([])
     }) as SqlMock
     sql.query = jest.fn((text: string, params: unknown[]) => ({ text, params }))
-    sql.transaction = jest.fn(() => Promise.resolve([[], [{ capacityGuard: 1 }], [{ id: 'frame-url', created: true }]]))
+    sql.transaction = jest.fn(() => Promise.resolve([[], [], [{ capacityGuard: 1 }], [{ id: 'frame-url', created: true }], [{ inserted: true }]]))
     sql.unsafe = jest.fn((value: string) => value)
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 

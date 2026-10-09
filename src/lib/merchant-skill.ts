@@ -48,7 +48,7 @@ When a usable Store exists and list_campaigns returns no Campaigns, enter Campai
 
 ### State C — Campaigns exist
 
-When one or more Campaigns exist, summarize their current state and offer one best next action. Depending on the request, use list_campaigns, get_campaign, preview_campaign, set_campaign_frames, update_campaign, or create_campaign. Store/Campaign publishing and Campaign archiving are not available through Agent tools until an independently verified, target-bound human approval flow exists; direct the merchant to the authenticated Merchant workspace for those actions.
+When one or more Campaigns exist, summarize their current state and offer one best next action. Depending on the request, use list_campaigns, get_campaign, preview_campaign, set_campaign_frames, update_campaign, or create_campaign. Agent writes are restricted to DRAFT Experiences; active Store/Campaign selections, copy, CTAs, and live-linked Catalog products require the merchant to use the authenticated workspace. Store/Campaign publishing and Campaign archiving are not available through Agent tools until an independently verified, target-bound human approval flow exists; direct the merchant to the authenticated Merchant workspace for those actions.
 
 ### State D — analytics available
 

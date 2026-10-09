@@ -265,7 +265,7 @@ describe('merchant onboarding catalog validation', () => {
     const writeActor: AgentMerchantActor = { ...actor, scopes: ['catalog:write'] }
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
-      $queryRaw: jest.fn().mockResolvedValue([{ id: 'merchant-a' }]),
+      $queryRaw: jest.fn((query: TemplateStringsArray) => Promise.resolve(query.join('').includes('WITH tenant_experiences') ? [] : [{ id: 'merchant-a' }])),
       merchant: { findUnique: jest.fn().mockResolvedValue({ planCode: null, commercialStatus: null }) },
       merchantFrame: {
         findFirst: jest.fn().mockResolvedValue(null),
@@ -289,7 +289,7 @@ describe('merchant onboarding catalog validation', () => {
     const create = jest.fn().mockResolvedValue({ id: 'frame-external' })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
-      $queryRaw: jest.fn().mockResolvedValue([{ id: 'merchant-a' }]),
+      $queryRaw: jest.fn((query: TemplateStringsArray) => Promise.resolve(query.join('').includes('WITH tenant_experiences') ? [] : [{ id: 'merchant-a' }])),
       merchant: { findUnique: jest.fn().mockResolvedValue({ planCode: null, commercialStatus: null }) },
       merchantFrame: { findFirst: jest.fn().mockResolvedValue(null), create },
       merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
@@ -321,7 +321,7 @@ describe('merchant onboarding catalog validation', () => {
     const create = jest.fn().mockResolvedValue({ id: 'frame-url-only' })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
-      $queryRaw: jest.fn().mockResolvedValue([{ id: 'merchant-a' }]),
+      $queryRaw: jest.fn((query: TemplateStringsArray) => Promise.resolve(query.join('').includes('WITH tenant_experiences') ? [] : [{ id: 'merchant-a' }])),
       merchant: { findUnique: jest.fn().mockResolvedValue({ planCode: null, commercialStatus: null }) },
       merchantFrame: { findFirst: jest.fn().mockResolvedValue(null), create },
       merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
@@ -347,7 +347,7 @@ describe('merchant onboarding catalog validation', () => {
     const create = jest.fn()
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
-      $queryRaw: jest.fn().mockResolvedValue([{ id: 'merchant-a' }]),
+      $queryRaw: jest.fn((query: TemplateStringsArray) => Promise.resolve(query.join('').includes('WITH tenant_experiences') ? [] : [{ id: 'merchant-a' }])),
       merchant: { findUnique: jest.fn().mockResolvedValue({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' }) },
       merchantFrame: {
         count: jest.fn().mockResolvedValue(100),
@@ -360,12 +360,43 @@ describe('merchant onboarding catalog validation', () => {
     expect(create).not.toHaveBeenCalled()
   })
 
+  it('rejects an Agent catalog import linked to an active Store before changing catalog, milestones, or audit', async () => {
+    const writeActor: AgentMerchantActor = { ...actor, scopes: ['catalog:write'] }
+    const update = jest.fn()
+    const create = jest.fn()
+    const activationCreateMany = jest.fn()
+    const txQueryRaw = jest.fn((query: TemplateStringsArray) => Promise.resolve(
+      query.join('').includes('WITH tenant_experiences') ? [{ id: 'frame-live' }] : [{ id: 'merchant-a' }],
+    ))
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: txQueryRaw,
+      merchant: { findUnique: jest.fn() },
+      merchantFrame: { count: jest.fn(), findFirst: jest.fn(), update, create },
+      merchantActivationEvent: { createMany: activationCreateMany },
+    }))
+
+    await expect(merchantOnboarding.importMerchantFrames({
+      actor: writeActor,
+      frames: [{ sku: 'SKU-LIVE', name: 'Changed live frame', shape: 'round', imageUrl: 'https://cdn.example.test/frame.jpg' }],
+    })).rejects.toMatchObject({ code: 'LIVE_CATALOG_UPDATE_REQUIRES_HUMAN', httpStatus: 409 })
+
+    expect(txQueryRaw).toHaveBeenCalledTimes(2)
+    expect(String(txQueryRaw.mock.calls[1]?.[0]?.join(''))).toContain('FOR UPDATE')
+    expect(String(txQueryRaw.mock.calls[1]?.[0]?.join(''))).toContain("experience.\"status\" = 'ACTIVE'")
+    expect(update).not.toHaveBeenCalled()
+    expect(create).not.toHaveBeenCalled()
+    expect(activationCreateMany).not.toHaveBeenCalled()
+    expect(prisma.merchantOperationAudit.create).not.toHaveBeenCalled()
+  })
+
   it('invalidates Store discovery after frame replacement succeeds', async () => {
     const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', type: 'STORE', slug: 'store', status: 'DRAFT', frames: [] })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-a')])
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([{ id: 'store-a' }]),
       experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
       merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
@@ -398,6 +429,7 @@ describe('merchant onboarding catalog validation', () => {
       pending,
     ])
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn().mockResolvedValue([{ id: 'store-a' }]),
       experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
       merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
@@ -448,7 +480,7 @@ describe('merchant onboarding catalog validation', () => {
       merchantActivationEvent: { createMany: eventCreateMany },
     }))
 
-    const result = await merchantOnboarding.updateMerchantStore({ actor: { ...actor, scopes: ['experience:write'] }, storeId: 'store-a', headline: 'Now live' })
+    const result = await merchantOnboarding.updateMerchantStore({ actor: { actorType: 'HUMAN', actorId: 'owner-a', merchantId: 'merchant-a' }, storeId: 'store-a', headline: 'Now live' })
 
     expect(result).toMatchObject({ status: 'ACTIVE', publicPath: '/en/store/merchant-a' })
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))

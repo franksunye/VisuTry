@@ -95,6 +95,8 @@ import {
 import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials'
 import { merchantOnboarding } from '@/modules/merchant/application/merchant-onboarding'
 import { archiveCampaign, publishCampaign } from '@/modules/store/application/campaign-service'
+import { updateCampaign } from '@/modules/store/application/campaign-service'
+import { ExperienceCommandError } from '@/modules/store/application/experience-command-service'
 import { MCP_AGENT_DISABLED_HIGH_IMPACT_TOOLS, MCP_TOOL_NAMES } from '@/modules/merchant/mcp/tool-registry'
 import { POST } from '@/app/api/mcp/route'
 
@@ -143,6 +145,7 @@ describe('MCP transport protocol', () => {
       result: {
         tools: Array<{
           name: string
+          description?: string
           annotations?: { readOnlyHint?: boolean; destructiveHint?: boolean }
           _meta?: { securitySchemes?: Array<{ type: string; scopes: string[] }> }
         }>
@@ -158,6 +161,25 @@ describe('MCP transport protocol', () => {
     }
     const read = listBody.result.tools.find((tool) => tool.name === 'get_merchant')
     expect(read?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false })
+    const activeSafeWrites = ['import_frames', 'set_store_frames', 'set_campaign_frames', 'update_campaign']
+    for (const name of activeSafeWrites) {
+      const tool = listBody.result.tools.find((candidate) => candidate.name === name)
+      expect(tool?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true })
+      expect(tool?.description).toMatch(/active (Store|Campaign)|active experience/i)
+    }
+    expect(listBody.result.tools.find((tool) => tool.name === 'create_store')?.annotations).toMatchObject({ readOnlyHint: false, idempotentHint: true })
+  })
+
+  it('returns an explicit draft-only rejection and records no success audit for an active Campaign write', async () => {
+    ;(updateCampaign as jest.Mock).mockRejectedValueOnce(new ExperienceCommandError('Agent changes are limited to Draft Experiences.'))
+    const response = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 41, method: 'tools/call',
+      params: { name: 'update_campaign', arguments: { campaignId: 'campaign-live', primaryCtaLabel: 'New offer' } },
+    }))
+    const body = await response.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+    expect(body.result.isError).toBe(true)
+    expect(JSON.parse(body.result.content[0].text)).toMatchObject({ code: 'ACTIVE_EXPERIENCE_WRITE_REQUIRES_HUMAN' })
+    expect(recordMerchantAgentOperation).not.toHaveBeenCalled()
   })
 
   it('routes a tool call through the authenticated tenant context', async () => {
