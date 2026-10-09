@@ -15,6 +15,7 @@ import { PRESENTATION_MODES, type PresentationMode } from '@/modules/store/domai
 import { MERCHANT_HANDOFF_ACTIONS, type MerchantHandoffAction } from '@/modules/store/domain/merchant-handoff'
 import { applyMerchantDecisionJourneyCeiling } from '@/modules/store/domain/decision-journey'
 import { useState } from 'react'
+import { MerchantExperienceDraftPreview, type ShopperDraftPreviewContext } from './MerchantExperienceDraftPreview'
 
 export type HandoffDraft = { action: MerchantHandoffAction | ''; label: string; url: string }
 export type ExperienceConfigurationDraft = {
@@ -80,6 +81,7 @@ export function MerchantExperienceConfiguration({
   active = false,
   dirty = false,
   onReset,
+  shopperPreview,
 }: {
   value: ExperienceConfigurationDraft
   onChange: (value: ExperienceConfigurationDraft) => void
@@ -89,6 +91,7 @@ export function MerchantExperienceConfiguration({
   active?: boolean
   dirty?: boolean
   onReset?: () => void
+  shopperPreview?: ShopperDraftPreviewContext
 }) {
   const [flowPreviewOpen, setFlowPreviewOpen] = useState(false)
   const effective = applyMerchantDecisionJourneyCeiling(value.journeyPolicy, capabilities)
@@ -125,6 +128,10 @@ export function MerchantExperienceConfiguration({
         <div className="rounded-lg bg-white p-3"><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Result includes</p><p className="mt-1.5 text-sm text-slate-800">Recommendations{effective.enabledStages.includes('FIT_PROFILE') ? ' · Fit profile' : ''}{effective.enabledStages.includes('TRY_ON') ? ' · Try-On' : ''}{effective.enabledStages.includes('COMPARE') ? ' · Compare' : ''}</p></div>
         <div className="rounded-lg bg-white p-3"><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Delivery and handoff</p><p className="mt-1.5 text-sm text-slate-800">{value.deliveryPolicy.kioskEnabled && kioskAvailable ? 'Web + Kiosk' : 'Web'} · {value.presentationMode.replace(/_/g, ' ').toLowerCase()}{value.primaryHandoff.action && value.primaryHandoff.label.trim() ? ` · ${value.primaryHandoff.label.trim()}` : ''}</p></div>
       </div>
+      {shopperPreview ? <MerchantExperienceDraftPreview
+        value={value} context={shopperPreview} effectiveStages={effectiveStages}
+        kioskEnabled={value.deliveryPolicy.kioskEnabled && kioskAvailable}
+      /> : null}
     </section> : null}
     <fieldset disabled={disabled} className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
       <legend className="px-1 text-sm font-semibold text-slate-950">Shopper journey</legend>

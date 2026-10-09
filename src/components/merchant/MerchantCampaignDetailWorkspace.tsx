@@ -364,6 +364,19 @@ export function MerchantCampaignDetailWorkspace({
 
         {!readOnly ? <MerchantExperienceConfiguration
           experienceType="CAMPAIGN"
+          shopperPreview={{
+            experienceType: 'CAMPAIGN',
+            merchantName,
+            experienceName: draft.name,
+            headline: draft.headline || null,
+            description: draft.description || null,
+            frames: selectedIds.flatMap((id) => {
+              const saved = campaign.selectedFrames.find((frame) => frame.id === id)
+              if (saved) return [{ id, name: saved.name ?? 'Selected product', imageUrl: saved.imageUrl, shape: saved.shape ?? '', color: null, productBrand: saved.brand }]
+              const pending = products.find((frame) => frame.id === id)
+              return pending ? [{ id, name: pending.name, imageUrl: pending.imageUrl, shape: '', color: null, productBrand: pending.brand }] : []
+            }),
+          }}
           value={experienceConfiguration}
           capabilities={campaign.journeyCapabilities}
           disabled={busyAction !== null}

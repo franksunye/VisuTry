@@ -480,6 +480,17 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
           {configurationDirty ? <p role="status" className="text-sm text-amber-800">Unsaved Experience settings</p> : null}
           <MerchantExperienceConfiguration
             experienceType="STORE"
+            shopperPreview={{
+              experienceType: 'STORE',
+              merchantName: store.name,
+              experienceName: name.trim() || store.name,
+              headline: headline.trim() || null,
+              description: description.trim() || null,
+              frames: selectedFrameIds.flatMap((id) => {
+                const frame = catalog.find((item) => item.id === id);
+                return frame ? [{ id, name: frame.name, imageUrl: frame.imageUrl, shape: frame.shape, color: null, productBrand: frame.brand }] : [];
+              }),
+            }}
             value={configuration}
             capabilities={workspace.capabilities}
             disabled={busy}
