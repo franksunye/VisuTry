@@ -6,7 +6,7 @@ const isLocalLivePulseRun = process.env.NODE_ENV === 'test'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
   && process.env.P1_M3_LIVE_PULSE_E2E === '1'
-  && /^http:\/\/(127\.0\.0\.1|localhost):3001$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+  && /^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
 
 type Envelope<T> = { success?: boolean; data?: T; error?: string; message?: string }
 
@@ -72,8 +72,8 @@ test.describe('P1-M3 Local Live Commerce Pulse', () => {
           sku,
           name: 'Live Pulse Round Frame',
           brand: 'Local QA',
-          imageUrl: 'http://127.0.0.1:3001/assets/glasses-presets/large-round-classic.jpg',
-          productUrl: 'http://127.0.0.1:3001/local/live-pulse-product',
+          imageUrl: '/assets/glasses-presets/large-round-classic.jpg',
+          productUrl: `${process.env.PLAYWRIGHT_BASE_URL}/local/live-pulse-product`,
           price: 12900,
           currency: 'USD',
           shape: 'round',
@@ -111,7 +111,7 @@ test.describe('P1-M3 Local Live Commerce Pulse', () => {
       )
       await page.locator('#store').getByRole('button', { name: 'Preview your Store' }).click()
       await previewMilestone
-      await expect(page.getByText('Private draft preview', { exact: true })).toBeVisible()
+      await expect(page.locator('#store').getByTestId('store-draft-preview')).toBeVisible()
     }
     if (store.status !== 'ACTIVE') {
       const publishResponse = await page.request.post(`${storePath}/publish`, { data: { storeId: store.id, approved: true } })

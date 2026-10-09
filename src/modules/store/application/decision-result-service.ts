@@ -23,7 +23,7 @@ type DecisionResultShareRow = {
     merchantSessionId: string
     expiresAt: Date
     payload: unknown
-    merchant: { id: string; slug: string; name: string; status: string; accentColor: string | null; websiteUrl: string | null; classification: string; pilotType: string; planCode: string | null; commercialStatus: string | null; commercialExceptionCode: string | null }
+    merchant: { id: string; slug: string; name: string; status: string; logoUrl: string | null; accentColor: string | null; websiteUrl: string | null; referenceData: boolean; classification: string; pilotType: string; planCode: string | null; commercialStatus: string | null; commercialExceptionCode: string | null }
     experience: {
       id: string
       type: 'STORE' | 'CAMPAIGN'
@@ -42,6 +42,22 @@ type DecisionResultShareRow = {
 
 function validToken(token: string): boolean {
   return token.length > 0 && token.length <= MAX_SHARE_TOKEN_LENGTH && /^[A-Za-z0-9_-]+$/.test(token)
+}
+
+function safeMerchantLogoUrl(value: string | null): string | null {
+  if (!value || value.length > 2048 || value.trim() !== value || value.includes('\\') || /[\u0000-\u001f]/.test(value)) return null
+  if (value.startsWith('/')) return value.startsWith('//') || value.startsWith('/api/') ? null : value
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' && url.hostname && !url.username && !url.password ? url.toString() : null
+  } catch {
+    return null
+  }
+}
+
+function isLocalDecisionResultFixture(metadata: unknown): boolean {
+  return typeof metadata === 'object' && metadata !== null && !Array.isArray(metadata) &&
+    (metadata as Record<string, unknown>).localDecisionResultE2EFixture === true
 }
 
 export function createDecisionResultAssetRef(token: string, reference: DecisionResultTryOnReference): string {
@@ -77,7 +93,7 @@ async function findShare(token: string): Promise<DecisionResultShareRow | null> 
     include: {
       result: {
         include: {
-          merchant: { select: { id: true, slug: true, name: true, status: true, accentColor: true, websiteUrl: true, classification: true, pilotType: true, planCode: true, commercialStatus: true, commercialExceptionCode: true } },
+          merchant: { select: { id: true, slug: true, name: true, status: true, logoUrl: true, accentColor: true, websiteUrl: true, referenceData: true, classification: true, pilotType: true, planCode: true, commercialStatus: true, commercialExceptionCode: true } },
           experience: { select: { id: true, type: true, slug: true, name: true, primaryCtaType: true, primaryCtaLabel: true, primaryCtaUrl: true, secondaryCtaType: true, secondaryCtaLabel: true, secondaryCtaUrl: true, deliveryPolicy: true } },
         },
       },
@@ -93,7 +109,7 @@ async function findShare(token: string): Promise<DecisionResultShareRow | null> 
 
 export type DecisionResultView = {
   expiresAt: string
-  merchant: { name: string; slug: string; accentColor: string | null; websiteUrl: string | null }
+  merchant: { name: string; slug: string; logoUrl: string | null; accentColor: string | null; websiteUrl: string | null; referenceData: boolean }
   experience: { type: 'STORE' | 'CAMPAIGN'; slug: string; name: string; primaryCta: ReturnType<typeof resolveMerchantHandoff>; secondaryCta: ReturnType<typeof resolveMerchantHandoff>; deliveryPolicy: ExperienceDeliveryPolicy } | null
   journey: ReturnType<typeof sanitizeDecisionResultPayload>['journey']
   faceFit: ReturnType<typeof sanitizeDecisionResultPayload>['faceFit']
@@ -135,6 +151,7 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
           merchantFrameId: true,
           resultImageUrl: true,
           expiresAt: true,
+          metadata: true,
           merchantFrame: { select: { name: true, sku: true, productUrl: true } },
         },
       })
@@ -148,7 +165,7 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
       return {
         assetRef,
         source: 'LIVE_TRYON' as const,
-        disclosure: null,
+        disclosure: isLocalDecisionResultFixture(task.metadata) ? 'LOCAL_QA_FIXTURE' as const : null,
         frameId: reference.frameId,
         name: task.merchantFrame?.name ?? null,
         sku: task.merchantFrame?.sku ?? null,
@@ -186,7 +203,14 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
   }))).filter((item): item is NonNullable<typeof item> => item !== null)
   return {
     expiresAt: share.result.expiresAt.toISOString(),
-    merchant: share.result.merchant,
+    merchant: {
+      name: share.result.merchant.name,
+      slug: share.result.merchant.slug,
+      logoUrl: safeMerchantLogoUrl(share.result.merchant.logoUrl),
+      accentColor: share.result.merchant.accentColor,
+      websiteUrl: share.result.merchant.websiteUrl,
+      referenceData: share.result.merchant.referenceData,
+    },
     experience: share.result.experience ? {
       type: share.result.experience.type,
       slug: share.result.experience.slug,

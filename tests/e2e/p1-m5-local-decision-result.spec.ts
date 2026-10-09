@@ -6,7 +6,7 @@ const isLocalDecisionResultRun = process.env.NODE_ENV === 'test'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
   && process.env.P1_M5_LOCAL_DECISION_RESULT_E2E === '1'
-  && /^http:\/\/(127\.0\.0\.1|localhost):3001$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+  && /^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
 
 test.describe('P1-M5 Local canonical Decision Result', () => {
   test('survives a clean cross-device browser context through the QR result URL', async ({ page, request, browser }) => {
@@ -56,7 +56,7 @@ test.describe('P1-M5 Local canonical Decision Result', () => {
       },
     })
     expect(recommendationResponse.status()).toBe(200)
-    const recommendationPayload = await recommendationResponse.json() as { data: { frames: Array<{ id: string }>; decisionResult?: { token: string } } }
+    const recommendationPayload = await recommendationResponse.json() as { data: { frames: Array<{ id: string; score: number; sku: string | null }>; decisionResult?: { token: string } } }
     const token = recommendationPayload.data.decisionResult?.token
     expect(token).toMatch(/^[A-Za-z0-9_-]{40,}$/)
     const frameId = recommendationPayload.data.frames[0]?.id
@@ -91,11 +91,12 @@ test.describe('P1-M5 Local canonical Decision Result', () => {
 
     const resultApiResponse = await request.get(`/api/store/results/${token}`)
     expect(resultApiResponse.status()).toBe(200)
-    const resultJson = await resultApiResponse.json() as { data: { merchant: { name: string }; recommendation: unknown; selectedFrameIds: string[]; tryOnResults: Array<{ imageUrl: string; assetRef: string }> } }
+    const resultJson = await resultApiResponse.json() as { data: { merchant: { name: string }; recommendation: unknown; selectedFrameIds: string[]; tryOnResults: Array<{ imageUrl: string; assetRef: string; disclosure: string | null }> } }
     expect(resultJson.data.merchant.name).toBeTruthy()
     expect(resultJson.data.recommendation).toBeTruthy()
     expect(resultJson.data.selectedFrameIds).toContain(frameId)
     expect(resultJson.data.tryOnResults).toHaveLength(1)
+    expect(resultJson.data.tryOnResults[0].disclosure).toBe('LOCAL_QA_FIXTURE')
     const resultAssetResponse = await request.get(resultJson.data.tryOnResults[0].imageUrl)
     expect(resultAssetResponse.status()).toBe(200)
     expect(resultAssetResponse.headers()['content-type']).toMatch(/^image\//)
@@ -104,9 +105,13 @@ test.describe('P1-M5 Local canonical Decision Result', () => {
 
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto(`/en/result/${token}`, { waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /shortlist/i })).toBeVisible()
     await expect(page.getByRole('heading', { name: /curated shortlist/i })).toBeVisible()
-    await expect(page.getByText(/canonical result/i).first()).toBeVisible()
+    await expect(page.getByText(/canonical result|Merchant Experience journey|store-rank-v\d/i)).toHaveCount(0)
+    for (const frame of recommendationPayload.data.frames) {
+      if (frame.sku) await expect(page.getByText(frame.sku, { exact: true })).toHaveCount(0)
+      await expect(page.getByText(String(Math.round(frame.score)), { exact: true })).toHaveCount(0)
+    }
     await page.screenshot({ path: `${evidenceDir}/result-desktop.png`, fullPage: true })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
@@ -116,12 +121,13 @@ test.describe('P1-M5 Local canonical Decision Result', () => {
     cleanPage.on('pageerror', (error) => cleanErrors.push(error.message))
     cleanPage.on('console', (message) => { if (message.type() === 'error') cleanErrors.push(message.text()) })
     await cleanPage.goto(`/en/result/${token}`, { waitUntil: 'networkidle' })
-    await expect(cleanPage.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
-    const completedTryOn = cleanPage.locator('img[src*="/api/store/results/"]')
-    await expect(completedTryOn).toBeVisible()
-    await expect.poll(() => completedTryOn.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
-    await expect(cleanPage.getByText(/No session storage is required/i)).toBeVisible()
-    await expect(cleanPage.getByRole('img', { name: /scan to open/i })).toBeVisible()
+    await expect(cleanPage.getByRole('heading', { level: 1, name: /shortlist/i })).toBeVisible()
+    await expect(cleanPage.getByRole('button', { name: 'Copy link' })).toBeVisible()
+    await expect(cleanPage.getByRole('button', { name: 'Share' })).toBeVisible()
+    await expect(cleanPage.getByTestId('result-qr-continuation')).toBeHidden()
+    await expect(cleanPage.getByText('Test asset · not a shopper Try-On image')).toBeVisible()
+    await expect(cleanPage.locator('img[src*="/api/store/results/"]')).toHaveCount(0)
+    await expect(cleanPage.getByText(/canonical result|Merchant Experience journey|store-rank-v\d|session storage/i)).toHaveCount(0)
     await cleanPage.screenshot({ path: `${evidenceDir}/result-mobile-clean-context.png`, fullPage: true })
     expect(await cleanPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
     expect(cleanErrors).toEqual([])

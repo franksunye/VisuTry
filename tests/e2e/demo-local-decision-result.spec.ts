@@ -44,10 +44,10 @@ async function expectDecisionResultShortlist(
     expect(renderedUrl && new URL(renderedUrl, page.url()).toString()).toBe(new URL(frame.imageUrl!, page.url()).toString())
     await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0)
 
-    const card = page.getByText(frame.name, { exact: true }).locator('xpath=ancestor::div[contains(@class, "rounded-2xl")][1]')
-    await expect(card).toContainText(frame.sku || 'Merchant frame')
-    await expect(card).toContainText(String(Math.round(frame.score)))
+    const card = page.getByText(frame.name, { exact: true }).locator('xpath=ancestor::article[contains(@class, "rounded-2xl")][1]')
     await expect(card).toContainText(frame.reason)
+    if (frame.sku) await expect(card).not.toContainText(frame.sku)
+    await expect(card).not.toContainText(String(Math.round(frame.score)))
   }
 }
 
@@ -158,7 +158,7 @@ test('completes Store → Demo Shopper → Rowan/Lane prepared results → Compa
 
   await resultLink.click()
   await expect(page).toHaveURL(/\/en\/result\/[A-Za-z0-9_-]{40,}$/)
-  await expect(page.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /shortlist/i })).toBeVisible()
   await page.setViewportSize({ width: 1440, height: 900 })
   await expect(page.getByText('Prepared demo results')).toBeVisible()
   await expectDecisionResultShortlist(page, recommendationPayload.data.frames)
@@ -175,9 +175,11 @@ test('completes Store → Demo Shopper → Rowan/Lane prepared results → Compa
   const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 } })
   const mobileNetwork = await localNetworkGuard(mobilePage)
   await mobilePage.goto(resultHref!, { waitUntil: 'networkidle' })
-  await expect(mobilePage.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
+  await expect(mobilePage.getByRole('heading', { level: 1, name: /shortlist/i })).toBeVisible()
   await expectDecisionResultShortlist(mobilePage, recommendationPayload.data.frames)
-  await expect(mobilePage.getByText('Continue on your phone')).toBeVisible()
+  await expect(mobilePage.getByRole('button', { name: 'Copy link' })).toBeVisible()
+  await expect(mobilePage.getByRole('button', { name: 'Share' })).toBeVisible()
+  await expect(mobilePage.getByAltText('Scan to open this Decision Result on another device')).toBeHidden()
   const mobileImages = mobilePage.locator('img[src*="/api/store/results/"]')
   await expect(mobileImages).toHaveCount(2)
   for (const image of await mobileImages.all()) {
@@ -205,7 +207,7 @@ test('serves the same Decision Result media after the Local app has restarted', 
   test.skip(!isLocalDemoFixtureRun || !token, 'Run as the restart phase of the Local Demo journey runner.')
   const network = await localNetworkGuard(page)
   await page.goto(`/en/result/${encodeURIComponent(token!)}`, { waitUntil: 'networkidle' })
-  await expect(page.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /shortlist/i })).toBeVisible()
   await expect(page.getByText('Prepared demo results')).toBeVisible()
   const images = page.locator('img[src*="/api/store/results/"]')
   await expect(images).toHaveCount(2)

@@ -42,7 +42,7 @@ function shareFor(token: string, overrides: Record<string, unknown> = {}) {
         tryOnResults: [],
         compare: null,
       },
-      merchant: { id: 'merchant-1', slug: 'merchant', name: 'Merchant', status: 'ACTIVE', accentColor: null, websiteUrl: null },
+      merchant: { id: 'merchant-1', slug: 'merchant', name: 'Merchant', status: 'ACTIVE', logoUrl: 'https://cdn.example.test/merchant.png', accentColor: null, websiteUrl: null, referenceData: false, classification: 'UNKNOWN', pilotType: 'LIVE', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', commercialExceptionCode: null },
       experience: null,
       ...resultOverrides,
     },
@@ -64,7 +64,26 @@ describe('Decision Result bearer routes', () => {
 
     expect(response.status).toBe(200)
     expect(payload.data.merchant.name).toBe('Merchant')
+    expect(payload.data.merchant.referenceData).toBe(false)
+    expect(payload.data.merchant.logoUrl).toBe('https://cdn.example.test/merchant.png')
+    expect(payload.data.merchant).not.toHaveProperty('classification')
+    expect(payload.data.merchant).not.toHaveProperty('planCode')
     expect(mockShareFindUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { tokenHash: hashSessionCapability(token) } }))
+  })
+
+  it.each(['javascript:alert(1)', '//tracker.example.test/logo.png', '/api/private/logo', '/\\tracker.example.test/logo.png'])('omits an unsafe merchant logo URL: %s', async (logoUrl) => {
+    const token = 'decision-result-token'
+    mockShareFindUnique.mockResolvedValue(shareFor(token, {
+      result: {
+        ...shareFor(token).result,
+        merchant: { ...shareFor(token).result.merchant, logoUrl },
+      },
+    }))
+
+    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: { token } })
+    const payload = await response.json()
+    expect(response.status).toBe(200)
+    expect(payload.data.merchant.logoUrl).toBeNull()
   })
 
   it('renders the same typed Handoff on the canonical Result and ignores unsafe legacy CTA data', async () => {
@@ -85,6 +104,31 @@ describe('Decision Result bearer routes', () => {
     const payload = await response.json()
     expect(payload.data.experience.primaryCta).toEqual({ action: 'PRODUCT', label: 'Browse frames', url: 'https://merchant.example/products' })
     expect(payload.data.experience.secondaryCta).toBeNull()
+  })
+
+  it('labels the guarded deterministic Local E2E image as a QA fixture, not a shopper Try-On', async () => {
+    const token = 'decision-result-token'
+    const share = shareFor(token)
+    share.result.payload = {
+      ...share.result.payload as Record<string, unknown>,
+      journey: { experienceType: 'STORE', enabledStages: ['RECOMMENDATION', 'TRY_ON'] },
+      tryOnResults: [{ source: 'LIVE_TRYON', taskId: 'test-task', frameId: 'frame-1', status: 'COMPLETED', completedAt: new Date().toISOString() }],
+    }
+    mockShareFindUnique.mockResolvedValue(share)
+    mockTaskFindMany.mockResolvedValue([{
+      id: 'test-task',
+      merchantFrameId: 'frame-1',
+      resultImageUrl: 'blob://local/test.png',
+      expiresAt: new Date(Date.now() + 60_000),
+      metadata: { localDecisionResultE2EFixture: true },
+      merchantFrame: { name: 'Test frame', sku: 'TEST-1', productUrl: null },
+    }])
+
+    const response = await getDecisionResult(new NextRequest('http://localhost/api/store/results/' + token), { params: { token } })
+    const payload = await response.json()
+    expect(response.status).toBe(200)
+    expect(payload.data.tryOnResults[0]).toMatchObject({ disclosure: 'LOCAL_QA_FIXTURE', name: 'Test frame' })
+    expect(payload.data.tryOnResults[0]).not.toHaveProperty('metadata')
   })
 
   it('fails closed when a previously issued Result belongs to a Merchant without Decision Result entitlement', async () => {
