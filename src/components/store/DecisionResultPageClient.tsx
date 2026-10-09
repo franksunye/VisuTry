@@ -72,7 +72,12 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
     ? `/${locale}/c/${encodeURIComponent(result.merchant.slug)}/${encodeURIComponent(resultExperience.slug)}`
     : `/${locale}/store/${encodeURIComponent(result.merchant.slug)}`
   const canShowTryOn = hasStage('TRY_ON') && result.tryOnResults.length > 0
-  const canShowCompare = hasStage('COMPARE') && result.compare !== null
+  const canShowCompare = hasStage('COMPARE') && result.compare !== null && result.compare.frameIds.length >= 2
+  const fitFields = result.faceFit ? [
+    result.faceFit.faceShape ? { label: 'Face shape', value: result.faceFit.faceShape } : null,
+    result.faceFit.preferredWidthClass ? { label: 'Frame width', value: result.faceFit.preferredWidthClass } : null,
+    result.faceFit.geometryQualityBand ? { label: 'Analysis quality', value: result.faceFit.geometryQualityBand } : null,
+  ].filter((field): field is { label: string; value: string } => field !== null) : []
 
   const absoluteResultUrl = useMemo(() => {
     if (typeof window === 'undefined') return resultPath
@@ -179,11 +184,9 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
               <section aria-labelledby="result-fit-heading" className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Fit profile</p>
                 <h2 id="result-fit-heading" className="mt-2 font-serif text-2xl font-semibold">A lightweight style guide</h2>
-                <div className="mt-4 grid gap-3 sm:mt-5 sm:grid-cols-3">
-                  <div className="rounded-2xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Face shape</p><p className="mt-1 font-semibold capitalize">{result.faceFit.faceShape || 'Not available'}</p></div>
-                  <div className="rounded-2xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Frame width</p><p className="mt-1 font-semibold capitalize">{result.faceFit.preferredWidthClass || 'Flexible'}</p></div>
-                  <div className="rounded-2xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Analysis quality</p><p className="mt-1 font-semibold capitalize">{result.faceFit.geometryQualityBand || 'Unavailable'}</p></div>
-                </div>
+                {fitFields.length ? <div className="mt-4 grid gap-3 sm:mt-5 sm:grid-cols-3">{fitFields.map((field) => (
+                  <div key={field.label} className="rounded-2xl bg-slate-50 p-4"><p className="text-xs text-slate-500">{field.label}</p><p className="mt-1 font-semibold capitalize">{field.value}</p></div>
+                ))}</div> : <p className="mt-4 text-sm leading-6 text-slate-600">Fit insights were not available for this photo. You can still explore the frames below.</p>}
                 <p className="mt-3 text-xs leading-5 text-slate-500">Style guidance only; it is not a medical assessment or a guarantee of fit.</p>
               </section>
             ) : null}
@@ -244,7 +247,14 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
               <section aria-labelledby="result-compare-heading" className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Compare</p>
                 <h2 id="result-compare-heading" className="mt-2 font-serif text-2xl font-semibold">Frames you compared</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{result.compare?.frameIds.length ?? 0} frames were included in your comparison.</p>
+                {result.compareFrames.length ? <div className="mt-4 grid gap-3 sm:grid-cols-2">{result.compareFrames.map((frame) => (
+                  <article key={frame.frameId} className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                    <DecisionResultFrameThumbnail imageUrl={frame.imageUrl} name={frame.name} />
+                    <div className="min-w-0 flex-1"><p className="break-words font-semibold">{frame.name}</p>
+                      {frame.productUrl ? <a href={frame.productUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex min-h-9 items-center gap-1 text-sm font-semibold text-blue-700">View product <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /></a> : null}
+                    </div>
+                  </article>
+                ))}</div> : <p className="mt-2 text-sm leading-6 text-slate-600">These frames are no longer available. Browse the experience for current styles.</p>}
               </section>
             ) : null}
           </div>

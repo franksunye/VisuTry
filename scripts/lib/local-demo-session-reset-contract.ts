@@ -1,6 +1,7 @@
 import { isLoopbackDatabaseUrl } from '../../src/lib/app-environment'
 
 const LOCAL_DATABASE_IDENTITY = 'local:127.0.0.1:5433/visutry_local'
+const ISOLATED_DEMO_DATABASE_NAME = /^visutry_demo_e2e_[a-z0-9_]{1,40}$/
 const DEMO_SLUG = 'visutry-demo-optical'
 const DEMO_NAME = 'VisuTry Demo Optical'
 const ACCEPTED_CLASSIFICATION_SOURCES = new Set([
@@ -111,23 +112,52 @@ export function localDemoTryOnTaskScope(merchantId: string, taskIds: readonly st
   }
 }
 
-function assertDatabaseTarget(value: string | undefined, name: string): void {
-  if (!value) throw new Error(`Refusing: ${name} must target the canonical Local database.`)
+export function resolveLocalDemoDatabaseIdentity(env: Record<string, string | undefined>): string {
+  const value = env.DATABASE_URL
+  if (!value) throw new Error('Refusing: DATABASE_URL must target an approved loopback Local Demo database.')
+  let parsed: URL
+  try {
+    parsed = new URL(value)
+  } catch {
+    throw new Error('Refusing: DATABASE_URL is not a valid PostgreSQL URL.')
+  }
+  const databaseName = decodeURIComponent(parsed.pathname.replace(/^\//, ''))
+  const port = parsed.port || '5432'
+  if (!isLoopbackDatabaseUrl(value) || parsed.hostname !== '127.0.0.1' || !/^\d{1,5}$/.test(port)) {
+    throw new Error('Refusing: Local Demo database must use 127.0.0.1 and a valid loopback port.')
+  }
+  const identity = `local:127.0.0.1:${port}/${databaseName}`
+  const canonical = identity === LOCAL_DATABASE_IDENTITY
+  const isolated = env.VISUTRY_LOCAL_DEMO_ISOLATED_DATABASE === '1'
+    && ISOLATED_DEMO_DATABASE_NAME.test(databaseName)
+    && identity !== LOCAL_DATABASE_IDENTITY
+  if (!canonical && !isolated) {
+    throw new Error('Refusing: use the canonical Local Demo database or an explicitly marked visutry_demo_e2e_* database.')
+  }
+  if (env.VISUTRY_DATABASE_IDENTITY !== identity) {
+    throw new Error('Refusing: Local Demo database identity marker must exactly match DATABASE_URL.')
+  }
+  return identity
+}
+
+function assertDatabaseTarget(value: string | undefined, name: string, expectedIdentity: string): void {
+  if (!value) throw new Error(`Refusing: ${name} must target the same approved loopback Local Demo database.`)
   let parsed: URL
   try {
     parsed = new URL(value)
   } catch {
     throw new Error(`Refusing: ${name} is not a valid PostgreSQL URL.`)
   }
+  const expected = new URL(`postgresql://${expectedIdentity.replace(/^local:/, '')}`)
   if (!isLoopbackDatabaseUrl(value)
     || parsed.hostname !== '127.0.0.1'
-    || parsed.port !== '5433'
-    || parsed.pathname !== '/visutry_local') {
-    throw new Error(`Refusing: ${name} must target 127.0.0.1:5433/visutry_local.`)
+    || (parsed.port || '5432') !== expected.port
+    || decodeURIComponent(parsed.pathname) !== expected.pathname) {
+    throw new Error(`Refusing: ${name} must target the same approved Local Demo database as DATABASE_URL.`)
   }
 }
 
-export function assertLocalDemoSessionResetEnvironment(env: Record<string, string | undefined>): void {
+export function assertLocalDemoSessionResetEnvironment(env: Record<string, string | undefined>): string {
   if (env.APP_ENV?.trim().toLowerCase() !== 'local' || env.VERCEL_ENV || env.VERCEL) {
     throw new Error('Refusing: session reset requires explicit APP_ENV=local outside Vercel.')
   }
@@ -147,12 +177,9 @@ export function assertLocalDemoSessionResetEnvironment(env: Record<string, strin
   if (env.STRIPE_SECRET_KEY && !env.STRIPE_SECRET_KEY.startsWith('sk_test_')) {
     throw new Error('Refusing: a non-TEST Stripe secret is present.')
   }
-  if (env.VISUTRY_DATABASE_IDENTITY !== LOCAL_DATABASE_IDENTITY) {
-    throw new Error('Refusing: the canonical Local database marker must be explicitly configured.')
-  }
-
-  assertDatabaseTarget(env.DATABASE_URL, 'DATABASE_URL')
-  if (env.DATABASE_URL_UNPOOLED) assertDatabaseTarget(env.DATABASE_URL_UNPOOLED, 'DATABASE_URL_UNPOOLED')
+  const expectedDatabaseIdentity = resolveLocalDemoDatabaseIdentity(env)
+  assertDatabaseTarget(env.DATABASE_URL, 'DATABASE_URL', expectedDatabaseIdentity)
+  if (env.DATABASE_URL_UNPOOLED) assertDatabaseTarget(env.DATABASE_URL_UNPOOLED, 'DATABASE_URL_UNPOOLED', expectedDatabaseIdentity)
 
   const localDemoPort = env.VISUTRY_LOCAL_DEMO_PORT?.trim() || '3001'
   if (!['3001', '3002'].includes(localDemoPort)) {
@@ -182,6 +209,7 @@ export function assertLocalDemoSessionResetEnvironment(env: Record<string, strin
       throw new Error('Refusing: MCP_RESOURCE_URL must be absent or point to the Local Demo application.')
     }
   }
+  return expectedDatabaseIdentity
 }
 
 export function assertLocalDemoMerchantIdentity(input: {
@@ -219,6 +247,19 @@ export function assertDemoStoreIdentity(input: {
     || !['LOCAL_DEMO', 'WHITE_PAPER_DEMO'].includes(String(metadata.purpose))) {
     throw new Error('Refusing: target experience is not the dedicated VisuTry Demo Store.')
   }
+}
+
+export function selectManagedDemoStore<T extends {
+  slug: string
+  type: string
+  referenceMetadata: unknown
+}>(experiences: T[]): T {
+  const stores = experiences.filter((experience) => experience.type === 'STORE')
+  if (stores.length !== 1) {
+    throw new Error('Refusing: the dedicated Demo Merchant must have exactly one managed Store.')
+  }
+  assertDemoStoreIdentity(stores[0])
+  return stores[0]
 }
 
 export async function assertDemoServerStopped(

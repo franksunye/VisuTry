@@ -2,7 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import dotenv from 'dotenv'
 import { Prisma, PrismaClient } from '@prisma/client'
-import { assertDatabaseEnvironment, databaseIdentityFromUrl, isLoopbackDatabaseUrl, requireExplicitAppEnvironment } from '../src/lib/app-environment'
+import { assertDatabaseEnvironment, requireExplicitAppEnvironment } from '../src/lib/app-environment'
+import { resolveLocalDemoDatabaseIdentity } from './lib/local-demo-session-reset-contract'
 import { createRuntimePostgresAdapter, resolveRuntimePostgresProvider } from '../src/lib/postgres-runtime'
 import { mockModeEnabled } from '../src/lib/mocks'
 import { validateMerchantFrameReadiness } from '../src/modules/merchant/domain/merchant-frame-readiness'
@@ -62,25 +63,10 @@ function requireLocalSafety(): { databaseUrl: string; expectedIdentity: string }
 
   const databaseUrl = env.DATABASE_URL
   if (!databaseUrl) throw new Error('Refusing: DATABASE_URL is required for the Local demo seed.')
-  const parsed = (() => {
-    try { return new URL(databaseUrl) } catch { return null }
-  })()
-  if (!parsed || !isLoopbackDatabaseUrl(databaseUrl)
-    || parsed.hostname !== '127.0.0.1'
-    || parsed.port !== '5433'
-    || parsed.pathname !== '/visutry_local') {
-    throw new Error('Refusing: DATABASE_URL must target 127.0.0.1:5433/visutry_local.')
-  }
+  const expectedIdentity = resolveLocalDemoDatabaseIdentity(env)
 
   const unpooledUrl = env.DATABASE_URL_UNPOOLED
-  if (unpooledUrl) {
-    let unpooled: URL
-    try { unpooled = new URL(unpooledUrl) } catch { throw new Error('Refusing: DATABASE_URL_UNPOOLED is invalid.') }
-    if (!isLoopbackDatabaseUrl(unpooledUrl) || unpooled.hostname !== '127.0.0.1'
-      || unpooled.port !== '5433' || unpooled.pathname !== '/visutry_local') {
-      throw new Error('Refusing: DATABASE_URL_UNPOOLED must target 127.0.0.1:5433/visutry_local.')
-    }
-  }
+  if (unpooledUrl) resolveLocalDemoDatabaseIdentity({ ...env, DATABASE_URL: unpooledUrl })
 
   const productionHosts = ['www.visutry.com', 'visutry-pre.vercel.app']
   const configuredDestinations = [env.NEXTAUTH_URL, env.NEXT_PUBLIC_SITE_URL, env.MCP_RESOURCE_URL]
@@ -88,12 +74,6 @@ function requireLocalSafety(): { databaseUrl: string; expectedIdentity: string }
     throw new Error('Refusing: a Production or Preview application destination is configured in this Local process.')
   }
   if (env.APP_ENV !== 'local') throw new Error('Refusing: Local analytics isolation is not active.')
-
-  const expectedIdentity = env.VISUTRY_DATABASE_IDENTITY || 'local:127.0.0.1:5433/visutry_local'
-  if (expectedIdentity !== 'local:127.0.0.1:5433/visutry_local'
-    || databaseIdentityFromUrl(databaseUrl) !== '127.0.0.1/visutry_local') {
-    throw new Error('Refusing: the configured Local database identity is not the canonical Local database.')
-  }
 
   return { databaseUrl, expectedIdentity }
 }
@@ -209,11 +189,16 @@ async function main() {
         where: { merchantId: merchant.id },
         select: { id: true, slug: true, type: true, referenceData: true, referenceMetadata: true },
       })
-      if (experiences.some((experience) => experience.type !== 'STORE' || experience.slug !== 'store')) {
-        throw new Error('Refusing: the dedicated demo Merchant has an unexpected non-Store experience; nothing will be deleted.')
+      if (experiences.some((experience) => experience.type !== 'STORE' && experience.type !== 'CAMPAIGN')) {
+        throw new Error('Refusing: the dedicated demo Merchant has an unsupported experience type; nothing will be deleted.')
       }
-      if (experiences.length > 1) throw new Error('Refusing: the dedicated demo Merchant has more than one experience; nothing will be deleted.')
-      const existingStore = experiences[0]
+      const stores = experiences.filter((experience) => experience.type === 'STORE')
+      if (stores.some((experience) => experience.slug !== 'store')) {
+        throw new Error('Refusing: the dedicated demo Merchant has a non-canonical Store; nothing will be deleted.')
+      }
+      if (stores.length > 1) throw new Error('Refusing: the dedicated demo Merchant has more than one Store; nothing will be deleted.')
+      // Campaigns belong to the test journey and are intentionally left untouched by this Store fixture seeder.
+      const existingStore = stores[0]
       if (existingStore && (
         !existingStore.referenceMetadata
         || typeof existingStore.referenceMetadata !== 'object'

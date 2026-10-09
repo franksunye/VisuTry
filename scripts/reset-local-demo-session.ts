@@ -8,10 +8,10 @@ import { createRuntimePostgresAdapter, resolveRuntimePostgresProvider } from '..
 import { MockBlob, readMockBlob } from '../src/lib/mocks/blob'
 import {
   assertDemoServerStopped,
-  assertDemoStoreIdentity,
   assertLocalDemoMerchantIdentity,
   assertLocalDemoSessionResetEnvironment,
   assertLocalDemoShopperMediaPathname,
+  selectManagedDemoStore,
   localDemoShopperMediaPathnameFromReference,
   localDemoShopperMediaPrefixes,
   localDemoTryOnTaskScope,
@@ -63,7 +63,7 @@ async function listScopedLocalMedia(merchantId: string): Promise<string[]> {
 }
 
 async function main(): Promise<void> {
-  assertLocalDemoSessionResetEnvironment(process.env)
+  const expectedDatabaseIdentity = assertLocalDemoSessionResetEnvironment(process.env)
   if (resolveRuntimePostgresProvider(process.env) !== 'PRISMA_PG') {
     throw new Error('Refusing: PrismaPg Local runtime is not selected.')
   }
@@ -75,7 +75,7 @@ async function main(): Promise<void> {
     const marker = await assertDatabaseEnvironment({
       client: prisma,
       expectedEnvironment: 'local',
-      expectedDatabaseIdentity: 'local:127.0.0.1:5433/visutry_local',
+      expectedDatabaseIdentity,
     })
     if (marker.environment !== 'LOCAL') throw new Error('Refusing: Local database marker verification failed.')
 
@@ -128,11 +128,10 @@ async function main(): Promise<void> {
         || merchant.memberships[0]?.role !== 'OWNER') {
         throw new Error('Refusing: the dedicated Local Demo Merchant membership boundary is unexpected.')
       }
-      if (merchant.experiences.length !== 1) {
-        throw new Error('Refusing: the dedicated Demo Merchant does not have exactly one managed Store.')
-      }
-      const store = merchant.experiences[0]
-      assertDemoStoreIdentity(store)
+      // Shopper reset never mutates Campaign rows. Allow tenant Campaigns to
+      // coexist, while retaining the strict singleton/identity check for the
+      // protected Local Demo Store used by this cleanup boundary.
+      const store = selectManagedDemoStore(merchant.experiences)
       const storeFrameIds = new Set(store.frames.filter((row) => row.active).map((row) => row.merchantFrameId))
       const catalogFrameIds = new Set(merchant.frames.map((row) => row.id))
       if (store.status !== 'ACTIVE'
@@ -326,6 +325,7 @@ async function main(): Promise<void> {
       }
       return {
         merchantId: merchant.id,
+        storeId: store.id,
         classification: merchant.classification,
         before,
         after,
@@ -379,7 +379,7 @@ async function main(): Promise<void> {
         merchant: await tx.merchant.count({ where: { id: merchant.id, slug: 'visutry-demo-optical', classification: 'TEST' } }),
         stores: await tx.experience.count({ where: { merchantId: merchant.id, type: 'STORE', slug: 'store', status: 'ACTIVE' } }),
         products: await tx.merchantFrame.count({ where: { merchantId: merchant.id } }),
-        selectedProducts: await tx.experienceFrame.count({ where: { merchantId: merchant.id, active: true } }),
+        selectedProducts: await tx.experienceFrame.count({ where: { merchantId: merchant.id, experienceId: result.storeId, active: true } }),
       }
       return { sessions, tasks, decisions, shopperAssets, shopperOrphans, preserved }
     })

@@ -7,6 +7,7 @@ import { assertDatabaseEnvironment, assertLocalDatabaseUrl } from '../src/lib/ap
 import { createRuntimePostgresAdapter, resolveRuntimePostgresProvider } from '../src/lib/postgres-runtime'
 import { sanitizeDecisionResultPayload } from '../src/modules/store/domain/decision-result'
 import { PREPARED_DEMO_RESULT_MANIFEST } from '../src/modules/store/infrastructure/prepared-demo/prepared-result-manifest'
+import { resolveLocalDemoDatabaseIdentity } from './lib/local-demo-session-reset-contract'
 
 if (process.env.APP_ENV !== 'local' || process.env.VERCEL_ENV || process.env.VERCEL) {
   throw new Error('Refusing: prepared Demo audit requires explicit Local outside Vercel.')
@@ -26,10 +27,7 @@ if (resolveRuntimePostgresProvider(process.env) !== 'PRISMA_PG') {
 }
 
 async function main() {
-  const databaseIdentity = 'local:127.0.0.1:5433/visutry_local'
-  if (process.env.VISUTRY_DATABASE_IDENTITY !== databaseIdentity) {
-    throw new Error('Refusing: expected Local database identity marker is missing.')
-  }
+  const databaseIdentity = resolveLocalDemoDatabaseIdentity(process.env)
   const prisma = new PrismaClient({ adapter: createRuntimePostgresAdapter(process.env) })
   try {
     await assertDatabaseEnvironment({

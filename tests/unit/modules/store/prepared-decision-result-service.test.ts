@@ -11,7 +11,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     decisionResultShare: { findUnique: jest.fn() },
     tryOnTask: { findMany: jest.fn() },
-    merchantFrame: { findFirst: jest.fn() },
+    merchantFrame: { findFirst: jest.fn(), findMany: jest.fn() },
   },
 }))
 
@@ -80,6 +80,7 @@ describe('PREPARED_DEMO Decision Result private delivery', () => {
       sku: 'VT-DEMO-001',
       productUrl: null,
     })
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([])
   })
 
   afterAll(() => {
@@ -118,6 +119,29 @@ describe('PREPARED_DEMO Decision Result private delivery', () => {
       assetRef: createDecisionResultAssetRef(token, reference),
     })).toBeNull()
     expect(prisma.merchantFrame.findFirst).not.toHaveBeenCalled()
+  })
+
+  it('resolves the named images for the exact compared frame IDs within the merchant', async () => {
+    const share = shareFor()
+    ;(share.result as { payload: unknown }).payload = {
+      journey: { experienceType: 'STORE', enabledStages: ['RECOMMENDATION', 'COMPARE'] },
+      recommendation: { rankingVersion: 'internal', frames: [{ frameId: 'rowan-frame-id', name: 'Snapshot Rowan', imageUrl: 'https://cdn.example.test/rowan.jpg', productUrl: null, score: 1, reason: '' }] },
+      compare: { startedAt: new Date().toISOString(), frameIds: ['rowan-frame-id', 'lane-frame-id'] },
+    }
+    ;(prisma.decisionResultShare.findUnique as jest.Mock).mockResolvedValue(share)
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([
+      { id: 'lane-frame-id', name: 'VT Lane', imageUrl: 'https://cdn.example.test/lane.jpg', productUrl: 'https://shop.example.test/lane' },
+    ])
+
+    const view = await getDecisionResultView(token)
+
+    expect(prisma.merchantFrame.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: { in: ['rowan-frame-id', 'lane-frame-id'] }, merchantId: 'demo-merchant-id', status: 'ACTIVE' },
+    }))
+    expect(view?.compareFrames).toEqual([
+      { frameId: 'rowan-frame-id', name: 'Snapshot Rowan', imageUrl: 'https://cdn.example.test/rowan.jpg', productUrl: null },
+      { frameId: 'lane-frame-id', name: 'VT Lane', imageUrl: 'https://cdn.example.test/lane.jpg', productUrl: 'https://shop.example.test/lane' },
+    ])
   })
 
   it('preserves share revocation/expiry as the gate for prepared bytes', async () => {

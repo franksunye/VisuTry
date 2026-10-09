@@ -48,12 +48,16 @@ const baseResult: DecisionResultView = {
     rankingVersion: 'store-rank-v2',
     frames: [
       { frameId: 'rowan', sku: 'VT-ROWAN-INTERNAL', name: 'VT Rowan', imageUrl: 'https://cdn.example.test/rowan.png', productUrl: 'https://shop.example.test/rowan', score: 94, reason: 'A balanced round silhouette.' },
-      { frameId: 'lane', sku: 'VT-LANE-INTERNAL', name: 'VT Lane', imageUrl: null, productUrl: null, score: 82, reason: 'A clean rectangular alternative.' },
+      { frameId: 'lane', sku: 'VT-LANE-INTERNAL', name: 'VT Lane', imageUrl: 'https://cdn.example.test/lane.png', productUrl: null, score: 82, reason: 'A clean rectangular alternative.' },
     ],
   },
   selectedFrameIds: ['rowan', 'lane'],
   favoriteFrameIds: ['rowan'],
   compare: { startedAt: '2026-10-09T10:00:00.000Z', frameIds: ['rowan', 'lane'] },
+  compareFrames: [
+    { frameId: 'rowan', name: 'VT Rowan', imageUrl: 'https://cdn.example.test/rowan.png', productUrl: 'https://shop.example.test/rowan' },
+    { frameId: 'lane', name: 'VT Lane', imageUrl: 'https://cdn.example.test/lane.png', productUrl: null },
+  ],
   tryOnResults: [{ assetRef: 'asset-rowan', source: 'LIVE_TRYON', disclosure: null, frameId: 'rowan', name: 'VT Rowan', sku: 'VT-ROWAN-INTERNAL', productUrl: 'https://shop.example.test/rowan', imageUrl: '/api/store/results/token/try-on/asset-rowan', completedAt: '2026-10-09T10:00:00.000Z' }],
 }
 
@@ -94,6 +98,27 @@ describe('DecisionResultPageClient journey and shopper presentation', () => {
     expect(screen.queryByText(/looks will appear|waiting|pending/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Completed looks' })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Frames you compared' })).not.toBeInTheDocument()
+  })
+
+  it('shows the actual compared frames with product imagery and supported links', () => {
+    render(<DecisionResultPageClient locale="en" token="opaque-result-token" result={baseResult} />)
+    const compare = screen.getByRole('region', { name: 'Frames you compared' })
+    expect(compare).toHaveTextContent('VT Rowan')
+    expect(compare).toHaveTextContent('VT Lane')
+    expect(compare.querySelector('a[href="https://shop.example.test/rowan"]')).toHaveTextContent('View product')
+    expect(compare.querySelectorAll('img[alt$="product thumbnail"]')).toHaveLength(2)
+  })
+
+  it('shows one concise fit unavailable message instead of empty metric placeholders', () => {
+    const result: DecisionResultView = {
+      ...baseResult,
+      faceFit: { faceShape: null, alternativeShapes: [], preferredWidthClass: null, geometryQualityBand: null, qualityScore: null, signalCount: 0 },
+    }
+    render(<DecisionResultPageClient locale="en" token="opaque-result-token" result={result} />)
+    expect(screen.getByText('Fit insights were not available for this photo. You can still explore the frames below.')).toBeInTheDocument()
+    expect(screen.queryByText('Face shape')).not.toBeInTheDocument()
+    expect(screen.queryByText('Frame width')).not.toBeInTheDocument()
+    expect(screen.queryByText('Analysis quality')).not.toBeInTheDocument()
   })
 
   it('omits recommendation content when the effective Journey excludes Recommendation', () => {

@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { isMockMode } from '@/lib/mocks'
 import { readMockBlob } from '@/lib/mocks/blob'
 import { hashSessionCapability } from '../domain/session'
-import { sanitizeDecisionResultPayload } from '../domain/decision-result'
+import { sanitizeCatalogImageUrl, sanitizeDecisionResultPayload } from '../domain/decision-result'
+import { isSafeCampaignCtaUrl } from '../domain/campaign-readiness'
 import { resolveMerchantHandoff } from '../domain/merchant-handoff'
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
@@ -117,6 +118,7 @@ export type DecisionResultView = {
   selectedFrameIds: string[]
   favoriteFrameIds: string[]
   compare: ReturnType<typeof sanitizeDecisionResultPayload>['compare']
+  compareFrames: Array<{ frameId: string; name: string; imageUrl: string | null; productUrl: string | null }>
   tryOnResults: Array<{
     assetRef: string
     source: 'LIVE_TRYON' | 'PREPARED_DEMO'
@@ -201,6 +203,25 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
       completedAt: reference.presentedAt,
     }
   }))).filter((item): item is NonNullable<typeof item> => item !== null)
+  const comparedIds = payload.compare?.frameIds ?? []
+  const comparedRows = comparedIds.length ? await prisma.merchantFrame.findMany({
+    where: { id: { in: comparedIds }, merchantId: share.result.merchantId, status: 'ACTIVE' },
+    select: { id: true, name: true, imageUrl: true, productUrl: true },
+  }) : []
+  const comparedRowsById = new Map(comparedRows.map((frame) => [frame.id, frame]))
+  const recommendedById = new Map(payload.recommendation?.frames.map((frame) => [frame.frameId, frame]) ?? [])
+  const compareFrames = comparedIds.flatMap((frameId) => {
+    const snapshot = recommendedById.get(frameId)
+    const current = comparedRowsById.get(frameId)
+    if (!snapshot && !current) return []
+    const productUrl = snapshot?.productUrl ?? current?.productUrl ?? null
+    return [{
+      frameId,
+      name: snapshot?.name ?? current?.name ?? 'Compared frame',
+      imageUrl: snapshot?.imageUrl ?? sanitizeCatalogImageUrl(current?.imageUrl),
+      productUrl: productUrl && isSafeCampaignCtaUrl(productUrl) ? productUrl : null,
+    }]
+  })
   return {
     expiresAt: share.result.expiresAt.toISOString(),
     merchant: {
@@ -225,6 +246,7 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
     selectedFrameIds: payload.selectedFrameIds,
     favoriteFrameIds: payload.favoriteFrameIds,
     compare: payload.compare,
+    compareFrames,
     tryOnResults,
   }
 }
