@@ -184,7 +184,7 @@ async function fetchCampaign(merchantId: string, campaignId: string, sharedMerch
     merchant: {
       ...merchant,
       tryOnEnabled: (merchant.tryOnEnabled == null || Boolean(merchant.tryOnEnabled)) && Boolean(commercial?.decisions.GENERATIVE_TRY_ON.allowed),
-      compareEnabled: (merchant.compareEnabled == null || Boolean(commercial?.decisions.COMPARE.allowed)),
+      compareEnabled: (merchant.compareEnabled == null || Boolean(merchant.compareEnabled)) && Boolean(commercial?.decisions.COMPARE.allowed),
       kioskDeliveryEnabled: commercial?.decisions.KIOSK_DELIVERY.allowed ?? false,
     },
   }
