@@ -167,23 +167,24 @@ function jsonObject(value: unknown): Record<string, unknown> | null {
   }
 }
 
-async function fetchCampaign(merchantId: string, campaignId: string): Promise<{ row: CampaignRow; merchant: Row }> {
+async function fetchCampaign(merchantId: string, campaignId: string, sharedMerchant?: Row): Promise<{ row: CampaignRow; merchant: Row }> {
   const sql = getCloudflareSql()
   const [merchantRows, rows] = await Promise.all([
-    sql`SELECT "id", "slug", "referenceData", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
+    sharedMerchant ? Promise.resolve([sharedMerchant]) : sql`SELECT "id", "slug", "referenceData", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
     sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."journeyPolicy", e."deliveryPolicy", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."brand" AS "frameBrand", mf."price" AS "framePrice", mf."currency" AS "frameCurrency", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
   ])
   const merchant = merchantRows[0]
   if (!merchant || !rows[0]) throw new MerchantAccessError()
   const first = rows[0]
   const row: CampaignRow = { ...first, frames: rows.filter((item) => item.merchantFrameId != null).map((item) => ({ merchantFrameId: String(item.merchantFrameId), merchantFrame: item.frameId == null ? null : { id: String(item.frameId), sku: item.sku == null ? null : String(item.sku), externalId: item.frameExternalId == null ? null : String(item.frameExternalId), productUrl: item.frameProductUrl == null ? null : String(item.frameProductUrl), name: String(item.frameName), brand: item.frameBrand == null ? null : String(item.frameBrand), imageUrl: item.frameImageUrl == null ? null : String(item.frameImageUrl), price: item.framePrice == null ? null : Number(item.framePrice), currency: item.frameCurrency == null ? null : String(item.frameCurrency), shape: String(item.frameShape), widthClass: item.frameWidthClass == null ? null : String(item.frameWidthClass), source: item.frameSource == null ? null : String(item.frameSource), enrichmentStatus: item.frameEnrichmentStatus == null ? null : String(item.frameEnrichmentStatus), status: String(item.frameStatus) } })) }
+  if (sharedMerchant) return { row, merchant: sharedMerchant }
   const commercial = await getMerchantCommercialCapabilityCloudflare({ merchantId, includeResourceUsage: false }).catch(() => null)
   return {
     row,
     merchant: {
       ...merchant,
       tryOnEnabled: (merchant.tryOnEnabled == null || Boolean(merchant.tryOnEnabled)) && Boolean(commercial?.decisions.GENERATIVE_TRY_ON.allowed),
-      compareEnabled: (merchant.compareEnabled == null || Boolean(merchant.compareEnabled)) && Boolean(commercial?.decisions.COMPARE.allowed),
+      compareEnabled: (merchant.compareEnabled == null || Boolean(commercial?.decisions.COMPARE.allowed)),
       kioskDeliveryEnabled: commercial?.decisions.KIOSK_DELIVERY.allowed ?? false,
     },
   }
@@ -219,7 +220,17 @@ export async function listCampaigns(input: { merchantId: string; cursor?: string
   const rows = input.cursor
     ? await sql`SELECT "id" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "id" > ${input.cursor} ORDER BY "id" ASC LIMIT ${limit + 1}`
     : await sql`SELECT "id" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' ORDER BY "id" ASC LIMIT ${limit + 1}`
-  const page = await Promise.all(rows.slice(0, limit).map((row) => fetchCampaign(input.merchantId, String(row.id)).then(({ row: campaign, merchant: campaignMerchant }) => mapCampaign(campaign, String(merchant.slug), Boolean(merchant.referenceData), campaignMerchant))))
+  // One usage/entitlement read per paginated Campaign list, not one per row.
+  const commercial = rows.length > 0
+    ? await getMerchantCommercialCapabilityCloudflare({ merchantId: input.merchantId, includeResourceUsage: false }).catch(() => null)
+    : null
+  const sharedMerchant = {
+    ...merchant,
+    tryOnEnabled: (merchant.tryOnEnabled == null || Boolean(merchant.tryOnEnabled)) && Boolean(commercial?.decisions.GENERATIVE_TRY_ON.allowed),
+    compareEnabled: (merchant.compareEnabled == null || Boolean(merchant.compareEnabled)) && Boolean(commercial?.decisions.COMPARE.allowed),
+    kioskDeliveryEnabled: commercial?.decisions.KIOSK_DELIVERY.allowed ?? false,
+  }
+  const page = await Promise.all(rows.slice(0, limit).map((row) => fetchCampaign(input.merchantId, String(row.id), sharedMerchant).then(({ row: campaign }) => mapCampaign(campaign, String(merchant.slug), Boolean(merchant.referenceData), sharedMerchant))))
   return { items: page, nextCursor: rows.length > limit ? page.at(-1)?.id ?? null : null }
 }
 

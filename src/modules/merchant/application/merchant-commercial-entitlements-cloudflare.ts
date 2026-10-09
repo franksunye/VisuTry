@@ -33,29 +33,37 @@ function mapMerchant(row: Record<string, unknown>): MerchantCommercialFields {
   }
 }
 
-function inPeriod(value: unknown, period: { start: Date | null; end: Date | null }): boolean {
-  const createdAt = asDate(value)?.getTime() ?? 0
-  return (!period.start || createdAt >= period.start.getTime()) && (!period.end || createdAt < period.end.getTime())
-}
 
 /** Canonical, usage-aware Commercial capability read for Cloudflare-backed application paths. */
 export async function getMerchantCommercialCapabilityCloudflare(input: { merchantId: string; now?: Date; includeResourceUsage?: boolean }) {
   const sql = getCloudflareSql()
   const includeResourceUsage = input.includeResourceUsage !== false
-  const [merchantRows, activeCampaignRows, catalogRows, sessionUsageRows, renderUsageRows] = await Promise.all([
-    sql`SELECT "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`,
-    includeResourceUsage ? sql`SELECT count(*)::int AS "count" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "status" = 'ACTIVE'` : Promise.resolve([]),
-    includeResourceUsage ? sql`SELECT count(*)::int AS "count" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId}` : Promise.resolve([]),
-    sql`SELECT "createdAt" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = 'AI_COMMERCE_SESSION' ORDER BY "createdAt" ASC`,
-    sql`SELECT "createdAt" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = 'RENDER_SUCCESS' ORDER BY "createdAt" ASC`,
-  ])
+  // Read identity/entitlement once, then count ledger rows in PostgreSQL. Do
+  // not transfer every historical usage record to a Cloudflare Worker.
+  const merchantRows = await sql`SELECT "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
   const row = merchantRows[0] as Record<string, unknown> | undefined
   if (!row) throw new Error('Merchant not found')
   const merchant = mapMerchant(row)
   const period = resolveMerchantCommercialCapability(merchant, {}, input.now).state.period
+
+  // Explicit range branches preserve sargable predicates for the existing
+  // MerchantUsageLedger(merchantId, kind) index and its createdAt filtering.
+  const countUsage = (kind: 'AI_COMMERCE_SESSION' | 'RENDER_SUCCESS') => {
+    if (period.start && period.end) return sql`SELECT count(*)::int AS "count" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = ${kind} AND "createdAt" >= ${period.start} AND "createdAt" < ${period.end}`
+    if (period.start) return sql`SELECT count(*)::int AS "count" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = ${kind} AND "createdAt" >= ${period.start}`
+    if (period.end) return sql`SELECT count(*)::int AS "count" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = ${kind} AND "createdAt" < ${period.end}`
+    return sql`SELECT count(*)::int AS "count" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = ${kind}`
+  }
+  const includeResourceUsage = input.includeResourceUsage !== false
+  const [sessionRows, renderRows, activeCampaignRows, catalogRows] = await Promise.all([
+    countUsage('AI_COMMERCE_SESSION'),
+    countUsage('RENDER_SUCCESS'),
+    includeResourceUsage ? sql`SELECT count(*)::int AS "count" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "status" = 'ACTIVE'` : Promise.resolve([]),
+    includeResourceUsage ? sql`SELECT count(*)::int AS "count" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId}` : Promise.resolve([]),
+  ])
   const usage: CommercialUsage = {
-    aiCommerceSessions: (sessionUsageRows as Array<Record<string, unknown>>).filter((item) => inPeriod(item.createdAt, period)).length,
-    standardTryOnGenerations: (renderUsageRows as Array<Record<string, unknown>>).filter((item) => inPeriod(item.createdAt, period)).length,
+    aiCommerceSessions: Number((sessionRows[0] as Record<string, unknown> | undefined)?.count ?? 0),
+    standardTryOnGenerations: Number((renderRows[0] as Record<string, unknown> | undefined)?.count ?? 0),
     activeCampaigns: includeResourceUsage ? Number((activeCampaignRows[0] as Record<string, unknown> | undefined)?.count ?? 0) : 0,
     catalogItems: includeResourceUsage ? Number((catalogRows[0] as Record<string, unknown> | undefined)?.count ?? 0) : 0,
   }
