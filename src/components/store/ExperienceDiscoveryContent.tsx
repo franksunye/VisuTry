@@ -10,7 +10,7 @@ import {
 import { buildStoreOutboundUrl, type StoreOutboundLinkType } from '@/lib/store-outbound-links'
 import { MerchantShopperAccountControlSlot } from '@/components/store/MerchantShopperAccountControlSlot'
 import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
-import { isLoopbackImageUrl } from '@/lib/is-loopback-image-url'
+import { isLoopbackImageUrl, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
 
 function formatPrice(price: number | null, currency: string | null): string | null {
   if (price === null || price === undefined) return null
@@ -95,7 +95,13 @@ export function ExperienceDiscoveryContent({
   locale: string
   pathname: string
 }) {
-  const { merchant, experience, frames } = discovery
+  const safeDiscovery = {
+    ...discovery,
+    merchant: { ...discovery.merchant, logoUrl: publicMerchantImageUrl(discovery.merchant.logoUrl) },
+    experience: { ...discovery.experience, heroAssetUrl: publicMerchantImageUrl(discovery.experience.heroAssetUrl) },
+    frames: discovery.frames.map((frame) => ({ ...frame, imageUrl: publicMerchantImageUrl(frame.imageUrl) })),
+  }
+  const { merchant, experience, frames } = safeDiscovery
   const title = experience.type === 'STORE'
     ? `Shop the ${merchant.name} eyewear collection`
     : experience.headline?.trim() || experience.name
@@ -106,7 +112,7 @@ export function ExperienceDiscoveryContent({
     experienceType: experience.type,
     persistedPresentationMode: experience.presentationMode,
   })
-  const jsonLd = buildExperienceDiscoveryJsonLd({ discovery, pathname })
+  const jsonLd = buildExperienceDiscoveryJsonLd({ discovery: safeDiscovery, pathname })
 
   return (
     <main

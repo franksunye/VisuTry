@@ -1,3 +1,5 @@
+import { publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
+
 export const MERCHANT_FRAME_ENRICHMENT_STATUSES = ['NOT_REQUIRED', 'PENDING', 'REVIEW_REQUIRED', 'APPROVED'] as const
 export type MerchantFrameEnrichmentStatus = (typeof MERCHANT_FRAME_ENRICHMENT_STATUSES)[number]
 
@@ -89,7 +91,7 @@ export function validateMerchantFrameReadiness(frame: MerchantFrameReadinessInpu
 
   if (!sku && !externalId && !productUrl) importIssues.push('MISSING_STABLE_IDENTITY')
   if (!name) importIssues.push('MISSING_NAME')
-  if (!imageUrl || !validUrl(imageUrl)) importIssues.push('MISSING_IMAGE_URL')
+  if (!imageUrl || !validUrl(imageUrl) || !publicMerchantImageUrl(imageUrl)) importIssues.push('MISSING_IMAGE_URL')
   if (productUrl && !validUrl(productUrl)) importIssues.push('INVALID_PRODUCT_URL')
   if (frame.source === 'EXTERNAL' && !productUrl) importIssues.push('MISSING_PRODUCT_URL')
 
