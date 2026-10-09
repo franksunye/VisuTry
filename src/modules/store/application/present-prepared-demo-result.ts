@@ -57,8 +57,11 @@ export async function presentPreparedDemoResult(input: {
     throw new StoreDomainError('CAPABILITY_DISABLED', 'Prepared Demo results are available only in active Demo Store or Campaign experiences.', 403)
   }
   const policy = resolveStoreExperiencePolicy(merchant, experience)
-  if (!policy.tryOnEnabled || !policy.compareEnabled) {
-    throw new StoreDomainError('CAPABILITY_DISABLED', 'Prepared results are not enabled for this Demo experience.', 403)
+  // An approved prepared image represents Try-On, not a mandatory Compare.
+  // Demo merchant, active Experience, authorized photo, frame, provenance and
+  // private Result-token checks remain unchanged.
+  if (!policy.tryOnEnabled) {
+    throw new StoreDomainError('CAPABILITY_DISABLED', 'Prepared Try-On is not enabled for this Demo experience.', 403)
   }
 
   const frame = await input.frames.findActiveByMerchantAndId(merchant.id, input.merchantFrameId)

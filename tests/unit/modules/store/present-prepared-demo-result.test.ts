@@ -41,7 +41,7 @@ describe('presentPreparedDemoResult', () => {
     decisionResultSaved?: boolean
     experience?: {
       id: string
-      type: 'CAMPAIGN'
+      type: 'STORE' | 'CAMPAIGN'
       status: 'ACTIVE'
       frameIds: string[]
       journeyPolicy?: unknown
@@ -118,6 +118,44 @@ describe('presentPreparedDemoResult', () => {
       merchantSessionId: 'demo-session',
       reference: expect.objectContaining({ source: 'PREPARED_DEMO', frameId: 'rowan-frame' }),
     }))
+  })
+
+  it.each(['STORE', 'CAMPAIGN'] as const)('supports approved Try-On without Compare for %s', async (type) => {
+    const { input, recordPreparedDemoResult } = await setup({
+      experience: {
+        id: 'demo-experience',
+        type,
+        status: 'ACTIVE',
+        frameIds: ['rowan-frame'],
+        journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] },
+      },
+    })
+    const result = await presentPreparedDemoResult(input as never)
+    expect(result).toMatchObject({ source: 'PREPARED_DEMO', merchantFrameId: 'rowan-frame' })
+    expect(JSON.stringify(result)).not.toContain('tryOnTaskId')
+    expect(recordPreparedDemoResult).toHaveBeenCalledWith(expect.objectContaining({
+      merchantId: 'demo-merchant',
+      reference: expect.objectContaining({ source: 'PREPARED_DEMO', frameId: 'rowan-frame' }),
+    }))
+  })
+
+  it.each([
+    ['Journey omits Try-On', { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION'] }, {}],
+    ['merchant disables Try-On', { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] }, { tryOnEnabled: false }],
+  ])('rejects prepared result if %s', async (_label, journeyPolicy, merchantOverrides) => {
+    const { input, recordPreparedDemoResult } = await setup({
+      merchant: merchantOverrides,
+      experience: {
+        id: 'demo-experience',
+        type: 'CAMPAIGN',
+        status: 'ACTIVE',
+        frameIds: ['rowan-frame'],
+        journeyPolicy,
+      },
+    })
+    await expect(presentPreparedDemoResult(input as never)).rejects.toMatchObject({ code: 'CAPABILITY_DISABLED' })
+    expect(recordPreparedDemoResult).not.toHaveBeenCalled()
+    expect(input.assets.getBytes).not.toHaveBeenCalled()
   })
 
   it('refuses a prepared frame outside the active Demo Campaign selection', async () => {
