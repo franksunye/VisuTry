@@ -368,6 +368,8 @@ export function MerchantCampaignDetailWorkspace({
           experienceType="CAMPAIGN"
           shopperPreview={{
             experienceType: 'CAMPAIGN',
+            merchantId,
+            experienceId: campaign.id,
             merchantName,
             experienceName: draft.name,
             headline: draft.headline || null,

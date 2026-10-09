@@ -484,6 +484,8 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
             experienceType="STORE"
             shopperPreview={{
               experienceType: 'STORE',
+              merchantId,
+              experienceId: store.id,
               merchantName: store.name,
               experienceName: name.trim() || store.name,
               headline: headline.trim() || null,

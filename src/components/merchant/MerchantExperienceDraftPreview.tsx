@@ -1,5 +1,7 @@
 'use client'
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { brandAccentForDisplay } from '@/modules/merchant/domain/merchant-brand-kit'
+import { publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
 import { ExperiencePresentationShell, type ExperiencePresentationCopy, type PresentationFrame } from '@/components/store/ExperiencePresentationShell'
 import { resolveMerchantHandoff } from '@/modules/store/domain/merchant-handoff'
 import type { DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
@@ -7,6 +9,8 @@ import type { ExperienceConfigurationDraft } from './MerchantExperienceConfigura
 
 export type ShopperDraftPreviewContext = {
   experienceType: 'STORE' | 'CAMPAIGN'
+  merchantId: string
+  experienceId: string
   merchantName: string
   experienceName: string
   headline: string | null
@@ -46,6 +50,23 @@ export function MerchantExperienceDraftPreview({
   kioskEnabled: boolean
 }) {
   const framesRef = useRef<HTMLElement>(null)
+  const [brand, setBrand] = useState<{ logoUrl: string | null; accentColor: string | null; heroAssetUrl: string | null }>({ logoUrl: null, accentColor: null, heroAssetUrl: null })
+  useEffect(() => {
+    let cancelled = false
+    const base = `/api/merchant/${encodeURIComponent(context.merchantId)}/brand`
+    Promise.all([
+      fetch(base, { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
+      fetch(`${base}/hero?experienceId=${encodeURIComponent(context.experienceId)}`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
+    ]).then(([merchant, hero]) => {
+      if (cancelled) return
+      setBrand({
+        logoUrl: publicMerchantImageUrl(merchant?.data?.logoUrl ?? null),
+        accentColor: merchant?.data?.accentColor ?? null,
+        heroAssetUrl: publicMerchantImageUrl(hero?.data?.heroAssetUrl ?? null),
+      })
+    }).catch(() => { /* Keep the private preview safely unbranded if reads fail. */ })
+    return () => { cancelled = true }
+  }, [context.merchantId, context.experienceId])
   const handoffs = [value.primaryHandoff, value.secondaryHandoff]
     .map((handoff) => resolveMerchantHandoff({ type: handoff.action || null, label: handoff.label, url: handoff.url }))
     .filter((handoff) => handoff !== null)
@@ -59,17 +80,17 @@ export function MerchantExperienceDraftPreview({
       <ExperiencePresentationShell
         mode={value.presentationMode}
         merchant={{
-          name: context.merchantName, logoUrl: null, referenceData: false,
+          name: context.merchantName, logoUrl: brand.logoUrl, referenceData: false,
           activeFrameCount: context.frames.length,
           experience: {
             type: context.experienceType,
             name: context.experienceName,
             headline: context.headline,
             description: context.description,
-            heroAssetUrl: context.frames[0]?.imageUrl ?? null,
+            heroAssetUrl: brand.heroAssetUrl ?? context.frames[0]?.imageUrl ?? null,
           },
         }}
-        accent="#1d4ed8" featuredFrames={context.frames} copy={PREVIEW_COPY}
+        accent={brandAccentForDisplay(brand.accentColor)} featuredFrames={context.frames} copy={PREVIEW_COPY}
         publicPocStorage={false} sessionStarting={false} errorMessage={null}
         onStartRuntime={() => undefined} onShoppingCta={() => undefined}
         featuredFramesRef={framesRef} showRuntimeCta={false}
