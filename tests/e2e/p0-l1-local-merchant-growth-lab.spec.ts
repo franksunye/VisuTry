@@ -6,7 +6,19 @@ const isLocalLabRun = process.env.NODE_ENV === 'test'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
   && process.env.P0_L1_LOCAL_MERCHANT_E2E === '1'
-  && /^http:\/\/(127\.0\.0\.1|localhost):(3001|3002|3003)$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+  && isLoopbackLocalPort(process.env.PLAYWRIGHT_BASE_URL || '')
+
+function isLoopbackLocalPort(value: string) {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:'
+      && ['127.0.0.1', 'localhost', '::1'].includes(url.hostname.replace(/^\[|\]$/g, ''))
+      && Number(url.port) >= 3000 && Number(url.port) <= 3999
+      && url.pathname === '/' && !url.search && !url.hash
+  } catch {
+    return false
+  }
+}
 const localMerchantGoldenPathTimeoutMs = 360_000
 
 test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {

@@ -28,6 +28,13 @@ import {
   merchantActivationEventInsertStatement,
 } from './merchant-activation-cloudflare'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
+import { resolveDecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
+import { resolvePublicDecisionJourney } from '@/modules/store/domain/experience-policy'
+import { resolveExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
+import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
+import { getMerchantCommercialCapabilityCloudflare } from './merchant-commercial-entitlements-cloudflare'
+import type { DecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
+import type { ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
 // select the full catalog; the bounded API payload is aligned with catalog
@@ -163,6 +170,17 @@ function storeReadiness(frames: FrameForValidation[], expectedCount = frames.len
   return { ready: expectedCount > 0 && frames.length === expectedCount && blockingIssues.length === 0, frameCount: expectedCount, readyFrameCount: checks.filter((check) => check.storeEligible).length, blockingIssues, checks }
 }
 
+function jsonRecord(value: unknown): Record<string, unknown> | null {
+  if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>
+  if (typeof value !== 'string') return null
+  try {
+    const parsed: unknown = JSON.parse(value)
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : null
+  } catch {
+    return null
+  }
+}
+
 async function merchantRow(merchantId: string) {
   const sql = getCloudflareSql()
   const rows = await sql`SELECT "id", "slug", "name", "status", "websiteUrl", "contactEmail" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`
@@ -180,8 +198,8 @@ async function activeFrames(merchantId: string, frameIds?: string[]) {
 async function findStore(merchantId: string, storeId?: string) {
   const sql = getCloudflareSql()
   const rows = storeId
-    ? await sql`SELECT "id", "merchantId", "slug", "name", "status", "headline", "description" FROM "Experience" WHERE "id" = ${storeId} AND "merchantId" = ${merchantId} AND "type" = 'STORE' LIMIT 1`
-    : await sql`SELECT "id", "merchantId", "slug", "name", "status", "headline", "description" FROM "Experience" WHERE "merchantId" = ${merchantId} AND "type" = 'STORE' ORDER BY "createdAt" ASC LIMIT 1`
+    ? await sql`SELECT "id", "merchantId", "slug", "name", "status", "headline", "description", "journeyPolicy", "deliveryPolicy", "presentationMode", "primaryCtaType", "primaryCtaLabel", "primaryCtaUrl", "secondaryCtaType", "secondaryCtaLabel", "secondaryCtaUrl" FROM "Experience" WHERE "id" = ${storeId} AND "merchantId" = ${merchantId} AND "type" = 'STORE' LIMIT 1`
+    : await sql`SELECT "id", "merchantId", "slug", "name", "status", "headline", "description", "journeyPolicy", "deliveryPolicy", "presentationMode", "primaryCtaType", "primaryCtaLabel", "primaryCtaUrl", "secondaryCtaType", "secondaryCtaLabel", "secondaryCtaUrl" FROM "Experience" WHERE "merchantId" = ${merchantId} AND "type" = 'STORE' ORDER BY "createdAt" ASC LIMIT 1`
   const store = rows[0]
   if (!store) return null
   const frameRows = await sql`SELECT ef."merchantFrameId", ef."sortOrder", mf."id", mf."sku", mf."name", mf."brand", mf."imageUrl", mf."productUrl", mf."shape", mf."widthClass", mf."color", mf."source", mf."externalId", mf."enrichmentStatus", mf."status" FROM "ExperienceFrame" ef JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE ef."experienceId" = ${String(store.id)} AND ef."merchantId" = ${merchantId} AND ef."active" = true ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`
@@ -213,10 +231,17 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
   requireAgentScope(input.actor, 'experience:read')
   const merchant = await getMerchant({ actor: input.actor })
   const sql = getCloudflareSql()
-  const [store, catalog] = await Promise.all([
+  const [store, catalog, capabilityRows] = await Promise.all([
     findStore(input.actor.merchantId),
     sql`SELECT "id", "sku", "externalId", "productUrl", "name", "brand", "imageUrl", "price", "currency", "shape", "source", "status", "enrichmentStatus" FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId} ORDER BY "name" ASC`,
+    sql`SELECT "tryOnEnabled", "compareEnabled", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`,
   ])
+  const commercialCapability = capabilityRows[0] ? await getMerchantCommercialCapabilityCloudflare({ merchantId: input.actor.merchantId, includeResourceUsage: false }).catch(() => null) : null
+  const capabilities = {
+    tryOnEnabled: (capabilityRows[0]?.tryOnEnabled == null || Boolean(capabilityRows[0].tryOnEnabled)) && Boolean(commercialCapability?.decisions.GENERATIVE_TRY_ON.allowed),
+    compareEnabled: (capabilityRows[0]?.compareEnabled == null || Boolean(capabilityRows[0].compareEnabled)) && Boolean(commercialCapability?.decisions.COMPARE.allowed),
+    kioskDeliveryEnabled: commercialCapability?.decisions.KIOSK_DELIVERY.allowed ?? false,
+  }
   return {
     store: store ? {
       id: String(store.store.id),
@@ -227,7 +252,18 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
       description: store.store.description == null ? null : String(store.store.description),
       publicPath: `/en/store/${merchant.slug}`,
       selectedFrameIds: store.frames.map((frame) => String(frame.merchantFrameId)),
+      journeyPolicy: resolveDecisionJourneyPolicy(jsonRecord(store.store.journeyPolicy)),
+      effectiveJourneyPolicy: resolvePublicDecisionJourney(capabilities, { journeyPolicy: jsonRecord(store.store.journeyPolicy) }),
+      deliveryPolicy: resolveExperienceDeliveryPolicy(jsonRecord(store.store.deliveryPolicy)),
+      presentationMode: resolvePresentationMode({ experienceType: 'STORE', persistedPresentationMode: store.store.presentationMode == null ? null : String(store.store.presentationMode) as PresentationMode }),
+      primaryCtaType: store.store.primaryCtaType == null ? null : String(store.store.primaryCtaType),
+      primaryCtaLabel: store.store.primaryCtaLabel == null ? null : String(store.store.primaryCtaLabel),
+      primaryCtaUrl: store.store.primaryCtaUrl == null ? null : String(store.store.primaryCtaUrl),
+      secondaryCtaType: store.store.secondaryCtaType == null ? null : String(store.store.secondaryCtaType),
+      secondaryCtaLabel: store.store.secondaryCtaLabel == null ? null : String(store.store.secondaryCtaLabel),
+      secondaryCtaUrl: store.store.secondaryCtaUrl == null ? null : String(store.store.secondaryCtaUrl),
     } : null,
+    capabilities,
     catalog: catalog.map((row) => storeWorkspaceFrame(row)),
   }
 }
@@ -669,7 +705,12 @@ export async function createMerchantStore(input: { actor: MerchantActorContext; 
   return { id: String(store.id), slug: String(store.slug), status: String(store.status), name: String(store.name), created, publicPath: `/en/store/${merchant.slug}` }
 }
 
-export async function updateMerchantStore(input: { actor: MerchantActorContext; storeId: string; name?: string; headline?: string | null; description?: string | null }) {
+export async function updateMerchantStore(input: {
+  actor: MerchantActorContext; storeId: string; name?: string; headline?: string | null; description?: string | null
+  journeyPolicy?: DecisionJourneyPolicy; deliveryPolicy?: ExperienceDeliveryPolicy; presentationMode?: PresentationMode
+  primaryCtaType?: string | null; primaryCtaLabel?: string | null; primaryCtaUrl?: string | null
+  secondaryCtaType?: string | null; secondaryCtaLabel?: string | null; secondaryCtaUrl?: string | null
+}) {
   requireAgentScope(input.actor, 'experience:write')
   const store = await findStore(input.actor.merchantId, input.storeId)
   if (!store) throw new MerchantAccessError()
@@ -681,7 +722,22 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
   if (description && description.length > 5000) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store description cannot exceed 5,000 characters.')
   const merchant = await getMerchant({ actor: input.actor })
   const sql = getCloudflareSql()
-  const meaningfulChange = name !== String(store.store.name) || headline !== (store.store.headline == null ? null : String(store.store.headline)) || description !== (store.store.description == null ? null : String(store.store.description))
+  const patch = {
+    name, headline, description,
+    ...(input.journeyPolicy !== undefined ? { journeyPolicy: input.journeyPolicy } : {}),
+    ...(input.deliveryPolicy !== undefined ? { deliveryPolicy: input.deliveryPolicy } : {}),
+    ...(input.presentationMode !== undefined ? { presentationMode: input.presentationMode } : {}),
+    ...(input.primaryCtaType !== undefined ? { primaryCtaType: input.primaryCtaType } : {}),
+    ...(input.primaryCtaLabel !== undefined ? { primaryCtaLabel: input.primaryCtaLabel } : {}),
+    ...(input.primaryCtaUrl !== undefined ? { primaryCtaUrl: input.primaryCtaUrl } : {}),
+    ...(input.secondaryCtaType !== undefined ? { secondaryCtaType: input.secondaryCtaType } : {}),
+    ...(input.secondaryCtaLabel !== undefined ? { secondaryCtaLabel: input.secondaryCtaLabel } : {}),
+    ...(input.secondaryCtaUrl !== undefined ? { secondaryCtaUrl: input.secondaryCtaUrl } : {}),
+  }
+  const meaningfulChange = Object.entries(patch).some(([field, value]) => {
+    const previous = store.store[field]
+    return JSON.stringify(value) !== JSON.stringify(previous)
+  })
   const activationInput = {
     merchantId: input.actor.merchantId,
     eventType: MERCHANT_ACTIVATION_EVENT.STORE_CONFIGURED,
@@ -693,7 +749,7 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
     merchantId: input.actor.merchantId,
     experienceId: input.storeId,
     expectedType: 'STORE',
-    patch: { name, headline, description },
+    patch,
     draftOnly: isAgentMerchantActor(input.actor),
     atomicEffects: meaningfulChange ? [merchantActivationEventInsertStatement(sql, activationInput)] : [],
   })

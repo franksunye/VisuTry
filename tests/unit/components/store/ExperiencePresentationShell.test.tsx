@@ -4,7 +4,7 @@ import { ExperiencePresentationShell, type ExperiencePresentationCopy, type Pres
 /* eslint-disable @next/next/no-img-element */
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => <img {...props} alt={props.alt || ''} />,
+  default: ({ unoptimized, fill, ...props }: React.ImgHTMLAttributes<HTMLImageElement> & { unoptimized?: boolean; fill?: boolean }) => <img {...props} alt={props.alt || ''} data-unoptimized={unoptimized ? 'true' : 'false'} />,
 }))
 
 jest.mock('lucide-react', () => {
@@ -120,6 +120,31 @@ describe('ExperiencePresentationShell', () => {
     expect(screen.getAllByText('An editorial fit-focused selection.')).not.toHaveLength(0)
     expect(screen.getByText('Harper')).toBeInTheDocument()
     expect(screen.getByText('Harper').compareDocumentPosition(screen.getByText('Privacy & photo retention')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('automatically serves loopback product images directly while retaining the normal optimizer for remote assets', () => {
+    const featuredFramesRef = { current: null as HTMLElement | null }
+    render(
+      <ExperiencePresentationShell
+        mode="PRODUCT_FIRST"
+        merchant={merchant}
+        accent="#1F4B5A"
+        featuredFrames={[
+          { ...frames[0], id: 'local-frame', imageUrl: 'http://127.0.0.1:3002/assets/prepared-demo.jpg' },
+          { ...frames[0], id: 'remote-frame', name: 'Remote Harper', imageUrl: 'https://assets.example.test/frame.jpg' },
+        ]}
+        copy={copy}
+        publicPocStorage={false}
+        sessionStarting={false}
+        errorMessage={null}
+        onStartRuntime={jest.fn()}
+        onShoppingCta={jest.fn()}
+        featuredFramesRef={featuredFramesRef}
+      />,
+    )
+
+    expect(screen.getByRole('img', { name: 'Harper' })).toHaveAttribute('data-unoptimized', 'true')
+    expect(screen.getByRole('img', { name: 'Remote Harper' })).toHaveAttribute('data-unoptimized', 'false')
   })
 
   it('keeps action-first runtime entry explicit and singular', () => {

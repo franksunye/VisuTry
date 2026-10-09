@@ -96,6 +96,15 @@ export async function getPublicExperienceDiscoveryForRoute(
   return {
     ...discovery,
     merchant: { ...discovery.merchant, generativeTryOnAvailable, generativeTryOnUnavailableReason },
+    experiencePolicy: generativeTryOnAvailable
+      ? discovery.experiencePolicy
+      : { ...discovery.experiencePolicy, tryOnEnabled: false, compareEnabled: false },
+    decisionJourney: generativeTryOnAvailable
+      ? discovery.decisionJourney
+      : {
+          ...discovery.decisionJourney,
+          enabledStages: discovery.decisionJourney?.enabledStages.filter((stage) => stage !== 'TRY_ON' && stage !== 'COMPARE') ?? [],
+        },
     experience: {
       ...discovery.experience,
       primaryHandoff: merchantHandoffAvailable ? discovery.experience.primaryHandoff : null,

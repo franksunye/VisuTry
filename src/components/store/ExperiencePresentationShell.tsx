@@ -9,6 +9,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
+import { isLoopbackImageUrl } from '@/lib/is-loopback-image-url'
 
 export type PresentationFrame = {
   id: string
@@ -155,6 +156,7 @@ function FeaturedFrameGrid({
                 fill
                 sizes="(max-width: 640px) 50vw, 160px"
                 className="object-contain p-2"
+                unoptimized={isLoopbackImageUrl(frame.imageUrl)}
               />
             ) : (
               <Glasses className="absolute inset-0 m-auto h-8 w-8 text-slate-300" aria-hidden="true" />

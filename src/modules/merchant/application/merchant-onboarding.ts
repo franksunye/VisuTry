@@ -21,6 +21,13 @@ import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merc
 import { merchantCatalogItemIsReady, MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
 import { recordMerchantActivationEventWithClient } from './merchant-activation'
 import { experienceCommands } from '@/modules/store/application/experience-command-service-prisma'
+import { resolveDecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
+import { resolvePublicDecisionJourney } from '@/modules/store/domain/experience-policy'
+import { resolveExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
+import { getMerchantCommercialCapability } from './merchant-commercial-entitlements'
+import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
+import type { DecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
+import type { ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 import { resolveMerchantCatalogPresentation, type MerchantCatalogPresentationState } from '../domain/merchant-catalog-presentation'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
@@ -502,10 +509,25 @@ function storeWorkspaceFrame(frame: MerchantFrame): MerchantStoreWorkspaceFrame 
 export async function getMerchantStoreWorkspace(input: { actor: MerchantActorContext }): Promise<MerchantStoreWorkspace> {
   requireAgentScope(input.actor, 'experience:read')
   const merchant = await getMerchant(input)
-  const [store, catalog] = await Promise.all([
+  const [store, catalog, capabilitySource] = await Promise.all([
     findStore(input.actor.merchantId),
     prisma.merchantFrame.findMany({ where: { merchantId: input.actor.merchantId }, orderBy: { name: 'asc' } }),
+    prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: {
+      tryOnEnabled: true, compareEnabled: true, classification: true, pilotType: true,
+      planCode: true, commercialStatus: true, commercialStage: true, pricingVersion: true,
+      entitlementVersion: true, commerceSessionAllowance: true, standardRenderAllowance: true,
+      premiumRenderAllowance: true, campaignAllowance: true, entitlementEffectiveFrom: true,
+      billingPeriodEnd: true, commercialExceptionCode: true, commercialAddOns: true, createdAt: true,
+    } }),
   ])
+  const commercialCapability = capabilitySource
+    ? await getMerchantCommercialCapability({ merchantId: input.actor.merchantId }).catch(() => null)
+    : null
+  const capabilities = {
+    tryOnEnabled: (capabilitySource?.tryOnEnabled ?? true) && Boolean(commercialCapability?.decisions.GENERATIVE_TRY_ON.allowed),
+    compareEnabled: (capabilitySource?.compareEnabled ?? true) && Boolean(commercialCapability?.decisions.COMPARE.allowed),
+    kioskDeliveryEnabled: commercialCapability?.decisions.KIOSK_DELIVERY.allowed ?? false,
+  }
   return {
     store: store ? {
       id: store.id,
@@ -516,7 +538,18 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
       description: store.description,
       publicPath: `/en/store/${merchant.slug}`,
       selectedFrameIds: store.frames.map((frame) => frame.merchantFrameId),
+      journeyPolicy: resolveDecisionJourneyPolicy(store.journeyPolicy),
+      effectiveJourneyPolicy: resolvePublicDecisionJourney(capabilities, store),
+      deliveryPolicy: resolveExperienceDeliveryPolicy(store.deliveryPolicy),
+      presentationMode: resolvePresentationMode({ experienceType: 'STORE', persistedPresentationMode: store.presentationMode }),
+      primaryCtaType: store.primaryCtaType,
+      primaryCtaLabel: store.primaryCtaLabel,
+      primaryCtaUrl: store.primaryCtaUrl,
+      secondaryCtaType: store.secondaryCtaType,
+      secondaryCtaLabel: store.secondaryCtaLabel,
+      secondaryCtaUrl: store.secondaryCtaUrl,
     } : null,
+    capabilities,
     catalog: catalog.map(storeWorkspaceFrame),
   }
 }
@@ -583,11 +616,31 @@ export async function createMerchantStore(input: { actor: MerchantActorContext; 
   return { id: transactionResult.store.id, slug: transactionResult.store.slug, status: transactionResult.store.status, name: transactionResult.store.name, created: transactionResult.created, publicPath: `/en/store/${merchant.slug}` }
 }
 
-export async function updateMerchantStore(input: { actor: MerchantActorContext; storeId: string; name?: string; headline?: string | null; description?: string | null }) {
+export async function updateMerchantStore(input: {
+  actor: MerchantActorContext
+  storeId: string
+  name?: string
+  headline?: string | null
+  description?: string | null
+  journeyPolicy?: DecisionJourneyPolicy
+  deliveryPolicy?: ExperienceDeliveryPolicy
+  presentationMode?: PresentationMode
+  primaryCtaType?: string | null
+  primaryCtaLabel?: string | null
+  primaryCtaUrl?: string | null
+  secondaryCtaType?: string | null
+  secondaryCtaLabel?: string | null
+  secondaryCtaUrl?: string | null
+}) {
   requireAgentScope(input.actor, 'experience:write')
   const store = await prisma.experience.findFirst({
     where: { id: input.storeId, merchantId: input.actor.merchantId, type: 'STORE' },
-    select: { id: true, slug: true, name: true, status: true, headline: true, description: true },
+    select: {
+      id: true, slug: true, name: true, status: true, headline: true, description: true,
+      journeyPolicy: true, deliveryPolicy: true, presentationMode: true,
+      primaryCtaType: true, primaryCtaLabel: true, primaryCtaUrl: true,
+      secondaryCtaType: true, secondaryCtaLabel: true, secondaryCtaUrl: true,
+    },
   })
   if (!store) throw new MerchantAccessError()
   const name = input.name === undefined ? store.name : cleanText(input.name)
@@ -598,12 +651,30 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
   if (description && description.length > 5000) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store description cannot exceed 5,000 characters.')
   const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true } })
   if (!merchant) throw new MerchantAccessError()
-  const meaningfulChange = name !== store.name || headline !== store.headline || description !== store.description
+  const patch = {
+    name, headline, description,
+    ...(input.journeyPolicy !== undefined ? { journeyPolicy: input.journeyPolicy } : {}),
+    ...(input.deliveryPolicy !== undefined ? { deliveryPolicy: input.deliveryPolicy } : {}),
+    ...(input.presentationMode !== undefined ? { presentationMode: input.presentationMode } : {}),
+    ...(input.primaryCtaType !== undefined ? { primaryCtaType: input.primaryCtaType } : {}),
+    ...(input.primaryCtaLabel !== undefined ? { primaryCtaLabel: input.primaryCtaLabel } : {}),
+    ...(input.primaryCtaUrl !== undefined ? { primaryCtaUrl: input.primaryCtaUrl } : {}),
+    ...(input.secondaryCtaType !== undefined ? { secondaryCtaType: input.secondaryCtaType } : {}),
+    ...(input.secondaryCtaLabel !== undefined ? { secondaryCtaLabel: input.secondaryCtaLabel } : {}),
+    ...(input.secondaryCtaUrl !== undefined ? { secondaryCtaUrl: input.secondaryCtaUrl } : {}),
+  }
+  const meaningfulChange = Object.entries(patch).some(([field, value]) => {
+    if (field === 'name') return value !== store.name
+    if (field === 'headline') return value !== store.headline
+    if (field === 'description') return value !== store.description
+    const previous = store[field as keyof typeof store]
+    return JSON.stringify(value) !== JSON.stringify(previous)
+  })
   const updated = await experienceCommands.updateSharedConfiguration({
     merchantId: input.actor.merchantId,
     experienceId: store.id,
     expectedType: 'STORE',
-    patch: { name, headline, description },
+    patch,
     draftOnly: isAgentMerchantActor(input.actor),
     afterUpdate: async (tx) => {
       if (meaningfulChange) {

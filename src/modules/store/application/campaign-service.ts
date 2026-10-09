@@ -13,10 +13,13 @@ import { MerchantAccessError } from '@/modules/merchant/application/merchant-acc
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 import { experienceCommands } from './experience-command-service-prisma'
 import { validateExperienceCommandPatch } from './experience-command-service'
-import { MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
+import { getMerchantCommercialCapability, MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
 import { merchantHandoffConfigurationsMatch, normalizeMerchantHandoffAction, isSupportedMerchantHandoffType } from '../domain/merchant-handoff'
+import { resolveDecisionJourneyPolicy } from '../domain/decision-journey'
+import { resolvePublicDecisionJourney } from '../domain/experience-policy'
+import { resolveExperienceDeliveryPolicy } from '../domain/delivery-profile'
 
 export { CampaignServiceError }
 
@@ -31,6 +34,10 @@ export type CampaignReadModel = {
   objective: CampaignObjective
   gate: CampaignGate
   presentationMode: PresentationMode
+  journeyPolicy: ReturnType<typeof resolveDecisionJourneyPolicy>
+  effectiveJourneyPolicy: ReturnType<typeof resolveDecisionJourneyPolicy>
+  journeyCapabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled: boolean }
+  deliveryPolicy: ReturnType<typeof resolveExperienceDeliveryPolicy>
   headline: string | null
   description: string | null
   primaryCtaType: string | null
@@ -69,6 +76,7 @@ type CampaignFrame = {
 type CampaignRow = Experience & { frames: CampaignFrame[] }
 
 const merchantCommercialSelect = {
+  id: true,
   slug: true,
   classification: true,
   pilotType: true,
@@ -84,7 +92,10 @@ const merchantCommercialSelect = {
   entitlementEffectiveFrom: true,
   billingPeriodEnd: true,
   commercialExceptionCode: true,
+  commercialAddOns: true,
   createdAt: true,
+  tryOnEnabled: true,
+  compareEnabled: true,
 } satisfies Prisma.MerchantSelect
 
 const campaignFramesInclude = {
@@ -124,7 +135,7 @@ function validatePolicy(input: { objective: unknown; gate: unknown; presentation
   }
 }
 
-function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceData: boolean): CampaignReadModel {
+function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceData: boolean, capabilities: MerchantCommercialFields & { tryOnEnabled?: boolean | null; compareEnabled?: boolean | null; kioskDeliveryEnabled?: boolean } = {}): CampaignReadModel {
   const policy = resolveCampaignConversionPolicy(row)
   if (!policy) throw new CampaignServiceError('INVALID_REQUEST', 'Experience is not a Campaign.')
   const presentationMode = resolvePresentationMode({ experienceType: 'CAMPAIGN', persistedPresentationMode: row.presentationMode })
@@ -153,6 +164,14 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
     objective: policy.objective,
     gate: policy.gate,
     presentationMode,
+    journeyPolicy: resolveDecisionJourneyPolicy(row.journeyPolicy),
+    effectiveJourneyPolicy: resolvePublicDecisionJourney(capabilities, row),
+    journeyCapabilities: {
+      tryOnEnabled: capabilities.tryOnEnabled ?? true,
+      compareEnabled: capabilities.compareEnabled ?? true,
+      kioskDeliveryEnabled: capabilities.kioskDeliveryEnabled ?? resolveMerchantCommercialCapability(capabilities).decisions.KIOSK_DELIVERY.allowed,
+    },
+    deliveryPolicy: resolveExperienceDeliveryPolicy(row.deliveryPolicy),
     headline: row.headline,
     description: row.description,
     primaryCtaType: row.primaryCtaType,
@@ -192,13 +211,32 @@ async function campaignRow(merchantId: string, campaignId: string) {
   if (!row) throw new MerchantAccessError()
   const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: merchantCommercialSelect })
   if (!merchant) throw new MerchantAccessError()
-  return { row, merchant }
+  return { row, merchant: await withEffectiveJourneyCapabilities(merchant) }
+}
+
+type CampaignMerchantCapabilities = MerchantCommercialFields & {
+  id: string
+  slug: string
+  referenceData: boolean
+  tryOnEnabled?: boolean | null
+  compareEnabled?: boolean | null
+}
+
+async function withEffectiveJourneyCapabilities<T extends CampaignMerchantCapabilities>(merchant: T) {
+  const commercial = await getMerchantCommercialCapability({ merchantId: merchant.id }).catch(() => null)
+  return {
+    ...merchant,
+    tryOnEnabled: (merchant.tryOnEnabled ?? true) && Boolean(commercial?.decisions.GENERATIVE_TRY_ON.allowed),
+    compareEnabled: (merchant.compareEnabled ?? true) && Boolean(commercial?.decisions.COMPARE.allowed),
+    kioskDeliveryEnabled: commercial?.decisions.KIOSK_DELIVERY.allowed ?? false,
+  }
 }
 
 export async function listCampaigns(input: { merchantId: string; cursor?: string; limit?: number }) {
   const limit = Math.min(Math.max(input.limit ?? 50, 1), 100)
-  const merchant = await prisma.merchant.findUnique({ where: { id: input.merchantId }, select: { slug: true, referenceData: true } })
+  const merchant = await prisma.merchant.findUnique({ where: { id: input.merchantId }, select: merchantCommercialSelect })
   if (!merchant) throw new MerchantAccessError()
+  const effectiveMerchant = await withEffectiveJourneyCapabilities(merchant)
   const rows = await prisma.experience.findMany({
     where: { merchantId: input.merchantId, type: 'CAMPAIGN' },
     orderBy: { id: 'asc' },
@@ -206,13 +244,13 @@ export async function listCampaigns(input: { merchantId: string; cursor?: string
     take: limit + 1,
     include: campaignFramesInclude,
   })
-  const page = rows.slice(0, limit).map((row) => mapCampaign(row, merchant.slug, merchant.referenceData))
+  const page = rows.slice(0, limit).map((row) => mapCampaign(row, merchant.slug, merchant.referenceData, effectiveMerchant))
   return { items: page, nextCursor: rows.length > limit ? page.at(-1)?.id ?? null : null }
 }
 
 export async function getCampaign(input: { merchantId: string; campaignId: string }) {
   const { row, merchant } = await campaignRow(input.merchantId, input.campaignId)
-  return mapCampaign(row, merchant.slug, merchant.referenceData)
+  return mapCampaign(row, merchant.slug, merchant.referenceData, merchant)
 }
 
 export async function createCampaignDraft(input: {
@@ -250,7 +288,8 @@ export async function createCampaignDraft(input: {
   for (const [field, url] of [['primaryCtaUrl', input.primaryCtaUrl], ['secondaryCtaUrl', input.secondaryCtaUrl]] as const) {
     if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must be an https URL or internal path.`)
   }
-  const merchant = await prisma.merchant.findUnique({ where: { id: input.merchantId }, select: { slug: true, referenceData: true } })
+  const merchantRow = await prisma.merchant.findUnique({ where: { id: input.merchantId }, select: merchantCommercialSelect })
+  const merchant = merchantRow ? await withEffectiveJourneyCapabilities(merchantRow) : null
   if (!merchant) throw new MerchantAccessError()
   const requestedSlug = slugify(input.slug || name)
   const existing = await prisma.experience.findFirst({ where: { merchantId: input.merchantId, slug: requestedSlug } })
@@ -273,7 +312,7 @@ export async function createCampaignDraft(input: {
         { type: existing.secondaryCtaType, label: existing.secondaryCtaLabel, url: existing.secondaryCtaUrl },
         { type: secondaryCtaType, label: input.secondaryCtaLabel?.trim() || null, url: input.secondaryCtaUrl?.trim() || null },
       )
-    if (compatible) return mapCampaign(await campaignRow(input.merchantId, existing.id).then((result) => result.row), merchant.slug, merchant.referenceData)
+    if (compatible) return mapCampaign(await campaignRow(input.merchantId, existing.id).then((result) => result.row), merchant.slug, merchant.referenceData, merchant)
     throw new CampaignServiceError('CAMPAIGN_SLUG_CONFLICT', 'A Campaign already uses this slug.', 409)
   }
   const created = await withPublicDiscoveryInvalidation({
@@ -283,7 +322,7 @@ export async function createCampaignDraft(input: {
       include: campaignFramesInclude,
     }),
   })
-  return mapCampaign(created, merchant.slug, merchant.referenceData)
+  return mapCampaign(created, merchant.slug, merchant.referenceData, merchant)
 }
 
 export type CampaignUpdateInput = {
@@ -341,7 +380,7 @@ export async function updateCampaign(input: CampaignUpdateInput) {
     patch: data,
     draftOnly: input.agentDraftOnly,
   })
-  return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData)
+  return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData, current.merchant)
 }
 
 /**
@@ -365,7 +404,7 @@ export async function updateAndPublishCampaign(input: CampaignUpdateInput) {
 
       const data = validateExperienceCommandPatch(buildCampaignUpdatePatch(input, lockedRow), { campaignFields: true })
       const candidate = { ...lockedRow, ...data }
-      const candidateCampaign = mapCampaign(candidate, lockedMerchant.slug, lockedMerchant.referenceData)
+      const candidateCampaign = mapCampaign(candidate, lockedMerchant.slug, lockedMerchant.referenceData, lockedMerchant)
       assertCampaignPublishable(candidateCampaign.readiness, true)
 
       const activeCampaigns = await tx.experience.count({ where: { merchantId: input.merchantId, type: 'CAMPAIGN', status: 'ACTIVE' } })
@@ -378,11 +417,17 @@ export async function updateAndPublishCampaign(input: CampaignUpdateInput) {
         data: { ...data, status: 'ACTIVE' },
         include: campaignFramesInclude,
       })
-      return { row, merchantSlug: lockedMerchant.slug, merchantReferenceData: lockedMerchant.referenceData }
+      return { row, merchantSlug: lockedMerchant.slug, merchantReferenceData: lockedMerchant.referenceData, capabilities: { tryOnEnabled: lockedMerchant.tryOnEnabled, compareEnabled: lockedMerchant.compareEnabled, kioskDeliveryEnabled: resolveMerchantCommercialCapability(lockedMerchant).decisions.KIOSK_DELIVERY.allowed } }
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
   })
-  const result = publication as { row: CampaignRow; merchantSlug: string; merchantReferenceData: boolean }
-  return mapCampaign(result.row, result.merchantSlug, result.merchantReferenceData)
+  const result = publication as { row: CampaignRow; merchantSlug: string; merchantReferenceData: boolean; capabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled: boolean } }
+  const commercial = await getMerchantCommercialCapability({ merchantId: input.merchantId }).catch(() => null)
+  return mapCampaign(result.row, result.merchantSlug, result.merchantReferenceData, {
+    ...result.capabilities,
+    tryOnEnabled: result.capabilities.tryOnEnabled && Boolean(commercial?.decisions.GENERATIVE_TRY_ON.allowed),
+    compareEnabled: result.capabilities.compareEnabled && Boolean(commercial?.decisions.COMPARE.allowed),
+    kioskDeliveryEnabled: commercial?.decisions.KIOSK_DELIVERY.allowed ?? false,
+  })
 }
 
 export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[]; agentDraftOnly?: boolean }) {
@@ -411,7 +456,7 @@ export async function previewCampaign(input: { merchantId: string; campaignId: s
 export async function publishCampaign(input: { merchantId: string; campaignId: string; approved: boolean }) {
   if (!input.approved) throw new CampaignServiceError('PUBLISH_APPROVAL_REQUIRED', 'Publishing requires explicit approval.')
   const current = await campaignRow(input.merchantId, input.campaignId)
-  const model = mapCampaign(current.row, current.merchant.slug, current.merchant.referenceData)
+  const model = mapCampaign(current.row, current.merchant.slug, current.merchant.referenceData, current.merchant)
   assertCampaignPublishable(model.readiness, true)
   if (current.row.status === 'ACTIVE') return model
   const updated = await experienceCommands.runCampaignLifecycleMutation({
@@ -436,12 +481,12 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
         const decision = capability.decisions.CAMPAIGN
         if (!decision.allowed) throw new MerchantCommercialError(decision)
 
-        const publishable = mapCampaign(lockedRow, lockedMerchant.slug, lockedMerchant.referenceData)
+        const publishable = mapCampaign(lockedRow, lockedMerchant.slug, lockedMerchant.referenceData, lockedMerchant)
         assertCampaignPublishable(publishable.readiness, true)
         return tx.experience.update({ where: { id: lockedRow.id }, data: { status: 'ACTIVE' }, include: campaignFramesInclude })
       }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
   })
-  return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData)
+  return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData, current.merchant)
 }
 
 export async function archiveCampaign(input: { merchantId: string; campaignId: string }) {
@@ -451,5 +496,5 @@ export async function archiveCampaign(input: { merchantId: string; campaignId: s
     experienceId: input.campaignId,
     patch: { status: 'ARCHIVED' },
   })
-  return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData)
+  return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData, current.merchant)
 }

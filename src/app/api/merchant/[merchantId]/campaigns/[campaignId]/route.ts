@@ -5,6 +5,8 @@ import { requireMerchantMembership } from '@/modules/merchant/application/mercha
 import { getCampaign, updateCampaign } from '@/modules/store/application/campaign-service'
 import { CAMPAIGN_GATES, CAMPAIGN_OBJECTIVES } from '@/modules/store/domain/campaign-policy'
 import { PRESENTATION_MODES } from '@/modules/store/domain/presentation-mode'
+import { DECISION_JOURNEY_STAGES } from '@/modules/store/domain/decision-journey'
+import { MAX_KIOSK_IDLE_TIMEOUT_SECONDS, MIN_KIOSK_IDLE_TIMEOUT_SECONDS } from '@/modules/store/domain/delivery-profile'
 import { campaignErrorResponse } from '../campaign-http'
 
 export const dynamic = 'force-dynamic'
@@ -16,6 +18,11 @@ const details = z.object({
   objective: z.enum(CAMPAIGN_OBJECTIVES).optional(),
   gate: z.enum(CAMPAIGN_GATES).optional(),
   presentationMode: z.enum(PRESENTATION_MODES).optional(),
+  journeyPolicy: z.object({ enabledStages: z.array(z.enum(DECISION_JOURNEY_STAGES)).min(2).max(DECISION_JOURNEY_STAGES.length) }).strict().optional(),
+  deliveryPolicy: z.object({
+    kioskEnabled: z.boolean(),
+    kioskIdleTimeoutSeconds: z.number().int().min(MIN_KIOSK_IDLE_TIMEOUT_SECONDS).max(MAX_KIOSK_IDLE_TIMEOUT_SECONDS),
+  }).strict().optional(),
   startAt: z.string().datetime().nullable().optional(),
   endAt: z.string().datetime().nullable().optional(),
   primaryCtaType: z.string().trim().max(40).nullable().optional(),
