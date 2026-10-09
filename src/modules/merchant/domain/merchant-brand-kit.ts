@@ -46,7 +46,7 @@ export function normalizeBrandMediaUrl(value: unknown, merchantId: string, kind:
   if (parsed.protocol !== 'https:' || parsed.port || parsed.username || parsed.password || parsed.search || parsed.hash
     || !/^[a-z0-9-]+\.public\.blob\.vercel-storage\.com$/.test(parsed.hostname)
     || !parsed.pathname.startsWith(expectedPath)
-    || !/^[a-zA-Z0-9_-]+\.webp$/.test(parsed.pathname.slice(expectedPath.length))) {
+    || !/^[a-zA-Z0-9_-]+\.(png|jpg|webp)$/.test(parsed.pathname.slice(expectedPath.length))) {
     throw new BrandKitError('INVALID_BRAND_MEDIA', 'The image must be a verified upload for this merchant.')
   }
   return parsed.toString()
