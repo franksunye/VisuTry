@@ -459,7 +459,7 @@ describe('campaign intelligence analytics migration', () => {
     window.history.pushState({}, '', '/en/business/commerce-intelligence?utm_source=partner&utm_campaign=fall')
 
     analytics.trackBusinessCtaClicked({ locale: 'en', ctaLocation: 'hero_primary', intentType: 'pilot_request' })
-    analytics.trackBusinessPilotLeadFormStarted({ locale: 'en' })
+    analytics.trackBusinessPilotLeadFormStarted({ locale: 'en', intentType: 'pilot_request' })
     analytics.trackBusinessPilotLeadCreated({ locale: 'en', businessType: 'eyewear-brand', goal: 'campaign', frameCount: '21-50' })
 
     expect(window.gtag).toHaveBeenCalledWith('event', AnalyticsEvent.B2bSalesIntentClicked, expect.objectContaining({
@@ -471,6 +471,7 @@ describe('campaign intelligence analytics migration', () => {
     }))
     expect(window.gtag).toHaveBeenCalledWith('event', AnalyticsEvent.B2bLeadFormStarted, expect.objectContaining({
       source: 'business_site',
+      intent_type: 'pilot_request',
       journey_type: 'visutry_b2b_acquisition',
     }))
     expect(window.gtag).toHaveBeenCalledWith('event', AnalyticsEvent.B2bLeadCreated, expect.objectContaining({
@@ -491,5 +492,23 @@ describe('campaign intelligence analytics migration', () => {
       expect(payload).not.toHaveProperty('message')
       expect(payload).not.toHaveProperty('href')
     }
+  })
+
+  it('keeps Enterprise inquiry intent consistent from form start through persisted-lead observation', () => {
+    analytics.trackBusinessPilotLeadFormStarted({ locale: 'en', intentType: 'enterprise_inquiry' })
+    analytics.trackBusinessPilotLeadCreated({ locale: 'en', businessType: 'eyewear-brand', goal: 'enterprise' })
+
+    expect(window.gtag).toHaveBeenNthCalledWith(1, 'event', AnalyticsEvent.B2bLeadFormStarted, expect.objectContaining({
+      intent_type: 'enterprise_inquiry',
+    }))
+    expect(window.gtag).toHaveBeenNthCalledWith(2, 'event', AnalyticsEvent.B2bLeadCreated, expect.objectContaining({
+      user_intent: 'enterprise',
+      intent_type: 'enterprise_inquiry',
+      lead_type: 'enterprise_inquiry',
+    }))
+    const payload = (window.gtag as jest.Mock).mock.calls[1][2] as Record<string, unknown>
+    expect(payload).not.toHaveProperty('pilot_goal')
+    expect(payload).not.toHaveProperty('email')
+    expect(payload).not.toHaveProperty('contact_name')
   })
 })

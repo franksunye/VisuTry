@@ -172,6 +172,11 @@ of `REAL` or `POSSIBLE_EXTERNAL`, and `referenceData=false`. Other classes
 are excluded rather than inferred into the cohort. This is a reporting filter;
 it does not reclassify Merchants or modify activation events.
 
+The report breaks this candidate cohort into confirmed `REAL` workspaces and
+unverified `POSSIBLE_EXTERNAL` candidates. Any rate calculated over their
+combined denominator is explicitly a candidate-cohort rate and must not be
+presented as a confirmed-real-merchant conversion rate.
+
 The Merchant Operating Experience resolves runtime Operating eligibility
 read-only from authoritative current evidence. A Merchant may enter Operating
 Mode when any of these is true:

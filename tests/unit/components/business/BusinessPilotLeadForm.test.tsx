@@ -69,4 +69,29 @@ describe('BusinessPilotLeadForm measurement', () => {
     await screen.findByRole('alert')
     expect(analytics.trackBusinessPilotLeadCreated).not.toHaveBeenCalled()
   })
+
+  it('persists and reports an Enterprise inquiry as an Enterprise inquiry', async () => {
+    const user = userEvent.setup()
+    render(<BusinessPilotLeadForm locale="en" initialIntent="enterprise_inquiry" />)
+
+    expect(screen.getByRole('heading', { name: 'Tell us about your business needs.' })).toBeVisible()
+    expect(screen.getByLabelText('What are you interested in?')).toHaveValue('enterprise')
+    await user.click(screen.getByLabelText('Your name'))
+    await user.type(screen.getByLabelText('Your name'), 'Test Merchant')
+    await user.type(screen.getByLabelText('Work email'), 'merchant@example.test')
+    await user.type(screen.getByLabelText('Business name'), 'Test Eyewear Shop')
+    await user.click(screen.getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: 'Send Enterprise inquiry' }))
+
+    await waitFor(() => expect(analytics.trackBusinessPilotLeadCreated).toHaveBeenCalledWith({
+      locale: 'en',
+      businessType: 'optical-store',
+      goal: 'enterprise',
+      frameCount: '8-20',
+    }))
+    expect(analytics.trackBusinessPilotLeadFormStarted).toHaveBeenCalledWith({ locale: 'en', intentType: 'enterprise_inquiry' })
+    const request = (global.fetch as jest.Mock).mock.calls[0][1]
+    expect(JSON.parse(request.body)).toEqual(expect.objectContaining({ goal: 'enterprise' }))
+    expect(await screen.findByRole('heading', { name: 'Your Enterprise inquiry is in.' })).toBeVisible()
+  })
 })

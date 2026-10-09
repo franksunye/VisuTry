@@ -19,7 +19,7 @@ export const businessPilotLeadInputSchema = z.object({
   websiteUrl: optionalText(500).refine((value) => !value || /^https?:\/\//iu.test(value), 'Use a full http(s) URL.'),
   frameCountRange: z.enum(['8-20', '21-50', '51-200', '200+', 'not-sure']),
   trafficSource: optionalText(120),
-  goal: z.enum(['store', 'campaign', 'demo', 'partnership', 'not-sure']),
+  goal: z.enum(['store', 'campaign', 'demo', 'partnership', 'not-sure', 'enterprise']),
   message: optionalText(2000),
   locale: z.string().trim().min(2).max(16),
   acquisitionSource: optionalText(120),

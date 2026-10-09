@@ -18,8 +18,8 @@ export default async function BusinessPilotLeadsPage() {
     <div className="p-8">
       <div className="mb-7">
         <p className="text-sm font-semibold text-blue-700">B2B acquisition</p>
-        <h1 className="mt-1 text-3xl font-bold text-gray-950">Pilot Leads</h1>
-        <p className="mt-2 text-sm text-gray-600">Qualify Founding Merchant requests, record objections and next actions, and close the Pilot learning loop.</p>
+        <h1 className="mt-1 text-3xl font-bold text-gray-950">Business Inquiries</h1>
+        <p className="mt-2 text-sm text-gray-600">Qualify Pilot requests and Enterprise inquiries, record objections and next actions, and track the commercial conversation.</p>
       </div>
       <BusinessPilotLeadBoard initialLeads={serialized} />
     </div>

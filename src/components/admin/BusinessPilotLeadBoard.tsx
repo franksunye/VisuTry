@@ -30,6 +30,11 @@ const statusLabel: Record<string, string> = {
   PILOT_REQUESTED: 'Pilot requested', PILOT_ACTIVE: 'Pilot active', CLOSED_WON: 'Closed won', CLOSED_LOST: 'Closed lost',
 }
 
+const goalLabel: Record<string, string> = {
+  store: 'Hosted Store', campaign: 'Campaign Experience', demo: 'Product demo',
+  partnership: 'Agency / partnership', 'not-sure': 'Help choosing', enterprise: 'Enterprise consultation',
+}
+
 export function BusinessPilotLeadBoard({ initialLeads }: { initialLeads: Lead[] }) {
   const [leads, setLeads] = useState(initialLeads)
   const [savingId, setSavingId] = useState<string | null>(null)
@@ -56,7 +61,7 @@ export function BusinessPilotLeadBoard({ initialLeads }: { initialLeads: Lead[] 
     }
   }
 
-  if (!leads.length) return <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500">No Pilot requests yet.</div>
+  if (!leads.length) return <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500">No business inquiries yet.</div>
 
   return (
     <div className="space-y-5">
@@ -70,7 +75,7 @@ export function BusinessPilotLeadBoard({ initialLeads }: { initialLeads: Lead[] 
                 <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{statusLabel[lead.status] || lead.status}</span>
               </div>
               <p className="mt-1 text-sm text-gray-600">{lead.contactName} · <a className="text-blue-700 hover:underline" href={`mailto:${lead.email}`}>{lead.email}</a></p>
-              <p className="mt-2 text-xs text-gray-500">{lead.businessType} · {lead.frameCountRange} frames · goal: {lead.goal} · {new Date(lead.createdAt).toLocaleString()}</p>
+              <p className="mt-2 text-xs text-gray-500">{lead.businessType} · {lead.frameCountRange} frames · intent: {goalLabel[lead.goal] || lead.goal} · {new Date(lead.createdAt).toLocaleString()}</p>
               <p className="mt-1 text-xs text-gray-500">Source: {lead.acquisitionSource || 'direct'} / {lead.acquisitionMedium || 'unknown'}{lead.campaignName ? ` · ${lead.campaignName}` : ''}{lead.trafficSource ? ` · first traffic: ${lead.trafficSource}` : ''}</p>
               {lead.websiteUrl ? <a className="mt-2 block text-sm text-blue-700 hover:underline" href={lead.websiteUrl} target="_blank" rel="noreferrer">{lead.websiteUrl}</a> : null}
               {lead.message ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700">{lead.message}</p> : null}

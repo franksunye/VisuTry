@@ -7,7 +7,12 @@ export async function generateMetadata({ params }: { params: { locale: string } 
   return businessPageMetadata(params.locale, 'pilot')
 }
 
-export default function Page({ params }: { params: { locale: string } }) {
+export default function Page({ params, searchParams }: {
+  params: { locale: string }
+  searchParams?: { plan?: string | string[] }
+}) {
   setRequestLocale(params.locale)
-  return <BusinessMarketingPage locale={params.locale} pageKey="pilot" />
+  const plan = Array.isArray(searchParams?.plan) ? searchParams.plan[0] : searchParams?.plan
+  const pilotIntent = plan === 'enterprise' ? 'enterprise_inquiry' : 'pilot_request'
+  return <BusinessMarketingPage locale={params.locale} pageKey="pilot" pilotIntent={pilotIntent} />
 }

@@ -12,6 +12,7 @@ import type { BusinessCtaLocation } from '@/lib/analytics'
 interface BusinessMarketingPageProps {
   locale: string
   pageKey: BusinessPageKey
+  pilotIntent?: 'pilot_request' | 'enterprise_inquiry'
 }
 
 type VisualSlot = {
@@ -253,7 +254,7 @@ function PilotCta({ locale }: { locale: string }) {
   )
 }
 
-export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPageProps) {
+export function BusinessMarketingPage({ locale, pageKey, pilotIntent = 'pilot_request' }: BusinessMarketingPageProps) {
   const page = businessPages[pageKey]
 
   if (locale !== 'en') redirect(`/en${page.slug}`)
@@ -284,7 +285,7 @@ export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPage
       <Hero locale={locale} pageKey={pageKey} />
 
       {pageKey === 'pilot' ? <BusinessResourceStrip locale={locale} placement="pilot" /> : null}
-      {pageKey === 'pilot' ? <BusinessPilotLeadForm locale={locale} /> : null}
+      {pageKey === 'pilot' ? <BusinessPilotLeadForm locale={locale} initialIntent={pilotIntent} /> : null}
 
       {pageKey === 'examples' ? (
         <section className="bg-white">

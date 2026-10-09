@@ -36,7 +36,7 @@ import type { JourneyDestination, StoreLeadType } from '@/lib/analytics-events'
 import { setCampaignAnalyticsContext, trackCampaignEvent } from '@/lib/analytics-v2'
 import { isValidLocale } from '@/i18n'
 
-export type BusinessPilotGoal = 'store' | 'campaign' | 'demo' | 'partnership' | 'not-sure'
+export type BusinessPilotGoal = 'store' | 'campaign' | 'demo' | 'partnership' | 'not-sure' | 'enterprise'
 export type BusinessCtaIntentType = 'pilot_request' | 'enterprise_inquiry'
 export type BusinessCtaLocation =
   | 'hero_primary'
@@ -853,10 +853,11 @@ export const analytics = {
     })
   },
 
-  trackBusinessPilotLeadFormStarted(params: { locale: string }) {
+  trackBusinessPilotLeadFormStarted(params: { locale: string; intentType: BusinessCtaIntentType }) {
     sendEvent(AnalyticsEvent.B2bLeadFormStarted, {
       source: 'business_site',
       locale: params.locale,
+      intent_type: params.intentType,
       actor_type: 'merchant_prospect',
       journey_type: 'visutry_b2b_acquisition',
       entry_point: 'b2b',
@@ -870,13 +871,15 @@ export const analytics = {
     goal: BusinessPilotGoal
     frameCount?: string
   }) {
+    const enterpriseInquiry = params.goal === 'enterprise'
     sendEvent(AnalyticsEvent.B2bLeadCreated, {
       source: 'business_site',
       locale: params.locale,
       business_type: params.businessType,
       user_intent: params.goal,
-      pilot_goal: params.goal,
-      lead_type: 'pilot_request',
+      ...(enterpriseInquiry ? {} : { pilot_goal: params.goal }),
+      intent_type: enterpriseInquiry ? 'enterprise_inquiry' : 'pilot_request',
+      lead_type: enterpriseInquiry ? 'enterprise_inquiry' : 'pilot_request',
       ...(params.frameCount ? { frame_count: params.frameCount } : {}),
       actor_type: 'merchant_prospect',
       journey_type: 'visutry_b2b_acquisition',

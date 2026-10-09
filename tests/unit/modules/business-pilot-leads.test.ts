@@ -46,6 +46,17 @@ describe('Business Pilot lead application', () => {
     expect(prisma.businessPilotLead.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ email: 'alex@example.com' }) }))
   })
 
+  it('accepts and persists Enterprise intent in the existing goal field', async () => {
+    const enterpriseLead = { ...validLead, goal: 'enterprise' }
+    expect(businessPilotLeadInputSchema.safeParse(enterpriseLead).success).toBe(true)
+
+    await createBusinessPilotLead(enterpriseLead, '203.0.113.8')
+
+    expect(prisma.businessPilotLead.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ goal: 'enterprise' }),
+    }))
+  })
+
   it('returns an idempotent success without consuming another limit', async () => {
     ;(prisma.businessPilotLead.findUnique as jest.Mock).mockResolvedValue({ id: 'lead-1', requestId: validLead.requestId })
     await expect(createBusinessPilotLead(validLead, '203.0.113.8')).resolves.toMatchObject({ duplicate: true })

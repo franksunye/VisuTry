@@ -79,7 +79,7 @@ const primaryNavItems: NavItem[] = [
     ),
   },
   {
-    title: 'Pilot Leads',
+    title: 'Business Inquiries',
     href: '/admin/business/leads',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
