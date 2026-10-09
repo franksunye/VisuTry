@@ -17,15 +17,12 @@ export const MCP_TOOL_NAMES = [
   'create_store',
   'set_store_frames',
   'preview_store',
-  'publish_store',
   'list_campaigns',
   'get_campaign',
   'create_campaign',
   'set_campaign_frames',
   'update_campaign',
   'preview_campaign',
-  'publish_campaign',
-  'archive_campaign',
   'get_experience_summary',
   'get_experience_funnel',
   'get_top_frames',
@@ -37,7 +34,7 @@ export type McpToolName = (typeof MCP_TOOL_NAMES)[number]
 
 export type McpRuntimeFamily = 'canonical-prisma' | 'cloudflare-raw-sql'
 
-/** Production Vercel Node `/api/mcp` — full Agent-Native surface. */
+/** Production Vercel Node `/api/mcp` — canonical, currently approval-safe Agent surface. */
 export const MCP_LIVE_RUNTIME: McpRuntimeFamily = 'canonical-prisma'
 
 /**
@@ -46,8 +43,6 @@ export const MCP_LIVE_RUNTIME: McpRuntimeFamily = 'canonical-prisma'
  */
 export const MCP_CLOUDFLARE_ADAPTER_UNAVAILABLE: readonly McpToolName[] = [
   'inspect_catalog_source',
-  'publish_campaign',
-  'archive_campaign',
   'compare_experiences',
 ] as const
 
@@ -61,15 +56,12 @@ export const MCP_TOOL_SCOPES: Record<McpToolName, readonly string[]> = {
   create_store: ['experience:write'],
   set_store_frames: ['experience:write'],
   preview_store: ['experience:read'],
-  publish_store: ['experience:write'],
   list_campaigns: ['experience:read'],
   get_campaign: ['experience:read'],
   create_campaign: ['experience:write'],
   set_campaign_frames: ['experience:write'],
   update_campaign: ['experience:write'],
   preview_campaign: ['experience:read'],
-  publish_campaign: ['experience:write'],
-  archive_campaign: ['experience:write'],
   get_experience_summary: ['analytics:read'],
   get_experience_funnel: ['analytics:read'],
   get_top_frames: ['analytics:read'],
@@ -77,22 +69,21 @@ export const MCP_TOOL_SCOPES: Record<McpToolName, readonly string[]> = {
   compare_experiences: ['analytics:read'],
 }
 
-export const MCP_HIGH_IMPACT_TOOLS = new Set<McpToolName>([
-  'publish_store',
-  'publish_campaign',
-  'archive_campaign',
-])
+/**
+ * These mutations stay Human-UI-only until MCP can verify a separate,
+ * target-bound approval. A model-provided `approved: true` is not consent.
+ */
+export const MCP_AGENT_DISABLED_HIGH_IMPACT_TOOLS = ['publish_store', 'publish_campaign', 'archive_campaign'] as const
+
+export const MCP_HIGH_IMPACT_TOOLS = new Set<McpToolName>()
 
 export const MCP_WRITE_TOOLS = new Set<McpToolName>([
   'import_frames',
   'create_store',
   'set_store_frames',
-  'publish_store',
   'create_campaign',
   'set_campaign_frames',
   'update_campaign',
-  'publish_campaign',
-  'archive_campaign',
 ])
 
 export function mcpToolsForRuntime(runtime: McpRuntimeFamily): readonly McpToolName[] {

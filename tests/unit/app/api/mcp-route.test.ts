@@ -93,8 +93,9 @@ import {
   McpOriginError,
 } from '@/modules/merchant/application/merchant-mcp'
 import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials'
-import { publishCampaign } from '@/modules/store/application/campaign-service'
-import { MCP_TOOL_NAMES } from '@/modules/merchant/mcp/tool-registry'
+import { merchantOnboarding } from '@/modules/merchant/application/merchant-onboarding'
+import { archiveCampaign, publishCampaign } from '@/modules/store/application/campaign-service'
+import { MCP_AGENT_DISABLED_HIGH_IMPACT_TOOLS, MCP_TOOL_NAMES } from '@/modules/merchant/mcp/tool-registry'
 import { POST } from '@/app/api/mcp/route'
 
 const authenticate = authenticateMerchantMcpBearer as jest.Mock
@@ -152,9 +153,9 @@ describe('MCP transport protocol', () => {
     const create = listBody.result.tools.find((tool) => tool.name === 'create_campaign')
     expect(create?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: false })
     expect(create?._meta?.securitySchemes).toEqual([{ type: 'oauth2', scopes: ['experience:write'] }])
-    const publish = listBody.result.tools.find((tool) => tool.name === 'publish_campaign')
-    expect(publish?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true })
-    expect(publish?._meta?.securitySchemes).toEqual([{ type: 'oauth2', scopes: ['experience:write'] }])
+    for (const name of MCP_AGENT_DISABLED_HIGH_IMPACT_TOOLS) {
+      expect(listBody.result.tools.some((tool) => tool.name === name)).toBe(false)
+    }
     const read = listBody.result.tools.find((tool) => tool.name === 'get_merchant')
     expect(read?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false })
   })
@@ -183,19 +184,21 @@ describe('MCP transport protocol', () => {
     }))
   })
 
-  it('routes publish_campaign with explicit approved=true through the canonical campaign service', async () => {
-    const response = await POST(mcpRequest({
-      jsonrpc: '2.0',
-      id: 8,
-      method: 'tools/call',
-      params: { name: 'publish_campaign', arguments: { campaignId: 'campaign-a', approved: true } },
-    }))
-    expect(response.status).toBe(200)
-    expect(publishCampaign).toHaveBeenCalledWith({
-      merchantId: 'merchant-a',
-      campaignId: 'campaign-a',
-      approved: true,
-    })
+  it('rejects direct calls to high-impact lifecycle actions until independent approval is available', async () => {
+    for (const [id, name, args] of [
+      [8, 'publish_store', { storeId: 'store-a', approved: true }],
+      [9, 'publish_campaign', { campaignId: 'campaign-a', approved: true }],
+      [10, 'archive_campaign', { campaignId: 'campaign-a' }],
+    ] as const) {
+      const response = await POST(mcpRequest({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } }))
+      const body = await response.text()
+      expect(body).toMatch(/not found/i)
+    }
+
+    expect(merchantOnboarding.publishMerchantStore).not.toHaveBeenCalled()
+    expect(publishCampaign).not.toHaveBeenCalled()
+    expect(archiveCampaign).not.toHaveBeenCalled()
+    expect(recordMerchantAgentOperation).not.toHaveBeenCalled()
   })
 
   it('returns an MCP scope error for a supported write when experience:write is absent', async () => {

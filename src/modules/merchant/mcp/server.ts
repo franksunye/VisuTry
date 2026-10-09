@@ -30,13 +30,11 @@ import {
   MerchantAnalyticsError,
 } from '@/modules/store/application/merchant-analytics'
 import {
-  archiveCampaign,
   CampaignServiceError,
   createCampaignDraft,
   getCampaign,
   listCampaigns,
   previewCampaign,
-  publishCampaign,
   setCampaignFrames,
   updateCampaign,
 } from '@/modules/store/application/campaign-service'
@@ -92,7 +90,7 @@ const MCP_SERVER_INSTRUCTIONS = [
   'Use aggregate merchant analytics only. Do not expose shopper photos, consumer PII, payment data, or raw sessions.',
   'Catalog source inspection is read-only and bounded. It returns a review proposal; use import_frames only after explicit merchant approval.',
   'Read context and preview Store/Campaign readiness before mutations when necessary.',
-  'Publishing and archiving are high-impact actions. Require explicit approval in the tool call; prior conversation is not approval.',
+  'High-impact Store/Campaign publishing and Campaign archiving are not available through MCP until a separate target-bound human approval can be verified. Never treat a model-provided approval boolean or prior conversation as execution authority; direct the merchant to the authenticated workspace.',
   'Respect tool scopes and treat authorization failures as VisuTry security boundaries.',
 ].join(' ')
 
@@ -237,12 +235,6 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
     inputSchema: { storeId: z.string().min(1) },
   }, async ({ storeId }) => safe(() => merchantOnboarding.previewMerchantStore({ actor, storeId })))
 
-  server.registerTool('publish_store', {
-    title: 'Publish Store',
-    description: 'Publish a Store only after the merchant has explicitly approved publication in this tool call. Validates the catalog and selected frames first.',
-    inputSchema: { storeId: z.string().min(1), approved: z.boolean() },
-  }, async ({ storeId, approved }) => safe(() => merchantOnboarding.publishMerchantStore({ actor, storeId, approved })))
-
   server.registerTool('list_campaigns', {
     title: 'List Campaigns',
     description: 'List Campaign Experiences belonging only to the authenticated merchant.',
@@ -345,34 +337,6 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
   }, async ({ campaignId: id }) => safe(async () => {
     requireAgentScope(actor, 'experience:read')
     return previewCampaign({ merchantId: actor.merchantId, campaignId: id })
-  }))
-
-  server.registerTool('publish_campaign', {
-    title: 'Publish Campaign',
-    description: 'Publish only after explicit merchant approval. approved must be true and deterministic Campaign readiness must pass.',
-    inputSchema: { campaignId, approved: z.boolean() },
-  }, async ({ campaignId: id, approved }) => safe(async () => {
-    requireAgentScope(actor, 'experience:write')
-    return auditedCampaignMutation({
-      actor,
-      action: 'campaign.published',
-      resourceId: id,
-      work: () => publishCampaign({ merchantId: actor.merchantId, campaignId: id, approved }),
-    })
-  }))
-
-  server.registerTool('archive_campaign', {
-    title: 'Archive Campaign',
-    description: 'Archive a tenant-scoped Campaign to stop interactive operation without deleting it.',
-    inputSchema: { campaignId },
-  }, async ({ campaignId: id }) => safe(async () => {
-    requireAgentScope(actor, 'experience:write')
-    return auditedCampaignMutation({
-      actor,
-      action: 'campaign.archived',
-      resourceId: id,
-      work: () => archiveCampaign({ merchantId: actor.merchantId, campaignId: id }),
-    })
   }))
 
   server.registerTool('get_experience_summary', {
