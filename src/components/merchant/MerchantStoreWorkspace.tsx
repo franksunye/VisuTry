@@ -8,6 +8,7 @@ import { AlertTriangle, Check, Copy, ExternalLink, Eye, Loader2, Save, Search, S
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
 import { MerchantStorePrivatePreview } from "@/components/merchant/MerchantStorePrivatePreview";
+import { MerchantExperienceHeroSettings } from "@/components/merchant/MerchantExperienceHeroSettings";
 import { DEFAULT_EXPERIENCE_CONFIGURATION, MerchantExperienceConfiguration, type ExperienceConfigurationDraft } from "@/components/merchant/MerchantExperienceConfiguration";
 import { normalizeMerchantHandoffAction, resolveMerchantHandoff } from "@/modules/store/domain/merchant-handoff";
 import type { MerchantStorePreview, MerchantStoreWorkspace as MerchantStoreWorkspaceData } from "@/modules/merchant/application/merchant-store-workspace";
@@ -478,6 +479,7 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 font-semibold text-slate-950 [&::-webkit-details-marker]:hidden"><span>Shopper experience</span><span className="text-xs font-medium text-slate-500 group-open:hidden">Configure</span><span className="hidden text-xs font-medium text-slate-500 group-open:inline">Close</span></summary>
         <div className="space-y-4 border-t border-slate-100 p-5 sm:p-6">
           {configurationDirty ? <p role="status" className="text-sm text-amber-800">Unsaved Experience settings</p> : null}
+          <MerchantExperienceHeroSettings merchantId={merchantId} experienceId={store.id} title={name.trim() || store.name} summary={description.trim() || null} />
           <MerchantExperienceConfiguration
             experienceType="STORE"
             shopperPreview={{
