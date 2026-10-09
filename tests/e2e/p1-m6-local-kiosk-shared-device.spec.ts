@@ -7,7 +7,8 @@ const isLocalKioskRun = process.env.NODE_ENV === 'test'
   && process.env.TEST_MODE === 'true'
   && process.env.P1_M5_LOCAL_DECISION_RESULT_E2E === '1'
   && process.env.P1_M6_LOCAL_KIOSK_E2E === '1'
-  && /^http:\/\/(127\.0\.0\.1|localhost):3001$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+  && /^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+const localBaseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3001'
 
 test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
   test('runs the kiosk golden path, preserves the phone Result, and resets A→B on manual and idle boundaries', async ({ page, request, browser }) => {
@@ -69,7 +70,7 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
           sku,
           name: 'Kiosk Compare Round Frame',
           brand: 'Local QA',
-          imageUrl: 'http://127.0.0.1:3001/assets/glasses-presets/large-round-classic.jpg',
+          imageUrl: '/assets/glasses-presets/large-round-classic.jpg',
           productUrl: 'https://merchant.example.test/kiosk-frame',
           price: 11900,
           currency: 'USD',
@@ -88,11 +89,15 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
     const storePath = `/api/merchant/${encodeURIComponent(merchant!.id)}/store`
     const storeResponse = await request.get(storePath)
     expect(storeResponse.status()).toBe(200)
-    const storePayload = await storeResponse.json() as { data: { store: { id: string; selectedFrameIds: string[] } } }
+    const storePayload = await storeResponse.json() as { data: { store: { id: string; status: string; selectedFrameIds: string[] } } }
     const currentStore = storePayload.data.store
     const frameIds = [...new Set([...currentStore.selectedFrameIds, compareFrame!.id])]
     const selectionResponse = await request.put(storePath, { data: { storeId: currentStore.id, frameIds } })
     expect(selectionResponse.status()).toBe(200)
+    if (currentStore.status !== 'ACTIVE') {
+      const publishResponse = await request.post(`${storePath}/publish`, { data: { storeId: currentStore.id, approved: true } })
+      expect(publishResponse.status()).toBe(200)
+    }
 
     // Switch back to the admin session for the Experience-scoped settings.
     const adminCsrf = await request.get('/api/auth/csrf').then((response) => response.json()) as { csrfToken: string }
@@ -170,6 +175,7 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       await webContext.close()
 
       await page.setViewportSize({ width: 1440, height: 1000 })
+      await page.setViewportSize({ width: 1024, height: 768 })
       await page.goto('/en/store/local-qa-pilot/kiosk', { waitUntil: 'networkidle' })
       await expect(page.getByRole('button', { name: 'Start over and clear this shopper' })).toBeVisible()
       await page.setViewportSize({ width: 1024, height: 768 })
@@ -218,9 +224,11 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       await expect(resultLink).toBeVisible()
       expect(await resultLink.getAttribute('href')).toContain('deliveryProfile=kiosk')
       await resultLink.click()
-      await expect(page.getByRole('heading', { name: /Your .* result/i })).toBeVisible()
+      await expect(page.getByRole('heading', { level: 1, name: /Your .* shortlist/i })).toBeVisible()
       await expect(page.getByRole('heading', { name: 'Your curated shortlist' })).toBeVisible()
-      await expect(page.getByRole('heading', { name: 'Your completed looks' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Completed looks' })).toBeVisible()
+      await expect(page.getByText('Test asset · not a shopper Try-On image')).toHaveCount(2)
+      await expect(page.locator('img[src*="/api/store/results/"]')).toHaveCount(0)
       const resultHandoff = page.getByRole('link', { name: 'Continue to merchant' })
       await expect(resultHandoff).toBeVisible()
       await expect(resultHandoff).toHaveAttribute('data-merchant-handoff-action', 'CUSTOM_LINK')
@@ -236,13 +244,18 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       const resultUrl = new URL(page.url())
       const token = decodeURIComponent(resultUrl.pathname.split('/').at(-1) || '')
       expect(resultUrl.searchParams.get('deliveryProfile')).toBe('kiosk')
+      const canonicalResultResponse = await page.request.get(`/api/store/results/${encodeURIComponent(token)}`)
+      expect(canonicalResultResponse.status()).toBe(200)
+      const canonicalResult = await canonicalResultResponse.json() as { data: { experience: { primaryCta: unknown } | null } }
+      expect(canonicalResult.data.experience?.primaryCta).toMatchObject({ action: 'CUSTOM_LINK', label: 'Continue to merchant', url: 'https://merchant.example.test/contact' })
       await page.screenshot({ path: `${evidenceDir}/kiosk-shopper-a-result-qr-handoff.png`, fullPage: true })
 
       const phoneContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
       const phonePage = await phoneContext.newPage()
       await phonePage.goto(`/en/result/${encodeURIComponent(token)}`, { waitUntil: 'networkidle' })
-      await expect(phonePage.getByRole('heading', { name: /Your .* result/i })).toBeVisible()
-      await expect(phonePage.locator('img[src*="/api/store/results/"]').first()).toBeVisible()
+      await expect(phonePage.getByRole('heading', { level: 1, name: /Your .* shortlist/i })).toBeVisible()
+      await expect(phonePage.getByText('Test asset · not a shopper Try-On image')).toHaveCount(2)
+      await expect(phonePage.locator('img[src*="/api/store/results/"]')).toHaveCount(0)
       await expect(phonePage.getByRole('button', { name: 'New shopper' })).toHaveCount(0)
       const tokenOnlyReset = await phonePage.request.post(`/api/store/results/${encodeURIComponent(token)}/kiosk-reset`)
       expect(tokenOnlyReset.status()).toBe(404)
@@ -262,7 +275,7 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       await page.goForward().catch(() => undefined)
       await expect(page).toHaveURL(/\/en\/store\/local-qa-pilot\/kiosk$/)
       await expect(page.getByRole('heading', { name: 'Your curated shortlist' })).toHaveCount(0)
-      await expect(page.getByRole('heading', { name: /Your .* result/i })).toHaveCount(0)
+      await expect(page.getByRole('heading', { level: 1, name: /Your .* shortlist/i })).toHaveCount(0)
       const kioskStorage = await page.evaluate(() => Object.keys(sessionStorage).filter((key) => key.startsWith('vt_store_')))
       expect(kioskStorage).toEqual([])
       const retainedResult = await phonePage.request.get(`/api/store/results/${encodeURIComponent(token)}`)
@@ -273,7 +286,7 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       // leaving HttpOnly capability cookies in place. Starting directly must
       // first clear that orphan; a failed cleanup may not create a new session.
       await page.getByRole('button', { name: /I understand.*continue/i }).click()
-      await expect.poll(async () => (await page.context().cookies('http://127.0.0.1:3001'))
+      await expect.poll(async () => (await page.context().cookies(localBaseUrl))
         .some((cookie) => cookie.name === 'vt_store_cap')).toBe(true)
       await page.reload({ waitUntil: 'networkidle' })
       await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible()
@@ -297,7 +310,7 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       expect((await confirmedOrphanReset).status()).toBe(200)
       await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible()
       page.off('response', trackSessionCreate)
-      const resetCookies = await page.context().cookies('http://127.0.0.1:3001')
+      const resetCookies = await page.context().cookies(localBaseUrl)
       expect(resetCookies.some((cookie) => cookie.name === 'vt_store_cap')).toBe(false)
       expect(resetCookies.some((cookie) => cookie.name === 'vt_store_visitor')).toBe(false)
 
@@ -329,7 +342,7 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       await expect(page.getByRole('heading', { name: 'Recommended for you' })).toBeVisible({ timeout: 45_000 })
       await page.evaluate((timer) => window.clearInterval(timer), activityPulse)
       await expect(page.locator('[data-testid^="store-tryon-result-"]')).toHaveCount(0)
-      await expect(page.getByRole('heading', { name: 'Your completed looks' })).toHaveCount(0)
+      await expect(page.getByRole('heading', { name: 'Completed looks' })).toHaveCount(0)
       await expect(page.getByText(/For privacy, this kiosk reset after inactivity/i)).toHaveCount(0)
       await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible({ timeout: 40_000 })
       await expect(page.getByText(/For privacy, this kiosk reset after inactivity/i)).toBeVisible()
@@ -339,7 +352,7 @@ test.describe('P1-M6 Local Kiosk shared-device privacy', () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
       expect(await phonePage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
       expect(browserErrors).toEqual([])
-      expect(serverErrors).toEqual(['503 http://127.0.0.1:3001/api/store/sessions/kiosk-reset'])
+      expect(serverErrors).toEqual([`503 ${localBaseUrl}/api/store/sessions/kiosk-reset`])
       await phoneContext.close()
     } finally {
       const restoreResponse = await request.put(`/api/admin/store/merchants/${merchant!.id}/experiences/${storeExperience!.id}`, {

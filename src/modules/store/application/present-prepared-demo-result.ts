@@ -50,12 +50,15 @@ export async function presentPreparedDemoResult(input: {
   const experience = session.experienceId && input.experiences
     ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
     : null
-  if (experience && experience.type !== 'STORE') {
-    throw new StoreDomainError('CAPABILITY_DISABLED', 'Prepared Demo results are available only in the canonical Store journey.', 403)
+  if (experience && (
+    experience.status !== 'ACTIVE'
+    || (experience.type !== 'STORE' && experience.type !== 'CAMPAIGN')
+  )) {
+    throw new StoreDomainError('CAPABILITY_DISABLED', 'Prepared Demo results are available only in active Demo Store or Campaign experiences.', 403)
   }
   const policy = resolveStoreExperiencePolicy(merchant, experience)
   if (!policy.tryOnEnabled || !policy.compareEnabled) {
-    throw new StoreDomainError('CAPABILITY_DISABLED', 'Prepared results are not enabled for this Store experience.', 403)
+    throw new StoreDomainError('CAPABILITY_DISABLED', 'Prepared results are not enabled for this Demo experience.', 403)
   }
 
   const frame = await input.frames.findActiveByMerchantAndId(merchant.id, input.merchantFrameId)

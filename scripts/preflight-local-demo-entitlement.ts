@@ -2,9 +2,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import dotenv from 'dotenv'
 import { PrismaClient } from '@prisma/client'
-import { assertDatabaseEnvironment, databaseIdentityFromUrl, isLoopbackDatabaseUrl, requireExplicitAppEnvironment } from '../src/lib/app-environment'
+import { assertDatabaseEnvironment, isLoopbackDatabaseUrl, requireExplicitAppEnvironment } from '../src/lib/app-environment'
 import { createRuntimePostgresAdapter, resolveRuntimePostgresProvider } from '../src/lib/postgres-runtime'
 import { resolveMerchantCommercialState } from '../src/modules/store/domain/merchant-commercial-state'
+import { resolveLocalDemoDatabaseIdentity } from './lib/local-demo-session-reset-contract'
 
 const envFile = path.join(process.cwd(), '.env.local')
 if (fs.existsSync(envFile)) dotenv.config({ path: envFile, override: false })
@@ -18,15 +19,7 @@ async function main() {
   if (resolveRuntimePostgresProvider(env) !== 'PRISMA_PG' || !databaseUrl || !isLoopbackDatabaseUrl(databaseUrl)) {
     throw new Error('Refusing: Local PrismaPg and loopback PostgreSQL are required.')
   }
-  const parsed = new URL(databaseUrl)
-  if (parsed.hostname !== '127.0.0.1' || parsed.port !== '5433' || parsed.pathname !== '/visutry_local') {
-    throw new Error('Refusing: database must be 127.0.0.1:5433/visutry_local.')
-  }
-  const expectedDatabaseIdentity = 'local:127.0.0.1:5433/visutry_local'
-  if (env.VISUTRY_DATABASE_IDENTITY !== expectedDatabaseIdentity
-    || databaseIdentityFromUrl(databaseUrl) !== '127.0.0.1/visutry_local') {
-    throw new Error('Refusing: canonical Local database identity marker is required.')
-  }
+  const expectedDatabaseIdentity = resolveLocalDemoDatabaseIdentity(env)
 
   const prisma = new PrismaClient({ adapter: createRuntimePostgresAdapter(env) })
   try {

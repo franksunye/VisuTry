@@ -70,10 +70,30 @@ if (localChecks.some(([, passed]) => !passed)) {
 } else {
   const schemaCheck = spawnSync('npx', [
     'prisma', 'migrate', 'diff', '--from-config-datasource', '--to-schema',
-    'prisma/schema.prisma', '--exit-code',
+    'prisma/schema.prisma', '--script',
   ], { encoding: 'utf8', env: process.env })
-  const schemaReady = schemaCheck.status === 0
-  console.log(`SCHEMA PARITY: ${schemaReady ? 'PASS' : 'FAIL'} — ${schemaReady ? 'Prisma schema matches Local PostgreSQL' : 'Run: npm run demo:local:bootstrap'}`)
+  // These four indexes are intentionally retained by the canonical baseline
+  // for production raw-query contracts; Prisma schema cannot represent all of
+  // their compatibility history. Any other drift remains fail-closed.
+  const expectedBaselineOnlyIndexDrops = [
+    'DROP INDEX "Merchant_commercialStatus_idx";',
+    'DROP INDEX "MerchantSession_merchantId_billableAICommerceSession_idx";',
+    'DROP INDEX "MerchantUsageLedger_merchantId_kind_createdAt_idx";',
+    'DROP INDEX "StoreAsset_deletedAt_deleteFailCount_lastDeleteAttemptAt_idx";',
+  ].sort()
+  const schemaStatements = (schemaCheck.stdout || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('--') && !line.startsWith('[dotenv@'))
+  const hasOnlyExpectedBaselineIndexes = schemaStatements.length === expectedBaselineOnlyIndexDrops.length
+    && [...schemaStatements].sort().every((statement, index) => statement === expectedBaselineOnlyIndexDrops[index])
+  const schemaReady = schemaCheck.status === 0 && (schemaStatements.length === 0 || hasOnlyExpectedBaselineIndexes)
+  const schemaDetail = schemaReady
+    ? schemaStatements.length === 0
+      ? 'Prisma schema matches Local PostgreSQL'
+      : 'matches apart from four documented baseline raw-query indexes'
+    : 'unexpected schema drift; inspect Prisma diff before continuing'
+  console.log(`SCHEMA PARITY: ${schemaReady ? 'PASS' : 'FAIL'} — ${schemaDetail}`)
   if (!schemaReady) process.exitCode = 1
 
   const providerCheck = spawnSync('npx', ['tsx', 'scripts/preflight-local-demo-provider.ts'], {

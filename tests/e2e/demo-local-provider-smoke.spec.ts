@@ -177,14 +177,14 @@ test('real provider smoke: Rowan then Lane → Compare → Decision Result', asy
   expect(resultHref).toMatch(/^\/en\/result\/[A-Za-z0-9_-]{40,}$/)
   await resultLink.click()
   await expect(page).toHaveURL(/\/en\/result\/[A-Za-z0-9_-]{40,}$/)
-  await expect(page.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /shortlist/i })).toBeVisible()
   const decisionImages = page.locator('img[src*="/api/store/results/"]')
   await expect(decisionImages).toHaveCount(2)
   for (const image of await decisionImages.all()) await expectImageReady(image)
   await capture(page, 'S05-decision-result')
 
   await page.setViewportSize({ width: 390, height: 844 })
-  await expect(page.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /shortlist/i })).toBeVisible()
   await capture(page, 'S06-mobile-continuation')
 
   expect(tryOnSubmitCount).toBe(2)
@@ -216,7 +216,7 @@ test('restart durability: same real Decision Result media remains readable', asy
 
   const network = await localBrowserGuard(page)
   await page.goto(`/en/result/${encodeURIComponent(state.resultToken)}`, { waitUntil: 'networkidle' })
-  await expect(page.getByRole('heading', { level: 1, name: /result/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /shortlist/i })).toBeVisible()
   const images = page.locator('img[src*="/api/store/results/"]')
   await expect(images).toHaveCount(2)
   for (const image of await images.all()) await expectImageReady(image)

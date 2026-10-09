@@ -3,6 +3,7 @@ import {
   assertLocalDemoMerchantIdentity,
   assertLocalDemoSessionResetEnvironment,
   assertDemoServerStopped,
+  selectManagedDemoStore,
   isLocalDemoShopperMediaPathname,
   localDemoShopperMediaPathnameFromReference,
   localDemoShopperMediaPrefixes,
@@ -26,6 +27,29 @@ const validEnvironment = {
 describe('Local Demo shopper-session reset safety contract', () => {
   it('accepts only the explicit Local loopback TEST environment', () => {
     expect(() => assertLocalDemoSessionResetEnvironment(validEnvironment)).not.toThrow()
+  })
+
+  it('allows an explicitly marked dedicated Demo E2E database but never re-labels the shared database', () => {
+    const isolated = {
+      ...validEnvironment,
+      DATABASE_URL: 'postgresql://local@127.0.0.1:55436/visutry_demo_e2e_g1_364',
+      DATABASE_URL_UNPOOLED: 'postgresql://local@127.0.0.1:55436/visutry_demo_e2e_g1_364',
+      VISUTRY_DATABASE_IDENTITY: 'local:127.0.0.1:55436/visutry_demo_e2e_g1_364',
+      VISUTRY_LOCAL_PGPORT: '55436',
+      VISUTRY_LOCAL_PGDATABASE: 'visutry_demo_e2e_g1_364',
+      VISUTRY_LOCAL_DEMO_ISOLATED_DATABASE: '1',
+    }
+    expect(assertLocalDemoSessionResetEnvironment(isolated)).toBe(isolated.VISUTRY_DATABASE_IDENTITY)
+    expect(() => assertLocalDemoSessionResetEnvironment({
+      ...isolated,
+      VISUTRY_LOCAL_DEMO_ISOLATED_DATABASE: undefined,
+    })).toThrow(/canonical Local Demo database or an explicitly marked/)
+    expect(() => assertLocalDemoSessionResetEnvironment({
+      ...isolated,
+      DATABASE_URL: 'postgresql://local@127.0.0.1:55436/visutry_local',
+      DATABASE_URL_UNPOOLED: 'postgresql://local@127.0.0.1:55436/visutry_local',
+      VISUTRY_DATABASE_IDENTITY: 'local:127.0.0.1:55436/visutry_local',
+    })).toThrow(/canonical Local Demo database or an explicitly marked/)
   })
 
   it.each([
@@ -84,6 +108,13 @@ describe('Local Demo shopper-session reset safety contract', () => {
       type: 'CAMPAIGN',
       referenceMetadata: { ownership: 'VISUTRY', purpose: 'LOCAL_DEMO' },
     })).toThrow()
+  })
+
+  it('selects the single managed Demo Store without treating tenant Campaigns as reset targets', () => {
+    const store = { id: 'store-a', slug: 'store', type: 'STORE', referenceMetadata: { ownership: 'VISUTRY', purpose: 'LOCAL_DEMO' } }
+    const campaign = { id: 'campaign-a', slug: 'prepared-demo', type: 'CAMPAIGN', referenceMetadata: null }
+    expect(selectManagedDemoStore([store, campaign])).toBe(store)
+    expect(() => selectManagedDemoStore([store, { ...store, id: 'store-b' }])).toThrow(/exactly one managed Store/)
   })
 
   it('refuses reset while the Local Demo server may retain shopper media in memory', async () => {

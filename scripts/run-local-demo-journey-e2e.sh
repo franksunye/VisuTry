@@ -92,9 +92,12 @@ export NODE_ENV=test
 export APP_ENV=local
 export ENABLE_MOCKS=true
 export TEST_MODE=true
-export DATABASE_URL="${DATABASE_URL:-postgresql://visutry_local@127.0.0.1:5433/visutry_local}"
+local_pg_port="${VISUTRY_LOCAL_PGPORT:-5433}"
+local_pg_database="${VISUTRY_LOCAL_PGDATABASE:-visutry_local}"
+local_pg_user="${VISUTRY_LOCAL_PGUSER:-visutry_local}"
+export DATABASE_URL="${DATABASE_URL:-postgresql://${local_pg_user}@127.0.0.1:${local_pg_port}/${local_pg_database}}"
 export DATABASE_URL_UNPOOLED="${DATABASE_URL_UNPOOLED:-$DATABASE_URL}"
-export VISUTRY_DATABASE_IDENTITY="${VISUTRY_DATABASE_IDENTITY:-local:127.0.0.1:5433/visutry_local}"
+export VISUTRY_DATABASE_IDENTITY="${VISUTRY_DATABASE_IDENTITY:-local:127.0.0.1:${local_pg_port}/${local_pg_database}}"
 export VISUTRY_LOCAL_DEMO_PORT="$local_demo_port"
 export NEXTAUTH_URL="http://127.0.0.1:${local_demo_port}"
 export NEXTAUTH_SECRET="${NEXTAUTH_SECRET:-local-only-development-secret}"
@@ -115,14 +118,23 @@ npm run demo:local:entitlement:preflight
 node scripts/preflight-local-demo.mjs
 
 run_reset_in_fresh_shell() {
-  env -i PATH="$PATH" HOME="${HOME:-/tmp}" VISUTRY_LOCAL_DEMO_PORT="$local_demo_port" bash scripts/reset-local-demo-session.sh
+  env -i PATH="$PATH" HOME="${HOME:-/tmp}" \
+    VISUTRY_LOCAL_DEMO_PORT="$local_demo_port" \
+    VISUTRY_LOCAL_PGPORT="$local_pg_port" VISUTRY_LOCAL_PGDATABASE="$local_pg_database" VISUTRY_LOCAL_PGUSER="$local_pg_user" \
+    VISUTRY_LOCAL_DEMO_ISOLATED_DATABASE="${VISUTRY_LOCAL_DEMO_ISOLATED_DATABASE:-}" \
+    DATABASE_URL="$DATABASE_URL" DATABASE_URL_UNPOOLED="$DATABASE_URL_UNPOOLED" \
+    VISUTRY_DATABASE_IDENTITY="$VISUTRY_DATABASE_IDENTITY" \
+    APP_ENV=local ENABLE_MOCKS=true TEST_MODE=true STRIPE_MERCHANT_BILLING_MODE=test \
+    VISUTRY_LOCAL_DEMO_RUNTIME=1 VISUTRY_LOCAL_DEMO_PROVIDER_MODE=blocked VISUTRY_LOCAL_DEMO_EXECUTION_MODE=PREPARED_DEMO \
+    NEXTAUTH_URL="$NEXTAUTH_URL" NEXTAUTH_SECRET="$NEXTAUTH_SECRET" NEXT_PUBLIC_SITE_URL="$NEXT_PUBLIC_SITE_URL" \
+    bash scripts/reset-local-demo-session.sh
 }
 
 echo "Resetting only the dedicated Local Demo shopper state before the journey."
 run_reset_in_fresh_shell
 
 start_server
-npx playwright test tests/e2e/demo-local-decision-result.spec.ts --project=chromium --grep "completes Store"
+npx playwright test tests/e2e/demo-local-decision-result.spec.ts --project=chromium --workers=1 --grep "completes Store|completes a representative Campaign"
 if [[ ! -s "$token_file" ]]; then
   echo "Decision Result E2E did not produce a restart-verification token." >&2
   exit 1

@@ -104,7 +104,7 @@ export function uniqueBounded(values: string[], limit: number): string[] {
   return [...new Set(values.filter((value) => typeof value === 'string' && value.length > 0))].slice(0, limit)
 }
 
-function sanitizeCatalogImageUrl(value: unknown): string | null {
+export function sanitizeCatalogImageUrl(value: unknown): string | null {
   if (typeof value !== 'string' || value.length === 0 || value.length > 2048 || value.trim() !== value) return null
   if (/^[\u0000-\u0020]/.test(value) || /[\u0000-\u001f]/.test(value)) return null
 

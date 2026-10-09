@@ -39,6 +39,13 @@ describe('presentPreparedDemoResult', () => {
     frame?: typeof frame | null
     photo?: Buffer
     decisionResultSaved?: boolean
+    experience?: {
+      id: string
+      type: 'CAMPAIGN'
+      status: 'ACTIVE'
+      frameIds: string[]
+      journeyPolicy?: unknown
+    }
   } = {}) {
     const photo = overrides.photo ?? await shopperPhoto()
     const recordPreparedDemoResult = jest.fn().mockResolvedValue(overrides.decisionResultSaved ?? true)
@@ -49,12 +56,15 @@ describe('presentPreparedDemoResult', () => {
         findByMerchantAndId: jest.fn().mockResolvedValue({
           id: 'demo-session',
           merchantId: 'demo-merchant',
-          experienceId: null,
+          experienceId: overrides.experience?.id ?? null,
           photoAssetId: 'photo-asset',
           capabilityTokenHash: capability.tokenHash,
           status: 'ACTIVE',
           expiresAt: future,
         }),
+      },
+      experiences: {
+        findByMerchantAndId: jest.fn().mockResolvedValue(overrides.experience ?? null),
       },
       decisionResults: { recordPreparedDemoResult },
       assets: {
@@ -89,6 +99,39 @@ describe('presentPreparedDemoResult', () => {
     }))
     expect(JSON.stringify(result)).not.toContain('tryOnTaskId')
     expect(JSON.stringify(result)).not.toContain('providerTaskId')
+  })
+
+  it('allows an active canonical Demo Campaign only for a selected in-tenant prepared frame', async () => {
+    const { input, recordPreparedDemoResult } = await setup({
+      experience: {
+        id: 'demo-campaign',
+        type: 'CAMPAIGN',
+        status: 'ACTIVE',
+        frameIds: ['rowan-frame'],
+      },
+    })
+
+    const result = await presentPreparedDemoResult(input as never)
+    expect(result).toMatchObject({ source: 'PREPARED_DEMO', merchantFrameId: 'rowan-frame' })
+    expect(recordPreparedDemoResult).toHaveBeenCalledWith(expect.objectContaining({
+      merchantId: 'demo-merchant',
+      merchantSessionId: 'demo-session',
+      reference: expect.objectContaining({ source: 'PREPARED_DEMO', frameId: 'rowan-frame' }),
+    }))
+  })
+
+  it('refuses a prepared frame outside the active Demo Campaign selection', async () => {
+    const { input, recordPreparedDemoResult } = await setup({
+      experience: {
+        id: 'demo-campaign',
+        type: 'CAMPAIGN',
+        status: 'ACTIVE',
+        frameIds: ['another-frame'],
+      },
+    })
+
+    await expect(presentPreparedDemoResult(input as never)).rejects.toMatchObject({ code: 'FRAME_INACTIVE' })
+    expect(recordPreparedDemoResult).not.toHaveBeenCalled()
   })
 
   it('requires all three explicit canonical Demo markers', async () => {
