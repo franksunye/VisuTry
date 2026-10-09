@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MerchantExperienceConfiguration, type ExperienceConfigurationDraft } from '@/components/merchant/MerchantExperienceConfiguration'
 import { DEFAULT_DECISION_JOURNEY_POLICY } from '@/modules/store/domain/decision-journey'
 import { DEFAULT_EXPERIENCE_DELIVERY_POLICY } from '@/modules/store/domain/delivery-profile'
@@ -108,6 +108,56 @@ describe('MerchantExperienceConfiguration', () => {
       primaryHandoff: { action: '', label: '', url: '' },
       secondaryHandoff: { action: '', label: '', url: '' },
     }))
+  })
+
+
+  it('renders the unsaved visual shopper presentation and truthful conditional result layout', () => {
+    const value: ExperienceConfigurationDraft = {
+      journeyPolicy: { enabledStages: [...DEFAULT_DECISION_JOURNEY_POLICY.enabledStages] },
+      deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 },
+      presentationMode: 'PRODUCT_FIRST',
+      primaryHandoff: { action: 'VISIT_STORE', label: 'Visit shop', url: '/visit' },
+      secondaryHandoff: { action: '', label: '', url: '' },
+    }
+    const shopperPreview = {
+      experienceType: 'CAMPAIGN' as const,
+      merchantName: 'Example Optics',
+      experienceName: 'Find your fit',
+      headline: 'Try frames confidently',
+      description: 'Choose from selected eyewear',
+      frames: [{ id: 'frame-1', name: 'Classic round', imageUrl: '/assets/glasses-presets/large-round-classic.jpg', shape: 'round', color: null, productBrand: 'Example' }],
+    }
+    const renderPage = (configuration: ExperienceConfigurationDraft) => <MerchantExperienceConfiguration
+      experienceType="CAMPAIGN" value={configuration} shopperPreview={shopperPreview}
+      capabilities={{ tryOnEnabled: true, compareEnabled: true, kioskDeliveryEnabled: true }}
+      onChange={jest.fn()}
+    />
+    const view = render(renderPage(value))
+    fireEvent.click(screen.getByRole('button', { name: 'Preview shopper flow' }))
+    const visual = screen.getByTestId('unsaved-shopper-visual-preview')
+    expect(visual).toHaveAttribute('data-draft-only', 'true')
+    expect(within(visual).getByText('Try frames confidently')).toBeInTheDocument()
+    expect(within(visual).getByText('Classic round')).toBeInTheDocument()
+    const result = within(visual).getByRole('region', { name: 'Shopper result layout preview' })
+    expect(result.querySelector('[data-preview-stage="TRY_ON"]')).toBeTruthy()
+    expect(result.querySelector('[data-preview-stage="COMPARE"]')).toBeTruthy()
+    expect(within(result).getByText('Visit shop')).toBeInTheDocument()
+    expect(within(result).getByText(/Kiosk delivery with idle reset/)).toBeInTheDocument()
+
+    view.rerender(renderPage({
+      ...value,
+      presentationMode: 'ACTION_FIRST',
+      journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION'] },
+      deliveryPolicy: { kioskEnabled: false, kioskIdleTimeoutSeconds: 120 },
+      primaryHandoff: { action: '', label: '', url: '' },
+    }))
+    const updated = screen.getByTestId('unsaved-shopper-visual-preview')
+    expect(updated.querySelector('[data-presentation-mode="ACTION_FIRST"]')).toBeTruthy()
+    const updatedResult = within(updated).getByRole('region', { name: 'Shopper result layout preview' })
+    expect(updatedResult.querySelector('[data-preview-stage="TRY_ON"]')).toBeNull()
+    expect(updatedResult.querySelector('[data-preview-stage="COMPARE"]')).toBeNull()
+    expect(within(updatedResult).queryByText('Visit shop')).not.toBeInTheDocument()
+    expect(within(updatedResult).getByText(/Kiosk is not enabled/)).toBeInTheDocument()
   })
 
   it('offers a specific live-impact warning and a reversible saved-state action', () => {

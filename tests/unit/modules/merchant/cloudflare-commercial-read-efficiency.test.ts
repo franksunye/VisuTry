@@ -18,7 +18,7 @@ const merchant = {
 
 type Query = { text: string; params: unknown[] }
 
-function fakeSql(campaignCount = 0) {
+function fakeSql(campaignCount = 0, merchantData: Record<string, unknown> = merchant) {
   const queries: Query[] = []
   const sql = jest.fn((parts: TemplateStringsArray, ...params: unknown[]) => {
     const text = parts.join('?')
@@ -26,7 +26,7 @@ function fakeSql(campaignCount = 0) {
     if (text.includes('FROM "MerchantUsageLedger"')) {
       return Promise.resolve([{ count: params.includes('AI_COMMERCE_SESSION') ? 70 : 12 }])
     }
-    if (text.includes('FROM "Merchant"')) return Promise.resolve([merchant])
+    if (text.includes('FROM "Merchant"')) return Promise.resolve([merchantData])
     if (text.includes('SELECT "id" FROM "Experience"')) {
       return Promise.resolve(Array.from({ length: campaignCount }, (_, index) => ({ id: 'c-' + index })))
     }
@@ -68,6 +68,37 @@ describe('bounded Cloudflare Merchant usage reads', () => {
       expect(query.text).not.toMatch(/SELECT\s+"createdAt"/)
       expect(query.params[0]).toBe(merchant.id)
     }
+  })
+
+
+  it('uses the canonical commercial period bounds in SQL and skips resource counts when requested', async () => {
+    const start = new Date('2026-10-01T00:00:00.000Z')
+    const end = new Date('2026-11-01T00:00:00.000Z')
+    const queries = fakeSql(0, {
+      ...merchant,
+      classification: 'MERCHANT',
+      pilotType: null,
+      commercialExceptionCode: null,
+      planCode: 'LAUNCH',
+      commercialStatus: 'PAID_ACTIVE',
+      entitlementEffectiveFrom: start,
+      billingPeriodEnd: end,
+    })
+    await getMerchantCommercialCapabilityCloudflare({
+      merchantId: merchant.id,
+      includeResourceUsage: false,
+      now: new Date('2026-10-09T20:00:00.000Z'),
+    })
+    const ledger = queries.filter((query) => query.text.includes('FROM "MerchantUsageLedger"'))
+    expect(ledger).toHaveLength(2)
+    for (const query of ledger) {
+      expect(query.text).toContain('count(*)')
+      expect(query.text).toContain('"createdAt" >=')
+      expect(query.text).toContain('"createdAt" <')
+      expect(query.params).toContainEqual(start)
+      expect(query.params).toContainEqual(end)
+    }
+    expect(queries.some((query) => query.text.includes('FROM "MerchantFrame"'))).toBe(false)
   })
 
   it('reuses one entitlement read for a 4-item Campaign listing', async () => {
