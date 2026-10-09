@@ -9,8 +9,8 @@ import type { ExperienceConfigurationDraft } from './MerchantExperienceConfigura
 
 export type ShopperDraftPreviewContext = {
   experienceType: 'STORE' | 'CAMPAIGN'
-  merchantId: string
-  experienceId: string
+  merchantId?: string
+  experienceId?: string
   merchantName: string
   experienceName: string
   headline: string | null
@@ -52,6 +52,7 @@ export function MerchantExperienceDraftPreview({
   const framesRef = useRef<HTMLElement>(null)
   const [brand, setBrand] = useState<{ logoUrl: string | null; accentColor: string | null; heroAssetUrl: string | null }>({ logoUrl: null, accentColor: null, heroAssetUrl: null })
   useEffect(() => {
+    if (!context.merchantId || !context.experienceId) return
     let cancelled = false
     const base = `/api/merchant/${encodeURIComponent(context.merchantId)}/brand`
     Promise.all([

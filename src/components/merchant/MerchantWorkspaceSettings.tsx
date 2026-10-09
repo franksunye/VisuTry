@@ -8,8 +8,8 @@ type MerchantWorkspaceSettingsProps = {
   initialWebsiteUrl?: string | null;
   initialLogoUrl?: string | null;
   initialAccentColor?: string | null;
-  liveExperiences: number;
-  brandOwner: boolean;
+  liveExperiences?: number;
+  brandOwner?: boolean;
 };
 
 export function MerchantWorkspaceSettings({
@@ -18,8 +18,8 @@ export function MerchantWorkspaceSettings({
   initialWebsiteUrl,
   initialLogoUrl,
   initialAccentColor,
-  liveExperiences,
-  brandOwner,
+  liveExperiences = 0,
+  brandOwner = false,
 }: MerchantWorkspaceSettingsProps) {
   return (
     <section className="space-y-6" aria-labelledby="merchant-settings-title">

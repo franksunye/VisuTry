@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, { params }: Context) {
     const image = inspectBrandImage(bytes, file.type, kind)
     const ext = image.mime === 'image/jpeg' ? 'jpg' : image.mime === 'image/png' ? 'png' : 'webp'
     const path = `${brandMediaPath(params.merchantId, kind, kind === 'hero' ? experienceId as string : undefined)}${randomUUID().replace(/-/g, '')}.${ext}`
-    const saved = await put(path, bytes, { access: 'public', contentType: image.mime, addRandomSuffix: false })
+    const saved = await put(path, Buffer.from(bytes), { access: 'public', contentType: image.mime, addRandomSuffix: false })
     createdUrl = saved.url
     normalizeBrandMediaUrl(saved.url, params.merchantId, kind, kind === 'hero' ? experienceId as string : undefined)
     const result = kind === 'logo'
