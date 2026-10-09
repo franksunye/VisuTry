@@ -16,6 +16,10 @@ import { resolveMerchantCommercialCapability } from '../domain/merchant-commerci
 import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
 import { isSupportedMerchantHandoffType, merchantHandoffConfigurationsMatch, normalizeMerchantHandoffAction } from '../domain/merchant-handoff'
 import { experienceCommandsCloudflare } from './experience-command-service-cloudflare'
+import { resolveDecisionJourneyPolicy } from '../domain/decision-journey'
+import { resolvePublicDecisionJourney } from '../domain/experience-policy'
+import { resolveExperienceDeliveryPolicy } from '../domain/delivery-profile'
+import { getMerchantCommercialCapabilityCloudflare } from '@/modules/merchant/application/merchant-commercial-entitlements-cloudflare'
 
 export { CampaignServiceError }
 
@@ -30,6 +34,10 @@ export type CampaignReadModel = {
   objective: CampaignObjective
   gate: CampaignGate
   presentationMode: PresentationMode
+  journeyPolicy: ReturnType<typeof resolveDecisionJourneyPolicy>
+  effectiveJourneyPolicy: ReturnType<typeof resolveDecisionJourneyPolicy>
+  journeyCapabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled: boolean }
+  deliveryPolicy: ReturnType<typeof resolveExperienceDeliveryPolicy>
   headline: string | null
   description: string | null
   primaryCtaType: string | null
@@ -83,6 +91,7 @@ function merchantCommercialFields(row: Row): MerchantCommercialFields {
     entitlementEffectiveFrom: dateValue(row.entitlementEffectiveFrom),
     billingPeriodEnd: dateValue(row.billingPeriodEnd),
     commercialExceptionCode: row.commercialExceptionCode == null ? null : String(row.commercialExceptionCode),
+    commercialAddOns: Array.isArray(row.commercialAddOns) ? row.commercialAddOns.map(String) : null,
     createdAt: dateValue(row.createdAt),
   }
 }
@@ -110,7 +119,7 @@ function validatePolicy(input: { objective: unknown; gate: unknown; presentation
   if (!isCampaignObjective(input.objective) || !isCampaignGate(input.gate) || !isPresentationMode(input.presentationMode)) throw new CampaignServiceError('INVALID_CAMPAIGN_POLICY', 'Campaign objective, gate, and presentation mode must use supported values.')
 }
 
-function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceData: boolean): CampaignReadModel {
+function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceData: boolean, capabilities: Row & { tryOnEnabled?: unknown; compareEnabled?: unknown; kioskDeliveryEnabled?: boolean } = {}): CampaignReadModel {
   const policy = resolveCampaignConversionPolicy({ type: 'CAMPAIGN', campaignObjective: row.campaignObjective == null ? null : String(row.campaignObjective) as CampaignObjective, campaignGate: row.campaignGate == null ? null : String(row.campaignGate) as CampaignGate })
   if (!policy) throw new CampaignServiceError('INVALID_REQUEST', 'Experience is not a Campaign.')
   const presentationMode = resolvePresentationMode({ experienceType: 'CAMPAIGN', persistedPresentationMode: row.presentationMode == null ? null : String(row.presentationMode) as PresentationMode })
@@ -131,6 +140,14 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
   })
   return {
     id: String(row.id), merchantId: String(row.merchantId), slug: String(row.slug), name: String(row.name), status: String(row.status), objective: policy.objective, gate: policy.gate, presentationMode,
+    journeyPolicy: resolveDecisionJourneyPolicy(jsonObject(row.journeyPolicy)),
+    effectiveJourneyPolicy: resolvePublicDecisionJourney({ tryOnEnabled: capabilities.tryOnEnabled == null ? true : Boolean(capabilities.tryOnEnabled), compareEnabled: capabilities.compareEnabled == null ? true : Boolean(capabilities.compareEnabled) }, { journeyPolicy: jsonObject(row.journeyPolicy) }),
+    journeyCapabilities: {
+      tryOnEnabled: capabilities.tryOnEnabled == null ? true : Boolean(capabilities.tryOnEnabled),
+      compareEnabled: capabilities.compareEnabled == null ? true : Boolean(capabilities.compareEnabled),
+      kioskDeliveryEnabled: capabilities.kioskDeliveryEnabled ?? resolveMerchantCommercialCapability(merchantCommercialFields(capabilities)).decisions.KIOSK_DELIVERY.allowed,
+    },
+    deliveryPolicy: resolveExperienceDeliveryPolicy(jsonObject(row.deliveryPolicy)),
     headline: row.headline == null ? null : String(row.headline), description: row.description == null ? null : String(row.description),
     primaryCtaType: row.primaryCtaType == null ? null : String(row.primaryCtaType), primaryCtaLabel: row.primaryCtaLabel == null ? null : String(row.primaryCtaLabel), primaryCtaUrl: row.primaryCtaUrl == null ? null : String(row.primaryCtaUrl),
     secondaryCtaType: row.secondaryCtaType == null ? null : String(row.secondaryCtaType), secondaryCtaLabel: row.secondaryCtaLabel == null ? null : String(row.secondaryCtaLabel), secondaryCtaUrl: row.secondaryCtaUrl == null ? null : String(row.secondaryCtaUrl),
@@ -139,17 +156,38 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
   }
 }
 
-async function fetchCampaign(merchantId: string, campaignId: string): Promise<{ row: CampaignRow; merchant: Row }> {
+function jsonObject(value: unknown): Record<string, unknown> | null {
+  if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>
+  if (typeof value !== 'string') return null
+  try {
+    const parsed: unknown = JSON.parse(value)
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : null
+  } catch {
+    return null
+  }
+}
+
+async function fetchCampaign(merchantId: string, campaignId: string, sharedMerchant?: Row): Promise<{ row: CampaignRow; merchant: Row }> {
   const sql = getCloudflareSql()
   const [merchantRows, rows] = await Promise.all([
-    sql`SELECT "id", "slug", "referenceData", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
+    sharedMerchant ? Promise.resolve([sharedMerchant]) : sql`SELECT "id", "slug", "referenceData", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
     sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."journeyPolicy", e."deliveryPolicy", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."brand" AS "frameBrand", mf."price" AS "framePrice", mf."currency" AS "frameCurrency", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
   ])
   const merchant = merchantRows[0]
   if (!merchant || !rows[0]) throw new MerchantAccessError()
   const first = rows[0]
   const row: CampaignRow = { ...first, frames: rows.filter((item) => item.merchantFrameId != null).map((item) => ({ merchantFrameId: String(item.merchantFrameId), merchantFrame: item.frameId == null ? null : { id: String(item.frameId), sku: item.sku == null ? null : String(item.sku), externalId: item.frameExternalId == null ? null : String(item.frameExternalId), productUrl: item.frameProductUrl == null ? null : String(item.frameProductUrl), name: String(item.frameName), brand: item.frameBrand == null ? null : String(item.frameBrand), imageUrl: item.frameImageUrl == null ? null : String(item.frameImageUrl), price: item.framePrice == null ? null : Number(item.framePrice), currency: item.frameCurrency == null ? null : String(item.frameCurrency), shape: String(item.frameShape), widthClass: item.frameWidthClass == null ? null : String(item.frameWidthClass), source: item.frameSource == null ? null : String(item.frameSource), enrichmentStatus: item.frameEnrichmentStatus == null ? null : String(item.frameEnrichmentStatus), status: String(item.frameStatus) } })) }
-  return { row, merchant }
+  if (sharedMerchant) return { row, merchant: sharedMerchant }
+  const commercial = await getMerchantCommercialCapabilityCloudflare({ merchantId, includeResourceUsage: false }).catch(() => null)
+  return {
+    row,
+    merchant: {
+      ...merchant,
+      tryOnEnabled: (merchant.tryOnEnabled == null || Boolean(merchant.tryOnEnabled)) && Boolean(commercial?.decisions.GENERATIVE_TRY_ON.allowed),
+      compareEnabled: (merchant.compareEnabled == null || Boolean(merchant.compareEnabled)) && Boolean(commercial?.decisions.COMPARE.allowed),
+      kioskDeliveryEnabled: commercial?.decisions.KIOSK_DELIVERY.allowed ?? false,
+    },
+  }
 }
 
 function compatibleDraft(row: CampaignRow, input: { name: string; objective: CampaignObjective; gate: CampaignGate; presentationMode: PresentationMode; headline: string | null; description: string | null; startAt: Date | null; endAt: Date | null; primaryCtaType: string | null; primaryCtaLabel: string | null; primaryCtaUrl: string | null; secondaryCtaType: string | null; secondaryCtaLabel: string | null; secondaryCtaUrl: string | null }) {
@@ -176,19 +214,29 @@ function compatibleDraft(row: CampaignRow, input: { name: string; objective: Cam
 export async function listCampaigns(input: { merchantId: string; cursor?: string; limit?: number }) {
   const limit = Math.min(Math.max(input.limit ?? 50, 1), 100)
   const sql = getCloudflareSql()
-  const merchantRows = await sql`SELECT "slug", "referenceData" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
+  const merchantRows = await sql`SELECT "slug", "referenceData", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
   const merchant = merchantRows[0]
   if (!merchant) throw new MerchantAccessError()
   const rows = input.cursor
     ? await sql`SELECT "id" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "id" > ${input.cursor} ORDER BY "id" ASC LIMIT ${limit + 1}`
     : await sql`SELECT "id" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' ORDER BY "id" ASC LIMIT ${limit + 1}`
-  const page = await Promise.all(rows.slice(0, limit).map((row) => fetchCampaign(input.merchantId, String(row.id)).then(({ row: campaign }) => mapCampaign(campaign, String(merchant.slug), Boolean(merchant.referenceData)))))
+  // One usage/entitlement read per paginated Campaign list, not one per row.
+  const commercial = rows.length > 0
+    ? await getMerchantCommercialCapabilityCloudflare({ merchantId: input.merchantId, includeResourceUsage: false }).catch(() => null)
+    : null
+  const sharedMerchant = {
+    ...merchant,
+    tryOnEnabled: (merchant.tryOnEnabled == null || Boolean(merchant.tryOnEnabled)) && Boolean(commercial?.decisions.GENERATIVE_TRY_ON.allowed),
+    compareEnabled: (merchant.compareEnabled == null || Boolean(merchant.compareEnabled)) && Boolean(commercial?.decisions.COMPARE.allowed),
+    kioskDeliveryEnabled: commercial?.decisions.KIOSK_DELIVERY.allowed ?? false,
+  }
+  const page = await Promise.all(rows.slice(0, limit).map((row) => fetchCampaign(input.merchantId, String(row.id), sharedMerchant).then(({ row: campaign }) => mapCampaign(campaign, String(merchant.slug), Boolean(merchant.referenceData), sharedMerchant))))
   return { items: page, nextCursor: rows.length > limit ? page.at(-1)?.id ?? null : null }
 }
 
 export async function getCampaign(input: { merchantId: string; campaignId: string }) {
   const { row, merchant } = await fetchCampaign(input.merchantId, input.campaignId)
-  return mapCampaign(row, String(merchant.slug), Boolean(merchant.referenceData))
+  return mapCampaign(row, String(merchant.slug), Boolean(merchant.referenceData), merchant)
 }
 
 export async function createCampaignDraft(input: {
@@ -207,9 +255,16 @@ export async function createCampaignDraft(input: {
   validateDateRange(startAt, endAt)
   for (const [field, url] of [['primaryCtaUrl', input.primaryCtaUrl], ['secondaryCtaUrl', input.secondaryCtaUrl] as const]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must be an https URL or internal path.`)
   const sql = getCloudflareSql()
-  const merchantRows = await sql`SELECT "slug", "referenceData" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
+  const merchantRows = await sql`SELECT "id", "slug", "referenceData", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
   const merchant = merchantRows[0]
   if (!merchant) throw new MerchantAccessError()
+  const commercial = await getMerchantCommercialCapabilityCloudflare({ merchantId: input.merchantId, includeResourceUsage: false }).catch(() => null)
+  const effectiveMerchant = {
+    ...merchant,
+    tryOnEnabled: (merchant.tryOnEnabled == null || Boolean(merchant.tryOnEnabled)) && Boolean(commercial?.decisions.GENERATIVE_TRY_ON.allowed),
+    compareEnabled: (merchant.compareEnabled == null || Boolean(merchant.compareEnabled)) && Boolean(commercial?.decisions.COMPARE.allowed),
+    kioskDeliveryEnabled: commercial?.decisions.KIOSK_DELIVERY.allowed ?? false,
+  }
   const requestedSlug = slugify(input.slug || name)
   const id = globalThis.crypto?.randomUUID?.() ?? `cf-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
   const values = { name, objective, gate, presentationMode, headline: input.headline?.trim() || null, description: input.description?.trim() || null, startAt, endAt, primaryCtaType, primaryCtaLabel: input.primaryCtaLabel?.trim() || null, primaryCtaUrl: input.primaryCtaUrl?.trim() || null, secondaryCtaType, secondaryCtaLabel: input.secondaryCtaLabel?.trim() || null, secondaryCtaUrl: input.secondaryCtaUrl?.trim() || null }
@@ -223,7 +278,7 @@ export async function createCampaignDraft(input: {
     const existingRows = await sql`SELECT "id" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "slug" = ${requestedSlug} LIMIT 1`
     if (!existingRows[0]) throw new CampaignServiceError('CAMPAIGN_CREATE_FAILED', 'The Campaign could not be created.')
     const existing = await fetchCampaign(input.merchantId, String(existingRows[0].id))
-    if (compatibleDraft(existing.row, values)) return mapCampaign(existing.row, String(merchant.slug), Boolean(merchant.referenceData))
+    if (compatibleDraft(existing.row, values)) return mapCampaign(existing.row, String(merchant.slug), Boolean(merchant.referenceData), effectiveMerchant)
     throw new CampaignServiceError('CAMPAIGN_SLUG_CONFLICT', 'A Campaign already uses this slug.', 409)
   }
   return getCampaign({ merchantId: input.merchantId, campaignId })
@@ -319,7 +374,7 @@ export async function updateAndPublishCampaign(input: {
     deliveryPolicy: has('deliveryPolicy') ? input.deliveryPolicy : current.row.deliveryPolicy,
     status: 'ACTIVE',
   }
-  assertCampaignPublishable(mapCampaign(candidate, String(current.merchant.slug), Boolean(current.merchant.referenceData)).readiness, true)
+  assertCampaignPublishable(mapCampaign(candidate, String(current.merchant.slug), Boolean(current.merchant.referenceData), current.merchant).readiness, true)
 
   const sql = getCloudflareSql()
   const activeRows = await sql`SELECT count(*)::int AS "count" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "status" = 'ACTIVE'`
@@ -374,7 +429,7 @@ export async function updateAndPublishCampaign(input: {
   const result = (results as unknown[][])[0]?.[0] as Row | undefined
   if (!result) throw new MerchantAccessError()
   if (result.updatedId == null && String(result.currentStatus) !== 'ACTIVE') throw new CampaignServiceError('CAMPAIGN_LIMIT_REACHED', decision.message, 409)
-  return mapCampaign(candidate, String(current.merchant.slug), Boolean(current.merchant.referenceData))
+  return mapCampaign(candidate, String(current.merchant.slug), Boolean(current.merchant.referenceData), current.merchant)
 }
 
 export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[]; agentDraftOnly?: boolean }) {
@@ -399,7 +454,7 @@ export async function previewCampaign(input: { merchantId: string; campaignId: s
 export async function publishCampaign(input: { merchantId: string; campaignId: string; approved: boolean }) {
   if (!input.approved) throw new CampaignServiceError('PUBLISH_APPROVAL_REQUIRED', 'Publishing requires explicit approval.')
   const current = await fetchCampaign(input.merchantId, input.campaignId)
-  const model = mapCampaign(current.row, String(current.merchant.slug), Boolean(current.merchant.referenceData))
+  const model = mapCampaign(current.row, String(current.merchant.slug), Boolean(current.merchant.referenceData), current.merchant)
   assertCampaignPublishable(model.readiness, true)
   if (String(current.row.status) === 'ACTIVE') return model
   const sql = getCloudflareSql()

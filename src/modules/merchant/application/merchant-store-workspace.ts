@@ -1,5 +1,8 @@
 import type { MerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import type { MerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
+import type { DecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
+import type { ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
+import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 
 export type MerchantStoreWorkspaceFrame = {
   id: string
@@ -57,6 +60,17 @@ export type MerchantStoreWorkspace = {
     description: string | null
     publicPath: string
     selectedFrameIds: string[]
+    journeyPolicy: DecisionJourneyPolicy
+    effectiveJourneyPolicy: DecisionJourneyPolicy
+    deliveryPolicy: ExperienceDeliveryPolicy
+    presentationMode: PresentationMode
+    primaryCtaType: string | null
+    primaryCtaLabel: string | null
+    primaryCtaUrl: string | null
+    secondaryCtaType: string | null
+    secondaryCtaLabel: string | null
+    secondaryCtaUrl: string | null
   } | null
+  capabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled: boolean }
   catalog: MerchantStoreWorkspaceFrame[]
 }

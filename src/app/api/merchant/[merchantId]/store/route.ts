@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireAuth } from '@/lib/api-auth-runtime'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
+import { DECISION_JOURNEY_STAGES } from '@/modules/store/domain/decision-journey'
+import { MAX_KIOSK_IDLE_TIMEOUT_SECONDS, MIN_KIOSK_IDLE_TIMEOUT_SECONDS } from '@/modules/store/domain/delivery-profile'
+import { PRESENTATION_MODES } from '@/modules/store/domain/presentation-mode'
 import {
   createMerchantStore,
   getMerchantStoreWorkspace,
@@ -16,6 +19,18 @@ const storeDetailsSchema = z.object({
   name: z.string().trim().max(120).optional(),
   headline: z.string().trim().max(240).nullable().optional(),
   description: z.string().trim().max(5000).nullable().optional(),
+  journeyPolicy: z.object({ enabledStages: z.array(z.enum(DECISION_JOURNEY_STAGES)).min(2).max(DECISION_JOURNEY_STAGES.length) }).strict().optional(),
+  deliveryPolicy: z.object({
+    kioskEnabled: z.boolean(),
+    kioskIdleTimeoutSeconds: z.number().int().min(MIN_KIOSK_IDLE_TIMEOUT_SECONDS).max(MAX_KIOSK_IDLE_TIMEOUT_SECONDS),
+  }).strict().optional(),
+  presentationMode: z.enum(PRESENTATION_MODES).optional(),
+  primaryCtaType: z.string().trim().max(40).nullable().optional(),
+  primaryCtaLabel: z.string().trim().max(120).nullable().optional(),
+  primaryCtaUrl: z.string().trim().max(2000).nullable().optional(),
+  secondaryCtaType: z.string().trim().max(40).nullable().optional(),
+  secondaryCtaLabel: z.string().trim().max(120).nullable().optional(),
+  secondaryCtaUrl: z.string().trim().max(2000).nullable().optional(),
 }).strict()
 
 const storeUpdateSchema = storeDetailsSchema.extend({ storeId: z.string().trim().min(1).max(200) }).strict()

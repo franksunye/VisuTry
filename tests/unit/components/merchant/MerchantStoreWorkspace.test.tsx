@@ -2,14 +2,17 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { analytics } from '@/lib/analytics'
 import { MerchantStoreWorkspace } from '@/components/merchant/MerchantStoreWorkspace'
 import type { MerchantStoreWorkspace as WorkspaceData, MerchantStoreWorkspaceFrame } from '@/modules/merchant/application/merchant-store-workspace'
+import { DEFAULT_DECISION_JOURNEY_POLICY } from '@/modules/store/domain/decision-journey'
+import { DEFAULT_EXPERIENCE_DELIVERY_POLICY } from '@/modules/store/domain/delivery-profile'
 
 jest.mock('@/lib/analytics', () => ({ analytics: { trackCustomEvent: jest.fn() } }))
 
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: React.ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean }) => {
-    const { fill, ...imageProps } = props
+  default: (props: React.ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean; unoptimized?: boolean }) => {
+    const { fill, unoptimized, ...imageProps } = props
     void fill
+    void unoptimized
     return <img {...imageProps} alt={imageProps.alt || ''} />
   },
 }))
@@ -26,7 +29,8 @@ function frame(id: string, name: string): MerchantStoreWorkspaceFrame {
 
 function workspace(status: 'DRAFT' | 'ACTIVE' = 'DRAFT'): WorkspaceData {
   return {
-    store: { id: 'store-a', slug: 'north-star', name: 'North Star Store', status, headline: null, description: null, publicPath: '/en/store/north-star', selectedFrameIds: ['frame-a'] },
+    store: { id: 'store-a', slug: 'north-star', name: 'North Star Store', status, headline: null, description: null, publicPath: '/en/store/north-star', selectedFrameIds: ['frame-a'], journeyPolicy: DEFAULT_DECISION_JOURNEY_POLICY, effectiveJourneyPolicy: DEFAULT_DECISION_JOURNEY_POLICY, deliveryPolicy: DEFAULT_EXPERIENCE_DELIVERY_POLICY, presentationMode: 'PRODUCT_FIRST', primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null, secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null },
+    capabilities: { tryOnEnabled: true, compareEnabled: true, kioskDeliveryEnabled: true },
     catalog: [frame('frame-a', 'Round frame'), frame('frame-b', 'Square frame')],
   }
 }
@@ -54,6 +58,61 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
       return ok(workspace())
     }) as jest.Mock
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: jest.fn().mockResolvedValue(undefined) } })
+  })
+
+  it('saves Journey and delivery settings through the existing Store Experience PATCH without publishing', async () => {
+    render(<MerchantStoreWorkspace merchantId="merchant-a" locale="en" />)
+    await screen.findByText('DRAFT')
+    fireEvent.click(screen.getByText('Shopper experience'))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Virtual Try-On' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save experience settings' }))
+
+    await screen.findByText('Experience settings saved to the private Draft Store.')
+    const patchCall = (global.fetch as jest.Mock).mock.calls.find(([, init]) => init?.method === 'PATCH')
+    expect(JSON.parse(patchCall[1].body)).toMatchObject({
+      storeId: 'store-a',
+      journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'FIT_PROFILE', 'RECOMMENDATION'] },
+      deliveryPolicy: { kioskEnabled: false, kioskIdleTimeoutSeconds: 120 },
+      presentationMode: 'PRODUCT_FIRST',
+    })
+    expect(global.fetch).not.toHaveBeenCalledWith(expect.stringContaining('/publish'), expect.anything())
+  })
+
+  it('previews unsaved shopper stages and can revert the selected configuration', async () => {
+    render(<MerchantStoreWorkspace merchantId="merchant-a" locale="en" />)
+    await screen.findByText('DRAFT')
+    fireEvent.click(screen.getByText('Shopper experience'))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Virtual Try-On' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Preview shopper flow' }))
+
+    const preview = screen.getByRole('region', { name: 'Shopper flow preview' })
+    expect(preview).toHaveTextContent('Private until saved')
+    expect(preview).toHaveTextContent('Recommendations')
+    expect(preview).not.toHaveTextContent('Try-On · Compare')
+    expect(global.fetch).not.toHaveBeenCalledWith('/api/merchant/merchant-a/store', expect.objectContaining({ method: 'PATCH' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Revert to saved settings' }))
+    expect(screen.getByRole('checkbox', { name: 'Virtual Try-On' })).toBeChecked()
+    expect(screen.queryByRole('button', { name: 'Revert to saved settings' })).not.toBeInTheDocument()
+  })
+
+  it('requires target-specific confirmation before writing Experience settings to a Live Store', async () => {
+    global.fetch = jest.fn().mockImplementation(async (input: string, init?: RequestInit) => {
+      if (input.endsWith('/preview')) return ok(storePreview('ACTIVE'))
+      if (init?.method === 'PATCH') return ok({ id: 'store-a', status: 'ACTIVE' })
+      return ok(workspace('ACTIVE'))
+    }) as jest.Mock
+    render(<MerchantStoreWorkspace merchantId="merchant-a" locale="en" />)
+    await screen.findByText('LIVE')
+    fireEvent.click(screen.getByText('Shopper experience'))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Virtual Try-On' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save experience settings' }))
+
+    expect(screen.getByRole('alertdialog', { name: 'Apply changes to the live Store?' })).toHaveTextContent('North Star Store')
+    expect(global.fetch).not.toHaveBeenCalledWith('/api/merchant/merchant-a/store', expect.objectContaining({ method: 'PATCH' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Apply to live Store' }))
+    await screen.findByText('Experience settings saved. Changes are now visible to shoppers.')
+    expect(global.fetch).toHaveBeenCalledWith('/api/merchant/merchant-a/store', expect.objectContaining({ method: 'PATCH' }))
   })
 
   it('keeps Draft preview private and requires an explicit, separate publish approval', async () => {

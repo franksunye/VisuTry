@@ -8,6 +8,8 @@ import { AlertTriangle, Check, Copy, ExternalLink, Eye, Loader2, Save, Search, S
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
 import { MerchantStorePrivatePreview } from "@/components/merchant/MerchantStorePrivatePreview";
+import { DEFAULT_EXPERIENCE_CONFIGURATION, MerchantExperienceConfiguration, type ExperienceConfigurationDraft } from "@/components/merchant/MerchantExperienceConfiguration";
+import { normalizeMerchantHandoffAction, resolveMerchantHandoff } from "@/modules/store/domain/merchant-handoff";
 import type { MerchantStorePreview, MerchantStoreWorkspace as MerchantStoreWorkspaceData } from "@/modules/merchant/application/merchant-store-workspace";
 import { merchantStoreEligibilityMessage, resolveMerchantStoreWorkspacePresentation } from "@/modules/merchant/application/merchant-store-workspace-presentation";
 
@@ -52,6 +54,26 @@ function localizePath(path: string, locale: string) {
   return path.replace(/^\/[^/]+(?=\/)/, `/${locale}`);
 }
 
+function handoffDraft(type: string | null, label: string | null, url: string | null) {
+  const resolved = resolveMerchantHandoff({ type, label, url });
+  return {
+    action: resolved?.action ?? normalizeMerchantHandoffAction(type) ?? '',
+    label: label ?? '',
+    url: url ?? '',
+  } as ExperienceConfigurationDraft['primaryHandoff'];
+}
+
+function configurationDraft(store: MerchantStoreWorkspaceData['store']): ExperienceConfigurationDraft {
+  if (!store) return DEFAULT_EXPERIENCE_CONFIGURATION;
+  return {
+    journeyPolicy: store.journeyPolicy,
+    deliveryPolicy: store.deliveryPolicy,
+    presentationMode: store.presentationMode,
+    primaryHandoff: handoffDraft(store.primaryCtaType, store.primaryCtaLabel, store.primaryCtaUrl),
+    secondaryHandoff: handoffDraft(store.secondaryCtaType, store.secondaryCtaLabel, store.secondaryCtaUrl),
+  };
+}
+
 export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: string; locale: string }) {
   const apiBase = `/api/merchant/${encodeURIComponent(merchantId)}/store`;
   const catalogHref = `/${locale}/merchant/catalog?merchantId=${encodeURIComponent(merchantId)}`;
@@ -64,6 +86,9 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
   const [name, setName] = useState("");
   const [headline, setHeadline] = useState("");
   const [description, setDescription] = useState("");
+  const [configuration, setConfiguration] = useState<ExperienceConfigurationDraft>(DEFAULT_EXPERIENCE_CONFIGURATION);
+  const [savedConfiguration, setSavedConfiguration] = useState<ExperienceConfigurationDraft>(DEFAULT_EXPERIENCE_CONFIGURATION);
+  const [confirmConfigurationSave, setConfirmConfigurationSave] = useState(false);
   const [selectedFrameIds, setSelectedFrameIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [preview, setPreview] = useState<MerchantStorePreview | null>(null);
@@ -78,6 +103,9 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
     setHeadline(next.store?.headline ?? "");
     setDescription(next.store?.description ?? "");
     setSelectedFrameIds(next.store?.selectedFrameIds ?? []);
+    const nextConfiguration = configurationDraft(next.store);
+    setConfiguration(nextConfiguration);
+    setSavedConfiguration(nextConfiguration);
   }, [merchantId]);
 
   const loadWorkspace = useCallback(async (showLoading = false) => {
@@ -124,8 +152,9 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
       || (headline.trim() || null) !== store.headline
       || (description.trim() || null) !== store.description
   ));
+  const configurationDirty = Boolean(store && JSON.stringify(configuration) !== JSON.stringify(savedConfiguration));
   const productsDirty = Boolean(store && !sameIds(selectedFrameIds, store.selectedFrameIds));
-  const hasUnsavedChanges = detailsDirty || productsDirty;
+  const hasUnsavedChanges = detailsDirty || configurationDirty || productsDirty;
   const filteredCatalog = useMemo(() => {
     const needle = search.trim().toLocaleLowerCase();
     if (!needle) return catalog;
@@ -171,6 +200,36 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
       await loadWorkspace();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Unable to save Store details.");
+    } finally { setBusy(false); }
+  }
+
+  async function saveConfiguration(confirmedLiveChange = false) {
+    if (!store || busy || !configurationDirty) return;
+    if (live && !confirmedLiveChange) { setConfirmConfigurationSave(true); return; }
+    setBusy(true); setError(null); setNotice(null);
+    try {
+      await readResponse(await fetch(apiBase, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          storeId: store.id,
+          journeyPolicy: configuration.journeyPolicy,
+          deliveryPolicy: configuration.deliveryPolicy,
+          presentationMode: configuration.presentationMode,
+          primaryCtaType: configuration.primaryHandoff.action || null,
+          primaryCtaLabel: configuration.primaryHandoff.action ? configuration.primaryHandoff.label.trim() || null : null,
+          primaryCtaUrl: configuration.primaryHandoff.action ? configuration.primaryHandoff.url.trim() || null : null,
+          secondaryCtaType: configuration.secondaryHandoff.action || null,
+          secondaryCtaLabel: configuration.secondaryHandoff.action ? configuration.secondaryHandoff.label.trim() || null : null,
+          secondaryCtaUrl: configuration.secondaryHandoff.action ? configuration.secondaryHandoff.url.trim() || null : null,
+        }),
+      }));
+      setNotice(live ? "Experience settings saved. Changes are now visible to shoppers." : "Experience settings saved to the private Draft Store.");
+      setConfirmConfigurationSave(false);
+      clearPreview(true);
+      await loadWorkspace();
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Unable to save Experience settings.");
     } finally { setBusy(false); }
   }
 
@@ -412,6 +471,43 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
           <label className="mt-4 block text-sm font-medium text-slate-700">Description <span className="font-normal text-slate-500">(optional)</span><textarea value={description} onChange={(event) => { setDescription(event.target.value); clearPreview(); }} maxLength={5000} rows={4} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></label>
           {detailsDirty ? <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm text-amber-800" role="status">Unsaved Store details</p><button type="button" onClick={() => void saveDetails()} disabled={busy} className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" />Save details</button></div> : <p className="mt-4 text-xs text-slate-500">Details saved</p>}
           {live && detailsDirty ? <p className="mt-3 text-xs text-slate-500">Saving these details makes them live immediately.</p> : null}
+        </div>
+      </details> : null}
+
+      {store ? <details className="group rounded-2xl border border-slate-200 bg-white">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 font-semibold text-slate-950 [&::-webkit-details-marker]:hidden"><span>Shopper experience</span><span className="text-xs font-medium text-slate-500 group-open:hidden">Configure</span><span className="hidden text-xs font-medium text-slate-500 group-open:inline">Close</span></summary>
+        <div className="space-y-4 border-t border-slate-100 p-5 sm:p-6">
+          {configurationDirty ? <p role="status" className="text-sm text-amber-800">Unsaved Experience settings</p> : null}
+          <MerchantExperienceConfiguration
+            experienceType="STORE"
+            shopperPreview={{
+              experienceType: 'STORE',
+              merchantName: store.name,
+              experienceName: name.trim() || store.name,
+              headline: headline.trim() || null,
+              description: description.trim() || null,
+              frames: selectedFrameIds.flatMap((id) => {
+                const frame = catalog.find((item) => item.id === id);
+                return frame ? [{ id, name: frame.name, imageUrl: frame.imageUrl, shape: frame.shape, color: null, productBrand: frame.brand }] : [];
+              }),
+            }}
+            value={configuration}
+            capabilities={workspace.capabilities}
+            disabled={busy}
+            active={live}
+            dirty={configurationDirty}
+            onReset={() => { setConfiguration(savedConfiguration); setConfirmConfigurationSave(false); setPublishApproved(false); }}
+            onChange={(next) => { setConfiguration(next); setConfirmConfigurationSave(false); setPublishApproved(false); }}
+          />
+          {confirmConfigurationSave ? <section role="alertdialog" aria-labelledby="store-live-config-confirm-title" className="rounded-xl border border-amber-300 bg-amber-50 p-4">
+            <h3 id="store-live-config-confirm-title" className="text-sm font-semibold text-amber-950">Apply changes to the live Store?</h3>
+            <p className="mt-1 text-sm leading-5 text-amber-900">The updated shopper journey, presentation, delivery and handoff for “{store.name}” will be visible immediately. This does not publish a Draft or change any other Store.</p>
+            <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => setConfirmConfigurationSave(false)} className="min-h-10 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950">Keep editing</button><button type="button" onClick={() => void saveConfiguration(true)} disabled={busy} className="min-h-10 rounded-lg bg-slate-950 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Saving…" : "Apply to live Store"}</button></div>
+          </section> : null}
+          <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs leading-5 text-slate-500">Journey, delivery, presentation, and handoff are saved together through the Store Experience command.</p>
+            {!confirmConfigurationSave ? <button type="button" onClick={() => void saveConfiguration()} disabled={busy || !configurationDirty} className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:opacity-50`}><Save className="h-4 w-4" aria-hidden="true" />Save experience settings</button> : null}
+          </div>
         </div>
       </details> : null}
     </div>

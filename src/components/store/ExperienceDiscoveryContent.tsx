@@ -10,6 +10,7 @@ import {
 import { buildStoreOutboundUrl, type StoreOutboundLinkType } from '@/lib/store-outbound-links'
 import { MerchantShopperAccountControlSlot } from '@/components/store/MerchantShopperAccountControlSlot'
 import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
+import { isLoopbackImageUrl, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
 
 function formatPrice(price: number | null, currency: string | null): string | null {
   if (price === null || price === undefined) return null
@@ -69,6 +70,7 @@ function ExperienceHeroVisual({
           priority
           sizes="(max-width: 1024px) 100vw, 55vw"
           className="object-cover"
+          unoptimized={isLoopbackImageUrl(heroImage)}
         />
       ) : null}
       <div className="absolute inset-0 bg-slate-950/10" aria-hidden="true" />
@@ -93,7 +95,13 @@ export function ExperienceDiscoveryContent({
   locale: string
   pathname: string
 }) {
-  const { merchant, experience, frames } = discovery
+  const safeDiscovery = {
+    ...discovery,
+    merchant: { ...discovery.merchant, logoUrl: publicMerchantImageUrl(discovery.merchant.logoUrl) },
+    experience: { ...discovery.experience, heroAssetUrl: publicMerchantImageUrl(discovery.experience.heroAssetUrl) },
+    frames: discovery.frames.map((frame) => ({ ...frame, imageUrl: publicMerchantImageUrl(frame.imageUrl) })),
+  }
+  const { merchant, experience, frames } = safeDiscovery
   const title = experience.type === 'STORE'
     ? `Shop the ${merchant.name} eyewear collection`
     : experience.headline?.trim() || experience.name
@@ -104,7 +112,7 @@ export function ExperienceDiscoveryContent({
     experienceType: experience.type,
     persistedPresentationMode: experience.presentationMode,
   })
-  const jsonLd = buildExperienceDiscoveryJsonLd({ discovery, pathname })
+  const jsonLd = buildExperienceDiscoveryJsonLd({ discovery: safeDiscovery, pathname })
 
   return (
     <main
@@ -124,7 +132,7 @@ export function ExperienceDiscoveryContent({
           <div className="flex items-center gap-3">
             <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
               {merchant.logoUrl ? (
-                <Image src={merchant.logoUrl} alt="" fill sizes="48px" className="object-contain p-1.5" />
+                <Image src={merchant.logoUrl} alt="" fill sizes="48px" className="object-contain p-1.5" unoptimized={isLoopbackImageUrl(merchant.logoUrl)} />
               ) : (
                 <Store className="h-6 w-6 text-blue-700" aria-hidden="true" />
               )}
@@ -202,6 +210,7 @@ export function ExperienceDiscoveryContent({
                             fill
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                             className="object-contain p-5"
+                            unoptimized={isLoopbackImageUrl(frame.imageUrl)}
                           />
                         ) : (
                           <Glasses className="absolute inset-0 m-auto h-10 w-10 text-slate-300" aria-label={`${frame.name} image unavailable`} />

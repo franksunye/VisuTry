@@ -229,10 +229,14 @@ describe('public route admission', () => {
 
     const withinLimit = await getPublicExperienceDiscoveryForRoute('merchant-a')
     expect(withinLimit?.merchant.generativeTryOnAvailable).toBe(true)
+    expect(withinLimit?.experiencePolicy.tryOnEnabled).toBe(true)
+    expect(withinLimit?.decisionJourney?.enabledStages).toContain('TRY_ON')
 
     countAICommerceSessions.mockResolvedValue(1000)
     const exhausted = await getPublicExperienceDiscoveryForRoute('merchant-a')
     expect(exhausted?.merchant.generativeTryOnAvailable).toBe(false)
+    expect(exhausted?.experiencePolicy).toEqual(expect.objectContaining({ tryOnEnabled: false, compareEnabled: false }))
+    expect(exhausted?.decisionJourney?.enabledStages).not.toEqual(expect.arrayContaining(['TRY_ON', 'COMPARE']))
     expect(countAICommerceSessions).toHaveBeenCalledTimes(2)
 
     countAICommerceSessions.mockRejectedValueOnce(new Error('usage ledger unavailable'))
@@ -240,5 +244,6 @@ describe('public route admission', () => {
     expect(usageUnavailable).not.toBeNull()
     expect(usageUnavailable?.experience.name).toBe('Campaign A')
     expect(usageUnavailable?.merchant.generativeTryOnAvailable).toBe(false)
+    expect(usageUnavailable?.decisionJourney?.enabledStages).not.toEqual(expect.arrayContaining(['TRY_ON', 'COMPARE']))
   })
 })

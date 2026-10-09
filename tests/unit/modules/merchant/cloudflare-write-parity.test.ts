@@ -29,6 +29,20 @@ function sqlMock(results: unknown[][], transactions: unknown[][][] = []): SqlMoc
   const sql = jest.fn((...args: unknown[]) => {
     const strings = args[0] as TemplateStringsArray | undefined
     const query = strings?.join('') ?? ''
+    if (query.includes('SELECT "classification"') && query.includes('FROM "Merchant"')) {
+      const merchantId = String(args[1] ?? '')
+      const merchant = seenRows.find((row) => row.id === merchantId) ?? seenRows.find((row) => typeof row.slug === 'string')
+      return Promise.resolve([{
+        ...merchant,
+        classification: merchant?.classification ?? 'TEST',
+        pilotType: merchant?.pilotType ?? 'DEMO',
+        commercialExceptionCode: merchant?.commercialExceptionCode ?? 'VISUTRY_DEMO',
+        planCode: merchant?.planCode ?? null,
+        commercialStatus: merchant?.commercialStatus ?? null,
+        createdAt: merchant?.createdAt ?? new Date(),
+      }])
+    }
+    if (query.includes('FROM "MerchantUsageLedger"')) return Promise.resolve([])
     if (query.includes('FROM "Experience" e JOIN "Merchant" m')) {
       const experienceId = String(args[1] ?? '')
       const merchantId = String(args[2] ?? '')
@@ -178,6 +192,7 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
       [{ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE', websiteUrl: null, contactEmail: null }],
       [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Store A', status: 'DRAFT', headline: null, description: null }],
       [{ ...activeFrame, id: 'frame-a', name: 'Frame A' }, { ...activeFrame, id: 'frame-b', name: 'Frame B' }],
+      [],
       [selectedB, selectedA],
     ])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
@@ -461,6 +476,8 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     let lockTail = Promise.resolve()
     const sql = jest.fn((strings: TemplateStringsArray, ...values: unknown[]) => {
       const query = strings.join('')
+      if (query.includes('SELECT "classification"') && query.includes('FROM "Merchant"')) return Promise.resolve([merchant])
+      if (query.includes('FROM "MerchantUsageLedger"')) return Promise.resolve([])
       if (query.includes('SELECT "id", "slug", "referenceData"')) return Promise.resolve([merchant])
       if (query.includes('FROM "Experience" e JOIN "Merchant" m')) {
         const experienceId = String(values[0])

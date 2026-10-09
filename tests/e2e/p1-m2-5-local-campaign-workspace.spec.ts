@@ -6,7 +6,21 @@ const isLocalCampaignRun = process.env.NODE_ENV === 'test'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
   && process.env.P1_M2_5_LOCAL_CAMPAIGN_E2E === '1'
-  && /^http:\/\/(127\.0\.0\.1|localhost):(3001|3002|3003)$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
+  && isLocalLoopbackBaseUrl(process.env.PLAYWRIGHT_BASE_URL || '')
+
+function isLocalLoopbackBaseUrl(value: string) {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:'
+      && ['127.0.0.1', 'localhost', '::1'].includes(url.hostname.replace(/^\[|\]$/g, ''))
+      && Number(url.port) >= 3000
+      && Number(url.port) <= 3999
+      && url.pathname === '/'
+      && !url.search && !url.hash
+  } catch {
+    return false
+  }
+}
 
 type ApiEnvelope<T> = { success?: boolean; data?: T; error?: string; message?: string }
 
@@ -131,7 +145,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     const localMerchantName = `M2.5 Local QA ${runId}`
     await page.getByLabel(/business, brand, or store name/i).fill(localMerchantName)
     await page.getByRole('button', { name: /create merchant workspace/i }).click()
-    await expect(page.getByRole('status')).toContainText('Workspace created')
+    await expect(page.locator('[data-onboarding-state="created"]')).toContainText('Workspace created')
     await expect(page.locator('#merchant-switcher')).toBeVisible()
     const merchantOptions = await page.locator('#merchant-switcher option').evaluateAll((options) => options.map((option) => ({ id: (option as HTMLOptionElement).value, name: option.textContent?.trim() ?? '' })))
     const freeMerchant = merchantOptions.find((merchant) => merchant.name === localMerchantName)
@@ -254,6 +268,8 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     await expect(page.getByText('Saving changes updates the live Campaign visible to shoppers.')).toBeVisible()
     await capture('12-campaign-live-edit-mobile', true)
     await page.getByRole('button', { name: 'Save campaign details' }).click()
+    await expect(page.getByRole('alertdialog')).toContainText('will be visible immediately to shoppers')
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Apply to live Campaign' }).click()
     await expect(page.getByText('Campaign details saved. These changes are now visible in your live Campaign.')).toBeVisible()
     const updatedPublic = await page.request.get(liveCampaign.publicPath)
     expect(updatedPublic.status()).toBe(200)

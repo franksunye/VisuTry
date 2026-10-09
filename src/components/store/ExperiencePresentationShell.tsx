@@ -9,6 +9,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
+import { isLoopbackImageUrl, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
 
 export type PresentationFrame = {
   id: string
@@ -106,10 +107,10 @@ function ExperienceHeroVisual({
           : 'bg-[linear-gradient(145deg,#edf3fb,#faf7f2)]'
       } ${compact ? 'aspect-[16/9]' : mode === 'EDITORIAL_FIRST' ? 'aspect-[16/9]' : 'aspect-[16/10]'}`}
     >
-      {merchant.experience?.heroAssetUrl ? (
+      {publicMerchantImageUrl(merchant.experience?.heroAssetUrl) ? (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
-          src={merchant.experience.heroAssetUrl}
+          src={publicMerchantImageUrl(merchant.experience?.heroAssetUrl)!}
           alt={`${merchant.name} eyewear collection`}
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -148,13 +149,14 @@ function FeaturedFrameGrid({
           }`}
         >
           <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-50">
-            {frame.imageUrl ? (
+            {publicMerchantImageUrl(frame.imageUrl) ? (
               <Image
-                src={frame.imageUrl}
+                src={publicMerchantImageUrl(frame.imageUrl)!}
                 alt={frame.name}
                 fill
                 sizes="(max-width: 640px) 50vw, 160px"
                 className="object-contain p-2"
+                unoptimized={isLoopbackImageUrl(frame.imageUrl)}
               />
             ) : (
               <Glasses className="absolute inset-0 m-auto h-8 w-8 text-slate-300" aria-hidden="true" />

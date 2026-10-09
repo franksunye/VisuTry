@@ -7,6 +7,7 @@ import { DecisionResultQr } from './DecisionResultQr'
 import type { DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
 import type { DecisionResultView } from '@/modules/store/application/decision-result-service'
 import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
+import { publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
 
 function formatExpiry(value: string, locale: string): string {
   const date = new Date(value)
@@ -31,7 +32,8 @@ function shopperExperienceLabel(name: string | null | undefined): string | null 
   return readable || null
 }
 
-function DecisionResultFrameThumbnail({ imageUrl, name }: { imageUrl: string | null; name: string }) {
+function DecisionResultFrameThumbnail({ imageUrl: rawImageUrl, name }: { imageUrl: string | null; name: string }) {
+  const imageUrl = publicMerchantImageUrl(rawImageUrl)
   const [failedUrl, setFailedUrl] = useState<string | null>(null)
   const unavailable = !imageUrl || failedUrl === imageUrl
 
@@ -158,7 +160,7 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
         <header className="rounded-[1.5rem] bg-slate-950 p-5 text-white shadow-xl sm:rounded-[2rem] sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex min-w-0 items-start gap-3">
-              {result.merchant.logoUrl ? <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-white p-1"><Image src={result.merchant.logoUrl} alt={`${result.merchant.name} logo`} fill unoptimized sizes="44px" className="object-contain" /></div> : null}
+              {publicMerchantImageUrl(result.merchant.logoUrl) ? <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-white p-1"><Image src={publicMerchantImageUrl(result.merchant.logoUrl)!} alt={`${result.merchant.name} logo`} fill unoptimized sizes="44px" className="object-contain" /></div> : null}
               <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">{result.merchant.name}</p>
               <h1 className="mt-2 font-serif text-3xl font-semibold sm:text-5xl">
