@@ -37,7 +37,6 @@ function mapMerchant(row: Record<string, unknown>): MerchantCommercialFields {
 /** Canonical, usage-aware Commercial capability read for Cloudflare-backed application paths. */
 export async function getMerchantCommercialCapabilityCloudflare(input: { merchantId: string; now?: Date; includeResourceUsage?: boolean }) {
   const sql = getCloudflareSql()
-  const includeResourceUsage = input.includeResourceUsage !== false
   // Read identity/entitlement once, then count ledger rows in PostgreSQL. Do
   // not transfer every historical usage record to a Cloudflare Worker.
   const merchantRows = await sql`SELECT "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
