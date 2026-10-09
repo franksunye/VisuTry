@@ -108,13 +108,19 @@ describe('Decision Result bearer routes', () => {
 
   it('labels the guarded deterministic Local E2E image as a QA fixture, not a shopper Try-On', async () => {
     const token = 'decision-result-token'
-    const share = shareFor(token)
-    share.result.payload = {
-      ...share.result.payload as Record<string, unknown>,
-      journey: { experienceType: 'STORE', enabledStages: ['RECOMMENDATION', 'TRY_ON'] },
-      tryOnResults: [{ source: 'LIVE_TRYON', taskId: 'test-task', frameId: 'frame-1', status: 'COMPLETED', completedAt: new Date().toISOString() }],
-    }
-    mockShareFindUnique.mockResolvedValue(share)
+    mockShareFindUnique.mockResolvedValue(shareFor(token, {
+      result: {
+        payload: {
+          journey: { experienceType: 'STORE', enabledStages: ['RECOMMENDATION', 'TRY_ON'] },
+          faceFit: null,
+          recommendation: null,
+          selectedFrameIds: [],
+          favoriteFrameIds: [],
+          tryOnResults: [{ source: 'LIVE_TRYON', taskId: 'test-task', frameId: 'frame-1', status: 'COMPLETED', completedAt: new Date().toISOString() }],
+          compare: null,
+        },
+      },
+    }))
     mockTaskFindMany.mockResolvedValue([{
       id: 'test-task',
       merchantFrameId: 'frame-1',
