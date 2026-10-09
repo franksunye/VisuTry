@@ -37,6 +37,7 @@ import {
 import { isPersistablePreviewUrl } from '@/lib/commerce-handoff/merchant-runtime-preview'
 import { formatPublicStorePrice } from '@/modules/store/domain/format-public-store-price'
 import { isLoopbackImageUrl, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
+import { brandAccentForDisplay } from '@/modules/merchant/domain/merchant-brand-kit'
 import type {
   PublicMerchantCatalogFrame,
   PublicMerchantProfile,
@@ -215,7 +216,7 @@ export function StoreShopperExperience({
   // another session and overwrite that capability.
   const kioskOrphanCleanupConfirmed = useRef(false)
 
-  const accent = merchant?.accentColor || '#1F4B5A'
+  const accent = brandAccentForDisplay(merchant?.accentColor)
   const merchantContinuation = createMerchantContinuation({
     locale,
     merchantSlug,

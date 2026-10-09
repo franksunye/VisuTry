@@ -12,6 +12,7 @@ function renderSettings(overrides: { name?: string; websiteUrl?: string | null }
   return render(
     <MerchantWorkspaceSettings
       merchantId="merchant-a"
+      brandOwner={true}
       initialName={overrides.name ?? "Local workspace"}
       initialWebsiteUrl={overrides.websiteUrl ?? null}
     />,
@@ -37,6 +38,14 @@ describe("MerchantWorkspaceSettings", () => {
     expect(screen.getByRole("textbox", { name: /Website/ })).toHaveAttribute("type", "url");
     expect(screen.getByText(/public Store and Campaign experiences/)).toBeInTheDocument();
     expect(screen.queryByText(/Analytics & reports|Recommendations|Integrations/)).not.toBeInTheDocument();
+  });
+
+  it("does not expose public identity writes to an ADMIN", () => {
+    render(<MerchantWorkspaceSettings merchantId="merchant-a" initialName="Example Optics" brandOwner={false} liveExperiences={2} />);
+    expect(screen.getByRole("textbox", { name: "Brand or store name" })).toBeDisabled();
+    expect(screen.getByRole("textbox", { name: /Website/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save details" })).toBeDisabled();
+    expect(screen.getByText("Only the Merchant Owner can edit public workspace identity.")).toBeInTheDocument();
   });
 
   it("renders an empty optional website as an empty URL field", () => {

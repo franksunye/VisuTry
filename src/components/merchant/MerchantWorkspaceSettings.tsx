@@ -65,6 +65,7 @@ export function MerchantWorkspaceSettings({
               initialName={initialName}
               initialWebsiteUrl={initialWebsiteUrl}
               variant="settings"
+              canEdit={brandOwner}
             />
           </div>
         </section>

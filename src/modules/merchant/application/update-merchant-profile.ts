@@ -35,7 +35,7 @@ export async function updateMerchantProfile(input: {
   name?: string
   websiteUrl?: string | null
 }) {
-  await requireMerchantMembership({ userId: input.userId, merchantId: input.merchantId, roles: ['OWNER', 'ADMIN'] })
+  await requireMerchantMembership({ userId: input.userId, merchantId: input.merchantId, roles: ['OWNER'] })
   const current = await prisma.merchant.findUnique({ where: { id: input.merchantId }, select: { id: true, name: true, websiteUrl: true, slug: true } })
   if (!current) throw new MerchantProfileError('INVALID_MERCHANT_NAME', 'Merchant workspace was not found.')
 
