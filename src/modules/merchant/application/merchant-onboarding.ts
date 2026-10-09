@@ -4,7 +4,7 @@ import { logger } from '@/lib/logger'
 import { getMerchantProfile } from './get-merchant-profile'
 import { MerchantAccessError } from './merchant-access'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials'
-import { requireAgentScope, type MerchantActorContext } from '../domain/actor'
+import { isAgentMerchantActor, requireAgentScope, type MerchantActorContext } from '../domain/actor'
 import {
   withPublicDiscoveryInvalidation,
 } from '@/modules/store/application/public-discovery-invalidation'
@@ -320,6 +320,44 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
       // identities. READ COMMITTED gives the next statement a fresh snapshot
       // after a competing importer releases this row lock.
       await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} FOR UPDATE`
+      if (isAgentMerchantActor(input.actor)) {
+        const proposedCatalogIdentities = JSON.stringify(normalized.map((frame) => ({
+          sku: frame.sku,
+          source: frame.source ?? 'MANUAL',
+          externalId: frame.externalId ?? null,
+          productUrl: frame.productUrl ?? null,
+        })))
+        const liveLinked = await tx.$queryRaw<{ id: string }[]>`
+          WITH tenant_experiences AS MATERIALIZED (
+            SELECT "id", "status" FROM "Experience"
+            WHERE "merchantId" = ${input.actor.merchantId} AND "type" IN ('STORE', 'CAMPAIGN')
+            FOR UPDATE
+          ), proposed AS MATERIALIZED (
+            SELECT * FROM jsonb_to_recordset(${proposedCatalogIdentities}::jsonb)
+              AS item("sku" text, "source" text, "externalId" text, "productUrl" text)
+          )
+          SELECT frame."id"
+          FROM "ExperienceFrame" selected
+          JOIN tenant_experiences experience ON experience."id" = selected."experienceId"
+          JOIN "MerchantFrame" frame ON frame."id" = selected."merchantFrameId" AND frame."merchantId" = selected."merchantId"
+          JOIN proposed ON (
+            (proposed."sku" IS NOT NULL AND frame."sku" = proposed."sku")
+            OR (proposed."externalId" IS NOT NULL AND frame."source"::text = proposed."source" AND frame."externalId" = proposed."externalId")
+            OR (proposed."productUrl" IS NOT NULL AND frame."productUrl" = proposed."productUrl")
+          )
+          WHERE selected."merchantId" = ${input.actor.merchantId}
+            AND selected."active" = TRUE
+            AND experience."status" = 'ACTIVE'
+          LIMIT 1
+        `
+        if (liveLinked.length) {
+          throw new MerchantOnboardingError(
+            'LIVE_CATALOG_UPDATE_REQUIRES_HUMAN',
+            'An Agent cannot change a Catalog product selected by an active Store or Campaign. Ask the merchant to make the change in the authenticated workspace.',
+            409,
+          )
+        }
+      }
       const lockedMerchant = await tx.merchant.findUnique({
         where: { id: input.actor.merchantId },
         select: { planCode: true, commercialStatus: true },
@@ -566,6 +604,7 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
     experienceId: store.id,
     expectedType: 'STORE',
     patch: { name, headline, description },
+    draftOnly: isAgentMerchantActor(input.actor),
     afterUpdate: async (tx) => {
       if (meaningfulChange) {
         await recordMerchantActivationEventWithClient(tx as Prisma.TransactionClient, {
@@ -605,6 +644,7 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
     experienceId: store.id,
     expectedType: 'STORE',
     frameIds,
+    draftOnly: isAgentMerchantActor(input.actor),
     afterReplace: async (tx) => {
       if (frameIds.length) {
         await recordMerchantActivationEventWithClient(tx as Prisma.TransactionClient, {

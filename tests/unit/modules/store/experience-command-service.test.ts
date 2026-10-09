@@ -32,7 +32,7 @@ describe('canonical Experience command boundary', () => {
     expect(repository.update).toHaveBeenCalledWith('merchant-a', 'experience-1', {
       journeyPolicy: validJourney,
       deliveryPolicy: validDelivery,
-    }, { afterUpdate: undefined, atomicEffects: undefined })
+    }, { afterUpdate: undefined, atomicEffects: undefined, draftOnly: undefined })
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
       target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: type === 'STORE' ? null : 'summer' },
     }))
@@ -52,6 +52,21 @@ describe('canonical Experience command boundary', () => {
     expect(withPublicDiscoveryInvalidation).not.toHaveBeenCalled()
   })
 
+  it('forwards an explicit draft-only requirement to the canonical repository', async () => {
+    const { commands, repository } = serviceFor('CAMPAIGN')
+    await commands.updateCampaignConfiguration({
+      merchantId: 'merchant-a',
+      experienceId: 'experience-1',
+      patch: { primaryCtaLabel: 'Visit store' },
+      draftOnly: true,
+    })
+    expect(repository.update).toHaveBeenCalledWith('merchant-a', 'experience-1', { primaryCtaLabel: 'Visit store' }, {
+      afterUpdate: undefined,
+      atomicEffects: undefined,
+      draftOnly: true,
+    })
+  })
+
   it('bounds configured handoff types while preserving known legacy CTA values', async () => {
     const { commands, repository } = serviceFor()
     await commands.updateSharedConfiguration({
@@ -60,14 +75,14 @@ describe('canonical Experience command boundary', () => {
     })
     expect(repository.update).toHaveBeenCalledWith('merchant-a', 'experience-1', {
       primaryCtaType: 'PRODUCT', secondaryCtaType: 'WHATSAPP',
-    }, { afterUpdate: undefined, atomicEffects: undefined })
+    }, { afterUpdate: undefined, atomicEffects: undefined, draftOnly: undefined })
 
     await commands.updateSharedConfiguration({
       merchantId: 'merchant-a', experienceId: 'experience-1', patch: { primaryCtaType: 'LINK' },
     })
     expect(repository.update).toHaveBeenLastCalledWith('merchant-a', 'experience-1', {
       primaryCtaType: 'CUSTOM_LINK',
-    }, { afterUpdate: undefined, atomicEffects: undefined })
+    }, { afterUpdate: undefined, atomicEffects: undefined, draftOnly: undefined })
 
     jest.clearAllMocks()
     await expect(commands.updateSharedConfiguration({

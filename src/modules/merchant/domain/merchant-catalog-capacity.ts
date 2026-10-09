@@ -13,9 +13,58 @@ export type MerchantCatalogCapacityIdentity = {
   productUrl: string | null
 }
 
+export type MerchantAgentCatalogLiveGuard = {
+  guardText: string
+  existsText: string
+  params: unknown[]
+}
+
 export type MerchantCatalogCapacityGuardQuery = {
   text: string
   params: unknown[]
+}
+
+/**
+ * Build a serializing guard for Agent imports that could update a product
+ * currently selected by an active Store or Campaign. The guard locks this
+ * tenant Experience rows, then raises SQLSTATE 22012 before the import batch
+ * writes anything when any proposed identity is live-linked.
+ */
+export function buildMerchantAgentCatalogLiveGuard(input: {
+  merchantId: string
+  frames: MerchantCatalogCapacityIdentity[]
+}): MerchantAgentCatalogLiveGuard {
+  const params: unknown[] = [input.merchantId]
+  const tuples = input.frames.map((frame) => {
+    const start = params.length + 1
+    params.push(frame.sku, frame.source, frame.externalId, frame.productUrl)
+    return `($${start}::text, $${start + 1}::text, $${start + 2}::text, $${start + 3}::text)`
+  }).join(',\n')
+  const ctes = `
+    WITH proposed("sku", "source", "externalId", "productUrl") AS MATERIALIZED (VALUES ${tuples}),
+    tenant_experiences AS MATERIALIZED (
+      SELECT "id", "status" FROM "Experience"
+      WHERE "merchantId" = $1 AND "type" IN ('STORE', 'CAMPAIGN')
+      FOR UPDATE
+    ),
+    live_links AS MATERIALIZED (
+      SELECT 1
+      FROM "ExperienceFrame" selected
+      JOIN tenant_experiences experience ON experience."id" = selected."experienceId"
+      JOIN "MerchantFrame" frame ON frame."id" = selected."merchantFrameId" AND frame."merchantId" = selected."merchantId"
+      JOIN proposed ON (
+        (proposed."sku" IS NOT NULL AND frame."sku" = proposed."sku")
+        OR (proposed."externalId" IS NOT NULL AND frame."source"::text = proposed."source" AND frame."externalId" = proposed."externalId")
+        OR (proposed."productUrl" IS NOT NULL AND frame."productUrl" = proposed."productUrl")
+      )
+      WHERE selected."merchantId" = $1 AND selected."active" = TRUE AND experience."status" = 'ACTIVE'
+      LIMIT 1
+    )`
+  return {
+    guardText: `${ctes} SELECT 1 / CASE WHEN EXISTS (SELECT 1 FROM live_links) THEN 0 ELSE 1 END AS "agentCatalogGuard"`,
+    existsText: `${ctes} SELECT EXISTS (SELECT 1 FROM live_links) AS "blocked"`,
+    params,
+  }
 }
 
 /**

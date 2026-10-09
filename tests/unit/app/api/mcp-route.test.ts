@@ -93,8 +93,11 @@ import {
   McpOriginError,
 } from '@/modules/merchant/application/merchant-mcp'
 import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials'
-import { publishCampaign } from '@/modules/store/application/campaign-service'
-import { MCP_TOOL_NAMES } from '@/modules/merchant/mcp/tool-registry'
+import { merchantOnboarding } from '@/modules/merchant/application/merchant-onboarding'
+import { archiveCampaign, publishCampaign } from '@/modules/store/application/campaign-service'
+import { updateCampaign } from '@/modules/store/application/campaign-service'
+import { ExperienceCommandError } from '@/modules/store/application/experience-command-service'
+import { MCP_AGENT_DISABLED_HIGH_IMPACT_TOOLS, MCP_TOOL_NAMES } from '@/modules/merchant/mcp/tool-registry'
 import { POST } from '@/app/api/mcp/route'
 
 const authenticate = authenticateMerchantMcpBearer as jest.Mock
@@ -142,6 +145,7 @@ describe('MCP transport protocol', () => {
       result: {
         tools: Array<{
           name: string
+          description?: string
           annotations?: { readOnlyHint?: boolean; destructiveHint?: boolean }
           _meta?: { securitySchemes?: Array<{ type: string; scopes: string[] }> }
         }>
@@ -152,11 +156,30 @@ describe('MCP transport protocol', () => {
     const create = listBody.result.tools.find((tool) => tool.name === 'create_campaign')
     expect(create?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: false })
     expect(create?._meta?.securitySchemes).toEqual([{ type: 'oauth2', scopes: ['experience:write'] }])
-    const publish = listBody.result.tools.find((tool) => tool.name === 'publish_campaign')
-    expect(publish?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true })
-    expect(publish?._meta?.securitySchemes).toEqual([{ type: 'oauth2', scopes: ['experience:write'] }])
+    for (const name of MCP_AGENT_DISABLED_HIGH_IMPACT_TOOLS) {
+      expect(listBody.result.tools.some((tool) => tool.name === name)).toBe(false)
+    }
     const read = listBody.result.tools.find((tool) => tool.name === 'get_merchant')
     expect(read?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false })
+    const activeSafeWrites = ['import_frames', 'set_store_frames', 'set_campaign_frames', 'update_campaign']
+    for (const name of activeSafeWrites) {
+      const tool = listBody.result.tools.find((candidate) => candidate.name === name)
+      expect(tool?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true })
+      expect(tool?.description).toMatch(/active (Store|Campaign)|active experience/i)
+    }
+    expect(listBody.result.tools.find((tool) => tool.name === 'create_store')?.annotations).toMatchObject({ readOnlyHint: false, idempotentHint: true })
+  })
+
+  it('returns an explicit draft-only rejection and records no success audit for an active Campaign write', async () => {
+    ;(updateCampaign as jest.Mock).mockRejectedValueOnce(new ExperienceCommandError('Agent changes are limited to Draft Experiences.'))
+    const response = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 41, method: 'tools/call',
+      params: { name: 'update_campaign', arguments: { campaignId: 'campaign-live', primaryCtaLabel: 'New offer' } },
+    }))
+    const body = await response.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+    expect(body.result.isError).toBe(true)
+    expect(JSON.parse(body.result.content[0].text)).toMatchObject({ code: 'ACTIVE_EXPERIENCE_WRITE_REQUIRES_HUMAN' })
+    expect(recordMerchantAgentOperation).not.toHaveBeenCalled()
   })
 
   it('routes a tool call through the authenticated tenant context', async () => {
@@ -183,19 +206,21 @@ describe('MCP transport protocol', () => {
     }))
   })
 
-  it('routes publish_campaign with explicit approved=true through the canonical campaign service', async () => {
-    const response = await POST(mcpRequest({
-      jsonrpc: '2.0',
-      id: 8,
-      method: 'tools/call',
-      params: { name: 'publish_campaign', arguments: { campaignId: 'campaign-a', approved: true } },
-    }))
-    expect(response.status).toBe(200)
-    expect(publishCampaign).toHaveBeenCalledWith({
-      merchantId: 'merchant-a',
-      campaignId: 'campaign-a',
-      approved: true,
-    })
+  it('rejects direct calls to high-impact lifecycle actions until independent approval is available', async () => {
+    for (const [id, name, args] of [
+      [8, 'publish_store', { storeId: 'store-a', approved: true }],
+      [9, 'publish_campaign', { campaignId: 'campaign-a', approved: true }],
+      [10, 'archive_campaign', { campaignId: 'campaign-a' }],
+    ] as const) {
+      const response = await POST(mcpRequest({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } }))
+      const body = await response.text()
+      expect(body).toMatch(/not found/i)
+    }
+
+    expect(merchantOnboarding.publishMerchantStore).not.toHaveBeenCalled()
+    expect(publishCampaign).not.toHaveBeenCalled()
+    expect(archiveCampaign).not.toHaveBeenCalled()
+    expect(recordMerchantAgentOperation).not.toHaveBeenCalled()
   })
 
   it('returns an MCP scope error for a supported write when experience:write is absent', async () => {

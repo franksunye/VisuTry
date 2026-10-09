@@ -306,6 +306,7 @@ export type CampaignUpdateInput = {
   secondaryCtaUrl?: string | null
   journeyPolicy?: unknown | null
   deliveryPolicy?: unknown | null
+  agentDraftOnly?: boolean
 }
 
 function buildCampaignUpdatePatch(input: CampaignUpdateInput, currentRow: CampaignRow): Record<string, unknown> {
@@ -338,6 +339,7 @@ export async function updateCampaign(input: CampaignUpdateInput) {
     merchantId: input.merchantId,
     experienceId: input.campaignId,
     patch: data,
+    draftOnly: input.agentDraftOnly,
   })
   return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData)
 }
@@ -383,7 +385,7 @@ export async function updateAndPublishCampaign(input: CampaignUpdateInput) {
   return mapCampaign(result.row, result.merchantSlug, result.merchantReferenceData)
 }
 
-export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[] }) {
+export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[]; agentDraftOnly?: boolean }) {
   if (input.frameIds.length > MAX_CAMPAIGN_FRAMES) throw new CampaignServiceError('INVALID_REQUEST', `frameIds cannot exceed ${MAX_CAMPAIGN_FRAMES}.`)
   const frameIds = [...new Set(input.frameIds)]
   const current = await campaignRow(input.merchantId, input.campaignId)
@@ -397,6 +399,7 @@ export async function setCampaignFrames(input: { merchantId: string; campaignId:
     experienceId: input.campaignId,
     frameIds,
     expectedType: 'CAMPAIGN',
+    draftOnly: input.agentDraftOnly,
   })
   return { frameIds }
 }

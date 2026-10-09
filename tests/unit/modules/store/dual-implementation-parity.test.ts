@@ -11,6 +11,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
   MCP_CLOUDFLARE_ADAPTER_UNAVAILABLE,
+  MCP_AGENT_DISABLED_HIGH_IMPACT_TOOLS,
   MCP_LIVE_RUNTIME,
   MCP_TOOL_NAMES,
   mcpToolsForRuntime,
@@ -47,11 +48,13 @@ describe('MCP live path + tool-registry convergence', () => {
     expect(nextConfig).toContain('merchant-mcp-cloudflare.ts')
   })
 
-  it('live MCP registers exactly the registry LIVE tool set including publish_campaign', () => {
+  it('live MCP registers the approval-safe registry set and excludes high-impact actions', () => {
     const liveTools = registeredTools(liveMcpServer)
     expect(liveTools).toEqual([...MCP_TOOL_NAMES])
-    expect(liveTools).toContain('publish_campaign')
-    expect(liveTools).toContain('archive_campaign')
+    for (const name of MCP_AGENT_DISABLED_HIGH_IMPACT_TOOLS) {
+      expect(liveTools).not.toContain(name)
+      expect(MCP_TOOL_NAMES).not.toContain(name as never)
+    }
     expect(liveTools).toContain('inspect_catalog_source')
     expect(liveTools).toContain('compare_experiences')
     expect(liveMcpServer).toContain("from './tool-registry'")
