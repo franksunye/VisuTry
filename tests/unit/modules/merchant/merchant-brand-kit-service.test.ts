@@ -107,6 +107,17 @@ describe('Brand Kit owner authorization and canonical persistence', () => {
     }))
   })
 
+  it('rolls back a concurrent transition to ARCHIVED even with earlier live approval', async () => {
+    const approvedUrl = 'https://a.public.blob.vercel-storage.com/merchant-brand/merchant-a/hero/experience-a/abc123.png'
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValueOnce({ id: 'experience-a', type: 'STORE', status: 'ACTIVE' })
+    ;(experienceCommands.updateSharedConfiguration as jest.Mock).mockImplementation(async ({ afterUpdate }) => {
+      await afterUpdate({ experience: { findFirst: jest.fn().mockResolvedValue({ status: 'ARCHIVED', type: 'STORE' }) } })
+    })
+    await expect(updateMerchantExperienceHero({
+      ...owner, experienceId: 'experience-a', heroAssetUrl: approvedUrl, approvedLiveChange: true,
+    })).rejects.toMatchObject({ code: 'EXPERIENCE_NOT_FOUND', httpStatus: 409 })
+  })
+
   it('rejects missing or archived Experience without writing media', async () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(null)
     await expect(updateMerchantExperienceHero({ ...owner, experienceId: 'foreign', heroAssetUrl: null, approvedLiveChange: true })).rejects

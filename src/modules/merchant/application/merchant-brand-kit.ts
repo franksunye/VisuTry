@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireMerchantMembership } from './merchant-access'
 import { experienceCommands } from '@/modules/store/application/experience-command-service-prisma'
+import { ExperienceCommandError } from '@/modules/store/application/experience-command-service'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { getPublicEdgeTagsForMerchant } from '@/modules/store/application/public-edge-paths-server'
 import { BrandKitError, normalizeBrandAccent, normalizeBrandMediaUrl } from '../domain/merchant-brand-kit'
@@ -48,11 +49,32 @@ export async function updateMerchantExperienceHero(input: {
   if (!experience || !['DRAFT','ACTIVE'].includes(experience.status)) throw new BrandKitError('EXPERIENCE_NOT_FOUND', 'Editable Experience not found.', 404)
   if (experience.status === 'ACTIVE' && !input.approvedLiveChange) throw new BrandKitError('LIVE_CHANGE_CONFIRMATION_REQUIRED', 'This change affects a live Experience.', 409)
   const heroAssetUrl = normalizeBrandMediaUrl(input.heroAssetUrl, input.merchantId, 'hero', input.experienceId)
-  await experienceCommands.updateSharedConfiguration({
-    merchantId: input.merchantId, experienceId: input.experienceId,
-    expectedType: experience.type as 'STORE' | 'CAMPAIGN',
-    patch: { heroAssetUrl },
-    draftOnly: input.approvedLiveChange !== true,
-  })
+  try {
+    await experienceCommands.updateSharedConfiguration({
+      merchantId: input.merchantId, experienceId: input.experienceId,
+      expectedType: experience.type as 'STORE' | 'CAMPAIGN',
+      patch: { heroAssetUrl },
+      draftOnly: input.approvedLiveChange !== true,
+      // The command boundary owns the transaction; inspect the locked row after
+      // update and roll back if an Experience became ENDED/ARCHIVED meanwhile.
+      afterUpdate: async tx => {
+        const fresh = await tx.experience.findFirst({
+          where: { id: input.experienceId, merchantId: input.merchantId },
+          select: { type: true, status: true },
+        })
+        if (!fresh || fresh.type !== experience.type || !['DRAFT', 'ACTIVE'].includes(fresh.status)) {
+          throw new BrandKitError('EXPERIENCE_NOT_FOUND', 'The Experience is no longer editable.', 409)
+        }
+        if (fresh.status === 'ACTIVE' && !input.approvedLiveChange) {
+          throw new BrandKitError('LIVE_CHANGE_CONFIRMATION_REQUIRED', 'Live Experience changes require approval.', 409)
+        }
+      },
+    })
+  } catch (error) {
+    if (error instanceof ExperienceCommandError && error.message.includes('limited to Draft')) {
+      throw new BrandKitError('LIVE_CHANGE_CONFIRMATION_REQUIRED', 'The Experience became live; review and approve the change.', 409)
+    }
+    throw error
+  }
   return { id: experience.id, heroAssetUrl, status: experience.status }
 }
