@@ -1,7 +1,6 @@
 /** Tenant-owned Catalog product media, separate from Logo and Hero media. */
 export const PRODUCT_IMAGE_MAX_BYTES = 4 * 1024 * 1024
 export const PRODUCT_IMAGE_MAX_DAILY_UPLOADS = 100
-export const PRODUCT_IMAGE_ORPHAN_RETENTION_DAYS = 7
 
 export class MerchantCatalogMediaError extends Error {
   constructor(

@@ -63,7 +63,7 @@ export function MerchantCatalogImageUpload({
       </button>
       {error ? <p role="alert" className="text-xs text-red-700">{error}</p> : null}
       {success ? <p role="status" className="text-xs text-emerald-800">Image uploaded. Check its URL above, then review and approve your product separately.</p> : null}
-      <p className="text-xs leading-5 text-slate-500">Uploading creates a public image. If it is not attached to a saved product, it is eligible for cleanup after 7 days.</p>
+      <p className="text-xs leading-5 text-slate-500">Uploading creates a public image before you save the product. Remove unneeded images through merchant support.</p>
     </div>
   );
 }

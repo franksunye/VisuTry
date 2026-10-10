@@ -1,22 +1,19 @@
 /** @jest-environment node */
-jest.mock('@vercel/blob', () => ({ put: jest.fn(), list: jest.fn(), del: jest.fn() }))
+jest.mock('@vercel/blob', () => ({ put: jest.fn(), list: jest.fn() }))
 jest.mock('@/lib/api-auth-runtime', () => ({ requireAuth: jest.fn() }))
 jest.mock('@/modules/merchant/application/merchant-access', () => ({ requireMerchantMembership: jest.fn() }))
 jest.mock('@/modules/merchant/application/merchant-agent-http', () => ({
   merchantAgentErrorResponse: jest.fn(() => new Response(JSON.stringify({ success: false }), { status: 403 })),
 }))
-jest.mock('@/lib/prisma', () => ({ prisma: { merchantFrame: { count: jest.fn() } } }))
 
 import { NextRequest } from 'next/server'
-import { list, put, del } from '@vercel/blob'
+import { list, put } from '@vercel/blob'
 import { requireAuth } from '@/lib/api-auth-runtime'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
-import { prisma } from '@/lib/prisma'
 import { POST } from '@/app/api/merchant/[merchantId]/catalog/media/route'
 import {
   parseCatalogProductMediaUrl, requireOwnedCatalogProductMediaUrl,
 } from '@/modules/merchant/domain/merchant-catalog-media'
-import { cleanupOrphanMerchantCatalogImages } from '@/modules/merchant/application/merchant-catalog-media-cleanup'
 
 const merchantId = 'merchant-a'
 const blobRoot = 'https://abc123.public.blob.vercel-storage.com'
@@ -45,8 +42,6 @@ beforeEach(() => {
   ;(requireMerchantMembership as jest.Mock).mockResolvedValue({ role: 'OWNER' })
   ;(list as jest.Mock).mockResolvedValue({ blobs: [], hasMore: false, cursor: undefined })
   ;(put as jest.Mock).mockResolvedValue({ url: storedUrl })
-  ;(del as jest.Mock).mockResolvedValue(undefined)
-  ;(prisma.merchantFrame.count as jest.Mock).mockResolvedValue(0)
 })
 
 describe('Merchant Catalog product photo staging', () => {
@@ -58,7 +53,6 @@ describe('Merchant Catalog product photo staging', () => {
     expect(put).toHaveBeenCalledWith(expect.stringMatching(/^merchant-catalog\/merchant-a\/product\/[a-f0-9]{32}\.png$/), expect.any(Buffer), {
       access: 'public', contentType: 'image/png', addRandomSuffix: false,
     })
-    expect(prisma.merchantFrame.count).not.toHaveBeenCalled()
   })
 
   it('checks auth before storage or reading multipart body', async () => {
@@ -117,30 +111,4 @@ describe('Merchant Catalog product photo staging', () => {
     expect(parseCatalogProductMediaUrl(blobRoot + '/merchant-brand/merchant-a/logo/' + key + '.png')).toBeNull()
   })
 
-  it('orphan cleanup preserves referenced images and deletes only old unreferenced product files', async () => {
-    const old = new Date('2026-09-01T00:00:00Z')
-    const recent = new Date('2026-10-09T00:00:00Z')
-    const other = blobRoot + '/merchant-brand/merchant-a/logo/' + key + '.png'
-    const stale2 = storedUrl.replace(key, 'ffffffffffffffffffffffffffffffff')
-    ;(list as jest.Mock).mockResolvedValueOnce({ blobs: [
-      { url: storedUrl, uploadedAt: old },
-      { url: stale2, uploadedAt: old },
-      { url: other, uploadedAt: old },
-      { url: storedUrl.replace('.png', '.jpg'), uploadedAt: recent },
-    ], hasMore: false })
-    ;(prisma.merchantFrame.count as jest.Mock).mockResolvedValueOnce(1).mockResolvedValueOnce(0)
-    const outcome = await cleanupOrphanMerchantCatalogImages({ now: new Date('2026-10-10T00:00:00Z') })
-    expect(outcome).toMatchObject({ deleted: 1, scanned: 4, eligible: 2 })
-    expect(del).toHaveBeenCalledTimes(1)
-    expect(del).toHaveBeenCalledWith(stale2)
-  })
-
-  it('stops cleanup and does not delete when DB readback is unavailable', async () => {
-    ;(list as jest.Mock).mockResolvedValueOnce({
-      blobs: [{ url: storedUrl, uploadedAt: new Date('2026-09-01T00:00:00Z') }], hasMore: false,
-    })
-    ;(prisma.merchantFrame.count as jest.Mock).mockRejectedValueOnce(new Error('DB unavailable'))
-    await expect(cleanupOrphanMerchantCatalogImages({ now: new Date('2026-10-10T00:00:00Z') })).rejects.toThrow('DB unavailable')
-    expect(del).not.toHaveBeenCalled()
-  })
 })

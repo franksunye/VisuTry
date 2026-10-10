@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
-import { cleanupOrphanMerchantCatalogImages } from '@/modules/merchant/application/merchant-catalog-media-cleanup'
 import {
   cleanupExpiredStoreAssets,
   cleanupStoreOrphanBlobs,
@@ -33,9 +32,8 @@ export async function GET(request: NextRequest) {
       maxRounds: 5,
     })
     const orphans = await cleanupStoreOrphanBlobs({ now, limit: 100 })
-    const merchantCatalogImages = await cleanupOrphanMerchantCatalogImages({ now, maxDeletes: 50 })
 
-    const results = { assets, orphans, merchantCatalogImages }
+    const results = { assets, orphans }
     logger.info('api', 'Cleanup store assets cron completed', results)
 
     return NextResponse.json({
