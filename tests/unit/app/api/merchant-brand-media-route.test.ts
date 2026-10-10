@@ -236,6 +236,30 @@ describe('POST /api/merchant/[merchantId]/brand/media with mocked Blob and trans
     expect(del).not.toHaveBeenCalled()
   })
 
+  it('rejects oversized streamed multipart bytes even with a dishonest Content-Length header', async () => {
+    const huge = new File([new Uint8Array(4 * 1024 * 1024 + 48 * 1024)], 'large.png', { type: 'image/png' })
+    const request = uploadRequest({ kind: 'logo', file: huge })
+    // Client-controlled length cannot override the actual consumed byte cap.
+    request.headers.set('content-length', '1')
+    const response = await POST(request, { params: { merchantId } })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({ error: 'INVALID_BRAND_UPLOAD' })
+    expect(put).not.toHaveBeenCalled()
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
+  it('rejects a malformed multipart body before any Blob or DB write', async () => {
+    const request = new NextRequest('http://localhost/api/merchant/merchant-a/brand/media', {
+      method: 'POST',
+      headers: { 'content-type': 'multipart/form-data; boundary=garbage' },
+      body: Buffer.from('not a multipart envelope'),
+    })
+    const response = await POST(request, { params: { merchantId } })
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({ error: 'INVALID_BRAND_UPLOAD' })
+    expect(put).not.toHaveBeenCalled()
+  })
+
   it('rejects an invalid image before writing Blob or database state', async () => {
     const badFile = new File([Buffer.from('<svg/>')], 'brand.svg', { type: 'image/svg+xml' })
     const response = await POST(uploadRequest({ kind: 'logo', file: badFile }), { params: { merchantId } })

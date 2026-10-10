@@ -11,6 +11,51 @@ import { merchantAgentErrorResponse } from '@/modules/merchant/application/merch
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 const MAX_UPLOAD = 4 * 1024 * 1024
+const MAX_MULTIPART_BODY = MAX_UPLOAD + 32 * 1024
+
+/**
+ * Limit actual multipart bytes before formData() allocates/parses the payload.
+ * Content-Length is only an early hint: missing or dishonest headers must not
+ * allow an unbounded buffered request. This route intentionally runs on Node.
+ */
+async function readBoundedBrandFormData(request: NextRequest): Promise<FormData> {
+  const contentType = request.headers.get('content-type')
+  if (!contentType?.toLowerCase().startsWith('multipart/form-data;') || !contentType.includes('boundary=')) {
+    throw new BrandKitError('INVALID_BRAND_UPLOAD', 'A multipart image upload is required.')
+  }
+  const declaredLength = request.headers.get('content-length')
+  if (declaredLength !== null && (!/^\\d+$/.test(declaredLength) || Number(declaredLength) > MAX_MULTIPART_BODY)) {
+    throw new BrandKitError('INVALID_BRAND_UPLOAD', 'Upload request exceeds the 4 MB image limit.')
+  }
+  if (!request.body) throw new BrandKitError('INVALID_BRAND_UPLOAD', 'Upload body is missing.')
+
+  const chunks: Buffer[] = []
+  const reader = request.body.getReader()
+  let total = 0
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      total += value.byteLength
+      if (total > MAX_MULTIPART_BODY) {
+        await reader.cancel().catch(() => undefined)
+        throw new BrandKitError('INVALID_BRAND_UPLOAD', 'Upload request exceeds the 4 MB image limit.')
+      }
+      chunks.push(Buffer.from(value))
+    }
+  } finally {
+    reader.releaseLock()
+  }
+  try {
+    return await new Request(request.url, {
+      method: 'POST',
+      headers: { 'content-type': contentType },
+      body: Buffer.concat(chunks, total),
+    }).formData()
+  } catch {
+    throw new BrandKitError('INVALID_BRAND_UPLOAD', 'Invalid multipart image upload.')
+  }
+}
 type Context = { params: { merchantId: string } }
 const errorResponse = (error: unknown) => error instanceof BrandKitError
   ? NextResponse.json({ success: false, error: error.code, message: error.message }, { status: error.httpStatus })
@@ -28,9 +73,7 @@ export async function POST(request: NextRequest, { params }: Context) {
   let uploadedExperienceId: string | null = null
   try {
     await requireMerchantMembership({ userId: auth.userId, merchantId: params.merchantId, roles: ['OWNER'] })
-    const contentLength = Number(request.headers.get('content-length') ?? 0)
-    if (contentLength > MAX_UPLOAD + 32_768) throw new BrandKitError('INVALID_BRAND_UPLOAD', 'Image exceeds 4 MB.')
-    const data = await request.formData()
+    const data = await readBoundedBrandFormData(request)
     const file = data.get('file')
     const kind = data.get('kind')
     const experienceId = data.get('experienceId')
