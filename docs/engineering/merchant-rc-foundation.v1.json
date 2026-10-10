@@ -1,7 +1,7 @@
 {
   "version": 1,
   "gate": "G1-F-FOUNDATION",
-  "description": "Executed RC subset 2/4 only, not complete G1-F or G2/G4",
+  "description": "Executed RC subset: First Value, Campaign, native-photo UX/real local Catalog with mocked Blob. NOT full G1-F, G2 or G4.",
   "required": [
     {
       "id": "first-value-private-preview",
@@ -13,6 +13,12 @@
       "id": "campaign-lifecycle",
       "file": "tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts",
       "title": "runs real Local draft, preview, entitlement, publish, live edit and archive journeys",
+      "project": "chromium"
+    },
+    {
+      "id": "native-photo-real-local-catalog",
+      "file": "tests/e2e/merchant-catalog-native-photo-local.spec.ts",
+      "title": "chooses local photo, simulates Blob staging, then inspects and approves in real local Catalog",
       "project": "chromium"
     }
   ]

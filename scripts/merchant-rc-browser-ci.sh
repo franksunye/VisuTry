@@ -63,7 +63,7 @@ start_server() {
   [[ "$ready" == true ]] || { echo "Merchant RC app not ready" >&2; exit 1; }
 }
 start_server
-reset_own_disposable_db_for_second_scenario() {
+reset_own_disposable_db_for_next_scenario() {
   # The Golden Path creates the clean QA identity. A subsequent Merchant test
   # MUST start from a fresh fixture, not reuse a now-activated Merchant.
   assert_marker
@@ -105,13 +105,15 @@ console.log(JSON.stringify({ reporterSuiteCount: report.suites?.length ?? 0, tes
 NODE
 }
 run_scenario "First Value" P0_L1_LOCAL_MERCHANT_E2E tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts first.json
-reset_own_disposable_db_for_second_scenario
+reset_own_disposable_db_for_next_scenario
 run_scenario "Campaign" P1_M2_5_LOCAL_CAMPAIGN_E2E tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts campaign.json
+reset_own_disposable_db_for_next_scenario
+run_scenario "Native Photo + Real Catalog" G1F_CATALOG_NATIVE_PHOTO_E2E tests/e2e/merchant-catalog-native-photo-local.spec.ts photo.json
 assert_marker
 set +e
 node scripts/merchant-release-scenario-ledger.mjs \
   --manifest docs/engineering/merchant-rc-foundation.v1.json \
-  --report "$OUT/first.json" --report "$OUT/campaign.json" \
+  --report "$OUT/first.json" --report "$OUT/campaign.json" --report "$OUT/photo.json" \
   --source-sha "$(git rev-parse HEAD)" --database-marker "$EXPECTED" \
   --mode MOCK --provider-requests 0 --external-cost-usd 0 --output "$OUT/ledger.json"
 status=$?
@@ -120,13 +122,13 @@ duration="$(($(date +%s)-started))"
 echo "Executed subset wall time: ${duration}s, ledger exit: $status"
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
   {
-    echo "### G1-F: two executed Merchant browser scenarios (NOT G2)"
+    echo "### G1-F: three executed Merchant browser scenarios (NOT G2)"
     echo "Verified exact SHA: $(git rev-parse HEAD)"
     echo "Verified database marker: $EXPECTED"
     echo "Browser wall time: ${duration}s, mode MOCK, no production credentials"
     echo "Provider count/cost: reported zero only, NOT independently measured"
     echo "Ledger: $([[ $status -eq 0 ]] && echo PASS || echo BLOCKED)"
-    echo "Unexecuted: full URL/CSV, Kiosk, Result, Brand and complete G2 matrix"
+    echo "Unexecuted: URL/CSV, actual Blob, Kiosk, Result, Brand and complete G2 matrix"
   } >> "$GITHUB_STEP_SUMMARY"
 fi
 exit "$status"
