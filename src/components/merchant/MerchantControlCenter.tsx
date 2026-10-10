@@ -1575,6 +1575,7 @@ function MerchantControlCenterView({
             <MerchantCatalogSelfService
               merchantId={control.merchant.id}
               initialTotal={control.catalog.total}
+              initialWebsiteUrl={control.merchant.websiteUrl}
               onCatalogChanged={(state) => {
                 setCatalogState(state)
                 router.refresh()
