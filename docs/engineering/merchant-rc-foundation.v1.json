@@ -1,7 +1,7 @@
 {
   "version": 1,
   "gate": "G1-F-FOUNDATION",
-  "description": "Executed RC subset: First Value, Campaign, native-photo UX/real local Catalog with mocked Blob. NOT full G1-F, G2 or G4.",
+  "description": "Executed four mandatory isolated CI cases: First Value, Campaign, native photo with MOCK Blob, and REAL local unsafe URL rejection/CSV approval. Not complete original four-case foundation, G2 or G4.",
   "required": [
     {
       "id": "first-value-private-preview",
@@ -19,6 +19,12 @@
       "id": "native-photo-real-local-catalog",
       "file": "tests/e2e/merchant-catalog-native-photo-local.spec.ts",
       "title": "chooses local photo, simulates Blob staging, then inspects and approves in real local Catalog",
+      "project": "chromium"
+    },
+    {
+      "id": "real-csv-url-recovery",
+      "file": "tests/e2e/merchant-catalog-csv-recovery-local.spec.ts",
+      "title": "rejects unsafe local URL, recovers to CSV, and imports only after approval through real Catalog APIs",
       "project": "chromium"
     }
   ]

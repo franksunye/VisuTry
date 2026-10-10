@@ -10,6 +10,7 @@ on:
       - 'tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts'
       - 'tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts'
       - 'tests/e2e/merchant-catalog-native-photo-local.spec.ts'
+      - 'tests/e2e/merchant-catalog-csv-recovery-local.spec.ts'
       - 'src/components/merchant/**'
       - 'src/modules/merchant/**'
 permissions:
@@ -19,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   executed-first-value-campaign:
-    name: Executed First Value + Campaign + Catalog (LOCAL/Mock)
+    name: Executed First Value + Campaign + Catalog + CSV (LOCAL/Mock)
     runs-on: ubuntu-latest
     timeout-minutes: 28
     services:
