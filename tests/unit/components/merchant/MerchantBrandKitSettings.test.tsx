@@ -26,6 +26,21 @@ describe('Merchant Brand Kit owner self-service', () => {
     })
     expect(refresh).toHaveBeenCalled()
   })
+  it('keeps the native file chooser shrinkable after selecting a very long filename', async () => {
+    const { container } = render(<MerchantBrandKitSettings {...props} />)
+    const input = screen.getByLabelText('Choose brand logo') as HTMLInputElement
+    const file = new File(['valid-local-preview-only'], 'an-extremely-long-merchant-logo-filename-that-must-not-expand-the-mobile-viewport-even-when-selected.png', { type: 'image/png' })
+    fireEvent.change(input, { target: { files: [file] } })
+
+    await waitFor(() => expect(screen.getByAltText('Example Optics logo preview')).toBeInTheDocument())
+    expect(input.files?.[0]).toBe(file)
+    expect(input).toHaveClass('w-full', 'min-w-0', 'max-w-full', 'overflow-hidden')
+    expect(container.querySelector('[data-testid="merchant-brand-kit"]')).toHaveClass('min-w-0', 'max-w-full')
+    expect(input.closest('fieldset')).toHaveClass('min-w-0')
+    expect(input.closest('.grid')).toHaveClass('min-w-0')
+    expect(getFetch()).not.toHaveBeenCalled()
+  })
+
   it('denies editing of brand identity to ADMIN from the UI', () => {
     render(<MerchantBrandKitSettings {...props} canEdit={false} />)
     expect(screen.getByRole('button', { name: 'Save color' })).toBeDisabled()
