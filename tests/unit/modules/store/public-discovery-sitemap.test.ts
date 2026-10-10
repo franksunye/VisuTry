@@ -100,7 +100,7 @@ describe('public discovery sitemap contract', () => {
     expect(entries[0].lastModified).toEqual(later)
   })
 
-  it('omits the historical Discovery Canary whose Store path redirects to the canonical Demo', () => {
+  it('keeps the separately owned Canary Store and Campaign alongside Demo Optical', () => {
     const entries = buildPublicExperienceSitemapEntries({
       baseUrl: 'https://www.visutry.com',
       merchants: [
@@ -131,6 +131,8 @@ describe('public discovery sitemap contract', () => {
     })
 
     expect(entries.map((entry) => entry.url)).toEqual([
+      'https://www.visutry.com/en/store/visutry-demo',
+      'https://www.visutry.com/en/c/visutry-demo/everyday-fit',
       'https://www.visutry.com/en/store/visutry-demo-optical',
     ])
   })
