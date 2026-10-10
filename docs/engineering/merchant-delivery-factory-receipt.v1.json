@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "gate": "G1-F-DELIVERY-RECEIPT",
+  "description": "Evidence-only sanitized factory milestone. Strict local executed scenarios plus explicitly outstanding release dependencies. Not an apply contract, G2, or G4 certification.",
+  "localScenarios": [
+    {
+      "id": "first-value-private-preview",
+      "ledger": "foundation",
+      "scenarioId": "first-value-private-preview",
+      "evidenceClass": "LOCAL_DB_REAL"
+    },
+    {
+      "id": "campaign-lifecycle",
+      "ledger": "foundation",
+      "scenarioId": "campaign-lifecycle",
+      "evidenceClass": "LOCAL_DB_REAL"
+    },
+    {
+      "id": "native-photo-mock-blob",
+      "ledger": "foundation",
+      "scenarioId": "native-photo-real-local-catalog",
+      "evidenceClass": "MOCK_BOUNDED"
+    },
+    {
+      "id": "url-rejection-csv-recovery",
+      "ledger": "foundation",
+      "scenarioId": "real-csv-url-recovery",
+      "evidenceClass": "LOCAL_DB_REAL"
+    },
+    {
+      "id": "kiosk-shopper-a-b",
+      "ledger": "kiosk",
+      "scenarioId": "kiosk-shopper-isolation",
+      "evidenceClass": "MOCK_BOUNDED"
+    }
+  ],
+  "remainingGates": [
+    {
+      "id": "public-url-product-intake",
+      "acceptance": "Actual public HTTPS product URL → server-side inspect → explicit approval → Catalog import; no SSRF bypass"
+    },
+    {
+      "id": "qa-blob-upload",
+      "acceptance": "Verified isolated QA-only Blob store token → true upload/readback; no production token/store"
+    },
+    {
+      "id": "merchant-configuration-manifest",
+      "acceptance": "Canonical sanctioned Merchant/Store/Campaign/Journey/Brand configuration manifest; approved diff before any write"
+    },
+    {
+      "id": "authorized-apply-and-verify",
+      "acceptance": "Tenant-authorized idempotent apply via canonical application commands, with verified actual readback"
+    },
+    {
+      "id": "handoff-and-support-receipt",
+      "acceptance": "Merchant-specific sanitized URLs/support boundaries/accepted evidence/rollback and failure handling"
+    },
+    {
+      "id": "g2-g3-g4-release",
+      "acceptance": "Full G2 business/tenant/privacy/entitlement and G3 billing/support gates, then G4 Lead signoff"
+    }
+  ]
+}

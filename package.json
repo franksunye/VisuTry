@@ -153,7 +153,7 @@
     "perf:hybrid-sample:validate": "node scripts/hybrid-performance-sample.mjs --validate-only",
     "perf:hybrid-sample:full": "node scripts/hybrid-performance-sample.mjs --full",
     "demo:local:provider-smoke": "bash scripts/run-local-demo-provider-smoke.sh",
-    "test:merchant:scenario-ledger": "node --test tests/ci/merchant-scenario-ledger.test.mjs",
+    "test:merchant:scenario-ledger": "node --test tests/ci/merchant-scenario-ledger.test.mjs tests/ci/merchant-delivery-factory-receipt.test.mjs",
     "merchant:release:ledger": "node scripts/merchant-release-scenario-ledger.mjs"
   },
   "dependencies": {
