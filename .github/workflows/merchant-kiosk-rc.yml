@@ -1,0 +1,81 @@
+name: Merchant Kiosk Privacy Executed RC
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/merchant-kiosk-rc.yml'
+      - 'scripts/merchant-kiosk-rc-ci.sh'
+      - 'scripts/seed-local-kiosk-qa.ts'
+      - 'docs/engineering/merchant-kiosk-rc.v1.json'
+      - 'tests/e2e/p1-m6-local-kiosk-shared-device.spec.ts'
+permissions:
+  contents: read
+concurrency:
+  group: merchant-kiosk-rc-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  executed-kiosk-privacy:
+    name: Executed Kiosk Shopper A-to-B (LOCAL/Mock)
+    runs-on: ubuntu-latest
+    timeout-minutes: 27
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: visutry_merchant_rc
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d visutry_merchant_rc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: 'true'
+      APP_ENV: local
+      NODE_ENV: test
+      TEST_MODE: 'true'
+      ENABLE_MOCKS: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+      SKIP_ENV_VALIDATION: '1'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/visutry_merchant_rc
+      DATABASE_URL_UNPOOLED: postgresql://ci:ci@127.0.0.1:5432/visutry_merchant_rc
+      DIRECT_URL: postgresql://ci:ci@127.0.0.1:5432/visutry_merchant_rc
+      VISUTRY_DATABASE_IDENTITY: local:127.0.0.1:5432/visutry_merchant_rc
+      NEXTAUTH_URL: http://127.0.0.1:3003
+      NEXTAUTH_SECRET: ci-only-ephemeral-merchant-kiosk-secret
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3003
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3003
+      STRIPE_MERCHANT_BILLING_MODE: test
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      VISUTRY_LOCAL_DEMO_PROVIDER_MODE: blocked
+      VISUTRY_LOCAL_DEMO_RUNTIME: '1'
+      P1_M5_LOCAL_DECISION_RESULT_E2E: '1'
+      P1_M6_LOCAL_KIOSK_E2E: '1'
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Execute original Kiosk golden path and fail-closed ledger
+        shell: bash
+        run: bash scripts/merchant-kiosk-rc-ci.sh
+      - name: Upload non-sensitive ledger only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: merchant-kiosk-rc-ledger-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .local/merchant-kiosk-rc/ledger.json
+          if-no-files-found: ignore
+          retention-days: 3

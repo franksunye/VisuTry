@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "gate": "G1-F-KIOSK-PRIVACY-EXECUTED",
+  "description": "Original local shared-device privacy golden path; one genuine Chromium test. Does not certify all G2/G4.",
+  "required": [
+    {
+      "id": "kiosk-shopper-isolation",
+      "file": "tests/e2e/p1-m6-local-kiosk-shared-device.spec.ts",
+      "title": "runs the kiosk golden path, preserves the phone Result, and resets A→B on manual and idle boundaries",
+      "project": "chromium"
+    }
+  ]
+}

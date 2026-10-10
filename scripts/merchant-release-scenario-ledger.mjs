@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url'
 
 const STATUSES = new Set(['PASS', 'FAILED', 'SKIPPED', 'NOT_TESTED', 'FLAKY', 'AMBIGUOUS'])
 const MODES = new Set(['MOCK', 'PREPARED_DEMO', 'TEST_PROVIDER'])
+const G1F_MANIFEST_GATES = new Set(['G1-F-FOUNDATION', 'G1-F-KIOSK-PRIVACY-EXECUTED'])
 
 function normalPath(value) {
   return String(value || '').replace(/\\/g, '/').replace(/^\.\//, '')
@@ -58,7 +59,7 @@ function classify(test) {
 }
 
 export function buildMerchantScenarioLedger({ manifest, reports, evidence }) {
-  if (manifest?.version !== 1 || manifest?.gate !== 'G1-F-FOUNDATION'
+  if (manifest?.version !== 1 || !G1F_MANIFEST_GATES.has(manifest?.gate)
       || !Array.isArray(manifest.required) || manifest.required.length === 0) {
     throw new Error('Invalid G1-F foundation manifest')
   }
