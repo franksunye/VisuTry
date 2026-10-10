@@ -90,9 +90,38 @@ describe('Merchant First Value source choice and recovery', () => {
       initialWebsiteUrl="https://shop.example.test" showResourceList={false} />)
     fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
     expect(await screen.findByText(/No importable products were found/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Approve and import 0' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Approve and import 0' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Review before import')).not.toBeInTheDocument()
+    expect(screen.getByText('No products are ready to add')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Upload CSV' }))
     expect(screen.getByRole('tab', { name: 'Upload CSV' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it.each([
+    ['SOURCE_ACCESS_DENIED', 'The website denied access (HTTP 403).'],
+    ['SOURCE_RATE_LIMITED', 'The website is rate limiting automated inspection (HTTP 429).'],
+  ])('shows explicit blocked-source recovery for %s without a misleading approval', async (code, message) => {
+    const fetchMock = mockCatalogAndInspect({
+      ...emptyProposal,
+      sourceSummary: {
+        ...emptyProposal.sourceSummary,
+        fetchedPageCount: 0,
+        sourceIssues: [{ code, message, sourceUrl: 'https://shop.example.test/products/blocked' }],
+      },
+    })
+    render(<MerchantCatalogSelfService merchantId="merchant-blocked" initialTotal={0}
+      initialWebsiteUrl="https://shop.example.test/products/blocked" showResourceList={false} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
+    expect(await screen.findByText('Website inspection was blocked')).toBeInTheDocument()
+    const alert = screen.getByRole('alert')
+    expect(within(alert).getByText('This website did not allow automated inspection.')).toBeInTheDocument()
+    expect(within(alert).getByText(message)).toBeInTheDocument()
+    expect(screen.queryByText('Review before import')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Approve and import 0' })).not.toBeInTheDocument()
+    expect(fetchMock.mock.calls.filter(([url, init]) =>
+      String(url) === '/api/merchant/merchant-blocked/catalog' && init?.method === 'POST')).toHaveLength(0)
+    fireEvent.click(within(alert).getByRole('button', { name: 'Add manually' }))
+    expect(screen.getByRole('tab', { name: 'Add manually' })).toHaveAttribute('aria-selected', 'true')
   })
 
   it('revokes an importable URL proposal immediately when the URL changes', async () => {

@@ -77,7 +77,9 @@ test('rejects unsafe local URL, recovers to CSV, and imports only after approval
   expect(unsafe.success).toBe(true)
   expect(unsafe.data.importReady).toHaveLength(0)
   expect(unsafe.data.sourceSummary.sourceIssues.map((issue) => issue.code)).toContain('UNSAFE_SOURCE_URL')
-  await expect(page.getByRole('button', { name: 'Approve and import 0' })).toBeDisabled()
+  await expect(page.getByRole('heading', { name: 'No products are ready to add' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Approve and import 0' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Upload CSV' }).last()).toBeVisible()
   expect(await readCatalog()).toHaveLength(0)
 
   // Recovery goes through the actual multipart CSV inspection endpoint and DB.

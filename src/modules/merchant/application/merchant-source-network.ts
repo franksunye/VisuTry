@@ -181,6 +181,12 @@ export async function fetchMerchantSourceDocument(rawUrl: string, options: {
       currentUrl = nextUrl.toString()
       continue
     }
+    if (response.status === 401 || response.status === 403) {
+      throw new MerchantSourceNetworkError('SOURCE_ACCESS_DENIED', `The website denied access (HTTP ${response.status}).`)
+    }
+    if (response.status === 429) {
+      throw new MerchantSourceNetworkError('SOURCE_RATE_LIMITED', 'The website is rate limiting automated inspection (HTTP 429).')
+    }
     if (response.status < 200 || response.status >= 300) {
       throw new MerchantSourceNetworkError('SOURCE_UNREACHABLE', `The source returned HTTP ${response.status}.`)
     }
