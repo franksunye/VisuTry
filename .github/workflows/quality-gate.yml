@@ -166,7 +166,10 @@ jobs:
       - name: Full unit and regression gate
         run: npm run test:unit:ci
 
-      - name: Playwright suite discovery gate
+      - name: Merchant mandatory-scenario ledger contract
+        run: npm run test:merchant:scenario-ledger
+
+      - name: Playwright suite discovery gate (NOT an executed Merchant release gate)
         run: npm run test:e2e:list
 
       # A full `next build` needs real database-backed admin prerender data in

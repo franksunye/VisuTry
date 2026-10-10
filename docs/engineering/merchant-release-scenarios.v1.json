@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "gate": "G1-F-FOUNDATION",
+  "description": "Initial executable Merchant scenarios only; not the complete G2/G4 release matrix. Unlisted commercial requirements are NOT CERTIFIED.",
+  "required": [
+    {
+      "id": "first-value-private-preview",
+      "file": "tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts",
+      "title": "runs the real local acquisition-to-private-preview journey",
+      "project": "chromium"
+    },
+    {
+      "id": "catalog-url-csv-manual-review",
+      "file": "tests/e2e/merchant-catalog-self-service.spec.ts",
+      "title": "covers URL, CSV, and Manual preview-to-approval paths",
+      "project": "chromium"
+    },
+    {
+      "id": "campaign-lifecycle",
+      "file": "tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts",
+      "title": "runs real Local draft, preview, entitlement, publish, live edit and archive journeys",
+      "project": "chromium"
+    },
+    {
+      "id": "kiosk-shopper-isolation",
+      "file": "tests/e2e/p1-m6-local-kiosk-shared-device.spec.ts",
+      "title": "runs the kiosk golden path, preserves the phone Result, and resets A→B on manual and idle boundaries",
+      "project": "chromium"
+    }
+  ]
+}
