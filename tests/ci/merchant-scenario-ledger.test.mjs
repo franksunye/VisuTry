@@ -53,6 +53,15 @@ test('failed, interrupted, and flaky retries never certify the gate', () => {
   assert.equal(recovered.result, 'BLOCKED')
 })
 
+test('Playwright testDir-relative file paths match exact manifest test', () => {
+  const relative = report()
+  relative.suites[0].file = 'first-value.spec.ts'
+  assert.equal(evaluate([relative]).result, 'PASS')
+  const wrong = report()
+  wrong.suites[0].file = 'different.spec.ts'
+  assert.equal(evaluate([wrong]).scenarios[0].status, 'NOT_TESTED')
+})
+
 test('wrong project and duplicate reports fail closed', () => {
   assert.equal(evaluate([report('expected', [{ status: 'passed' }], { projectName: 'webkit' })]).result, 'BLOCKED')
   assert.equal(evaluate([report(), report()]).scenarios[0].status, 'AMBIGUOUS')

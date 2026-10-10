@@ -1,0 +1,80 @@
+name: Merchant Executed RC Foundation
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/merchant-rc-browser.yml'
+      - 'scripts/merchant-rc-browser-ci.sh'
+      - 'docs/engineering/merchant-rc-foundation.v1.json'
+      - 'tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts'
+      - 'tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts'
+      - 'src/components/merchant/**'
+      - 'src/modules/merchant/**'
+permissions:
+  contents: read
+concurrency:
+  group: merchant-rc-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  executed-first-value-campaign:
+    name: Executed First Value + Campaign (LOCAL/Mock)
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: visutry_merchant_rc
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U ci -d visutry_merchant_rc"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: 'true'
+      APP_ENV: local
+      NODE_ENV: test
+      TEST_MODE: 'true'
+      ENABLE_MOCKS: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+      SKIP_ENV_VALIDATION: '1'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/visutry_merchant_rc
+      DATABASE_URL_UNPOOLED: postgresql://ci:ci@127.0.0.1:5432/visutry_merchant_rc
+      DIRECT_URL: postgresql://ci:ci@127.0.0.1:5432/visutry_merchant_rc
+      VISUTRY_DATABASE_IDENTITY: local:127.0.0.1:5432/visutry_merchant_rc
+      NEXTAUTH_URL: http://127.0.0.1:3003
+      NEXTAUTH_SECRET: ci-only-ephemeral-merchant-rc-secret
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3003
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3003
+      STRIPE_MERCHANT_BILLING_MODE: test
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      VISUTRY_LOCAL_DEMO_PROVIDER_MODE: blocked
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Execute Merchant scenarios and verify ledger
+        shell: bash
+        run: bash scripts/merchant-rc-browser-ci.sh
+      - name: Upload ledger only (no browser cookies or logs)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: merchant-rc-ledger-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .local/merchant-rc/evidence/ledger.json
+          if-no-files-found: ignore
+          retention-days: 3

@@ -20,7 +20,11 @@ function normalPath(value) {
 function sameFile(actual, expected) {
   const a = normalPath(actual)
   const e = normalPath(expected)
-  return a === e || a.endsWith('/' + e)
+  // Playwright reports may prefix paths with testDir OR report them relative to
+  // tests/e2e. Never accept an empty or unrelated filename.
+  const reported = a.replace(/^tests\/e2e\//, '')
+  const expectedPath = e.replace(/^tests\/e2e\//, '')
+  return Boolean(a && e) && (a === e || a.endsWith('/' + e) || reported === expectedPath)
 }
 
 function gatherTests(suite, inheritedFile, collected) {
