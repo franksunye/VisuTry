@@ -2,7 +2,7 @@
 
 **Status:** Active operational authority
 **Owner:** Product / Engineering / Operations
-**Last reviewed:** 2026-10-01
+**Last reviewed:** 2026-10-10
 **Scope:** Canonical VisuTry-owned Demo identity, public URL, prepared-result
 parity, provider policy, Local/Production Demo operation, and the operational
 boundary for the productized Demo capability.
@@ -40,32 +40,34 @@ plan and does not inherit paid-plan lifecycle or billing-period expiry.
 Try-On entitlement is separate from permission to incur Provider cost: normal
 Demo operation does not imply an unrestricted or automatic Provider call.
 
-## Historical Discovery Canary
+## Independent Production Discovery Canary
 
-`VisuTry Demo` at slug `visutry-demo` is a separate historical Production
-Discovery Canary: `classification=REAL`, `pilotType=LIVE`, and
-`classificationSource=DISCOVERY_CANARY_2026-09-03`. It contains historical
-billing and shopper-session records. Its original record is documented in
-[`discovery-canary-2026-09-03.md`](./discovery-canary-2026-09-03.md). It is not
-the canonical sales or QA Demo tenant; it is retained for audit/history only.
+`VisuTry Demo` at slug `visutry-demo` is a distinct, publicly addressable
+first-party Production Discovery Canary: `classification=REAL`, `pilotType=LIVE`,
+and `classificationSource=DISCOVERY_CANARY_2026-09-03`. It contains
+historical billing and shopper-session records. Its original record is documented in
+[`discovery-canary-2026-09-03.md`](./discovery-canary-2026-09-03.md).
+Its public Store and Campaign resolve against its own Merchant/Experience identity;
+the Canary is **not** the canonical sales or QA Demo tenant.
 
 > **DO NOT USE `visutry-demo` AS THE SALES OR QA DEMO. DO NOT rewrite or delete
 > its billing or historical records. DO NOT provision new Demo workflows
-> against it.**
+> against it. Canary mutations require separately scoped authorization.**
 
 ## Canonical public routes
 
 - Canonical Store: `/{locale}/store/visutry-demo-optical`
-- Compatibility: exact `/{locale}/store/visutry-demo` redirects permanently to
-  `/{locale}/store/visutry-demo-optical`, preserving the locale and request
-  query parameters.
-- The redirect is a single known-slug rule. It is not a generic merchant alias
-  system. Other merchant Store routes are unchanged.
-- First-party Discover, LLM discovery, IndexNow, and Demo frame details point
-  to the canonical tenant. The dynamic sitemap omits the historical Canary
-  Store/Campaign paths; the canonical Store remains subject to the existing
-  public-discovery admission policy (this contract does not bypass that policy).
-  The Store compatibility redirect remains available to existing links.
+- Independent Canary Store: `/{locale}/store/visutry-demo`, resolving only to
+  the `VisuTry Demo` REAL Canary. It is **not** an alias for Demo Optical.
+- Both Store paths retain their Merchant identity across locales. Locale-less
+  paths may redirect to `/en/store/{merchantSlug}` without changing the slug;
+  no cross-merchant permanent Store redirect is permitted.
+- First-party Discover, LLM discovery, IndexNow, and Demo frame details continue
+  to use the dedicated canonical Demo Optical tenant for productized Demo journeys.
+  The dynamic sitemap considers **each** merchant's Store/Campaign independently
+  under the existing public-discovery admission/visibility policy; it must not
+  suppress the Canary solely because of its slug. This does not bypass indexing
+  policy for either tenant.
 - The existing `/demo/frames/{round,rectangle,oval,browline,aviator,cat-eye}`
   URLs remain stable but resolve their allowlisted SKUs from the canonical
   ten-frame Demo catalog. They link back to the canonical Demo Store; they do

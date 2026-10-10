@@ -102,8 +102,8 @@ describe('locale-less marketing redirects', () => {
     { path: '/en/brand/warby-parker', expected: null, note: 'localized brand' },
     { path: '/store', expected: '/en/store', note: 'locale-less store hub' },
     { path: '/en/store', expected: null, note: 'localized store hub' },
-    { path: `/en/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`, expected: `/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}`, note: 'exact historical Demo Store URL' },
-    { path: `/ja/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`, expected: `/ja/store/${VISUTRY_DEMO_MERCHANT_SLUG}`, note: 'preserves locale for the historical Demo Store URL' },
+    { path: `/en/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`, expected: null, note: 'Canary retains its own canonical Store URL' },
+    { path: `/ja/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`, expected: null, note: 'Canary retains its own localized Store URL' },
     { path: '/en/store/luna-optical', expected: null, note: 'localized merchant store' },
     { path: '/store/luna-optical', expected: '/en/store/luna-optical', note: 'locale-less merchant store' },
     { path: '/en/c/luna-optical/petite-fit', expected: null, note: 'localized campaign' },
@@ -135,16 +135,26 @@ describe('locale-less marketing redirects', () => {
     }
   })
 
-  it('keeps the Demo compatibility redirect exact and permanent', () => {
-    const rule = redirects.find(({ source }) => source === `/:locale/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`)
-    expect(rule).toEqual({
-      source: `/:locale/store/${VISUTRY_DEMO_HISTORICAL_CANARY_SLUG}`,
-      destination: `/:locale/store/${VISUTRY_DEMO_MERCHANT_SLUG}`,
-      permanent: true,
-    })
-    expect(followRedirects(`/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}`, redirects)).toEqual([`/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}`])
-    expect(followRedirects(`/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}-extra`, redirects)).toEqual([`/en/store/${VISUTRY_DEMO_MERCHANT_SLUG}-extra`])
+  it('never aliases one occupied Demo merchant slug into the other', () => {
+    // This previously regressed: a 308 redirected a REAL Canary into a
+    // different TEST merchant even though both slugs existed in Production.
+    expect(VISUTRY_DEMO_HISTORICAL_CANARY_SLUG).toBe('visutry-demo')
+    expect(VISUTRY_DEMO_MERCHANT_SLUG).toBe('visutry-demo-optical')
+
+    for (const slug of [VISUTRY_DEMO_HISTORICAL_CANARY_SLUG, VISUTRY_DEMO_MERCHANT_SLUG]) {
+      for (const locale of ['en', 'ja']) {
+        const storePath = `/${locale}/store/${slug}`
+        expect(followRedirects(storePath, redirects)).toEqual([storePath])
+      }
+      expect(followRedirects(`/store/${slug}`, redirects)).toEqual([
+        `/store/${slug}`,
+        `/en/store/${slug}`,
+      ])
+    }
+    expect(followRedirects('/en/c/visutry-demo/everyday-fit', redirects))
+      .toEqual(['/en/c/visutry-demo/everyday-fit'])
   })
+
 })
 
 describe('middleware matcher vs redirects', () => {
