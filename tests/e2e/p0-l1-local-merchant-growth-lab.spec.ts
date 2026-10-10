@@ -159,7 +159,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByText('Your first product is in the Catalog.', { exact: true })).toBeVisible()
     await expect(page.getByTestId('merchant-activation-checklist').getByRole('link', { name: 'Create your Store' })).toBeVisible()
 
-    await expect(page.getByRole('heading', { name: 'Create your Store' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Create your Store', exact: true })).toBeVisible()
     await expect(page.locator('#catalog').getByRole('link', { name: 'Create your Store' })).toBeVisible()
     await expect(page.getByText('Add Store details (optional)')).toBeVisible({ timeout: 45_000 })
     await page.locator('#store').getByRole('button', { name: 'Create your Store' }).click()
