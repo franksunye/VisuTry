@@ -62,7 +62,7 @@ SMOKE_BASE_URL=https://www.visutry.com npm run test:smoke:production
 Automation:
 
 - `.github/workflows/production-smoke.yml`: after `main` pushes, every 6 hours, and manually
-- `.github/workflows/e2e-smoke.yml`: scheduled/manual Chromium smoke + critical route checks
+- `.github/workflows/e2e-smoke.yml`: **manual dispatch only** (not scheduled) Chromium smoke + critical route checks
 
 ## Lifecycle E2E Policy
 
