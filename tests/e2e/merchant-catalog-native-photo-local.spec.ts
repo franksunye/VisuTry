@@ -57,9 +57,16 @@ test('chooses local photo, simulates Blob staging, then inspects and approves in
   await context.addCookies((await request.storageState()).cookies)
   await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
   await expect(page.getByRole('heading', { name: /set up visutry for your business/i })).toBeVisible()
+  // Next dev hydration timing varies after two prior local browser journeys.
+  await page.waitForLoadState('networkidle')
   await page.getByLabel(/business, brand, or store name/i).fill('Local Native Photo QA Merchant')
+  const createResponsePromise = page.waitForResponse((response) =>
+    response.url().includes('/api/merchant/workspaces')
+    && response.request().method() === 'POST', { timeout: 45_000 })
   await page.getByRole('button', { name: /create merchant workspace/i }).click()
-  await expect(page.locator('[data-onboarding-state="created"]')).toContainText('Workspace created')
+  const createResponse = await createResponsePromise
+  expect(createResponse.status(), 'Real LOCAL Merchant workspace API creation').toBe(200)
+  await expect(page.locator('[data-onboarding-state="created"]')).toContainText('Workspace created', { timeout: 45_000 })
   merchantId = await page.getByLabel('Active merchant').inputValue()
   expect(merchantId).toMatch(/^[A-Za-z0-9_-]+$/)
 
