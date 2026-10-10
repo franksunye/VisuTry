@@ -157,11 +157,12 @@ function emptyInput(item: CatalogItem): ManualRow {
   };
 }
 
-export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalogChanged, showResourceList = true }: { merchantId: string; initialTotal: number; onCatalogChanged?: (state: { hasAny: boolean; hasReady: boolean }) => void; showResourceList?: boolean }) {
-  // Manual entry is the shortest guaranteed first-success path for an empty
-  // catalog. Existing catalogs keep the URL-first import default.
-  const [sourceType, setSourceType] = useState<SourceType>(initialTotal === 0 ? "manual" : "url");
-  const [url, setUrl] = useState("");
+export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWebsiteUrl, onCatalogChanged, showResourceList = true }: { merchantId: string; initialTotal: number; initialWebsiteUrl?: string | null; onCatalogChanged?: (state: { hasAny: boolean; hasReady: boolean }) => void; showResourceList?: boolean }) {
+  // A signup website is a suggestion for explicit inspection, NOT imported data.
+  // Without a saved URL, keep the existing short manual first-product path.
+  const suggestedWebsiteUrl = initialWebsiteUrl?.trim() ?? "";
+  const [sourceType, setSourceType] = useState<SourceType>(initialTotal === 0 && !suggestedWebsiteUrl ? "manual" : "url");
+  const [url, setUrl] = useState(suggestedWebsiteUrl);
   const [file, setFile] = useState<File | null>(null);
   const [manualRows, setManualRows] = useState<ManualRow[]>([emptyManualRow()]);
   const [proposal, setProposal] = useState<Proposal | null>(null);
@@ -328,7 +329,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Catalog</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Add your eyewear catalog</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">URL First means you usually only need your store URL. We inspect product facts progressively, show a reviewable preview, and write nothing until you approve.</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Choose your store or product URL, upload a CSV, or add one product manually. We inspect and show a review first; nothing is saved until you approve.</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-right text-xs text-slate-600"><span className="font-semibold text-slate-900">Catalog</span> {catalogItems.length || initialTotal} loaded{catalogCursor ? "+" : ""}</div>
       </div>
@@ -348,6 +349,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
         {sourceType === "url" ? <>
           <label htmlFor="merchant-catalog-url" className="text-sm font-semibold text-slate-800">Store or product URL</label>
           <input id="merchant-catalog-url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://your-store.example" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
+          {suggestedWebsiteUrl && initialTotal === 0 ? <p className="mt-2 text-xs leading-5 text-blue-800">Suggested from your Workspace website. It has not been inspected or imported yet.</p> : null}
           <p className="mt-2 text-xs leading-5 text-slate-500">We try Shopify, structured ecommerce data, sitemap links, standard product pages, and browser rendering when available. Optional SKU and shape enrichment never block a valid product from the catalog.</p>
         </> : null}
         {sourceType === "csv" ? <>
@@ -378,8 +380,8 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
           <button type="button" onClick={() => setManualRows((rows) => [...rows, emptyManualRow()])} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><Plus className="h-4 w-4" aria-hidden="true" />Add another product</button>
           {!manualReady ? <p className="text-xs leading-5 text-slate-500">Add a product name, image URL, and either a merchant SKU or product page URL to continue.</p> : null}
         </div> : null}
-        {error ? <p className="mt-3 text-sm text-red-700" role="alert">{error}</p> : null}
-        <button type="button" onClick={() => void inspect()} disabled={busy || (sourceType === "manual" && !manualReady)} className={`${buttonClass} mt-4 w-full bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:opacity-100`}>
+        {error ? <div className="mt-3 space-y-2" role="alert"><p className="text-sm text-red-700">{error}</p>{sourceType === "url" ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); setProposal(null); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Use a CSV instead</button><button type="button" onClick={() => { setSourceType("manual"); setProposal(null); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Add one product manually</button></div> : null}</div> : null}
+        <button type="button" onClick={() => void inspect() disabled={busy || (sourceType === "manual" && !manualReady)} className={`${buttonClass} mt-4 w-full bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:opacity-100`}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-4 w-4" aria-hidden="true" />}
           {busy ? "Checking product…" : sourceType === "manual" ? "Review product" : "Inspect and preview"}
         </button>
@@ -399,6 +401,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
             ["Over limit", proposal.catalogCapacity.overLimit.toLocaleString()],
           ].map(([label, value]) => <div key={label} className="rounded-lg border border-white/90 bg-white/80 px-3 py-2"><dt className="text-[11px] font-medium text-slate-500">{label}</dt><dd className={`mt-0.5 text-sm font-semibold ${label === "Over limit" && capacityBlocked ? "text-red-700" : "text-slate-950"}`}>{value}</dd></div>)}
         </dl>
+        {proposal.importReady.length === 0 && !capacityBlocked && proposal.sourceSummary.sourceIssues.length === 0 ? <div role="status" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="font-semibold">No importable products were found. Nothing was saved.</p><p className="mt-1 text-xs">Try a direct product page URL, or use one of the other ways to add products.</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); setProposal(null); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900`}>Upload CSV</button><button type="button" onClick={() => { setSourceType("manual"); setProposal(null); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900`}>Add manually</button></div></div> : null}
         {capacityBlocked ? <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-3 text-sm text-amber-950" role="alert"><p className="font-semibold">Remove or revise at least {proposal.catalogCapacity.overLimit} new product{proposal.catalogCapacity.overLimit === 1 ? "" : "s"}, then inspect again.</p><p className="mt-1 text-xs leading-5">No products have been added. We won’t import a partial batch.</p></div> : null}
         {proposal.sourceSummary.sourceIssues.length > 0 ? <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900"><p className="font-semibold">Some source data needs attention</p><ul className="mt-1 list-disc space-y-1 pl-5 text-xs">{proposal.sourceSummary.sourceIssues.slice(0, 5).map((item, index) => <li key={`${item.code}-${index}`}>{item.message}</li>)}</ul><p className="mt-2 text-xs font-semibold">{capacityBlocked ? "Resolve source issues and reduce the proposal, then inspect again; imports are all-or-nothing." : "You can still import the valid subset. If this is a JavaScript-heavy store, switch to one of the fallback paths:"}</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); setProposal(null); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}><FileUp className="h-4 w-4" aria-hidden="true" />Upload CSV</button><button type="button" onClick={() => { setSourceType("manual"); setProposal(null); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}><Plus className="h-4 w-4" aria-hidden="true" />Add manually</button></div></div> : null}
         <div className="mt-4 grid gap-2">{proposal.candidates.map((candidate, index) => <article key={`${candidate.identity?.value ?? "row"}-${index}`} className="rounded-xl border border-white bg-white p-3"><div className="flex items-start gap-3"><div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">{candidate.imageUrl ? <img src={candidate.imageUrl} alt="" className="h-full w-full object-cover" /> : null}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h4 className="truncate text-sm font-semibold text-slate-950">{candidate.name || "Unnamed product"}</h4><span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${readinessClass(candidate.readiness)}`}>{readinessLabel(candidate.readiness)}</span>{candidate.dedupeStatus !== "NEW" ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">Already in catalog</span> : null}</div><p className="mt-1 text-xs text-slate-500">{identityLabel(candidate)}{candidate.brand ? ` · ${candidate.brand}` : ""}{candidate.shape ? ` · ${candidate.shape}` : ""}{priceLabel(candidate.price, candidate.currency) ? ` · ${priceLabel(candidate.price, candidate.currency)}` : ""}</p>{candidate.issues.length > 0 ? <p className="mt-1 text-xs text-amber-800">{candidate.issues.map(friendlyIssue).join(" · ")}</p> : null}{candidate.recommendationIssues.length > 0 ? <p className="mt-1 text-xs text-slate-500">Recommendation enrichment: {candidate.recommendationIssues.map(friendlyIssue).join(" · ")}</p> : null}</div></div></article>)}</div>
