@@ -226,6 +226,8 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
 
   function updateManualRow(index: number, key: keyof ManualRow, value: string) {
     setManualRows((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: value } : row));
+    // A previously approved-looking inspection is stale after any edit.
+    setProposal(null);
   }
 
   async function inspect() {
@@ -362,14 +364,14 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
         {sourceType === "manual" ? <div className="space-y-3">
           <p className="text-sm leading-6 text-slate-600">For your first product, add a name, a usable image, and either a merchant SKU or product page URL. Shape and other details can be added later.</p>
           {manualRows.map((row, index) => <div key={row.clientKey ?? index} className="rounded-lg border border-slate-200 bg-white p-3">
-            <div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Product {index + 1}</span>{manualRows.length > 1 ? <button type="button" aria-label={`Remove product ${index + 1}`} onClick={() => setManualRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index))} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" aria-hidden="true" /></button> : null}</div>
+            <div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Product {index + 1}</span>{manualRows.length > 1 ? <button type="button" aria-label={`Remove product ${index + 1}`} onClick={() => { setManualRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index)); setProposal(null); }} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" aria-hidden="true" /></button> : null}</div>
             <div className="grid gap-3 sm:grid-cols-2">
               {manualFieldMeta.slice(0, 4).map(({ key, label, placeholder, required }) => <label key={key} className="block text-sm font-medium text-slate-700">
                 {label}{required ? " *" : ""}
                 <input aria-label={`${label} for product ${index + 1}`} required={required} value={row[key]} onChange={(event) => updateManualRow(index, key, event.target.value)} placeholder={placeholder} type={key === "price" ? "number" : key.endsWith("Url") ? "url" : "text"} maxLength={maxLengthForField(key)} step={key === "price" ? "0.01" : undefined} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
               </label>)}
             </div>
-            <MerchantCatalogImageUpload merchantId={merchantId} onUploaded={(imageUrl) => setManualRows((rows) => rows.map((entry) => entry.clientKey === row.clientKey ? { ...entry, imageUrl } : entry))} />
+            <MerchantCatalogImageUpload merchantId={merchantId} onUploaded={(imageUrl) => { setManualRows((rows) => rows.map((entry) => entry.clientKey === row.clientKey ? { ...entry, imageUrl } : entry)); setProposal(null); }} />
             <details className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
               <summary className="cursor-pointer text-sm font-semibold text-slate-700">Optional product details</summary>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -380,7 +382,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
               </div>
             </details>
           </div>)}
-          <button type="button" onClick={() => setManualRows((rows) => [...rows, emptyManualRow()])} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><Plus className="h-4 w-4" aria-hidden="true" />Add another product</button>
+          <button type="button" onClick={() => { setManualRows((rows) => [...rows, emptyManualRow()]); setProposal(null); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><Plus className="h-4 w-4" aria-hidden="true" />Add another product</button>
           {!manualReady ? <p className="text-xs leading-5 text-slate-500">Add a product name, an uploaded photo or image URL, and either a merchant SKU or product page URL to continue.</p> : null}
         </div> : null}
         {error ? <div className="mt-3 space-y-2" role="alert"><p className="text-sm text-red-700">{error}</p>{sourceType === "url" ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); setProposal(null); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Use a CSV instead</button><button type="button" onClick={() => { setSourceType("manual"); setProposal(null); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Add one product manually</button></div> : null}</div> : null}

@@ -30,6 +30,7 @@ import type { DecisionJourneyPolicy } from '@/modules/store/domain/decision-jour
 import type { ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 import { resolveMerchantCatalogPresentation, type MerchantCatalogPresentationState } from '../domain/merchant-catalog-presentation'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
+import { parseCatalogProductMediaUrl } from '../domain/merchant-catalog-media'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
 // select the full catalog; the bounded API payload is aligned with catalog
@@ -91,6 +92,21 @@ export function validateCatalogFrame(frame: FrameForValidation) {
 export function validateMerchantCatalogImportFrame(frame: Pick<FrameForValidation, 'sku' | 'name' | 'imageUrl' | 'productUrl' | 'externalId' | 'source'>) {
   const readiness = validateMerchantFrameReadiness(frame)
   return { valid: readiness.importReady, issues: readiness.importIssues }
+}
+
+/**
+ * A tenant-owned staged product photo can only be attached to its owner.
+ * Ordinary independent merchant image URLs remain accepted as before.
+ */
+function assertCatalogProductImageOwner(imageUrl: string | null | undefined, merchantId: string) {
+  if (!imageUrl) return
+  let parsed: URL
+  try { parsed = new URL(imageUrl) } catch { return }
+  if (!parsed.pathname.startsWith('/merchant-catalog/')) return
+  const owned = parseCatalogProductMediaUrl(imageUrl)
+  if (!owned || owned.merchantId !== merchantId) {
+    throw new MerchantOnboardingError('INVALID_CATALOG', 'This uploaded product image belongs to a different merchant.')
+  }
 }
 
 function normalizeFrameInput(frame: CatalogFrameInput): Required<Pick<CatalogFrameInput, 'sku' | 'name' | 'shape'>> & CatalogFrameInput {
@@ -237,6 +253,7 @@ export async function updateMerchantFrame(input: { actor: MerchantActorContext; 
       currentStatus: existing.enrichmentStatus,
     }),
   })
+  assertCatalogProductImageOwner(normalized.imageUrl, input.actor.merchantId)
   const duplicate = await prisma.merchantFrame.findFirst({
     where: { merchantId: input.actor.merchantId, id: { not: input.frameId }, OR: identityFilters(normalized) },
     select: { id: true },
@@ -302,6 +319,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     throw new MerchantOnboardingError('INVALID_CATALOG', `frames must contain between 1 and ${MAX_CATALOG_IMPORT} items.`)
   }
   const normalized = input.frames.map(normalizeFrameInput)
+  normalized.forEach((frame) => assertCatalogProductImageOwner(frame.imageUrl, input.actor.merchantId))
   const identities = new Set<string>()
   for (const frame of normalized) {
     const identity = frame.sku
