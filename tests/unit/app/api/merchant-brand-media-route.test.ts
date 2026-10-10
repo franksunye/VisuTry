@@ -213,9 +213,14 @@ describe('POST /api/merchant/[merchantId]/brand/media with mocked Blob and trans
       await mutation()
       throw new Error('post-commit purge failed')
     })
-    ;(prisma.merchant.findUnique as jest.Mock).mockImplementationOnce(async () => ({ ...merchantRow }))
+    // Upload preflight + updateMerchantBrand each read the profile before put.
+    // Only the third read is the post-commit compensation check.
+    ;(prisma.merchant.findUnique as jest.Mock)
+      .mockImplementationOnce(async () => ({ ...merchantRow }))
+      .mockImplementationOnce(async () => ({ ...merchantRow }))
       .mockImplementationOnce(async () => { throw new Error('readback unavailable') })
     const response = await POST(uploadRequest({ kind: 'logo' }), { params: { merchantId } })
+    expect(put).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(503)
     expect(await response.json()).toMatchObject({ error: 'BRAND_PERSISTENCE_UNCONFIRMED', persisted: false })
     expect(del).not.toHaveBeenCalled()
