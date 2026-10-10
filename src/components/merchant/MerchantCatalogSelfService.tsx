@@ -381,7 +381,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
           {!manualReady ? <p className="text-xs leading-5 text-slate-500">Add a product name, image URL, and either a merchant SKU or product page URL to continue.</p> : null}
         </div> : null}
         {error ? <div className="mt-3 space-y-2" role="alert"><p className="text-sm text-red-700">{error}</p>{sourceType === "url" ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); setProposal(null); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Use a CSV instead</button><button type="button" onClick={() => { setSourceType("manual"); setProposal(null); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Add one product manually</button></div> : null}</div> : null}
-        <button type="button" onClick={() => void inspect() disabled={busy || (sourceType === "manual" && !manualReady)} className={`${buttonClass} mt-4 w-full bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:opacity-100`}>
+        <button type="button" onClick={() => void inspect()} disabled={busy || (sourceType === "manual" && !manualReady)} className={`${buttonClass} mt-4 w-full bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:opacity-100`}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-4 w-4" aria-hidden="true" />}
           {busy ? "Checking product…" : sourceType === "manual" ? "Review product" : "Inspect and preview"}
         </button>
