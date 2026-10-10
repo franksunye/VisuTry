@@ -51,6 +51,9 @@ jobs:
       STRIPE_MERCHANT_BILLING_MODE: test
       STRIPE_SECRET_KEY: sk_test_ci_placeholder
       VISUTRY_LOCAL_DEMO_PROVIDER_MODE: blocked
+      VISUTRY_LOCAL_DEMO_RUNTIME: '1'
+      P1_M5_LOCAL_DECISION_RESULT_E2E: '1'
+      P1_M6_LOCAL_KIOSK_E2E: '1'
     steps:
       - name: Checkout exact revision
         uses: actions/checkout@v4

@@ -75,3 +75,25 @@ test('missing/malformed report, manifest and provenance fail closed', () => {
   assert.throws(() => buildMerchantScenarioLedger({ manifest, reports: [report()], evidence: { ...evidence, reportedExternalCostUsd: NaN } }), /Exact SHA/)
   assert.throws(() => buildMerchantScenarioLedger({ manifest: { ...manifest, required: [manifest.required[0], manifest.required[0]] }, reports: [report()], evidence }), /duplicate required/)
 })
+
+test('dedicated original Kiosk manifest uses the same strict one-attempt gate', () => {
+  const kioskManifest = {
+    ...manifest,
+    gate: 'G1-F-KIOSK-PRIVACY-EXECUTED',
+  }
+  const passed = buildMerchantScenarioLedger({
+    manifest: kioskManifest, reports: [report()], evidence,
+  })
+  assert.equal(passed.result, 'PASS')
+  assert.equal(passed.requiredCount, 1)
+  assert.equal(passed.scenarios[0].attempts, 1)
+  const skip = buildMerchantScenarioLedger({
+    manifest: kioskManifest, reports: [report('skipped', [])], evidence,
+  })
+  assert.equal(skip.result, 'BLOCKED')
+  assert.equal(skip.scenarios[0].status, 'SKIPPED')
+  assert.throws(() => buildMerchantScenarioLedger({
+    manifest: { ...kioskManifest, gate: 'G4-COMMERCIAL-READY' },
+    reports: [report()], evidence,
+  }), /manifest/)
+})
