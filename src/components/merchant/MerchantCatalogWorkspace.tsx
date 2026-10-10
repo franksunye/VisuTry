@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { AlertCircle, Boxes, CheckCircle2, ChevronDown, Edit3, FilePlus2, Loader2, Search, Save, Sparkles, X, type LucideIcon } from "lucide-react";
 import { MerchantCatalogSelfService } from "@/components/merchant/MerchantCatalogSelfService";
+import { MerchantCatalogImageUpload } from "@/components/merchant/MerchantCatalogImageUpload";
 
 type PresentationState = "READY" | "NEEDS_REVIEW" | "NEEDS_ATTENTION";
 type CatalogItem = {
@@ -65,6 +66,8 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
   const [saveError, setSaveError] = useState<string | null>(null);
   const cursorRef = useRef<string | null>(null);
   const focusedFrameRef = useRef<HTMLElement | null>(null);
+  const editingIdRef = useRef<string | null>(null);
+  editingIdRef.current = editing?.id ?? null;
 
   const load = useCallback(async ({ append = false, query = "", readiness = "all" }: { append?: boolean; query?: string; readiness?: Filter } = {}) => {
     const requestFocusId = !append && !query && readiness === "all" ? initialFrameId : undefined;
@@ -229,7 +232,7 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
         <div className="col-span-full border-t border-slate-100 pt-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-semibold text-slate-700">Product name<input value={edit.name} onChange={(event) => setEdit({ ...edit, name: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal" /></label>
-            <label className="text-xs font-semibold text-slate-700">Image URL<input value={edit.imageUrl} onChange={(event) => setEdit({ ...edit, imageUrl: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal" /></label>
+            <div className="text-xs font-semibold text-slate-700">Image URL<input aria-label="Product image URL" value={edit.imageUrl} onChange={(event) => setEdit({ ...edit, imageUrl: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal" /><MerchantCatalogImageUpload merchantId={merchantId} disabled={saving} onUploaded={(imageUrl) => { if (editingIdRef.current === item.id) setEdit((current) => current ? { ...current, imageUrl } : current); }} /></div>
             <label className="text-xs font-semibold text-slate-700">Merchant SKU <span className="font-normal text-slate-500">optional</span><input value={edit.sku} onChange={(event) => setEdit({ ...edit, sku: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal" /></label>
             <label className="text-xs font-semibold text-slate-700">Product URL <span className="font-normal text-slate-500">optional if identity exists</span><input value={edit.productUrl} onChange={(event) => setEdit({ ...edit, productUrl: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal" /></label>
             <label className="text-xs font-semibold text-slate-700">Frame shape<input value={edit.shape} onChange={(event) => setEdit({ ...edit, shape: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal" /></label>

@@ -6,6 +6,7 @@ import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
 import { recordMerchantActivationClientEvent } from "@/lib/merchant-activation-client";
 import type { MerchantCatalogCapacity } from "@/modules/merchant/domain/merchant-catalog-capacity";
+import { MerchantCatalogImageUpload } from "@/components/merchant/MerchantCatalogImageUpload";
 
 type SourceType = "url" | "csv" | "manual";
 type Candidate = {
@@ -78,7 +79,7 @@ type CatalogItem = {
   validation: { valid: boolean; importReady?: boolean; recommendationReady?: boolean; issues: string[]; warnings: string[] };
   presentation?: { state: "READY" | "NEEDS_REVIEW" | "NEEDS_ATTENTION"; label: string; issueSummary: string | null };
 };
-type ManualRow = { sku: string; name: string; shape: string; imageUrl: string; brand: string; price: string; productUrl: string };
+type ManualRow = { clientKey?: number; sku: string; name: string; shape: string; imageUrl: string; brand: string; price: string; productUrl: string };
 
 const manualFieldMeta: Array<{ key: keyof ManualRow; label: string; placeholder: string; required?: boolean }> = [
   { key: "name", label: "Product name", placeholder: "e.g. North Star Round", required: true },
@@ -91,7 +92,8 @@ const manualFieldMeta: Array<{ key: keyof ManualRow; label: string; placeholder:
 ];
 
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
-const emptyManualRow = (): ManualRow => ({ sku: "", name: "", shape: "", imageUrl: "", brand: "", price: "", productUrl: "" });
+let manualRowSequence = 0;
+const emptyManualRow = (): ManualRow => ({ clientKey: ++manualRowSequence, sku: "", name: "", shape: "", imageUrl: "", brand: "", price: "", productUrl: "" });
 function maxLengthForField(key: keyof ManualRow) {
   if (key === "sku") return 120;
   if (key === "name") return 240;
@@ -329,7 +331,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Catalog</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Add your eyewear catalog</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Choose your store or product URL, upload a CSV, or add one product manually. We inspect and show a review first; nothing is saved until you approve.</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Choose your store or product URL, upload a CSV, or add one product manually. Product records are saved only after review and approval; uploading a photo creates public image storage immediately.</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-right text-xs text-slate-600"><span className="font-semibold text-slate-900">Catalog</span> {catalogItems.length || initialTotal} loaded{catalogCursor ? "+" : ""}</div>
       </div>
@@ -359,7 +361,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
         </> : null}
         {sourceType === "manual" ? <div className="space-y-3">
           <p className="text-sm leading-6 text-slate-600">For your first product, add a name, a usable image, and either a merchant SKU or product page URL. Shape and other details can be added later.</p>
-          {manualRows.map((row, index) => <div key={index} className="rounded-lg border border-slate-200 bg-white p-3">
+          {manualRows.map((row, index) => <div key={row.clientKey ?? index} className="rounded-lg border border-slate-200 bg-white p-3">
             <div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Product {index + 1}</span>{manualRows.length > 1 ? <button type="button" aria-label={`Remove product ${index + 1}`} onClick={() => setManualRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index))} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" aria-hidden="true" /></button> : null}</div>
             <div className="grid gap-3 sm:grid-cols-2">
               {manualFieldMeta.slice(0, 4).map(({ key, label, placeholder, required }) => <label key={key} className="block text-sm font-medium text-slate-700">
@@ -367,6 +369,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
                 <input aria-label={`${label} for product ${index + 1}`} required={required} value={row[key]} onChange={(event) => updateManualRow(index, key, event.target.value)} placeholder={placeholder} type={key === "price" ? "number" : key.endsWith("Url") ? "url" : "text"} maxLength={maxLengthForField(key)} step={key === "price" ? "0.01" : undefined} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
               </label>)}
             </div>
+            <MerchantCatalogImageUpload merchantId={merchantId} onUploaded={(imageUrl) => setManualRows((rows) => rows.map((entry) => entry.clientKey === row.clientKey ? { ...entry, imageUrl } : entry))} />
             <details className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
               <summary className="cursor-pointer text-sm font-semibold text-slate-700">Optional product details</summary>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -378,7 +381,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
             </details>
           </div>)}
           <button type="button" onClick={() => setManualRows((rows) => [...rows, emptyManualRow()])} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><Plus className="h-4 w-4" aria-hidden="true" />Add another product</button>
-          {!manualReady ? <p className="text-xs leading-5 text-slate-500">Add a product name, image URL, and either a merchant SKU or product page URL to continue.</p> : null}
+          {!manualReady ? <p className="text-xs leading-5 text-slate-500">Add a product name, an uploaded photo or image URL, and either a merchant SKU or product page URL to continue.</p> : null}
         </div> : null}
         {error ? <div className="mt-3 space-y-2" role="alert"><p className="text-sm text-red-700">{error}</p>{sourceType === "url" ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); setProposal(null); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Use a CSV instead</button><button type="button" onClick={() => { setSourceType("manual"); setProposal(null); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Add one product manually</button></div> : null}</div> : null}
         <button type="button" onClick={() => void inspect()} disabled={busy || (sourceType === "manual" && !manualReady)} className={`${buttonClass} mt-4 w-full bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:opacity-100`}>
