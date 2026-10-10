@@ -76,6 +76,23 @@ describe('bounded merchant source network', () => {
     }), expect.any(Function))
   })
 
+  it.each([
+    [401, 'SOURCE_ACCESS_DENIED'],
+    [403, 'SOURCE_ACCESS_DENIED'],
+    [429, 'SOURCE_RATE_LIMITED'],
+    [404, 'SOURCE_UNREACHABLE'],
+  ] as const)('classifies public source HTTP %i without changing origin protections', async (status, code) => {
+    mockLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }])
+    const result = response(status)
+    const request = requestFor(result)
+    mockHttpsRequest.mockImplementation((_options: unknown, callback: (value: typeof result.value) => void) => {
+      process.nextTick(() => callback(result.value))
+      return request
+    })
+    await expect(fetchMerchantSourceDocument('https://catalog.example.test/products/a')).rejects.toMatchObject({ code })
+    expect(mockHttpsRequest).toHaveBeenCalledTimes(1)
+  })
+
   it('revalidates same-origin redirects and bounds redirect count', async () => {
     mockLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }])
     const first = response(302, '', { location: '/products/a' })
