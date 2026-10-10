@@ -41,6 +41,20 @@ describe('Merchant Brand Kit owner self-service', () => {
     expect(getFetch()).not.toHaveBeenCalled()
   })
 
+  it('keeps every palette label fully readable across narrow mobile and split desktop layouts', () => {
+    const { container } = render(<MerchantBrandKitSettings {...props} />)
+    const palette = container.querySelector('fieldset .grid')
+    expect(palette).toHaveClass('grid-cols-1', 'min-[360px]:grid-cols-2', 'xl:grid-cols-3')
+    expect(palette).not.toHaveClass('sm:grid-cols-3')
+    for (const name of ['Deep teal', 'Cobalt', 'Violet', 'Forest', 'Terracotta', 'Slate']) {
+      const label = screen.getByText(name)
+      expect(label).toHaveClass('min-w-0', 'break-words')
+      expect(label).not.toHaveClass('truncate')
+      expect(label.closest('label')).toHaveClass('min-w-0')
+      expect(screen.getByRole('radio', { name })).toBeInTheDocument()
+    }
+  })
+
   it('denies editing of brand identity to ADMIN from the UI', () => {
     render(<MerchantBrandKitSettings {...props} canEdit={false} />)
     expect(screen.getByRole('button', { name: 'Save color' })).toBeDisabled()

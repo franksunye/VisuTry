@@ -76,11 +76,11 @@ export function MerchantBrandKitSettings({
       <div className="min-w-0 space-y-5">
         <fieldset disabled={!canEdit || busy} className="min-w-0 space-y-3">
           <legend className="text-sm font-semibold text-slate-900">Brand color</legend>
-          <div className="grid min-w-0 grid-cols-[repeat(2,minmax(0,1fr))] gap-2 sm:grid-cols-[repeat(3,minmax(0,1fr))]">
+          <div className="grid min-w-0 grid-cols-1 gap-2 min-[360px]:grid-cols-2 xl:grid-cols-3">
             {MERCHANT_BRAND_PALETTE.map(option => <label key={option.hex} className={`flex min-h-12 min-w-0 cursor-pointer items-center gap-2 rounded-xl border p-2 text-sm ${accent === option.hex ? 'border-blue-600 ring-2 ring-blue-100' : 'border-slate-200'}`}>
               <input type="radio" name={`brand-accent-${merchantId}`} checked={accent === option.hex} onChange={() => setAccent(option.hex)} aria-label={option.name} />
               <span className="h-6 w-6 shrink-0 rounded-full border border-black/10" style={{ backgroundColor: option.hex }} aria-hidden="true" />
-              <span className="truncate">{option.name}</span>
+              <span className="min-w-0 break-words leading-5">{option.name}</span>
             </label>)}
           </div>
           <div className="flex flex-wrap gap-3">
