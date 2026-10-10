@@ -24,6 +24,8 @@ export async function POST(request: NextRequest, { params }: Context) {
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   let createdUrl: string | null = null
+  let uploadedKind: 'logo' | 'hero' | null = null
+  let uploadedExperienceId: string | null = null
   try {
     await requireMerchantMembership({ userId: auth.userId, merchantId: params.merchantId, roles: ['OWNER'] })
     const contentLength = Number(request.headers.get('content-length') ?? 0)
@@ -52,6 +54,8 @@ export async function POST(request: NextRequest, { params }: Context) {
     const image = inspectBrandImage(bytes, file.type, kind)
     const ext = image.mime === 'image/jpeg' ? 'jpg' : image.mime === 'image/png' ? 'png' : 'webp'
     const path = `${brandMediaPath(params.merchantId, kind, kind === 'hero' ? experienceId as string : undefined)}${randomUUID().replace(/-/g, '')}.${ext}`
+    uploadedKind = kind
+    uploadedExperienceId = kind === 'hero' ? experienceId as string : null
     const saved = await put(path, Buffer.from(bytes), { access: 'public', contentType: image.mime, addRandomSuffix: false })
     createdUrl = saved.url
     normalizeBrandMediaUrl(saved.url, params.merchantId, kind, kind === 'hero' ? experienceId as string : undefined)
@@ -60,10 +64,42 @@ export async function POST(request: NextRequest, { params }: Context) {
       : await updateMerchantExperienceHero({ userId: auth.userId, merchantId: params.merchantId, experienceId: experienceId as string, heroAssetUrl: saved.url, approvedLiveChange })
     return NextResponse.json({ success: true, data: { url: saved.url, width: image.width, height: image.height, result } }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
-    // A failed DB attach must not leak an orphaned *new* versioned blob.
-    if (createdUrl) {
-      try { await del(createdUrl) } catch (cleanupError) {
-        console.error('Merchant brand upload compensation failed', cleanupError)
+    if (createdUrl && uploadedKind) {
+      // An invalidation failure can happen AFTER the database transaction commits.
+      // Deleting a persisted image in that case would break the public experience.
+      // Delete only if a tenant-bound DB read proves the new URL was NOT attached.
+      let attached: boolean | null = null
+      try {
+        if (uploadedKind === 'logo') {
+          const current = await prisma.merchant.findUnique({
+            where: { id: params.merchantId }, select: { logoUrl: true },
+          })
+          attached = current?.logoUrl === createdUrl
+        } else if (uploadedExperienceId) {
+          const current = await prisma.experience.findFirst({
+            where: { id: uploadedExperienceId, merchantId: params.merchantId, type: { in: ['STORE', 'CAMPAIGN'] } },
+            select: { heroAssetUrl: true },
+          })
+          attached = current?.heroAssetUrl === createdUrl
+        }
+      } catch (readbackError) {
+        // A failed readback is UNKNOWN, not evidence that the write rolled back.
+        console.error('Merchant brand post-upload persistence readback failed', readbackError)
+      }
+      if (attached === false) {
+        try { await del(createdUrl) } catch (cleanupError) {
+          console.error('Merchant brand upload compensation failed', cleanupError)
+        }
+      } else {
+        console.error('Merchant brand upload persisted/uncertain; preserving Blob after post-upload failure', error)
+        return NextResponse.json({
+          success: false,
+          error: attached ? 'BRAND_CACHE_REFRESH_UNCONFIRMED' : 'BRAND_PERSISTENCE_UNCONFIRMED',
+          message: attached
+            ? 'Image saved, but the public refresh did not complete. Verify the shopper page before retrying.'
+            : 'Image persistence could not be verified. Contact support before retrying.',
+          persisted: attached === true,
+        }, { status: 503, headers: { 'Cache-Control': 'no-store' } })
       }
     }
     return errorResponse(error)

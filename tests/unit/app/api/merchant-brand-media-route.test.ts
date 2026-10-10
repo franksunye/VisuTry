@@ -33,6 +33,7 @@ import { requireAuth } from '@/lib/api-auth-runtime'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { prisma } from '@/lib/prisma'
 import { experienceCommands } from '@/modules/store/application/experience-command-service-prisma'
+import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { POST } from '@/app/api/merchant/[merchantId]/brand/media/route'
 
 const merchantId = 'merchant-a'
@@ -107,6 +108,7 @@ describe('POST /api/merchant/[merchantId]/brand/media with mocked Blob and trans
       url: `https://cdn.public.blob.vercel-storage.com/${pathname}`,
     }))
     ;(del as jest.Mock).mockResolvedValue(undefined)
+    ;(withPublicDiscoveryInvalidation as jest.Mock).mockImplementation(({ mutation }: { mutation: () => unknown }) => mutation())
   })
 
   it('mocks Logo upload, applies the saved URL through the Owner transaction, and returns it for readback', async () => {
@@ -177,6 +179,46 @@ describe('POST /api/merchant/[merchantId]/brand/media with mocked Blob and trans
     expect(del).toHaveBeenCalledTimes(1)
     expect(del).toHaveBeenCalledWith(expect.stringMatching(/^https:\/\/cdn\.public\.blob\.vercel-storage\.com\/merchant-brand\/merchant-a\/hero\/experience-store-a\//))
     expect(experienceRow?.heroAssetUrl).toBeNull()
+  })
+
+  it('preserves an attached Logo when cache invalidation fails after committed database write', async () => {
+    ;(withPublicDiscoveryInvalidation as jest.Mock).mockImplementationOnce(async ({ mutation }) => {
+      await mutation()
+      throw new Error('simulated cache invalidation failure after commit')
+    })
+    const response = await POST(uploadRequest({ kind: 'logo' }), { params: { merchantId } })
+    expect(response.status).toBe(503)
+    expect(await response.json()).toMatchObject({ error: 'BRAND_CACHE_REFRESH_UNCONFIRMED', persisted: true })
+    expect(merchantRow.logoUrl).toEqual(expect.stringMatching(/\/merchant-brand\/merchant-a\/logo\//))
+    expect(del).not.toHaveBeenCalled()
+  })
+
+  it.each(['STORE', 'CAMPAIGN'] as const)('preserves an attached %s Hero when post-commit public invalidation fails', async type => {
+    experienceRow = { id: experienceId, type, status: 'DRAFT', heroAssetUrl: null }
+    ;(experienceCommands.updateSharedConfiguration as jest.Mock).mockImplementationOnce(async ({ patch, afterUpdate }) => {
+      const staged = { ...experienceRow!, ...patch }
+      if (afterUpdate) await afterUpdate({ experience: { findFirst: async () => ({ ...staged }) } })
+      experienceRow = staged
+      throw new Error('cache purge unavailable after Experience commit')
+    })
+    const response = await POST(uploadRequest({ kind: 'hero', experienceId }), { params: { merchantId } })
+    expect(response.status).toBe(503)
+    expect(await response.json()).toMatchObject({ error: 'BRAND_CACHE_REFRESH_UNCONFIRMED', persisted: true })
+    expect(experienceRow?.heroAssetUrl).toEqual(expect.stringMatching(/\/merchant-brand\/merchant-a\/hero\//))
+    expect(del).not.toHaveBeenCalled()
+  })
+
+  it('never deletes uploaded bytes when database readback fails after a commit error', async () => {
+    ;(withPublicDiscoveryInvalidation as jest.Mock).mockImplementationOnce(async ({ mutation }) => {
+      await mutation()
+      throw new Error('post-commit purge failed')
+    })
+    ;(prisma.merchant.findUnique as jest.Mock).mockImplementationOnce(async () => ({ ...merchantRow }))
+      .mockImplementationOnce(async () => { throw new Error('readback unavailable') })
+    const response = await POST(uploadRequest({ kind: 'logo' }), { params: { merchantId } })
+    expect(response.status).toBe(503)
+    expect(await response.json()).toMatchObject({ error: 'BRAND_PERSISTENCE_UNCONFIRMED', persisted: false })
+    expect(del).not.toHaveBeenCalled()
   })
 
   it('rejects a cross-tenant Experience before creating a Blob object', async () => {
