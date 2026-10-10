@@ -243,7 +243,7 @@ describe('POST /api/merchant/[merchantId]/brand/media with mocked Blob and trans
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({ success: true })
     expect(put).toHaveBeenCalledTimes(1)
-    expect(merchantRow.logoUrl).toEqual(expect.stringMatching(/\\/merchant-brand\\/merchant-a\\/logo\\//))
+    expect(merchantRow.logoUrl).toEqual(expect.stringContaining('/merchant-brand/merchant-a/logo/'))
   })
 
   it('rejects oversized streamed multipart bytes even with a dishonest Content-Length header', async () => {
