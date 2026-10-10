@@ -65,7 +65,7 @@ test('chooses local photo, simulates Blob staging, then inspects and approves in
     && response.request().method() === 'POST', { timeout: 45_000 })
   await page.getByRole('button', { name: /create merchant workspace/i }).click()
   const createResponse = await createResponsePromise
-  expect(createResponse.status(), 'Real LOCAL Merchant workspace API creation').toBe(200)
+  expect(createResponse.status(), 'Real LOCAL Merchant workspace API creation').toBe(201)
   await expect(page.locator('[data-onboarding-state="created"]')).toContainText('Workspace created', { timeout: 45_000 })
   merchantId = await page.getByLabel('Active merchant').inputValue()
   expect(merchantId).toMatch(/^[A-Za-z0-9_-]+$/)
