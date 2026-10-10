@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MerchantCatalogSelfService } from '@/components/merchant/MerchantCatalogSelfService'
 
 jest.mock('@/lib/analytics', () => ({ analytics: { trackCustomEvent: jest.fn() } }))
@@ -34,6 +34,14 @@ const emptyProposal = {
     recommendationReady: 0, needsReview: 0, invalid: 0, reasonDistribution: {}, sourceIssues: [],
   },
   candidates: [], importReady: [],
+}
+
+
+const importableProposal = {
+  ...emptyProposal,
+  catalogCapacity: { ...emptyProposal.catalogCapacity, proposedNew: 1 },
+  sourceSummary: { ...emptyProposal.sourceSummary, foundCount: 1, readyToImport: 1, importReady: 1 },
+  importReady: [{ sku: 'STALE-001', name: 'Old inspected frame', imageUrl: 'https://cdn.example.test/old.png', source: 'EXTERNAL' }],
 }
 
 describe('Merchant First Value source choice and recovery', () => {
@@ -86,4 +94,59 @@ describe('Merchant First Value source choice and recovery', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Upload CSV' }))
     expect(screen.getByRole('tab', { name: 'Upload CSV' })).toHaveAttribute('aria-selected', 'true')
   })
+
+  it('revokes an importable URL proposal immediately when the URL changes', async () => {
+    const fetchMock = mockCatalogAndInspect(importableProposal)
+    render(<MerchantCatalogSelfService merchantId="merchant-e" initialTotal={0}
+      initialWebsiteUrl="https://shop.example.test/old" showResourceList={false} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
+    expect(await screen.findByRole('button', { name: 'Approve and import 1' })).toBeEnabled()
+
+    fireEvent.change(screen.getByLabelText('Store or product URL'), { target: { value: 'https://shop.example.test/new' } })
+    expect(screen.queryByRole('button', { name: 'Approve and import 1' })).not.toBeInTheDocument()
+    expect(fetchMock.mock.calls.filter(([url, init]) =>
+      String(url) === '/api/merchant/merchant-e/catalog' && init?.method === 'POST')).toHaveLength(0)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      '/api/merchant/merchant-e/catalog/inspect',
+      expect.objectContaining({ body: JSON.stringify({ sourceType: 'url', sourceUrls: ['https://shop.example.test/new'] }) }),
+    ))
+  })
+
+  it('revokes an importable CSV proposal when a different CSV is selected', async () => {
+    const fetchMock = mockCatalogAndInspect(importableProposal)
+    render(<MerchantCatalogSelfService merchantId="merchant-f" initialTotal={0} showResourceList={false} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Upload CSV' }))
+    const input = screen.getByLabelText('Product CSV')
+    fireEvent.change(input, { target: { files: [new File(['sku,name\\nA,Old'], 'old.csv', { type: 'text/csv' })] } })
+    fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
+    expect(await screen.findByRole('button', { name: 'Approve and import 1' })).toBeEnabled()
+
+    fireEvent.change(input, { target: { files: [new File(['sku,name\\nB,New'], 'new.csv', { type: 'text/csv' })] } })
+    expect(screen.queryByRole('button', { name: 'Approve and import 1' })).not.toBeInTheDocument()
+    expect(fetchMock.mock.calls.filter(([url, init]) =>
+      String(url) === '/api/merchant/merchant-f/catalog' && init?.method === 'POST')).toHaveLength(0)
+  })
+
+  it('discards an in-flight inspection response after its source is edited', async () => {
+    let resolveInspect: ((value: Response) => void) | undefined
+    const fetchMock = jest.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).endsWith('/catalog/inspect') && init?.method === 'POST') {
+        return new Promise<Response>((resolve) => { resolveInspect = resolve })
+      }
+      return Promise.resolve(response({ items: [], nextCursor: null }))
+    })
+    global.fetch = fetchMock as typeof fetch
+    render(<MerchantCatalogSelfService merchantId="merchant-g" initialTotal={0}
+      initialWebsiteUrl="https://shop.example.test/old" showResourceList={false} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
+    await waitFor(() => expect(resolveInspect).toBeDefined())
+    fireEvent.change(screen.getByLabelText('Store or product URL'), { target: { value: 'https://shop.example.test/new' } })
+    await act(async () => { resolveInspect?.(response(importableProposal)) })
+    expect(screen.queryByRole('button', { name: 'Approve and import 1' })).not.toBeInTheDocument()
+    expect(fetchMock.mock.calls.filter(([url, init]) =>
+      String(url) === '/api/merchant/merchant-g/catalog' && init?.method === 'POST')).toHaveLength(0)
+  })
+
 })
