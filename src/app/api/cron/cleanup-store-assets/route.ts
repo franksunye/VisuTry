@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
+import { cleanupOrphanMerchantCatalogImages } from '@/modules/merchant/application/merchant-catalog-media-cleanup'
 import {
   cleanupExpiredStoreAssets,
   cleanupStoreOrphanBlobs,
@@ -15,7 +16,7 @@ export const maxDuration = 300
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     logger.warn('api', 'Unauthorized cron access attempt', {
       endpoint: 'cleanup-store-assets',
     })
@@ -32,8 +33,9 @@ export async function GET(request: NextRequest) {
       maxRounds: 5,
     })
     const orphans = await cleanupStoreOrphanBlobs({ now, limit: 100 })
+    const merchantCatalogImages = await cleanupOrphanMerchantCatalogImages({ now, maxDeletes: 50 })
 
-    const results = { assets, orphans }
+    const results = { assets, orphans, merchantCatalogImages }
     logger.info('api', 'Cleanup store assets cron completed', results)
 
     return NextResponse.json({

@@ -53,7 +53,7 @@ export function normalizeBrandMediaUrl(value: unknown, merchantId: string, kind:
 }
 
 /** Reject remote media, animated WebP and non-image polyglots before public upload. */
-export function inspectBrandImage(bytes: Uint8Array, claimedMime: string, kind: 'logo' | 'hero'): { mime: string; width: number; height: number } {
+export function inspectBrandImage(bytes: Uint8Array, claimedMime: string, kind: 'logo' | 'hero' | 'product'): { mime: string; width: number; height: number } {
   const invalid = () => { throw new BrandKitError('INVALID_BRAND_UPLOAD', 'Use a valid PNG, JPEG or non-animated WebP image within the limits.') }
   if (bytes.length < 30 || bytes.length > 4 * 1024 * 1024) return invalid()
   const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
