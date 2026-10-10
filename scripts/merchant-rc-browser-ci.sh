@@ -8,7 +8,14 @@ SITE="http://127.0.0.1:3003"
 EXPECTED="LOCAL|local:127.0.0.1:5432/visutry_merchant_rc"
 mkdir -p "$OUT"
 pid=""
-cleanup() { if [[ -n "$pid" ]]; then kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; fi; }
+stop_server() {
+  if [[ -n "$pid" ]]; then
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+    pid=""
+  fi
+}
+cleanup() { stop_server; }
 trap cleanup EXIT
 [[ "${CI:-}" == true && "${APP_ENV:-}" == local && "${NODE_ENV:-}" == test ]] || exit 1
 [[ "${ENABLE_MOCKS:-}" == true && "${TEST_MODE:-}" == true ]] || exit 1
@@ -41,15 +48,35 @@ echo "Verified actual LOCAL test DB marker"
 if curl -fsS --max-time 2 "$SITE/en/business" >/dev/null 2>&1; then
   echo "CI test port already occupied" >&2; exit 1
 fi
-./node_modules/.bin/next dev --hostname 127.0.0.1 --port 3003 > "$DIR/next.log" 2>&1 &
-pid=$!
-ready=false
-for i in $(seq 1 150); do
-  if curl -fsS --max-time 3 "$SITE/en/business" >/dev/null 2>&1; then ready=true; break; fi
-  if ! kill -0 "$pid" 2>/dev/null; then break; fi
-  sleep 2
-done
-[[ "$ready" == true ]] || { echo "Merchant RC app not ready" >&2; exit 1; }
+start_server() {
+  if curl -fsS --max-time 2 "$SITE/en/business" >/dev/null 2>&1; then
+    echo "CI test port already occupied" >&2; exit 1
+  fi
+  ./node_modules/.bin/next dev --hostname 127.0.0.1 --port 3003 > "$DIR/next.log" 2>&1 &
+  pid=$!
+  local ready=false
+  for i in $(seq 1 150); do
+    if curl -fsS --max-time 3 "$SITE/en/business" >/dev/null 2>&1; then ready=true; break; fi
+    if ! kill -0 "$pid" 2>/dev/null; then break; fi
+    sleep 2
+  done
+  [[ "$ready" == true ]] || { echo "Merchant RC app not ready" >&2; exit 1; }
+}
+start_server
+reset_own_disposable_db_for_second_scenario() {
+  # The Golden Path creates the clean QA identity. A subsequent Merchant test
+  # MUST start from a fresh fixture, not reuse a now-activated Merchant.
+  assert_marker
+  stop_server
+  echo "→ Clean second browser fixture only inside marked ephemeral RC database"
+  PGPASSWORD=ci psql "$DATABASE_URL" -X -v ON_ERROR_STOP=1     -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;" >/dev/null
+  npx prisma migrate deploy
+  npx tsx scripts/db-environment.ts register
+  npx tsx scripts/seed-local-qa.ts
+  npx tsx scripts/merchant-local-preflight.ts
+  assert_marker
+  start_server
+}
 started="$(date +%s)"
 run_scenario() {
   local label="$1" flag="$2" file="$3" report="$4"
@@ -62,8 +89,23 @@ run_scenario() {
     echo "$label process FAILED; ledger must mark BLOCKED" >&2
   fi
   [[ -s "$OUT/$report" ]] || echo '{"suites":[]}' > "$OUT/$report"
+  # Reporter metadata only: no cookies, user data, screenshots or raw output.
+  node - "$OUT/$report" <<'NODE'
+const fs = require('node:fs')
+const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
+const selected = []
+function walk(s) {
+  for (const spec of s.specs || []) for (const item of spec.tests || []) {
+    selected.push({ file: spec.file || s.file || '', title: spec.title, project: item.projectName, status: item.status, attempts: item.results?.length })
+  }
+  for (const nested of s.suites || []) walk(nested)
+}
+for (const suite of report.suites || []) walk(suite)
+console.log(JSON.stringify({ reporterSuiteCount: report.suites?.length ?? 0, testSelectors: selected }))
+NODE
 }
 run_scenario "First Value" P0_L1_LOCAL_MERCHANT_E2E tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts first.json
+reset_own_disposable_db_for_second_scenario
 run_scenario "Campaign" P1_M2_5_LOCAL_CAMPAIGN_E2E tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts campaign.json
 assert_marker
 set +e
