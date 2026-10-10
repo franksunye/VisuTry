@@ -183,6 +183,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
   const [editingRow, setEditingRow] = useState<ManualRow | null>(null);
   const entered = useRef(false);
   const hadCatalogAtMount = useRef(initialTotal > 0);
+  const inspectionVersion = useRef(0);
 
   const apiBase = `/api/merchant/${encodeURIComponent(merchantId)}/catalog`;
   const loadCatalog = useCallback(async (append = false, requestedSearch = appliedQuery) => {
@@ -224,14 +225,21 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
   )), [manualRows]);
   const capacityBlocked = proposal !== null && proposal.catalogCapacity.overLimit > 0;
 
+  // Source changes must revoke any prior proposal, including a pending response.
+  function invalidateProposal() {
+    inspectionVersion.current += 1;
+    setProposal(null);
+  }
+
   function updateManualRow(index: number, key: keyof ManualRow, value: string) {
     setManualRows((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: value } : row));
     // A previously approved-looking inspection is stale after any edit.
-    setProposal(null);
+    invalidateProposal();
   }
 
   async function inspect() {
     if (busy) return;
+    const version = ++inspectionVersion.current;
     setBusy(true);
     setError(null);
     setProposal(null);
@@ -256,6 +264,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
         response = await fetch(`${apiBase}/inspect`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sourceType: "manual", manualProducts: products }) });
       }
       const body = await response.json() as { success?: boolean; data?: Proposal; message?: string };
+      if (version !== inspectionVersion.current) return;
       if (!response.ok || !body.success || !body.data) throw new Error(body.message || "Unable to inspect this source.");
       setProposal(body.data);
       analytics.trackCustomEvent(AnalyticsEvent.MerchantCatalogSourceInspected, {
@@ -263,7 +272,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
         ready_count: body.data.sourceSummary.readyToImport, needs_review_count: body.data.sourceSummary.needsReview,
       });
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Unable to inspect this source.");
+      if (version === inspectionVersion.current) setError(requestError instanceof Error ? requestError.message : "Unable to inspect this source.");
     } finally {
       setBusy(false);
     }
@@ -290,7 +299,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
         setSuccessNotice("Catalog updated successfully.");
       }
       if ((body.data.created ?? 0) > 0) hadCatalogAtMount.current = true;
-      setProposal(null);
+      invalidateProposal();
       await loadCatalog(false);
       onCatalogChanged?.({ hasAny: (body.data.created ?? 0) > 0, hasReady: proposal.importReady.length > 0 });
     } catch (requestError) {
@@ -340,7 +349,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
 
       <div className="mt-6 grid gap-2 sm:grid-cols-3" role="tablist" aria-label="Catalog source">
         {(["url", "csv", "manual"] as SourceType[]).map((type) => (
-          <button key={type} type="button" role="tab" aria-selected={sourceType === type} onClick={() => { setSourceType(type); setProposal(null); setError(null); }} className={`${buttonClass} justify-start border ${sourceType === type ? "border-blue-300 bg-blue-50 text-blue-800" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
+          <button key={type} type="button" role="tab" aria-selected={sourceType === type} onClick={() => { setSourceType(type); invalidateProposal(); setError(null); }} className={`${buttonClass} justify-start border ${sourceType === type ? "border-blue-300 bg-blue-50 text-blue-800" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
             {type === "url" ? <Globe2 className="h-4 w-4" aria-hidden="true" /> : type === "csv" ? <FileUp className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
             {type === "url" ? "Store URL" : type === "csv" ? "Upload CSV" : "Add manually"}
           </button>
@@ -352,26 +361,26 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
       <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4">
         {sourceType === "url" ? <>
           <label htmlFor="merchant-catalog-url" className="text-sm font-semibold text-slate-800">Store or product URL</label>
-          <input id="merchant-catalog-url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://your-store.example" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
+          <input id="merchant-catalog-url" type="url" value={url} onChange={(event) => { setUrl(event.target.value); invalidateProposal(); setError(null); }} placeholder="https://your-store.example" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
           {suggestedWebsiteUrl && initialTotal === 0 ? <p className="mt-2 text-xs leading-5 text-blue-800">Suggested from your Workspace website. It has not been inspected or imported yet.</p> : null}
           <p className="mt-2 text-xs leading-5 text-slate-500">We try Shopify, structured ecommerce data, sitemap links, standard product pages, and browser rendering when available. Optional SKU and shape enrichment never block a valid product from the catalog.</p>
         </> : null}
         {sourceType === "csv" ? <>
           <label htmlFor="merchant-catalog-csv" className="text-sm font-semibold text-slate-800">Product CSV</label>
-          <input id="merchant-catalog-csv" type="file" accept=".csv,text/csv" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="mt-2 block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:font-semibold file:text-blue-800" />
+          <input id="merchant-catalog-csv" type="file" accept=".csv,text/csv" onChange={(event) => { setFile(event.target.files?.[0] ?? null); invalidateProposal(); setError(null); }} className="mt-2 block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:font-semibold file:text-blue-800" />
           <p className="mt-2 text-xs leading-5 text-slate-500">Required: <code>name</code> and a usable <code>imageUrl</code>. Recommended: <code>sku</code>, <code>shape</code>, <code>productUrl</code>, <code>price</code>, <code>brand</code>. A product URL or externalId can identify rows when a merchant SKU is unavailable.</p>
         </> : null}
         {sourceType === "manual" ? <div className="space-y-3">
           <p className="text-sm leading-6 text-slate-600">For your first product, add a name, a usable image, and either a merchant SKU or product page URL. Shape and other details can be added later.</p>
           {manualRows.map((row, index) => <div key={row.clientKey ?? index} className="rounded-lg border border-slate-200 bg-white p-3">
-            <div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Product {index + 1}</span>{manualRows.length > 1 ? <button type="button" aria-label={`Remove product ${index + 1}`} onClick={() => { setManualRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index)); setProposal(null); }} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" aria-hidden="true" /></button> : null}</div>
+            <div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Product {index + 1}</span>{manualRows.length > 1 ? <button type="button" aria-label={`Remove product ${index + 1}`} onClick={() => { setManualRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index)); invalidateProposal(); }} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" aria-hidden="true" /></button> : null}</div>
             <div className="grid gap-3 sm:grid-cols-2">
               {manualFieldMeta.slice(0, 4).map(({ key, label, placeholder, required }) => <label key={key} className="block text-sm font-medium text-slate-700">
                 {label}{required ? " *" : ""}
                 <input aria-label={`${label} for product ${index + 1}`} required={required} value={row[key]} onChange={(event) => updateManualRow(index, key, event.target.value)} placeholder={placeholder} type={key === "price" ? "number" : key.endsWith("Url") ? "url" : "text"} maxLength={maxLengthForField(key)} step={key === "price" ? "0.01" : undefined} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
               </label>)}
             </div>
-            <MerchantCatalogImageUpload merchantId={merchantId} onUploaded={(imageUrl) => { setManualRows((rows) => rows.map((entry) => entry.clientKey === row.clientKey ? { ...entry, imageUrl } : entry)); setProposal(null); }} />
+            <MerchantCatalogImageUpload merchantId={merchantId} onUploaded={(imageUrl) => { setManualRows((rows) => rows.map((entry) => entry.clientKey === row.clientKey ? { ...entry, imageUrl } : entry)); invalidateProposal(); }} />
             <details className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
               <summary className="cursor-pointer text-sm font-semibold text-slate-700">Optional product details</summary>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -382,10 +391,10 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
               </div>
             </details>
           </div>)}
-          <button type="button" onClick={() => { setManualRows((rows) => [...rows, emptyManualRow()]); setProposal(null); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><Plus className="h-4 w-4" aria-hidden="true" />Add another product</button>
+          <button type="button" onClick={() => { setManualRows((rows) => [...rows, emptyManualRow()]); invalidateProposal(); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}><Plus className="h-4 w-4" aria-hidden="true" />Add another product</button>
           {!manualReady ? <p className="text-xs leading-5 text-slate-500">Add a product name, an uploaded photo or image URL, and either a merchant SKU or product page URL to continue.</p> : null}
         </div> : null}
-        {error ? <div className="mt-3 space-y-2" role="alert"><p className="text-sm text-red-700">{error}</p>{sourceType === "url" ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); setProposal(null); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Use a CSV instead</button><button type="button" onClick={() => { setSourceType("manual"); setProposal(null); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Add one product manually</button></div> : null}</div> : null}
+        {error ? <div className="mt-3 space-y-2" role="alert"><p className="text-sm text-red-700">{error}</p>{sourceType === "url" ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Use a CSV instead</button><button type="button" onClick={() => { setSourceType("manual"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-slate-300 bg-white text-slate-800`}>Add one product manually</button></div> : null}</div> : null}
         <button type="button" onClick={() => void inspect()} disabled={busy || (sourceType === "manual" && !manualReady)} className={`${buttonClass} mt-4 w-full bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:opacity-100`}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-4 w-4" aria-hidden="true" />}
           {busy ? "Checking product…" : sourceType === "manual" ? "Review product" : "Inspect and preview"}
@@ -406,9 +415,9 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
             ["Over limit", proposal.catalogCapacity.overLimit.toLocaleString()],
           ].map(([label, value]) => <div key={label} className="rounded-lg border border-white/90 bg-white/80 px-3 py-2"><dt className="text-[11px] font-medium text-slate-500">{label}</dt><dd className={`mt-0.5 text-sm font-semibold ${label === "Over limit" && capacityBlocked ? "text-red-700" : "text-slate-950"}`}>{value}</dd></div>)}
         </dl>
-        {proposal.importReady.length === 0 && !capacityBlocked && proposal.sourceSummary.sourceIssues.length === 0 ? <div role="status" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="font-semibold">No importable products were found. Nothing was saved.</p><p className="mt-1 text-xs">Try a direct product page URL, or use one of the other ways to add products.</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); setProposal(null); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900`}>Upload CSV</button><button type="button" onClick={() => { setSourceType("manual"); setProposal(null); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900`}>Add manually</button></div></div> : null}
+        {proposal.importReady.length === 0 && !capacityBlocked && proposal.sourceSummary.sourceIssues.length === 0 ? <div role="status" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="font-semibold">No importable products were found. Nothing was saved.</p><p className="mt-1 text-xs">Try a direct product page URL, or use one of the other ways to add products.</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900`}>Upload CSV</button><button type="button" onClick={() => { setSourceType("manual"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900`}>Add manually</button></div></div> : null}
         {capacityBlocked ? <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-3 text-sm text-amber-950" role="alert"><p className="font-semibold">Remove or revise at least {proposal.catalogCapacity.overLimit} new product{proposal.catalogCapacity.overLimit === 1 ? "" : "s"}, then inspect again.</p><p className="mt-1 text-xs leading-5">No products have been added. We won’t import a partial batch.</p></div> : null}
-        {proposal.sourceSummary.sourceIssues.length > 0 ? <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900"><p className="font-semibold">Some source data needs attention</p><ul className="mt-1 list-disc space-y-1 pl-5 text-xs">{proposal.sourceSummary.sourceIssues.slice(0, 5).map((item, index) => <li key={`${item.code}-${index}`}>{item.message}</li>)}</ul><p className="mt-2 text-xs font-semibold">{capacityBlocked ? "Resolve source issues and reduce the proposal, then inspect again; imports are all-or-nothing." : "You can still import the valid subset. If this is a JavaScript-heavy store, switch to one of the fallback paths:"}</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); setProposal(null); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}><FileUp className="h-4 w-4" aria-hidden="true" />Upload CSV</button><button type="button" onClick={() => { setSourceType("manual"); setProposal(null); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}><Plus className="h-4 w-4" aria-hidden="true" />Add manually</button></div></div> : null}
+        {proposal.sourceSummary.sourceIssues.length > 0 ? <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900"><p className="font-semibold">Some source data needs attention</p><ul className="mt-1 list-disc space-y-1 pl-5 text-xs">{proposal.sourceSummary.sourceIssues.slice(0, 5).map((item, index) => <li key={`${item.code}-${index}`}>{item.message}</li>)}</ul><p className="mt-2 text-xs font-semibold">{capacityBlocked ? "Resolve source issues and reduce the proposal, then inspect again; imports are all-or-nothing." : "You can still import the valid subset. If this is a JavaScript-heavy store, switch to one of the fallback paths:"}</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}><FileUp className="h-4 w-4" aria-hidden="true" />Upload CSV</button><button type="button" onClick={() => { setSourceType("manual"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}><Plus className="h-4 w-4" aria-hidden="true" />Add manually</button></div></div> : null}
         <div className="mt-4 grid gap-2">{proposal.candidates.map((candidate, index) => <article key={`${candidate.identity?.value ?? "row"}-${index}`} className="rounded-xl border border-white bg-white p-3"><div className="flex items-start gap-3"><div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">{candidate.imageUrl ? <img src={candidate.imageUrl} alt="" className="h-full w-full object-cover" /> : null}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h4 className="truncate text-sm font-semibold text-slate-950">{candidate.name || "Unnamed product"}</h4><span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${readinessClass(candidate.readiness)}`}>{readinessLabel(candidate.readiness)}</span>{candidate.dedupeStatus !== "NEW" ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">Already in catalog</span> : null}</div><p className="mt-1 text-xs text-slate-500">{identityLabel(candidate)}{candidate.brand ? ` · ${candidate.brand}` : ""}{candidate.shape ? ` · ${candidate.shape}` : ""}{priceLabel(candidate.price, candidate.currency) ? ` · ${priceLabel(candidate.price, candidate.currency)}` : ""}</p>{candidate.issues.length > 0 ? <p className="mt-1 text-xs text-amber-800">{candidate.issues.map(friendlyIssue).join(" · ")}</p> : null}{candidate.recommendationIssues.length > 0 ? <p className="mt-1 text-xs text-slate-500">Recommendation enrichment: {candidate.recommendationIssues.map(friendlyIssue).join(" · ")}</p> : null}</div></div></article>)}</div>
         <div className="mt-4 flex flex-col justify-between gap-3 border-t border-emerald-200 pt-4 sm:flex-row sm:items-center"><p className="text-xs text-emerald-900/75">Nothing has been written yet. {capacityBlocked ? "Revise the source and inspect again; partial imports are not allowed." : `Approval imports only the ${proposal.importReady.length} safe, non-duplicate row${proposal.importReady.length === 1 ? "" : "s"}; recommendation enrichment can continue afterward.`}</p><button type="button" disabled={busy || proposal.importReady.length === 0 || capacityBlocked} onClick={() => void approveImport()} className={`${buttonClass} bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50`}><Check className="h-4 w-4" aria-hidden="true" />Approve and import {proposal.importReady.length}</button></div>
       </div> : null}
