@@ -17,7 +17,7 @@ describe('Merchant product photo picker', () => {
     const data = new Uint8Array(64)
     data[0] = 137
     fireEvent.change(screen.getByLabelText('Choose product photo'), {
-      target: { files: [new File([data], 'frame.png', { type: 'image/png' })] },
+      target: { files: [new File([data.buffer as ArrayBuffer], 'frame.png', { type: 'image/png' })] },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Upload photo' }))
     await waitFor(() => expect(uploaded).toHaveBeenCalledWith(url))
@@ -45,7 +45,7 @@ describe('Merchant product photo picker', () => {
     }) as typeof fetch
     render(<MerchantCatalogImageUpload merchantId="merchant-a" onUploaded={uploaded} />)
     fireEvent.change(screen.getByLabelText('Choose product photo'), {
-      target: { files: [new File([new Uint8Array(64)], 'frame.png', { type: 'image/png' })] },
+      target: { files: [new File([new ArrayBuffer(64)], 'frame.png', { type: 'image/png' })] },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Upload photo' }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/upload limit/)

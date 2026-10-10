@@ -32,7 +32,7 @@ function png(w = 640, h = 480): Uint8Array {
   new DataView(out.buffer).setUint32(20, h)
   return out
 }
-function request(file = new File([png()], 'frame.png', { type: 'image/png' }), site?: string) {
+function request(file = new File([png().buffer as ArrayBuffer], 'frame.png', { type: 'image/png' }), site?: string) {
   const form = new FormData()
   form.set('file', file)
   const result = new NextRequest('http://localhost/api/merchant/' + merchantId + '/catalog/media', { method: 'POST', body: form })
@@ -81,8 +81,8 @@ describe('Merchant Catalog product photo staging', () => {
 
   it('rejects spoofed image bytes and excessive decoded dimensions before uploading', async () => {
     for (const file of [
-      new File([new TextEncoder().encode('<svg/>')], 'frame.png', { type: 'image/png' }),
-      new File([png(10000, 200)], 'huge.png', { type: 'image/png' }),
+      new File([new TextEncoder().encode('<svg/>').buffer as ArrayBuffer], 'frame.png', { type: 'image/png' }),
+      new File([png(10000, 200).buffer as ArrayBuffer], 'huge.png', { type: 'image/png' }),
     ]) {
       expect((await POST(request(file), { params: { merchantId } })).status).toBe(400)
     }
@@ -91,7 +91,7 @@ describe('Merchant Catalog product photo staging', () => {
   })
 
   it('enforces actual multipart bytes despite dishonest Content-Length', async () => {
-    const huge = new File([new Uint8Array(4 * 1024 * 1024 + 40 * 1024)], 'large.png', { type: 'image/png' })
+    const huge = new File([new ArrayBuffer(4 * 1024 * 1024 + 40 * 1024)], 'large.png', { type: 'image/png' })
     const incoming = request(huge)
     incoming.headers.set('content-length', '1')
     expect((await POST(incoming, { params: { merchantId } })).status).toBe(400)
