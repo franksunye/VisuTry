@@ -11,6 +11,7 @@ import { buildStoreOutboundUrl, type StoreOutboundLinkType } from '@/lib/store-o
 import { MerchantShopperAccountControlSlot } from '@/components/store/MerchantShopperAccountControlSlot'
 import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
 import { isLoopbackImageUrl, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
+import { brandAccentForDisplay } from '@/modules/merchant/domain/merchant-brand-kit'
 
 function formatPrice(price: number | null, currency: string | null): string | null {
   if (price === null || price === undefined) return null
@@ -102,6 +103,7 @@ export function ExperienceDiscoveryContent({
     frames: discovery.frames.map((frame) => ({ ...frame, imageUrl: publicMerchantImageUrl(frame.imageUrl) })),
   }
   const { merchant, experience, frames } = safeDiscovery
+  const brandAccent = brandAccentForDisplay(merchant.accentColor)
   const title = experience.type === 'STORE'
     ? `Shop the ${merchant.name} eyewear collection`
     : experience.headline?.trim() || experience.name
@@ -134,7 +136,7 @@ export function ExperienceDiscoveryContent({
               {merchant.logoUrl ? (
                 <Image src={merchant.logoUrl} alt="" fill sizes="48px" className="object-contain p-1.5" unoptimized={isLoopbackImageUrl(merchant.logoUrl)} />
               ) : (
-                <Store className="h-6 w-6 text-blue-700" aria-hidden="true" />
+                <Store className="h-6 w-6" style={{ color: brandAccent }} aria-hidden="true" />
               )}
             </div>
             <div>
@@ -154,7 +156,8 @@ export function ExperienceDiscoveryContent({
             <div>
               <h1 className="mt-5 font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">{title}</h1>
               {description ? <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">{description}</p> : null}
-              <a href="#featured-frames" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800">
+              <a href="#featured-frames" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:brightness-90"
+                style={{ backgroundColor: brandAccent }}>
                 Explore the collection
               </a>
               {experience.primaryHandoff || experience.secondaryHandoff ? (
@@ -228,7 +231,8 @@ export function ExperienceDiscoveryContent({
                         {frame.productUrl ? (
                           <a
                             {...externalLinkProps(frame.productUrl, experience.type, experience.slug, 'product')}
-                            className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
+                            className="mt-5 inline-flex items-center gap-2 text-sm font-semibold underline-offset-2 hover:underline"
+                            style={{ color: brandAccent }}
                           >
                             View product <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                           </a>

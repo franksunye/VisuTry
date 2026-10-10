@@ -1,16 +1,25 @@
 import { Globe2, Info, Store, User } from "lucide-react";
 import { MerchantWorkspaceDetailsForm } from "@/components/merchant/MerchantWorkspaceDetailsForm";
+import { MerchantBrandKitSettings } from "@/components/merchant/MerchantBrandKitSettings";
 
 type MerchantWorkspaceSettingsProps = {
   merchantId: string;
   initialName: string;
   initialWebsiteUrl?: string | null;
+  initialLogoUrl?: string | null;
+  initialAccentColor?: string | null;
+  liveExperiences?: number;
+  brandOwner?: boolean;
 };
 
 export function MerchantWorkspaceSettings({
   merchantId,
   initialName,
   initialWebsiteUrl,
+  initialLogoUrl,
+  initialAccentColor,
+  liveExperiences = 0,
+  brandOwner = false,
 }: MerchantWorkspaceSettingsProps) {
   return (
     <section className="space-y-6" aria-labelledby="merchant-settings-title">
@@ -38,6 +47,8 @@ export function MerchantWorkspaceSettings({
         </div>
       </div>
 
+      <MerchantBrandKitSettings merchantId={merchantId} merchantName={initialName} initialLogoUrl={initialLogoUrl ?? null} initialAccentColor={initialAccentColor ?? null} liveExperiences={liveExperiences} canEdit={brandOwner} />
+
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,1fr)]">
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.02]" aria-labelledby="workspace-details-title">
           <header className="border-b border-slate-100 px-5 py-5 sm:px-6">
@@ -54,6 +65,7 @@ export function MerchantWorkspaceSettings({
               initialName={initialName}
               initialWebsiteUrl={initialWebsiteUrl}
               variant="settings"
+              canEdit={brandOwner}
             />
           </div>
         </section>

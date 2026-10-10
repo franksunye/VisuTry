@@ -8,6 +8,7 @@ import type { DecisionJourneyStage } from '@/modules/store/domain/decision-journ
 import type { DecisionResultView } from '@/modules/store/application/decision-result-service'
 import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
 import { publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
+import { brandAccentForDisplay } from '@/modules/merchant/domain/merchant-brand-kit'
 
 function formatExpiry(value: string, locale: string): string {
   const date = new Date(value)
@@ -16,7 +17,7 @@ function formatExpiry(value: string, locale: string): string {
 }
 
 function resolveAccentColor(value: string | null): string {
-  return value && /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(value) ? value : '#2563eb'
+  return brandAccentForDisplay(value)
 }
 
 function shopperExperienceLabel(name: string | null | undefined): string | null {

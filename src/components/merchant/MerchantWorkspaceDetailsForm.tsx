@@ -16,6 +16,7 @@ type MerchantWorkspaceDetailsFormProps = {
   variant?: "settings" | "compact";
   id?: string;
   hidden?: boolean;
+  canEdit?: boolean;
 };
 
 const PROFILE_ERROR_COPY: Record<string, { message: string; field: "name" | "website" }> = {
@@ -36,6 +37,7 @@ export function MerchantWorkspaceDetailsForm({
   variant = "settings",
   id,
   hidden = false,
+  canEdit = true,
 }: MerchantWorkspaceDetailsFormProps) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
@@ -46,6 +48,7 @@ export function MerchantWorkspaceDetailsForm({
   const feedbackId = `workspace-details-feedback-${merchantId}`;
 
   const save = async () => {
+    if (!canEdit) return;
     setBusy(true);
     setFeedback(null);
     try {
@@ -105,6 +108,7 @@ export function MerchantWorkspaceDetailsForm({
             id={`workspace-name-${merchantId}`}
             type="text"
             value={name}
+            disabled={!canEdit || busy}
             onChange={(event) => setName(event.target.value)}
             aria-invalid={feedback?.kind === "error" && feedback.field === "name" ? true : undefined}
             aria-describedby={feedback?.kind === "error" && feedback.field === "name" ? feedbackId : undefined}
@@ -122,6 +126,7 @@ export function MerchantWorkspaceDetailsForm({
             id={`workspace-website-${merchantId}`}
             type="url"
             value={websiteUrl}
+            disabled={!canEdit || busy}
             onChange={(event) => setWebsiteUrl(event.target.value)}
             aria-invalid={feedback?.kind === "error" && feedback.field === "website" ? true : undefined}
             aria-describedby={feedback?.kind === "error" && feedback.field === "website" ? feedbackId : undefined}
@@ -131,10 +136,11 @@ export function MerchantWorkspaceDetailsForm({
         </div>
       </div>
 
+      {!canEdit ? <p className="mt-4 text-xs text-slate-600">Only the Merchant Owner can edit public workspace identity.</p> : null}
       <div className={compact ? "mt-4 flex flex-wrap items-center gap-3" : "mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center"}>
         <button
           type="submit"
-          disabled={busy || name.trim().length < 2}
+          disabled={!canEdit || busy || name.trim().length < 2}
           className={saveButtonClass}
         >
           {busy ? "Saving…" : "Save details"}

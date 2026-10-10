@@ -30,6 +30,15 @@ describe('merchant profile public discovery boundary', () => {
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'merchant', merchantSlug: 'merchant-a' } }))
   })
 
+  it('denies public identity updates by ADMIN before any database mutation', async () => {
+    ;(prisma.merchantMembership.findUnique as jest.Mock).mockResolvedValue({ id: 'membership-admin', userId: 'user-admin', merchantId: 'merchant-a', role: 'ADMIN' })
+    await expect(updateMerchantProfile({ userId: 'user-admin', merchantId: 'merchant-a', name: 'Unapproved Rename' }))
+      .rejects.toMatchObject({ code: 'MERCHANT_ACCESS_NOT_FOUND', httpStatus: 404 })
+    expect(prisma.merchant.findUnique).not.toHaveBeenCalled()
+    expect(prisma.merchant.update).not.toHaveBeenCalled()
+    expect(withPublicDiscoveryInvalidation).not.toHaveBeenCalled()
+  })
+
   it('does not invalidate when validation rejects before the mutation', async () => {
     ;(prisma.merchantMembership.findUnique as jest.Mock).mockResolvedValue({ id: 'membership-a', userId: 'user-a', merchantId: 'merchant-a', role: 'OWNER' })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', websiteUrl: null })

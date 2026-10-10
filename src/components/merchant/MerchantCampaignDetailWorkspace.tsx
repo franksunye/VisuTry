@@ -11,6 +11,7 @@ import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { merchantCampaignIssueCopy, resolveMerchantCampaignPresentation, merchantCampaignPolicyLabel } from '@/modules/merchant/domain/merchant-campaign-presentation'
 import { merchantWorkspaceHref } from '@/modules/merchant/application/merchant-workspace-routes'
 import { MerchantCampaignPrivatePreview } from './MerchantCampaignPrivatePreview'
+import { MerchantExperienceHeroSettings } from './MerchantExperienceHeroSettings'
 import { MerchantExperienceConfiguration, type ExperienceConfigurationDraft } from './MerchantExperienceConfiguration'
 import { normalizeMerchantHandoffAction } from '@/modules/store/domain/merchant-handoff'
 import { isLoopbackImageUrl } from '@/lib/is-loopback-image-url'
@@ -362,10 +363,13 @@ export function MerchantCampaignDetailWorkspace({
           </div>
         </section>
 
+        {!readOnly ? <MerchantExperienceHeroSettings merchantId={merchantId} experienceId={campaign.id} title={draft.name} summary={draft.description || null} /> : null}
         {!readOnly ? <MerchantExperienceConfiguration
           experienceType="CAMPAIGN"
           shopperPreview={{
             experienceType: 'CAMPAIGN',
+            merchantId,
+            experienceId: campaign.id,
             merchantName,
             experienceName: draft.name,
             headline: draft.headline || null,
