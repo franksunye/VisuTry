@@ -24,7 +24,7 @@ async function readBoundedBrandFormData(request: NextRequest): Promise<FormData>
     throw new BrandKitError('INVALID_BRAND_UPLOAD', 'A multipart image upload is required.')
   }
   const declaredLength = request.headers.get('content-length')
-  if (declaredLength !== null && (!/^\\d+$/.test(declaredLength) || Number(declaredLength) > MAX_MULTIPART_BODY)) {
+  if (declaredLength !== null && (!/^\d+$/.test(declaredLength) || Number(declaredLength) > MAX_MULTIPART_BODY)) {
     throw new BrandKitError('INVALID_BRAND_UPLOAD', 'Upload request exceeds the 4 MB image limit.')
   }
   if (!request.body) throw new BrandKitError('INVALID_BRAND_UPLOAD', 'Upload body is missing.')

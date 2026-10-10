@@ -236,6 +236,16 @@ describe('POST /api/merchant/[merchantId]/brand/media with mocked Blob and trans
     expect(del).not.toHaveBeenCalled()
   })
 
+  it('accepts a genuine multipart upload with a normal numeric Content-Length header', async () => {
+    const request = uploadRequest({ kind: 'logo' })
+    request.headers.set('content-length', '1200')
+    const response = await POST(request, { params: { merchantId } })
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({ success: true })
+    expect(put).toHaveBeenCalledTimes(1)
+    expect(merchantRow.logoUrl).toEqual(expect.stringMatching(/\\/merchant-brand\\/merchant-a\\/logo\\//))
+  })
+
   it('rejects oversized streamed multipart bytes even with a dishonest Content-Length header', async () => {
     const huge = new File([new Uint8Array(4 * 1024 * 1024 + 48 * 1024)], 'large.png', { type: 'image/png' })
     const request = uploadRequest({ kind: 'logo', file: huge })
