@@ -15,7 +15,7 @@ export const maxDuration = 300
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     logger.warn('api', 'Unauthorized cron access attempt', {
       endpoint: 'cleanup-store-assets',
     })
