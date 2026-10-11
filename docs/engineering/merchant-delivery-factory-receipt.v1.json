@@ -36,12 +36,16 @@
   ],
   "remainingGates": [
     {
-      "id": "public-url-product-intake",
-      "acceptance": "Actual public HTTPS product URL → server-side inspect → explicit approval → Catalog import; no SSRF bypass"
+      "id": "public-url-compatibility-disclosure",
+      "acceptance": "Website URL inspection is explicitly best-effort: two independent upstream hosts rejected server requests with HTTP 403; validated CSV/manual fallback and merchant-facing limits must be disclosed. No unmocked real-URL import PASS or guarantee of universal crawling; any reliable platform feed integration is a separately approved product scope."
     },
     {
-      "id": "qa-blob-upload",
-      "acceptance": "Verified isolated QA-only Blob store token → true upload/readback; no production token/store"
+      "id": "real-catalog-blob-attachment-lifecycle",
+      "acceptance": "ONE integrated authorized TEST lifecycle: actual Blob media upload and public image readback -> human review/approval -> persisted Catalog frame -> Draft private Store Preview (and bounded cleanup). Separately accepted Production synthetic stage/read/decode/exact-delete proves transport ONLY; previous LOCAL approval/preview used MOCK Blob, not an integrated all-real flow. Never repeat QA credential setup merely for transport."
+    },
+    {
+      "id": "auth0-merchant-callback",
+      "acceptance": "Real supported Owner authentication and callback/return to Merchant workspace, desktop/mobile, without local mock auth. No synthetic Production checkout return or live charge; Auth0 callback is NOT TESTED in Local First Value."
     },
     {
       "id": "merchant-configuration-manifest",
