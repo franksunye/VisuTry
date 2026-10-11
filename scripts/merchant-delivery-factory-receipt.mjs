@@ -109,7 +109,7 @@ export function buildDeliveryFactoryReceipt({ manifest, sourceSha, foundationLed
     remaining,
     releaseReady: false,
     result: NO_RELEASE,
-    caveat: 'LOCAL mock/DB checks cannot certify real Blob, successful public URL, approval/apply, handoff, G2 or G4. Database and paid-provider provenance must be verified independently.',
+    caveat: 'LOCAL mock/DB checks cannot certify an integrated real Blob approved Catalog attachment, real Auth0 callback, guaranteed public URL import, authorized configuration apply, handoff, G2 or G4. Independently accepted synthetic Production Blob transport does not close the attachment lifecycle. Database and paid-provider provenance must be verified independently.',
   }
 }
 
