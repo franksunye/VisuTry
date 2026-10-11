@@ -33,14 +33,38 @@ is **only operator-reported**, not independently re-verified here.
 
 Exit code 0 means **local receipt generated with five local PASS assertions**,
 not a commercial release. Exit code 2 means incomplete or invalid evidence.
-`releaseReady` is explicitly false in v1 because these outstanding hard
-gates are not independently provable from Playwright alone: successful public
-HTTPS product import; real isolated QA Blob read/write; canonical merchant
-configuration manifest; tenant-approved command apply/verify; sanitized
-handoff/support receipt; full G2/G3/G4 business release approval.
+`releaseReady` is explicitly false in v1 because the standalone receipt
+cannot independently certify the following: third-party public URL compatibility
+(**best-effort, not a universal-import PASS**, with clear CSV/manual recovery),
+actual first-party Blob upload **attached via authorized Catalog/Brand commands**
+and visibly rendered after readback (separate from the already accepted single
+synthetic Production Blob stage/read/decode/exact-delete transport smoke),
+real Auth0 Owner callback, merchant configuration manifest, tenant-approved
+command apply/verify, sanitized handoff/support receipt, and G3/G4 commercial
+release approval. The dated source-of-truth gate list is
+`merchant-delivery-factory-receipt.v1.json`.
 
 **No direct Prisma writes / no high-impact Agent calls / no checkout,
 deployment, Blob uploads, or merchant changes.** Current Release Candidate
 artifacts have three-day retention; archive only redacted, non-sensitive
 receipts via approved internal evidence retention before expiry. Future
 proof adapters require separate review, not arbitrary status overrides.
+
+## G2 Local functional RC accepted; G3 still open (2026-10-11)
+
+Lead accepted [exact-main combined G2 Local RC](https://github.com/franksunye/VisuTry/issues/358#issuecomment-6109514047) at
+`b37e024d182782d4c766310ede9418dbd4e20f43`, incorporating the [Brand cross-surface Local test](https://github.com/franksunye/VisuTry/issues/360#issuecomment-6109346000).
+First Value, Campaign/CSV, six valid Journey policies for Store/Campaign,
+Prepared Demo Result/QR/Kiosk reset and local Agent/tenant negatives completed
+within their **actual** evidence class. Brand Logo/Accent and scoped Hero
+readback/render used **MOCK_MEDIA**; Owner auth used **MOCK_AUTH**; Try-On
+media used **PREPARED_DEMO**, not paid provider output. Initial fixture setup
+failures were disclosed and corrected before the valid final runs.
+
+**This does not upgrade the five-case receipt generator to a G2 or G3
+certificate.** The factory's operational manifest -> reviewed diff ->
+authorized apply -> verify -> handoff/restore lifecycle still requires its own
+demonstration and support receipt. The genuine Blob attachment, Auth0 callback,
+Live Stripe parity, public-domain/cache and merchant-facing disclosure gates
+are tracked in [G3 Commercial Release Checklist](merchant-g3-commercial-release-checklist.md).
+`releaseReady=false` until those requirements are separately accepted.
