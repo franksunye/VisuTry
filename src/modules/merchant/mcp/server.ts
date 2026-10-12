@@ -184,6 +184,12 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
     inputSchema: {},
   }, async () => safe(() => merchantOnboarding.getOnboardingStatus({ actor })))
 
+  server.registerTool('get_merchant', {
+    title: 'Get merchant',
+    description: 'Read the authenticated merchant profile. The merchant is derived from the credential; no merchantId is accepted.',
+    inputSchema: {},
+  }, async () => safe(() => merchantOnboarding.getMerchant({ actor })))
+
   server.registerTool('get_brand_kit', {
     title: 'Get Brand Kit',
     description: 'Read the authenticated merchant Logo, accessible accent palette and an optional Store/Campaign Hero. Human Owner actions are required to change branding or live assets; this tool never uploads or writes.',
@@ -195,12 +201,6 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
     requireAgentScope(actor, 'experience:read')
     return getMerchantAgentBrandKit({ actor, experienceId })
   }))
-
-  server.registerTool('get_merchant', {
-    title: 'Get merchant',
-    description: 'Read the authenticated merchant profile. The merchant is derived from the credential; no merchantId is accepted.',
-    inputSchema: {},
-  }, async () => safe(() => merchantOnboarding.getMerchant({ actor })))
 
   server.registerTool('list_frames', {
     title: 'List frames',
