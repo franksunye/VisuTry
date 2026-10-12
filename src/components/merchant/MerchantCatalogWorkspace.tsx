@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { AlertCircle, Boxes, CheckCircle2, ChevronDown, Edit3, FilePlus2, Loader2, Search, Save, Sparkles, Trash2, X, type LucideIcon } from "lucide-react";
+import { AlertCircle, Boxes, CheckCircle2, ChevronDown, Edit3, FilePlus2, Loader2, Search, Save, Sparkles, Trash2, Archive, RotateCcw, X, type LucideIcon } from "lucide-react";
 import { MerchantCatalogSelfService } from "@/components/merchant/MerchantCatalogSelfService";
 import { MerchantCatalogImageUpload } from "@/components/merchant/MerchantCatalogImageUpload";
 
@@ -21,9 +21,9 @@ type CatalogItem = {
   status: string;
   presentation: { state: PresentationState; label: string; issueSummary: string | null };
 };
-type CatalogSummary = { total: number; ready: number; needsReview: number; needsAttention: number };
+type CatalogSummary = { total: number; archived?: number; ready: number; needsReview: number; needsAttention: number };
 type WorkspaceData = { items: CatalogItem[]; nextCursor: string | null; summary: CatalogSummary; focusedFrame?: CatalogItem | null };
-type Filter = "all" | PresentationState;
+type Filter = "all" | "ARCHIVED" | PresentationState;
 type EditValues = { sku: string; name: string; imageUrl: string; productUrl: string; shape: string; brand: string; price: string };
 
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
@@ -67,6 +67,9 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
   const [pendingDelete, setPendingDelete] = useState<CatalogItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [pendingLifecycle, setPendingLifecycle] = useState<{ item: CatalogItem; action: "ARCHIVE" | "RESTORE" } | null>(null);
+  const [lifecycleBusy, setLifecycleBusy] = useState(false);
+  const [lifecycleError, setLifecycleError] = useState<string | null>(null);
   const cursorRef = useRef<string | null>(null);
   const focusedFrameRef = useRef<HTMLElement | null>(null);
   const editingIdRef = useRef<string | null>(null);
@@ -180,6 +183,29 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
     }
   }
 
+  async function confirmLifecycle() {
+    if (!pendingLifecycle || lifecycleBusy) return;
+    const { item, action } = pendingLifecycle;
+    setLifecycleBusy(true);
+    setLifecycleError(null);
+    try {
+      const response = await fetch(`${apiBase}/${encodeURIComponent(item.id)}/lifecycle`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action, approved: true }),
+      });
+      const body = await response.json() as { success?: boolean; message?: string };
+      if (!response.ok || !body.success) throw new Error(body.message || "Unable to change this product.");
+      setPendingLifecycle(null);
+      if (editing?.id === item.id) { setEditing(null); setEdit(null); }
+      await load({ query: appliedSearch, readiness: filter });
+    } catch (requestError) {
+      setLifecycleError(requestError instanceof Error ? requestError.message : "Unable to update this product.");
+    } finally {
+      setLifecycleBusy(false);
+    }
+  }
+
   async function confirmDelete() {
     if (!pendingDelete || deleting) return;
     const targetId = pendingDelete.id;
@@ -208,7 +234,8 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
       <div>
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Catalog workspace</p>
         <h1 id="merchant-catalog-heading" className="mt-2 text-[32px] font-semibold leading-none tracking-[-0.045em] text-slate-950">Catalog</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Manage the products available to your Store and review anything that needs attention.</p>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Manage products available to your Store. Archived products stay in your account and can be restored.</p>
+        {summary.archived ? <p className="mt-1 text-xs text-slate-500">{summary.archived} archived · Included in your plan's Catalog capacity.</p> : null}
       </div>
       <button type="button" onClick={() => setIntakeOpen((value) => !value)} className={`${buttonClass} min-h-11 w-full bg-slate-950 text-white hover:bg-slate-800 sm:w-auto`} aria-expanded={intakeOpen}>
         <FilePlus2 className="h-4 w-4" aria-hidden="true" /> Add products
@@ -229,14 +256,14 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
 
     <form onSubmit={updateSearch} className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-2.5 sm:grid-cols-[minmax(0,1fr)_180px_auto] sm:items-center sm:p-3">
       <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input aria-label="Search full catalog" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search the full catalog" className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" /></div>
-      <select aria-label="Filter catalog readiness" value={filter} onChange={(event) => changeFilter(event.target.value as Filter)} className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"><option value="all">All products</option><option value="READY">Ready</option><option value="NEEDS_REVIEW">Needs enrichment</option><option value="NEEDS_ATTENTION">Needs attention</option></select>
+      <select aria-label="Filter catalog readiness" value={filter} onChange={(event) => changeFilter(event.target.value as Filter)} className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"><option value="all">Current products</option><option value="ARCHIVED">Archived</option><option value="READY">Ready</option><option value="NEEDS_REVIEW">Needs enrichment</option><option value="NEEDS_ATTENTION">Needs attention</option></select>
       <button type="submit" className={`${buttonClass} min-h-10 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>Search</button>
     </form>
 
     {error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{error}</p> : null}
     {loading ? <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-8 text-sm text-slate-600"><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Loading Catalog…</div> : null}
     {hasNoProducts ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center"><h2 className="text-lg font-semibold text-slate-950">Your Catalog is empty</h2><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">Add one product to make it available for your Store.</p><button type="button" onClick={() => setIntakeOpen(true)} className={`${buttonClass} mt-5 bg-slate-950 text-white hover:bg-slate-800`}><FilePlus2 className="h-4 w-4" aria-hidden="true" /> Add your first product</button></div> : null}
-    {!loading && !hasNoProducts && workspace?.items.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center"><h2 className="text-lg font-semibold text-slate-950">No products match this view</h2><p className="mt-2 text-sm text-slate-600">Try another search or readiness filter.</p></div> : null}
+    {!loading && !hasNoProducts && workspace?.items.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center"><h2 className="text-lg font-semibold text-slate-950">{filter === "ARCHIVED" ? "No archived products" : "No products match this view"}</h2><p className="mt-2 text-sm text-slate-600">Try another search or readiness filter.</p></div> : null}
 
       {workspace && resourceItems.length > 0 ? <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="divide-y divide-slate-100">
@@ -254,9 +281,24 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
         <div className="col-start-2 row-start-1 min-w-0"><h2 title={item.name} className="truncate text-sm font-semibold tracking-tight text-slate-950">{focused ? <><span className="sr-only">Focused product: </span>{item.name}</> : item.name}</h2><p title={`${item.sku || item.productUrl || "Stable product identity"}${item.brand ? ` · ${item.brand}` : ""}${priceLabel(item) ? ` · ${priceLabel(item)}` : ""}`} className="mt-0.5 truncate text-xs text-slate-500">{item.sku || item.productUrl || "Stable product identity"}{item.brand ? ` · ${item.brand}` : ""}{priceLabel(item) ? ` · ${priceLabel(item)}` : ""}</p></div>
         <div className="col-start-2 row-start-2 flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] sm:col-start-3 sm:row-start-1"><span className={`rounded-full px-2 py-1 font-semibold ${stateClass(item.presentation.state)}`}>{item.presentation.label}</span>{item.source ? <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">{item.source === "EXTERNAL" ? "Website" : item.source}</span> : null}{item.presentation.issueSummary ? <span className="text-amber-800">{item.presentation.issueSummary}</span> : null}</div>
         <div className="col-start-3 row-start-1 flex flex-col items-end gap-1 sm:col-start-4 sm:flex-row sm:gap-1.5">
-          <button type="button" onClick={() => startEditing(item)} className={`${buttonClass} min-h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 hover:bg-slate-50 sm:px-3 sm:text-sm`}><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button>
-          <button type="button" onClick={() => { setPendingDelete(item); setDeleteError(null); }} disabled={deleting} aria-label={`Delete ${item.name}`} className={`${buttonClass} min-h-9 rounded-lg border border-red-200 bg-white px-2.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50 sm:px-3 sm:text-sm`}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Delete</button>
+          {item.status !== "INACTIVE" ? <button type="button" onClick={() => startEditing(item)} className={`${buttonClass} min-h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 hover:bg-slate-50 sm:px-3 sm:text-sm`}><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button> : null}
+          <button type="button" disabled={lifecycleBusy} onClick={() => { setPendingLifecycle({ item, action: item.status === "INACTIVE" ? "RESTORE" : "ARCHIVE" }); setLifecycleError(null); setPendingDelete(null); }} aria-label={`${item.status === "INACTIVE" ? "Restore" : "Archive"} ${item.name}`} className={`${buttonClass} min-h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50 sm:px-3 sm:text-sm`}>
+            {item.status === "INACTIVE" ? <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> : <Archive className="h-3.5 w-3.5" aria-hidden="true" />}
+            {item.status === "INACTIVE" ? "Restore" : "Archive"}
+          </button>
+          <button type="button" onClick={() => { setPendingLifecycle(null); setPendingDelete(item); setDeleteError(null); }} disabled={deleting} aria-label={`Delete ${item.name}`} className={`${buttonClass} min-h-9 rounded-lg border border-red-200 bg-white px-2.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50 sm:px-3 sm:text-sm`}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Delete</button>
         </div>
+        {pendingLifecycle?.item.id === item.id ? <div role="group" aria-label={`Confirm ${pendingLifecycle.action.toLowerCase()} of ${item.name}`} className="col-span-full rounded-xl border border-blue-200 bg-blue-50 p-3">
+          <p className="text-sm font-semibold text-slate-950">{pendingLifecycle.action === "ARCHIVE" ? "Archive" : "Restore"} “{item.name}”?</p>
+          <p className="mt-1 text-xs leading-5 text-slate-700">{pendingLifecycle.action === "ARCHIVE"
+            ? "Remove this product from current Catalog and shopper candidate lists while preserving historical records. First remove it from every Store or Campaign selection, including drafts. Archived items still count toward your plan capacity."
+            : "Make this product available to the Catalog again. This will not automatically select or publish it to any Store or Campaign."}</p>
+          {lifecycleError ? <p role="alert" className="mt-2 text-sm text-red-800">{lifecycleError}</p> : null}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" disabled={lifecycleBusy} onClick={() => { setPendingLifecycle(null); setLifecycleError(null); }} className={`${buttonClass} min-h-10 border border-slate-300 bg-white text-slate-800 disabled:opacity-50`}>Cancel</button>
+            <button type="button" disabled={lifecycleBusy} onClick={() => void confirmLifecycle()} className={`${buttonClass} min-h-10 bg-blue-700 text-white disabled:opacity-50`}>{lifecycleBusy ? "Saving…" : `Confirm ${pendingLifecycle.action === "ARCHIVE" ? "archive" : "restore"}`}</button>
+          </div>
+        </div> : null}
         {pendingDelete?.id === item.id ? <div role="group" aria-label={`Confirm deletion of ${item.name}`} className="col-span-full rounded-xl border border-red-200 bg-red-50 p-3">
           <p className="text-sm font-semibold text-red-950">Permanently delete “{item.name}”?</p>
           <p className="mt-1 text-xs leading-5 text-red-900">Only unused products can be removed. Products selected by a Store/Campaign or referenced by shopper history are protected. This does not delete uploaded image files.</p>

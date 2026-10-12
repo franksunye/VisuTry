@@ -2,6 +2,60 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createExperienceCommandService, ExperienceCommandError, type ExperienceCommandRepository } from './experience-command-service'
 
+class CatalogSelectionConflictError extends ExperienceCommandError {
+  readonly code = 'CATALOG_SELECTION_NOT_ACTIVE'
+  readonly httpStatus = 409
+
+  constructor(message = 'A selected product is archived or unavailable. Restore it in Catalog and retry.') {
+    super(message)
+  }
+}
+
+/**
+ * Prisma reports PostgreSQL SQLSTATE 40001 differently by adapter:
+ * - P2010 + meta.code=40001 for raw SQL SELECT ... FOR UPDATE
+ * - P2010 + meta.driverAdapterError=TransactionWriteConflict for Prisma's
+ *   driver-adapter wrapping of PostgreSQL 40001 (observed in local PG16 QA)
+ * - P2034 for a SERIALIZABLE transaction commit/write conflict
+ * - direct 40001 from a PostgreSQL adapter.
+ *
+ * Only translate these failures at the *selection transaction* boundary.
+ * The aborted transaction has no committed selection/audit/activation effects.
+ * Other SQL errors remain visible as real failures, never disguised as 409.
+ */
+function isCatalogSelectionSerializationConflict(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const candidate = error as {
+    code?: unknown
+    meta?: { code?: unknown; sqlstate?: unknown; driverAdapterError?: unknown }
+    cause?: unknown
+  }
+  if (candidate.code === 'P2034' || candidate.code === '40001') return true
+  if (candidate.code === 'P2010') {
+    if (candidate.meta?.code === '40001' || candidate.meta?.sqlstate === '40001') return true
+    // Prisma's PostgreSQL driver adapter can wrap SQLSTATE 40001 as P2010
+    // with meta.driverAdapterError.kind = 'TransactionWriteConflict', instead
+    // of surfacing the SQLSTATE at meta.code. Match only this exact conflict
+    // kind, not arbitrary raw-query failures such as 23503 or 23505.
+    const adapterError = candidate.meta?.driverAdapterError
+    if (adapterError === 'TransactionWriteConflict') return true
+    if (adapterError && typeof adapterError === 'object') {
+      const detail = adapterError as {
+        kind?: unknown
+        originalCode?: unknown
+        cause?: { kind?: unknown; originalCode?: unknown } | null
+      }
+      if (detail.kind === 'TransactionWriteConflict'
+        || detail.originalCode === '40001'
+        || detail.cause?.kind === 'TransactionWriteConflict'
+        || detail.cause?.originalCode === '40001') return true
+    }
+  }
+  const cause = candidate.cause
+  return Boolean(cause && typeof cause === 'object'
+    && (cause as { code?: unknown }).code === '40001')
+}
+
 const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
   async findTarget(merchantId, experienceId) {
     const row = await prisma.experience.findFirst({
@@ -55,6 +109,20 @@ const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
   },
   async replaceCatalogSelection(input) {
     await prisma.$transaction(async (tx) => {
+      // Same lock order as Catalog Archive/Restore: Merchant, then MerchantFrame.
+      // The preflight read in Store/Campaign UI is not a transactional guarantee.
+      const merchantRows = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Merchant" WHERE "id" = ${input.merchantId} FOR UPDATE`
+      if (!merchantRows.length) throw new ExperienceCommandError('Merchant not found')
+      if (input.frameIds.length) {
+        const frames = await tx.$queryRaw<{ id: string; status: string }[]>`
+          SELECT "id", "status" FROM "MerchantFrame"
+          WHERE "merchantId" = ${input.merchantId} AND "id" IN (${Prisma.join(input.frameIds)})
+          ORDER BY "id" FOR UPDATE
+        `
+        if (frames.length !== input.frameIds.length || frames.some((frame) => frame.status !== 'ACTIVE')) {
+          throw new CatalogSelectionConflictError()
+        }
+      }
       if (input.draftOnly) {
         const draft = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Experience" WHERE "id" = ${input.experienceId} AND "merchantId" = ${input.merchantId} AND "status" = 'DRAFT' FOR UPDATE`
         if (!draft.length) throw new ExperienceCommandError('Agent changes are limited to Draft Experiences.')
@@ -74,7 +142,14 @@ const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
         })
       }
       await input.afterReplace?.(tx)
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }).catch((error: unknown) => {
+      if (isCatalogSelectionSerializationConflict(error)) {
+        throw new CatalogSelectionConflictError(
+          'Catalog selection changed during this request. Reload the current products and retry.',
+        )
+      }
+      throw error
+    })
   },
 }
 

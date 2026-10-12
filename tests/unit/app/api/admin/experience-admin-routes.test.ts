@@ -242,6 +242,9 @@ describe('Merchant Experience admin routes', () => {
     db.experience.findFirst.mockResolvedValue(storeExperience)
     db.merchantFrame.findMany.mockResolvedValue([{ id: 'frame-2' }, { id: 'frame-1' }])
     const tx = {
+      $queryRaw: jest.fn()
+        .mockResolvedValueOnce([{ id: 'merchant-a' }])
+        .mockResolvedValueOnce([{ id: 'frame-1', status: 'ACTIVE' }, { id: 'frame-2', status: 'ACTIVE' }]),
       experienceFrame: {
         deleteMany: jest.fn(),
         createMany: jest.fn(),
@@ -270,6 +273,26 @@ describe('Merchant Experience admin routes', () => {
         { experienceId: 'experience-1', merchantId: 'merchant-a', merchantFrameId: 'frame-1', sortOrder: 1, active: true },
       ],
     })
+  })
+
+  it('returns 409 when an archived frame races a previously valid admin selection', async () => {
+    db.experience.findFirst.mockResolvedValue(storeExperience)
+    db.merchantFrame.findMany.mockResolvedValue([{ id: 'frame-1' }])
+    db.$transaction.mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn()
+        .mockResolvedValueOnce([{ id: 'merchant-a' }])
+        .mockResolvedValueOnce([{ id: 'frame-1', status: 'INACTIVE' }]),
+      experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
+    }))
+
+    const response = await updateFrames(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1/frames', {
+        method: 'PUT', body: JSON.stringify({ frameIds: ['frame-1'] }),
+      }),
+      { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+    )
+    expect(response.status).toBe(409)
+    expect(await response.json()).toMatchObject({ error: 'CATALOG_SELECTION_NOT_ACTIVE' })
   })
 
   it('rejects a selection containing a frame from another merchant', async () => {

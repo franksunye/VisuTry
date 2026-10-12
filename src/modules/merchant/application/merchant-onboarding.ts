@@ -182,7 +182,7 @@ type CatalogWorkspaceQuery = {
   cursor?: string
   limit?: number
   search?: string
-  readiness?: 'all' | MerchantCatalogPresentationState
+  readiness?: 'all' | 'ARCHIVED' | MerchantCatalogPresentationState
   frameId?: string
 }
 
@@ -207,15 +207,22 @@ export async function getMerchantCatalogWorkspace(input: CatalogWorkspaceQuery) 
   const focusedRow = input.frameId
     ? await prisma.merchantFrame.findFirst({ where: { id: input.frameId, merchantId: input.actor.merchantId } })
     : null
-  const focusedFrame = focusedRow ? publicFrame(focusedRow) : null
+  const focusedFrame = focusedRow && (input.readiness === 'ARCHIVED' ? focusedRow.status === 'INACTIVE' : focusedRow.status !== 'INACTIVE') ? publicFrame(focusedRow) : null
+  const activeItems = allItems.filter((item) => item.status !== 'INACTIVE')
+  // Keep total (including archived) for the existing plan/catalog capacity contract.
+  // Archived items do not consume active readiness metrics or appear by default.
   const summary = {
     total: allItems.length,
-    ready: allItems.filter((item) => item.presentation.state === 'READY').length,
-    needsReview: allItems.filter((item) => item.presentation.state === 'NEEDS_REVIEW').length,
-    needsAttention: allItems.filter((item) => item.presentation.state === 'NEEDS_ATTENTION').length,
+    archived: allItems.length - activeItems.length,
+    ready: activeItems.filter((item) => item.presentation.state === 'READY').length,
+    needsReview: activeItems.filter((item) => item.presentation.state === 'NEEDS_REVIEW').length,
+    needsAttention: activeItems.filter((item) => item.presentation.state === 'NEEDS_ATTENTION').length,
   }
-  const filtered = allItems.filter((item) => matchesCatalogSearch(item, input.search))
-    .filter((item) => !input.readiness || input.readiness === 'all' || item.presentation.state === input.readiness)
+  const visibleItems = input.readiness === 'ARCHIVED'
+    ? allItems.filter((item) => item.status === 'INACTIVE')
+    : activeItems
+  const filtered = visibleItems.filter((item) => matchesCatalogSearch(item, input.search))
+    .filter((item) => !input.readiness || input.readiness === 'all' || input.readiness === 'ARCHIVED' || item.presentation.state === input.readiness)
   const start = input.cursor ? Math.max(filtered.findIndex((item) => item.id === input.cursor) + 1, 0) : 0
   const items = filtered.slice(start, start + limit)
   return { items, nextCursor: start + limit < filtered.length ? items.at(-1)?.id ?? null : null, summary, focusedFrame }
@@ -403,6 +410,13 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
           ...(frame.productUrl ? [{ productUrl: frame.productUrl }] : []),
         ]
         const existing = await tx.merchantFrame.findFirst({ where: { merchantId: input.actor.merchantId, OR: identityFilters } })
+        if (existing?.status === 'INACTIVE') {
+          throw new MerchantOnboardingError(
+            'CATALOG_ARCHIVED_RESTORE_REQUIRED',
+            'This product is archived. Restore it explicitly in Catalog before importing the same identity again.',
+            409,
+          )
+        }
         if (!existing && catalogLimit !== null && currentCatalogCount + created >= catalogLimit) {
           throw new MerchantOnboardingError(
             'CATALOG_LIMIT_REACHED',
@@ -551,7 +565,7 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
   const merchant = await getMerchant(input)
   const [store, catalog, capabilitySource] = await Promise.all([
     findStore(input.actor.merchantId),
-    prisma.merchantFrame.findMany({ where: { merchantId: input.actor.merchantId }, orderBy: { name: 'asc' } }),
+    prisma.merchantFrame.findMany({ where: { merchantId: input.actor.merchantId, status: 'ACTIVE' }, orderBy: { name: 'asc' } }),
     prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: {
       tryOnEnabled: true, compareEnabled: true, classification: true, pilotType: true,
       planCode: true, commercialStatus: true, commercialStage: true, pricingVersion: true,

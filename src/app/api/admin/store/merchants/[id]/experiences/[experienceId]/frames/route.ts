@@ -36,6 +36,9 @@ export async function PUT(
 
     return NextResponse.json({ success: true, data: { frameIds } })
   } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'CATALOG_SELECTION_NOT_ACTIVE') {
+      return NextResponse.json({ success: false, error: 'CATALOG_SELECTION_NOT_ACTIVE', message: error.message }, { status: 409 })
+    }
     return storeErrorResponse(error)
   }
 }
