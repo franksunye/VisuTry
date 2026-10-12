@@ -46,7 +46,7 @@ When a usable Store exists and list_campaigns returns no Campaigns, enter Campai
 - collect only missing information;
 - present a business-level Campaign proposal before creating anything;
 - create a private DRAFT only after approval;
-- set frames, apply only bounded updates, and call preview_campaign;
+- set frames, apply only bounded Draft Campaign updates with update_campaign (including fixed-order Journey and bounded Web/Kiosk Delivery if requested), and call preview_campaign;
 - explain the draft status and recommend the next useful step.
 
 ### State C — Campaigns exist

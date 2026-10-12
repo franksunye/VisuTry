@@ -352,7 +352,7 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
 
   server.registerTool('update_campaign', {
     title: 'Update Campaign',
-    description: 'Update bounded Campaign DRAFT policy, copy, date, and safe CTA fields for the authenticated merchant. Active Campaigns are read-only to Agents; ask the merchant to make live changes in the authenticated workspace.',
+    description: 'Update bounded Campaign DRAFT policy, fixed canonical Journey, Web/Kiosk Delivery, copy, date, and safe CTA fields for the authenticated merchant. Active Campaigns are read-only to Agents; ask the merchant to make live changes in the authenticated workspace.',
     inputSchema: {
       campaignId,
       name: z.string().min(1).max(240).optional(),
@@ -361,6 +361,8 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
       objective: campaignObjective.optional(),
       conversionGate: campaignGate.optional(),
       presentationMode: presentationMode.optional(),
+      journeyPolicy: mcpStoreJourneyPolicy.optional(),
+      deliveryPolicy: mcpStoreDeliveryPolicy.optional(),
       startAt: campaignDate,
       endAt: campaignDate,
       primaryCtaType: z.string().max(120).nullable().optional(),
