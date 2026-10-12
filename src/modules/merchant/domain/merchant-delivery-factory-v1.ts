@@ -2,6 +2,7 @@ import { z } from 'zod/v4'
 import { assertDecisionJourneyPolicy, type DecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
 import { assertExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 import { PRESENTATION_MODES } from '@/modules/store/domain/presentation-mode'
+import { MERCHANT_CLASSIFICATIONS, type MerchantClassification } from '@/modules/merchant/domain/merchant-classification'
 
 /**
  * Merchant Delivery Factory v1. This module is a PURE, side-effect-free
@@ -41,7 +42,7 @@ const campaign = z.strictObject({
 export const merchantDeliveryManifestV1Schema = z.strictObject({
   version: z.literal(1),
   merchantSlug: slug,
-  classification: z.enum(['LIVE', 'TEST', 'REFERENCE']),
+  classification: z.enum(MERCHANT_CLASSIFICATIONS),
   catalog: z.strictObject({
     sourceMethod: z.enum(['URL', 'CSV', 'MANUAL']),
     // Existing catalog resource IDs only. Discovery/import approval is a
@@ -78,7 +79,7 @@ export type FactorySnapshotExperience = {
 export type FactorySnapshotV1 = {
   merchantId: string
   merchantSlug: string
-  classification: 'LIVE' | 'TEST' | 'REFERENCE'
+  classification: MerchantClassification
   brandDisplayName: string
   logoAssetUrl: string | null
   // Only ACTIVE, owned, previously validated catalog resource IDs.
