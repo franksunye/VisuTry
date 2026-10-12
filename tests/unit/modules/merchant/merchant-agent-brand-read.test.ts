@@ -1,3 +1,5 @@
+import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
+import type { AgentMerchantActor } from '@/modules/merchant/domain/actor'
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchant: { findUnique: jest.fn() },
@@ -8,8 +10,8 @@ jest.mock('@/lib/prisma', () => ({
 import { prisma } from '@/lib/prisma'
 import { getMerchantAgentBrandKit } from '@/modules/merchant/application/merchant-agent-brand-read'
 
-const actor = {
-  actorType: 'AGENT_CREDENTIAL' as const,
+const actor: AgentMerchantActor = {
+  actorType: 'AGENT_CREDENTIAL',
   actorId: 'credential-a',
   merchantId: 'merchant-a',
   scopes: ['merchant:read', 'experience:read'],
@@ -59,7 +61,7 @@ describe('canonical Prisma Agent Brand Kit read', () => {
   })
 
   it('requires BOTH merchant and experience read scopes before any database access', async () => {
-    for (const scopes of [['merchant:read'], ['experience:read'], []]) {
+    for (const scopes of [['merchant:read'], ['experience:read'], []] as MerchantAgentScope[][]) {
       await expect(getMerchantAgentBrandKit({ actor: { ...actor, scopes } }))
         .rejects.toMatchObject({ code: 'AGENT_SCOPE_REQUIRED' })
     }
