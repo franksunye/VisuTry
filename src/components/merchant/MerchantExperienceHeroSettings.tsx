@@ -65,8 +65,31 @@ export function MerchantExperienceHeroSettings({
         if (!res.ok || !body.success) throw Error(body.message || body.error || 'Unable to reset hero.')
         next = null
       }
+      // A successful upload/PATCH is not proof that the canonical Experience
+      // now contains the requested asset. Read the tenant-owned row again;
+      // public ISR/Cloudflare visibility remains a distinct acceptance gate.
+      const readbackResponse = await fetch(
+        `${endpoint}/hero?experienceId=${encodeURIComponent(experienceId)}`,
+        { cache: 'no-store' },
+      )
+      if (!readbackResponse.ok) {
+        throw Error('Hero save was accepted, but the saved value could not be verified. Reload before retrying.')
+      }
+      const readback = await readbackResponse.json() as {
+        success?: boolean
+        data?: { heroAssetUrl?: string | null }
+      }
+      if (!readback.success || !readback.data
+        || readback.data.heroAssetUrl !== next) {
+        throw Error('Hero save was accepted, but the saved value differs. Reload and verify before retrying.')
+      }
       setSavedUrl(publicMerchantImageUrl(next)); setFile(null)
-      setFeedback({ kind: 'success', message: status === 'ACTIVE' ? 'Live hero updated.' : 'Draft hero saved. Your Experience is not published.' })
+      setFeedback({
+        kind: 'success',
+        message: status === 'ACTIVE'
+          ? 'Hero saved in Merchant settings. Verify the public shopper page before considering the live update complete.'
+          : 'Draft hero saved and verified. Your Experience is not published.',
+      })
     } catch (error) {
       setFeedback({kind:'error',message:error instanceof Error?error.message:'Unable to save hero.'})
     } finally { setBusy(false) }
