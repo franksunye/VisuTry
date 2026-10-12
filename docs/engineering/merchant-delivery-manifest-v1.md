@@ -28,6 +28,13 @@ Manifest v1 includes: identity/tenant slug and canonical `MERCHANT_CLASSIFICATIO
 }
 ```
 
+
+## Authenticated read-only Plan endpoint
+
+`POST /api/merchant/:merchantId/delivery-factory/plan` accepts the **strict manifest itself** as JSON and requires a signed-in Human OWNER/ADMIN of the same merchant. It reads the current merchant classification, Brand, ACTIVE Catalog frame IDs, and Store/Campaign Experience and selection state using canonical tenant-scoped Prisma reads, then returns the computed proposal with `Cache-Control: private, no-store`. The requested `merchantId` is checked against membership, and manifest merchant slug must match the stored tenant identity. A non-member/foreign resource is reported as 404; invalid versions/fields result in 400.
+
+The endpoint is **not** `/apply`, and does not recognize a client-provided `approved:true` as consent. It does not upload assets, trigger marketing, persist rows, or use Stripe. If there are multiple ACTIVE Stores, it returns an explicit blocker rather than selecting one silently. A future authorized Apply must independently re-read and lock actual rows before touching any business state.
+
 ## Safety / honesty
 
 The caller must first obtain a tenant-bound, authenticated, **fresh** snapshot through existing canonical reads. The builder rejects a mismatched tenant slug; checks expected/selected IDs against that tenant's **ACTIVE** approved Catalog; fails closed on unknown fields, duplicate slugs/IDs, impossible Journey/Kiosk policy, and incomplete resource references. Extra existing Catalog or Campaign resources are never silently removed.
