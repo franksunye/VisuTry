@@ -97,6 +97,17 @@ describe('Merchant Delivery Factory v1 pure manifest and diff', () => {
     }
   })
 
+  it('accepts canonical commercial classifications but flags classification changes for Human review', () => {
+    for (const classification of ['REAL', 'POSSIBLE_EXTERNAL', 'INTERNAL', 'AUTOMATION', 'REFERENCE'] as const) {
+      const manifest = { ...proposed, classification }
+      const snapshot = fixture()
+      const plan = buildMerchantFactoryDryRunV1(manifest, snapshot)
+      expect(plan.blockers).toContain('Merchant classification changes are Human-only and require independent verification')
+      expect(plan.canApply).toBe(false)
+    }
+    expect(() => merchantDeliveryManifestV1Schema.parse({ ...proposed, classification: 'LIVE' })).toThrow()
+  })
+
   it('never mutates an Active Store, even when the requested copy differs', () => {
     const snapshot = fixture()
     snapshot.store!.status = 'ACTIVE'
