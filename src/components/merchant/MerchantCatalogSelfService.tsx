@@ -79,7 +79,7 @@ type CatalogItem = {
   validation: { valid: boolean; importReady?: boolean; recommendationReady?: boolean; issues: string[]; warnings: string[] };
   presentation?: { state: "READY" | "NEEDS_REVIEW" | "NEEDS_ATTENTION"; label: string; issueSummary: string | null };
 };
-type CatalogWorkspaceSummary = { total: number; archived: number; ready: number };
+type CatalogWorkspaceSummary = { total: number; archived: number; ready: number; needsReview: number };
 type ManualRow = { clientKey?: number; sku: string; name: string; shape: string; imageUrl: string; brand: string; price: string; productUrl: string };
 
 const manualFieldMeta: Array<{ key: keyof ManualRow; label: string; placeholder: string; required?: boolean }> = [
@@ -316,7 +316,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
       const summary = await loadCatalog(false);
       onCatalogChanged?.(summary ? {
         hasAny: summary.total > summary.archived,
-        hasReady: summary.ready > 0,
+        hasReady: summary.ready + summary.needsReview > 0,
       } : { hasAny: hadCatalogAtMount.current, hasReady: proposal.importReady.length > 0 });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to import catalog.");
