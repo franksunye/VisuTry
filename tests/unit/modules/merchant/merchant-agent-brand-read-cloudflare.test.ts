@@ -1,3 +1,4 @@
+import type { AgentMerchantActor } from '@/modules/merchant/domain/actor'
 jest.mock('@/data/neon-cloudflare', () => ({
   getCloudflareSql: jest.fn(),
 }))
@@ -5,8 +6,8 @@ jest.mock('@/data/neon-cloudflare', () => ({
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { getMerchantAgentBrandKit } from '@/modules/merchant/application/merchant-agent-brand-read-cloudflare'
 
-const actor = {
-  actorType: 'AGENT_CREDENTIAL' as const,
+const actor: AgentMerchantActor = {
+  actorType: 'AGENT_CREDENTIAL',
   actorId: 'credential-a',
   merchantId: 'merchant-a',
   scopes: ['merchant:read', 'experience:read'],
