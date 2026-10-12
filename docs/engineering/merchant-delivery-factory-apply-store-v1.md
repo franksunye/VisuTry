@@ -4,9 +4,9 @@
 
 ## Explicit Prepare → Approval → Apply
 
-First call **read-only** `POST /api/merchant/:merchantId/delivery-factory/prepare-store` with the strict canonical v1 Manifest. This returns an exact tenant-owned Draft Store ID, `expectedStoreUpdatedAt`, a SHA-256 `manifestDigest` over the normalized Manifest, bounded changed fields, and `HUMAN_APPROVAL_REQUIRED` or `ALREADY_MATCHED`. It performs no writes.
+First call **read-only** `POST /api/merchant/:merchantId/delivery-factory/prepare-store` with the strict canonical v1 Manifest. This returns an exact tenant-owned Draft Store ID, `expectedStoreUpdatedAt`, a SHA-256 `manifestDigest` over the normalized Manifest, bounded changed fields and a **reviewChanges** list of their exact persisted **before** and proposed **after** values, and `HUMAN_APPROVAL_REQUIRED` or `ALREADY_MATCHED`. It performs no writes.
 
-The authenticated Owner must then review the exact proposed changes and explicitly submit `approved:true` to the separate Apply endpoint, with **the same Manifest + returned Store ID + digest + revision**. The server independently normalizes and hashes the input again and rejects a mismatch as HTTP 409; thus changing the Manifest after Prepare cannot silently change an approved target. An updated Store revision or ACTIVE transition conflicts; a new Prepare/approval is needed.
+The authenticated Owner must review the returned before/after differences (only the six allowlisted Draft Store fields; no shopper identity, billing, product-media or unrelated merchant data) and explicitly submit `approved:true` to the separate Apply endpoint, with **the same Manifest + returned Store ID + digest + revision**. The server independently normalizes and hashes the input again and rejects a mismatch as HTTP 409; thus changing the Manifest after Prepare cannot silently change an approved target. An updated Store revision or ACTIVE transition conflicts; a new Prepare/approval is needed.
 
 ## Endpoint
 
