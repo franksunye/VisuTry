@@ -10,6 +10,7 @@
 export const MCP_TOOL_NAMES = [
   'get_onboarding_status',
   'get_merchant',
+  'get_brand_kit',
   'list_frames',
   'import_frames',
   'validate_catalog',
@@ -51,6 +52,7 @@ export const MCP_CLOUDFLARE_ADAPTER_UNAVAILABLE: readonly McpToolName[] = [
 export const MCP_TOOL_SCOPES: Record<McpToolName, readonly string[]> = {
   get_onboarding_status: ['merchant:read'],
   get_merchant: ['merchant:read'],
+  get_brand_kit: ['merchant:read', 'experience:read'],
   list_frames: ['catalog:read'],
   import_frames: ['catalog:write'],
   validate_catalog: ['catalog:read'],
