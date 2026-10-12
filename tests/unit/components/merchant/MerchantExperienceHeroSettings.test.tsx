@@ -3,15 +3,22 @@ import { MerchantExperienceHeroSettings } from '@/components/merchant/MerchantEx
 const endpoint = '/api/merchant/merchant-a/brand'
 function mockGet(status: string, canEdit = true, heroAssetUrl: string | null = null) {
   const calls: Array<{url:string;init:RequestInit | undefined}> = []
+  let persistedHeroUrl = heroAssetUrl
   global.fetch = jest.fn((url: string, init?: RequestInit) => {
-    calls.push({url,init})
+    calls.push({ url, init })
     return Promise.resolve({
       ok: true,
-      json: async () => init?.method === 'PATCH'
-        ? { success: true, data: { heroAssetUrl: null } }
-        : init?.method === 'POST'
-          ? { success: true, data: { url: 'https://a.public.blob.vercel-storage.com/merchant-brand/merchant-a/hero/experience-a/abc.png' } }
-          : { success: true, data: { status, canEdit, heroAssetUrl } },
+      json: async () => {
+        if (init?.method === 'PATCH') {
+          persistedHeroUrl = null
+          return { success: true, data: { heroAssetUrl: null } }
+        }
+        if (init?.method === 'POST') {
+          persistedHeroUrl = 'https://a.public.blob.vercel-storage.com/merchant-brand/merchant-a/hero/experience-a/abc.png'
+          return { success: true, data: { url: persistedHeroUrl } }
+        }
+        return { success: true, data: { status, canEdit, heroAssetUrl: persistedHeroUrl } }
+      },
     })
   }) as jest.Mock
   return calls
@@ -39,6 +46,33 @@ describe('Merchant Hero edit UX', () => {
     expect(form.get('kind')).toBe('hero')
     expect(form.get('experienceId')).toBe('experience-a')
     expect(form.get('approvedLiveChange')).toBe('true')
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(
+      'Hero saved in Merchant settings. Verify the public shopper page',
+    ))
+    expect(calls.filter(call => !call.init?.method)).toHaveLength(2)
+  })
+  it('warns on save acknowledgment without matching canonical Hero readback', async () => {
+    const calls = mockGet('ACTIVE')
+    const realFetch = global.fetch as jest.Mock
+    let getCount = 0
+    global.fetch = jest.fn((url: string, init?: RequestInit) => {
+      if (!init?.method) {
+        getCount++
+        if (getCount === 2) return Promise.resolve({
+          ok: true, json: async () => ({ success: true, data: { heroAssetUrl: null } }),
+        })
+      }
+      return realFetch(url, init)
+    }) as jest.Mock
+    render(<MerchantExperienceHeroSettings {...props} />)
+    const input = screen.getByLabelText('Upload your hero')
+    await waitFor(() => expect(input).not.toBeDisabled())
+    fireEvent.change(input, { target: { files: [new File(['img'], 'hero.png', { type: 'image/png' })] } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save hero' }))
+    fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Apply to live Experience' }))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('saved value differs'))
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(calls.some(call => call.init?.method === 'POST')).toBe(true)
   })
   it('uses canonical reset PATCH for a private Draft without confirmation', async () => {
     const calls = mockGet('DRAFT', true, 'https://a.public.blob.vercel-storage.com/merchant-brand/merchant-a/hero/experience-a/abc.png')
