@@ -6,9 +6,30 @@ class CatalogSelectionConflictError extends ExperienceCommandError {
   readonly code = 'CATALOG_SELECTION_NOT_ACTIVE'
   readonly httpStatus = 409
 
-  constructor() {
-    super('A selected product is archived or unavailable. Restore it in Catalog and retry.')
+  constructor(message = 'A selected product is archived or unavailable. Restore it in Catalog and retry.') {
+    super(message)
   }
+}
+
+/**
+ * Prisma reports PostgreSQL SQLSTATE 40001 differently by adapter:
+ * - P2010 + meta.code=40001 for raw SQL SELECT ... FOR UPDATE
+ * - P2034 for a SERIALIZABLE transaction commit/write conflict
+ * - direct 40001 from a PostgreSQL adapter.
+ *
+ * Only translate these failures at the *selection transaction* boundary.
+ * The aborted transaction has no committed selection/audit/activation effects.
+ * Other SQL errors remain visible as real failures, never disguised as 409.
+ */
+function isCatalogSelectionSerializationConflict(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const candidate = error as { code?: unknown; meta?: { code?: unknown; sqlstate?: unknown }; cause?: unknown }
+  if (candidate.code === 'P2034' || candidate.code === '40001') return true
+  if (candidate.code === 'P2010' &&
+    (candidate.meta?.code === '40001' || candidate.meta?.sqlstate === '40001')) return true
+  const cause = candidate.cause
+  return Boolean(cause && typeof cause === 'object'
+    && (cause as { code?: unknown }).code === '40001')
 }
 
 const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
@@ -97,7 +118,14 @@ const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
         })
       }
       await input.afterReplace?.(tx)
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }).catch((error: unknown) => {
+      if (isCatalogSelectionSerializationConflict(error)) {
+        throw new CatalogSelectionConflictError(
+          'Catalog selection changed during this request. Reload the current products and retry.',
+        )
+      }
+      throw error
+    })
   },
 }
 
