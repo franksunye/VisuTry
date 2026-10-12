@@ -44,6 +44,7 @@ describe('Owner-only read-only Factory Prepare endpoint', () => {
       version: 1, status: 'HUMAN_APPROVAL_REQUIRED',
       storeId: 'store-id-a', expectedStoreUpdatedAt: '2026-10-12T08:30:00.000Z',
       manifestDigest: 'a'.repeat(64), changedFields: ['name'],
+      reviewChanges: [{ field: 'name', before: 'Old Store', after: 'Store Updated' }],
       requiresHumanApproval: true, publicRender: 'NOT_EXECUTED', releaseReady: false,
     })
   })
@@ -55,6 +56,7 @@ describe('Owner-only read-only Factory Prepare endpoint', () => {
     expect(await res.json()).toMatchObject({
       success: true, data: {
         status: 'HUMAN_APPROVAL_REQUIRED', changedFields: ['name'],
+        reviewChanges: [{ field: 'name', before: 'Old Store', after: 'Store Updated' }],
         requiresHumanApproval: true, releaseReady: false,
       },
     })
