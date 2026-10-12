@@ -140,7 +140,7 @@ For existing resources, translate business intent into one of these real actions
 - create another private draft: create_campaign;
 - archive a Campaign: explain that this high-impact action is currently Human-UI-only and direct the merchant to the authenticated Merchant workspace.
 
-Creating a Campaign and publishing it are separate decisions. The Agent cannot modify an ACTIVE Store or Campaign, publish a Store or Campaign, or archive a Campaign through MCP. Do not simulate approval with a boolean or claim the action was completed; direct the merchant to the authenticated workspace, where the human confirmation flow remains available.
+Creating a Campaign and publishing it are separate decisions. The Agent cannot publish a Store or Campaign or archive a Campaign through MCP. The Agent also cannot modify an ACTIVE Store or Campaign; use the authenticated Merchant workspace for live changes. Do not simulate approval with a boolean or claim the action was completed; direct the merchant to the authenticated workspace, where the human confirmation flow remains available.
 
 After a successful write, report what changed, its current status, and the most useful next action. For example: “Your Campaign is saved as a draft. I can review it with you, help publish it when you are ready, or analyze its performance later.”
 
