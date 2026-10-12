@@ -113,7 +113,7 @@ describe('Human merchant catalog route', () => {
     const foreign = await DELETE(request({ approved: true }, 'DELETE'), { params: { merchantId: 'merchant-a', frameId: 'foreign-id' } })
     expect(foreign.status).toBe(404)
 
-    const referenced = new MerchantOnboardingError('referenced') as Error & { code: string; httpStatus: number }
+    const referenced = new MerchantOnboardingError('PRODUCT_IN_USE', 'Product in use', 409) as Error & { code: string; httpStatus: number }
     referenced.code = 'PRODUCT_IN_USE'
     referenced.httpStatus = 409
     mockDelete.mockRejectedValueOnce(referenced)
