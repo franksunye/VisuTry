@@ -7,6 +7,29 @@ import { MerchantFactoryApplyError } from '@/modules/merchant/domain/merchant-de
 import { merchantDeliveryManifestV1Schema } from '@/modules/merchant/domain/merchant-delivery-factory-v1'
 import { ExperienceCommandError } from '@/modules/store/application/experience-command-service'
 
+/**
+ * Provider-neutral known serialization conflicts only; unrelated SQL errors
+ * must remain 500 so FK / schema failures are never masked as safe retries.
+ */
+function isFactoryStoreWriteConflict(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const item = error as {
+    code?: unknown
+    meta?: { code?: unknown; driverAdapterError?: unknown }
+  }
+  if (item.code === 'P2034' || item.code === '40001') return true
+  if (item.code !== 'P2010') return false
+  if (item.meta?.code === '40001') return true
+  const adapter = item.meta?.driverAdapterError
+  if (adapter === 'TransactionWriteConflict') return true
+  if (!adapter || typeof adapter !== 'object') return false
+  const conflict = adapter as { kind?: unknown; originalCode?: unknown; cause?: { kind?: unknown; originalCode?: unknown } }
+  return conflict.kind === 'TransactionWriteConflict'
+    || conflict.originalCode === '40001'
+    || conflict.cause?.kind === 'TransactionWriteConflict'
+    || conflict.cause?.originalCode === '40001'
+}
+
 export const dynamic = 'force-dynamic'
 const response = (data: unknown, status = 200) =>
   NextResponse.json(data, { status, headers: { 'Cache-Control': 'private, no-store' } })
@@ -51,8 +74,11 @@ export async function POST(
     }
     if (error instanceof ZodError) return response({ success: false, error: 'INVALID_FACTORY_APPLY_REQUEST' }, 400)
     if (error instanceof MerchantFactoryApplyError
-      || (error instanceof ExperienceCommandError
-        && error.message === 'FACTORY_DRAFT_STORE_STALE_REVISION')) {
+      || (error instanceof ExperienceCommandError && (
+        error.message === 'FACTORY_DRAFT_STORE_STALE_REVISION'
+        || error.message === 'Agent changes are limited to Draft Experiences.'
+      ))
+      || isFactoryStoreWriteConflict(error)) {
       return response({ success: false, error: 'FACTORY_DRAFT_STORE_CONFLICT' }, 409)
     }
     // No leaking SQL, credentials, rejected tenant identity or hidden state.
