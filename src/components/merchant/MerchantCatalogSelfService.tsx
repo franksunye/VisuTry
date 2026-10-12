@@ -79,6 +79,7 @@ type CatalogItem = {
   validation: { valid: boolean; importReady?: boolean; recommendationReady?: boolean; issues: string[]; warnings: string[] };
   presentation?: { state: "READY" | "NEEDS_REVIEW" | "NEEDS_ATTENTION"; label: string; issueSummary: string | null };
 };
+type CatalogWorkspaceSummary = { total: number; archived: number; ready: number; needsReview: number };
 type ManualRow = { clientKey?: number; sku: string; name: string; shape: string; imageUrl: string; brand: string; price: string; productUrl: string };
 
 const manualFieldMeta: Array<{ key: keyof ManualRow; label: string; placeholder: string; required?: boolean }> = [
@@ -213,14 +214,18 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
       if (append && catalogCursorRef.current) params.set("cursor", catalogCursorRef.current);
       if (requestedSearch.trim()) params.set("search", requestedSearch.trim());
       const response = await fetch(`${apiBase}?${params.toString()}`, { cache: "no-store" });
-      const body = await response.json() as { success?: boolean; data?: { items?: CatalogItem[]; nextCursor?: string | null }; message?: string };
+      const body = await response.json() as { success?: boolean; data?: { items?: CatalogItem[]; nextCursor?: string | null; summary?: CatalogWorkspaceSummary }; message?: string };
       if (!response.ok || !body.success || !body.data) throw new Error(body.message || "Unable to load catalog.");
       setCatalogItems((current) => append ? [...current, ...(body.data?.items ?? [])] : (body.data?.items ?? []));
       const nextCursor = body.data.nextCursor ?? null;
       catalogCursorRef.current = nextCursor;
       setCatalogCursor(nextCursor);
+      // Canonical server summary spans all active Catalog rows, not just
+      // the first page or current search. Only it can settle First Value.
+      return body.data.summary ?? null;
     } catch (requestError) {
       setCatalogError(requestError instanceof Error ? requestError.message : "Unable to load catalog.");
+      return null;
     } finally {
       setCatalogLoading(false);
     }
@@ -327,8 +332,11 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
         hadCatalogAtMount.current = true;
       }
       invalidateProposal();
-      await loadCatalog(false);
-      onCatalogChanged?.({ hasAny: hadCatalogAtMount.current, hasReady: proposal.importReady.length > 0 });
+      const summary = await loadCatalog(false);
+      onCatalogChanged?.(summary ? {
+        hasAny: summary.total > summary.archived,
+        hasReady: summary.ready + summary.needsReview > 0,
+      } : { hasAny: hadCatalogAtMount.current, hasReady: proposal.importReady.length > 0 });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to import catalog.");
     } finally {
@@ -349,13 +357,18 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
         styleTags: item.styleTags ?? [], collectionTags: item.collectionTags ?? [], externalId: item.externalId ?? null, sourceNotes: "Human catalog correction",
       };
       const response = await fetch(`${apiBase}/${encodeURIComponent(item.id)}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ frame }) });
-      const body = await response.json() as { success?: boolean; message?: string };
+      const body = await response.json() as { success?: boolean; data?: CatalogItem; message?: string };
       if (!response.ok || !body.success) throw new Error(body.message || "Unable to save correction.");
       analytics.trackCustomEvent(AnalyticsEvent.MerchantCatalogCorrectionSaved, { merchant_id: merchantId, correction_type: "catalog_frame" });
       setEditingId(null);
       setEditingRow(null);
-      await loadCatalog(false);
-      onCatalogChanged?.({ hasAny: true, hasReady: true });
+      const summary = await loadCatalog(false);
+      // An HTTP 200 means the correction was saved, not that Catalog has a
+      // display-ready product. Use the server-wide, unfiltered summary;
+      // on read failure keep the parent's last known readiness unchanged.
+      if (summary) {
+        onCatalogChanged?.({ hasAny: summary.total > summary.archived, hasReady: summary.ready + summary.needsReview > 0 });
+      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to save correction.");
     } finally {
