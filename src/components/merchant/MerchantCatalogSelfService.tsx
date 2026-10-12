@@ -348,7 +348,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
       // display-ready product. Use the server-wide, unfiltered summary;
       // on read failure keep the parent's last known readiness unchanged.
       if (summary) {
-        onCatalogChanged?.({ hasAny: summary.total > summary.archived, hasReady: summary.ready > 0 });
+        onCatalogChanged?.({ hasAny: summary.total > summary.archived, hasReady: summary.ready + summary.needsReview > 0 });
       }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to save correction.");
