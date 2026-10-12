@@ -80,6 +80,40 @@ describe('MerchantCatalogWorkspace', () => {
     ))
   })
 
+  it('never sends DELETE until explicit confirmation and reloads Catalog after success', async () => {
+    const fetchMock = jest.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => response() })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { id: 'frame-2' } }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { items: [], nextCursor: null, summary: { total: 0, ready: 0, needsReview: 0, needsAttention: 0 }, focusedFrame: null } }) })
+    global.fetch = fetchMock as jest.Mock
+
+    render(<MerchantCatalogWorkspace merchantId="merchant-a" locale="en" />)
+    fireEvent.click(await screen.findByRole('button', { name: `Delete ${item.name}` }))
+    expect(screen.getByText(/Permanently delete/)).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm deletion' }))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/merchant/merchant-a/catalog/frame-2', expect.objectContaining({
+      method: 'DELETE',
+      body: JSON.stringify({ approved: true }),
+    })))
+    expect(await screen.findByText('Your Catalog is empty')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('retains the product and displays a clear error when deletion is blocked', async () => {
+    const fetchMock = jest.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => response() })
+      .mockResolvedValueOnce({ ok: false, status: 409, json: async () => ({ success: false, error: 'PRODUCT_IN_USE', message: 'This product is used by a Store or shopper history.' }) })
+    global.fetch = fetchMock as jest.Mock
+    render(<MerchantCatalogWorkspace merchantId="merchant-a" locale="en" />)
+    fireEvent.click(await screen.findByRole('button', { name: `Delete ${item.name}` }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm deletion' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('This product is used by a Store or shopper history.')
+    expect(screen.getByText(item.name)).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
   it('resolves a contextual frame outside the first page, focuses it, and waits for explicit Edit', async () => {
     const focused = { ...item, id: 'frame-51', name: 'Frame outside first 50' }
     global.fetch = jest.fn().mockResolvedValue({
