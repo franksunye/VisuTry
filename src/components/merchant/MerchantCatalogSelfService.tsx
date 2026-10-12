@@ -93,6 +93,25 @@ const manualFieldMeta: Array<{ key: keyof ManualRow; label: string; placeholder:
 
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
 let manualRowSequence = 0;
+// Generated locally: illustrative sample only, never merchant data.
+const catalogCsvTemplate = [
+  "sku,name,imageUrl,productUrl,shape,brand,price",
+  "FRAME-001,Example eyewear frame,https://example.com/frame.jpg,https://example.com/products/frame-001,round,Example Brand,99.00",
+].join("\n");
+
+function downloadCatalogCsvTemplate() {
+  const blob = new Blob([catalogCsvTemplate + "\n"], { type: "text/csv;charset=utf-8" });
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = "visutry-catalog-template.csv";
+    anchor.click();
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 const emptyManualRow = (): ManualRow => ({ clientKey: ++manualRowSequence, sku: "", name: "", shape: "", imageUrl: "", brand: "", price: "", productUrl: "" });
 function maxLengthForField(key: keyof ManualRow) {
   if (key === "sku") return 120;
@@ -374,9 +393,12 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
           <p className="mt-2 text-xs leading-5 text-slate-500">We try Shopify, structured ecommerce data, sitemap links, standard product pages, and browser rendering when available. Optional SKU and shape enrichment never block a valid product from the catalog.</p>
         </> : null}
         {sourceType === "csv" ? <>
-          <label htmlFor="merchant-catalog-csv" className="text-sm font-semibold text-slate-800">Product CSV</label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label htmlFor="merchant-catalog-csv" className="text-sm font-semibold text-slate-800">Product CSV</label>
+            <button type="button" onClick={downloadCatalogCsvTemplate} className="text-sm font-semibold text-blue-700 underline underline-offset-4 hover:text-blue-900">Download CSV template</button>
+          </div>
           <input id="merchant-catalog-csv" type="file" accept=".csv,text/csv" onChange={(event) => { setFile(event.target.files?.[0] ?? null); invalidateProposal(); setError(null); }} className="mt-2 block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:font-semibold file:text-blue-800" />
-          <p className="mt-2 text-xs leading-5 text-slate-500">Required: <code>name</code> and a usable <code>imageUrl</code>. Recommended: <code>sku</code>, <code>shape</code>, <code>productUrl</code>, <code>price</code>, <code>brand</code>. A product URL or externalId can identify rows when a merchant SKU is unavailable.</p>
+          <p className="mt-2 text-xs leading-5 text-slate-500">Replace the sample URLs with your own public product image and product page before inspection. Required: <code>name</code> and a usable <code>imageUrl</code>. Recommended: <code>sku</code>, <code>shape</code>, <code>productUrl</code>, <code>price</code>, <code>brand</code>. A product URL or externalId can identify rows when a merchant SKU is unavailable.</p>
         </> : null}
         {sourceType === "manual" ? <div className="space-y-3">
           <p className="text-sm leading-6 text-slate-600">For your first product, add a name, a usable image, and either a merchant SKU or product page URL. Shape and other details can be added later.</p>
