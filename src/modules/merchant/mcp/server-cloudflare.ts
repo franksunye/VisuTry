@@ -109,6 +109,36 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
   server.registerTool('import_frames', { title: 'Import frames', description: 'Idempotently import up to 1,000 structured catalog frames. An Agent cannot change products selected by an active Store or Campaign; ask the merchant to edit those products in the authenticated workspace.', inputSchema: { frames: z.array(frameInput).min(1).max(1000) } }, async ({ frames }) => safe(() => merchantOnboarding.importMerchantFrames({ actor, frames: frames as CatalogFrameInput[] })))
   server.registerTool('validate_catalog', { title: 'Validate catalog', description: 'Validate the authenticated merchant catalog.', inputSchema: {} }, async () => safe(() => merchantOnboarding.validateMerchantCatalog({ actor })))
   server.registerTool('create_store', { title: 'Create Store', description: 'Create or reuse a Store DRAFT.', inputSchema: { name: z.string().max(120).optional(), headline: z.string().max(240).optional(), description: z.string().max(5000).optional() } }, async ({ name, headline, description }) => safe(() => merchantOnboarding.createMerchantStore({ actor, name, headline, description })))
+  server.registerTool('get_store_details', {
+    title: 'Get Store details',
+    description: 'Read this authenticated merchant Store configuration and its Draft/Active status. Never publishes or modifies any Store.',
+    inputSchema: {},
+  }, async () => safe(async () => {
+    requireAgentScope(actor, 'experience:read')
+    const workspace = await merchantOnboarding.getMerchantStoreWorkspace({ actor })
+    return { store: workspace.store, capabilities: workspace.capabilities }
+  }))
+
+  server.registerTool('update_store_details', {
+    title: 'Update Draft Store details',
+    description: 'Update only Draft Store copy and presentation mode through canonical commands. ACTIVE Store changes require the merchant to use the authenticated human workspace.',
+    inputSchema: {
+      storeId: z.string().min(1).max(120),
+      name: z.string().min(1).max(120).optional(),
+      headline: z.string().max(240).nullable().optional(),
+      description: z.string().max(5000).nullable().optional(),
+      presentationMode: presentationMode.optional(),
+    },
+  }, async ({ storeId, name, headline, description, presentationMode: mode }) => safe(async () => {
+    requireAgentScope(actor, 'experience:write')
+    if ([name, headline, description, mode].every((value) => value === undefined)) {
+      throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Supply at least one Store field to update.')
+    }
+    return merchantOnboarding.updateMerchantStore({
+      actor, storeId, name, headline, description, presentationMode: mode,
+    })
+  }))
+
   server.registerTool('set_store_frames', { title: 'Set Store frames', description: 'Replace the authenticated merchant Store DRAFT frame selection. Active Stores are read-only to Agents; ask the merchant to make live changes in the authenticated workspace.', inputSchema: { storeId: z.string().min(1), frameIds: z.array(z.string().min(1)).max(MAX_CATALOG_IMPORT) } }, async ({ storeId, frameIds }) => safe(() => merchantOnboarding.setMerchantStoreFrames({ actor, storeId, frameIds })))
   server.registerTool('preview_store', { title: 'Preview Store', description: 'Return a side-effect-free Store readiness preview.', inputSchema: { storeId: z.string().min(1) } }, async ({ storeId }) => safe(() => merchantOnboarding.previewMerchantStore({ actor, storeId })))
   server.registerTool('list_campaigns', { title: 'List Campaigns', description: 'List Campaign DRAFTs for the authenticated merchant.', inputSchema: { cursor: z.string().max(120).optional(), limit: z.number().int().min(1).max(100).optional() } }, async ({ cursor, limit }) => safe(async () => { requireAgentScope(actor, 'experience:read'); return listCampaigns({ merchantId: actor.merchantId, cursor, limit }) }))
