@@ -112,7 +112,11 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
     inputSchema: {
       experienceId: z.string().min(1).max(120).optional(),
     },
-  }, async ({ experienceId }) => safe(() => getMerchantAgentBrandKit({ actor, experienceId })))
+  }, async ({ experienceId }) => safe(() => {
+    requireAgentScope(actor, 'merchant:read')
+    requireAgentScope(actor, 'experience:read')
+    return getMerchantAgentBrandKit({ actor, experienceId })
+  }))
 
   server.registerTool('get_merchant', { title: 'Get merchant', description: 'Read the authenticated merchant profile.', inputSchema: {} }, async () => safe(() => merchantOnboarding.getMerchant({ actor })))
   server.registerTool('list_frames', { title: 'List frames', description: 'List the authenticated merchant catalog.', inputSchema: { cursor: z.string().optional(), limit: z.number().int().min(1).max(100).optional() } }, async ({ cursor, limit }) => safe(() => merchantOnboarding.listMerchantFrames({ actor, cursor, limit })))
