@@ -158,6 +158,34 @@ describe('Merchant First Value source choice and recovery', () => {
       String(url) === '/api/merchant/merchant-f/catalog' && init?.method === 'POST')).toHaveLength(0)
   })
 
+  it.each([0, 1])('keeps Catalog presence after approved update-only import with initialTotal=%i', async (initialTotal) => {
+    const onCatalogChanged = jest.fn()
+    const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const requested = String(input)
+      if (requested.endsWith('/catalog/inspect') && init?.method === 'POST') {
+        return response(importableProposal)
+      }
+      if (requested.endsWith('/catalog') && init?.method === 'POST') {
+        return response({ imported: 1, created: 0, updated: 1 })
+      }
+      return response({
+        items: [{ id: 'frame-a', name: 'Existing product', sku: 'STALE-001', imageUrl: 'https://cdn.example.test/old.png', source: 'EXTERNAL' }],
+        nextCursor: null,
+      })
+    })
+    global.fetch = fetchMock as typeof fetch
+    render(<MerchantCatalogSelfService merchantId="merchant-existing" initialTotal={initialTotal}
+      initialWebsiteUrl="https://shop.example.test/product" onCatalogChanged={onCatalogChanged} showResourceList={false} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Approve and import 1' }))
+    await waitFor(() => expect(onCatalogChanged).toHaveBeenCalledWith({ hasAny: true, hasReady: true }))
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/merchant/merchant-existing/catalog',
+      expect.objectContaining({ method: 'POST' }),
+    )
+    expect(screen.getByText('Catalog updated successfully.')).toBeInTheDocument()
+  })
+
   it('discards an in-flight inspection response after its source is edited', async () => {
     let resolveInspect: ((value: Response) => void) | undefined
     const fetchMock = jest.fn((input: RequestInfo | URL, init?: RequestInit) => {
