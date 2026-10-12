@@ -80,6 +80,8 @@ describe('Factory Owner-only approved Draft Store Apply HTTP', () => {
     ['no explicit approval', { ...payload, approved: false }],
     ['no optimistic precondition', { approved: true, manifest }],
     ['no prepared Store target', { ...payload, expectedStoreId: undefined }],
+    ['invalid prepared Store target', { ...payload, expectedStoreId: '' }],
+    ['oversized prepared Store target', { ...payload, expectedStoreId: 'a'.repeat(121) }],
     ['no prepared manifest digest', { approved: true, expectedStoreUpdatedAt: '2026-10-12T08:30:00.000Z', manifest }],
     ['inject Store status', { ...payload, manifest: {
       ...manifest, store: { ...manifest.store, status: 'ACTIVE' },
