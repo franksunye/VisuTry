@@ -43,7 +43,7 @@ describe('Factory single Draft Store Apply eligibility (pure)', () => {
     ['changed selected frames', () => { const p = plan(); p.steps[1].changedFields = ['selectedFrameIds']; return p }],
     ['changed Hero', () => { const p = plan(); p.steps[1].changedFields = ['heroAssetUrl']; return p }],
     ['stale tenant plan', () => { const p = plan(); p.merchantSlug = 'foreign'; return p }],
-    ['forged write authorization', () => { const p = plan(); return { ...p, canApply: true } as MerchantFactoryDryRunV1 }],
+    ['forged write authorization', () => { const p = plan(); return { ...p, canApply: true } as unknown as MerchantFactoryDryRunV1 }],
     ['additional Campaign creation', () => {
       const p = plan(); p.steps.push({ resource: 'CAMPAIGN', target: 'fall',
         action: 'CREATE_DRAFT', changedFields: ['name'] }); return p
