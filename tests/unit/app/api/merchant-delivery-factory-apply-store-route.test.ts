@@ -17,6 +17,7 @@ import { requireAuth } from '@/lib/api-auth-runtime'
 import { MerchantAccessError, requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { applyMerchantFactoryDraftStoreV1 } from '@/modules/merchant/application/merchant-delivery-factory-apply'
 import { MerchantFactoryApplyError } from '@/modules/merchant/domain/merchant-delivery-factory-apply-v1'
+import { ExperienceCommandError } from '@/modules/store/application/experience-command-service'
 import { POST } from '@/app/api/merchant/[merchantId]/delivery-factory/apply-store/route'
 
 const auth = requireAuth as jest.Mock
@@ -111,6 +112,30 @@ describe('Factory Owner-only approved Draft Store Apply HTTP', () => {
     const res = await POST(request(payload), params)
     expect(res.status).toBe(409)
     expect(await res.json()).toEqual({ success: false, error: 'FACTORY_DRAFT_STORE_CONFLICT' })
+  })
+
+  it.each([
+    ['Draft became ACTIVE', new ExperienceCommandError('Agent changes are limited to Draft Experiences.')],
+    ['stale locked revision', new ExperienceCommandError('FACTORY_DRAFT_STORE_STALE_REVISION')],
+    ['Prisma serializable transaction conflict', { code: 'P2034' }],
+    ['real PG adapter P2010 wrapper', {
+      code: 'P2010', meta: { driverAdapterError: { kind: 'TransactionWriteConflict' } },
+    }],
+    ['direct SQLSTATE 40001', { code: '40001' }],
+  ])('returns recoverable 409 for %s', async (_reason, error) => {
+    apply.mockRejectedValueOnce(error)
+    const res = await POST(request(payload), params)
+    expect(res.status).toBe(409)
+    expect(await res.json()).toMatchObject({ error: 'FACTORY_DRAFT_STORE_CONFLICT' })
+  })
+
+  it('does not disguise unrelated database errors as conflicts', async () => {
+    apply.mockRejectedValueOnce({
+      code: 'P2010', meta: { driverAdapterError: { kind: 'ForeignKeyConstraintViolation', originalCode: '23503' } },
+    })
+    const res = await POST(request(payload), params)
+    expect(res.status).toBe(500)
+    expect(await res.json()).toMatchObject({ error: 'FACTORY_APPLY_UNAVAILABLE' })
   })
 
   it('redacts unexpected DB details instead of returning a false accepted result', async () => {
