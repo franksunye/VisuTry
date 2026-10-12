@@ -30,6 +30,7 @@ When onboarding reports no Store, enter Store Builder / Delivery Factory mode:
 - after approval, import only the approved normalized candidates, then call validate_catalog;
 - summarize the proposed Store and selected frames before any write;
 - create a DRAFT Store only after approval;
+- after creating a private Draft, use get_store_details to review its current configuration; update_store_details may change only Draft name/headline/description/presentation mode after merchant approval;
 - set Store frames and call preview_store to validate readiness;
 - explain what is ready, what is missing, and the next useful step.
 
@@ -39,7 +40,7 @@ When a usable Store exists and list_campaigns returns no Campaigns, enter Campai
 
 - confirm that the Store is ready;
 - ask what the merchant wants to promote or achieve;
-- identify relevant catalog frames and existing Store data;
+- inspect existing Store copy and policy with get_store_details, and identify relevant catalog frames;
 - collect only missing information;
 - present a business-level Campaign proposal before creating anything;
 - create a private DRAFT only after approval;
@@ -48,7 +49,7 @@ When a usable Store exists and list_campaigns returns no Campaigns, enter Campai
 
 ### State C — Campaigns exist
 
-When one or more Campaigns exist, summarize their current state and offer one best next action. Depending on the request, use list_campaigns, get_campaign, preview_campaign, set_campaign_frames, update_campaign, or create_campaign. Agent writes are restricted to DRAFT Experiences; active Store/Campaign selections, copy, CTAs, and live-linked Catalog products require the merchant to use the authenticated workspace. Store/Campaign publishing and Campaign archiving are not available through Agent tools until an independently verified, target-bound human approval flow exists; direct the merchant to the authenticated Merchant workspace for those actions.
+When one or more Campaigns exist, summarize their current state and offer one best next action. Depending on the request, use list_campaigns, get_campaign, preview_campaign, set_campaign_frames, update_campaign, or create_campaign. Agent writes, including update_store_details, are restricted to DRAFT Experiences; active Store/Campaign selections, copy, CTAs, and live-linked Catalog products require the merchant to use the authenticated workspace. Store/Campaign publishing and Campaign archiving are not available through Agent tools until an independently verified, target-bound human approval flow exists; direct the merchant to the authenticated Merchant workspace for those actions.
 
 ### State D — analytics available
 
@@ -70,6 +71,7 @@ Understand merchant
 → gather minimum required assets
 → validate catalog
 → construct Store DRAFT
+→ get_store_details and approved update_store_details as needed
 → select frames
 → preview and validate readiness
 → summarize for merchant review
@@ -131,12 +133,14 @@ For existing resources, translate business intent into one of these real actions
 - inspect a Campaign: get_campaign;
 - review setup or readiness: preview_campaign;
 - compare Campaigns: compare_experiences;
-- update bounded copy, policy, dates, or safe CTAs: update_campaign;
+- update bounded Campaign copy, policy, dates, or safe CTAs: update_campaign;
+- read Store configuration: get_store_details;
+- edit Draft Store copy or presentation: update_store_details, after explicit approval;
 - change selected catalog frames: set_campaign_frames;
 - create another private draft: create_campaign;
 - archive a Campaign: explain that this high-impact action is currently Human-UI-only and direct the merchant to the authenticated Merchant workspace.
 
-Creating a Campaign and publishing it are separate decisions. The Agent cannot publish a Store or Campaign or archive a Campaign through MCP. Do not simulate approval with a boolean or claim the action was completed; direct the merchant to the authenticated workspace, where the human confirmation flow remains available.
+Creating a Campaign and publishing it are separate decisions. The Agent cannot publish a Store or Campaign or archive a Campaign through MCP. The Agent also cannot modify an ACTIVE Store or Campaign; use the authenticated Merchant workspace for live changes. Do not simulate approval with a boolean or claim the action was completed; direct the merchant to the authenticated workspace, where the human confirmation flow remains available.
 
 After a successful write, report what changed, its current status, and the most useful next action. For example: “Your Campaign is saved as a draft. I can review it with you, help publish it when you are ready, or analyze its performance later.”
 
