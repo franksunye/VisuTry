@@ -336,6 +336,57 @@ describe('MCP transport protocol', () => {
     expect(recordMerchantAgentOperation).not.toHaveBeenCalled()
   })
 
+  it('updates a Draft Campaign Journey and bounded Kiosk Delivery using tenant-scoped canonical commands', async () => {
+    const journeyPolicy = { enabledStages: ['FACE_ANALYSIS', 'FIT_PROFILE', 'RECOMMENDATION', 'TRY_ON'] }
+    const deliveryPolicy = { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 }
+    const response = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 62, method: 'tools/call',
+      params: { name: 'update_campaign', arguments: { campaignId: 'campaign-a', journeyPolicy, deliveryPolicy } },
+    }))
+    const body = await response.json() as { result: { isError?: boolean } }
+    expect(body.result.isError).not.toBe(true)
+    expect(updateCampaign).toHaveBeenCalledWith(expect.objectContaining({
+      merchantId: 'merchant-a', campaignId: 'campaign-a',
+      journeyPolicy, deliveryPolicy, agentDraftOnly: true,
+    }))
+    expect(recordMerchantAgentOperation).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'campaign.updated', resourceId: 'campaign-a',
+    }))
+  })
+
+  it('rejects invalid Draft Campaign Journey/Delivery policies at MCP boundary before mutation', async () => {
+    for (const [id, policy] of [
+      [63, { journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'COMPARE'] } }],
+      [64, { deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 29 } }],
+      [65, { journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION'], script: 'alert(1)' } }],
+      [66, { deliveryPolicy: { kioskEnabled: false, kioskIdleTimeoutSeconds: 120, extra: true } }],
+    ] as const) {
+      const response = await POST(mcpRequest({
+        jsonrpc: '2.0', id, method: 'tools/call',
+        params: { name: 'update_campaign', arguments: { campaignId: 'campaign-a', ...policy } },
+      }))
+      const body = await response.json() as { result: { isError?: boolean } }
+      expect(body.result.isError).toBe(true)
+    }
+    expect(updateCampaign).not.toHaveBeenCalled()
+    expect(recordMerchantAgentOperation).not.toHaveBeenCalled()
+  })
+
+  it('does not allow updating Campaign policy without experience:write scope', async () => {
+    authenticate.mockResolvedValueOnce({ ...actor, scopes: ['merchant:read', 'experience:read'] })
+    const response = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 67, method: 'tools/call',
+      params: { name: 'update_campaign', arguments: {
+        campaignId: 'campaign-a',
+        journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON'] },
+      } },
+    }))
+    const body = await response.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+    expect(body.result.isError).toBe(true)
+    expect(JSON.parse(body.result.content[0].text)).toMatchObject({ code: 'AGENT_SCOPE_REQUIRED' })
+    expect(updateCampaign).not.toHaveBeenCalled()
+  })
+
   it('returns an explicit draft-only rejection and records no success audit for an active Campaign write', async () => {
     ;(updateCampaign as jest.Mock).mockRejectedValueOnce(new ExperienceCommandError('Agent changes are limited to Draft Experiences.'))
     const response = await POST(mcpRequest({
