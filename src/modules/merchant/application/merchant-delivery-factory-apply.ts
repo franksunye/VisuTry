@@ -32,7 +32,14 @@ async function readDraftStoreApplyCandidate(input: {
   // An ambiguous identity must not silently fall back to the latest Store.
   const stores = await prisma.experience.findMany({
     where: { merchantId: input.actor.merchantId, type: 'STORE' },
-    select: { id: true, status: true, updatedAt: true },
+    select: {
+      id: true, status: true, updatedAt: true,
+      // Safe, tenant-owned Draft Store fields needed for a truthful Owner
+      // before/after approval diff. Never expose assets, shopper data, billing,
+      // secrets or unrelated Experiences in this approval response.
+      name: true, headline: true, description: true,
+      presentationMode: true, journeyPolicy: true, deliveryPolicy: true,
+    },
     take: 2,
   })
   if (stores.length !== 1 || stores[0].status !== 'DRAFT') {
@@ -52,6 +59,14 @@ export async function prepareMerchantFactoryDraftStoreV1(input: {
     status: decision.noChange ? 'ALREADY_MATCHED' as const : 'HUMAN_APPROVAL_REQUIRED' as const,
     storeId: store.id, expectedStoreUpdatedAt: store.updatedAt.toISOString(),
     manifestDigest: digest, changedFields: decision.changedFields,
+    // Only expose the exact allowlisted fields that the fresh canonical Plan
+    // says will change. This enables a real Human review before the separate
+    // explicit Apply action; the diff itself never authorizes a mutation.
+    reviewChanges: decision.changedFields.map((field) => ({
+      field,
+      before: store[field as keyof typeof store] ?? null,
+      after: decision.store[field as keyof typeof decision.store] ?? null,
+    })),
     requiresHumanApproval: !decision.noChange,
     publicRender: 'NOT_EXECUTED' as const, releaseReady: false as const,
   }
