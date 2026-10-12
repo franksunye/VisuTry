@@ -190,7 +190,11 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
     inputSchema: {
       experienceId: z.string().min(1).max(120).optional(),
     },
-  }, async ({ experienceId }) => safe(() => getMerchantAgentBrandKit({ actor, experienceId })))
+  }, async ({ experienceId }) => safe(() => {
+    requireAgentScope(actor, 'merchant:read')
+    requireAgentScope(actor, 'experience:read')
+    return getMerchantAgentBrandKit({ actor, experienceId })
+  }))
 
   server.registerTool('get_merchant', {
     title: 'Get merchant',
