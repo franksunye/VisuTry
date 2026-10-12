@@ -762,6 +762,9 @@ function splitCsvTags(value: string | undefined): string[] {
 export function parseCatalogCsv(text: string) {
   if (new TextEncoder().encode(text).byteLength > MAX_CSV_BYTES) throw new MerchantSourceIntakeError('CSV_TOO_LARGE', `CSV files must be smaller than ${Math.floor(MAX_CSV_BYTES / 1024 / 1024)} MB.`)
   const parsed = parseCsvRecords(text)
+  if (parsed.issues.some((issue) => issue.row === 1)) {
+    throw new MerchantSourceIntakeError('CSV_MALFORMED', 'The CSV header contains an unclosed quoted field. Correct the header and inspect again.')
+  }
   const [headerRow, ...dataRows] = parsed.rows
   if (!headerRow || headerRow.length === 0) throw new MerchantSourceIntakeError('CSV_HEADER_REQUIRED', 'The CSV must include a header row.')
   const headers = headerRow.map(normalizedCsvHeader)
@@ -772,9 +775,6 @@ export function parseCatalogCsv(text: string) {
   // blocker. Without propagating it, shifted columns may accidentally look
   // import-ready even though the merchant did not approve their actual values.
   const issues: Array<{ row: number; code: string; message: string }> = parsed.issues.map((issue) => ({ row: issue.row, code: 'CSV_MALFORMED', message: issue.message }))
-  if (parsed.issues.some((issue) => issue.row === 1)) {
-    throw new MerchantSourceIntakeError('CSV_MALFORMED', 'The CSV header contains an unclosed quoted field. Correct the header and inspect again.')
-  }
   const malformedRows = new Set(parsed.issues.map((issue) => issue.row))
   const products: Array<CatalogFrameInput & { sourceIssues?: string[] }> = []
   for (const [index, row] of dataRows.entries()) {
