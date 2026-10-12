@@ -3,6 +3,7 @@ import { assertDecisionJourneyPolicy, type DecisionJourneyPolicy } from '@/modul
 import { assertExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 import { PRESENTATION_MODES } from '@/modules/store/domain/presentation-mode'
 import { MERCHANT_CLASSIFICATIONS, type MerchantClassification } from '@/modules/merchant/domain/merchant-classification'
+import { MERCHANT_BRAND_PALETTE } from '@/modules/merchant/domain/merchant-brand-kit'
 
 /**
  * Merchant Delivery Factory v1. This module is a PURE, side-effect-free
@@ -51,6 +52,12 @@ export const merchantDeliveryManifestV1Schema = z.strictObject({
   }),
   brand: z.strictObject({
     displayName: z.string().trim().min(1).max(120),
+    // Match the existing fixed accessible Brand Kit palette. Normalize case
+    // to canonical persisted values; never accept arbitrary CSS/color strings.
+    accentColor: z.string().refine(
+      color => MERCHANT_BRAND_PALETTE.some(({ hex }) => hex.toLowerCase() === color.toLowerCase()),
+      'Select a supported Brand Kit accent color',
+    ).transform(color => MERCHANT_BRAND_PALETTE.find(({ hex }) => hex.toLowerCase() === color.toLowerCase())!.hex).nullable().optional(),
     // Assets require authenticated Human UI staging and readback, not scripts.
     logoAssetUrl: z.url().startsWith('https://').nullable().optional(),
   }),
@@ -81,6 +88,7 @@ export type FactorySnapshotV1 = {
   merchantSlug: string
   classification: MerchantClassification
   brandDisplayName: string
+  brandAccentColor: string | null
   logoAssetUrl: string | null
   // Only ACTIVE, owned, previously validated catalog resource IDs.
   activeFrameIds: string[]
@@ -161,6 +169,7 @@ export function buildMerchantFactoryDryRunV1(
   }
   const brandChanges: string[] = []
   if (manifest.brand.displayName !== snapshot.brandDisplayName) brandChanges.push('displayName')
+  if (manifest.brand.accentColor !== undefined && manifest.brand.accentColor !== snapshot.brandAccentColor) brandChanges.push('accentColor')
   if (manifest.brand.logoAssetUrl !== undefined && manifest.brand.logoAssetUrl !== snapshot.logoAssetUrl) brandChanges.push('logoAssetUrl')
   if (brandChanges.length) blockers.push('Brand and media configuration require authenticated Human UI review')
   const steps: FactoryPlanStepV1[] = [{
