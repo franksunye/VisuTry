@@ -88,12 +88,12 @@ describe('human catalog progressive source intake', () => {
     expect(result.issues).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'NO_PRODUCTS_FOUND', message: expect.stringContaining('Upload CSV') })]))
   })
 
-  it('uses browser rendering when the initial source fetch is blocked', async () => {
+  it('uses browser rendering when the initial source fetch times out', async () => {
     const result = await inspectCatalogUrlProgressively({
       sourceUrl: 'https://catalog.example.test',
       maxProducts: 20,
       fetchSource: async () => {
-        throw Object.assign(new Error('The source returned HTTP 403.'), { code: 'SOURCE_UNREACHABLE' })
+        throw Object.assign(new Error('The source request timed out.'), { code: 'SOURCE_TIMEOUT' })
       },
       renderedFetch: async (url) => document(url, '<script type="application/ld+json">{"@type":"Product","name":"Rendered Round Frame","sku":"R-1","image":"https://cdn.example.test/round.jpg","shape":"round","offers":{"price":"99","priceCurrency":"USD"}}</script>'),
     })
@@ -109,7 +109,7 @@ describe('human catalog progressive source intake', () => {
       sourceUrl: 'https://catalog.example.test',
       maxProducts: 20,
       fetchSource: async () => {
-        throw Object.assign(new Error('The source returned HTTP 403.'), { code: 'SOURCE_UNREACHABLE' })
+        throw Object.assign(new Error('The source request timed out.'), { code: 'SOURCE_TIMEOUT' })
       },
       renderedFetch: async (url) => {
         renderedUrls.push(url)
@@ -121,6 +121,24 @@ describe('human catalog progressive source intake', () => {
     expect(result.platform).toBe('BROWSER_RENDER')
     expect(result.candidates[0]).toMatchObject({ sku: 'R-1', name: 'Rendered Round Frame' })
     expect(renderedUrls).toEqual(['https://catalog.example.test', 'https://catalog.example.test/products/rendered-round'])
+  })
+
+  it.each([
+    ['SOURCE_ACCESS_DENIED', 'The website denied access (HTTP 403).'],
+    ['SOURCE_RATE_LIMITED', 'The website is rate limiting automated inspection (HTTP 429).'],
+    ['UNSAFE_SOURCE_URL', 'Local or private addresses are not allowed.'],
+    ['SOURCE_REDIRECT_REJECTED', 'A cross-origin redirect was refused.'],
+  ])('does not bypass %s using paid browser rendering', async (code, message) => {
+    const renderedFetch = jest.fn()
+    const result = await inspectCatalogUrlProgressively({
+      sourceUrl: 'https://catalog.example.test',
+      maxProducts: 20,
+      fetchSource: async () => { throw Object.assign(new Error(message), { code }) },
+      renderedFetch,
+    })
+    expect(renderedFetch).not.toHaveBeenCalled()
+    expect(result.candidates).toEqual([])
+    expect(result.issues).toEqual([{ sourceUrl: 'https://catalog.example.test', code, message }])
   })
 
   it('maps Shopify variants into canonical product facts without AI guessing', () => {
