@@ -286,7 +286,7 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
             {item.status === "INACTIVE" ? <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> : <Archive className="h-3.5 w-3.5" aria-hidden="true" />}
             {item.status === "INACTIVE" ? "Restore" : "Archive"}
           </button>
-          <button type="button" onClick={() => { setPendingDelete(item); setDeleteError(null); }} disabled={deleting} aria-label={`Delete ${item.name}`} className={`${buttonClass} min-h-9 rounded-lg border border-red-200 bg-white px-2.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50 sm:px-3 sm:text-sm`}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Delete</button>
+          <button type="button" onClick={() => { setPendingLifecycle(null); setPendingDelete(item); setDeleteError(null); }} disabled={deleting} aria-label={`Delete ${item.name}`} className={`${buttonClass} min-h-9 rounded-lg border border-red-200 bg-white px-2.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50 sm:px-3 sm:text-sm`}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Delete</button>
         </div>
         {pendingLifecycle?.item.id === item.id ? <div role="group" aria-label={`Confirm ${pendingLifecycle.action.toLowerCase()} of ${item.name}`} className="col-span-full rounded-xl border border-blue-200 bg-blue-50 p-3">
           <p className="text-sm font-semibold text-slate-950">{pendingLifecycle.action === "ARCHIVE" ? "Archive" : "Restore"} “{item.name}”?</p>
