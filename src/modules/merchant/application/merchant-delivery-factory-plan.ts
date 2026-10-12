@@ -20,7 +20,7 @@ export async function getMerchantFactoryDryRun(input: {
   const merchant = await prisma.merchant.findUnique({
     where: { id: input.actor.merchantId },
     select: {
-      id: true, slug: true, classification: true, name: true, logoUrl: true,
+      id: true, slug: true, classification: true, name: true, logoUrl: true, accentColor: true,
       frames: {
         where: { status: 'ACTIVE' },
         select: { id: true },
@@ -64,6 +64,7 @@ export async function getMerchantFactoryDryRun(input: {
     merchantSlug: merchant.slug,
     classification: merchant.classification,
     brandDisplayName: merchant.name,
+    brandAccentColor: merchant.accentColor,
     logoAssetUrl: merchant.logoUrl,
     activeFrameIds: merchant.frames.map(frame => frame.id),
     store: defaultStore ? toSnapshot(defaultStore) : null,
