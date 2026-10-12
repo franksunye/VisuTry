@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: { merchant
     const rawFrameId = request.nextUrl.searchParams.get('frameId')?.trim()
     const frameId = rawFrameId && rawFrameId.length <= 120 ? rawFrameId : undefined
     const readinessValue = request.nextUrl.searchParams.get('readiness')
-    const readiness = readinessValue === 'all' || readinessValue === 'READY' || readinessValue === 'NEEDS_REVIEW' || readinessValue === 'NEEDS_ATTENTION' ? readinessValue : undefined
+    const readiness = readinessValue === 'ARCHIVED' || readinessValue === 'all' || readinessValue === 'READY' || readinessValue === 'NEEDS_REVIEW' || readinessValue === 'NEEDS_ATTENTION' ? readinessValue : undefined
     const data = await listMerchantFrames({ actor: actorFor(auth.userId, params.merchantId, membership.membershipId), cursor, limit, search, readiness: readiness ?? undefined, frameId })
     return NextResponse.json({ success: true, data })
   } catch (error) {
