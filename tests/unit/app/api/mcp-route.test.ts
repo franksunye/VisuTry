@@ -56,6 +56,15 @@ jest.mock('@/modules/merchant/application/merchant-catalog-source-intake', () =>
   MAX_SOURCE_URLS: 5,
 }))
 
+jest.mock('@/modules/merchant/application/merchant-agent-brand-read', () => ({
+  getMerchantAgentBrandKit: jest.fn().mockResolvedValue({
+    merchant: { id: 'merchant-a', name: 'Eyewear A', accentColor: '#1D4ED8', effectiveAccentColor: '#1D4ED8' },
+    supportedAccentColors: [{ name: 'Cobalt', hex: '#1D4ED8' }],
+    experience: { id: 'store-a', type: 'STORE', status: 'ACTIVE', heroAssetUrl: null },
+    permissions: { brandChanges: 'HUMAN_OWNER_ONLY', experienceHeroChanges: 'HUMAN_OWNER_ONLY' },
+  }),
+}))
+
 jest.mock('@/modules/merchant/application/merchant-agent-credentials', () => ({
   recordMerchantAgentOperation: jest.fn().mockResolvedValue(undefined),
 }))
@@ -99,6 +108,7 @@ import {
 } from '@/modules/merchant/application/merchant-mcp'
 import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials'
 import { merchantOnboarding } from '@/modules/merchant/application/merchant-onboarding'
+import { getMerchantAgentBrandKit } from '@/modules/merchant/application/merchant-agent-brand-read'
 import { archiveCampaign, publishCampaign } from '@/modules/store/application/campaign-service'
 import { updateCampaign } from '@/modules/store/application/campaign-service'
 import { ExperienceCommandError } from '@/modules/store/application/experience-command-service'
@@ -177,6 +187,41 @@ describe('MCP transport protocol', () => {
       expect(tool?.description).toMatch(/active (Store|Campaign)|active experience/i)
     }
     expect(listBody.result.tools.find((tool) => tool.name === 'create_store')?.annotations).toMatchObject({ readOnlyHint: false, idempotentHint: true })
+  })
+
+  it('reads authenticated Brand Kit and optional Hero with both scopes, no mutation', async () => {
+    const list = await POST(mcpRequest({ jsonrpc: '2.0', id: 56, method: 'tools/list', params: {} }))
+    const listed = await list.json() as {
+      result: { tools: Array<{ name: string; annotations?: { readOnlyHint?: boolean }; _meta?: { securitySchemes?: Array<{ scopes: string[] }> } }> }
+    }
+    const tool = listed.result.tools.find(item => item.name === 'get_brand_kit')
+    expect(tool?.annotations?.readOnlyHint).toBe(true)
+    expect(tool?._meta?.securitySchemes?.[0].scopes).toEqual(['merchant:read', 'experience:read'])
+
+    const res = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 57, method: 'tools/call',
+      params: { name: 'get_brand_kit', arguments: { experienceId: 'store-a' } },
+    }))
+    const body = await res.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+    expect(body.result.isError).not.toBe(true)
+    expect(JSON.parse(body.result.content[0].text)).toMatchObject({
+      merchant: { id: 'merchant-a' }, experience: { id: 'store-a', status: 'ACTIVE' },
+      permissions: { brandChanges: 'HUMAN_OWNER_ONLY' },
+    })
+    expect(getMerchantAgentBrandKit).toHaveBeenCalledWith({ actor, experienceId: 'store-a' })
+    expect(merchantOnboarding.updateMerchantStore).not.toHaveBeenCalled()
+  })
+
+  it('denies Brand Kit read when one of its two scopes is missing', async () => {
+    authenticate.mockResolvedValueOnce({ ...actor, scopes: ['merchant:read'] })
+    const res = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 58, method: 'tools/call',
+      params: { name: 'get_brand_kit', arguments: {} },
+    }))
+    const body = await res.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+    expect(body.result.isError).toBe(true)
+    expect(JSON.parse(body.result.content[0].text)).toMatchObject({ code: 'AGENT_SCOPE_REQUIRED' })
+    expect(getMerchantAgentBrandKit).not.toHaveBeenCalled()
   })
 
   it('reads tenant Store details without mutation and advertises required read scope', async () => {
