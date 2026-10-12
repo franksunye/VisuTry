@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+import { merchantDeliveryManifestV1Schema } from '../domain/merchant-delivery-factory-v1'
 import { prisma } from '@/lib/prisma'
 import { MerchantAccessError } from './merchant-access'
 import { getMerchantFactoryDryRun } from './merchant-delivery-factory-plan'
@@ -9,26 +11,25 @@ import {
 } from '../domain/merchant-delivery-factory-apply-v1'
 
 /**
- * This applies only the existing DRAFT Store copy/closed platform policies,
- * not the proposed Brand, Catalog, Campaign, Store selection or live status.
- * Human Owner authorization is required again by the HTTP boundary.
+ * The Prepare response binds one strict canonical Manifest to one exact
+ * tenant-owned Draft Store revision; neither the Manifest nor a stale Plan
+ * grants write authority on its own.
  */
-export async function applyMerchantFactoryDraftStoreV1(input: {
+function manifestDigest(proposal: unknown): string {
+  const manifest = merchantDeliveryManifestV1Schema.parse(proposal)
+  return createHash('sha256').update(JSON.stringify(manifest)).digest('hex')
+}
+
+async function readDraftStoreApplyCandidate(input: {
   actor: HumanMerchantActor
   proposal: unknown
-  expectedStoreUpdatedAt: string
 }) {
   if (input.actor.actorType !== 'HUMAN' || !input.actor.membershipId) {
     throw new MerchantAccessError()
   }
-  const plan = await getMerchantFactoryDryRun({
-    actor: input.actor,
-    proposal: input.proposal,
-  })
+  const plan = await getMerchantFactoryDryRun({ actor: input.actor, proposal: input.proposal })
   const decision = planFactoryDraftStoreApplyV1({ proposal: input.proposal, plan })
-
-  // Fail closed on ambiguous identity. A fallback to "latest" Store or a
-  // merchant-supplied Store ID could target the wrong resource.
+  // An ambiguous identity must not silently fall back to the latest Store.
   const stores = await prisma.experience.findMany({
     where: { merchantId: input.actor.merchantId, type: 'STORE' },
     select: { id: true, status: true, updatedAt: true },
@@ -37,7 +38,40 @@ export async function applyMerchantFactoryDraftStoreV1(input: {
   if (stores.length !== 1 || stores[0].status !== 'DRAFT') {
     throw new MerchantFactoryApplyError('An unambiguous existing Draft Store is required.')
   }
-  const store = stores[0]
+  return { decision, store: stores[0], manifestDigest: manifestDigest(input.proposal) }
+}
+
+/** Side-effect-free, explicitly scoped Human approval preview. */
+export async function prepareMerchantFactoryDraftStoreV1(input: {
+  actor: HumanMerchantActor
+  proposal: unknown
+}) {
+  const { decision, store, manifestDigest: digest } = await readDraftStoreApplyCandidate(input)
+  return {
+    version: 1 as const,
+    status: decision.noChange ? 'ALREADY_MATCHED' as const : 'HUMAN_APPROVAL_REQUIRED' as const,
+    storeId: store.id, expectedStoreUpdatedAt: store.updatedAt.toISOString(),
+    manifestDigest: digest, changedFields: decision.changedFields,
+    requiresHumanApproval: !decision.noChange,
+    publicRender: 'NOT_EXECUTED' as const, releaseReady: false as const,
+  }
+}
+
+/**
+ * Writes only closed platform policy/copy for one DRAFT Store. Both the
+ * canonical Manifest digest and current database revision must match the
+ * explicit Human approval request. Never performs bulk Factory Apply.
+ */
+export async function applyMerchantFactoryDraftStoreV1(input: {
+  actor: HumanMerchantActor
+  proposal: unknown
+  expectedStoreUpdatedAt: string
+  manifestDigest: string
+}) {
+  const { decision, store, manifestDigest: digest } = await readDraftStoreApplyCandidate(input)
+  if (input.manifestDigest !== digest) {
+    throw new MerchantFactoryApplyError('FACTORY_APPROVAL_MANIFEST_MISMATCH')
+  }
   if (store.updatedAt.toISOString() !== input.expectedStoreUpdatedAt) {
     throw new MerchantFactoryApplyError('FACTORY_DRAFT_STORE_STALE_REVISION')
   }
