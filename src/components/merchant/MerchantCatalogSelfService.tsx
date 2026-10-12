@@ -302,10 +302,14 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
       } else {
         setSuccessNotice("Catalog updated successfully.");
       }
-      if ((body.data.created ?? 0) > 0) hadCatalogAtMount.current = true;
+      // Update-only imports are successful Catalog work too. Clearing hasAny
+      // when created=0 hides an existing product and breaks First Value UX.
+      if ((body.data.imported ?? 0) > 0 || (body.data.created ?? 0) > 0 || (body.data.updated ?? 0) > 0) {
+        hadCatalogAtMount.current = true;
+      }
       invalidateProposal();
       await loadCatalog(false);
-      onCatalogChanged?.({ hasAny: (body.data.created ?? 0) > 0, hasReady: proposal.importReady.length > 0 });
+      onCatalogChanged?.({ hasAny: hadCatalogAtMount.current, hasReady: proposal.importReady.length > 0 });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to import catalog.");
     } finally {
