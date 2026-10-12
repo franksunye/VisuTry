@@ -14,6 +14,8 @@ class CatalogSelectionConflictError extends ExperienceCommandError {
 /**
  * Prisma reports PostgreSQL SQLSTATE 40001 differently by adapter:
  * - P2010 + meta.code=40001 for raw SQL SELECT ... FOR UPDATE
+ * - P2010 + meta.driverAdapterError=TransactionWriteConflict for Prisma's
+ *   driver-adapter wrapping of PostgreSQL 40001 (observed in local PG16 QA)
  * - P2034 for a SERIALIZABLE transaction commit/write conflict
  * - direct 40001 from a PostgreSQL adapter.
  *
@@ -23,10 +25,32 @@ class CatalogSelectionConflictError extends ExperienceCommandError {
  */
 function isCatalogSelectionSerializationConflict(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false
-  const candidate = error as { code?: unknown; meta?: { code?: unknown; sqlstate?: unknown }; cause?: unknown }
+  const candidate = error as {
+    code?: unknown
+    meta?: { code?: unknown; sqlstate?: unknown; driverAdapterError?: unknown }
+    cause?: unknown
+  }
   if (candidate.code === 'P2034' || candidate.code === '40001') return true
-  if (candidate.code === 'P2010' &&
-    (candidate.meta?.code === '40001' || candidate.meta?.sqlstate === '40001')) return true
+  if (candidate.code === 'P2010') {
+    if (candidate.meta?.code === '40001' || candidate.meta?.sqlstate === '40001') return true
+    // Prisma's PostgreSQL driver adapter can wrap SQLSTATE 40001 as P2010
+    // with meta.driverAdapterError.kind = 'TransactionWriteConflict', instead
+    // of surfacing the SQLSTATE at meta.code. Match only this exact conflict
+    // kind, not arbitrary raw-query failures such as 23503 or 23505.
+    const adapterError = candidate.meta?.driverAdapterError
+    if (adapterError === 'TransactionWriteConflict') return true
+    if (adapterError && typeof adapterError === 'object') {
+      const detail = adapterError as {
+        kind?: unknown
+        originalCode?: unknown
+        cause?: { kind?: unknown; originalCode?: unknown } | null
+      }
+      if (detail.kind === 'TransactionWriteConflict'
+        || detail.originalCode === '40001'
+        || detail.cause?.kind === 'TransactionWriteConflict'
+        || detail.cause?.originalCode === '40001') return true
+    }
+  }
   const cause = candidate.cause
   return Boolean(cause && typeof cause === 'object'
     && (cause as { code?: unknown }).code === '40001')
