@@ -31,6 +31,11 @@ jest.mock('@/modules/merchant/application/merchant-onboarding', () => ({
     validateMerchantCatalog: jest.fn().mockResolvedValue({ total: 0, valid: 0, invalid: 0, items: [] }),
     importMerchantFrames: jest.fn(),
     createMerchantStore: jest.fn(),
+    getMerchantStoreWorkspace: jest.fn().mockResolvedValue({
+      store: { id: 'store-a', status: 'DRAFT', headline: 'Original', presentationMode: 'PRODUCT_FIRST' },
+      capabilities: { tryOnEnabled: true, compareEnabled: true, kioskDeliveryEnabled: false },
+    }),
+    updateMerchantStore: jest.fn().mockResolvedValue({ id: 'store-a', status: 'DRAFT', headline: 'Updated' }),
     setMerchantStoreFrames: jest.fn(),
     previewMerchantStore: jest.fn(),
     publishMerchantStore: jest.fn(),
@@ -161,13 +166,78 @@ describe('MCP transport protocol', () => {
     }
     const read = listBody.result.tools.find((tool) => tool.name === 'get_merchant')
     expect(read?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false })
-    const activeSafeWrites = ['import_frames', 'set_store_frames', 'set_campaign_frames', 'update_campaign']
+    const activeSafeWrites = ['import_frames', 'update_store_details', 'set_store_frames', 'set_campaign_frames', 'update_campaign']
     for (const name of activeSafeWrites) {
       const tool = listBody.result.tools.find((candidate) => candidate.name === name)
       expect(tool?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true })
       expect(tool?.description).toMatch(/active (Store|Campaign)|active experience/i)
     }
     expect(listBody.result.tools.find((tool) => tool.name === 'create_store')?.annotations).toMatchObject({ readOnlyHint: false, idempotentHint: true })
+  })
+
+  it('reads tenant Store details without mutation and advertises required read scope', async () => {
+    const res = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 31, method: 'tools/call',
+      params: { name: 'get_store_details', arguments: {} },
+    }))
+    const body = await res.json() as { result: { content: Array<{ text: string }> } }
+    expect(JSON.parse(body.result.content[0].text)).toMatchObject({
+      store: { id: 'store-a', status: 'DRAFT' },
+    })
+    expect(merchantOnboarding.getMerchantStoreWorkspace).toHaveBeenCalledWith({ actor })
+    expect(merchantOnboarding.updateMerchantStore).not.toHaveBeenCalled()
+  })
+
+  it('updates only authenticated Draft Store details through the canonical service', async () => {
+    const res = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 32, method: 'tools/call',
+      params: { name: 'update_store_details', arguments: { storeId: 'store-a', headline: 'Updated', presentationMode: 'EDITORIAL_FIRST' } },
+    }))
+    const body = await res.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+    expect(body.result.isError).not.toBe(true)
+    expect(JSON.parse(body.result.content[0].text)).toMatchObject({ id: 'store-a', status: 'DRAFT' })
+    expect(merchantOnboarding.updateMerchantStore).toHaveBeenCalledWith({
+      actor,
+      storeId: 'store-a',
+      name: undefined,
+      headline: 'Updated',
+      description: undefined,
+      presentationMode: 'EDITORIAL_FIRST',
+    })
+  })
+
+  it('refuses draft details updates without write scope or actual content', async () => {
+    authenticate.mockResolvedValueOnce({ ...actor, scopes: ['experience:read'] })
+    const denied = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 33, method: 'tools/call',
+      params: { name: 'update_store_details', arguments: { storeId: 'store-a', headline: 'No' } },
+    }))
+    const deniedBody = await denied.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+    expect(deniedBody.result.isError).toBe(true)
+    expect(JSON.parse(deniedBody.result.content[0].text)).toMatchObject({ code: 'AGENT_SCOPE_REQUIRED' })
+
+    const empty = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 34, method: 'tools/call',
+      params: { name: 'update_store_details', arguments: { storeId: 'store-a' } },
+    }))
+    const emptyBody = await empty.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+    expect(emptyBody.result.isError).toBe(true)
+    expect(JSON.parse(emptyBody.result.content[0].text)).toMatchObject({ code: 'MERCHANT_ONBOARDING_ERROR' })
+    expect(merchantOnboarding.updateMerchantStore).not.toHaveBeenCalled()
+  })
+
+  it('denies an Agent mutation to an ACTIVE Store without claiming an update', async () => {
+    ;(merchantOnboarding.updateMerchantStore as jest.Mock).mockRejectedValueOnce(
+      new ExperienceCommandError('Agent changes are limited to Draft Experiences.'),
+    )
+    const res = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 35, method: 'tools/call',
+      params: { name: 'update_store_details', arguments: { storeId: 'store-active', headline: 'Not approved' } },
+    }))
+    const body = await res.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+    expect(body.result.isError).toBe(true)
+    expect(JSON.parse(body.result.content[0].text)).toMatchObject({ code: 'ACTIVE_EXPERIENCE_WRITE_REQUIRES_HUMAN' })
+    expect(recordMerchantAgentOperation).not.toHaveBeenCalled()
   })
 
   it('returns an explicit draft-only rejection and records no success audit for an active Campaign write', async () => {
