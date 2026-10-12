@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+import { merchantDeliveryManifestV1Schema } from '@/modules/merchant/domain/merchant-delivery-factory-v1'
 jest.mock('@/lib/prisma', () => ({
   prisma: { experience: { findMany: jest.fn() } },
 }))
@@ -12,7 +14,7 @@ import { prisma } from '@/lib/prisma'
 import type { HumanMerchantActor } from '@/modules/merchant/domain/actor'
 import { getMerchantFactoryDryRun } from '@/modules/merchant/application/merchant-delivery-factory-plan'
 import { updateMerchantStore } from '@/modules/merchant/application/merchant-onboarding'
-import { applyMerchantFactoryDraftStoreV1 } from '@/modules/merchant/application/merchant-delivery-factory-apply'
+import { applyMerchantFactoryDraftStoreV1, prepareMerchantFactoryDraftStoreV1 } from '@/modules/merchant/application/merchant-delivery-factory-apply'
 
 const actor: HumanMerchantActor = {
   actorType: 'HUMAN', actorId: 'owner-a',
@@ -26,6 +28,7 @@ const proposal = {
   store: { name: 'Store Updated', selectedFrameIds: ['frame-a'] },
   campaigns: [],
 }
+const manifestDigest = createHash('sha256').update(JSON.stringify(merchantDeliveryManifestV1Schema.parse(proposal))).digest('hex')
 const plan = {
   version: 1, classification: 'READ_ONLY_UNAUTHORIZED_PROPOSAL',
   merchantId: 'merchant-a', merchantSlug: 'store-a',
@@ -46,9 +49,31 @@ describe('Owner-approved Factory Draft Store Apply adapter', () => {
     ;(updateMerchantStore as jest.Mock).mockResolvedValue({ id: 'store-id-a', status: 'DRAFT' })
   })
 
+  it('prepares a read-only exact revision and digest for explicit Human approval', async () => {
+    const prepared = await prepareMerchantFactoryDraftStoreV1({ actor, proposal })
+    expect(prepared).toMatchObject({
+      status: 'HUMAN_APPROVAL_REQUIRED',
+      storeId: 'store-id-a', expectedStoreUpdatedAt: revision,
+      manifestDigest, changedFields: ['name'],
+      requiresHumanApproval: true,
+      releaseReady: false, publicRender: 'NOT_EXECUTED',
+    })
+    expect(updateMerchantStore).not.toHaveBeenCalled()
+  })
+
+  it('rejects changed manifest after Prepare even when Store revision is unchanged', async () => {
+    await expect(applyMerchantFactoryDraftStoreV1({
+      actor,
+      proposal: { ...proposal, store: { ...proposal.store, name: 'A different edit' } },
+      expectedStoreUpdatedAt: revision,
+      manifestDigest,
+    })).rejects.toMatchObject({ code: 'FACTORY_APPLY_CONFLICT' })
+    expect(updateMerchantStore).not.toHaveBeenCalled()
+  })
+
   it('uses membership-bound tenant, exact revision and canonical audited Store mutation', async () => {
     const result = await applyMerchantFactoryDraftStoreV1({
-      actor, proposal, expectedStoreUpdatedAt: revision,
+      actor, proposal, expectedStoreUpdatedAt: revision, manifestDigest,
     })
     expect(result).toMatchObject({
       status: 'DRAFT_STORE_CONFIGURATION_APPLIED',
@@ -78,7 +103,7 @@ describe('Owner-approved Factory Draft Store Apply adapter', () => {
     ['missing Store', []],
   ])('rejects %s without any data mutation', async (_case, rows) => {
     ;(prisma.experience.findMany as jest.Mock).mockResolvedValueOnce(rows)
-    await expect(applyMerchantFactoryDraftStoreV1({ actor, proposal, expectedStoreUpdatedAt: revision }))
+    await expect(applyMerchantFactoryDraftStoreV1({ actor, proposal, expectedStoreUpdatedAt: revision, manifestDigest }))
       .rejects.toMatchObject({ code: 'FACTORY_APPLY_CONFLICT', httpStatus: 409 })
     expect(updateMerchantStore).not.toHaveBeenCalled()
   })
@@ -87,7 +112,7 @@ describe('Owner-approved Factory Draft Store Apply adapter', () => {
     ;(getMerchantFactoryDryRun as jest.Mock).mockResolvedValueOnce({
       ...plan, blockers: ['Selected frame is not display-ready'],
     })
-    await expect(applyMerchantFactoryDraftStoreV1({ actor, proposal, expectedStoreUpdatedAt: revision }))
+    await expect(applyMerchantFactoryDraftStoreV1({ actor, proposal, expectedStoreUpdatedAt: revision, manifestDigest }))
       .rejects.toMatchObject({ code: 'FACTORY_APPLY_CONFLICT' })
     expect(prisma.experience.findMany).not.toHaveBeenCalled()
     expect(updateMerchantStore).not.toHaveBeenCalled()
@@ -100,7 +125,7 @@ describe('Owner-approved Factory Draft Store Apply adapter', () => {
       }],
     })
     const result = await applyMerchantFactoryDraftStoreV1({
-      actor, proposal, expectedStoreUpdatedAt: revision,
+      actor, proposal, expectedStoreUpdatedAt: revision, manifestDigest,
     })
     expect(result.status).toBe('ALREADY_MATCHED')
     expect(updateMerchantStore).not.toHaveBeenCalled()
@@ -109,7 +134,7 @@ describe('Owner-approved Factory Draft Store Apply adapter', () => {
   it('requires membership-bearing Human actor, not an Agent credential', async () => {
     await expect(applyMerchantFactoryDraftStoreV1({
       actor: { actorType: 'HUMAN', actorId: 'owner-a', merchantId: 'merchant-a' },
-      proposal, expectedStoreUpdatedAt: revision,
+      proposal, expectedStoreUpdatedAt: revision, manifestDigest,
     })).rejects.toMatchObject({ code: 'MERCHANT_ACCESS_NOT_FOUND' })
     expect(getMerchantFactoryDryRun).not.toHaveBeenCalled()
   })
