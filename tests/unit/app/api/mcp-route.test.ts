@@ -207,7 +207,36 @@ describe('MCP transport protocol', () => {
       headline: 'Updated',
       description: undefined,
       presentationMode: 'EDITORIAL_FIRST',
+      journeyPolicy: undefined,
+      deliveryPolicy: undefined,
     })
+  })
+
+  it('updates Draft Store Journey and Delivery through the existing canonical service', async () => {
+    const journeyPolicy = { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'TRY_ON', 'COMPARE'] }
+    const deliveryPolicy = { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 }
+    const res = await POST(mcpRequest({
+      jsonrpc: '2.0', id: 42, method: 'tools/call',
+      params: { name: 'update_store_details', arguments: { storeId: 'store-a', journeyPolicy, deliveryPolicy } },
+    }))
+    const body = await res.json() as { result: { isError?: boolean } }
+    expect(body.result.isError).not.toBe(true)
+    expect(merchantOnboarding.updateMerchantStore).toHaveBeenCalledWith(expect.objectContaining({
+      actor, storeId: 'store-a', journeyPolicy, deliveryPolicy,
+    }))
+  })
+
+  it('rejects invalid Journey and Kiosk policy at the MCP input boundary before persistence', async () => {
+    for (const [id, policy] of [
+      [43, { journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'RECOMMENDATION', 'COMPARE'] } }],
+      [44, { deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 10 } }],
+    ] as const) {
+      await POST(mcpRequest({
+        jsonrpc: '2.0', id, method: 'tools/call',
+        params: { name: 'update_store_details', arguments: { storeId: 'store-a', ...policy } },
+      }))
+    }
+    expect(merchantOnboarding.updateMerchantStore).not.toHaveBeenCalled()
   })
 
   it('refuses draft details updates without write scope or actual content', async () => {
