@@ -235,7 +235,7 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Catalog workspace</p>
         <h1 id="merchant-catalog-heading" className="mt-2 text-[32px] font-semibold leading-none tracking-[-0.045em] text-slate-950">Catalog</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Manage products available to your Store. Archived products stay in your account and can be restored.</p>
-        {summary.archived ? <p className="mt-1 text-xs text-slate-500">{summary.archived} archived · Included in your plan's Catalog capacity.</p> : null}
+        {summary.archived ? <p className="mt-1 text-xs text-slate-500">{summary.archived} archived · Included in your plan&apos;s Catalog capacity.</p> : null}
       </div>
       <button type="button" onClick={() => setIntakeOpen((value) => !value)} className={`${buttonClass} min-h-11 w-full bg-slate-950 text-white hover:bg-slate-800 sm:w-auto`} aria-expanded={intakeOpen}>
         <FilePlus2 className="h-4 w-4" aria-hidden="true" /> Add products

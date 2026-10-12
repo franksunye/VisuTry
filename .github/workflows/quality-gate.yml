@@ -157,6 +157,11 @@ jobs:
       - name: TypeScript gate
         run: npm run typecheck
 
+      # Next build runs these same ESLint rules; CI must catch them early.
+      # This lint gate is DB-independent and does not prerender content.
+      - name: Next.js production lint gate
+        run: npm run lint
+
       - name: Migration deployment boundary and baseline anchor gate
         run: npm run test:migration-boundary && npm run test:migration-fail-closed && npm run test:migration-baseline-anchor
 
@@ -174,7 +179,7 @@ jobs:
 
       # A full `next build` needs real database-backed admin prerender data in
       # this application. Vercel's preview/production deployment remains the
-      # authoritative build gate; PR CI deliberately never connects to prod DB.
+      # authoritative full build gate; the standalone lint gate remains DB-free.
 
   revenue-critical-browser:
     name: Revenue Critical Browser Gate
