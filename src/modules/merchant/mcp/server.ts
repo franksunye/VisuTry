@@ -230,6 +230,7 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
     description: 'Read the authenticated merchant Store configuration and its current Draft/Active status. Does not mutate or publish.',
     inputSchema: {},
   }, async () => safe(async () => {
+    requireAgentScope(actor, 'merchant:read')
     requireAgentScope(actor, 'experience:read')
     const workspace = await merchantOnboarding.getMerchantStoreWorkspace({ actor })
     return { store: workspace.store, capabilities: workspace.capabilities }
@@ -246,6 +247,7 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
       presentationMode: presentationMode.optional(),
     },
   }, async ({ storeId, name, headline, description, presentationMode: mode }) => safe(async () => {
+    requireAgentScope(actor, 'merchant:read')
     requireAgentScope(actor, 'experience:write')
     if ([name, headline, description, mode].every((value) => value === undefined)) {
       throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Supply at least one Store field to update.')
