@@ -476,7 +476,29 @@ async function getMerchant(input: { actor: MerchantActorContext }) {
 }
 
 async function findStore(merchantId: string, storeId?: string) {
-  return prisma.experience.findFirst({ where: { merchantId, type: 'STORE', ...(storeId ? { id: storeId } : {}) }, include: { frames: { where: { active: true }, orderBy: { sortOrder: 'asc' } } } })
+  const include = { frames: { where: { active: true }, orderBy: { sortOrder: 'asc' as const } } }
+  // Explicit edits must remain pinned to their caller-provided, tenant-owned ID.
+  if (storeId) {
+    return prisma.experience.findFirst({ where: { merchantId, type: 'STORE', id: storeId }, include })
+  }
+
+  // Public discovery selects the first ACTIVE Store by slug (then updatedAt).
+  // Never let an unordered Owner Workspace findFirst target a different Hero
+  // or Journey from the Store that real shoppers are currently seeing.
+  const liveStore = await prisma.experience.findFirst({
+    where: { merchantId, type: 'STORE', status: 'ACTIVE' },
+    orderBy: [{ slug: 'asc' }, { updatedAt: 'desc' }],
+    include,
+  })
+  if (liveStore) return liveStore
+
+  // Mirror the public read model's deterministic newest Store fallback when
+  // there is no ACTIVE Store yet (Draft/private onboarding).
+  return prisma.experience.findFirst({
+    where: { merchantId, type: 'STORE' },
+    orderBy: [{ updatedAt: 'desc' }],
+    include,
+  })
 }
 
 async function getActiveFrames(merchantId: string, frameIds?: string[]) {

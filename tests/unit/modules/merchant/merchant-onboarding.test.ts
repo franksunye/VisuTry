@@ -191,6 +191,40 @@ describe('merchant onboarding catalog validation', () => {
     expect(prisma.experience.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ merchantId: 'merchant-a', id: 'store-b' }) }))
   })
 
+  it('targets the same ACTIVE Store as public discovery when multiple Stores exist', async () => {
+    const live = { id: 'live-store', slug: 'a-live', status: 'ACTIVE', name: 'Live', frames: [] }
+    const draft = { id: 'draft-store', slug: 'z-draft', status: 'DRAFT', name: 'Draft', frames: [] }
+    ;(prisma.merchantFrame.count as jest.Mock).mockResolvedValue(0)
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([])
+    ;(prisma.experience.findFirst as jest.Mock).mockImplementation(async ({ where }: { where: { status?: string } }) =>
+      where.status === 'ACTIVE' ? live : draft
+    )
+
+    const result = await merchantOnboarding.getOnboardingStatus({ actor })
+    expect(result.store).toMatchObject({ id: 'live-store', status: 'ACTIVE' })
+    expect(prisma.experience.findFirst).toHaveBeenCalledTimes(1)
+    expect(prisma.experience.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { merchantId: 'merchant-a', type: 'STORE', status: 'ACTIVE' },
+      orderBy: [{ slug: 'asc' }, { updatedAt: 'desc' }],
+    }))
+  })
+
+  it('uses the newest Draft for onboarding only when there is no ACTIVE Store', async () => {
+    const draft = { id: 'newest-draft', slug: 'draft', status: 'DRAFT', name: 'Draft', frames: [] }
+    ;(prisma.merchantFrame.count as jest.Mock).mockResolvedValue(0)
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([])
+    ;(prisma.experience.findFirst as jest.Mock)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(draft)
+
+    const result = await merchantOnboarding.getOnboardingStatus({ actor })
+    expect(result.store).toMatchObject({ id: 'newest-draft', status: 'DRAFT' })
+    expect(prisma.experience.findFirst).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: { merchantId: 'merchant-a', type: 'STORE' },
+      orderBy: [{ updatedAt: 'desc' }],
+    }))
+  })
+
   it('separates catalog readiness from Store selection readiness', async () => {
     const catalog = Array.from({ length: 20 }, (_, index) => frame(`frame-${index + 1}`, index >= 15 ? { imageUrl: null } : {}))
     ;(prisma.merchantFrame.count as jest.Mock).mockResolvedValue(20)
