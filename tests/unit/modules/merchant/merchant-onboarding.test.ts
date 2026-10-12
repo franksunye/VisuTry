@@ -65,7 +65,7 @@ describe('merchant onboarding catalog validation', () => {
       frame('archived', { status: 'INACTIVE', name: 'Archived product' }),
     ])
     ;(prisma.merchantFrame.findFirst as jest.Mock).mockResolvedValue(frame('archived', { status: 'INACTIVE' }))
-    const readActor = { ...actor, scopes: ['catalog:read'] as const }
+    const readActor: AgentMerchantActor = { ...actor, scopes: ['catalog:read'] }
     const current = await merchantOnboarding.getMerchantCatalogWorkspace({ actor: readActor })
     expect(current.items.map((x) => x.id)).toEqual(['current'])
     expect(current.summary).toMatchObject({ total: 2, archived: 1, ready: 1 })
