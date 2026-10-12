@@ -26,7 +26,7 @@ import { MERCHANT_ACTIVATION_EVENT } from '@/modules/merchant/domain/merchant-ac
 
 const actor: AgentMerchantActor = { actorType: 'AGENT_CREDENTIAL', actorId: 'credential-a', merchantId: 'merchant-a', scopes: ['merchant:read'] }
 
-function frame(id: string, overrides: Partial<{ sku: string | null; name: string; imageUrl: string | null; shape: string; widthClass: string | null; status: 'ACTIVE' | 'DRAFT' }> = {}) {
+function frame(id: string, overrides: Partial<{ sku: string | null; name: string; imageUrl: string | null; shape: string; widthClass: string | null; status: 'ACTIVE' | 'DRAFT' | 'INACTIVE' }> = {}) {
   return { id, sku: `SKU-${id}`, name: `Frame ${id}`, imageUrl: 'https://cdn.example/frame.jpg', shape: 'round', widthClass: 'M', status: 'ACTIVE' as const, ...overrides }
 }
 
@@ -55,8 +55,48 @@ describe('merchant onboarding catalog validation', () => {
 
     expect(result.items).toHaveLength(1)
     expect(result.items[0]).toMatchObject({ id: 'frame-2', name: 'Far beyond the first page', presentation: { state: 'READY' } })
-    expect(result.summary).toEqual({ total: 2, ready: 2, needsReview: 0, needsAttention: 0 })
+    expect(result.summary).toEqual({ total: 2, archived: 0, ready: 2, needsReview: 0, needsAttention: 0 })
     expect(result.nextCursor).toBeNull()
+  })
+
+  it('excludes archived products from the default Catalog and exposes a distinct archived view', async () => {
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([
+      frame('current'),
+      frame('archived', { status: 'INACTIVE', name: 'Archived product' }),
+    ])
+    ;(prisma.merchantFrame.findFirst as jest.Mock).mockResolvedValue(frame('archived', { status: 'INACTIVE' }))
+    const readActor = { ...actor, scopes: ['catalog:read'] as const }
+    const current = await merchantOnboarding.getMerchantCatalogWorkspace({ actor: readActor })
+    expect(current.items.map((x) => x.id)).toEqual(['current'])
+    expect(current.summary).toMatchObject({ total: 2, archived: 1, ready: 1 })
+    const archived = await merchantOnboarding.getMerchantCatalogWorkspace({
+      actor: readActor, readiness: 'ARCHIVED', frameId: 'archived',
+    })
+    expect(archived.items.map((x) => x.id)).toEqual(['archived'])
+    expect(archived.focusedFrame).toMatchObject({ id: 'archived', status: 'INACTIVE' })
+    const normalFocus = await merchantOnboarding.getMerchantCatalogWorkspace({ actor: readActor, frameId: 'archived' })
+    expect(normalFocus.focusedFrame).toBeNull()
+  })
+
+  it('rejects identity-matched archived reimports without modifying existing rows', async () => {
+    const writeActor: AgentMerchantActor = { ...actor, scopes: ['catalog:write'] }
+    const update = jest.fn()
+    const create = jest.fn()
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({
+      slug: 'merchant-a', planCode: null, commercialStatus: null,
+    })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (run) => run({
+      $queryRaw: jest.fn((sql: TemplateStringsArray) => Promise.resolve(
+        sql.join('').includes('WITH tenant_experiences') ? [] : [{ id: 'merchant-a' }],
+      )),
+      merchant: { findUnique: jest.fn().mockResolvedValue({ planCode: null, commercialStatus: null }) },
+      merchantFrame: { count: jest.fn().mockResolvedValue(1), findFirst: jest.fn().mockResolvedValue({ id: 'archived', status: 'INACTIVE' }), update, create },
+    }))
+    await expect(merchantOnboarding.importMerchantFrames({
+      actor: writeActor, frames: [{ sku: 'SKU-archived', name: 'Archived product', shape: 'round', imageUrl: 'https://cdn.example.test/a.png' }],
+    })).rejects.toMatchObject({ code: 'CATALOG_ARCHIVED_RESTORE_REQUIRED', httpStatus: 409 })
+    expect(update).not.toHaveBeenCalled()
+    expect(create).not.toHaveBeenCalled()
   })
 
   it('resolves a focused frame outside the first page under the selected merchant', async () => {
