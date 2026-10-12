@@ -2,6 +2,15 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createExperienceCommandService, ExperienceCommandError, type ExperienceCommandRepository } from './experience-command-service'
 
+class CatalogSelectionConflictError extends ExperienceCommandError {
+  readonly code = 'CATALOG_SELECTION_NOT_ACTIVE'
+  readonly httpStatus = 409
+
+  constructor() {
+    super('A selected product is archived or unavailable. Restore it in Catalog and retry.')
+  }
+}
+
 const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
   async findTarget(merchantId, experienceId) {
     const row = await prisma.experience.findFirst({
@@ -55,6 +64,20 @@ const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
   },
   async replaceCatalogSelection(input) {
     await prisma.$transaction(async (tx) => {
+      // Same lock order as Catalog Archive/Restore: Merchant, then MerchantFrame.
+      // The preflight read in Store/Campaign UI is not a transactional guarantee.
+      const merchantRows = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Merchant" WHERE "id" = ${input.merchantId} FOR UPDATE`
+      if (!merchantRows.length) throw new ExperienceCommandError('Merchant not found')
+      if (input.frameIds.length) {
+        const frames = await tx.$queryRaw<{ id: string; status: string }[]>`
+          SELECT "id", "status" FROM "MerchantFrame"
+          WHERE "merchantId" = ${input.merchantId} AND "id" IN (${Prisma.join(input.frameIds)})
+          ORDER BY "id" FOR UPDATE
+        `
+        if (frames.length !== input.frameIds.length || frames.some((frame) => frame.status !== 'ACTIVE')) {
+          throw new CatalogSelectionConflictError()
+        }
+      }
       if (input.draftOnly) {
         const draft = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Experience" WHERE "id" = ${input.experienceId} AND "merchantId" = ${input.merchantId} AND "status" = 'DRAFT' FOR UPDATE`
         if (!draft.length) throw new ExperienceCommandError('Agent changes are limited to Draft Experiences.')
