@@ -45,6 +45,13 @@ describe('legacy Pilot seed local-only safety boundary', () => {
     })).toThrow(/Pilot seed DATABASE_URL_UNPOOLED/)
   })
 
+  it('rejects a pooled/unpooled mismatch even if each database is on loopback', () => {
+    expect(() => assertLocalPilotSeedTarget({
+      ...safe,
+      databaseUrlUnpooled: 'postgresql://local@localhost:5433/visutry_local_other_test',
+    })).toThrow(/same local TEST database/)
+  })
+
   it('requires both database targets explicitly, preventing ambient remote defaults', () => {
     expect(() => assertLocalPilotSeedTarget({ ...safe, databaseUrlUnpooled: undefined })).toThrow(/explicit local DATABASE_URL_UNPOOLED/)
   })
