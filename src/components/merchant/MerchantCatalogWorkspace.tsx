@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { AlertCircle, Boxes, CheckCircle2, ChevronDown, Edit3, FilePlus2, Loader2, Search, Save, Sparkles, X, type LucideIcon } from "lucide-react";
+import { AlertCircle, Boxes, CheckCircle2, ChevronDown, Edit3, FilePlus2, Loader2, Search, Save, Sparkles, Trash2, X, type LucideIcon } from "lucide-react";
 import { MerchantCatalogSelfService } from "@/components/merchant/MerchantCatalogSelfService";
 import { MerchantCatalogImageUpload } from "@/components/merchant/MerchantCatalogImageUpload";
 
@@ -64,6 +64,9 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
   const [edit, setEdit] = useState<EditValues | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<CatalogItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const cursorRef = useRef<string | null>(null);
   const focusedFrameRef = useRef<HTMLElement | null>(null);
   const editingIdRef = useRef<string | null>(null);
@@ -177,6 +180,29 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
     }
   }
 
+  async function confirmDelete() {
+    if (!pendingDelete || deleting) return;
+    const targetId = pendingDelete.id;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const response = await fetch(`${apiBase}/${encodeURIComponent(targetId)}`, {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ approved: true }),
+      });
+      const body = await response.json() as { success?: boolean; message?: string };
+      if (!response.ok || !body.success) throw new Error(body.message || "Unable to delete this product.");
+      setPendingDelete(null);
+      if (editing?.id === targetId) { setEditing(null); setEdit(null); }
+      await load({ query: appliedSearch, readiness: filter });
+    } catch (requestError) {
+      setDeleteError(requestError instanceof Error ? requestError.message : "Unable to delete this product.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return <section className="space-y-4 sm:space-y-5" aria-labelledby="merchant-catalog-heading">
     <header className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:pb-5">
       <div>
@@ -227,7 +253,19 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
         <div className="col-start-1 row-span-2 row-start-1 h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50/80 p-1.5 sm:row-span-1 sm:h-14 sm:w-14">{item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-contain" /> : null}</div>
         <div className="col-start-2 row-start-1 min-w-0"><h2 title={item.name} className="truncate text-sm font-semibold tracking-tight text-slate-950">{focused ? <><span className="sr-only">Focused product: </span>{item.name}</> : item.name}</h2><p title={`${item.sku || item.productUrl || "Stable product identity"}${item.brand ? ` · ${item.brand}` : ""}${priceLabel(item) ? ` · ${priceLabel(item)}` : ""}`} className="mt-0.5 truncate text-xs text-slate-500">{item.sku || item.productUrl || "Stable product identity"}{item.brand ? ` · ${item.brand}` : ""}{priceLabel(item) ? ` · ${priceLabel(item)}` : ""}</p></div>
         <div className="col-start-2 row-start-2 flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] sm:col-start-3 sm:row-start-1"><span className={`rounded-full px-2 py-1 font-semibold ${stateClass(item.presentation.state)}`}>{item.presentation.label}</span>{item.source ? <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-600">{item.source === "EXTERNAL" ? "Website" : item.source}</span> : null}{item.presentation.issueSummary ? <span className="text-amber-800">{item.presentation.issueSummary}</span> : null}</div>
-        <button type="button" onClick={() => startEditing(item)} className={`${buttonClass} col-start-3 row-start-1 ${focused ? "min-h-11" : "min-h-9"} rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 hover:bg-slate-50 sm:col-start-4 sm:px-3 sm:text-sm`}><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button>
+        <div className="col-start-3 row-start-1 flex flex-col items-end gap-1 sm:col-start-4 sm:flex-row sm:gap-1.5">
+          <button type="button" onClick={() => startEditing(item)} className={`${buttonClass} min-h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700 hover:bg-slate-50 sm:px-3 sm:text-sm`}><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button>
+          <button type="button" onClick={() => { setPendingDelete(item); setDeleteError(null); }} disabled={deleting} aria-label={`Delete ${item.name}`} className={`${buttonClass} min-h-9 rounded-lg border border-red-200 bg-white px-2.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50 sm:px-3 sm:text-sm`}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Delete</button>
+        </div>
+        {pendingDelete?.id === item.id ? <div role="group" aria-label={`Confirm deletion of ${item.name}`} className="col-span-full rounded-xl border border-red-200 bg-red-50 p-3">
+          <p className="text-sm font-semibold text-red-950">Permanently delete “{item.name}”?</p>
+          <p className="mt-1 text-xs leading-5 text-red-900">Only unused products can be removed. Products selected by a Store/Campaign or referenced by shopper history are protected. This does not delete uploaded image files.</p>
+          {deleteError ? <p className="mt-2 text-sm text-red-800" role="alert">{deleteError}</p> : null}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" disabled={deleting} onClick={() => { setPendingDelete(null); setDeleteError(null); }} className={`${buttonClass} min-h-10 border border-slate-300 bg-white text-slate-800 disabled:opacity-50`}>Cancel</button>
+            <button type="button" disabled={deleting} onClick={() => void confirmDelete()} className={`${buttonClass} min-h-10 bg-red-700 text-white hover:bg-red-800 disabled:opacity-50`}>{deleting ? "Deleting…" : "Confirm deletion"}</button>
+          </div>
+        </div> : null}
       {editing?.id === item.id && edit ? (
         <div className="col-span-full border-t border-slate-100 pt-4">
           <div className="grid gap-3 sm:grid-cols-2">
