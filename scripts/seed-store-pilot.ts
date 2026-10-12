@@ -18,12 +18,17 @@ import {
   readPilotPackage,
 } from '../src/modules/store/application/pilot-delivery-kit'
 import { classificationForPilotConfig, type MerchantClassification } from '../src/modules/merchant/domain/merchant-classification'
+import { assertLocalPilotSeedTarget } from '../src/modules/store/domain/pilot-seed-safety'
 
 function assertSeedEnvironment() {
-  const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
-  if (isProd && process.env.STORE_SEED_CONFIRM !== 'yes') {
-    throw new Error('Refusing to seed Store pilots in production without STORE_SEED_CONFIRM=yes')
-  }
+  assertLocalPilotSeedTarget({
+    appEnv: process.env.APP_ENV,
+    nodeEnv: process.env.NODE_ENV,
+    vercelEnv: process.env.VERCEL_ENV,
+    databaseUrl: process.env.DATABASE_URL,
+    databaseUrlUnpooled: process.env.DATABASE_URL_UNPOOLED,
+    confirmation: process.env.STORE_SEED_CONFIRM,
+  })
 }
 
 async function main() {
