@@ -18,6 +18,7 @@ export type ExperienceCommandRepository<TTransaction = unknown> = {
     afterUpdate?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
     draftOnly?: boolean
+    expectedUpdatedAt?: string
   }): Promise<unknown>
   replaceCatalogSelection(input: {
     merchantId: string
@@ -134,6 +135,7 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
     afterUpdate?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
     draftOnly?: boolean
+    expectedUpdatedAt?: string
   }) {
     const patch = validateExperienceCommandPatch(input.patch, { campaignFields: input.campaignFields === true })
     if (Object.keys(patch).length === 0) throw new ExperienceCommandError('Experience command has no fields to update')
@@ -151,6 +153,7 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
         afterUpdate: input.afterUpdate,
         atomicEffects: input.atomicEffects,
         draftOnly: input.draftOnly,
+        expectedUpdatedAt: input.expectedUpdatedAt,
       }),
     })
   }
