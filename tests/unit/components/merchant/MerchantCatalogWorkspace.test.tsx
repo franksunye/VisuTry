@@ -80,6 +80,48 @@ describe('MerchantCatalogWorkspace', () => {
     ))
   })
 
+  it('archives only after explicit approval and refreshes the active view', async () => {
+    const fetchMock = jest.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => response() })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { id: 'frame-2', status: 'INACTIVE' } }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({
+        success: true, data: { items: [], nextCursor: null, summary: { total: 2, archived: 1, ready: 0, needsReview: 1, needsAttention: 0 }, focusedFrame: null },
+      }) })
+    global.fetch = fetchMock as jest.Mock
+    render(<MerchantCatalogWorkspace merchantId="merchant-a" locale="en" />)
+    fireEvent.click(await screen.findByRole('button', { name: `Archive ${item.name}` }))
+    expect(screen.getByText(/Remove this product from current Catalog/)).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm archive' }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      '/api/merchant/merchant-a/catalog/frame-2/lifecycle',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ action: 'ARCHIVE', approved: true }) }),
+    ))
+    expect(await screen.findByText('No products match this view')).toBeInTheDocument()
+  })
+
+  it('shows archived products separately and requires a confirmed Restore action', async () => {
+    const archivedItem = { ...item, status: 'INACTIVE' }
+    const archivedData = { ...response(), data: { ...response().data, items: [archivedItem], summary: { total: 2, archived: 1, ready: 1, needsReview: 0, needsAttention: 0 } } }
+    const fetchMock = jest.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => response() })
+      .mockResolvedValueOnce({ ok: true, json: async () => archivedData })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { id: 'frame-2', status: 'ACTIVE' } }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ ...archivedData, data: { ...archivedData.data, items: [] } }) })
+    global.fetch = fetchMock as jest.Mock
+    render(<MerchantCatalogWorkspace merchantId="merchant-a" locale="en" />)
+    await screen.findByText(item.name)
+    fireEvent.change(screen.getByRole('combobox', { name: 'Filter catalog readiness' }), { target: { value: 'ARCHIVED' } })
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('readiness=ARCHIVED'), expect.any(Object)))
+    fireEvent.click(await screen.findByRole('button', { name: `Restore ${item.name}` }))
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm restore' }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      '/api/merchant/merchant-a/catalog/frame-2/lifecycle',
+      expect.objectContaining({ body: JSON.stringify({ action: 'RESTORE', approved: true }) }),
+    ))
+  })
+
   it('never sends DELETE until explicit confirmation and reloads Catalog after success', async () => {
     const fetchMock = jest.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => response() })
