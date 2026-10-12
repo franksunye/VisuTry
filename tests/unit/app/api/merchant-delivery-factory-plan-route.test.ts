@@ -64,6 +64,21 @@ describe('human Merchant Factory read-only plan route', () => {
     expect(mockDryRun.mock.calls[0][0].actor).toMatchObject({ actorType: 'HUMAN' })
   })
 
+  it('returns 400 for invalid canonical manifests and never treats approval as consent', async () => {
+    const { merchantDeliveryManifestV1Schema } = await import('@/modules/merchant/domain/merchant-delivery-factory-v1')
+    let malformed: unknown
+    try {
+      merchantDeliveryManifestV1Schema.parse({ version: 1, merchantSlug: 'store-a', approved: true })
+    } catch (error) {
+      malformed = error
+    }
+    expect(malformed).toBeDefined()
+    mockDryRun.mockRejectedValueOnce(malformed)
+    const res = await POST(request({ version: 1, merchantSlug: 'store-a', approved: true }), params)
+    expect(res.status).toBe(400)
+    expect(await res.json()).toMatchObject({ error: 'INVALID_FACTORY_MANIFEST' })
+  })
+
   it('returns a 404 for a tenant mismatch and refuses invalid input without writing', async () => {
     mockDryRun.mockRejectedValueOnce(new Error('FACTORY_TENANT_MISMATCH'))
     const wrong = await POST(request({ merchantSlug: 'other' }), params)
