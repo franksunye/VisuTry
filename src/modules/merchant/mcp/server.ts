@@ -225,6 +225,38 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
     inputSchema: { name: z.string().max(120).optional(), headline: z.string().max(240).optional(), description: z.string().max(5000).optional() },
   }, async ({ name, headline, description }) => safe(() => merchantOnboarding.createMerchantStore({ actor, name, headline, description })))
 
+  server.registerTool('get_store_details', {
+    title: 'Get Store details',
+    description: 'Read the authenticated merchant Store configuration and its current Draft/Active status. Does not mutate or publish.',
+    inputSchema: {},
+  }, async () => safe(async () => {
+    requireAgentScope(actor, 'merchant:read')
+    requireAgentScope(actor, 'experience:read')
+    const workspace = await merchantOnboarding.getMerchantStoreWorkspace({ actor })
+    return { store: workspace.store, capabilities: workspace.capabilities }
+  }))
+
+  server.registerTool('update_store_details', {
+    title: 'Update Draft Store details',
+    description: 'Edit only the authenticated merchant Store DRAFT name, headline, description, or presentation mode. ACTIVE Stores are read-only to Agents; the merchant must approve changes in the authenticated workspace. This tool never publishes.',
+    inputSchema: {
+      storeId: z.string().min(1).max(120),
+      name: z.string().min(1).max(120).optional(),
+      headline: z.string().max(240).nullable().optional(),
+      description: z.string().max(5000).nullable().optional(),
+      presentationMode: presentationMode.optional(),
+    },
+  }, async ({ storeId, name, headline, description, presentationMode: mode }) => safe(async () => {
+    requireAgentScope(actor, 'merchant:read')
+    requireAgentScope(actor, 'experience:write')
+    if ([name, headline, description, mode].every((value) => value === undefined)) {
+      throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Supply at least one Store field to update.')
+    }
+    return merchantOnboarding.updateMerchantStore({
+      actor, storeId, name, headline, description, presentationMode: mode,
+    })
+  }))
+
   server.registerTool('set_store_frames', {
     title: 'Set Store frames',
     description: 'Replace the authenticated merchant Store DRAFT frame selection using active catalog frame IDs. Active Stores are read-only to Agents; ask the merchant to make live changes in the authenticated workspace. Cross-merchant IDs are rejected as not found.',

@@ -15,6 +15,8 @@ export const MCP_TOOL_NAMES = [
   'validate_catalog',
   'inspect_catalog_source',
   'create_store',
+  'get_store_details',
+  'update_store_details',
   'set_store_frames',
   'preview_store',
   'list_campaigns',
@@ -54,6 +56,8 @@ export const MCP_TOOL_SCOPES: Record<McpToolName, readonly string[]> = {
   validate_catalog: ['catalog:read'],
   inspect_catalog_source: ['catalog:read'],
   create_store: ['experience:write'],
+  get_store_details: ['merchant:read', 'experience:read'],
+  update_store_details: ['merchant:read', 'experience:write'],
   set_store_frames: ['experience:write'],
   preview_store: ['experience:read'],
   list_campaigns: ['experience:read'],
@@ -77,6 +81,7 @@ export const MCP_AGENT_DISABLED_HIGH_IMPACT_TOOLS = ['publish_store', 'publish_c
 
 export const MCP_HIGH_IMPACT_TOOLS = new Set<McpToolName>([
   'import_frames',
+  'update_store_details',
   'set_store_frames',
   'set_campaign_frames',
   'update_campaign',
@@ -85,6 +90,7 @@ export const MCP_HIGH_IMPACT_TOOLS = new Set<McpToolName>([
 export const MCP_WRITE_TOOLS = new Set<McpToolName>([
   'import_frames',
   'create_store',
+  'update_store_details',
   'set_store_frames',
   'create_campaign',
   'set_campaign_frames',
