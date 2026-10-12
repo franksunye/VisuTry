@@ -43,6 +43,21 @@ describe('Prisma Catalog selection serialization boundary', () => {
     ['transaction write conflict via Prisma P2034', { code: 'P2034' }],
     ['direct SQLSTATE from PostgreSQL adapter', { code: '40001' }],
     ['adapter cause SQLSTATE', { code: 'P2010', cause: { code: '40001' } }],
+    // Exact production-shaped driver-adapter wrapper found by Codex's real
+    // isolated PostgreSQL16 archive-first/Store-selection race.
+    ['observed P2010 driver adapter conflict string', {
+      code: 'P2010', meta: { driverAdapterError: 'TransactionWriteConflict' },
+    }],
+    ['observed P2010 driver adapter conflict object', {
+      code: 'P2010', meta: { driverAdapterError: { kind: 'TransactionWriteConflict' } },
+    }],
+    ['nested adapter conflict cause and SQLSTATE', {
+      code: 'P2010',
+      meta: { driverAdapterError: {
+        name: 'DriverAdapterError',
+        cause: { kind: 'TransactionWriteConflict', originalCode: '40001' },
+      } },
+    }],
   ])('translates %s into a recoverable, tenant-safe 409 without committing selections', async (_label, error) => {
     ;(prisma.$transaction as jest.Mock).mockRejectedValueOnce(error)
     await expect(experienceCommands.replaceCatalogSelection(selection))
@@ -70,6 +85,21 @@ describe('Prisma Catalog selection serialization boundary', () => {
     ;(prisma.$transaction as jest.Mock).mockRejectedValueOnce(fault)
     await expect(experienceCommands.replaceCatalogSelection(selection)).rejects.toBe(fault)
     expect(tx.experienceFrame.deleteMany).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['plain failed raw query', { code: 'P2010', meta: { code: '23503' } }],
+    ['non-serialization adapter conflict', {
+      code: 'P2010',
+      meta: { driverAdapterError: { kind: 'UniqueConstraintViolation', originalCode: '23505' } },
+    }],
+    ['unrelated adapter cause', {
+      code: 'P2010',
+      meta: { driverAdapterError: { cause: { kind: 'ForeignKeyConstraintViolation', originalCode: '23503' } } },
+    }],
+  ])('does not hide %s as a recoverable 409', async (_name, error) => {
+    ;(prisma.$transaction as jest.Mock).mockRejectedValueOnce(error)
+    await expect(experienceCommands.replaceCatalogSelection(selection)).rejects.toBe(error)
   })
 
   it('keeps ordinary valid Store selection transactional and invokes post-replace work once', async () => {
