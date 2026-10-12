@@ -649,6 +649,9 @@ export async function updateMerchantStore(input: {
   secondaryCtaType?: string | null
   secondaryCtaLabel?: string | null
   secondaryCtaUrl?: string | null
+  /** Restricted to the explicitly approved Factory DRAFT Store command. */
+  factoryDraftOnly?: boolean
+  expectedUpdatedAt?: string
 }) {
   requireAgentScope(input.actor, 'experience:write')
   const store = await prisma.experience.findFirst({
@@ -693,7 +696,8 @@ export async function updateMerchantStore(input: {
     experienceId: store.id,
     expectedType: 'STORE',
     patch,
-    draftOnly: isAgentMerchantActor(input.actor),
+    draftOnly: isAgentMerchantActor(input.actor) || input.factoryDraftOnly === true,
+    expectedUpdatedAt: input.expectedUpdatedAt,
     afterUpdate: async (tx) => {
       if (meaningfulChange) {
         await recordMerchantActivationEventWithClient(tx as Prisma.TransactionClient, {
