@@ -6,7 +6,7 @@
 
 `merchantDeliveryManifestV1Schema` is a versioned, strict **proposal** shared by assisted delivery and future self-service configuration. `buildMerchantFactoryDryRunV1(manifest, authorizedSnapshot)` is a **pure and deterministic** difference planner. It does not read a database, authenticate a merchant, import URLs, upload media, update subscriptions, create sessions, or persist any change. It always returns `canApply:false`, `releaseReady:false`.
 
-Manifest v1 includes: identity/tenant slug and canonical `MERCHANT_CLASSIFICATIONS` classification (e.g. `TEST`, `REFERENCE`, `POSSIBLE_EXTERNAL`, `REAL`; this is not the Pilot package `pilotType`); source method and **existing resource IDs** for a previously approved Catalog; brand display name and optional HTTPS logo URL; Store Draft configuration (copy, presentation, canonical Journey stage policy, bounded Web/Kiosk delivery policy, selected frame IDs); and up to 20 distinct Campaign Draft proposals with the same config shape.
+Manifest v1 includes: identity/tenant slug and canonical `MERCHANT_CLASSIFICATIONS` classification (e.g. `TEST`, `REFERENCE`, `POSSIBLE_EXTERNAL`, `REAL`; this is not the Pilot package `pilotType`); source method and **existing resource IDs** for a previously approved Catalog; brand display name, optional canonical accessible accentColor palette value and optional HTTPS logo URL; Store Draft configuration (copy, presentation, canonical Journey stage policy, bounded Web/Kiosk delivery policy, selected frame IDs); and up to 20 distinct Campaign Draft proposals with the same config shape.
 
 **Example (TEST only):**
 
@@ -16,7 +16,7 @@ Manifest v1 includes: identity/tenant slug and canonical `MERCHANT_CLASSIFICATIO
   "merchantSlug": "demo-store",
   "classification": "TEST",
   "catalog": { "sourceMethod": "CSV", "expectedFrameIds": ["frame-owned-1"] },
-  "brand": { "displayName": "Demo Store", "logoAssetUrl": null },
+  "brand": { "displayName": "Demo Store", "accentColor": "#1F4B5A", "logoAssetUrl": null },
   "store": {
     "name": "Demo Store", "headline": "Explore frames",
     "presentationMode": "PRODUCT_FIRST",
@@ -31,7 +31,7 @@ Manifest v1 includes: identity/tenant slug and canonical `MERCHANT_CLASSIFICATIO
 
 ## Authenticated read-only Plan endpoint
 
-`POST /api/merchant/:merchantId/delivery-factory/plan` accepts the **strict manifest itself** as JSON and requires a signed-in Human OWNER/ADMIN of the same merchant. It reads the current merchant classification, Brand, ACTIVE Catalog frame IDs, and Store/Campaign Experience and selection state using canonical tenant-scoped Prisma reads, then returns the computed proposal with `Cache-Control: private, no-store`. The requested `merchantId` is checked against membership, and manifest merchant slug must match the stored tenant identity. A non-member/foreign resource is reported as 404; invalid versions/fields result in 400.
+`POST /api/merchant/:merchantId/delivery-factory/plan` accepts the **strict manifest itself** as JSON and requires a signed-in Human OWNER/ADMIN of the same merchant. It reads the current merchant classification, Brand (including canonical accentColor), ACTIVE Catalog frame IDs, and Store/Campaign Experience and selection state using canonical tenant-scoped Prisma reads, then returns the computed proposal with `Cache-Control: private, no-store`. The requested `merchantId` is checked against membership, and manifest merchant slug must match the stored tenant identity. A non-member/foreign resource is reported as 404; invalid versions/fields result in 400.
 
 The endpoint is **not** `/apply`, and does not recognize a client-provided `approved:true` as consent. It does not upload assets, trigger marketing, persist rows, or use Stripe. If there are multiple ACTIVE Stores, it returns an explicit blocker rather than selecting one silently. A future authorized Apply must independently re-read and lock actual rows before touching any business state.
 
