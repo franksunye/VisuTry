@@ -34,6 +34,7 @@ const manifest = {
 const payload = {
   approved: true,
   expectedStoreUpdatedAt: '2026-10-12T08:30:00.000Z',
+  expectedStoreId: 'store-id-a',
   manifestDigest: 'a'.repeat(64),
   manifest,
 }
@@ -70,6 +71,7 @@ describe('Factory Owner-only approved Draft Store Apply HTTP', () => {
     expect(apply).toHaveBeenCalledWith({
       actor: { actorType: 'HUMAN', actorId: 'owner-a', merchantId: 'merchant-a', membershipId: 'member-a' },
       proposal: manifest, expectedStoreUpdatedAt: '2026-10-12T08:30:00.000Z',
+      expectedStoreId: 'store-id-a',
       manifestDigest: 'a'.repeat(64),
     })
   })
@@ -77,6 +79,7 @@ describe('Factory Owner-only approved Draft Store Apply HTTP', () => {
   it.each([
     ['no explicit approval', { ...payload, approved: false }],
     ['no optimistic precondition', { approved: true, manifest }],
+    ['no prepared Store target', { ...payload, expectedStoreId: undefined }],
     ['no prepared manifest digest', { approved: true, expectedStoreUpdatedAt: '2026-10-12T08:30:00.000Z', manifest }],
     ['inject Store status', { ...payload, manifest: {
       ...manifest, store: { ...manifest.store, status: 'ACTIVE' },
