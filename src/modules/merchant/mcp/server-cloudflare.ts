@@ -1,3 +1,4 @@
+import { getMerchantAgentBrandKit } from '../application/merchant-agent-brand-read-cloudflare'
 import { mcpStoreJourneyPolicy, mcpStoreDeliveryPolicy } from './store-policy-input'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js'
@@ -106,6 +107,18 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
 
   server.registerTool('get_onboarding_status', { title: 'Get onboarding status', description: 'Read the authenticated merchant onboarding checklist.', inputSchema: {} }, async () => safe(() => merchantOnboarding.getOnboardingStatus({ actor })))
   server.registerTool('get_merchant', { title: 'Get merchant', description: 'Read the authenticated merchant profile.', inputSchema: {} }, async () => safe(() => merchantOnboarding.getMerchant({ actor })))
+  server.registerTool('get_brand_kit', {
+    title: 'Get Brand Kit',
+    description: 'Read the authenticated merchant Logo, accessible accent palette and an optional Store/Campaign Hero. Human Owner actions are required to change branding or live assets; this tool never uploads or writes.',
+    inputSchema: {
+      experienceId: z.string().min(1).max(120).optional(),
+    },
+  }, async ({ experienceId }) => safe(() => {
+    requireAgentScope(actor, 'merchant:read')
+    requireAgentScope(actor, 'experience:read')
+    return getMerchantAgentBrandKit({ actor, experienceId })
+  }))
+
   server.registerTool('list_frames', { title: 'List frames', description: 'List the authenticated merchant catalog.', inputSchema: { cursor: z.string().optional(), limit: z.number().int().min(1).max(100).optional() } }, async ({ cursor, limit }) => safe(() => merchantOnboarding.listMerchantFrames({ actor, cursor, limit })))
   server.registerTool('import_frames', { title: 'Import frames', description: 'Idempotently import up to 1,000 structured catalog frames. An Agent cannot change products selected by an active Store or Campaign; ask the merchant to edit those products in the authenticated workspace.', inputSchema: { frames: z.array(frameInput).min(1).max(1000) } }, async ({ frames }) => safe(() => merchantOnboarding.importMerchantFrames({ actor, frames: frames as CatalogFrameInput[] })))
   server.registerTool('validate_catalog', { title: 'Validate catalog', description: 'Validate the authenticated merchant catalog.', inputSchema: {} }, async () => safe(() => merchantOnboarding.validateMerchantCatalog({ actor })))

@@ -1,3 +1,4 @@
+import { getMerchantAgentBrandKit } from '../application/merchant-agent-brand-read'
 import { mcpStoreJourneyPolicy, mcpStoreDeliveryPolicy } from './store-policy-input'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js'
@@ -188,6 +189,18 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
     description: 'Read the authenticated merchant profile. The merchant is derived from the credential; no merchantId is accepted.',
     inputSchema: {},
   }, async () => safe(() => merchantOnboarding.getMerchant({ actor })))
+
+  server.registerTool('get_brand_kit', {
+    title: 'Get Brand Kit',
+    description: 'Read the authenticated merchant Logo, accessible accent palette and an optional Store/Campaign Hero. Human Owner actions are required to change branding or live assets; this tool never uploads or writes.',
+    inputSchema: {
+      experienceId: z.string().min(1).max(120).optional(),
+    },
+  }, async ({ experienceId }) => safe(() => {
+    requireAgentScope(actor, 'merchant:read')
+    requireAgentScope(actor, 'experience:read')
+    return getMerchantAgentBrandKit({ actor, experienceId })
+  }))
 
   server.registerTool('list_frames', {
     title: 'List frames',

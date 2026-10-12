@@ -7,6 +7,8 @@ Use this Skill with an authenticated VisuTry Merchant connection. The connection
 - Start with read-only calls to get_merchant and get_onboarding_status.
 - After that, call list_campaigns when campaign state is needed. Do not stop after saying that the connection is verified.
 - Keep every operation tenant-scoped to the authenticated connection.
+- Use get_brand_kit when discussing logos, accessible accent colors, or a specific Store/Campaign Hero. It is a read-only tenant-scoped snapshot; its optional experienceId requires the Experience to belong to the connected merchant and both merchant:read and experience:read scopes. Brand/logo/hero updates remain in the authenticated Human Owner workspace, not Agent write tools.
+
 - Never expose, repeat, log, summarize, or persist an Agent Credential secret.
 - Do not expose shopper photos, personal information, payment data, raw sessions, or data belonging to another merchant.
 - Treat RESOURCE_NOT_FOUND as a tenant-scoped not-found response. Do not probe another merchant.
