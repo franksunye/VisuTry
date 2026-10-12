@@ -20,7 +20,7 @@ const store = {
   frames: [{ merchantFrameId: 'frame-owned-a' }],
 }
 const merchant = {
-  id: 'tenant-a', slug: 'store-a', classification: 'TEST', name: 'Store A', logoUrl: null,
+  id: 'tenant-a', slug: 'store-a', classification: 'TEST', name: 'Store A', logoUrl: null, accentColor: '#1F4B5A',
   frames: [{ id: 'frame-owned-a' }],
   experiences: [store],
 }
@@ -39,6 +39,19 @@ describe('authenticated local Factory snapshot / canonical dry-run adapter', () 
       canApply: false, releaseReady: false, blockers: [],
     })
     expect(plan.steps[1]).toMatchObject({ resource: 'STORE', target: 'default', action: 'UPDATE_DRAFT', changedFields: ['headline'] })
+  })
+
+  it('reads the actual Brand accent and plans a human-only correction without mutating it', async () => {
+    const plan = await getMerchantFactoryDryRun({
+      actor, proposal: { ...manifest, brand: { ...manifest.brand, accentColor: '#1D4ED8' } },
+    })
+    expect(plan.steps[0]).toMatchObject({
+      resource: 'BRAND', action: 'HUMAN_REVIEW_REQUIRED', changedFields: ['accentColor'],
+    })
+    expect(plan.canApply).toBe(false)
+    expect(prisma.merchant.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({ accentColor: true }),
+    }))
   })
 
   it('does not accept identity from the manifest in place of membership tenant', async () => {
