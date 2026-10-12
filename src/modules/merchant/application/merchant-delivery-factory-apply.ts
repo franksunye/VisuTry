@@ -66,9 +66,13 @@ export async function applyMerchantFactoryDraftStoreV1(input: {
   actor: HumanMerchantActor
   proposal: unknown
   expectedStoreUpdatedAt: string
+  expectedStoreId: string
   manifestDigest: string
 }) {
   const { decision, store, manifestDigest: digest } = await readDraftStoreApplyCandidate(input)
+  if (input.expectedStoreId !== store.id) {
+    throw new MerchantFactoryApplyError('FACTORY_APPROVAL_TARGET_MISMATCH')
+  }
   if (input.manifestDigest !== digest) {
     throw new MerchantFactoryApplyError('FACTORY_APPROVAL_MANIFEST_MISMATCH')
   }
