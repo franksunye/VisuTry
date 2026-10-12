@@ -108,6 +108,21 @@ describe('Human merchant catalog route', () => {
     expect(mockDelete).toHaveBeenCalledWith({ actor: expect.objectContaining({ actorType: 'HUMAN', merchantId: 'merchant-a', actorId: 'user-a' }), frameId: 'frame-a' })
   })
 
+  it('rejects an authenticated non-member before executing any destructive command', async () => {
+    mockMembership.mockRejectedValueOnce(new MerchantAccessError())
+    const denied = await DELETE(
+      request({ approved: true }, 'DELETE'),
+      { params: { merchantId: 'merchant-a', frameId: 'frame-a' } },
+    )
+    // Membership denials deliberately use the same tenant-safe 404 as unknown frames.
+    expect(denied.status).toBe(404)
+    expect(await denied.json()).toMatchObject({ error: 'MERCHANT_ACCESS_NOT_FOUND' })
+    expect(mockMembership).toHaveBeenCalledWith({
+      userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'],
+    })
+    expect(mockDelete).not.toHaveBeenCalled()
+  })
+
   it('does not leak foreign frame identities or destroy referenced products', async () => {
     mockDelete.mockRejectedValueOnce(new MerchantAccessError())
     const foreign = await DELETE(request({ approved: true }, 'DELETE'), { params: { merchantId: 'merchant-a', frameId: 'foreign-id' } })
