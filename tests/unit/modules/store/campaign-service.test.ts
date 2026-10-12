@@ -140,6 +140,9 @@ describe('Campaign application service', () => {
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
     ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([baseRow.frames[0].merchantFrame])
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn()
+        .mockResolvedValueOnce([{ id: 'merchant-a' }])
+        .mockResolvedValueOnce([{ id: 'frame-a', status: 'ACTIVE' }]),
       experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
     }))
 
