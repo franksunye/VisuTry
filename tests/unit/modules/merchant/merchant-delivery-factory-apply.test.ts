@@ -45,6 +45,8 @@ describe('Owner-approved Factory Draft Store Apply adapter', () => {
     ;(getMerchantFactoryDryRun as jest.Mock).mockResolvedValue(plan)
     ;(prisma.experience.findMany as jest.Mock).mockResolvedValue([{
       id: 'store-id-a', status: 'DRAFT', updatedAt: new Date(revision),
+      name: 'Previous Store', headline: 'Old headline', description: null,
+      presentationMode: 'ACTION_FIRST', journeyPolicy: null, deliveryPolicy: null,
     }])
     ;(updateMerchantStore as jest.Mock).mockResolvedValue({ id: 'store-id-a', status: 'DRAFT' })
   })
@@ -55,9 +57,28 @@ describe('Owner-approved Factory Draft Store Apply adapter', () => {
       status: 'HUMAN_APPROVAL_REQUIRED',
       storeId: 'store-id-a', expectedStoreUpdatedAt: revision,
       manifestDigest, changedFields: ['name'],
+      reviewChanges: [{ field: 'name', before: 'Previous Store', after: 'Store Updated' }],
       requiresHumanApproval: true,
       releaseReady: false, publicRender: 'NOT_EXECUTED',
     })
+    expect(updateMerchantStore).not.toHaveBeenCalled()
+  })
+
+  it('limits the Owner approval diff to canonical changed fields and exposes no unrelated data', async () => {
+    ;(getMerchantFactoryDryRun as jest.Mock).mockResolvedValueOnce({
+      ...plan, steps: [
+        plan.steps[0],
+        { resource: 'STORE', target: 'default', action: 'UPDATE_DRAFT', changedFields: ['headline'] },
+      ],
+    })
+    const edited = { ...proposal, store: {
+      ...proposal.store, headline: 'Proposed headline',
+    } }
+    const preview = await prepareMerchantFactoryDraftStoreV1({ actor, proposal: edited })
+    expect(preview.reviewChanges).toEqual([
+      { field: 'headline', before: 'Old headline', after: 'Proposed headline' },
+    ])
+    expect(JSON.stringify(preview.reviewChanges)).not.toMatch(/membership|product|billing|secret|selectedFrameIds|Previous Store/)
     expect(updateMerchantStore).not.toHaveBeenCalled()
   })
 
@@ -92,7 +113,11 @@ describe('Owner-approved Factory Draft Store Apply adapter', () => {
     expect(getMerchantFactoryDryRun).toHaveBeenCalledWith({ actor, proposal })
     expect(prisma.experience.findMany).toHaveBeenCalledWith({
       where: { merchantId: 'merchant-a', type: 'STORE' },
-      select: { id: true, status: true, updatedAt: true },
+      select: {
+        id: true, status: true, updatedAt: true,
+        name: true, headline: true, description: true,
+        presentationMode: true, journeyPolicy: true, deliveryPolicy: true,
+      },
       take: 2,
     })
     expect(updateMerchantStore).toHaveBeenCalledWith(expect.objectContaining({
