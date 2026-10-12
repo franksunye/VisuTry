@@ -6,7 +6,7 @@
 
 `merchantDeliveryManifestV1Schema` is a versioned, strict **proposal** shared by assisted delivery and future self-service configuration. `buildMerchantFactoryDryRunV1(manifest, authorizedSnapshot)` is a **pure and deterministic** difference planner. It does not read a database, authenticate a merchant, import URLs, upload media, update subscriptions, create sessions, or persist any change. It always returns `canApply:false`, `releaseReady:false`.
 
-Manifest v1 includes: identity/tenant slug and TEST/REFERENCE/LIVE classification; source method and **existing resource IDs** for a previously approved Catalog; brand display name and optional HTTPS logo URL; Store Draft configuration (copy, presentation, canonical Journey stage policy, bounded Web/Kiosk delivery policy, selected frame IDs); and up to 20 distinct Campaign Draft proposals with the same config shape.
+Manifest v1 includes: identity/tenant slug and canonical `MERCHANT_CLASSIFICATIONS` classification (e.g. `TEST`, `REFERENCE`, `POSSIBLE_EXTERNAL`, `REAL`; this is not the Pilot package `pilotType`); source method and **existing resource IDs** for a previously approved Catalog; brand display name and optional HTTPS logo URL; Store Draft configuration (copy, presentation, canonical Journey stage policy, bounded Web/Kiosk delivery policy, selected frame IDs); and up to 20 distinct Campaign Draft proposals with the same config shape.
 
 **Example (TEST only):**
 
