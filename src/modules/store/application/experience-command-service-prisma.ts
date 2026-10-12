@@ -23,11 +23,20 @@ const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
     const data = { ...patch }
     if (data.journeyPolicy === null) data.journeyPolicy = Prisma.JsonNull
     if (data.deliveryPolicy === null) data.deliveryPolicy = Prisma.JsonNull
-    if (options?.afterUpdate || options?.draftOnly) {
+    if (options?.afterUpdate || options?.draftOnly || options?.expectedUpdatedAt) {
       return prisma.$transaction(async (tx) => {
-        if (options?.draftOnly) {
-          const draft = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Experience" WHERE "id" = ${experienceId} AND "merchantId" = ${merchantId} AND "status" = 'DRAFT' FOR UPDATE`
+        if (options?.draftOnly || options?.expectedUpdatedAt) {
+          // Lock the exact tenant-owned row before any config mutation. The
+          // optional revision precondition is specific to explicitly approved
+          // Factory DRAFT copy updates; stale previews cannot silently apply.
+          const draft = await tx.$queryRaw<{ id: string; updatedAt: Date }[]>`SELECT "id", "updatedAt" FROM "Experience" WHERE "id" = ${experienceId} AND "merchantId" = ${merchantId} AND "status" = 'DRAFT' FOR UPDATE`
           if (!draft.length) throw new ExperienceCommandError('Agent changes are limited to Draft Experiences.')
+          if (options.expectedUpdatedAt) {
+            const currentRevision = new Date(draft[0].updatedAt).toISOString()
+            if (currentRevision !== options.expectedUpdatedAt) {
+              throw new ExperienceCommandError('FACTORY_DRAFT_STORE_STALE_REVISION')
+            }
+          }
         }
         const updated = await tx.experience.update({
           where: { id: experienceId, merchantId },
