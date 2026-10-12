@@ -116,6 +116,12 @@ export async function inspectCatalogUrlProgressively(input: {
   } catch (error) {
     const code = error && typeof error === 'object' && 'code' in error ? String((error as { code: unknown }).code) : 'SOURCE_UNREACHABLE'
     const message = error && typeof error === 'object' && 'message' in error ? String((error as { message: unknown }).message) : 'The source could not be inspected.'
+    // Source denial, throttling and unsafe targets are terminal. Do not retry
+    // them through a paid browser provider; that can bypass the source's
+    // explicit access controls and spend quota for a forbidden inspection.
+    if (['SOURCE_ACCESS_DENIED', 'SOURCE_RATE_LIMITED', 'UNSAFE_SOURCE_URL', 'SOURCE_REDIRECT_REJECTED'].includes(code)) {
+      return { candidates: [], fetchedUrls, issues: [issue(input.sourceUrl, code, message)] }
+    }
     const renderedCandidates = await inspectWithBrowserRender(input, fetchedUrls, issues)
     if (renderedCandidates !== null) {
       if (renderedCandidates.length > 0) return { candidates: renderedCandidates, fetchedUrls, issues, platform: 'BROWSER_RENDER' }
