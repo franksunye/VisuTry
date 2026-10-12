@@ -40,6 +40,7 @@ const response = (data: unknown, status = 200) =>
 const requestSchema = z.strictObject({
   approved: z.literal(true),
   expectedStoreUpdatedAt: z.iso.datetime({ offset: true }),
+  manifestDigest: z.string().regex(/^[a-f0-9]{64}$/),
   manifest: merchantDeliveryManifestV1Schema,
 })
 
@@ -62,6 +63,7 @@ export async function POST(
       },
       proposal: input.manifest,
       expectedStoreUpdatedAt: new Date(input.expectedStoreUpdatedAt).toISOString(),
+      manifestDigest: input.manifestDigest,
     })
     return response({
       success: true, data: applied,
