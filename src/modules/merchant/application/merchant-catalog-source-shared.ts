@@ -768,11 +768,23 @@ export function parseCatalogCsv(text: string) {
   const mapped = headers.map((header) => CSV_HEADERS[header])
   if (!mapped.includes('name')) throw new MerchantSourceIntakeError('CSV_HEADER_REQUIRED', 'The CSV must include a name column. Add sku, productUrl, or externalId when available so each row has a stable identity.')
   if (dataRows.length > MAX_CSV_ROWS) throw new MerchantSourceIntakeError('CSV_TOO_MANY_ROWS', `CSV files can contain up to ${MAX_CSV_ROWS} product rows per approval.`)
+  // Malformed CSV is diagnostic source metadata AND a per-row readiness
+  // blocker. Without propagating it, shifted columns may accidentally look
+  // import-ready even though the merchant did not approve their actual values.
   const issues: Array<{ row: number; code: string; message: string }> = parsed.issues.map((issue) => ({ row: issue.row, code: 'CSV_MALFORMED', message: issue.message }))
+  if (parsed.issues.some((issue) => issue.row === 1)) {
+    throw new MerchantSourceIntakeError('CSV_MALFORMED', 'The CSV header contains an unclosed quoted field. Correct the header and inspect again.')
+  }
+  const malformedRows = new Set(parsed.issues.map((issue) => issue.row))
   const products: Array<CatalogFrameInput & { sourceIssues?: string[] }> = []
   for (const [index, row] of dataRows.entries()) {
     const rowNumber = index + 2
-    if (row.length !== headers.length) issues.push({ row: rowNumber, code: 'CSV_COLUMN_MISMATCH', message: `Expected ${headers.length} columns but found ${row.length}.` })
+    const productIssues: string[] = []
+    if (row.length !== headers.length) {
+      issues.push({ row: rowNumber, code: 'CSV_COLUMN_MISMATCH', message: `Expected ${headers.length} columns but found ${row.length}.` })
+      productIssues.push('CSV_COLUMN_MISMATCH')
+    }
+    if (malformedRows.has(rowNumber)) productIssues.push('CSV_MALFORMED')
     const values = new Map<string, string>()
     for (let column = 0; column < headers.length; column += 1) {
       const mappedHeader = mapped[column]
@@ -782,7 +794,6 @@ export function parseCatalogCsv(text: string) {
     const priceMinor = get('priceMinor')
     const rawPrice = get('price')
     const price = priceMinor ? Number.parseInt(priceMinor, 10) : priceInMinorUnits(rawPrice)
-    const productIssues: string[] = []
     if (priceMinor && (!Number.isInteger(price) || (price as number) < 0)) {
       issues.push({ row: rowNumber, code: 'INVALID_PRICE', message: 'priceMinor must be a non-negative integer.' })
       productIssues.push('INVALID_PRICE')
