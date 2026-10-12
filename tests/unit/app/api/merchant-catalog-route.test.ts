@@ -8,6 +8,7 @@ jest.mock('@/modules/merchant/application/merchant-access', () => ({
     readonly httpStatus = 404
   },
 }))
+jest.mock('@/modules/merchant/application/merchant-catalog-delete', () => ({ deleteUnusedMerchantFrame: jest.fn() }))
 jest.mock('@/modules/merchant/application/merchant-onboarding', () => ({
   MAX_CATALOG_IMPORT: 1000,
   listMerchantFrames: jest.fn(),
@@ -22,17 +23,19 @@ jest.mock('@/modules/merchant/application/merchant-onboarding', () => ({
 import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
 import { MerchantAccessError, requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
-import { importMerchantFrames, listMerchantFrames, updateMerchantFrame } from '@/modules/merchant/application/merchant-onboarding'
+import { importMerchantFrames, listMerchantFrames, updateMerchantFrame, MerchantOnboardingError } from '@/modules/merchant/application/merchant-onboarding'
+import { deleteUnusedMerchantFrame } from '@/modules/merchant/application/merchant-catalog-delete'
 import { GET, POST } from '@/app/api/merchant/[merchantId]/catalog/route'
-import { PATCH } from '@/app/api/merchant/[merchantId]/catalog/[frameId]/route'
+import { PATCH, DELETE } from '@/app/api/merchant/[merchantId]/catalog/[frameId]/route'
 
 const mockAuth = requireAuth as jest.Mock
 const mockMembership = requireMerchantMembership as jest.Mock
 const mockImport = importMerchantFrames as jest.Mock
 const mockList = listMerchantFrames as jest.Mock
 const mockUpdate = updateMerchantFrame as jest.Mock
+const mockDelete = deleteUnusedMerchantFrame as jest.Mock
 
-function request(body?: unknown, method: 'POST' | 'PATCH' = 'POST') {
+function request(body?: unknown, method: 'POST' | 'PATCH' | 'DELETE' = 'POST') {
   return new NextRequest('http://localhost/api/merchant/merchant-a/catalog', body === undefined ? undefined : { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
 }
 
@@ -44,6 +47,7 @@ describe('Human merchant catalog route', () => {
     mockList.mockResolvedValue({ items: [], nextCursor: null })
     mockImport.mockResolvedValue({ ids: ['frame-a'], created: 1, updated: 0, imported: 1 })
     mockUpdate.mockResolvedValue({ id: 'frame-a', name: 'Corrected frame' })
+    mockDelete.mockResolvedValue({ id: 'frame-a' })
   })
 
   it('requires explicit approval before any write', async () => {
@@ -92,4 +96,30 @@ describe('Human merchant catalog route', () => {
     expect(mockMembership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ frameId: 'frame-owned-by-merchant-b', actor: expect.objectContaining({ merchantId: 'merchant-a' }) }))
   })
+  it('requires a deliberate DELETE confirmation and Owner/Admin membership', async () => {
+    const params = { params: { merchantId: 'merchant-a', frameId: 'frame-a' } }
+    const missingApproval = await DELETE(request({ approved: false }, 'DELETE'), params)
+    expect(missingApproval.status).toBe(400)
+    expect(mockDelete).not.toHaveBeenCalled()
+
+    const confirmed = await DELETE(request({ approved: true }, 'DELETE'), params)
+    expect(confirmed.status).toBe(200)
+    expect(mockMembership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
+    expect(mockDelete).toHaveBeenCalledWith({ actor: expect.objectContaining({ actorType: 'HUMAN', merchantId: 'merchant-a', actorId: 'user-a' }), frameId: 'frame-a' })
+  })
+
+  it('does not leak foreign frame identities or destroy referenced products', async () => {
+    mockDelete.mockRejectedValueOnce(new MerchantAccessError())
+    const foreign = await DELETE(request({ approved: true }, 'DELETE'), { params: { merchantId: 'merchant-a', frameId: 'foreign-id' } })
+    expect(foreign.status).toBe(404)
+
+    const referenced = new MerchantOnboardingError('referenced') as Error & { code: string; httpStatus: number }
+    referenced.code = 'PRODUCT_IN_USE'
+    referenced.httpStatus = 409
+    mockDelete.mockRejectedValueOnce(referenced)
+    const blocked = await DELETE(request({ approved: true }, 'DELETE'), { params: { merchantId: 'merchant-a', frameId: 'in-use' } })
+    expect(blocked.status).toBe(409)
+    expect(await blocked.json()).toMatchObject({ error: 'PRODUCT_IN_USE' })
+  })
+
 })
