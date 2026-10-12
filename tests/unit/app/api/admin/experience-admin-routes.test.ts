@@ -242,6 +242,9 @@ describe('Merchant Experience admin routes', () => {
     db.experience.findFirst.mockResolvedValue(storeExperience)
     db.merchantFrame.findMany.mockResolvedValue([{ id: 'frame-2' }, { id: 'frame-1' }])
     const tx = {
+      $queryRaw: jest.fn()
+        .mockResolvedValueOnce([{ id: 'merchant-a' }])
+        .mockResolvedValueOnce([{ id: 'frame-1', status: 'ACTIVE' }, { id: 'frame-2', status: 'ACTIVE' }]),
       experienceFrame: {
         deleteMany: jest.fn(),
         createMany: jest.fn(),
