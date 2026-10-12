@@ -166,6 +166,10 @@ describe('MCP transport protocol', () => {
     }
     const read = listBody.result.tools.find((tool) => tool.name === 'get_merchant')
     expect(read?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false })
+    expect(listBody.result.tools.find((tool) => tool.name === 'get_store_details')?._meta?.securitySchemes)
+      .toEqual([{ type: 'oauth2', scopes: ['merchant:read', 'experience:read'] }])
+    expect(listBody.result.tools.find((tool) => tool.name === 'update_store_details')?._meta?.securitySchemes)
+      .toEqual([{ type: 'oauth2', scopes: ['merchant:read', 'experience:write'] }])
     const activeSafeWrites = ['import_frames', 'update_store_details', 'set_store_frames', 'set_campaign_frames', 'update_campaign']
     for (const name of activeSafeWrites) {
       const tool = listBody.result.tools.find((candidate) => candidate.name === name)
@@ -223,6 +227,24 @@ describe('MCP transport protocol', () => {
     const emptyBody = await empty.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
     expect(emptyBody.result.isError).toBe(true)
     expect(JSON.parse(emptyBody.result.content[0].text)).toMatchObject({ code: 'MERCHANT_ONBOARDING_ERROR' })
+    expect(merchantOnboarding.updateMerchantStore).not.toHaveBeenCalled()
+  })
+
+  it('requires merchant:read in addition to Experience permissions for Store tools', async () => {
+    authenticate.mockResolvedValue({ ...actor, scopes: ['experience:read', 'experience:write'] })
+    for (const [id, name, args] of [
+      [37, 'get_store_details', {}],
+      [38, 'update_store_details', { storeId: 'store-a', headline: 'No' }],
+    ] as const) {
+      const res = await POST(mcpRequest({
+        jsonrpc: '2.0', id, method: 'tools/call',
+        params: { name, arguments: args },
+      }))
+      const body = await res.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+      expect(body.result.isError).toBe(true)
+      expect(JSON.parse(body.result.content[0].text)).toMatchObject({ code: 'AGENT_SCOPE_REQUIRED' })
+    }
+    expect(merchantOnboarding.getMerchantStoreWorkspace).not.toHaveBeenCalled()
     expect(merchantOnboarding.updateMerchantStore).not.toHaveBeenCalled()
   })
 
