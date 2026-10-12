@@ -436,7 +436,10 @@ describe('merchant onboarding catalog validation', () => {
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-a')])
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
-      $queryRaw: jest.fn().mockResolvedValue([{ id: 'store-a' }]),
+      $queryRaw: jest.fn()
+        .mockResolvedValueOnce([{ id: 'merchant-a' }])
+        .mockResolvedValueOnce([{ id: 'frame-a', status: 'ACTIVE' }])
+        .mockResolvedValueOnce([{ id: 'store-a' }]),
       experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
       merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
@@ -469,7 +472,10 @@ describe('merchant onboarding catalog validation', () => {
       pending,
     ])
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
-      $queryRaw: jest.fn().mockResolvedValue([{ id: 'store-a' }]),
+      $queryRaw: jest.fn()
+        .mockResolvedValueOnce([{ id: 'merchant-a' }])
+        .mockResolvedValueOnce([{ id: 'legacy-invalid', status: 'ACTIVE' }, { id: 'pending', status: 'ACTIVE' }])
+        .mockResolvedValueOnce([{ id: 'store-a' }]),
       experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
       merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
