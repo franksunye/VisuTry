@@ -9,6 +9,7 @@ jest.mock('@/modules/merchant/application/merchant-access', () => ({
   },
 }))
 jest.mock('@/modules/merchant/application/merchant-catalog-delete', () => ({ deleteUnusedMerchantFrame: jest.fn() }))
+jest.mock('@/modules/merchant/application/merchant-catalog-lifecycle', () => ({ changeMerchantFrameLifecycle: jest.fn() }))
 jest.mock('@/modules/merchant/application/merchant-onboarding', () => ({
   MAX_CATALOG_IMPORT: 1000,
   listMerchantFrames: jest.fn(),
@@ -25,8 +26,10 @@ import { requireAuth } from '@/lib/api-auth-runtime'
 import { MerchantAccessError, requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { importMerchantFrames, listMerchantFrames, updateMerchantFrame, MerchantOnboardingError } from '@/modules/merchant/application/merchant-onboarding'
 import { deleteUnusedMerchantFrame } from '@/modules/merchant/application/merchant-catalog-delete'
+import { changeMerchantFrameLifecycle } from '@/modules/merchant/application/merchant-catalog-lifecycle'
 import { GET, POST } from '@/app/api/merchant/[merchantId]/catalog/route'
 import { PATCH, DELETE } from '@/app/api/merchant/[merchantId]/catalog/[frameId]/route'
+import { POST as LIFECYCLE_POST } from '@/app/api/merchant/[merchantId]/catalog/[frameId]/lifecycle/route'
 
 const mockAuth = requireAuth as jest.Mock
 const mockMembership = requireMerchantMembership as jest.Mock
@@ -34,6 +37,7 @@ const mockImport = importMerchantFrames as jest.Mock
 const mockList = listMerchantFrames as jest.Mock
 const mockUpdate = updateMerchantFrame as jest.Mock
 const mockDelete = deleteUnusedMerchantFrame as jest.Mock
+const mockLifecycle = changeMerchantFrameLifecycle as jest.Mock
 
 function request(body?: unknown, method: 'POST' | 'PATCH' | 'DELETE' = 'POST') {
   return new NextRequest('http://localhost/api/merchant/merchant-a/catalog', body === undefined ? undefined : { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
@@ -48,6 +52,7 @@ describe('Human merchant catalog route', () => {
     mockImport.mockResolvedValue({ ids: ['frame-a'], created: 1, updated: 0, imported: 1 })
     mockUpdate.mockResolvedValue({ id: 'frame-a', name: 'Corrected frame' })
     mockDelete.mockResolvedValue({ id: 'frame-a' })
+    mockLifecycle.mockResolvedValue({ id: 'frame-a', status: 'INACTIVE' })
   })
 
   it('requires explicit approval before any write', async () => {
@@ -96,6 +101,32 @@ describe('Human merchant catalog route', () => {
     expect(mockMembership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ frameId: 'frame-owned-by-merchant-b', actor: expect.objectContaining({ merchantId: 'merchant-a' }) }))
   })
+  it('requires human approval for Archive and Restore and does not accept unrecognized actions', async () => {
+    const params = { params: { merchantId: 'merchant-a', frameId: 'frame-a' } }
+    for (const invalid of [{ action: 'ARCHIVE' }, { action: 'RESTORE', approved: false }, { action: 'DELETE', approved: true }]) {
+      const response = await LIFECYCLE_POST(request(invalid), params)
+      expect(response.status).toBe(400)
+      expect(mockLifecycle).not.toHaveBeenCalled()
+    }
+    const response = await LIFECYCLE_POST(request({ action: 'ARCHIVE', approved: true }), params)
+    expect(response.status).toBe(200)
+    expect(mockMembership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-a', roles: ['OWNER', 'ADMIN'] })
+    expect(mockLifecycle).toHaveBeenCalledWith({
+      actor: expect.objectContaining({ actorType: 'HUMAN', merchantId: 'merchant-a', membershipId: 'membership-a' }),
+      frameId: 'frame-a', action: 'ARCHIVE',
+    })
+  })
+
+  it('denies nonmember lifecycle requests before invoking mutation', async () => {
+    mockMembership.mockRejectedValueOnce(new MerchantAccessError())
+    const response = await LIFECYCLE_POST(
+      request({ action: 'RESTORE', approved: true }),
+      { params: { merchantId: 'merchant-a', frameId: 'frame-a' } },
+    )
+    expect(response.status).toBe(404)
+    expect(mockLifecycle).not.toHaveBeenCalled()
+  })
+
   it('requires a deliberate DELETE confirmation and Owner/Admin membership', async () => {
     const params = { params: { merchantId: 'merchant-a', frameId: 'frame-a' } }
     const missingApproval = await DELETE(request({ approved: false }, 'DELETE'), params)
