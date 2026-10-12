@@ -21,7 +21,11 @@ const store = {
 }
 const merchant = {
   id: 'tenant-a', slug: 'store-a', classification: 'TEST', name: 'Store A', logoUrl: null, accentColor: '#1F4B5A',
-  frames: [{ id: 'frame-owned-a' }],
+  frames: [{
+    id: 'frame-owned-a', sku: 'FRAME-001', externalId: null,
+    name: 'Frame A', imageUrl: '/assets/glasses-presets/aviator-classic.jpg',
+    productUrl: null, source: 'MANUAL', status: 'ACTIVE',
+  }],
   experiences: [store],
 }
 
@@ -51,6 +55,23 @@ describe('authenticated local Factory snapshot / canonical dry-run adapter', () 
     expect(plan.canApply).toBe(false)
     expect(prisma.merchant.findUnique).toHaveBeenCalledWith(expect.objectContaining({
       select: expect.objectContaining({ accentColor: true }),
+    }))
+  })
+
+  it('reuses canonical Store display readiness to block an ACTIVE but unrenderable product', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValueOnce({
+      ...merchant,
+      frames: [{ ...merchant.frames[0], imageUrl: null }],
+    })
+    const plan = await getMerchantFactoryDryRun({ actor, proposal: manifest })
+    expect(plan.blockers).toContain('Store selected frame is not display-ready: frame-owned-a')
+    expect(plan.canApply).toBe(false)
+    expect(prisma.merchant.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({
+        frames: expect.objectContaining({
+          select: expect.objectContaining({ sku: true, name: true, imageUrl: true, source: true }),
+        }),
+      }),
     }))
   })
 
