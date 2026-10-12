@@ -74,6 +74,7 @@ module.exports = {
   Save: createIcon('save'),
   Plus: createIcon('plus'),
   Trash2: createIcon('trash-2'),
+  Archive: createIcon('archive'),
   Circle: createIcon('circle'),
   Diamond: createIcon('diamond'),
   Heart: createIcon('heart'),
