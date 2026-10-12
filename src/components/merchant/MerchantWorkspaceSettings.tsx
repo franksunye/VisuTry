@@ -1,6 +1,7 @@
 import { Globe2, Info, Store, User } from "lucide-react";
 import { MerchantWorkspaceDetailsForm } from "@/components/merchant/MerchantWorkspaceDetailsForm";
 import { MerchantBrandKitSettings } from "@/components/merchant/MerchantBrandKitSettings";
+import { MerchantSupportHandoffExport } from "@/components/merchant/MerchantSupportHandoffExport";
 
 type MerchantWorkspaceSettingsProps = {
   merchantId: string;
@@ -10,6 +11,7 @@ type MerchantWorkspaceSettingsProps = {
   initialAccentColor?: string | null;
   liveExperiences?: number;
   brandOwner?: boolean;
+  handoffAccess?: boolean;
 };
 
 export function MerchantWorkspaceSettings({
@@ -20,6 +22,7 @@ export function MerchantWorkspaceSettings({
   initialAccentColor,
   liveExperiences = 0,
   brandOwner = false,
+  handoffAccess = false,
 }: MerchantWorkspaceSettingsProps) {
   return (
     <section className="space-y-6" aria-labelledby="merchant-settings-title">
@@ -46,6 +49,8 @@ export function MerchantWorkspaceSettings({
           </p>
         </div>
       </div>
+
+      {handoffAccess ? <MerchantSupportHandoffExport merchantId={merchantId} /> : null}
 
       <MerchantBrandKitSettings merchantId={merchantId} merchantName={initialName} initialLogoUrl={initialLogoUrl ?? null} initialAccentColor={initialAccentColor ?? null} liveExperiences={liveExperiences} canEdit={brandOwner} />
 

@@ -14,6 +14,6 @@ export default async function MerchantSettingsPage({ params, searchParams }: { p
   ])
   if (!details) throw new Error('Merchant workspace not found')
   return <MerchantWorkspaceShell locale={params.locale} merchants={context.merchants} selectedMerchantId={context.selectedMerchantId}>
-    <MerchantWorkspaceSettings merchantId={context.selectedMerchantId} initialName={details.name} initialWebsiteUrl={details.websiteUrl} initialLogoUrl={brand.logoUrl} initialAccentColor={brand.accentColor} liveExperiences={brand.liveExperiences} brandOwner={context.merchants.find(m => m.id === context.selectedMerchantId)?.role === 'OWNER'} />
+    <MerchantWorkspaceSettings merchantId={context.selectedMerchantId} initialName={details.name} initialWebsiteUrl={details.websiteUrl} initialLogoUrl={brand.logoUrl} initialAccentColor={brand.accentColor} liveExperiences={brand.liveExperiences} brandOwner={context.merchants.find(m => m.id === context.selectedMerchantId)?.role === 'OWNER'} handoffAccess={['OWNER', 'ADMIN'].includes(context.merchants.find(m => m.id === context.selectedMerchantId)?.role ?? '')} />
   </MerchantWorkspaceShell>
 }
