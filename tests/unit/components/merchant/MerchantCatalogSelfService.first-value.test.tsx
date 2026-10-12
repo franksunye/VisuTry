@@ -143,6 +143,28 @@ describe('Merchant First Value source choice and recovery', () => {
     ))
   })
 
+  it('downloads a schema-correct CSV starter locally without importing products or calling APIs', async () => {
+    const fetchMock = mockCatalogAndInspect(emptyProposal)
+    const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    const create = jest.fn(() => 'blob:csv-template')
+    const revoke = jest.fn()
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: create })
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revoke })
+    try {
+      render(<MerchantCatalogSelfService merchantId="merchant-csv-starter" initialTotal={0} showResourceList={false} />)
+      fireEvent.click(screen.getByRole('tab', { name: 'Upload CSV' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Download CSV template' }))
+      expect(create).toHaveBeenCalledTimes(1)
+      expect(click).toHaveBeenCalledTimes(1)
+      expect(revoke).toHaveBeenCalledWith('blob:csv-template')
+      expect(screen.getByText(/Replace the sample URLs with your own public product image/)).toBeInTheDocument()
+      expect(fetchMock.mock.calls.filter(([url, init]) =>
+        String(url).endsWith('/catalog') && init?.method === 'POST')).toHaveLength(0)
+    } finally {
+      click.mockRestore()
+    }
+  })
+
   it('revokes an importable CSV proposal when a different CSV is selected', async () => {
     const fetchMock = mockCatalogAndInspect(importableProposal)
     render(<MerchantCatalogSelfService merchantId="merchant-f" initialTotal={0} showResourceList={false} />)
