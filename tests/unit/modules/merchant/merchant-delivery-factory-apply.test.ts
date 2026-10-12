@@ -74,6 +74,7 @@ describe('Owner-approved Factory Draft Store Apply adapter', () => {
       actor,
       proposal: { ...proposal, store: { ...proposal.store, name: 'A different edit' } },
       expectedStoreUpdatedAt: revision,
+      expectedStoreId: 'store-id-a',
       manifestDigest,
     })).rejects.toMatchObject({ code: 'FACTORY_APPLY_CONFLICT' })
     expect(updateMerchantStore).not.toHaveBeenCalled()
