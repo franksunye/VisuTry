@@ -2,13 +2,20 @@
 
 **Status:** Owner-authored feature, stacked and not yet independently accepted. This is **NOT** bulk Factory Apply or commercial release authorization.
 
+## Explicit Prepare → Approval → Apply
+
+First call **read-only** `POST /api/merchant/:merchantId/delivery-factory/prepare-store` with the strict canonical v1 Manifest. This returns an exact tenant-owned Draft Store ID, `expectedStoreUpdatedAt`, a SHA-256 `manifestDigest` over the normalized Manifest, bounded changed fields, and `HUMAN_APPROVAL_REQUIRED` or `ALREADY_MATCHED`. It performs no writes.
+
+The authenticated Owner must then review the exact proposed changes and explicitly submit `approved:true` to the separate Apply endpoint, with **the same Manifest + returned digest + revision**. The server independently normalizes and hashes the input again and rejects a mismatch as HTTP 409; thus changing the Manifest after Prepare cannot silently change an approved target. An updated Store revision or ACTIVE transition conflicts; a new Prepare/approval is needed.
+
 ## Endpoint
 
 `POST /api/merchant/:merchantId/delivery-factory/apply-store`
 
 Body (strict):
 - `approved: true` — explicit approval for this single command; never accept an approval embedded in the Manifest.
-- `expectedStoreUpdatedAt` — exact ISO-8601 timestamp from the **current** selected Store row. A stale timestamp returns HTTP 409 and requests a new Plan.
+- `expectedStoreUpdatedAt` — exact ISO-8601 timestamp returned by Prepare. A stale timestamp returns HTTP 409 and requests a new Prepare.
+- `manifestDigest` — the exact 64-character lowercase SHA-256 digest returned by Prepare; prevents substituting another Manifest under the same approval.
 - `manifest` — the same canonical strict v1 Merchant Delivery Manifest used by Plan/Verify. No unknown top-level, Store or Catalog fields.
 
 Only a fresh authenticated **Human OWNER** membership for the path Merchant ID can execute this command. Agent tokens, unauthenticated requests and Admin-only accounts have no access to this route. Returns `Cache-Control: private, no-store`.
