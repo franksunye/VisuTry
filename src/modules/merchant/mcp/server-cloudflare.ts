@@ -1,3 +1,4 @@
+import { mcpStoreJourneyPolicy, mcpStoreDeliveryPolicy } from './store-policy-input'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod/v4'
@@ -122,22 +123,24 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
 
   server.registerTool('update_store_details', {
     title: 'Update Draft Store details',
-    description: 'Update only Draft Store copy and presentation mode through canonical commands. ACTIVE Store changes require the merchant to use the authenticated human workspace.',
+    description: 'Update only Draft Store copy, presentation, canonical Journey and Web/Kiosk delivery policy through canonical commands. ACTIVE Store changes require the merchant to use the authenticated human workspace.',
     inputSchema: {
       storeId: z.string().min(1).max(120),
       name: z.string().min(1).max(120).optional(),
       headline: z.string().max(240).nullable().optional(),
       description: z.string().max(5000).nullable().optional(),
       presentationMode: presentationMode.optional(),
+      journeyPolicy: mcpStoreJourneyPolicy.optional(),
+      deliveryPolicy: mcpStoreDeliveryPolicy.optional(),
     },
-  }, async ({ storeId, name, headline, description, presentationMode: mode }) => safe(async () => {
+  }, async ({ storeId, name, headline, description, presentationMode: mode, journeyPolicy, deliveryPolicy }) => safe(async () => {
     requireAgentScope(actor, 'merchant:read')
     requireAgentScope(actor, 'experience:write')
-    if ([name, headline, description, mode].every((value) => value === undefined)) {
+    if ([name, headline, description, mode, journeyPolicy, deliveryPolicy].every((value) => value === undefined)) {
       throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Supply at least one Store field to update.')
     }
     return merchantOnboarding.updateMerchantStore({
-      actor, storeId, name, headline, description, presentationMode: mode,
+      actor, storeId, name, headline, description, presentationMode: mode, journeyPolicy, deliveryPolicy,
     })
   }))
 

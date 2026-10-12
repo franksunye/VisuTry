@@ -30,7 +30,7 @@ When onboarding reports no Store, enter Store Builder / Delivery Factory mode:
 - after approval, import only the approved normalized candidates, then call validate_catalog;
 - summarize the proposed Store and selected frames before any write;
 - create a DRAFT Store only after approval;
-- after creating a private Draft, use get_store_details to review its current configuration; update_store_details may change only Draft name/headline/description/presentation mode after merchant approval;
+- after creating a private Draft, use get_store_details to review its current configuration; update_store_details may change only Draft name/headline/description/presentation mode, canonical fixed-order Journey stages, or bounded Web/Kiosk Delivery settings after merchant review and approval; merchant plan restrictions still determine the effective public policy;
 - set Store frames and call preview_store to validate readiness;
 - explain what is ready, what is missing, and the next useful step.
 
