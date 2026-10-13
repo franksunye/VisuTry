@@ -58,6 +58,18 @@ export function publicMerchantImageUrl(value: string | null | undefined): string
  * the Next server-side image optimizer's remote fetch allowlist.
  * Call publicMerchantImageUrl() first at the rendering boundary.
  */
+// Keep in sync with exact HTTPS image remotePatterns in next.config.js.
+// Unknown Merchant hosts are intentionally NOT added to that server fetch allowlist.
+const OPTIMIZED_MERCHANT_IMAGE_HOSTS = new Set([
+  'mock-blob-storage.vercel.app',
+  'via.placeholder.com',
+  'lh3.googleusercontent.com',
+  'pbs.twimg.com',
+  'images.unsplash.com',
+  'cdn.shopify.com',
+  'cdn11.bigcommerce.com',
+])
+
 export function shouldBypassMerchantImageOptimization(value: string | null | undefined): boolean {
   if (!value) return false
   if (value.startsWith('/') && !value.startsWith('//')) return false
@@ -66,16 +78,8 @@ export function shouldBypassMerchantImageOptimization(value: string | null | und
     const url = new URL(value)
     if (url.protocol !== 'https:' || url.port || url.username || url.password) return true
     const host = url.hostname.toLowerCase()
-    const approved = new Set([
-      'mock-blob-storage.vercel.app',
-      'via.placeholder.com',
-      'lh3.googleusercontent.com',
-      'pbs.twimg.com',
-      'images.unsplash.com',
-      'cdn.shopify.com',
-      'cdn11.bigcommerce.com',
-    ])
-    return !(approved.has(host) || (host !== 'public.blob.vercel-storage.com' && host.endsWith('.public.blob.vercel-storage.com')))
+    return !(OPTIMIZED_MERCHANT_IMAGE_HOSTS.has(host)
+      || (host !== 'public.blob.vercel-storage.com' && host.endsWith('.public.blob.vercel-storage.com')))
   } catch {
     return true
   }
