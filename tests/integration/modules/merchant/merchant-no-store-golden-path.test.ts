@@ -65,9 +65,15 @@ describe('Merchant no-Store Delivery Factory Golden Path', () => {
       return { ...store, frames: (store.frames as Array<Record<string, unknown>>).map((frame) => ({ ...frame })) }
     })
     mockTransaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => callback({
-      $queryRaw: jest.fn((query: TemplateStringsArray) => Promise.resolve(
-        query.join('').includes("'DRAFT'") ? [{ id: 'store-a' }] : [],
-      )),
+      $queryRaw: jest.fn((query: TemplateStringsArray) => {
+        const sql = query.join('')
+        if (sql.includes('FROM "MerchantFrame"')) {
+          return Promise.resolve(catalog.map((frame) => ({ id: String(frame.id), status: String(frame.status) })))
+        }
+        if (sql.includes('FROM "Merchant"')) return Promise.resolve([{ id: 'merchant-a' }])
+        if (sql.includes("'DRAFT'")) return Promise.resolve([{ id: 'store-a' }])
+        return Promise.resolve([])
+      }),
       merchant: {
         findUnique: jest.fn().mockResolvedValue({ planCode: null, commercialStatus: null }),
       },
