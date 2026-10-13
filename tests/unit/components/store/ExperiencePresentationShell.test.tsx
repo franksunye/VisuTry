@@ -122,7 +122,7 @@ describe('ExperiencePresentationShell', () => {
     expect(screen.getByText('Harper').compareDocumentPosition(screen.getByText('Privacy & photo retention')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  it('automatically serves loopback product images directly while retaining the normal optimizer for remote assets', () => {
+  it('keeps configured CDNs optimized and bypasses the optimizer for loopback or new merchant image hosts', () => {
     const featuredFramesRef = { current: null as HTMLElement | null }
     render(
       <ExperiencePresentationShell
