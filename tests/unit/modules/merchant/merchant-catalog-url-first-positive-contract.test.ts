@@ -86,5 +86,5 @@ it('positive-looking but empty source stays a no-write recovery proposal', async
   expect(result.writePerformed).toBe(false)
   expect(result.importReady).toHaveLength(0)
   expect(result.sourceSummary.foundCount).toBe(0)
-  expect(result.sourceIssues.length).toBeGreaterThan(0)
+  expect(result.sourceSummary.sourceIssues.length).toBeGreaterThan(0)
 })
