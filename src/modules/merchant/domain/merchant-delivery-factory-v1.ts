@@ -92,6 +92,9 @@ export type FactorySnapshotV1 = {
   logoAssetUrl: string | null
   // Only ACTIVE, owned, previously validated catalog resource IDs.
   activeFrameIds: string[]
+  // ACTIVE, tenant-owned frames satisfying the canonical Store display rules.
+  // Recommendation enrichment is not required for basic Store display.
+  storeEligibleFrameIds: string[]
   store: FactorySnapshotExperience | null
   campaigns: Array<FactorySnapshotExperience & { slug: string }>
 }
@@ -162,6 +165,15 @@ export function buildMerchantFactoryDryRunV1(
   for (const item of selection) for (const id of item.selectedFrameIds) {
     if (!ownedFrames.has(id)) blockers.push(`Selected frame is not active and tenant-owned: ${id}`)
     if (!expected.has(id)) blockers.push(`Selected frame is not included in the expected Catalog manifest: ${id}`)
+  }
+  const storeEligibleFrames = new Set(snapshot.storeEligibleFrameIds)
+  for (const id of manifest.store.selectedFrameIds) {
+    // Do not claim a private Store preview is ready simply because a product
+    // exists and is ACTIVE. This mirrors setMerchantStoreFrames / public display
+    // eligibility; it is intentionally less strict than recommendation readiness.
+    if (ownedFrames.has(id) && !storeEligibleFrames.has(id)) {
+      blockers.push(`Store selected frame is not display-ready: ${id}`)
+    }
   }
   // Existing Catalog extras are never removed/deactivated by a Factory run.
   if (snapshot.activeFrameIds.some(id => !expected.has(id))) {

@@ -21,7 +21,11 @@ const store = {
 }
 const merchant = {
   id: 'tenant-a', slug: 'store-a', classification: 'TEST', name: 'Store A', logoUrl: null, accentColor: '#1F4B5A',
-  frames: [{ id: 'frame-owned-a' }],
+  frames: [{
+    id: 'frame-owned-a', sku: 'FRAME-001', externalId: null,
+    name: 'Frame A', imageUrl: '/assets/glasses-presets/aviator-classic.jpg',
+    productUrl: null, source: 'MANUAL', status: 'ACTIVE',
+  }],
   experiences: [store],
 }
 
@@ -52,6 +56,49 @@ describe('authenticated local Factory snapshot / canonical dry-run adapter', () 
     expect(prisma.merchant.findUnique).toHaveBeenCalledWith(expect.objectContaining({
       select: expect.objectContaining({ accentColor: true }),
     }))
+  })
+
+  it('reuses canonical Store display readiness to block an ACTIVE but unrenderable product', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValueOnce({
+      ...merchant,
+      frames: [{ ...merchant.frames[0], imageUrl: null }],
+    })
+    const plan = await getMerchantFactoryDryRun({ actor, proposal: manifest })
+    expect(plan.blockers).toContain('Store selected frame is not display-ready: frame-owned-a')
+    expect(plan.canApply).toBe(false)
+    expect(prisma.merchant.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({
+        frames: expect.objectContaining({
+          select: expect.objectContaining({ sku: true, name: true, imageUrl: true, source: true }),
+        }),
+      }),
+    }))
+  })
+
+  it.each([
+    { reason: 'missing stable identity', frame: { sku: null, externalId: null, productUrl: null } },
+    { reason: 'external product without required source URL', frame: { source: 'EXTERNAL', productUrl: null } },
+    { reason: 'missing public product name', frame: { name: '' } },
+  ])('blocks an ACTIVE Store product with $reason', async ({ frame }) => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValueOnce({
+      ...merchant,
+      frames: [{ ...merchant.frames[0], ...frame }],
+    })
+    const plan = await getMerchantFactoryDryRun({ actor, proposal: manifest })
+    expect(plan.blockers).toContain('Store selected frame is not display-ready: frame-owned-a')
+    expect(plan.canApply).toBe(false)
+    expect(plan.releaseReady).toBe(false)
+  })
+
+  it('does not require shape/recommendation enrichment for basic Store display', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValueOnce({
+      ...merchant,
+      frames: [{ ...merchant.frames[0], shape: null, enrichmentStatus: 'PENDING' }],
+    })
+    const plan = await getMerchantFactoryDryRun({ actor, proposal: manifest })
+    expect(plan.blockers).toEqual([])
+    expect(plan.steps[1]).toMatchObject({ resource: 'STORE', action: 'UPDATE_DRAFT' })
+    expect(plan.canApply).toBe(false)
   })
 
   it('does not accept identity from the manifest in place of membership tenant', async () => {
