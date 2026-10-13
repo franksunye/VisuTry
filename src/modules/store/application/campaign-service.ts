@@ -349,6 +349,9 @@ export type CampaignUpdateInput = {
   journeyPolicy?: unknown | null
   deliveryPolicy?: unknown | null
   agentDraftOnly?: boolean
+  /** Factory-only revision guard; never authorizes writes without Owner API. */
+  factoryDraftOnly?: boolean
+  expectedUpdatedAt?: string
 }
 
 function buildCampaignUpdatePatch(input: CampaignUpdateInput, currentRow: CampaignRow): Record<string, unknown> {
@@ -381,8 +384,15 @@ export async function updateCampaign(input: CampaignUpdateInput) {
     merchantId: input.merchantId,
     experienceId: input.campaignId,
     patch: data,
-    draftOnly: input.agentDraftOnly,
+    draftOnly: input.agentDraftOnly || input.factoryDraftOnly,
+    expectedUpdatedAt: input.expectedUpdatedAt,
   })
+  if (input.agentDraftOnly || input.factoryDraftOnly) {
+    // Draft-only update returns scalars without ExperienceFrame relations.
+    // Reload the tenant-bound Campaign before projecting the response.
+    const refreshed = await campaignRow(input.merchantId, input.campaignId)
+    return mapCampaign(refreshed.row, refreshed.merchant.slug, refreshed.merchant.referenceData, refreshed.merchant)
+  }
   return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData, current.merchant)
 }
 
