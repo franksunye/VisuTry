@@ -85,7 +85,7 @@ export async function updateMerchantExperienceHero(input: {
             throw new BrandKitError('LIVE_CHANGE_CONFIRMATION_REQUIRED', 'Live Experience changes require approval.', 409)
           }
         },
-        }),
+      }),
     })
   } catch (error) {
     if (error instanceof ExperienceCommandError && error.message.includes('limited to Draft')) {
