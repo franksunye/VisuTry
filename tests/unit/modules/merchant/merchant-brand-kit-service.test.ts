@@ -119,12 +119,17 @@ describe('Brand Kit owner authorization and canonical persistence', () => {
   })
 
   it('does not invalidate public caches if the canonical Hero mutation fails', async () => {
+    ;(withPublicDiscoveryInvalidation as jest.Mock).mockImplementationOnce(async ({ mutation, edgeTags }) => {
+      await mutation()
+      await edgeTags.after()
+    })
     ;(experienceCommands.updateSharedConfiguration as jest.Mock)
       .mockRejectedValueOnce(new Error('canonical write rejected'))
     await expect(updateMerchantExperienceHero({
       ...owner, experienceId: 'experience-a', heroAssetUrl: null,
     })).rejects.toThrow('canonical write rejected')
     expect(experienceCommands.updateSharedConfiguration).toHaveBeenCalledTimes(1)
+    expect(requireMerchantMembership).toHaveBeenCalledTimes(1)
   })
 
   it('blocks active hero changes without explicit approval and retains the tenant check', async () => {
