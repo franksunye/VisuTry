@@ -47,6 +47,20 @@ describe('public Merchant media trust boundary', () => {
 })
 
 describe('Merchant-imported product image optimization boundary', () => {
+  it('keeps optimizer-eligible Merchant CDNs consistent with next.config remotePatterns', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const loaded = require('../../../next.config.js')
+    const config = loaded.default ?? loaded
+    const httpsHosts = (config.images?.remotePatterns ?? [])
+      .filter((pattern: { protocol: string }) => pattern.protocol === 'https')
+      .map((pattern: { hostname: string }) => pattern.hostname)
+    expect(httpsHosts.length).toBeGreaterThan(5)
+    for (const hostPattern of httpsHosts) {
+      const host = hostPattern.startsWith('**.') ? `merchant.${hostPattern.slice(3)}` : hostPattern
+      expect(shouldBypassMerchantImageOptimization(`https://${host}/image.jpg`)).toBe(false)
+    }
+  })
+
   it('keeps relative assets and configured CDNs on the bounded Next optimizer', () => {
     for (const src of [
       '/assets/glasses-presets/round-classic.jpg',
