@@ -35,6 +35,7 @@ function fixture(merchantSlug = 'store-alpha'): FactorySnapshotV1 {
     merchantSlug,
     classification: 'TEST',
     brandDisplayName: 'Store Alpha',
+    brandAccentColor: null,
     logoAssetUrl: null,
     activeFrameIds: ['frame-a'],
     store: {
@@ -106,6 +107,22 @@ describe('Merchant Delivery Factory v1 pure manifest and diff', () => {
       expect(plan.canApply).toBe(false)
     }
     expect(() => merchantDeliveryManifestV1Schema.parse({ ...proposed, classification: 'LIVE' })).toThrow()
+  })
+
+  it('plans Brand accent changes only as Human-reviewed actions and normalizes palette case', () => {
+    const snapshot = fixture()
+    const manifest = { ...proposed, brand: { ...proposed.brand, accentColor: '#1d4ed8' } }
+    const plan = buildMerchantFactoryDryRunV1(manifest, snapshot)
+    expect(plan.steps[0]).toMatchObject({
+      action: 'HUMAN_REVIEW_REQUIRED', changedFields: ['accentColor'],
+    })
+    expect(plan.blockers).toContain('Brand and media configuration require authenticated Human UI review')
+    expect(plan.canApply).toBe(false)
+    snapshot.brandAccentColor = '#1D4ED8'
+    expect(buildMerchantFactoryDryRunV1(manifest, snapshot).steps[0].action).toBe('NO_CHANGE')
+    expect(() => merchantDeliveryManifestV1Schema.parse({
+      ...proposed, brand: { ...proposed.brand, accentColor: '#ff0000' },
+    })).toThrow()
   })
 
   it('never mutates an Active Store, even when the requested copy differs', () => {
