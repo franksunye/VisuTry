@@ -67,25 +67,25 @@ export async function updateMerchantExperienceHero(input: {
         after: () => getPublicEdgeTagsForMerchant(merchant.slug),
       },
       mutation: () => experienceCommands.updateSharedConfiguration({
-      merchantId: input.merchantId, experienceId: input.experienceId,
-      expectedType: experience.type as 'STORE' | 'CAMPAIGN',
-      patch: { heroAssetUrl },
-      draftOnly: input.approvedLiveChange !== true,
-      // The command boundary owns the transaction; inspect the locked row after
-      // update and roll back if an Experience became ENDED/ARCHIVED meanwhile.
-      afterUpdate: async tx => {
-        const fresh = await tx.experience.findFirst({
-          where: { id: input.experienceId, merchantId: input.merchantId },
-          select: { type: true, status: true },
-        })
-        if (!fresh || fresh.type !== experience.type || !['DRAFT', 'ACTIVE'].includes(fresh.status)) {
-          throw new BrandKitError('EXPERIENCE_NOT_FOUND', 'The Experience is no longer editable.', 409)
-        }
-        if (fresh.status === 'ACTIVE' && !input.approvedLiveChange) {
-          throw new BrandKitError('LIVE_CHANGE_CONFIRMATION_REQUIRED', 'Live Experience changes require approval.', 409)
-        }
-      },
-      }),
+        merchantId: input.merchantId, experienceId: input.experienceId,
+        expectedType: experience.type as 'STORE' | 'CAMPAIGN',
+        patch: { heroAssetUrl },
+        draftOnly: input.approvedLiveChange !== true,
+        // The command boundary owns the transaction; inspect the locked row after
+        // update and roll back if an Experience became ENDED/ARCHIVED meanwhile.
+        afterUpdate: async tx => {
+          const fresh = await tx.experience.findFirst({
+            where: { id: input.experienceId, merchantId: input.merchantId },
+            select: { type: true, status: true },
+          })
+          if (!fresh || fresh.type !== experience.type || !['DRAFT', 'ACTIVE'].includes(fresh.status)) {
+            throw new BrandKitError('EXPERIENCE_NOT_FOUND', 'The Experience is no longer editable.', 409)
+          }
+          if (fresh.status === 'ACTIVE' && !input.approvedLiveChange) {
+            throw new BrandKitError('LIVE_CHANGE_CONFIRMATION_REQUIRED', 'Live Experience changes require approval.', 409)
+          }
+        },
+        }),
     })
   } catch (error) {
     if (error instanceof ExperienceCommandError && error.message.includes('limited to Draft')) {
