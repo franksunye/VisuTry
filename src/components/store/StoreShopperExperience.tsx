@@ -36,7 +36,7 @@ import {
 } from '@/lib/commerce-handoff/merchant-runtime-state'
 import { isPersistablePreviewUrl } from '@/lib/commerce-handoff/merchant-runtime-preview'
 import { formatPublicStorePrice } from '@/modules/store/domain/format-public-store-price'
-import { isLoopbackImageUrl, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
+import { shouldBypassMerchantImageOptimization, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
 import { brandAccentForDisplay } from '@/modules/merchant/domain/merchant-brand-kit'
 import type {
   PublicMerchantCatalogFrame,
@@ -129,7 +129,7 @@ function MerchantMark({ merchant, accent }: { merchant: MerchantProfile; accent:
     <div className="flex items-center gap-3">
       <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
         {logoUrl ? (
-          <Image src={logoUrl} alt="" fill sizes="48px" className="object-contain p-1.5" unoptimized={isLoopbackImageUrl(logoUrl)} />
+          <Image src={logoUrl} alt="" fill sizes="48px" className="object-contain p-1.5" unoptimized={shouldBypassMerchantImageOptimization(logoUrl)} />
         ) : (
           <Store className="h-6 w-6" style={{ color: accent }} aria-hidden="true" />
         )}
@@ -1093,7 +1093,7 @@ export function StoreShopperExperience({
                               style={selected ? { boxShadow: `0 0 0 2px ${accent}, 0 16px 35px rgba(15,23,42,0.1)` } : undefined}
                             >
                               <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-b from-white to-slate-50">
-                                {publicMerchantImageUrl(frame.imageUrl) ? <Image src={publicMerchantImageUrl(frame.imageUrl)!} alt={frame.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-contain p-5 transition duration-300 group-hover:scale-[1.04]" unoptimized={isLoopbackImageUrl(frame.imageUrl)} /> : <Glasses className="absolute inset-0 m-auto h-10 w-10 text-slate-300" aria-label={t('recommend.imageUnavailable')} />}
+                                {publicMerchantImageUrl(frame.imageUrl) ? <Image src={publicMerchantImageUrl(frame.imageUrl)!} alt={frame.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-contain p-5 transition duration-300 group-hover:scale-[1.04]" unoptimized={shouldBypassMerchantImageOptimization(frame.imageUrl)} /> : <Glasses className="absolute inset-0 m-auto h-10 w-10 text-slate-300" aria-label={t('recommend.imageUnavailable')} />}
                                 <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-slate-600 shadow-sm">#{index + 1}</span>
                                 {selected ? <CheckCircle2 className="absolute right-3 top-3 h-6 w-6 rounded-full bg-white" style={{ color: accent }} /> : null}
                               </div>
@@ -1155,7 +1155,7 @@ export function StoreShopperExperience({
                                     className={`group flex h-full w-full items-center gap-3 rounded-xl border p-3 text-left transition hover:border-blue-300 hover:bg-blue-50/40 disabled:cursor-not-allowed disabled:opacity-50 ${selected ? 'border-blue-500 bg-blue-50/60 ring-1 ring-blue-300' : 'border-slate-200 bg-white'}`}
                                   >
                                     <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-50">
-                                      {publicMerchantImageUrl(frame.imageUrl) ? <Image src={publicMerchantImageUrl(frame.imageUrl)!} alt={frame.name} fill sizes="80px" className="object-contain p-2" unoptimized={isLoopbackImageUrl(frame.imageUrl)} /> : <Glasses className="absolute inset-0 m-auto h-6 w-6 text-slate-300" aria-hidden="true" />}
+                                      {publicMerchantImageUrl(frame.imageUrl) ? <Image src={publicMerchantImageUrl(frame.imageUrl)!} alt={frame.name} fill sizes="80px" className="object-contain p-2" unoptimized={shouldBypassMerchantImageOptimization(frame.imageUrl)} /> : <Glasses className="absolute inset-0 m-auto h-6 w-6 text-slate-300" aria-hidden="true" />}
                                     </span>
                                     <span className="min-w-0 flex-1">
                                       <span className="block truncate text-sm font-semibold text-slate-900">{frame.name}</span>
@@ -1235,7 +1235,7 @@ export function StoreShopperExperience({
                     <div className="mt-5 space-y-2.5">
                       {selectedFrames.length > 0 ? selectedFrames.map((frame) => (
                         <div key={frame.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-2.5">
-                          <div className="relative h-14 w-16 shrink-0 overflow-hidden rounded-xl bg-white">{publicMerchantImageUrl(frame.imageUrl) ? <Image src={publicMerchantImageUrl(frame.imageUrl)!} alt="" fill sizes="64px" className="object-contain p-1.5" unoptimized={isLoopbackImageUrl(frame.imageUrl)} /> : null}</div>
+                          <div className="relative h-14 w-16 shrink-0 overflow-hidden rounded-xl bg-white">{publicMerchantImageUrl(frame.imageUrl) ? <Image src={publicMerchantImageUrl(frame.imageUrl)!} alt="" fill sizes="64px" className="object-contain p-1.5" unoptimized={shouldBypassMerchantImageOptimization(frame.imageUrl)} /> : null}</div>
                           <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-800">{frame.name}</p><p className="mt-0.5 text-xs uppercase tracking-[0.1em] text-slate-400">{frame.productBrand || merchant.name}</p></div>
                           <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: accent }} />
                         </div>
