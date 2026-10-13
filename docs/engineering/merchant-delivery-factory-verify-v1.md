@@ -21,3 +21,12 @@
 - This feature's exact-head unit, route, lint, typecheck, Next/Cloudflare and targeted merchant CI must pass after stacking bases merge.
 - Factory Apply will be a **separate** explicitly approved Human canonical command path with replay/tenant/state constraints; do not reuse a previous Plan/Verify response as write authority.
 - G4 `releaseReady=false` pending real public, Auth0, billing and support gates.
+
+## Lead acceptance handoff (2026-10-13)
+#391 and #395 are now merged. This Verify endpoint is intentionally **read-only**
+and cannot certify a shopper experience. Require exact-head CI against main and
+real two-tenant disposable PostgreSQL/Chromium verification before merge.
+Expected proof: one full existing private matching Store/Campaign/Brand snapshot,
+one legitimate Draft difference ACTION_REQUIRED, image/display-ineligible negative,
+Owner/ADMIN membership isolation and 401/404/400 denials; unchanged DB/audit
+hash before/after. Keep external/public checks NOT_EXECUTED and releaseReady=false.
