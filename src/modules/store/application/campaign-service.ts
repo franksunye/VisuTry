@@ -433,7 +433,7 @@ export async function updateAndPublishCampaign(input: CampaignUpdateInput) {
   })
 }
 
-export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[]; agentDraftOnly?: boolean }) {
+export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[]; agentDraftOnly?: boolean; factoryDraftOnly?: boolean; expectedUpdatedAt?: string }) {
   if (input.frameIds.length > MAX_CAMPAIGN_FRAMES) throw new CampaignServiceError('INVALID_REQUEST', `frameIds cannot exceed ${MAX_CAMPAIGN_FRAMES}.`)
   const frameIds = [...new Set(input.frameIds)]
   const current = await campaignRow(input.merchantId, input.campaignId)
@@ -447,7 +447,8 @@ export async function setCampaignFrames(input: { merchantId: string; campaignId:
     experienceId: input.campaignId,
     frameIds,
     expectedType: 'CAMPAIGN',
-    draftOnly: input.agentDraftOnly,
+    draftOnly: input.agentDraftOnly || input.factoryDraftOnly,
+    expectedUpdatedAt: input.expectedUpdatedAt,
   })
   return { frameIds }
 }
