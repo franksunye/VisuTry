@@ -135,6 +135,46 @@ describe('Campaign application service', () => {
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'small-faces' } }))
   })
 
+  it('keeps Agent and Factory DRAFT Campaign responses hydrated after the same scalar-only canonical transaction', async () => {
+    for (const path of ['AGENT', 'FACTORY'] as const) {
+      jest.clearAllMocks()
+      const refreshed = { ...baseRow, headline: 'Updated draft' }
+      ;(prisma.experience.findFirst as jest.Mock)
+        .mockResolvedValueOnce(baseRow)
+        .mockResolvedValueOnce({ id: baseRow.id, slug: baseRow.slug, type: 'CAMPAIGN', merchant: { slug: 'merchant-a' } })
+        .mockResolvedValueOnce(refreshed)
+      ;(prisma.merchant.findUnique as jest.Mock)
+        .mockResolvedValue({ id: 'merchant-a', slug: 'merchant-a', referenceData: false })
+      const txUpdate = jest.fn().mockResolvedValue({ ...refreshed, frames: undefined })
+      const draftLock = jest.fn().mockResolvedValue([{
+        id: 'campaign-a', updatedAt: baseRow.updatedAt,
+      }])
+      ;(prisma.$transaction as jest.Mock).mockImplementation(async (work) => work({
+        $queryRaw: draftLock,
+        experience: { update: txUpdate },
+      }))
+      const result = await updateCampaign({
+        merchantId: 'merchant-a', campaignId: 'campaign-a',
+        headline: 'Updated draft',
+        ...(path === 'AGENT'
+          ? { agentDraftOnly: true }
+          : { factoryDraftOnly: true, expectedUpdatedAt: baseRow.updatedAt.toISOString() }),
+      })
+      expect(result).toMatchObject({
+        id: 'campaign-a', status: 'DRAFT',
+        headline: 'Updated draft', frameCount: 1, frameIds: ['frame-a'],
+      })
+      expect(txUpdate).toHaveBeenCalledTimes(1)
+      expect(draftLock).toHaveBeenCalledTimes(1)
+      expect(prisma.experience.findFirst).toHaveBeenCalledTimes(3)
+      expect(prisma.experience.findFirst).toHaveBeenNthCalledWith(3, expect.objectContaining({
+        where: { id: 'campaign-a', merchantId: 'merchant-a', type: 'CAMPAIGN' },
+        include: expect.any(Object),
+      }))
+      expect(withPublicDiscoveryInvalidation).toHaveBeenCalledTimes(1)
+    }
+  })
+
   it('invalidates after a successful frame transaction and not after a failed write', async () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
