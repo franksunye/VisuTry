@@ -630,7 +630,9 @@ export async function createMerchantStore(input: { actor: MerchantActorContext; 
       return { store: created, created: true }
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
   })
-  await recordMerchantAgentOperation({ actor: input.actor, action: 'store.created', resourceType: 'Experience', resourceId: transactionResult.store.id })
+  if (transactionResult.created) {
+    await recordMerchantAgentOperation({ actor: input.actor, action: 'store.created', resourceType: 'Experience', resourceId: transactionResult.store.id })
+  }
   return { id: transactionResult.store.id, slug: transactionResult.store.slug, status: transactionResult.store.status, name: transactionResult.store.name, created: transactionResult.created, publicPath: `/en/store/${merchant.slug}` }
 }
 
