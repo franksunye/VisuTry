@@ -18,6 +18,7 @@ export type ExperienceCommandRepository<TTransaction = unknown> = {
     afterUpdate?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
     draftOnly?: boolean
+    expectedUpdatedAt?: string
   }): Promise<unknown>
   replaceCatalogSelection(input: {
     merchantId: string
@@ -26,6 +27,7 @@ export type ExperienceCommandRepository<TTransaction = unknown> = {
     afterReplace?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
     draftOnly?: boolean
+    expectedUpdatedAt?: string
   }): Promise<unknown>
 }
 
@@ -134,7 +136,9 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
     afterUpdate?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
     draftOnly?: boolean
+    expectedUpdatedAt?: string
   }) {
+    if (input.expectedUpdatedAt && !input.draftOnly) throw new ExperienceCommandError('Factory revision requires a Draft-only command')
     const patch = validateExperienceCommandPatch(input.patch, { campaignFields: input.campaignFields === true })
     if (Object.keys(patch).length === 0) throw new ExperienceCommandError('Experience command has no fields to update')
     const current = await repository.findTarget(input.merchantId, input.experienceId)
@@ -151,6 +155,7 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
         afterUpdate: input.afterUpdate,
         atomicEffects: input.atomicEffects,
         draftOnly: input.draftOnly,
+        expectedUpdatedAt: input.expectedUpdatedAt,
       }),
     })
   }
@@ -163,7 +168,9 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
     afterReplace?: (transaction: TTransaction) => Promise<void>
     atomicEffects?: unknown[]
     draftOnly?: boolean
+    expectedUpdatedAt?: string
   }) {
+    if (input.expectedUpdatedAt && !input.draftOnly) throw new ExperienceCommandError('Factory revision requires a Draft-only command')
     const frameIds = [...new Set(input.frameIds)]
     const current = await repository.findTarget(input.merchantId, input.experienceId)
     if (!current || (input.expectedType && current.type !== input.expectedType)) {
@@ -178,6 +185,7 @@ export function createExperienceCommandService<TTransaction = unknown>(repositor
         afterReplace: input.afterReplace,
         atomicEffects: input.atomicEffects,
         draftOnly: input.draftOnly,
+        expectedUpdatedAt: input.expectedUpdatedAt,
       }),
     })
     return { frameIds, mutationResult }

@@ -77,11 +77,14 @@ const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
     const data = { ...patch }
     if (data.journeyPolicy === null) data.journeyPolicy = Prisma.JsonNull
     if (data.deliveryPolicy === null) data.deliveryPolicy = Prisma.JsonNull
-    if (options?.afterUpdate || options?.draftOnly) {
+    if (options?.afterUpdate || options?.draftOnly || options?.expectedUpdatedAt) {
       return prisma.$transaction(async (tx) => {
-        if (options?.draftOnly) {
-          const draft = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Experience" WHERE "id" = ${experienceId} AND "merchantId" = ${merchantId} AND "status" = 'DRAFT' FOR UPDATE`
+        if (options?.draftOnly || options?.expectedUpdatedAt) {
+          const draft = await tx.$queryRaw<{ id: string; updatedAt: Date }[]>`SELECT "id", "updatedAt" FROM "Experience" WHERE "id" = ${experienceId} AND "merchantId" = ${merchantId} AND "status" = 'DRAFT' FOR UPDATE`
           if (!draft.length) throw new ExperienceCommandError('Agent changes are limited to Draft Experiences.')
+          if (options.expectedUpdatedAt && new Date(draft[0].updatedAt).toISOString() !== options.expectedUpdatedAt) {
+            throw new ExperienceCommandError('FACTORY_DRAFT_STORE_STALE_REVISION')
+          }
         }
         const updated = await tx.experience.update({
           where: { id: experienceId, merchantId },
@@ -123,9 +126,14 @@ const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
           throw new CatalogSelectionConflictError()
         }
       }
-      if (input.draftOnly) {
-        const draft = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Experience" WHERE "id" = ${input.experienceId} AND "merchantId" = ${input.merchantId} AND "status" = 'DRAFT' FOR UPDATE`
+      let lockedRevision: Date | null = null
+      if (input.draftOnly || input.expectedUpdatedAt) {
+        const draft = await tx.$queryRaw<{ id: string; updatedAt: Date }[]>`SELECT "id", "updatedAt" FROM "Experience" WHERE "id" = ${input.experienceId} AND "merchantId" = ${input.merchantId} AND "status" = 'DRAFT' FOR UPDATE`
         if (!draft.length) throw new ExperienceCommandError('Agent changes are limited to Draft Experiences.')
+        lockedRevision = new Date(draft[0].updatedAt)
+        if (input.expectedUpdatedAt && lockedRevision.toISOString() !== input.expectedUpdatedAt) {
+          throw new ExperienceCommandError('FACTORY_DRAFT_SELECTION_STALE_REVISION')
+        }
       }
       await tx.experienceFrame.deleteMany({
         where: { experienceId: input.experienceId, merchantId: input.merchantId },
@@ -139,6 +147,13 @@ const repository: ExperienceCommandRepository<Prisma.TransactionClient> = {
             sortOrder,
             active: true,
           })),
+        })
+      }
+      if (input.expectedUpdatedAt && lockedRevision) {
+        // Invalidate the approved selection snapshot in the same transaction.
+        await tx.experience.update({
+          where: { id: input.experienceId, merchantId: input.merchantId },
+          data: { updatedAt: new Date(Math.max(Date.now(), lockedRevision.getTime() + 1)) },
         })
       }
       await input.afterReplace?.(tx)

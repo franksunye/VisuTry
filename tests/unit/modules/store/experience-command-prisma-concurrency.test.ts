@@ -16,6 +16,7 @@ import { experienceCommands } from '@/modules/store/application/experience-comma
 const tx = {
   $queryRaw: jest.fn(),
   experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
+  experience: { update: jest.fn() },
 }
 
 const selection = {
@@ -36,6 +37,7 @@ describe('Prisma Catalog selection serialization boundary', () => {
       .mockResolvedValueOnce([{ id: 'frame-a', status: 'ACTIVE' }])
     tx.experienceFrame.deleteMany.mockResolvedValue({ count: 0 })
     tx.experienceFrame.createMany.mockResolvedValue({ count: 1 })
+    tx.experience.update.mockResolvedValue({ id: 'experience-a' })
   })
 
   it.each([
@@ -78,6 +80,43 @@ describe('Prisma Catalog selection serialization boundary', () => {
       .rejects.toMatchObject({ code: 'CATALOG_SELECTION_NOT_ACTIVE', httpStatus: 409 })
     expect(tx.experienceFrame.deleteMany).not.toHaveBeenCalled()
     expect(tx.experienceFrame.createMany).not.toHaveBeenCalled()
+  })
+
+  it('rejects a stale Factory Draft selection revision without any writes', async () => {
+    tx.$queryRaw.mockReset()
+      .mockResolvedValueOnce([{ id: 'merchant-a' }])
+      .mockResolvedValueOnce([{ id: 'frame-a', status: 'ACTIVE' }])
+      .mockResolvedValueOnce([{ id: 'experience-a', updatedAt: new Date('2026-10-01T00:00:00Z') }])
+    await expect(experienceCommands.replaceCatalogSelection({
+      ...selection, draftOnly: true, expectedUpdatedAt: '2026-09-01T00:00:00.000Z',
+    })).rejects.toThrow('FACTORY_DRAFT_SELECTION_STALE_REVISION')
+    expect(tx.experienceFrame.deleteMany).not.toHaveBeenCalled()
+    expect(tx.experienceFrame.createMany).not.toHaveBeenCalled()
+    expect(tx.experience.update).not.toHaveBeenCalled()
+  })
+
+  it('locks and advances the current Factory selection revision atomically', async () => {
+    tx.$queryRaw.mockReset()
+      .mockResolvedValueOnce([{ id: 'merchant-a' }])
+      .mockResolvedValueOnce([{ id: 'frame-a', status: 'ACTIVE' }])
+      .mockResolvedValueOnce([{ id: 'experience-a', updatedAt: new Date('2026-10-01T00:00:00Z') }])
+    await experienceCommands.replaceCatalogSelection({
+      ...selection, draftOnly: true, expectedUpdatedAt: '2026-10-01T00:00:00.000Z',
+    })
+    expect(tx.$queryRaw).toHaveBeenCalledTimes(3)
+    expect(tx.experienceFrame.deleteMany).toHaveBeenCalledTimes(1)
+    expect(tx.experienceFrame.createMany).toHaveBeenCalledTimes(1)
+    expect(tx.experience.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'experience-a', merchantId: 'merchant-a' },
+      data: { updatedAt: expect.any(Date) },
+    }))
+  })
+
+  it('denies optimistic revision requests without Draft-only mode', async () => {
+    await expect(experienceCommands.replaceCatalogSelection({
+      ...selection, expectedUpdatedAt: '2026-10-01T00:00:00.000Z',
+    })).rejects.toThrow('Factory revision requires a Draft-only command')
+    expect(prisma.experience.findFirst).not.toHaveBeenCalled()
   })
 
   it('preserves true database faults as errors rather than hiding them as recoverable races', async () => {
