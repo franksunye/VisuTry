@@ -49,3 +49,34 @@ export function publicMerchantImageUrl(value: string | null | undefined): string
     return null
   }
 }
+
+/**
+ * Merchant Catalog imports may point to arbitrary approved public HTTPS image
+ * hosts, while Next/Image only optimizes the finite remotePatterns in next.config.
+ *
+ * Serve images from unconfigured hosts directly in the browser: never broaden
+ * the Next server-side image optimizer's remote fetch allowlist.
+ * Call publicMerchantImageUrl() first at the rendering boundary.
+ */
+export function shouldBypassMerchantImageOptimization(value: string | null | undefined): boolean {
+  if (!value) return false
+  if (value.startsWith('/') && !value.startsWith('//')) return false
+  if (isLoopbackImageUrl(value)) return true
+  try {
+    const url = new URL(value)
+    if (url.protocol !== 'https:' || url.port || url.username || url.password) return true
+    const host = url.hostname.toLowerCase()
+    const approved = new Set([
+      'mock-blob-storage.vercel.app',
+      'via.placeholder.com',
+      'lh3.googleusercontent.com',
+      'pbs.twimg.com',
+      'images.unsplash.com',
+      'cdn.shopify.com',
+      'cdn11.bigcommerce.com',
+    ])
+    return !(approved.has(host) || (host !== 'public.blob.vercel-storage.com' && host.endsWith('.public.blob.vercel-storage.com')))
+  } catch {
+    return true
+  }
+}

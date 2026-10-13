@@ -1,4 +1,4 @@
-import { isLoopbackImageUrl, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
+import { isLoopbackImageUrl, publicMerchantImageUrl, shouldBypassMerchantImageOptimization } from '@/lib/is-loopback-image-url'
 
 describe('public Merchant media trust boundary', () => {
   it('accepts approved remote and same-origin asset paths', () => {
@@ -43,5 +43,38 @@ describe('public Merchant media trust boundary', () => {
     } finally {
       Object.defineProperty(process.env, 'NODE_ENV', { value: previousNodeEnv, writable: true, configurable: true })
     }
+  })
+})
+
+describe('Merchant-imported product image optimization boundary', () => {
+  it('keeps relative assets and configured CDNs on the bounded Next optimizer', () => {
+    for (const src of [
+      '/assets/glasses-presets/round-classic.jpg',
+      'https://cdn.shopify.com/s/files/1/frame.jpg',
+      'https://cdn11.bigcommerce.com/s-product/product.jpg',
+      'https://merchant.public.blob.vercel-storage.com/brand/frame.webp',
+      'https://images.unsplash.com/photo-123',
+    ]) {
+      expect(shouldBypassMerchantImageOptimization(src)).toBe(false)
+    }
+  })
+
+  it('loads genuine approved Merchant website images without authorizing arbitrary Next optimizer fetches', () => {
+    for (const src of [
+      'https://www.visutry.com/assets/glasses-presets/round-classic.jpg',
+      'https://merchant.example.com/catalog/frame.jpg',
+      'https://cdn.shopify.com.evil.example/frame.jpg',
+      'https://cdn.shopify.com:8443/frame.jpg',
+      'http://eyewear.example.com/frame.jpg',
+    ]) {
+      expect(shouldBypassMerchantImageOptimization(src)).toBe(true)
+    }
+  })
+
+  it('does not make unsafe or private addresses eligible to render', () => {
+    for (const src of ['http://169.254.169.254/latest/meta-data', 'https://private.internal/secret', 'javascript:alert(1)', '//127.0.0.1/admin']) {
+      expect(publicMerchantImageUrl(src)).toBeNull()
+    }
+    expect(shouldBypassMerchantImageOptimization('http://127.0.0.1:3002/prepared.jpg')).toBe(true) // publicMerchantImageUrl separately rejects it in Production
   })
 })

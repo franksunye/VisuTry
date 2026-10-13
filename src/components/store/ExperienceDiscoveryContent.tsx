@@ -10,7 +10,7 @@ import {
 import { buildStoreOutboundUrl, type StoreOutboundLinkType } from '@/lib/store-outbound-links'
 import { MerchantShopperAccountControlSlot } from '@/components/store/MerchantShopperAccountControlSlot'
 import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
-import { isLoopbackImageUrl, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
+import { shouldBypassMerchantImageOptimization, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
 import { brandAccentForDisplay } from '@/modules/merchant/domain/merchant-brand-kit'
 
 function formatPrice(price: number | null, currency: string | null): string | null {
@@ -71,7 +71,7 @@ function ExperienceHeroVisual({
           priority
           sizes="(max-width: 1024px) 100vw, 55vw"
           className="object-cover"
-          unoptimized={isLoopbackImageUrl(heroImage)}
+          unoptimized={shouldBypassMerchantImageOptimization(heroImage)}
         />
       ) : null}
       <div className="absolute inset-0 bg-slate-950/10" aria-hidden="true" />
@@ -134,7 +134,7 @@ export function ExperienceDiscoveryContent({
           <div className="flex items-center gap-3">
             <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
               {merchant.logoUrl ? (
-                <Image src={merchant.logoUrl} alt="" fill sizes="48px" className="object-contain p-1.5" unoptimized={isLoopbackImageUrl(merchant.logoUrl)} />
+                <Image src={merchant.logoUrl} alt="" fill sizes="48px" className="object-contain p-1.5" unoptimized={shouldBypassMerchantImageOptimization(merchant.logoUrl)} />
               ) : (
                 <Store className="h-6 w-6" style={{ color: brandAccent }} aria-hidden="true" />
               )}
@@ -213,7 +213,7 @@ export function ExperienceDiscoveryContent({
                             fill
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                             className="object-contain p-5"
-                            unoptimized={isLoopbackImageUrl(frame.imageUrl)}
+                            unoptimized={shouldBypassMerchantImageOptimization(frame.imageUrl)}
                           />
                         ) : (
                           <Glasses className="absolute inset-0 m-auto h-10 w-10 text-slate-300" aria-label={`${frame.name} image unavailable`} />
