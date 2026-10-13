@@ -122,7 +122,7 @@ describe('ExperiencePresentationShell', () => {
     expect(screen.getByText('Harper').compareDocumentPosition(screen.getByText('Privacy & photo retention')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  it('automatically serves loopback product images directly while retaining the normal optimizer for remote assets', () => {
+  it('keeps configured CDNs optimized and bypasses the optimizer for loopback or new merchant image hosts', () => {
     const featuredFramesRef = { current: null as HTMLElement | null }
     render(
       <ExperiencePresentationShell
@@ -132,6 +132,8 @@ describe('ExperiencePresentationShell', () => {
         featuredFrames={[
           { ...frames[0], id: 'local-frame', imageUrl: 'http://127.0.0.1:3002/assets/prepared-demo.jpg' },
           { ...frames[0], id: 'remote-frame', name: 'Remote Harper', imageUrl: 'https://assets.example.test/frame.jpg' },
+          { ...frames[0], id: 'shopify-frame', name: 'Shopify Harper', imageUrl: 'https://cdn.shopify.com/s/files/1/frame.jpg' },
+          { ...frames[0], id: 'first-party-frame', name: 'Round demo', imageUrl: 'https://www.visutry.com/assets/glasses-presets/round-classic.jpg' },
         ]}
         copy={copy}
         publicPocStorage={false}
@@ -144,7 +146,9 @@ describe('ExperiencePresentationShell', () => {
     )
 
     expect(screen.getByRole('img', { name: 'Harper' })).toHaveAttribute('data-unoptimized', 'true')
-    expect(screen.getByRole('img', { name: 'Remote Harper' })).toHaveAttribute('data-unoptimized', 'false')
+    expect(screen.getByRole('img', { name: 'Remote Harper' })).toHaveAttribute('data-unoptimized', 'true')
+    expect(screen.getByRole('img', { name: 'Shopify Harper' })).toHaveAttribute('data-unoptimized', 'false')
+    expect(screen.getByRole('img', { name: 'Round demo' })).toHaveAttribute('data-unoptimized', 'true')
   })
 
   it('keeps action-first runtime entry explicit and singular', () => {

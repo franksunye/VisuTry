@@ -372,6 +372,31 @@ describe('MCP transport protocol', () => {
     expect(recordMerchantAgentOperation).not.toHaveBeenCalled()
   })
 
+  it('advertises strict update_campaign arguments and rejects unknown/empty requests before write or success audit', async () => {
+    const listed = await POST(mcpRequest({ jsonrpc: '2.0', id: 670, method: 'tools/list', params: {} }))
+    const listing = await listed.json() as {
+      result: { tools: Array<{ name: string; inputSchema: { additionalProperties?: boolean } }> }
+    }
+    expect(listing.result.tools.find((tool) => tool.name === 'update_campaign')?.inputSchema?.additionalProperties).toBe(false)
+
+    for (const [id, input] of [
+      [671, { campaignId: 'campaign-a' }],
+      [672, { campaignId: 'campaign-a', unexpectedField: 'silently ignored previously' }],
+      [673, { campaignId: 'campaign-a', headline: 'Valid', unexpectedField: 'reject mixed input as well' }],
+    ] as const) {
+      const response = await POST(mcpRequest({
+        jsonrpc: '2.0', id, method: 'tools/call',
+        params: { name: 'update_campaign', arguments: input },
+      }))
+      const body = await response.json() as { result?: { isError?: boolean }; error?: { code: number; message: string } }
+      // MCP may present invalid tool arguments as isError or a JSON-RPC error;
+      // either must stop before the callback and must never report success.
+      expect(body.result?.isError === true || Boolean(body.error)).toBe(true)
+    }
+    expect(updateCampaign).not.toHaveBeenCalled()
+    expect(recordMerchantAgentOperation).not.toHaveBeenCalled()
+  })
+
   it('does not allow updating Campaign policy without experience:write scope', async () => {
     authenticate.mockResolvedValueOnce({ ...actor, scopes: ['merchant:read', 'experience:read'] })
     const response = await POST(mcpRequest({

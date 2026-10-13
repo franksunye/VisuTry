@@ -380,6 +380,13 @@ export async function updateCampaign(input: CampaignUpdateInput) {
     patch: data,
     draftOnly: input.agentDraftOnly,
   })
+  if (input.agentDraftOnly) {
+    // The guarded DRAFT transaction commits the scalar Experience row without
+    // selected ExperienceFrame relations. Read the tenant-scoped committed row
+    // with those relations before projecting the Agent response.
+    const refreshed = await campaignRow(input.merchantId, input.campaignId)
+    return mapCampaign(refreshed.row, refreshed.merchant.slug, refreshed.merchant.referenceData, refreshed.merchant)
+  }
   return mapCampaign(updated as CampaignRow, current.merchant.slug, current.merchant.referenceData, current.merchant)
 }
 

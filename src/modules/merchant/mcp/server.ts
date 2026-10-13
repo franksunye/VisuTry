@@ -1,5 +1,6 @@
 import { getMerchantAgentBrandKit } from '../application/merchant-agent-brand-read'
 import { mcpStoreJourneyPolicy, mcpStoreDeliveryPolicy } from './store-policy-input'
+import { mcpUpdateCampaignInput } from './update-campaign-input'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod/v4'
@@ -353,25 +354,7 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
   server.registerTool('update_campaign', {
     title: 'Update Campaign',
     description: 'Update bounded Campaign DRAFT policy, fixed canonical Journey, Web/Kiosk Delivery, copy, date, and safe CTA fields for the authenticated merchant. Active Campaigns are read-only to Agents; ask the merchant to make live changes in the authenticated workspace.',
-    inputSchema: {
-      campaignId,
-      name: z.string().min(1).max(240).optional(),
-      headline: z.string().max(500).nullable().optional(),
-      description: z.string().max(5000).nullable().optional(),
-      objective: campaignObjective.optional(),
-      conversionGate: campaignGate.optional(),
-      presentationMode: presentationMode.optional(),
-      journeyPolicy: mcpStoreJourneyPolicy.optional(),
-      deliveryPolicy: mcpStoreDeliveryPolicy.optional(),
-      startAt: campaignDate,
-      endAt: campaignDate,
-      primaryCtaType: z.string().max(120).nullable().optional(),
-      primaryCtaLabel: z.string().max(240).nullable().optional(),
-      primaryCtaUrl: z.string().max(2000).nullable().optional(),
-      secondaryCtaType: z.string().max(120).nullable().optional(),
-      secondaryCtaLabel: z.string().max(240).nullable().optional(),
-      secondaryCtaUrl: z.string().max(2000).nullable().optional(),
-    },
+    inputSchema: mcpUpdateCampaignInput,
   }, async ({ campaignId: id, conversionGate, ...input }) => safe(async () => {
     requireAgentScope(actor, 'experience:write')
     return auditedCampaignMutation({
