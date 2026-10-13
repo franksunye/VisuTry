@@ -38,6 +38,7 @@ function fixture(merchantSlug = 'store-alpha'): FactorySnapshotV1 {
     brandAccentColor: null,
     logoAssetUrl: null,
     activeFrameIds: ['frame-a'],
+    storeEligibleFrameIds: ['frame-a'],
     store: {
       id: merchantSlug + '-store',
       status: 'DRAFT',
@@ -123,6 +124,20 @@ describe('Merchant Delivery Factory v1 pure manifest and diff', () => {
     expect(() => merchantDeliveryManifestV1Schema.parse({
       ...proposed, brand: { ...proposed.brand, accentColor: '#ff0000' },
     })).toThrow()
+  })
+
+  it('blocks a Store proposal when an ACTIVE product has incomplete public display identity or imagery', () => {
+    const snapshot = fixture()
+    // ACTIVE alone is insufficient: the canonical Store selection requires
+    // identity, name and a safe image URL. Do not confuse this with shape
+    // enrichment, which is allowed to remain pending for Store display.
+    snapshot.storeEligibleFrameIds = []
+    const plan = buildMerchantFactoryDryRunV1(proposed, snapshot)
+    expect(plan.blockers).toContain('Store selected frame is not display-ready: frame-a')
+    expect(plan.canApply).toBe(false)
+    expect(plan.steps[1].action).toBe('UPDATE_DRAFT')
+    // A Campaign can still be independently proposed; Store is not ready.
+    expect(plan.steps[2].resource).toBe('CAMPAIGN')
   })
 
   it('never mutates an Active Store, even when the requested copy differs', () => {

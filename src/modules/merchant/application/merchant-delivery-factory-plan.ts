@@ -1,3 +1,4 @@
+import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import { prisma } from '@/lib/prisma'
 import { MerchantAccessError } from './merchant-access'
 import type { HumanMerchantActor } from '../domain/actor'
@@ -23,7 +24,10 @@ export async function getMerchantFactoryDryRun(input: {
       id: true, slug: true, classification: true, name: true, logoUrl: true, accentColor: true,
       frames: {
         where: { status: 'ACTIVE' },
-        select: { id: true },
+        select: {
+          id: true, sku: true, externalId: true, name: true, imageUrl: true,
+          productUrl: true, source: true, status: true,
+        },
       },
       experiences: {
         select: {
@@ -67,6 +71,9 @@ export async function getMerchantFactoryDryRun(input: {
     brandAccentColor: merchant.accentColor,
     logoAssetUrl: merchant.logoUrl,
     activeFrameIds: merchant.frames.map(frame => frame.id),
+    storeEligibleFrameIds: merchant.frames.filter(frame =>
+      validateMerchantFrameStoreReadiness(frame).storeEligible,
+    ).map(frame => frame.id),
     store: defaultStore ? toSnapshot(defaultStore) : null,
     campaigns: merchant.experiences
       .filter(item => item.type === 'CAMPAIGN')

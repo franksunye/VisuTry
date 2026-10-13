@@ -37,7 +37,7 @@ The endpoint is **not** `/apply`, and does not recognize a client-provided `appr
 
 ## Safety / honesty
 
-The caller must first obtain a tenant-bound, authenticated, **fresh** snapshot through existing canonical reads. The builder rejects a mismatched tenant slug; checks expected/selected IDs against that tenant's **ACTIVE** approved Catalog; fails closed on unknown fields, duplicate slugs/IDs, impossible Journey/Kiosk policy, and incomplete resource references. Extra existing Catalog or Campaign resources are never silently removed.
+The caller must first obtain a tenant-bound, authenticated, **fresh** snapshot through existing canonical reads. The builder rejects a mismatched tenant slug; checks expected/selected IDs against that tenant's **ACTIVE** Catalog and additionally requires Store-selected IDs to pass canonical Store display eligibility (usable identity, name, safe image URL and source URL where required; shape enrichment can remain pending); fails closed on unknown fields, duplicate slugs/IDs, impossible Journey/Kiosk policy, and incomplete resource references. Extra existing Catalog or Campaign resources are never silently removed.
 
 Changes to an **ACTIVE** Experience, brand/media or classification are marked `HUMAN_REVIEW_REQUIRED` and remain blocked. New Experiences are **DRAFT-only** proposals. Repeated input/snapshot returns the same step plan and a no-change state after the intended Draft values are already present.
 

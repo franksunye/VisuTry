@@ -270,6 +270,8 @@ export async function createCampaignDraft(input: {
   secondaryCtaType?: string | null
   secondaryCtaLabel?: string | null
   secondaryCtaUrl?: string | null
+  /** Factory Owner-approved create must never replay an existing Draft as a fresh creation. */
+  factoryExpectAbsent?: true
 }) {
   const name = input.name.trim()
   if (!name) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.')
@@ -294,6 +296,7 @@ export async function createCampaignDraft(input: {
   const requestedSlug = slugify(input.slug || name)
   const existing = await prisma.experience.findFirst({ where: { merchantId: input.merchantId, slug: requestedSlug } })
   if (existing) {
+    if (input.factoryExpectAbsent) throw new CampaignServiceError('CAMPAIGN_SLUG_CONFLICT', 'A Campaign already uses this slug.', 409)
     const compatible = existing.type === 'CAMPAIGN'
       && existing.status === 'DRAFT'
       && existing.name === name
@@ -430,7 +433,7 @@ export async function updateAndPublishCampaign(input: CampaignUpdateInput) {
   })
 }
 
-export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[]; agentDraftOnly?: boolean }) {
+export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[]; agentDraftOnly?: boolean; factoryDraftOnly?: boolean; expectedUpdatedAt?: string }) {
   if (input.frameIds.length > MAX_CAMPAIGN_FRAMES) throw new CampaignServiceError('INVALID_REQUEST', `frameIds cannot exceed ${MAX_CAMPAIGN_FRAMES}.`)
   const frameIds = [...new Set(input.frameIds)]
   const current = await campaignRow(input.merchantId, input.campaignId)
@@ -444,7 +447,8 @@ export async function setCampaignFrames(input: { merchantId: string; campaignId:
     experienceId: input.campaignId,
     frameIds,
     expectedType: 'CAMPAIGN',
-    draftOnly: input.agentDraftOnly,
+    draftOnly: input.agentDraftOnly || input.factoryDraftOnly,
+    expectedUpdatedAt: input.expectedUpdatedAt,
   })
   return { frameIds }
 }

@@ -666,7 +666,9 @@ export async function createMerchantStore(input: { actor: MerchantActorContext; 
       return { store: created, created: true }
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
   })
-  await recordMerchantAgentOperation({ actor: input.actor, action: 'store.created', resourceType: 'Experience', resourceId: transactionResult.store.id })
+  if (transactionResult.created) {
+    await recordMerchantAgentOperation({ actor: input.actor, action: 'store.created', resourceType: 'Experience', resourceId: transactionResult.store.id })
+  }
   return { id: transactionResult.store.id, slug: transactionResult.store.slug, status: transactionResult.store.status, name: transactionResult.store.name, created: transactionResult.created, publicPath: `/en/store/${merchant.slug}` }
 }
 
@@ -685,6 +687,9 @@ export async function updateMerchantStore(input: {
   secondaryCtaType?: string | null
   secondaryCtaLabel?: string | null
   secondaryCtaUrl?: string | null
+  /** Restricted to the explicitly approved Factory DRAFT Store command. */
+  factoryDraftOnly?: boolean
+  expectedUpdatedAt?: string
 }) {
   requireAgentScope(input.actor, 'experience:write')
   const store = await prisma.experience.findFirst({
@@ -729,7 +734,8 @@ export async function updateMerchantStore(input: {
     experienceId: store.id,
     expectedType: 'STORE',
     patch,
-    draftOnly: isAgentMerchantActor(input.actor),
+    draftOnly: isAgentMerchantActor(input.actor) || input.factoryDraftOnly === true,
+    expectedUpdatedAt: input.expectedUpdatedAt,
     afterUpdate: async (tx) => {
       if (meaningfulChange) {
         await recordMerchantActivationEventWithClient(tx as Prisma.TransactionClient, {
@@ -747,7 +753,7 @@ export async function updateMerchantStore(input: {
   return { id: updatedStore.id, slug: updatedStore.slug, name: updatedStore.name, status: updatedStore.status, headline: updatedStore.headline, description: updatedStore.description, publicPath: `/en/store/${merchant.slug}` }
 }
 
-export async function setMerchantStoreFrames(input: { actor: MerchantActorContext; storeId: string; frameIds: string[] }) {
+export async function setMerchantStoreFrames(input: { actor: MerchantActorContext; storeId: string; frameIds: string[]; factoryDraftOnly?: boolean; expectedUpdatedAt?: string }) {
   requireAgentScope(input.actor, 'experience:write')
   if (input.frameIds.length > MAX_STORE_FRAMES) throw new MerchantOnboardingError('INVALID_STORE_FRAMES', `frameIds cannot exceed ${MAX_STORE_FRAMES} items.`)
   const frameIds = [...new Set(input.frameIds)]
@@ -769,7 +775,8 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
     experienceId: store.id,
     expectedType: 'STORE',
     frameIds,
-    draftOnly: isAgentMerchantActor(input.actor),
+    draftOnly: isAgentMerchantActor(input.actor) || input.factoryDraftOnly === true,
+    expectedUpdatedAt: input.expectedUpdatedAt,
     afterReplace: async (tx) => {
       if (frameIds.length) {
         await recordMerchantActivationEventWithClient(tx as Prisma.TransactionClient, {
