@@ -135,6 +135,56 @@ describe('Campaign application service', () => {
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'small-faces' } }))
   })
 
+  it('returns the committed Draft Campaign and selected frames to an Agent after its guarded transaction', async () => {
+    const refreshed = { ...baseRow, headline: 'Updated through Agent' }
+    ;(prisma.experience.findFirst as jest.Mock)
+      .mockResolvedValueOnce(baseRow) // pre-mutation typed Campaign with frames
+      .mockResolvedValueOnce({ id: baseRow.id, slug: baseRow.slug, type: 'CAMPAIGN', merchant: { slug: 'merchant-a' } }) // canonical target
+      .mockResolvedValueOnce(refreshed) // tenant-scoped readback with frames
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-a', slug: 'merchant-a', referenceData: false })
+    const txUpdate = jest.fn().mockResolvedValue({ ...refreshed, frames: undefined })
+    const draftLock = jest.fn().mockResolvedValue([{ id: 'campaign-a' }])
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (work) => work({
+      $queryRaw: draftLock,
+      experience: { update: txUpdate },
+    }))
+
+    const response = await updateCampaign({
+      merchantId: 'merchant-a', campaignId: 'campaign-a',
+      headline: 'Updated through Agent', agentDraftOnly: true,
+    })
+
+    expect(response).toMatchObject({
+      id: 'campaign-a', status: 'DRAFT', headline: 'Updated through Agent',
+      frameCount: 1, frameIds: ['frame-a'],
+    })
+    expect(draftLock).toHaveBeenCalledTimes(1)
+    expect(txUpdate).toHaveBeenCalledTimes(1)
+    expect(prisma.experience.findFirst).toHaveBeenCalledTimes(3)
+    expect(prisma.experience.findFirst).toHaveBeenNthCalledWith(3, expect.objectContaining({
+      where: { id: 'campaign-a', merchantId: 'merchant-a', type: 'CAMPAIGN' },
+      include: expect.any(Object),
+    }))
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not report a successful Agent Campaign update or perform readback if its Draft lock rejects', async () => {
+    ;(prisma.experience.findFirst as jest.Mock)
+      .mockResolvedValueOnce(baseRow)
+      .mockResolvedValueOnce({ id: baseRow.id, slug: baseRow.slug, type: 'CAMPAIGN', merchant: { slug: 'merchant-a' } })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-a', slug: 'merchant-a', referenceData: false })
+    const txUpdate = jest.fn()
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (work) => work({
+      $queryRaw: jest.fn().mockResolvedValue([]),
+      experience: { update: txUpdate },
+    }))
+    await expect(updateCampaign({
+      merchantId: 'merchant-a', campaignId: 'campaign-a', headline: 'Forbidden edit', agentDraftOnly: true,
+    })).rejects.toThrow('Agent changes are limited to Draft Experiences.')
+    expect(txUpdate).not.toHaveBeenCalled()
+    expect(prisma.experience.findFirst).toHaveBeenCalledTimes(2)
+  })
+
   it('invalidates after a successful frame transaction and not after a failed write', async () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
