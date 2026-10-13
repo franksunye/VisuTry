@@ -43,7 +43,7 @@ describe('Brand Kit owner authorization and canonical persistence', () => {
     ;(tx.merchant.update as jest.Mock).mockResolvedValue({ ...merchant, accentColor: '#1D4ED8' })
     ;(prisma.$transaction as jest.Mock).mockImplementation((callback: (client: typeof tx) => unknown) => callback(tx))
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({
-      id: 'experience-a', type: 'STORE', status: 'DRAFT',
+      id: 'experience-a', slug: 'default', type: 'STORE', status: 'DRAFT',
     })
     ;(experienceCommands.updateSharedConfiguration as jest.Mock).mockResolvedValue({ status: 'DRAFT' })
   })
@@ -91,6 +91,40 @@ describe('Brand Kit owner authorization and canonical persistence', () => {
       merchantId: owner.merchantId, experienceId: 'experience-a',
       expectedType: 'STORE', patch: { heroAssetUrl: url }, draftOnly: true,
     }))
+  })
+
+  it('invalidates the public Store cache after the canonical Hero mutation, not before it', async () => {
+    const url = 'https://a.public.blob.vercel-storage.com/merchant-brand/merchant-a/hero/experience-a/x.png'
+    await updateMerchantExperienceHero({ ...owner, experienceId: 'experience-a', heroAssetUrl: url })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
+      target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
+      edgeTags: expect.objectContaining({ before: [] }),
+      mutation: expect.any(Function),
+    }))
+    const call = (withPublicDiscoveryInvalidation as jest.Mock).mock.calls[0][0]
+    expect(typeof call.edgeTags.after).toBe('function')
+    expect(experienceCommands.updateSharedConfiguration).toHaveBeenCalledTimes(1)
+  })
+
+  it('purges the exact Campaign public tag/path only after an explicitly approved live Hero update', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({
+      id: 'experience-a', slug: 'autumn-launch', type: 'CAMPAIGN', status: 'ACTIVE',
+    })
+    await updateMerchantExperienceHero({
+      ...owner, experienceId: 'experience-a', heroAssetUrl: null, approvedLiveChange: true,
+    })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
+      target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: 'autumn-launch' },
+    }))
+  })
+
+  it('does not invalidate public caches if the canonical Hero mutation fails', async () => {
+    ;(experienceCommands.updateSharedConfiguration as jest.Mock)
+      .mockRejectedValueOnce(new Error('canonical write rejected'))
+    await expect(updateMerchantExperienceHero({
+      ...owner, experienceId: 'experience-a', heroAssetUrl: null,
+    })).rejects.toThrow('canonical write rejected')
+    expect(experienceCommands.updateSharedConfiguration).toHaveBeenCalledTimes(1)
   })
 
   it('blocks active hero changes without explicit approval and retains the tenant check', async () => {

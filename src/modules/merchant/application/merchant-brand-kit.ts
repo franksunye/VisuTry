@@ -44,13 +44,29 @@ export async function updateMerchantExperienceHero(input: {
   await requireMerchantMembership({ userId: input.userId, merchantId: input.merchantId, roles: ['OWNER'] })
   const experience = await prisma.experience.findFirst({
     where: { merchantId: input.merchantId, id: input.experienceId, type: { in: ['STORE','CAMPAIGN'] } },
-    select: { id: true, status: true, type: true },
+    select: { id: true, slug: true, status: true, type: true },
   })
   if (!experience || !['DRAFT','ACTIVE'].includes(experience.status)) throw new BrandKitError('EXPERIENCE_NOT_FOUND', 'Editable Experience not found.', 404)
   if (experience.status === 'ACTIVE' && !input.approvedLiveChange) throw new BrandKitError('LIVE_CHANGE_CONFIRMATION_REQUIRED', 'This change affects a live Experience.', 409)
   const heroAssetUrl = normalizeBrandMediaUrl(input.heroAssetUrl, input.merchantId, 'hero', input.experienceId)
+  const merchant = await prisma.merchant.findUnique({
+    where: { id: input.merchantId },
+    select: { slug: true },
+  })
+  if (!merchant) throw new BrandKitError('EXPERIENCE_NOT_FOUND', 'Merchant not found.', 404)
+  const edgeTags = await getPublicEdgeTagsForMerchant(merchant.slug)
   try {
-    await experienceCommands.updateSharedConfiguration({
+    await withPublicDiscoveryInvalidation({
+      target: {
+        kind: 'experience',
+        merchantSlug: merchant.slug,
+        experienceSlug: experience.type === 'CAMPAIGN' ? experience.slug : null,
+      },
+      edgeTags: {
+        before: edgeTags,
+        after: () => getPublicEdgeTagsForMerchant(merchant.slug),
+      },
+      mutation: () => experienceCommands.updateSharedConfiguration({
       merchantId: input.merchantId, experienceId: input.experienceId,
       expectedType: experience.type as 'STORE' | 'CAMPAIGN',
       patch: { heroAssetUrl },
@@ -69,6 +85,7 @@ export async function updateMerchantExperienceHero(input: {
           throw new BrandKitError('LIVE_CHANGE_CONFIRMATION_REQUIRED', 'Live Experience changes require approval.', 409)
         }
       },
+      }),
     })
   } catch (error) {
     if (error instanceof ExperienceCommandError && error.message.includes('limited to Draft')) {
