@@ -111,10 +111,15 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
         const createResponse = await page.request.post(storeEndpoint, { data: { name: `Local Campaign Store ${merchantSlug}` } })
         store = await readApi<{ id: string; status: string }>(createResponse, 200, 'Create Local private Store draft')
       }
-      expect(store.status).toBe('DRAFT')
-      const selectionResponse = await page.request.put(storeEndpoint, { data: { storeId: store.id, frameIds: [frame!.id] } })
-      await readApi<unknown>(selectionResponse, 200, 'Select product in Local private Store')
-      return { productName: frame!.name, sku }
+      // A pre-existing Growth TEST tenant may already have an ACTIVE Store.
+      // Do not edit its public Store or require a private draft preview just
+      // to validate an independently configured Campaign.
+      expect(['DRAFT', 'ACTIVE'], 'Supported Local QA Store lifecycle status').toContain(store.status)
+      if (store.status === 'DRAFT') {
+        const selectionResponse = await page.request.put(storeEndpoint, { data: { storeId: store.id, frameIds: [frame!.id] } })
+        await readApi<unknown>(selectionResponse, 200, 'Select product in Local private Store')
+      }
+      return { productName: frame!.name, sku, storeStatus: store.status }
     }
     const completePrivateStorePreview = async (merchantId: string) => {
       await page.goto(`/en/merchant?merchantId=${encodeURIComponent(merchantId)}`, { waitUntil: 'networkidle' })
@@ -159,7 +164,13 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     const growthMerchant = existingMerchantOptions.find((merchant) => merchant.name === 'Local QA-USAGE')
     expect(growthMerchant, 'The seeded Local QA-USAGE TEST Merchant is present').toBeTruthy()
     const growthFixture = await prepareMerchant(growthMerchant!.id, 'local-qa-usage')
-    await completePrivateStorePreview(growthMerchant!.id)
+    if (growthFixture.storeStatus === 'DRAFT') {
+      await completePrivateStorePreview(growthMerchant!.id)
+    } else {
+      // No public-Store mutation, deactivation, or fake private preview on an
+      // already LIVE Growth fixture. Campaign testing uses its own DRAFT state.
+      expect(growthFixture.storeStatus).toBe('ACTIVE')
+    }
     const growthRoute = `/en/merchant/campaigns?merchantId=${encodeURIComponent(growthMerchant!.id)}`
 
     // The new FREE workspace belongs to the clean identity, so restore that
