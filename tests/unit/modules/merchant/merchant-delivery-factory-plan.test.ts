@@ -75,6 +75,32 @@ describe('authenticated local Factory snapshot / canonical dry-run adapter', () 
     }))
   })
 
+  it.each([
+    { reason: 'missing stable identity', frame: { sku: null, externalId: null, productUrl: null } },
+    { reason: 'external product without required source URL', frame: { source: 'EXTERNAL', productUrl: null } },
+    { reason: 'missing public product name', frame: { name: '' } },
+  ])('blocks an ACTIVE Store product with $reason', async ({ frame }) => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValueOnce({
+      ...merchant,
+      frames: [{ ...merchant.frames[0], ...frame }],
+    })
+    const plan = await getMerchantFactoryDryRun({ actor, proposal: manifest })
+    expect(plan.blockers).toContain('Store selected frame is not display-ready: frame-owned-a')
+    expect(plan.canApply).toBe(false)
+    expect(plan.releaseReady).toBe(false)
+  })
+
+  it('does not require shape/recommendation enrichment for basic Store display', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValueOnce({
+      ...merchant,
+      frames: [{ ...merchant.frames[0], shape: null, enrichmentStatus: 'PENDING' }],
+    })
+    const plan = await getMerchantFactoryDryRun({ actor, proposal: manifest })
+    expect(plan.blockers).toEqual([])
+    expect(plan.steps[1]).toMatchObject({ resource: 'STORE', action: 'UPDATE_DRAFT' })
+    expect(plan.canApply).toBe(false)
+  })
+
   it('does not accept identity from the manifest in place of membership tenant', async () => {
     await expect(getMerchantFactoryDryRun({
       actor, proposal: { ...manifest, merchantSlug: 'tenant-b' },
