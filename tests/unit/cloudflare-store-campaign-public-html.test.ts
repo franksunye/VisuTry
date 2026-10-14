@@ -66,7 +66,7 @@ describe('Store/Campaign public HTML edge gate', () => {
     expect(storeCampaignPublicHtmlCacheKey(request('/en/store/luna-optical?utm_source=guide')).url).toBe('https://www.visutry.com/en/store/luna-optical')
   })
 
-  it('models archived Campaign stale-HIT exposure if purge fails, then exact-tag purge isolates Store and closes the Guest route', async () => {
+  it('models archived Campaign stale ACTIVE content without purge, then updates historical Guest HTML on exact-tag eviction', async () => {
     const storePath = '/en/store/luna-optical'
     const campaignPath = '/en/c/luna-optical/petite-fit'
     const stored = new Map<string, Response>()
@@ -76,12 +76,13 @@ describe('Store/Campaign public HTML edge gate', () => {
         stored.set(key.url, response)
       }),
     }
-    const active = new Set([storePath, campaignPath])
+    let campaignLifecycle: 'ACTIVE' | 'ARCHIVED' = 'ACTIVE'
     const fetchOrigin = jest.fn(async (input: Request) => {
       const pathname = new URL(input.url).pathname
-      return active.has(pathname)
-        ? new Response(`<html>ACTIVE: ${pathname}</html>`, { status: 200, headers: { 'content-type': 'text/html' } })
-        : new Response('not found', { status: 404, headers: { 'content-type': 'text/html' } })
+      return new Response(pathname === campaignPath
+        ? `<html><head><meta name="robots" content="${campaignLifecycle === 'ARCHIVED' ? 'noindex,follow' : 'index,follow'}"></head><body>${campaignLifecycle}: ${pathname}</body></html>`
+        : `<html>ACTIVE: ${pathname}</html>`,
+      { status: 200, headers: { 'content-type': 'text/html' } })
     })
     const runtime = { cache, fetchOrigin }
     const policy = {
@@ -101,12 +102,12 @@ describe('Store/Campaign public HTML edge gate', () => {
 
     // The canonical DB/route-admission archive has happened, but a failed
     // post-commit edge purge still leaves the earlier 200 in the Worker cache.
-    active.delete(campaignPath)
+    campaignLifecycle = 'ARCHIVED'
     const unsafeCached = await handlePublicHtmlOffload(request(campaignPath), runtime, policy)
     expect(unsafeCached.status).toBe('HIT')
     expect(unsafeCached.response.status).toBe(200)
     expect(await unsafeCached.response.text()).toContain('ACTIVE:')
-    expect(fetchOrigin).toHaveBeenCalledTimes(2) // cache HIT never rechecks origin
+    expect(fetchOrigin).toHaveBeenCalledTimes(2) // stale cache HIT does not recheck the now-historical origin
 
     // Simulate an acknowledged Cloudflare purge of exactly that Cache-Tag.
     // This is an in-memory behavioral model, NOT live Cloudflare purge proof.
@@ -115,9 +116,10 @@ describe('Store/Campaign public HTML edge gate', () => {
     }
 
     const archivedGuest = await handlePublicHtmlOffload(request(campaignPath), runtime, policy)
-    expect(archivedGuest.status).toBe('BYPASS')
-    expect(archivedGuest.response.status).toBe(404)
-    expect(stored.has(storeCampaignPublicHtmlCacheKey(request(campaignPath)).url)).toBe(false)
+    expect(archivedGuest.status).toBe('MISS')
+    expect(archivedGuest.response.status).toBe(200)
+    expect(await archivedGuest.response.text()).toContain('<meta name="robots" content="noindex,follow">')
+    expect(stored.get(storeCampaignPublicHtmlCacheKey(request(campaignPath)).url)?.headers.get('Cache-Tag')).toBe(campaignTag)
     const unrelatedStore = await handlePublicHtmlOffload(request(storePath), runtime, policy)
     expect(unrelatedStore.status).toBe('HIT')
     expect(unrelatedStore.response.status).toBe(200)
