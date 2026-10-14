@@ -103,6 +103,7 @@ describe('public route admission', () => {
         makeExperience({ type: 'STORE', slug: 'store', status: 'ACTIVE' }),
         makeExperience({ slug: 'active-campaign', status: 'ACTIVE' }),
         makeExperience({ slug: 'ended-campaign', status: 'ENDED' }),
+        makeExperience({ slug: 'archived-campaign', status: 'ARCHIVED' }),
         makeExperience({ slug: 'draft-campaign', status: 'DRAFT' }),
       ]),
       makeMerchant([], { slug: 'inactive-merchant', status: 'INACTIVE' }),
@@ -111,7 +112,7 @@ describe('public route admission', () => {
     expect(index).toEqual({
       'merchant-a': {
         store: true,
-        campaigns: ['active-campaign', 'ended-campaign'],
+        campaigns: ['active-campaign', 'ended-campaign', 'archived-campaign'],
       },
     })
   })
