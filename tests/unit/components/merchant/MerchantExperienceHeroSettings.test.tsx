@@ -1,29 +1,103 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MerchantExperienceHeroSettings } from '@/components/merchant/MerchantExperienceHeroSettings'
-
-describe('Merchant hero Owner reference identity', () => {
-  it('exposes the exact Owner-editable Experience id without a second API request', () => {
-    // The Store workspace already provides the canonical store.id. Keeping this
-    // reference in the private Owner DOM allows a safe read-only comparison with
-    // anonymous discovery when the browser blocks direct API navigation.
-    const priorFetch = global.fetch
-    const fetchSpy = jest.fn(() => new Promise<Response>(() => {}))
-    global.fetch = fetchSpy
-    try {
-      render(<MerchantExperienceHeroSettings
-        merchantId="merchant-demo"
-        experienceId="experience-active-demo"
-        title="Demo Store"
-        summary={null}
-      />)
-      expect(screen.getByTestId('experience-hero-settings')).toHaveAttribute('data-experience-id', 'experience-active-demo')
-      expect(fetchSpy).toHaveBeenCalledWith(
-        '/api/merchant/merchant-demo/brand/hero?experienceId=experience-active-demo',
-        { cache: 'no-store' },
-      )
-      expect(screen.getByRole('button', { name: 'Save hero' })).toBeDisabled()
-    } finally {
-      global.fetch = priorFetch
-    }
+const endpoint = '/api/merchant/merchant-a/brand'
+function mockGet(status: string, canEdit = true, heroAssetUrl: string | null = null) {
+  const calls: Array<{url:string;init:RequestInit | undefined}> = []
+  let persistedHeroUrl = heroAssetUrl
+  global.fetch = jest.fn((url: string, init?: RequestInit) => {
+    calls.push({ url, init })
+    return Promise.resolve({
+      ok: true,
+      json: async () => {
+        if (init?.method === 'PATCH') {
+          persistedHeroUrl = null
+          return { success: true, data: { heroAssetUrl: null } }
+        }
+        if (init?.method === 'POST') {
+          persistedHeroUrl = 'https://a.public.blob.vercel-storage.com/merchant-brand/merchant-a/hero/experience-a/abc.png'
+          return { success: true, data: { url: persistedHeroUrl } }
+        }
+        return { success: true, data: { status, canEdit, heroAssetUrl: persistedHeroUrl } }
+      },
+    })
+  }) as jest.Mock
+  return calls
+}
+const props = { merchantId: 'merchant-a', experienceId: 'experience-a', title: 'Everyday Edit', summary: 'Curated frames' }
+describe('Merchant Hero edit UX', () => {
+  beforeEach(() => {
+    URL.createObjectURL = jest.fn(() => 'blob:local-hero-preview')
+    URL.revokeObjectURL = jest.fn()
+  })
+  it('requires live confirmation before uploading a new hero and previews the actual file', async () => {
+    const calls = mockGet('ACTIVE')
+    render(<MerchantExperienceHeroSettings {...props} />)
+    const input = screen.getByLabelText('Upload your hero')
+    await waitFor(() => expect(input).not.toBeDisabled())
+    fireEvent.change(input, { target: { files: [new File(['img'], 'hero.png', { type: 'image/png' })] } })
+    expect(screen.getByTestId('hero-unsaved-visual-preview')).toHaveTextContent('Everyday Edit')
+    fireEvent.click(screen.getByRole('button', { name: 'Save hero' }))
+    expect(calls.every(c => c.init?.method !== 'POST')).toBe(true)
+    fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Apply to live Experience' }))
+    await waitFor(() => expect(calls.some(c => c.init?.method === 'POST')).toBe(true))
+    const request = calls.find(c => c.init?.method === 'POST')!
+    expect(request.url).toBe(endpoint + '/media')
+    const form = request.init?.body as FormData
+    expect(form.get('kind')).toBe('hero')
+    expect(form.get('experienceId')).toBe('experience-a')
+    expect(form.get('approvedLiveChange')).toBe('true')
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(
+      'Hero saved in Merchant settings. Verify the public shopper page',
+    ))
+    expect(calls.filter(call => !call.init?.method)).toHaveLength(2)
+  })
+  it('warns on save acknowledgment without matching canonical Hero readback', async () => {
+    const calls = mockGet('ACTIVE')
+    const realFetch = global.fetch as jest.Mock
+    let getCount = 0
+    global.fetch = jest.fn((url: string, init?: RequestInit) => {
+      if (!init?.method) {
+        getCount++
+        if (getCount === 2) return Promise.resolve({
+          ok: true, json: async () => ({ success: true, data: { heroAssetUrl: null } }),
+        })
+      }
+      return realFetch(url, init)
+    }) as jest.Mock
+    render(<MerchantExperienceHeroSettings {...props} />)
+    const input = screen.getByLabelText('Upload your hero')
+    await waitFor(() => expect(input).not.toBeDisabled())
+    fireEvent.change(input, { target: { files: [new File(['img'], 'hero.png', { type: 'image/png' })] } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save hero' }))
+    fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Apply to live Experience' }))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('saved value differs'))
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(calls.some(call => call.init?.method === 'POST')).toBe(true)
+  })
+  it('uses canonical reset PATCH for a private Draft without confirmation', async () => {
+    const calls = mockGet('DRAFT', true, 'https://a.public.blob.vercel-storage.com/merchant-brand/merchant-a/hero/experience-a/abc.png')
+    render(<MerchantExperienceHeroSettings {...props} />)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Use default' })).not.toBeDisabled())
+    fireEvent.click(screen.getByRole('button', { name: 'Use default' }))
+    await waitFor(() => expect(calls.some(c => c.init?.method === 'PATCH')).toBe(true))
+    const request = calls.find(c => c.init?.method === 'PATCH')!
+    expect(JSON.parse(request.init?.body as string)).toEqual({ experienceId: 'experience-a', heroAssetUrl: null, approvedLiveChange: false })
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+  })
+  it('fails closed for a non-owner and disables hero mutations', async () => {
+    const calls = mockGet('ACTIVE', false)
+    render(<MerchantExperienceHeroSettings {...props} />)
+    await waitFor(() => expect(screen.getByText('An Owner can edit this Experience hero.')).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Save hero' })).toBeDisabled()
+    expect(calls.every(c => !c.init?.method)).toBe(true)
+  })
+  it('exposes the exact editable Experience ID for scoped Owner/public read-only comparison', async () => {
+    const calls = mockGet('ACTIVE')
+    render(<MerchantExperienceHeroSettings {...props} />)
+    await waitFor(() => expect(screen.getByTestId('experience-hero-settings')).toHaveAttribute(
+      'data-experience-id', 'experience-a',
+    ))
+    expect(calls[0]?.url).toBe(`${endpoint}/hero?experienceId=experience-a`)
+    expect(calls.every(call => !call.init?.method)).toBe(true)
   })
 })
