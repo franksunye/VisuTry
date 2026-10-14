@@ -65,4 +65,62 @@ describe('Store/Campaign public HTML edge gate', () => {
     expect(storedResponse.headers.get('Cache-Tag')).toBe('visutry:public-html:store:en:luna-optical')
     expect(storeCampaignPublicHtmlCacheKey(request('/en/store/luna-optical?utm_source=guide')).url).toBe('https://www.visutry.com/en/store/luna-optical')
   })
+
+  it('models archived Campaign stale-HIT exposure if purge fails, then exact-tag purge isolates Store and closes the Guest route', async () => {
+    const storePath = '/en/store/luna-optical'
+    const campaignPath = '/en/c/luna-optical/petite-fit'
+    const stored = new Map<string, Response>()
+    const cache = {
+      match: jest.fn(async (key: Request) => stored.get(key.url)),
+      put: jest.fn(async (key: Request, response: Response) => {
+        stored.set(key.url, response)
+      }),
+    }
+    const active = new Set([storePath, campaignPath])
+    const fetchOrigin = jest.fn(async (input: Request) => {
+      const pathname = new URL(input.url).pathname
+      return active.has(pathname)
+        ? new Response(`<html>ACTIVE: ${pathname}</html>`, { status: 200, headers: { 'content-type': 'text/html' } })
+        : new Response('not found', { status: 404, headers: { 'content-type': 'text/html' } })
+    })
+    const runtime = { cache, fetchOrigin }
+    const policy = {
+      isEligible: isStoreCampaignPublicHtmlEligible,
+      cacheKey: storeCampaignPublicHtmlCacheKey,
+      cacheTag: storeCampaignPublicHtmlCacheTag,
+      ttlSeconds: 3600,
+    }
+
+    // Two independent public identities enter Cache API with canonical tags.
+    expect((await handlePublicHtmlOffload(request(storePath), runtime, policy)).status).toBe('MISS')
+    expect((await handlePublicHtmlOffload(request(campaignPath), runtime, policy)).status).toBe('MISS')
+    expect(stored.get(storeCampaignPublicHtmlCacheKey(request(storePath)).url)?.headers.get('Cache-Tag'))
+      .toBe('visutry:public-html:store:en:luna-optical')
+    const campaignTag = storeCampaignPublicHtmlCacheTag(request(campaignPath))
+    expect(campaignTag).toBe('visutry:public-html:campaign:en:luna-optical:petite-fit')
+
+    // The canonical DB/route-admission archive has happened, but a failed
+    // post-commit edge purge still leaves the earlier 200 in the Worker cache.
+    active.delete(campaignPath)
+    const unsafeCached = await handlePublicHtmlOffload(request(campaignPath), runtime, policy)
+    expect(unsafeCached.status).toBe('HIT')
+    expect(unsafeCached.response.status).toBe(200)
+    expect(await unsafeCached.response.text()).toContain('ACTIVE:')
+    expect(fetchOrigin).toHaveBeenCalledTimes(2) // cache HIT never rechecks origin
+
+    // Simulate an acknowledged Cloudflare purge of exactly that Cache-Tag.
+    // This is an in-memory behavioral model, NOT live Cloudflare purge proof.
+    for (const [key, response] of stored) {
+      if (response.headers.get('Cache-Tag') === campaignTag) stored.delete(key)
+    }
+
+    const archivedGuest = await handlePublicHtmlOffload(request(campaignPath), runtime, policy)
+    expect(archivedGuest.status).toBe('BYPASS')
+    expect(archivedGuest.response.status).toBe(404)
+    expect(stored.has(storeCampaignPublicHtmlCacheKey(request(campaignPath)).url)).toBe(false)
+    const unrelatedStore = await handlePublicHtmlOffload(request(storePath), runtime, policy)
+    expect(unrelatedStore.status).toBe('HIT')
+    expect(unrelatedStore.response.status).toBe(200)
+    expect(fetchOrigin).toHaveBeenCalledTimes(3)
+  })
 })
