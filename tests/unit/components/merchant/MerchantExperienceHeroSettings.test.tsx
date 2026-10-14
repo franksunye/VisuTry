@@ -6,7 +6,9 @@ describe('Merchant hero Owner reference identity', () => {
     // The Store workspace already provides the canonical store.id. Keeping this
     // reference in the private Owner DOM allows a safe read-only comparison with
     // anonymous discovery when the browser blocks direct API navigation.
-    const fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(() => new Promise(() => {}))
+    const priorFetch = global.fetch
+    const fetchSpy = jest.fn(() => new Promise<Response>(() => {}))
+    global.fetch = fetchSpy
     try {
       render(<MerchantExperienceHeroSettings
         merchantId="merchant-demo"
@@ -21,7 +23,7 @@ describe('Merchant hero Owner reference identity', () => {
       )
       expect(screen.getByRole('button', { name: 'Save hero' })).toBeDisabled()
     } finally {
-      fetchSpy.mockRestore()
+      global.fetch = priorFetch
     }
   })
 })
