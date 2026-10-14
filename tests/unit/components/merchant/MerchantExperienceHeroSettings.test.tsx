@@ -91,4 +91,13 @@ describe('Merchant Hero edit UX', () => {
     expect(screen.getByRole('button', { name: 'Save hero' })).toBeDisabled()
     expect(calls.every(c => !c.init?.method)).toBe(true)
   })
+  it('exposes the exact editable Experience ID for scoped Owner/public read-only comparison', async () => {
+    const calls = mockGet('ACTIVE')
+    render(<MerchantExperienceHeroSettings {...props} />)
+    await waitFor(() => expect(screen.getByTestId('experience-hero-settings')).toHaveAttribute(
+      'data-experience-id', 'experience-a',
+    ))
+    expect(calls[0]?.url).toBe(`${endpoint}/hero?experienceId=experience-a`)
+    expect(calls.every(call => !call.init?.method)).toBe(true)
+  })
 })

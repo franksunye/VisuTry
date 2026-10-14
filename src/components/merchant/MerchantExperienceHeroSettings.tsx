@@ -96,7 +96,7 @@ export function MerchantExperienceHeroSettings({
   }
 
   const imageUrl = previewUrl || savedUrl
-  return <section aria-label="Experience hero media" data-testid="experience-hero-settings" className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
+  return <section aria-label="Experience hero media" data-testid="experience-hero-settings" data-experience-id={experienceId} className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div><h3 className="font-semibold text-slate-950">Hero image</h3><p className="mt-1 text-xs leading-5 text-slate-600">This image belongs only to this Store or Campaign. Recommended: landscape 16:9, PNG/JPEG/static WebP, max 4 MB. Uploading replaces the visible hero after approval.</p></div>
       <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{status === 'ACTIVE' ? 'Live' : status === 'DRAFT' ? 'Private Draft' : status === 'LOADING' ? 'Loading' : 'Read only'}</span>
