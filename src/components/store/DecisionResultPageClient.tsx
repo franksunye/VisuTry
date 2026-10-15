@@ -9,6 +9,8 @@ import type { DecisionResultView } from '@/modules/store/application/decision-re
 import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
 import { publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
 import { brandAccentForDisplay } from '@/modules/merchant/domain/merchant-brand-kit'
+import { isArchivedCampaignExperience } from '@/modules/store/domain/experience'
+import { createMerchantContinuation, merchantRuntimeContinuationStorageKey } from '@/lib/commerce-handoff/merchant-continuation'
 
 function formatExpiry(value: string, locale: string): string {
   const date = new Date(value)
@@ -59,13 +61,15 @@ function DecisionResultFrameThumbnail({ imageUrl: rawImageUrl, name }: { imageUr
   )
 }
 
-export function DecisionResultPageClient({ locale, token, result, kioskMode = false }: { locale: string; token: string; result: DecisionResultView; kioskMode?: boolean }) {
+export function DecisionResultPageClient({ locale, token, result, kioskMode = false, archivedCampaignCopy, hasActivePublicStore = false }: { locale: string; token: string; result: DecisionResultView; kioskMode?: boolean; archivedCampaignCopy?: { title: string; body: string; storeLink: string }; hasActivePublicStore?: boolean }) {
   const [copied, setCopied] = useState(false)
   const [shareError, setShareError] = useState<string | null>(null)
   const [resetting, setResetting] = useState(false)
   const [resetError, setResetError] = useState<string | null>(null)
   const resetInFlight = useRef(false)
   const resultExperience = result.experience
+  const archivedCampaign = isArchivedCampaignExperience(resultExperience)
+  const kioskActionsEnabled = kioskMode
   const resultPath = `/${locale}/result/${encodeURIComponent(token)}`
   const accentColor = resolveAccentColor(result.merchant.accentColor)
   const experienceLabel = shopperExperienceLabel(resultExperience?.name)
@@ -117,34 +121,52 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
     }
   }
 
-  const startNewShopper = useCallback(async () => {
-    if (!kioskMode || resetInFlight.current) return
+  const clearKioskClientState = useCallback(() => {
+    try {
+      sessionStorage.removeItem(`vt_store_session:${result.merchant.slug}:${resultExperience?.type === 'CAMPAIGN' ? resultExperience.slug : 'store'}`)
+      const continuation = createMerchantContinuation({
+        locale,
+        merchantSlug: result.merchant.slug,
+        experienceType: resultExperience?.type === 'CAMPAIGN' ? 'CAMPAIGN' : 'STORE',
+        experienceSlug: resultExperience?.type === 'CAMPAIGN' ? resultExperience.slug : undefined,
+      })
+      if (continuation) sessionStorage.removeItem(merchantRuntimeContinuationStorageKey(continuation))
+    } catch {
+      // Browser storage can be unavailable. Server capability removal remains authoritative.
+    }
+  }, [locale, result.merchant.slug, resultExperience])
+
+  const resetKiosk = useCallback(async (reason: 'manual' | 'idle') => {
+    if (!kioskActionsEnabled || resetInFlight.current) return
     resetInFlight.current = true
     setResetting(true)
     setResetError(null)
+    // Blank the Kiosk's resumable state before any network operation. If the
+    // server cannot confirm deletion, keep the private Result hidden.
+    clearKioskClientState()
     try {
       const response = await fetch(`/api/store/results/${encodeURIComponent(token)}/kiosk-reset`, { method: 'POST', cache: 'no-store' })
       if (!response.ok) throw new Error('The kiosk reset could not be confirmed.')
-      const experiencePath = result.experience?.type === 'CAMPAIGN'
-        ? `/${locale}/c/${encodeURIComponent(result.merchant.slug)}/${encodeURIComponent(result.experience.slug)}/kiosk`
+      const experiencePath = resultExperience?.type === 'CAMPAIGN'
+        ? `/${locale}/c/${encodeURIComponent(result.merchant.slug)}/${encodeURIComponent(resultExperience.slug)}${archivedCampaign ? '' : '/kiosk'}`
         : `/${locale}/store/${encodeURIComponent(result.merchant.slug)}/kiosk`
       const nextUrl = new URL(experiencePath, window.location.origin)
       nextUrl.searchParams.set('kioskReset', `${Date.now()}-${Math.random().toString(36).slice(2)}`)
-      nextUrl.searchParams.set('kioskResetReason', 'manual')
+      nextUrl.searchParams.set('kioskResetReason', reason)
       window.location.replace(`${nextUrl.pathname}${nextUrl.search}`)
     } catch {
       setResetError('The secure reset could not be confirmed. Keep this screen private and retry before the next shopper.')
       setResetting(false)
       resetInFlight.current = false
     }
-  }, [kioskMode, locale, result.experience, result.merchant.slug, token])
+  }, [archivedCampaign, clearKioskClientState, kioskActionsEnabled, locale, resultExperience, result.merchant.slug, token])
 
   useEffect(() => {
-    if (!kioskMode) return
+    if (!kioskActionsEnabled || resetError || resetting) return
     let timer = 0
     const arm = () => {
       window.clearTimeout(timer)
-      timer = window.setTimeout(() => { void startNewShopper() }, (result.experience?.deliveryPolicy.kioskIdleTimeoutSeconds ?? 120) * 1000)
+      timer = window.setTimeout(() => { void resetKiosk('idle') }, (resultExperience?.deliveryPolicy.kioskIdleTimeoutSeconds ?? 120) * 1000)
     }
     const activityEvents = ['pointerdown', 'touchstart', 'keydown'] as const
     arm()
@@ -153,7 +175,17 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
       window.clearTimeout(timer)
       activityEvents.forEach((name) => window.removeEventListener(name, arm))
     }
-  }, [kioskMode, result.experience?.deliveryPolicy.kioskIdleTimeoutSeconds, startNewShopper])
+  }, [kioskActionsEnabled, resetError, resetting, resultExperience?.deliveryPolicy.kioskIdleTimeoutSeconds, resetKiosk])
+
+  if (resetError || resetting) return (
+    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
+      <section role={resetError ? 'alert' : 'status'} className="w-full max-w-md rounded-2xl border border-rose-300/30 bg-slate-900 p-6">
+        <h1 className="text-xl font-semibold">{resetError ? 'Kiosk privacy reset pending' : 'Clearing this shopper'}</h1>
+        <p className="mt-3 text-sm leading-6 text-slate-200">{resetError ?? 'Private shopper content is hidden while the secure reset completes.'}</p>
+        {resetError ? <button type="button" onClick={() => void resetKiosk('manual')} className="mt-5 min-h-11 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950">Retry secure clear</button> : null}
+      </section>
+    </main>
+  )
 
   return (
     <main className="min-h-screen bg-[#f7f8fb] px-4 py-5 text-slate-950 sm:px-8 sm:py-10" style={{ borderTop: `4px solid ${accentColor}` }}>
@@ -175,10 +207,16 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-xs text-slate-300"><ShieldCheck className="h-4 w-4 text-cyan-300" aria-hidden="true" /> Private link · expires {formatExpiry(result.expiresAt, locale)}</div>
-              {kioskMode ? <button type="button" onClick={() => void startNewShopper()} disabled={resetting} className="min-h-12 touch-manipulation rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-60">{resetting ? 'Resetting…' : 'New shopper'}</button> : null}
+              {kioskActionsEnabled ? <button type="button" onClick={() => void resetKiosk('manual')} disabled={resetting} className="min-h-12 touch-manipulation rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-60">{resetting ? 'Clearing…' : archivedCampaign ? 'Clear this shopper' : 'New shopper'}</button> : null}
             </div>
           </div>
         </header>
+        {archivedCampaign ? (
+          <p role="status" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700">
+            <strong>{archivedCampaignCopy?.title ?? 'Campaign ended'}</strong>. {archivedCampaignCopy?.body ?? 'This private result remains available.'}{' '}
+            {hasActivePublicStore ? <a href={`/${locale}/store/${encodeURIComponent(result.merchant.slug)}`} className="font-semibold text-blue-700 underline underline-offset-2">{archivedCampaignCopy?.storeLink ?? 'Visit the current Store'}</a> : null}
+          </p>
+        ) : null}
         {resetError ? <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">{resetError}</p> : null}
 
         <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-6">
@@ -211,7 +249,7 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
                         </div>
                       </div>
                       {frame.reason ? <p className="mt-3 text-sm leading-5 text-slate-600">{frame.reason}</p> : null}
-                      {frame.productUrl ? <a href={frame.productUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-9 items-center gap-1 text-sm font-semibold text-blue-700">View product <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /></a> : null}
+                      {!archivedCampaign && frame.productUrl ? <a href={frame.productUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-9 items-center gap-1 text-sm font-semibold text-blue-700">View product <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /></a> : null}
                     </article>
                   ))}
                 </div>
@@ -221,7 +259,7 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Shortlist</p>
                 <h2 id="result-empty-heading" className="mt-2 font-serif text-2xl font-semibold">Your result is not available</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">We could not find product recommendations in this private result. Return to the experience to start again.</p>
-                <a href={publicExperiencePath} className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white">Return to the experience</a>
+                {!archivedCampaign ? <a href={publicExperiencePath} className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white">Return to the experience</a> : null}
               </section>
             ) : null}
 
@@ -238,7 +276,7 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
                       )}
                       <figcaption className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
                         <span className="min-w-0"><span className="block break-words font-semibold">{item.name || 'Selected frame'}</span>{item.disclosure ? <span className="mt-1 block text-xs font-medium text-slate-600">{item.disclosure === 'LOCAL_QA_FIXTURE' ? 'Test asset · not a shopper Try-On image' : 'Prepared demonstration result'}</span> : null}</span>
-                        {item.productUrl ? <a href={item.productUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-blue-700">Shop frame</a> : null}
+                        {!archivedCampaign && item.productUrl ? <a href={item.productUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-blue-700">Shop frame</a> : null}
                       </figcaption>
                     </figure>
                   ))}
@@ -254,7 +292,7 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
                   <article key={frame.frameId} className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3">
                     <DecisionResultFrameThumbnail imageUrl={frame.imageUrl} name={frame.name} />
                     <div className="min-w-0 flex-1"><p className="break-words font-semibold">{frame.name}</p>
-                      {frame.productUrl ? <a href={frame.productUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex min-h-9 items-center gap-1 text-sm font-semibold text-blue-700">View product <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /></a> : null}
+                      {!archivedCampaign && frame.productUrl ? <a href={frame.productUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex min-h-9 items-center gap-1 text-sm font-semibold text-blue-700">View product <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /></a> : null}
                     </div>
                   </article>
                 ))}</div> : <p className="mt-2 text-sm leading-6 text-slate-600">These frames are no longer available. Browse the experience for current styles.</p>}
@@ -280,7 +318,7 @@ export function DecisionResultPageClient({ locale, token, result, kioskMode = fa
               </div>
             </section>
 
-            {resultExperience?.primaryCta || resultExperience?.secondaryCta ? (
+            {!archivedCampaign && (resultExperience?.primaryCta || resultExperience?.secondaryCta) ? (
               <section className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm sm:rounded-[2rem]">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Next step</p>
                 <div className="mt-4 space-y-3">

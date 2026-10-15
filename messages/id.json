@@ -761,6 +761,7 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Temukan bingkai yang cocok — lalu coba secara virtual.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "archivedCampaign": { "title": "Kampanye telah berakhir", "body": "Kampanye ini telah berakhir. Anda masih dapat melihat bingkai pilihan di bawah.", "storeLink": "Kunjungi Store saat ini" },
     "experience": {
       "storeLabel": "Koleksi pilihan",
       "campaignLabel": "Pilihan kurasi",

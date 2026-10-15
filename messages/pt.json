@@ -761,6 +761,7 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Find frames that suit you — then try them on.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "archivedCampaign": { "title": "Campanha encerrada", "body": "Esta campanha foi encerrada. Você ainda pode ver as armações selecionadas abaixo.", "storeLink": "Visitar a loja atual" },
     "experience": {
       "storeLabel": "Coleção selecionada",
       "campaignLabel": "A seleção",

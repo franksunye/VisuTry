@@ -103,4 +103,23 @@ describe('Merchant Handoff contract', () => {
     expect(appendIdempotent.mock.calls[1][0].eventId).toBe(appendIdempotent.mock.calls[0][0].eventId)
     await expect(recordMerchantHandoff({ ...input, action: 'EMAIL' })).rejects.toMatchObject({ code: 'VALIDATION_ERROR' })
   })
+
+  it('rejects new Campaign handoffs after archive without writing an event', async () => {
+    const appendIdempotent = jest.fn()
+    const input = {
+      merchants: { findPublicBySlug: jest.fn().mockResolvedValue({ id: 'merchant-1', status: 'ACTIVE' }) } as never,
+      experiences: { findPublicCampaignByMerchantAndSlug: jest.fn().mockResolvedValue({
+        id: 'campaign-1', merchantId: 'merchant-1', slug: 'spring-edit', type: 'CAMPAIGN', status: 'ARCHIVED',
+        primaryCtaType: 'LINK', primaryCtaLabel: 'Visit', primaryCtaUrl: 'https://shop.example/',
+        secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null,
+      }) } as never,
+      events: { appendIdempotent } as never,
+      merchantSlug: 'merchant', experienceSlug: 'spring-edit', experienceType: 'CAMPAIGN' as const,
+      action: 'CUSTOM_LINK' as const, surface: 'DISCOVERY' as const,
+      clientActionId: 'b2c14fe1-8544-4f4c-9a63-a0f8ca5e7060',
+    }
+
+    await expect(recordMerchantHandoff(input)).rejects.toMatchObject({ code: 'CAPABILITY_DISABLED', httpStatus: 409 })
+    expect(appendIdempotent).not.toHaveBeenCalled()
+  })
 })

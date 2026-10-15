@@ -9,6 +9,7 @@ import {
 import type { StoreAssetAccessMode } from '../domain/enums'
 import type { AssetStore } from './ports/asset-store'
 import type {
+  ExperienceRepository,
   MerchantEventRepository,
   MerchantRepository,
   MerchantSessionRepository,
@@ -17,6 +18,7 @@ import { requireOperableStoreSession } from './require-store-session'
 
 export type UploadShopperPhotoInput = {
   merchants: MerchantRepository
+  experiences?: ExperienceRepository
   sessions: MerchantSessionRepository
   events: MerchantEventRepository
   assets: AssetStore
@@ -69,6 +71,8 @@ export async function uploadShopperPhoto(
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
+    requireShopperActions: true,
+    experiences: input.experiences,
   })
 
   const extension = extensionForType(input.file.type)

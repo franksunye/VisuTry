@@ -7,6 +7,8 @@ import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/applicatio
 import { publicMerchantFromDiscovery } from '@/modules/store/application/get-public-merchant'
 import { isPublicCampaignRouteAdmitted, isPublicStoreRouteAdmitted } from '@/modules/store/application/public-route-admission'
 import { getValidLocale } from '@/i18n'
+import { ExperienceDiscoveryContent } from '@/components/store/ExperienceDiscoveryContent'
+import { getTranslations } from 'next-intl/server'
 
 export async function MerchantKioskRoute({
   locale: requestedLocale,
@@ -25,7 +27,22 @@ export async function MerchantKioskRoute({
   if (!admitted) notFound()
 
   const discovery = await getPublicExperienceDiscoveryForRoute(merchantSlug, experienceSlug ?? null, locale)
-  if (!discovery || !discovery.experience.deliveryPolicy.kioskEnabled) notFound()
+  if (!discovery) notFound()
+
+  if (discovery.experience.status === 'ARCHIVED' && experienceSlug) {
+    const archivedCampaignCopy = await getTranslations({ locale, namespace: 'storeShopper.archivedCampaign' })
+    return <ExperienceDiscoveryContent
+      discovery={discovery}
+      locale={locale}
+      pathname={`/${locale}/c/${merchantSlug}/${experienceSlug}/kiosk`}
+      archivedCampaignCopy={{
+        title: archivedCampaignCopy('title'),
+        body: archivedCampaignCopy('body'),
+        storeLink: archivedCampaignCopy('storeLink'),
+      }}
+    />
+  }
+  if (!discovery.experience.deliveryPolicy.kioskEnabled) notFound()
 
   const assetPolicy = resolveStoreAssetAccessPolicy()
   return (

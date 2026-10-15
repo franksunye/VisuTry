@@ -12,6 +12,13 @@ export function isExperienceAvailable(status: ExperienceStatus): boolean {
   return status === 'ACTIVE'
 }
 
+export function isArchivedCampaignExperience(experience: {
+  type: ExperienceType
+  status: ExperienceStatus
+} | null | undefined): boolean {
+  return experience?.type === 'CAMPAIGN' && experience.status === 'ARCHIVED'
+}
+
 export function experienceContainsFrame(experience: { frameIds: string[] }, frameId: string): boolean {
   return experience.frameIds.includes(frameId)
 }

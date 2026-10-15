@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ExperienceDiscoveryContent } from '@/components/store/ExperienceDiscoveryContent'
 import { InteractiveCommerceLauncher } from '@/components/store/InteractiveCommerceLauncher'
 import { StorePresentationDisclosure } from '@/components/store/StorePresentationDisclosure'
@@ -70,28 +70,38 @@ export default async function CampaignExperiencePage({ params }: CampaignExperie
   if (!admitted) notFound()
   const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, params.experienceSlug, locale)
   if (!discovery) notFound()
+  const archivedCampaignCopy = discovery.experience.status === 'ARCHIVED'
+    ? await getTranslations({ locale, namespace: 'storeShopper.archivedCampaign' })
+    : undefined
   const assetPolicy = resolveStoreAssetAccessPolicy()
   return <div>
     <ExperienceDiscoveryContent
       discovery={discovery}
       locale={locale}
       pathname={`/${locale}/c/${params.merchantSlug}/${params.experienceSlug}`}
+      archivedCampaignCopy={archivedCampaignCopy ? {
+        title: archivedCampaignCopy('title'),
+        body: archivedCampaignCopy('body'),
+        storeLink: archivedCampaignCopy('storeLink'),
+      } : undefined}
     />
-    <RouteMessagesProvider namespaces={['storeShopper']}>
-      <InteractiveCommerceLauncher
-          merchantSlug={params.merchantSlug}
-          experienceSlug={params.experienceSlug}
-          locale={locale}
-          publicPocStorage={assetPolicy.publicPoc}
-          generativeTryOnAvailable={discovery.merchant.generativeTryOnAvailable}
-          generativeTryOnUnavailableReason={discovery.merchant.generativeTryOnUnavailableReason}
-          initialPublicMerchant={publicMerchantFromDiscovery(discovery)}
-      />
-    </RouteMessagesProvider>
-    <div className="bg-[#f7f8fb] px-5 pb-8 sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-[1440px]">
-        <StorePresentationDisclosure referenceData={discovery.merchant.referenceData || discovery.experience.referenceData} />
+    {discovery.experience.status !== 'ARCHIVED' ? <>
+      <RouteMessagesProvider namespaces={['storeShopper']}>
+        <InteractiveCommerceLauncher
+            merchantSlug={params.merchantSlug}
+            experienceSlug={params.experienceSlug}
+            locale={locale}
+            publicPocStorage={assetPolicy.publicPoc}
+            generativeTryOnAvailable={discovery.merchant.generativeTryOnAvailable}
+            generativeTryOnUnavailableReason={discovery.merchant.generativeTryOnUnavailableReason}
+            initialPublicMerchant={publicMerchantFromDiscovery(discovery)}
+        />
+      </RouteMessagesProvider>
+      <div className="bg-[#f7f8fb] px-5 pb-8 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-[1440px]">
+          <StorePresentationDisclosure referenceData={discovery.merchant.referenceData || discovery.experience.referenceData} />
+        </div>
       </div>
-    </div>
+    </> : null}
   </div>
 }

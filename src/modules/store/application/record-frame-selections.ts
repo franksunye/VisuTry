@@ -49,6 +49,8 @@ export async function recordFrameSelections(
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
+    requireShopperActions: true,
+    experiences: input.experiences,
   })
   const experience = session.experienceId && input.experiences
     ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)

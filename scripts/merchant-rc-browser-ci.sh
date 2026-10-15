@@ -79,14 +79,21 @@ reset_own_disposable_db_for_next_scenario() {
 }
 started="$(date +%s)"
 run_scenario() {
-  local label="$1" flag="$2" file="$3" report="$4"
+  local label="$1" flag="$2" file="$3" report="$4" evidence_dir="${5:-}" evidence_env_name="${6:-ARCHIVED_CAMPAIGN_EVIDENCE_DIR}" strict="${7:-false}"
   echo "EXECUTING $label in Chromium; zero retries"
-  if env "$flag=1" PLAYWRIGHT_JSON_OUTPUT_FILE="$OUT/$report" \
-    ./node_modules/.bin/playwright test "$file" --project=chromium --workers=1 --retries=0 \
-      --reporter=json --output="$DIR/browser-output"; then
+  local -a scenario_env=("$flag=1" "PLAYWRIGHT_JSON_OUTPUT_FILE=$OUT/$report")
+  if [[ -n "$evidence_dir" ]]; then
+    mkdir -p "$evidence_dir"
+    scenario_env+=("$evidence_env_name=$evidence_dir")
+  fi
+  if env "${scenario_env[@]}" ./node_modules/.bin/playwright test "$file" --project=chromium --workers=1 --retries=0 \
+    --reporter=json --output="$DIR/browser-output"; then
     echo "$label process exit 0; ledger must still confirm PASS"
   else
     echo "$label process FAILED; ledger must mark BLOCKED" >&2
+    if [[ "$strict" == true ]]; then
+      return 1
+    fi
   fi
   [[ -s "$OUT/$report" ]] || echo '{"suites":[]}' > "$OUT/$report"
   # Reporter metadata only: no cookies, user data, screenshots or raw output.
@@ -106,11 +113,13 @@ NODE
 }
 run_scenario "First Value" P0_L1_LOCAL_MERCHANT_E2E tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts first.json
 reset_own_disposable_db_for_next_scenario
-run_scenario "Campaign" P1_M2_5_LOCAL_CAMPAIGN_E2E tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts campaign.json
+run_scenario "Campaign + archived historical read-only lifecycle" P1_M2_5_LOCAL_CAMPAIGN_E2E tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts campaign.json "$OUT/archive-campaign"
 reset_own_disposable_db_for_next_scenario
 run_scenario "Native Photo + Real Catalog" G1F_CATALOG_NATIVE_PHOTO_E2E tests/e2e/merchant-catalog-native-photo-local.spec.ts photo.json
 reset_own_disposable_db_for_next_scenario
 run_scenario "Unsafe URL -> CSV Real Catalog" G1F_REAL_CATALOG_CSV_E2E tests/e2e/merchant-catalog-csv-recovery-local.spec.ts csv.json
+reset_own_disposable_db_for_next_scenario
+run_scenario "Archived Campaign Kiosk privacy reset" ARCHIVED_CAMPAIGN_KIOSK_PRIVACY_E2E tests/e2e/archived-campaign-kiosk-privacy-local.spec.ts archived-kiosk.json "$OUT/archive-kiosk" ARCHIVED_CAMPAIGN_KIOSK_EVIDENCE_DIR true
 assert_marker
 set +e
 node scripts/merchant-release-scenario-ledger.mjs \
@@ -124,13 +133,13 @@ duration="$(($(date +%s)-started))"
 echo "Executed subset wall time: ${duration}s, ledger exit: $status"
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
   {
-    echo "### G1-F: four executed Merchant browser scenarios (NOT G2)"
+    echo "### G1-F: four foundation scenarios plus archived Kiosk privacy regression (NOT G2)"
     echo "Verified exact SHA: $(git rev-parse HEAD)"
     echo "Verified database marker: $EXPECTED"
     echo "Browser wall time: ${duration}s, mode MOCK, no production credentials"
     echo "Provider count/cost: reported zero only, NOT independently measured"
     echo "Ledger: $([[ $status -eq 0 ]] && echo PASS || echo BLOCKED)"
-    echo "Unexecuted: successful external URL intake, actual Blob, Kiosk, Result, Brand and complete G2 matrix"
+    echo "Unexecuted: successful external URL intake, actual Blob, full Brand validation and complete G2 matrix; Kiosk/Result coverage above is a scoped Local mock-media privacy regression"
   } >> "$GITHUB_STEP_SUMMARY"
 fi
 exit "$status"

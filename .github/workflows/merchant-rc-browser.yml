@@ -11,8 +11,16 @@ on:
       - 'tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts'
       - 'tests/e2e/merchant-catalog-native-photo-local.spec.ts'
       - 'tests/e2e/merchant-catalog-csv-recovery-local.spec.ts'
+      - 'tests/e2e/archived-campaign-kiosk-privacy-local.spec.ts'
       - 'src/components/merchant/**'
+      - 'src/components/store/**'
       - 'src/modules/merchant/**'
+      - 'src/modules/store/**'
+      - 'src/app/api/store/**'
+      - 'src/app/[locale]/(store)/**'
+      - 'messages/**'
+      - 'cloudflare-router/store-campaign-public-html.ts'
+      - 'tests/unit/cloudflare-store-campaign-public-html.test.ts'
 permissions:
   contents: read
 concurrency:
@@ -20,7 +28,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   executed-first-value-campaign:
-    name: Executed First Value + Campaign + Catalog + CSV (LOCAL/Mock)
+    name: Executed First Value + Campaign + Catalog + CSV + Archived Kiosk reset (LOCAL/Mock)
     runs-on: ubuntu-latest
     timeout-minutes: 28
     services:
@@ -72,11 +80,16 @@ jobs:
       - name: Execute Merchant scenarios and verify ledger
         shell: bash
         run: bash scripts/merchant-rc-browser-ci.sh
-      - name: Upload ledger only (no browser cookies or logs)
+      - name: Upload sanitized RC ledger and Campaign screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: merchant-rc-ledger-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .local/merchant-rc/evidence/ledger.json
+          name: merchant-rc-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .local/merchant-rc/evidence/ledger.json
+            .local/merchant-rc/evidence/archive-campaign/*.png
+            .local/merchant-rc/evidence/archive-campaign/README.md
+            .local/merchant-rc/evidence/archived-kiosk.json
+            .local/merchant-rc/evidence/archive-kiosk/*.png
           if-no-files-found: ignore
           retention-days: 3

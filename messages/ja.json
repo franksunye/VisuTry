@@ -780,6 +780,7 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Find frames that suit you — then try them on.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "archivedCampaign": { "title": "キャンペーンは終了しました", "body": "このキャンペーンは終了しました。選定されたフレームは引き続きご覧いただけます。", "storeLink": "現在のStoreを見る" },
     "experience": {
       "storeLabel": "厳選コレクション",
       "campaignLabel": "特集",

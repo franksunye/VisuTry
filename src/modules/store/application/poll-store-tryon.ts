@@ -70,6 +70,8 @@ export async function pollStoreFrameTryOn(
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
+    requireShopperActions: true,
+    experiences: input.experiences,
   })
 
   const owned = await prisma.tryOnTask.findFirst({

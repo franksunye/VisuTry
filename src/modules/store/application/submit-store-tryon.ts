@@ -517,6 +517,8 @@ export async function submitStoreFrameTryOn(
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
+    requireShopperActions: true,
+    experiences: input.experiences,
   })
   assertSameMerchantTenant(merchant.id, session.merchantId, 'session')
   const experience = session.experienceId && input.experiences

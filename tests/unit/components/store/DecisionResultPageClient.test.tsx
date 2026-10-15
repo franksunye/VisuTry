@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DecisionResultPageClient } from '@/components/store/DecisionResultPageClient'
 import type { DecisionResultView } from '@/modules/store/application/decision-result-service'
 import type { DecisionJourneyStage } from '@/modules/store/domain/decision-journey'
@@ -145,10 +145,97 @@ describe('DecisionResultPageClient journey and shopper presentation', () => {
     expect(screen.getByTestId('result-qr-continuation').className).not.toContain('hidden')
   })
 
+  it('keeps an archived Campaign Result private while permitting Kiosk-only clearing', async () => {
+    const result: DecisionResultView = {
+      ...baseResult,
+      experience: {
+        type: 'CAMPAIGN', status: 'ARCHIVED', slug: 'spring-edit', name: 'Spring edit',
+        primaryCta: { action: 'CUSTOM_LINK', label: 'Shop now', url: 'https://shop.example.test' },
+        secondaryCta: null,
+        deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 1 },
+      },
+      journey: { ...baseResult.journey, experienceType: 'CAMPAIGN' },
+    }
+    const originalFetch = Object.getOwnPropertyDescriptor(global, 'fetch')
+    const fetchSpy = jest.fn().mockResolvedValue({ ok: false })
+    Object.defineProperty(global, 'fetch', { configurable: true, writable: true, value: fetchSpy })
+    try {
+      render(<DecisionResultPageClient locale="en" token="opaque-result-token" result={result} kioskMode hasActivePublicStore archivedCampaignCopy={{ title: 'Campaign ended', body: 'This campaign has ended.', storeLink: 'Visit the current Store' }} />)
+
+      expect(screen.getByText(/This campaign has ended/)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Visit the current Store' })).toHaveAttribute('href', '/en/store/visutry-demo-optical')
+      expect(screen.getByRole('heading', { name: 'Your curated shortlist' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Completed looks' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Frames you compared' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument()
+      expect(screen.getByTestId('result-qr-continuation').className).not.toContain('hidden')
+      expect(screen.getByRole('button', { name: 'Clear this shopper' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'New shopper' })).not.toBeInTheDocument()
+      expect(screen.queryByText('Shop frame')).not.toBeInTheDocument()
+      expect(screen.queryByText('View product')).not.toBeInTheDocument()
+      expect(screen.queryByText('Next step')).not.toBeInTheDocument()
+
+      sessionStorage.setItem('vt_store_session:visutry-demo-optical:spring-edit', 'private shopper state')
+      fireEvent.click(screen.getByRole('button', { name: 'Clear this shopper' }))
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Kiosk privacy reset pending'))
+      expect(fetchSpy).toHaveBeenCalledWith('/api/store/results/opaque-result-token/kiosk-reset', { method: 'POST', cache: 'no-store' })
+      expect(sessionStorage.getItem('vt_store_session:visutry-demo-optical:spring-edit')).toBeNull()
+      expect(screen.queryByRole('heading', { name: 'Your curated shortlist' })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Retry secure clear' })).toBeInTheDocument()
+    } finally {
+      if (originalFetch) Object.defineProperty(global, 'fetch', originalFetch)
+      else delete (global as { fetch?: typeof fetch }).fetch
+    }
+  })
+
+  it('does not offer a dead Store link or Kiosk reset controls on the phone-only archived Result', () => {
+    const result: DecisionResultView = {
+      ...baseResult,
+      experience: {
+        type: 'CAMPAIGN', status: 'ARCHIVED', slug: 'spring-edit', name: 'Spring edit',
+        primaryCta: null, secondaryCta: null,
+        deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 },
+      },
+      journey: { ...baseResult.journey, experienceType: 'CAMPAIGN' },
+    }
+    render(<DecisionResultPageClient locale="en" token="opaque-result-token" result={result} />)
+    expect(screen.getByText(/Campaign ended/)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Visit the current Store' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Clear this shopper' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Your curated shortlist' })).toBeInTheDocument()
+  })
+
+  it('arms idle privacy cleanup for an archived Kiosk Result', async () => {
+    const result: DecisionResultView = {
+      ...baseResult,
+      experience: {
+        type: 'CAMPAIGN', status: 'ARCHIVED', slug: 'spring-edit', name: 'Spring edit',
+        primaryCta: null, secondaryCta: null,
+        deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 1 },
+      },
+      journey: { ...baseResult.journey, experienceType: 'CAMPAIGN' },
+    }
+    const originalFetch = Object.getOwnPropertyDescriptor(global, 'fetch')
+    const fetchSpy = jest.fn().mockImplementation(() => new Promise(() => undefined))
+    Object.defineProperty(global, 'fetch', { configurable: true, writable: true, value: fetchSpy })
+    jest.useFakeTimers()
+    try {
+      render(<DecisionResultPageClient locale="en" token="opaque-result-token" result={result} kioskMode />)
+      await act(async () => { jest.advanceTimersByTime(1_000) })
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+      expect(screen.getByRole('status')).toHaveTextContent('Private shopper content is hidden')
+      expect(screen.queryByRole('heading', { name: 'Your curated shortlist' })).not.toBeInTheDocument()
+    } finally {
+      jest.useRealTimers()
+      if (originalFetch) Object.defineProperty(global, 'fetch', originalFetch)
+      else delete (global as { fetch?: typeof fetch }).fetch
+    }
+  })
+
   it('replaces timestamp-like QA experience names with a friendly title and keeps a compact disclosure', () => {
     const result: DecisionResultView = {
       ...baseResult,
-      experience: { type: 'STORE', slug: 'test', name: 'Local QA Store 2026-10-09T11:42:00.000Z', primaryCta: null, secondaryCta: null, deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 } },
+      experience: { type: 'STORE', status: 'ACTIVE', slug: 'test', name: 'Local QA Store 2026-10-09T11:42:00.000Z', primaryCta: null, secondaryCta: null, deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 } },
     }
     render(<DecisionResultPageClient locale="en" token="opaque-result-token" result={result} />)
 

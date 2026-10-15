@@ -48,6 +48,8 @@ export type PublicExperienceDiscovery = {
     name: string
     logoUrl: string | null
     websiteUrl: string | null
+    /** True only when this merchant has a same-tenant ACTIVE Store with public products. */
+    hasActivePublicStore?: boolean
     accentColor: string | null
     /** Public capability hint only; commercial plan details never leave the server. */
     generativeTryOnAvailable: boolean
@@ -144,6 +146,19 @@ export async function getPublicExperienceDiscovery(input: {
   )
   if (!experience || experience.merchantId !== merchant.id) return null
 
+  const activeStore = experience.type === 'CAMPAIGN' && experience.status === 'ARCHIVED'
+    ? input.experiences.findPublicStoreByMerchant
+      ? await input.experiences.findPublicStoreByMerchant(merchant.id)
+      : await input.experiences.findDefaultStore(merchant.id)
+    : null
+  const activeStoreFrames = activeStore?.status === 'ACTIVE' && activeStore.merchantId === merchant.id
+    ? input.frames.findPublicActiveByMerchantAndExperience
+      ? await input.frames.findPublicActiveByMerchantAndExperience(merchant.id, activeStore)
+      : input.frames.findActiveByMerchantAndExperience
+        ? await input.frames.findActiveByMerchantAndExperience(merchant.id, activeStore)
+        : []
+    : []
+
   const frames = input.frames.findPublicActiveByMerchantAndExperience
     ? await input.frames.findPublicActiveByMerchantAndExperience(merchant.id, experience)
     : input.frames.findActiveByMerchantAndExperience
@@ -165,6 +180,9 @@ export async function getPublicExperienceDiscovery(input: {
       name: merchant.name,
       logoUrl: merchant.logoUrl,
       websiteUrl: merchant.websiteUrl,
+      hasActivePublicStore: activeStoreFrames.length > 0
+        && activeStore?.status === 'ACTIVE'
+        && activeStore.merchantId === merchant.id,
       accentColor: merchant.accentColor,
       generativeTryOnAvailable: input.commercialUsage
         ? resolveMerchantCommercialCapability(merchant, input.commercialUsage).decisions.GENERATIVE_TRY_ON.allowed
