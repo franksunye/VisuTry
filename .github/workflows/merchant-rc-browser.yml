@@ -11,6 +11,7 @@ on:
       - 'tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts'
       - 'tests/e2e/merchant-catalog-native-photo-local.spec.ts'
       - 'tests/e2e/merchant-catalog-csv-recovery-local.spec.ts'
+      - 'tests/e2e/archived-campaign-kiosk-privacy-local.spec.ts'
       - 'src/components/merchant/**'
       - 'src/components/store/**'
       - 'src/modules/merchant/**'
@@ -27,7 +28,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   executed-first-value-campaign:
-    name: Executed First Value + Campaign + Catalog + CSV (LOCAL/Mock)
+    name: Executed First Value + Campaign + Catalog + CSV + Archived Kiosk reset (LOCAL/Mock)
     runs-on: ubuntu-latest
     timeout-minutes: 28
     services:
@@ -88,5 +89,7 @@ jobs:
             .local/merchant-rc/evidence/ledger.json
             .local/merchant-rc/evidence/archive-campaign/*.png
             .local/merchant-rc/evidence/archive-campaign/README.md
+            .local/merchant-rc/evidence/archived-kiosk.json
+            .local/merchant-rc/evidence/archive-kiosk/*.png
           if-no-files-found: ignore
           retention-days: 3

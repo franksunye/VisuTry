@@ -8,11 +8,13 @@ const mockShareFindUnique = jest.fn()
 const mockTransaction = jest.fn()
 const mockFindSession = jest.fn()
 const mockUpdateSession = jest.fn()
+const mockDetachPhoto = jest.fn()
 const mockDeleteAsset = jest.fn()
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     decisionResultShare: { findUnique: (...args: unknown[]) => mockShareFindUnique(...args) },
+    merchantSession: { updateMany: (...args: unknown[]) => mockDetachPhoto(...args) },
     $transaction: (...args: unknown[]) => mockTransaction(...args),
   },
 }))
@@ -41,7 +43,7 @@ describe('Decision Result Kiosk reset capability boundary', () => {
         merchantSessionId: 'session-1',
         expiresAt: new Date(Date.now() + 60_000),
         merchant: { status: 'ACTIVE' },
-        experience: { deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 } },
+        experience: { id: 'experience-1', merchantId: 'merchant-1', status: 'ARCHIVED', deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 } },
       },
     })
     mockFindSession.mockResolvedValue({
@@ -50,6 +52,8 @@ describe('Decision Result Kiosk reset capability boundary', () => {
       experienceId: 'experience-1',
     })
     mockUpdateSession.mockResolvedValue({ count: 1 })
+    mockDetachPhoto.mockResolvedValue({ count: 1 })
+    mockDeleteAsset.mockResolvedValue({ deleted: true, retryable: false })
     mockTransaction.mockImplementation(async (callback: (tx: unknown) => unknown) => callback({
       merchantSession: {
         findFirst: mockFindSession,
@@ -75,7 +79,7 @@ describe('Decision Result Kiosk reset capability boundary', () => {
     expect(mockDeleteAsset).not.toHaveBeenCalled()
   })
 
-  it('allows the matching Kiosk capability to expire the session and detach its photo', async () => {
+  it('allows the matching archived Campaign Kiosk capability to expire the session and delete its photo', async () => {
     const response = await POST(makeRequest(capability.token), { params: { token } })
 
     expect(response.status).toBe(200)
@@ -83,10 +87,41 @@ describe('Decision Result Kiosk reset capability boundary', () => {
       where: expect.objectContaining({
         id: 'session-1',
         merchantId: 'merchant-1',
+        experienceId: 'experience-1',
         capabilityTokenHash: hashSessionCapability(capability.token),
       }),
-      data: { status: 'EXPIRED', photoAssetId: null },
+      data: { status: 'EXPIRED' },
     }))
     expect(mockDeleteAsset).toHaveBeenCalledWith('photo-1', 'merchant-1')
+    expect(mockDetachPhoto).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ photoAssetId: 'photo-1', experienceId: 'experience-1' }),
+      data: { photoAssetId: null },
+    }))
+    expect(response.cookies.get('vt_store_cap')?.value).toBe('')
+    expect(response.cookies.get('vt_store_visitor')?.value).toBe('')
+  })
+
+  it('does not allow a matching capability for a different Experience to clear the Result session', async () => {
+    mockFindSession.mockResolvedValueOnce({
+      photoAssetId: 'photo-1',
+      capabilityTokenHash: capability.tokenHash,
+      experienceId: 'other-experience',
+    })
+    const response = await POST(makeRequest(capability.token), { params: { token } })
+
+    expect(response.status).toBe(404)
+    expect(mockUpdateSession).not.toHaveBeenCalled()
+    expect(mockDeleteAsset).not.toHaveBeenCalled()
+  })
+
+  it('fails closed and preserves retry state when Blob deletion is not confirmed', async () => {
+    mockDeleteAsset.mockResolvedValueOnce({ deleted: false, retryable: true })
+    const response = await POST(makeRequest(capability.token), { params: { token } })
+
+    expect(response.status).toBe(503)
+    expect(mockUpdateSession).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'EXPIRED' } }))
+    expect(mockDetachPhoto).not.toHaveBeenCalled()
+    expect(response.cookies.get('vt_store_cap')).toBeUndefined()
+    expect(response.cookies.get('vt_store_visitor')).toBeUndefined()
   })
 })

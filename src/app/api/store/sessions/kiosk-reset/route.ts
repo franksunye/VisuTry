@@ -16,9 +16,16 @@ export async function POST(request: NextRequest) {
     const runtime = createStoreRuntime()
     const merchant = await runtime.merchants.findBySlug(body.merchantSlug)
     if (!merchant) return NextResponse.json({ success: false, error: 'Session not found' }, { status: 404 })
-    const experience = body.experienceSlug === 'store'
+    const activeExperience = body.experienceSlug === 'store'
       ? await runtime.experiences.findDefaultStore(merchant.id)
       : await runtime.experiences.findActiveCampaignByMerchantAndSlug(merchant.id, body.experienceSlug)
+    // An archived Campaign cannot create another shopper, but a Kiosk that
+    // already holds this Campaign's session capability must still be able to
+    // erase that shopper's private state.
+    const archivedExperience = !activeExperience && body.experienceSlug !== 'store'
+      ? await runtime.experiences.findPublicCampaignByMerchantAndSlug?.(merchant.id, body.experienceSlug)
+      : null
+    const experience = activeExperience ?? (archivedExperience?.status === 'ARCHIVED' ? archivedExperience : null)
     if (!experience || !resolveExperienceDeliveryPolicy(experience.deliveryPolicy).kioskEnabled) {
       return NextResponse.json({ success: false, error: 'Kiosk reset is not enabled' }, { status: 403 })
     }
@@ -33,15 +40,43 @@ export async function POST(request: NextRequest) {
       || !verifySessionCapability(capabilityToken, session.capabilityTokenHash))) {
       return NextResponse.json({ success: false, error: 'Session reset is not authorized' }, { status: 403 })
     }
+    if (experience.status === 'ARCHIVED' && !session) {
+      return NextResponse.json({ success: false, error: 'Session reset is not authorized' }, { status: 403 })
+    }
     if (session) {
       if (!capabilityToken || !verifySessionCapability(capabilityToken, session.capabilityTokenHash)
         || session.experienceId !== experience.id) {
         return NextResponse.json({ success: false, error: 'Session reset is not authorized' }, { status: 403 })
       }
+      // Make the old session unusable before external Blob I/O. A failed
+      // deletion leaves the photo reference in place for an exact retry.
+      await runtime.sessions.markExpired(merchant.id, session.id)
+      if (session.photoAssetId) {
+        if (!runtime.sessions.expireAndDetachPhoto) {
+          return NextResponse.json({ success: false, error: 'Kiosk privacy reset could not be confirmed' }, {
+            status: 503,
+            headers: { 'Cache-Control': 'no-store' },
+          })
+        }
+        try {
+          const deletion = await runtime.assets.delete(session.photoAssetId, merchant.id)
+          if (!deletion.deleted) throw new Error('Photo deletion was not confirmed')
+        } catch {
+          return NextResponse.json({ success: false, error: 'Kiosk privacy reset could not be confirmed' }, {
+            status: 503,
+            headers: { 'Cache-Control': 'no-store' },
+          })
+        }
+      }
       const photoAssetId = runtime.sessions.expireAndDetachPhoto
         ? await runtime.sessions.expireAndDetachPhoto(merchant.id, session.id)
-        : (await runtime.sessions.markExpired(merchant.id, session.id), null)
-      if (photoAssetId) await runtime.assets.delete(photoAssetId, merchant.id)
+        : null
+      if (photoAssetId && photoAssetId !== session.photoAssetId) {
+        return NextResponse.json({ success: false, error: 'Kiosk privacy reset could not be confirmed' }, {
+          status: 503,
+          headers: { 'Cache-Control': 'no-store' },
+        })
+      }
     }
 
     const response = NextResponse.json({ success: true })
