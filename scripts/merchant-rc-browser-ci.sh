@@ -79,11 +79,15 @@ reset_own_disposable_db_for_next_scenario() {
 }
 started="$(date +%s)"
 run_scenario() {
-  local label="$1" flag="$2" file="$3" report="$4"
+  local label="$1" flag="$2" file="$3" report="$4" evidence_dir="${5:-}"
   echo "EXECUTING $label in Chromium; zero retries"
-  if env "$flag=1" PLAYWRIGHT_JSON_OUTPUT_FILE="$OUT/$report" \
-    ./node_modules/.bin/playwright test "$file" --project=chromium --workers=1 --retries=0 \
-      --reporter=json --output="$DIR/browser-output"; then
+  local -a scenario_env=("$flag=1" "PLAYWRIGHT_JSON_OUTPUT_FILE=$OUT/$report")
+  if [[ -n "$evidence_dir" ]]; then
+    mkdir -p "$evidence_dir"
+    scenario_env+=("ARCHIVED_CAMPAIGN_EVIDENCE_DIR=$evidence_dir")
+  fi
+  if env "${scenario_env[@]}" ./node_modules/.bin/playwright test "$file" --project=chromium --workers=1 --retries=0 \
+    --reporter=json --output="$DIR/browser-output"; then
     echo "$label process exit 0; ledger must still confirm PASS"
   else
     echo "$label process FAILED; ledger must mark BLOCKED" >&2
@@ -106,7 +110,7 @@ NODE
 }
 run_scenario "First Value" P0_L1_LOCAL_MERCHANT_E2E tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts first.json
 reset_own_disposable_db_for_next_scenario
-run_scenario "Campaign" P1_M2_5_LOCAL_CAMPAIGN_E2E tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts campaign.json
+run_scenario "Campaign + archived historical read-only lifecycle" P1_M2_5_LOCAL_CAMPAIGN_E2E tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts campaign.json "$OUT/archive-campaign"
 reset_own_disposable_db_for_next_scenario
 run_scenario "Native Photo + Real Catalog" G1F_CATALOG_NATIVE_PHOTO_E2E tests/e2e/merchant-catalog-native-photo-local.spec.ts photo.json
 reset_own_disposable_db_for_next_scenario

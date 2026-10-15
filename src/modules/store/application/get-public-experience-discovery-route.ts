@@ -54,6 +54,8 @@ export async function getPublicExperienceDiscoveryForRoute(
 
   const discovery = await cachedRead()
   if (!discovery) return null
+  const archivedCampaign = discovery.experience.type === 'CAMPAIGN'
+    && discovery.experience.status === 'ARCHIVED'
 
   // Keep rich Store/Campaign content on the existing ISR boundary while
   // refreshing the quota-sensitive capability hint against live usage.
@@ -63,26 +65,28 @@ export async function getPublicExperienceDiscoveryForRoute(
   let kioskDeliveryAvailable = false
   const runtime = createPublicStoreReadRuntime()
 
-  try {
-    const availability = await resolvePublicGenerativeTryOnStatus({
-      merchants: runtime.merchants,
-      usage: runtime.usage,
-      slug,
-    })
-    generativeTryOnAvailable = availability.available
-    generativeTryOnUnavailableReason = availability.unavailableReason
-  } catch {
-    // Keep cached discovery available during a commercial-usage outage, while
-    // conservatively removing only the metered Try-On capability claim.
-    generativeTryOnAvailable = false
-    generativeTryOnUnavailableReason = 'TEMPORARILY_UNAVAILABLE'
+  if (!archivedCampaign) {
+    try {
+      const availability = await resolvePublicGenerativeTryOnStatus({
+        merchants: runtime.merchants,
+        usage: runtime.usage,
+        slug,
+      })
+      generativeTryOnAvailable = availability.available
+      generativeTryOnUnavailableReason = availability.unavailableReason
+    } catch {
+      // Keep cached discovery available during a commercial-usage outage, while
+      // conservatively removing only the metered Try-On capability claim.
+      generativeTryOnAvailable = false
+      generativeTryOnUnavailableReason = 'TEMPORARILY_UNAVAILABLE'
+    }
   }
 
   try {
     const merchant = runtime.merchants.findPublicBySlug
       ? await runtime.merchants.findPublicBySlug(slug)
       : await runtime.merchants.findBySlug(slug)
-    if (merchant?.status === 'ACTIVE') {
+    if (!archivedCampaign && merchant?.status === 'ACTIVE') {
       const capability = resolveMerchantCommercialCapability(merchant)
       merchantHandoffAvailable = capability.decisions.MERCHANT_HANDOFF.allowed
       kioskDeliveryAvailable = capability.decisions.KIOSK_DELIVERY.allowed
@@ -96,15 +100,19 @@ export async function getPublicExperienceDiscoveryForRoute(
   return {
     ...discovery,
     merchant: { ...discovery.merchant, generativeTryOnAvailable, generativeTryOnUnavailableReason },
-    experiencePolicy: generativeTryOnAvailable
-      ? discovery.experiencePolicy
-      : { ...discovery.experiencePolicy, tryOnEnabled: false, compareEnabled: false },
-    decisionJourney: generativeTryOnAvailable
-      ? discovery.decisionJourney
-      : {
-          ...discovery.decisionJourney,
-          enabledStages: discovery.decisionJourney?.enabledStages.filter((stage) => stage !== 'TRY_ON' && stage !== 'COMPARE') ?? [],
-        },
+    experiencePolicy: archivedCampaign
+      ? { ...discovery.experiencePolicy, tryOnEnabled: false, compareEnabled: false, inquiryEnabled: false }
+      : generativeTryOnAvailable
+        ? discovery.experiencePolicy
+        : { ...discovery.experiencePolicy, tryOnEnabled: false, compareEnabled: false },
+    decisionJourney: archivedCampaign
+      ? { ...discovery.decisionJourney, enabledStages: [] }
+      : generativeTryOnAvailable
+        ? discovery.decisionJourney
+        : {
+            ...discovery.decisionJourney,
+            enabledStages: discovery.decisionJourney?.enabledStages.filter((stage) => stage !== 'TRY_ON' && stage !== 'COMPARE') ?? [],
+          },
     experience: {
       ...discovery.experience,
       primaryHandoff: merchantHandoffAvailable ? discovery.experience.primaryHandoff : null,

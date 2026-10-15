@@ -49,6 +49,18 @@ export async function createStoreSession(input: {
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
+  if (input.experienceSlug && !input.experiences) {
+    // A campaign-bound session must never fall back to an unbound merchant
+    // session when the authoritative lifecycle repository is unavailable.
+    throw new StoreDomainError('EXPERIENCE_NOT_FOUND', 'This campaign is unavailable.', 404)
+  }
+
+  if (input.experienceSlug && input.experiences?.findPublicCampaignByMerchantAndSlug) {
+    const campaign = await input.experiences.findPublicCampaignByMerchantAndSlug(merchant.id, input.experienceSlug)
+    if (campaign?.status === 'ARCHIVED') {
+      throw new StoreDomainError('CAPABILITY_DISABLED', 'This campaign has ended.', 409)
+    }
+  }
 
   const experience = await resolveMerchantExperience({
     merchant,

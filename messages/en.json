@@ -780,6 +780,7 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Find frames that suit you — then try them on.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "archivedCampaign": { "title": "Campaign ended", "body": "This campaign has ended. You can still browse its selected frames below.", "storeLink": "Visit the current Store" },
     "continuation": {
       "eyebrow": "More from this merchant",
       "title": "Explore the full Store",

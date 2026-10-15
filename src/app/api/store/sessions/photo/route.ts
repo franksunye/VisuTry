@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
     const assetPolicy = resolveStoreAssetAccessPolicy()
     const result = await uploadShopperPhoto({
       merchants: runtime.merchants,
+      experiences: runtime.experiences,
       sessions: runtime.sessions,
       events: runtime.events,
       assets: runtime.assets,

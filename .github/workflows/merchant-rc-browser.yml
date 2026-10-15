@@ -12,7 +12,14 @@ on:
       - 'tests/e2e/merchant-catalog-native-photo-local.spec.ts'
       - 'tests/e2e/merchant-catalog-csv-recovery-local.spec.ts'
       - 'src/components/merchant/**'
+      - 'src/components/store/**'
       - 'src/modules/merchant/**'
+      - 'src/modules/store/**'
+      - 'src/app/api/store/**'
+      - 'src/app/[locale]/(store)/**'
+      - 'messages/**'
+      - 'cloudflare-router/store-campaign-public-html.ts'
+      - 'tests/unit/cloudflare-store-campaign-public-html.test.ts'
 permissions:
   contents: read
 concurrency:
@@ -72,11 +79,14 @@ jobs:
       - name: Execute Merchant scenarios and verify ledger
         shell: bash
         run: bash scripts/merchant-rc-browser-ci.sh
-      - name: Upload ledger only (no browser cookies or logs)
+      - name: Upload sanitized RC ledger and Campaign screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: merchant-rc-ledger-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .local/merchant-rc/evidence/ledger.json
+          name: merchant-rc-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .local/merchant-rc/evidence/ledger.json
+            .local/merchant-rc/evidence/archive-campaign/*.png
+            .local/merchant-rc/evidence/archive-campaign/README.md
           if-no-files-found: ignore
           retention-days: 3

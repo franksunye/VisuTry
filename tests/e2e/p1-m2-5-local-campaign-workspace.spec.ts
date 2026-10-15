@@ -1,11 +1,15 @@
 import { expect, test, type APIResponse } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { randomUUID } from 'node:crypto'
+import { prisma } from '@/lib/prisma'
+import { storeCampaignPublicHtmlCacheTag } from '../../cloudflare-router/store-campaign-public-html'
 
 const isLocalCampaignRun = process.env.NODE_ENV === 'test'
   && process.env.APP_ENV === 'local'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
   && process.env.P1_M2_5_LOCAL_CAMPAIGN_E2E === '1'
+  && /^local:(127\.0\.0\.1|localhost|::1):\d+\/[A-Za-z0-9_-]+$/.test(process.env.VISUTRY_DATABASE_IDENTITY || '')
   && isLocalLoopbackBaseUrl(process.env.PLAYWRIGHT_BASE_URL || '')
 
 function isLocalLoopbackBaseUrl(value: string) {
@@ -36,6 +40,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     test.skip(!isLocalCampaignRun, 'Run npm run merchant:local:campaign:e2e against the guarded Local PostgreSQL environment.')
 
     const browserErrors: string[] = []
+    const localDevTransportWarnings: string[] = []
     const serverErrors: Array<{ status: number; url: string }> = []
     const clientErrorResponses: Array<{ status: number; url: string }> = []
     const networkConsoleErrors: string[] = []
@@ -43,6 +48,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     page.on('console', (message) => {
       if (message.type() === 'error') {
         if (message.text().startsWith('Failed to load resource:')) networkConsoleErrors.push(message.text())
+        else if (message.text().includes('/_next/webpack-hmr') && message.text().includes('ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS')) localDevTransportWarnings.push(message.text())
         else browserErrors.push(message.text())
       }
     })
@@ -51,7 +57,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
       else if (response.status() >= 400) clientErrorResponses.push({ status: response.status(), url: response.url() })
     })
 
-    const evidenceDir = '/tmp/visutry-p1-m2-5-campaign-workspace'
+    const evidenceDir = process.env.ARCHIVED_CAMPAIGN_EVIDENCE_DIR || '/tmp/visutry-p1-m2-5-campaign-workspace'
     mkdirSync(evidenceDir, { recursive: true })
     const runId = Date.now().toString(36)
     const screenshots: string[] = []
@@ -86,7 +92,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
               sku,
               name: `Local Campaign Frame ${merchantSlug}`,
               brand: 'Local QA',
-              imageUrl: `${process.env.PLAYWRIGHT_BASE_URL}/assets/glasses-presets/large-round-classic.jpg`,
+              imageUrl: '/assets/glasses-presets/large-round-classic.jpg',
               productUrl: `${process.env.PLAYWRIGHT_BASE_URL}/local/campaign-product/${merchantSlug}`,
               price: 12900,
               currency: 'USD',
@@ -119,7 +125,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
         const selectionResponse = await page.request.put(storeEndpoint, { data: { storeId: store.id, frameIds: [frame!.id] } })
         await readApi<unknown>(selectionResponse, 200, 'Select product in Local private Store')
       }
-      return { productName: frame!.name, sku, storeStatus: store.status }
+      return { productName: frame!.name, frameId: frame!.id, sku, storeStatus: store.status }
     }
     const completePrivateStorePreview = async (merchantId: string) => {
       await page.goto(`/en/merchant?merchantId=${encodeURIComponent(merchantId)}`, { waitUntil: 'networkidle' })
@@ -166,9 +172,20 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     const growthFixture = await prepareMerchant(growthMerchant!.id, 'local-qa-usage')
     if (growthFixture.storeStatus === 'DRAFT') {
       await completePrivateStorePreview(growthMerchant!.id)
+      // The archived Campaign recovery link is only offered when a real,
+      // same-merchant ACTIVE Store exists. Publish this disposable TEST
+      // Merchant's prepared Store through the canonical approval UI.
+      await page.goto(`/en/merchant/store?merchantId=${encodeURIComponent(growthMerchant!.id)}`, { waitUntil: 'networkidle' })
+      await expect(page.getByRole('heading', { name: 'Store', level: 1 })).toBeVisible()
+      await expect(page.getByText('DRAFT', { exact: true })).toBeVisible()
+      await page.getByRole('button', { name: 'Preview Store' }).click()
+      await expect(page.getByRole('region', { name: 'Private draft preview' })).toBeVisible()
+      await page.getByRole('checkbox', { name: 'I approve publishing this Store publicly' }).check()
+      await page.getByRole('button', { name: 'Publish Store' }).click()
+      await expect(page.getByText('LIVE', { exact: true })).toBeVisible()
     } else {
-      // No public-Store mutation, deactivation, or fake private preview on an
-      // already LIVE Growth fixture. Campaign testing uses its own DRAFT state.
+      // Keep an existing ACTIVE Store unchanged; Campaign testing uses its
+      // own independently created DRAFT state.
       expect(growthFixture.storeStatus).toBe('ACTIVE')
     }
     const growthRoute = `/en/merchant/campaigns?merchantId=${encodeURIComponent(growthMerchant!.id)}`
@@ -180,7 +197,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     await page.getByRole('link', { name: 'Campaigns', exact: true }).first().click()
     journeyClicks.homeToCampaignList += 1
     await expect(page).toHaveURL(/\/en\/merchant\/campaigns(?:\?|$)/)
-    await expect(page.getByTestId('merchant-campaign-workspace')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Campaigns', level: 1 })).toBeVisible()
     await expect(page.getByText('No Campaigns yet')).toBeVisible()
     await capture('01-campaign-list-empty-desktop')
     await page.setViewportSize({ width: 390, height: 844 })
@@ -194,7 +211,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     await page.getByLabel('Shopper-facing headline').fill('Discover frames for every day')
     await page.getByRole('button', { name: 'Create draft' }).click()
     journeyClicks.createToPrivatePreview += 1
-    await expect(page.getByTestId('merchant-campaign-detail')).toBeVisible()
+    await expect(page.getByRole('heading', { name: freeCampaignName, level: 1 })).toBeVisible()
     await expect(page.getByText('Needs attention').first()).toBeVisible()
     await capture('02-campaign-draft-incomplete-desktop', true)
 
@@ -228,9 +245,9 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
 
     await page.getByRole('button', { name: 'Private Preview' }).click()
     journeyClicks.createToPrivatePreview += 1
-    await expect(page.getByTestId('campaign-private-preview')).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Private Campaign preview' })).toBeVisible()
     await expect(page.getByText('DRAFT · not public')).toBeVisible()
-    await expect(page.getByTestId('campaign-private-preview').getByText(freeFixture.productName)).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Private Campaign preview' }).getByText(freeFixture.productName)).toBeVisible()
     await capture('04-campaign-private-preview-desktop', true)
     await page.setViewportSize({ width: 390, height: 844 })
     await capture('10-campaign-draft-preview-mobile', true)
@@ -243,7 +260,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     await page.getByRole('button', { name: 'Publish Campaign' }).click()
     const limitResponse = await freePublishResponse
     expect(await limitResponse.json()).toMatchObject({ success: false, error: 'CAMPAIGN_LIMIT_REACHED' })
-    await expect(page.locator('[data-testid="merchant-campaign-detail"] [role="alert"]')).toContainText('up to 0 active Campaigns')
+    await expect(page.getByText(/Your current plan includes up to 0 active Campaigns/)).toBeVisible()
     await expect(page.getByRole('link', { name: 'Review Plan & Usage' })).toBeVisible()
     await capture('06-campaign-plan-limit-desktop', true)
 
@@ -255,7 +272,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     await page.getByLabel('Campaign name *').fill(liveCampaignName)
     await page.getByLabel('Shopper-facing headline').fill('A considered frame collection')
     await page.getByRole('button', { name: 'Create draft' }).click()
-    await expect(page.getByTestId('merchant-campaign-detail')).toBeVisible()
+    await expect(page.getByRole('heading', { name: liveCampaignName, level: 1 })).toBeVisible()
     await page.getByRole('checkbox', { name: `Select ${growthFixture.productName}` }).check()
     await page.getByRole('button', { name: 'Save product selection' }).click()
     await expect(page.getByText('Product selection saved.')).toBeVisible()
@@ -282,9 +299,31 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     await expect(page.getByRole('alertdialog')).toContainText('will be visible immediately to shoppers')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Apply to live Campaign' }).click()
     await expect(page.getByText('Campaign details saved. These changes are now visible in your live Campaign.')).toBeVisible()
+    const configureCampaignHandoff = await page.request.patch(
+      `/api/merchant/${encodeURIComponent(growthMerchant!.id)}/campaigns/${encodeURIComponent(campaignIdMatch![1])}`,
+      { data: {
+        primaryCtaType: 'CUSTOM_LINK',
+        primaryCtaLabel: 'Local Campaign destination',
+        primaryCtaUrl: `/local/campaign-destination/${runId}`,
+      } },
+    )
+    await readApi<unknown>(configureCampaignHandoff, 200, 'Configure Local Campaign handoff for archived guard verification')
     const updatedPublic = await page.request.get(liveCampaign.publicPath)
     expect(updatedPublic.status()).toBe(200)
-    expect(await updatedPublic.text()).toContain('Updated for shoppers immediately')
+    const cachedActiveHtml = await updatedPublic.text()
+    expect(cachedActiveHtml).toContain('Updated for shoppers immediately')
+    expect(cachedActiveHtml).toContain('Explore the collection')
+    expect(cachedActiveHtml).toContain('Local Campaign destination')
+    const publicUrl = new URL(liveCampaign.publicPath, process.env.PLAYWRIGHT_BASE_URL)
+    const [, , , publicMerchantSlug, publicCampaignSlug] = publicUrl.pathname.split('/')
+    expect(publicMerchantSlug).toBe('local-qa-usage')
+    const campaignCacheTag = storeCampaignPublicHtmlCacheTag(new Request(publicUrl.toString()))
+    expect(campaignCacheTag).toBe(`visutry:public-html:campaign:en:${publicMerchantSlug}:${publicCampaignSlug}`)
+
+    const activeSessionResponse = await page.request.post('/api/store/sessions', {
+      data: { merchantSlug: publicMerchantSlug, experienceSlug: publicCampaignSlug, locale: 'en', deviceType: 'desktop' },
+    })
+    const activeShopperSession = await readApi<{ merchantSessionId: string }>(activeSessionResponse, 200, 'Create Campaign session before archive')
 
     await page.setViewportSize({ width: 1440, height: 900 })
     await capture('13-campaign-live-edit-desktop', true)
@@ -303,13 +342,176 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await capture('16-campaign-archived-detail-mobile', true)
 
+    // Model a previously cached ACTIVE public document, then evict only the
+    // canonical Campaign Cache-Tag. This is a Playwright-local cache model;
+    // it does not claim a live Cloudflare purge.
+    const cacheEntries = new Map<string, { body: string; status: number; contentType: string }>([[campaignCacheTag!, {
+      body: cachedActiveHtml,
+      status: 200,
+      contentType: updatedPublic.headers()['content-type'] ?? 'text/html; charset=utf-8',
+    }]])
+    const campaignPath = publicUrl.pathname
+    await page.route((url) => new URL(url.toString()).pathname === campaignPath, async (route) => {
+      if (route.request().resourceType() !== 'document') {
+        await route.continue()
+        return
+      }
+      const cached = cacheEntries.get(campaignCacheTag!)
+      if (cached) {
+        await route.fulfill({ status: cached.status, contentType: cached.contentType, body: cached.body })
+        return
+      }
+      const origin = await route.fetch()
+      await route.fulfill({ response: origin })
+    })
+    await page.setViewportSize({ width: 1440, height: 900 })
+    const staleHit = await page.goto(liveCampaign.publicPath, { waitUntil: 'networkidle' })
+    expect(staleHit?.status()).toBe(200)
+    await expect(page.getByRole('link', { name: 'Explore the collection' })).toBeVisible()
+    await capture('17-campaign-stale-active-cache-hit-desktop', true)
+
+    await prisma.$connect()
+    const archivedActivitySnapshot = async () => {
+      const [session, sessions, events, intents, tryOnTasks, usage, sponsoredUsage, decisionResults, assets, generationRequests] = await Promise.all([
+        prisma.merchantSession.findUnique({ where: { id: activeShopperSession.merchantSessionId }, select: { status: true, lastActiveAt: true, updatedAt: true } }),
+        prisma.merchantSession.count({ where: { merchantId: growthMerchant!.id, experienceId: draftCampaignId! } }),
+        prisma.merchantEvent.count({ where: { merchantId: growthMerchant!.id, experienceId: draftCampaignId!, merchantSessionId: activeShopperSession.merchantSessionId } }),
+        prisma.merchantIntent.count({ where: { merchantId: growthMerchant!.id, experienceId: draftCampaignId!, merchantSessionId: activeShopperSession.merchantSessionId } }),
+        prisma.tryOnTask.count({ where: { merchantId: growthMerchant!.id, merchantSessionId: activeShopperSession.merchantSessionId } }),
+        prisma.merchantUsageLedger.count({ where: { merchantId: growthMerchant!.id, merchantSessionId: activeShopperSession.merchantSessionId } }),
+        prisma.merchantSponsoredUsage.count({ where: { merchantId: growthMerchant!.id, merchantSessionId: activeShopperSession.merchantSessionId, experienceId: draftCampaignId! } }),
+        prisma.decisionResult.count({ where: { merchantId: growthMerchant!.id, merchantSessionId: activeShopperSession.merchantSessionId } }),
+        prisma.storeAsset.count({ where: { merchantId: growthMerchant!.id, merchantSessionId: activeShopperSession.merchantSessionId } }),
+        prisma.generationRequest.count({ where: { merchantId: growthMerchant!.id, campaignId: draftCampaignId! } }),
+      ])
+      return { session, sessions, events, intents, tryOnTasks, usage, sponsoredUsage, decisionResults, assets, generationRequests }
+    }
+    const activityBeforeBlockedRequests = await archivedActivitySnapshot()
+    expect(activityBeforeBlockedRequests.session?.status).toBe('ACTIVE')
+
+    const blockedRequestResults: Array<{ action: string; status: number; code: string | null }> = []
+    const recordBlockedRequest = async (action: string, response: APIResponse, allowedStatuses: number[]) => {
+      const body = await response.json() as { code?: string }
+      expect(allowedStatuses, `${action} returned an expected fail-closed status`).toContain(response.status())
+      blockedRequestResults.push({ action, status: response.status(), code: body.code ?? null })
+    }
+    await recordBlockedRequest('create-new-campaign-session', await page.request.post('/api/store/sessions', {
+      data: { merchantSlug: publicMerchantSlug, experienceSlug: publicCampaignSlug, locale: 'en' },
+    }), [409])
+    await recordBlockedRequest('recommend', await page.request.post('/api/store/sessions/recommend', {
+      data: { merchantSlug: publicMerchantSlug, merchantSessionId: activeShopperSession.merchantSessionId, geometryAnalysis: { status: 'unavailable' } },
+    }), [409])
+    await recordBlockedRequest('select-frame', await page.request.post('/api/store/sessions/select-frames', {
+      data: { merchantSlug: publicMerchantSlug, merchantSessionId: activeShopperSession.merchantSessionId, frameIds: [growthFixture.frameId] },
+    }), [409])
+    await recordBlockedRequest('inquiry-intent', await page.request.post('/api/store/sessions/intent', {
+      data: { merchantSlug: publicMerchantSlug, merchantSessionId: activeShopperSession.merchantSessionId, type: 'INQUIRY', clientActionId: `archived-${runId}` },
+    }), [409])
+    await recordBlockedRequest('product-click-intent', await page.request.post('/api/store/sessions/intent', {
+      data: {
+        merchantSlug: publicMerchantSlug,
+        merchantSessionId: activeShopperSession.merchantSessionId,
+        type: 'PRODUCT_CLICK',
+        merchantFrameId: growthFixture.frameId,
+        clientActionId: randomUUID(),
+      },
+    }), [409])
+    await recordBlockedRequest('compare', await page.request.post('/api/store/sessions/compare', {
+      data: {
+        merchantSlug: publicMerchantSlug,
+        merchantSessionId: activeShopperSession.merchantSessionId,
+        frameIds: [growthFixture.frameId],
+        clientActionId: randomUUID(),
+      },
+    }), [409])
+    await recordBlockedRequest('try-on-submit', await page.request.post('/api/store/sessions/try-on', {
+      data: {
+        merchantSlug: publicMerchantSlug,
+        merchantSessionId: activeShopperSession.merchantSessionId,
+        merchantFrameId: growthFixture.frameId,
+        batchId: `archived-${runId}`,
+        clientSubmissionId: randomUUID(),
+      },
+    }), [409])
+    await recordBlockedRequest('campaign-handoff', await page.request.post('/api/store/handoffs/invoke', {
+      data: {
+        merchantSlug: publicMerchantSlug,
+        experienceSlug: publicCampaignSlug,
+        experienceType: 'CAMPAIGN',
+        action: 'CUSTOM_LINK',
+        surface: 'DISCOVERY',
+        clientActionId: randomUUID(),
+        locale: 'en',
+        deviceType: 'desktop',
+      },
+    }), [409])
+    await recordBlockedRequest('poll-try-on', await page.request.post('/api/store/sessions/try-on/poll', {
+      data: { merchantSlug: publicMerchantSlug, merchantSessionId: activeShopperSession.merchantSessionId, taskId: `archived-no-task-${runId}` },
+    }), [409])
+    await recordBlockedRequest('kiosk-reset', await page.request.post('/api/store/sessions/kiosk-reset', {
+      data: { merchantSlug: publicMerchantSlug, experienceSlug: publicCampaignSlug },
+    }), [403])
+    const activityAfterBlockedRequests = await archivedActivitySnapshot()
+    expect(activityAfterBlockedRequests).toEqual(activityBeforeBlockedRequests)
+    expect(blockedRequestResults).toEqual(expect.arrayContaining([
+      expect.objectContaining({ action: 'create-new-campaign-session', status: 409, code: 'CAPABILITY_DISABLED' }),
+      expect.objectContaining({ action: 'recommend', status: 409, code: 'CAPABILITY_DISABLED' }),
+      expect.objectContaining({ action: 'select-frame', status: 409, code: 'CAPABILITY_DISABLED' }),
+      expect.objectContaining({ action: 'inquiry-intent', status: 409, code: 'CAPABILITY_DISABLED' }),
+      expect.objectContaining({ action: 'product-click-intent', status: 409, code: 'CAPABILITY_DISABLED' }),
+      expect.objectContaining({ action: 'compare', status: 409, code: 'CAPABILITY_DISABLED' }),
+      expect.objectContaining({ action: 'try-on-submit', status: 409, code: 'CAPABILITY_DISABLED' }),
+      expect.objectContaining({ action: 'campaign-handoff', status: 409, code: 'CAPABILITY_DISABLED' }),
+      expect.objectContaining({ action: 'poll-try-on', status: 409, code: 'CAPABILITY_DISABLED' }),
+    ]))
+
+    const exactTagMatches = [...cacheEntries.keys()].filter((tag) => tag === campaignCacheTag)
+    expect(exactTagMatches).toHaveLength(1)
+    cacheEntries.delete(campaignCacheTag!)
+    expect(cacheEntries.size).toBe(0)
+    const archivedOriginResponse = await page.goto(liveCampaign.publicPath, { waitUntil: 'networkidle' })
+    expect(archivedOriginResponse?.status()).toBe(200)
+    await expect(page.getByRole('status')).toContainText('Campaign ended')
+    await expect(page.getByRole('heading', { name: 'Updated for shoppers immediately' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: growthFixture.productName })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Visit the current Store' })).toHaveAttribute('href', `/en/store/${publicMerchantSlug}`)
+    await expect(page.getByRole('link', { name: 'Explore the collection' })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'View product' })).toHaveCount(0)
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/i)
+    await expect(page.locator('[data-archived-campaign="true"]')).toBeVisible()
+    const archivedHero = page.locator('main img').first()
+    await expect(archivedHero).toBeVisible()
+    await archivedHero.evaluate((image) => (image as HTMLImageElement).decode())
+    await capture('18-campaign-archived-guest-desktop', true)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await expect(page.locator('html')).toHaveJSProperty('scrollWidth', 390)
+    await capture('19-campaign-archived-guest-mobile', true)
+
+    await page.getByRole('link', { name: 'Visit the current Store' }).click()
+    await expect(page).toHaveURL(new RegExp(`/en/store/${publicMerchantSlug}$`))
+    await expect(page.locator('[data-store-discovery="true"]')).toBeVisible()
+    await expect(page.getByRole('heading', { name: `Shop the ${growthMerchant!.name} eyewear collection` })).toBeVisible()
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await capture('20-current-active-store-guest-desktop')
+    const activeStoreResponse = await page.request.get(`/en/store/${publicMerchantSlug}`)
+    expect(activeStoreResponse.status(), 'The independent ACTIVE Store remains publicly available').toBe(200)
+    const activeStoreSession = await page.request.post('/api/store/sessions', { data: { merchantSlug: publicMerchantSlug, locale: 'en' } })
+    expect(activeStoreSession.status(), 'The independent ACTIVE Store can still create shopper sessions').toBe(200)
+    await prisma.$disconnect()
+
     const finalMetrics = screenshotMetrics[screenshotMetrics.length - 1]
     writeFileSync(`${evidenceDir}/README.md`, [
       '# P1-M2.5 Local Campaign workspace screenshots',
       '',
       `Local browser evidence captured ${new Date().toISOString()} against TEST Merchants only.`,
-      'All writes were made through the authenticated local application APIs and browser UI; Store setup stopped at private Preview.',
+      `Database marker: ${process.env.VISUTRY_DATABASE_IDENTITY || '(missing)'}.`,
+      'All writes were made through the authenticated local application APIs and browser UI; the Growth TEST Store was explicitly published through its canonical approval flow.',
       `Draft public URL before publish: HTTP ${draftPublicRouteStatus}.`,
+      `Archived Campaign URL after exact local cache-tag eviction: HTTP ${archivedOriginResponse?.status()}, robots=${await page.locator('meta[name="robots"]').getAttribute('content')}, tag=${campaignCacheTag}.`,
+      `Archived server guard responses: ${JSON.stringify(blockedRequestResults)}.`,
+      `Campaign activity read-back before/after crafted requests (equal required): ${JSON.stringify({ before: activityBeforeBlockedRequests, after: activityAfterBlockedRequests })}.`,
+      `Independent ACTIVE Store: public HTTP ${activeStoreResponse.status()}, new shopper session HTTP ${activeStoreSession.status()}.`,
+      'Cache evidence is a Playwright in-memory route/cache-tag simulation only; live Cloudflare purge remains NOT VERIFIED.',
       '',
       'Desktop: 1440×900. Mobile: 390×844. Browser zoom: 100%.',
       '',
@@ -317,15 +519,17 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
       '',
       `Per-screenshot viewport metrics: ${JSON.stringify(screenshotMetrics)}`,
       `Browser errors: ${JSON.stringify(browserErrors)}`,
+      `Local dev-server HMR transport warnings (recorded, not suppressed): ${JSON.stringify(localDevTransportWarnings)}`,
       `HTTP 5xx: ${JSON.stringify(serverErrors)}`,
       `HTTP 4xx: ${JSON.stringify(clientErrorResponses)}`,
       `Generic resource console errors: ${JSON.stringify(networkConsoleErrors)}`,
       `Home → Campaign list click count: ${journeyClicks.homeToCampaignList}`,
       `Create form → private Preview click count: ${journeyClicks.createToPrivatePreview}`,
     ].join('\n'))
-    console.log(JSON.stringify({ finalMetrics, screenshotMetrics, draftPublicRouteStatus, journeyClicks, screenshots, browserErrors, serverErrors }))
+    console.log(JSON.stringify({ finalMetrics, screenshotMetrics, draftPublicRouteStatus, journeyClicks, screenshots, browserErrors, localDevTransportWarnings, serverErrors }))
     expect(screenshotMetrics.every((metrics) => !metrics.horizontalOverflow)).toBe(true)
     expect(browserErrors).toEqual([])
+    expect(localDevTransportWarnings.every((message) => /^WebSocket connection to 'ws:\/\/(?:localhost|127\.0\.0\.1):\d+\/_next\/webpack-hmr' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS$/.test(message))).toBe(true)
     expect(serverErrors).toEqual([])
     expect(clientErrorResponses).toEqual([{ status: 409, url: expect.stringContaining('/publish') }])
     expect(networkConsoleErrors).toHaveLength(1)

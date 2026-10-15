@@ -9,6 +9,7 @@ import { resolveMerchantHandoff } from '../domain/merchant-handoff'
 import { resolveExperienceDeliveryPolicy, type ExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 import { isCanonicalVisuTryDemo } from '../domain/prepared-demo-results'
+import { isArchivedCampaignExperience, type ExperienceStatus } from '../domain/experience'
 import type { DecisionResultTryOnReference } from '../domain/decision-result'
 import { findPreparedDemoAsset } from '../infrastructure/prepared-demo/prepared-result-manifest'
 import { readPreparedDemoResultAsset } from '../infrastructure/prepared-demo/prepared-result-asset-store'
@@ -28,6 +29,7 @@ type DecisionResultShareRow = {
     experience: {
       id: string
       type: 'STORE' | 'CAMPAIGN'
+      status: ExperienceStatus
       slug: string
       name: string
       primaryCtaType: string | null
@@ -95,7 +97,7 @@ async function findShare(token: string): Promise<DecisionResultShareRow | null> 
       result: {
         include: {
           merchant: { select: { id: true, slug: true, name: true, status: true, logoUrl: true, accentColor: true, websiteUrl: true, referenceData: true, classification: true, pilotType: true, planCode: true, commercialStatus: true, commercialExceptionCode: true } },
-          experience: { select: { id: true, type: true, slug: true, name: true, primaryCtaType: true, primaryCtaLabel: true, primaryCtaUrl: true, secondaryCtaType: true, secondaryCtaLabel: true, secondaryCtaUrl: true, deliveryPolicy: true } },
+          experience: { select: { id: true, type: true, status: true, slug: true, name: true, primaryCtaType: true, primaryCtaLabel: true, primaryCtaUrl: true, secondaryCtaType: true, secondaryCtaLabel: true, secondaryCtaUrl: true, deliveryPolicy: true } },
         },
       },
     },
@@ -111,7 +113,7 @@ async function findShare(token: string): Promise<DecisionResultShareRow | null> 
 export type DecisionResultView = {
   expiresAt: string
   merchant: { name: string; slug: string; logoUrl: string | null; accentColor: string | null; websiteUrl: string | null; referenceData: boolean }
-  experience: { type: 'STORE' | 'CAMPAIGN'; slug: string; name: string; primaryCta: ReturnType<typeof resolveMerchantHandoff>; secondaryCta: ReturnType<typeof resolveMerchantHandoff>; deliveryPolicy: ExperienceDeliveryPolicy } | null
+  experience: { type: 'STORE' | 'CAMPAIGN'; status: ExperienceStatus; slug: string; name: string; primaryCta: ReturnType<typeof resolveMerchantHandoff>; secondaryCta: ReturnType<typeof resolveMerchantHandoff>; deliveryPolicy: ExperienceDeliveryPolicy } | null
   journey: ReturnType<typeof sanitizeDecisionResultPayload>['journey']
   faceFit: ReturnType<typeof sanitizeDecisionResultPayload>['faceFit']
   recommendation: ReturnType<typeof sanitizeDecisionResultPayload>['recommendation']
@@ -135,6 +137,7 @@ export type DecisionResultView = {
 export async function getDecisionResultView(token: string): Promise<DecisionResultView | null> {
   const share = await findShare(token)
   if (!share) return null
+  const archivedCampaign = isArchivedCampaignExperience(share.result.experience)
   const payload = sanitizeDecisionResultPayload(share.result.payload)
   const liveReferences = payload.tryOnResults.filter((result) => result.source === 'LIVE_TRYON')
   const taskIds = liveReferences.map((result) => result.taskId)
@@ -171,7 +174,7 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
         frameId: reference.frameId,
         name: task.merchantFrame?.name ?? null,
         sku: task.merchantFrame?.sku ?? null,
-        productUrl: task.merchantFrame?.productUrl ?? null,
+        productUrl: archivedCampaign ? null : task.merchantFrame?.productUrl ?? null,
         imageUrl: `/api/store/results/${encodeURIComponent(token)}/try-on/${assetRef}`,
         completedAt: reference.completedAt,
       }
@@ -198,7 +201,7 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
       frameId: reference.frameId,
       name: frame.name,
       sku: frame.sku,
-      productUrl: frame.productUrl,
+      productUrl: archivedCampaign ? null : frame.productUrl,
       imageUrl: `/api/store/results/${encodeURIComponent(token)}/try-on/${assetRef}`,
       completedAt: reference.presentedAt,
     }
@@ -219,7 +222,7 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
       frameId,
       name: snapshot?.name ?? current?.name ?? 'Compared frame',
       imageUrl: snapshot?.imageUrl ?? sanitizeCatalogImageUrl(current?.imageUrl),
-      productUrl: productUrl && isSafeCampaignCtaUrl(productUrl) ? productUrl : null,
+      productUrl: !archivedCampaign && productUrl && isSafeCampaignCtaUrl(productUrl) ? productUrl : null,
     }]
   })
   return {
@@ -234,15 +237,18 @@ export async function getDecisionResultView(token: string): Promise<DecisionResu
     },
     experience: share.result.experience ? {
       type: share.result.experience.type,
+      status: share.result.experience.status,
       slug: share.result.experience.slug,
       name: share.result.experience.name,
       deliveryPolicy: resolveExperienceDeliveryPolicy(share.result.experience.deliveryPolicy),
-      primaryCta: resolveMerchantHandoff({ type: share.result.experience.primaryCtaType, label: share.result.experience.primaryCtaLabel, url: share.result.experience.primaryCtaUrl }),
-      secondaryCta: resolveMerchantHandoff({ type: share.result.experience.secondaryCtaType, label: share.result.experience.secondaryCtaLabel, url: share.result.experience.secondaryCtaUrl }),
+      primaryCta: archivedCampaign ? null : resolveMerchantHandoff({ type: share.result.experience.primaryCtaType, label: share.result.experience.primaryCtaLabel, url: share.result.experience.primaryCtaUrl }),
+      secondaryCta: archivedCampaign ? null : resolveMerchantHandoff({ type: share.result.experience.secondaryCtaType, label: share.result.experience.secondaryCtaLabel, url: share.result.experience.secondaryCtaUrl }),
     } : null,
     journey: payload.journey,
     faceFit: payload.faceFit,
-    recommendation: payload.recommendation,
+    recommendation: archivedCampaign && payload.recommendation
+      ? { ...payload.recommendation, frames: payload.recommendation.frames.map((frame) => ({ ...frame, productUrl: null })) }
+      : payload.recommendation,
     selectedFrameIds: payload.selectedFrameIds,
     favoriteFrameIds: payload.favoriteFrameIds,
     compare: payload.compare,

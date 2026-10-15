@@ -145,10 +145,49 @@ describe('DecisionResultPageClient journey and shopper presentation', () => {
     expect(screen.getByTestId('result-qr-continuation').className).not.toContain('hidden')
   })
 
+  it('keeps an archived Campaign Result private and readable without reopening conversion or Kiosk actions', () => {
+    const result: DecisionResultView = {
+      ...baseResult,
+      experience: {
+        type: 'CAMPAIGN', status: 'ARCHIVED', slug: 'spring-edit', name: 'Spring edit',
+        primaryCta: { action: 'CUSTOM_LINK', label: 'Shop now', url: 'https://shop.example.test' },
+        secondaryCta: null,
+        deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 1 },
+      },
+      journey: { ...baseResult.journey, experienceType: 'CAMPAIGN' },
+    }
+    const originalFetch = Object.getOwnPropertyDescriptor(global, 'fetch')
+    const fetchSpy = jest.fn()
+    Object.defineProperty(global, 'fetch', { configurable: true, writable: true, value: fetchSpy })
+    jest.useFakeTimers()
+    try {
+      render(<DecisionResultPageClient locale="en" token="opaque-result-token" result={result} kioskMode />)
+
+      expect(screen.getByText(/Campaign ended\. This private result remains available/)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Visit the current Store' })).toHaveAttribute('href', '/en/store/visutry-demo-optical')
+      expect(screen.getByRole('heading', { name: 'Your curated shortlist' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Completed looks' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Frames you compared' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument()
+      expect(screen.getByTestId('result-qr-continuation').className).not.toContain('hidden')
+      expect(screen.queryByRole('button', { name: 'New shopper' })).not.toBeInTheDocument()
+      expect(screen.queryByText('Shop frame')).not.toBeInTheDocument()
+      expect(screen.queryByText('View product')).not.toBeInTheDocument()
+      expect(screen.queryByText('Next step')).not.toBeInTheDocument()
+
+      jest.advanceTimersByTime(5_000)
+      expect(fetchSpy).not.toHaveBeenCalled()
+    } finally {
+      jest.useRealTimers()
+      if (originalFetch) Object.defineProperty(global, 'fetch', originalFetch)
+      else delete (global as { fetch?: typeof fetch }).fetch
+    }
+  })
+
   it('replaces timestamp-like QA experience names with a friendly title and keeps a compact disclosure', () => {
     const result: DecisionResultView = {
       ...baseResult,
-      experience: { type: 'STORE', slug: 'test', name: 'Local QA Store 2026-10-09T11:42:00.000Z', primaryCta: null, secondaryCta: null, deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 } },
+      experience: { type: 'STORE', status: 'ACTIVE', slug: 'test', name: 'Local QA Store 2026-10-09T11:42:00.000Z', primaryCta: null, secondaryCta: null, deliveryPolicy: { kioskEnabled: true, kioskIdleTimeoutSeconds: 120 } },
     }
     render(<DecisionResultPageClient locale="en" token="opaque-result-token" result={result} />)
 

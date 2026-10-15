@@ -90,6 +90,35 @@ describe('independent public Store identity: Canary vs Demo Optical', () => {
       .toHaveBeenCalledWith(CANARY_ID, 'everyday-fit')
   })
 
+  it('exposes the recovery link only for a same-tenant ACTIVE Store with public products', async () => {
+    const repositoriesForRead = repositories()
+    repositoriesForRead.experiences.findPublicCampaignByMerchantAndSlug
+      .mockResolvedValueOnce({ ...campaign, status: 'ARCHIVED' } as never)
+
+    const discovery = await getPublicExperienceDiscovery({
+      ...repositoriesForRead, slug: 'visutry-demo', experienceSlug: 'everyday-fit',
+    } as never)
+
+    expect(discovery?.merchant.hasActivePublicStore).toBe(true)
+    expect(repositoriesForRead.frames.findPublicActiveByMerchantAndExperience)
+      .toHaveBeenCalledWith(CANARY_ID, stores[CANARY_ID])
+  })
+
+  it('does not offer the recovery Store link when the selected Store is not ACTIVE', async () => {
+    const repositoriesForRead = repositories()
+    repositoriesForRead.experiences.findPublicCampaignByMerchantAndSlug
+      .mockResolvedValueOnce({ ...campaign, status: 'ARCHIVED' } as never)
+    repositoriesForRead.experiences.findPublicStoreByMerchant.mockResolvedValueOnce({
+      ...stores[CANARY_ID], status: 'ARCHIVED',
+    } as never)
+
+    const discovery = await getPublicExperienceDiscovery({
+      ...repositoriesForRead, slug: 'visutry-demo', experienceSlug: 'everyday-fit',
+    } as never)
+
+    expect(discovery?.merchant.hasActivePublicStore).toBe(false)
+  })
+
   it('fails closed if a Store repository returns a different tenant Experience', async () => {
     const repositoriesForRead = repositories()
     repositoriesForRead.experiences.findPublicStoreByMerchant

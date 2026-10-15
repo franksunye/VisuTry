@@ -42,6 +42,8 @@ export async function presentPreparedDemoResult(input: {
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
+    requireShopperActions: true,
+    experiences: input.experiences,
   })
   if (!session.photoAssetId) {
     throw new StoreDomainError('VALIDATION_ERROR', 'Use the canonical Demo Shopper photo before continuing to prepared results.', 409)

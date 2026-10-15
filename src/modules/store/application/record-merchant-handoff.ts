@@ -43,6 +43,9 @@ export async function recordMerchantHandoff(input: RecordMerchantHandoffInput) {
   if (!experience || experience.slug !== input.experienceSlug || experience.type !== input.experienceType) {
     throw new StoreDomainError('EXPERIENCE_NOT_FOUND', 'Experience not found.', 404)
   }
+  if (experience.type === 'CAMPAIGN' && experience.status === 'ARCHIVED') {
+    throw new StoreDomainError('CAPABILITY_DISABLED', 'This campaign has ended.', 409)
+  }
 
   const configured = [
     resolveMerchantHandoff({ type: experience.primaryCtaType, label: experience.primaryCtaLabel, url: experience.primaryCtaUrl }),

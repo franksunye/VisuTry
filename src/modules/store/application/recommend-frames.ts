@@ -82,6 +82,8 @@ export async function recommendMerchantFrames(
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
+    requireShopperActions: true,
+    experiences: input.experiences,
   })
 
   if (input.usage?.countAICommerceSessions && input.usage.consumeAICommerceSession) {

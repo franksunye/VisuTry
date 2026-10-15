@@ -780,6 +780,7 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Find frames that suit you — then try them on.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "archivedCampaign": { "title": "Campagne terminée", "body": "Cette campagne est terminée. Vous pouvez toujours consulter les montures sélectionnées ci-dessous.", "storeLink": "Visiter le Store actuel" },
     "experience": {
       "storeLabel": "Collection sélectionnée",
       "campaignLabel": "La sélection",

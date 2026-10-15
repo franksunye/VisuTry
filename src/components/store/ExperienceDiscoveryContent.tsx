@@ -91,16 +91,28 @@ export function ExperienceDiscoveryContent({
   discovery,
   locale,
   pathname,
+  archivedCampaignCopy,
 }: {
   discovery: PublicExperienceDiscovery
   locale: string
   pathname: string
+  archivedCampaignCopy?: { title: string; body: string; storeLink: string }
 }) {
+  const isCampaign = discovery.experience.type === 'CAMPAIGN'
+  const isArchivedCampaign = isCampaign && discovery.experience.status === 'ARCHIVED'
   const safeDiscovery = {
     ...discovery,
-    merchant: { ...discovery.merchant, logoUrl: publicMerchantImageUrl(discovery.merchant.logoUrl) },
+    merchant: {
+      ...discovery.merchant,
+      logoUrl: publicMerchantImageUrl(discovery.merchant.logoUrl),
+      ...(isArchivedCampaign ? { websiteUrl: null } : {}),
+    },
     experience: { ...discovery.experience, heroAssetUrl: publicMerchantImageUrl(discovery.experience.heroAssetUrl) },
-    frames: discovery.frames.map((frame) => ({ ...frame, imageUrl: publicMerchantImageUrl(frame.imageUrl) })),
+    frames: discovery.frames.map((frame) => ({
+      ...frame,
+      imageUrl: publicMerchantImageUrl(frame.imageUrl),
+      ...(isArchivedCampaign ? { productUrl: null } : {}),
+    })),
   }
   const { merchant, experience, frames } = safeDiscovery
   const brandAccent = brandAccentForDisplay(merchant.accentColor)
@@ -109,7 +121,6 @@ export function ExperienceDiscoveryContent({
     : experience.headline?.trim() || experience.name
   const description = experience.description?.trim()
   const heroImage = experience.heroAssetUrl || frames.find((frame) => frame.imageUrl)?.imageUrl
-  const isCampaign = experience.type === 'CAMPAIGN'
   const presentationMode = resolvePresentationMode({
     experienceType: experience.type,
     persistedPresentationMode: experience.presentationMode,
@@ -120,6 +131,7 @@ export function ExperienceDiscoveryContent({
     <main
       lang={locale}
       data-store-discovery="true"
+      data-archived-campaign={isArchivedCampaign ? 'true' : undefined}
       data-presentation-mode={presentationMode}
       className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950"
     >
@@ -143,12 +155,14 @@ export function ExperienceDiscoveryContent({
               <p className="font-serif text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{merchant.name}</p>
             </div>
           </div>
-          <MerchantShopperAccountControlSlot
-            merchantSlug={merchant.slug}
-            experienceType={experience.type}
-            experienceSlug={isCampaign ? experience.slug : undefined}
-            locale={locale}
-          />
+          {!isArchivedCampaign ? (
+            <MerchantShopperAccountControlSlot
+              merchantSlug={merchant.slug}
+              experienceType={experience.type}
+              experienceSlug={isCampaign ? experience.slug : undefined}
+              locale={locale}
+            />
+          ) : null}
         </header>
 
         <section className={`mt-8 rounded-[2.25rem] border border-white bg-white/90 p-5 shadow-[0_35px_100px_rgba(30,64,175,0.12)] sm:p-8 ${isCampaign ? 'lg:p-10' : ''}`}>
@@ -156,11 +170,17 @@ export function ExperienceDiscoveryContent({
             <div>
               <h1 className="mt-5 font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">{title}</h1>
               {description ? <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">{description}</p> : null}
-              <a href="#featured-frames" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:brightness-90"
+              {isArchivedCampaign && archivedCampaignCopy ? (
+                <div role="status" aria-live="polite" className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5">
+                  <p className="font-semibold text-slate-900">{archivedCampaignCopy.title}</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">{archivedCampaignCopy.body}</p>
+                </div>
+              ) : null}
+              {!isArchivedCampaign ? <a href="#featured-frames" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:brightness-90"
                 style={{ backgroundColor: brandAccent }}>
                 Explore the collection
-              </a>
-              {experience.primaryHandoff || experience.secondaryHandoff ? (
+              </a> : null}
+              {!isArchivedCampaign && (experience.primaryHandoff || experience.secondaryHandoff) ? (
                 <div className="mt-3 flex flex-wrap gap-3">
                   {[experience.primaryHandoff, experience.secondaryHandoff].filter((handoff) => handoff !== null).map((handoff, index) => handoff ? (
                     <MerchantHandoffLink
@@ -228,7 +248,7 @@ export function ExperienceDiscoveryContent({
                           </ul>
                         ) : null}
                         {price ? <p className="mt-4 text-sm font-semibold text-slate-950">{price}</p> : null}
-                        {frame.productUrl ? (
+                        {!isArchivedCampaign && frame.productUrl ? (
                           <a
                             {...externalLinkProps(frame.productUrl, experience.type, experience.slug, 'product')}
                             className="mt-5 inline-flex items-center gap-2 text-sm font-semibold underline-offset-2 hover:underline"
@@ -247,7 +267,14 @@ export function ExperienceDiscoveryContent({
         </section>
 
         <div className="mt-10 px-1 sm:px-2">
-          {merchant.websiteUrl ? (
+          {isArchivedCampaign && archivedCampaignCopy && merchant.hasActivePublicStore ? (
+            <a
+              href={`/${encodeURIComponent(locale)}/store/${encodeURIComponent(merchant.slug)}`}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-500"
+            >
+              {archivedCampaignCopy.storeLink}
+            </a>
+          ) : !isArchivedCampaign && merchant.websiteUrl ? (
             <a
               {...externalLinkProps(merchant.websiteUrl, experience.type, experience.slug, 'merchant')}
               className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-slate-950"

@@ -393,6 +393,32 @@ describe('Experience foundation', () => {
     expect(recordFirstShopperSession).toHaveBeenCalledWith({ merchantId: 'merchant-1', merchantSessionId: 'session-1' })
   })
 
+  it('does not create a shopper session for an archived Campaign', async () => {
+    const sessionCreate = jest.fn()
+    await expect(createStoreSession({
+      merchants: merchant(),
+      sessions: {
+        create: sessionCreate,
+        findByMerchantAndId: jest.fn(),
+        touch: jest.fn(),
+        markExpired: jest.fn(),
+        attachPhotoAsset: jest.fn(),
+      },
+      experiences: {
+        findByMerchantAndId: jest.fn(),
+        findDefaultStore: jest.fn(),
+        findPublicCampaignByMerchantAndSlug: jest.fn().mockResolvedValue(experience({ status: 'ARCHIVED' })),
+        findActiveCampaignByMerchantAndSlug: jest.fn(),
+        hasAnyByMerchant: jest.fn().mockResolvedValue(true),
+      },
+      events: { appendIdempotent: jest.fn(), listByMerchant: jest.fn() },
+      usage: { record: jest.fn() } as never,
+      slug: 'ello-sunglasses',
+      experienceSlug: 'petite-fit',
+    })).rejects.toMatchObject({ code: 'CAPABILITY_DISABLED', httpStatus: 409 })
+    expect(sessionCreate).not.toHaveBeenCalled()
+  })
+
   it('keeps session event plan metadata commercial and separate from persistence origins', async () => {
     const base = await merchant().findBySlug('ello-sunglasses')
     const periodStart = new Date(Date.now() - 24 * 60 * 60 * 1000)

@@ -761,6 +761,7 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Find frames that suit you — then try them on.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "archivedCampaign": { "title": "انتهت الحملة", "body": "انتهت هذه الحملة. لا يزال بإمكانك تصفح الإطارات المختارة أدناه.", "storeLink": "زيارة المتجر الحالي" },
     "experience": {
       "storeLabel": "مجموعة مختارة",
       "campaignLabel": "التشكيلة",
