@@ -37,6 +37,10 @@ async function readApi<T>(response: APIResponse, expectedStatus: number, action:
 
 test.describe('P1-M2.5 Local Campaign workspace', () => {
   test('runs real Local draft, preview, entitlement, publish, live edit and archive journeys', async ({ page }) => {
+    // This expanded lifecycle journey captures 20 browser states and exercises
+    // both the merchant flow and archived public experience. Keep its budget
+    // finite but independent of the repository-wide 60s default.
+    test.setTimeout(120_000)
     test.skip(!isLocalCampaignRun, 'Run npm run merchant:local:campaign:e2e against the guarded Local PostgreSQL environment.')
 
     const browserErrors: string[] = []
