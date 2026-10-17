@@ -2,7 +2,7 @@
 
 **Status:** Active operations documentation index  
 **Owner:** Product / Engineering  
-**Last updated:** 2026-10-03
+**Last updated:** 2026-10-17
 
 ## Database migration baseline governance
 
@@ -22,7 +22,7 @@ The frontend-ownership decision is recorded in `docs/decisions/ADR-011-vercel-so
 
 > Cloudflare must not independently render or produce production Next HTML/RSC/client assets. It may serve cached final anonymous HTML produced by Vercel for the exact reviewed Public HTML Offload allowlist. A second Next/OpenNext build graph remains forbidden until a superseding ADR moves the complete frontend boundary atomically.
 
-### Current production state — 2026-09-20
+### Dated production edge acceptance — 2026-09-20
 
 Consumer Public HTML Offload is **PRODUCTION PASS**. The release control plane
 verifies the active production deployment and Worker version; exact route and
@@ -44,6 +44,12 @@ was verified on the canonical session path without image upload, AI, quota, or
 payment side effects. Exact route inventory remains code/generated-manifest
 authority. Additional locales, wildcard HTML caching, and broader edge
 ownership remain out of scope.
+
+### Merchant G4 edge acceptance — 2026-10-17 (bounded)
+
+The official synthetic TEST Demo's single new disposable Campaign was published and then archived through the canonical Merchant controls. Its one-PoP pre-archive edge response changed from MISS to HIT; the post-archive public page returned historical `200/noindex` with no new shopper CTA. Cloudflare's automatic purge operation returned HTTP 200 in its audit. The inspected log **did not expose the raw tag payload**, and this is **not** a multi-PoP guarantee. [Full scoped execution evidence](https://github.com/franksunye/VisuTry/issues/414#issuecomment-6234837283) and [Lead acceptance](https://github.com/franksunye/VisuTry/issues/414#issuecomment-6235433534) are authoritative.
+
+No Worker route/ownership change was introduced by the G4 signoff. Cloudflare remains a cache of Vercel-produced eligible final anonymous HTML; authenticated/interactive/RSC requests remain protected by their canonical route boundaries.
 
 ### Public Web and Consumer App runtime boundary
 

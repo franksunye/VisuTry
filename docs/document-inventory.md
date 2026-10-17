@@ -2,7 +2,7 @@
 
 **Status:** Active documentation governance registry
 **Created:** 2026-07-08
-**Last updated:** 2026-10-01
+**Last updated:** 2026-10-17
 **Owner:** Product / Engineering
 **Review cadence:** Monthly, and at every major milestone close
 **Scope:** Authoritative documents, directory lifecycle, exceptions, and cleanup debt. This is intentionally not a file-by-file catalog.
@@ -22,7 +22,7 @@ An unlisted document does not become authoritative merely because it is newer or
 | Cross-product positioning | `docs/product/product-system.md` | Product / Engineering | Product boundary or positioning changes |
 | Product execution priority | `docs/product/product-plan.md` | Product | Milestone, gate, or priority changes |
 | Merchant human operating experience | `docs/product/specs/merchant-operating-experience.md` | Product / Engineering | Merchant IA, lifecycle, First Value/Operating boundary, or Human/Agent responsibility changes |
-| Productized Demo capability | `docs/product/specs/visutry-demo-capability.md` + `docs/ops/visutry-demo-environment-contract.md` + `docs/engineering/local-demo-runtime-contract.md` | Product / Engineering / Growth / Sales | Any material Demo-path product change, Demo identity/runtime change, or major customer-facing Demo use |
+| Productized Demo capability and Owner access | `docs/product/specs/visutry-demo-capability.md` + `docs/ops/visutry-demo-environment-contract.md` + `docs/ops/visutry-demo-access-register.md` + `docs/engineering/local-demo-runtime-contract.md` | Product / Engineering / Growth / Sales | Any material Demo-path product, identity, membership or runtime change; no credentials in docs |
 | Merchant activation milestone semantics | `docs/merchant-activation-v1.md` | Merchant Product / Engineering | Activation event, cohort, milestone, or First Value semantics change |
 | Commercial direction | `docs/strategy/commercial-strategy.md` | Product / Strategy | Commercial thesis changes |
 | GTM execution | `docs/strategy/analytics/gtm.md` | Growth / Product / Analytics | Experiment or acquisition model changes |
@@ -128,6 +128,8 @@ Use the audit during monthly review and before merging broad documentation-gover
 | P1 | Add missing metadata to active plans/specs/operations/guides | Open; reduce by area, not mass editing |
 | P1 | Post-P1-M2 Merchant documentation reconciliation | **Done 2026-09-23** — current Merchant Operating authority added; active authorities refreshed; completed M2/Agent phase plans retained as historical evidence rather than current UX authority |
 | P1 | Productized Demo documentation governance | **Done 2026-10-01** — registered Demo as a first-class product capability with Local/Production parity, release impact assessment, and reusable sales/marketing operation |
+| P1 | Merchant G4 controlled Pilot closeout | **Done 2026-10-17 / PASS_SCOPED** (#414/#356). Product Plan updated; #353 remains the separate GTM/outreach decision and scorecard authority. Do not silently mark full GA or Live Merchant charge as passed. |
+| P1 | Stale Merchant phase plans and completed branch refs | In governance review: no bulk deletion until references/unique evidence and branch merge ancestry are verified; preserve independent Enterprise Factory and paused Next 16 tracks. |
 | P2 | Review large Markdown files over 30 KB for extraction/consolidation | Open |
 | P2 | Convert operations archive-by-status into physical archive folders only when links/forensic workflows remain clear | Deferred |
 
@@ -170,3 +172,4 @@ At milestone close or monthly review:
 | 2026-09-17 | Reconciled the governance registry with current Merchant Discovery/Activation and Cloudflare production traffic-layer changes; recorded P0.5E as unresolved and retained D1 as `KEEP_FOR_NOW` pending a clean observation window. |
 | 2026-09-23 | Registered Merchant Operating Experience and Activation semantics as explicit authorities; reconciled post-P1-M2 active docs and marked completed phase plans as historical/superseded where appropriate. |
 | 2026-10-01 | Registered the Productized Demo capability and its Product/Engineering/Growth/Sales ownership, release-impact rule, and Local/Production operating authorities. |
+| 2026-10-17 | Closed the scoped Merchant G4/commercial document-governance milestone, registered Demo Owner access, and separated Pilot GTM execution from GA and Enterprise Factory. |

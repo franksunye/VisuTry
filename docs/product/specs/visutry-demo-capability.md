@@ -3,7 +3,7 @@
 **Status:** Active source of truth
 **Owner:** Product / Engineering / Growth / Sales
 **Created:** 2026-10-01
-**Last updated:** 2026-10-01
+**Last updated:** 2026-10-17
 **Review cadence:** On every material Demo-path product change and before major customer-facing use
 **Scope:** Product ownership, lifecycle, repeatability, Local/Production parity, and sales/marketing use of the canonical VisuTry Demo capability.
 
@@ -24,6 +24,14 @@ The Demo serves three equally valid purposes:
 3. **Marketing / enablement:** screenshots, video, white-paper visuals, training material, product announcements, and reusable proof of product behavior.
 
 The Demo is not customer proof, not a substitute for a real Pilot, and not permission to make claims beyond implemented behavior.
+
+### Production G4 acceptance (2026-10-17)
+
+The official `visutry-demo-optical` identity (all three `TEST / DEMO / VISUTRY_DEMO` markers), existing Product Owner's authenticated `OWNER` membership and separate REAL Discovery Canary boundaries were verified under [#414](https://github.com/franksunye/VisuTry/issues/414#issuecomment-6235433534). Prepared/provider-free Consent → Recommendation → Compare → private Result/QR → clean phone continuation passed within the bounded synthetic TEST Demo scope. A new QA Campaign's auto-purge and historical/noindex Guest state passed one-PoP scoped acceptance.
+
+A single synthetic non-null Store Hero was verified by cookie-free public API and actually decoded in a browser; the *strictly anonymous browser screenshot itself was not proved* due to an existing Auth0 cookie and remains an explicitly accepted evidence limitation. Original Hero was restored and the one test Blob individually removed (404). Do not present this as a full global render/cache certification or a live AI/Stripe Pilot. The canonical Demo remains synthetic/non-sale and must not be mistaken for verified customer value.
+
+Merchant Pilot readiness is separately **`PASS_SCOPED`**, not GA. Official authenticated access and recovery details are in [the Demo Access Register](../../ops/visutry-demo-access-register.md). No new Demo tests are authorized merely by this status update.
 
 ## 2. Canonical Demo
 
