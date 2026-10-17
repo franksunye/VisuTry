@@ -2,7 +2,7 @@
 
 **Status:** Active operational authority
 **Owner:** Product / Engineering / Operations
-**Last reviewed:** 2026-10-10
+**Last reviewed:** 2026-10-17
 **Scope:** Canonical VisuTry-owned Demo identity, public URL, prepared-result
 parity, provider policy, Local/Production Demo operation, and the operational
 boundary for the productized Demo capability.
@@ -39,6 +39,21 @@ The three identity markers are conjunctive. `TEST`, `DEMO`, or
 plan and does not inherit paid-plan lifecycle or billing-period expiry.
 Try-On entitlement is separate from permission to incur Provider cost: normal
 Demo operation does not imply an unrestricted or automatic Provider call.
+
+## Merchant Owner access
+
+Use the existing Product Owner Auth0 account to manage the canonical Demo.
+On 2026-10-17, Production read-only inspection found that the official Demo
+had no MerchantMembership rows. Under explicit Owner authorization, one OWNER
+membership was added for the existing Product Owner account. The same account
+can access the independent historical Canary; select the canonical Demo by
+its exact merchant identity rather than relying on the default selection.
+
+The [Demo Access Register](./visutry-demo-access-register.md) records the
+login entry points, redacted account identity, verification, and recovery
+procedure. Demo merchant slugs are not separate login accounts. Credentials
+belong in the account holder's password manager, not in repository documents
+or GitHub evidence.
 
 ## Independent Production Discovery Canary
 
