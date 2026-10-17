@@ -2,7 +2,7 @@
 
 **Status:** Active documentation entry point
 **Created:** 2026-07-08
-**Last updated:** 2026-10-01
+**Last updated:** 2026-10-17
 **Owner:** Product / Engineering
 **Review cadence:** Monthly, or whenever product direction / production architecture materially changes.
 
@@ -26,9 +26,15 @@ This is the entry point for current VisuTry documentation. It distinguishes acti
 | Observability / analytics / attribution / data-plane ownership | `docs/project/observability-and-analytics-contract.md` |
 | Hosting/runtime ownership | ADR-011 + `docs/operations/hosting-strategy-vercel-cloudflare.md` |
 | Technical operations | `docs/operations/README.md` + dated evidence under `docs/ops/` |
-| GTM execution | `docs/strategy/analytics/gtm.md` |
+| GTM execution | `docs/strategy/analytics/gtm.md` (Consumer); Merchant controlled Pilot execution via Issue #353 |
 | SEO/GEO execution | `docs/project/seo-backlog.md` + current SEO strategy docs |
 | Documentation governance | `docs/document-inventory.md` + ADR-012 |
+
+### Current Merchant gate (2026-10-17)
+
+Merchant G4 and Commercial-Ready are **Lead-accepted `PASS_SCOPED` for a controlled Founder-led Pilot**, not full GA ([#414 signoff](https://github.com/franksunye/VisuTry/issues/414#issuecomment-6235433534), [#356](https://github.com/franksunye/VisuTry/issues/356)). For present product priorities use `docs/product/product-plan.md`; for bounded acquisition use [#353](https://github.com/franksunye/VisuTry/issues/353). Support verification is an Owner-attested weekday manual monitoring arrangement with no backup. Prior G4 test receipts are dated evidence, not blanket promises of Live Stripe E2E, arbitrary URL compatibility or global cache consistency.
+
+`docs/ops/visutry-demo-access-register.md` is the current official Demo OWNER access/recovery runbook. It is distinct from the REAL Discovery Canary. Keep credentials solely in an Owner-controlled secure store, not repository docs.
 
 ## 3. Source-of-truth rules
 
@@ -190,3 +196,4 @@ See `docs/document-inventory.md` for lifecycle and cleanup governance.
 | 2026-09-17 | Reconciled the documentation governance contract with current Merchant Discovery/Activation and Cloudflare traffic-layer changes; recorded the final P0.5E result as unresolved and retained D1 as `KEEP_FOR_NOW` pending a clean observation window. |
 | 2026-09-23 | Reconciled documentation after P1-M2 Production acceptance; added the Merchant Operating Experience authority and separated activation-ledger semantics from runtime Operating eligibility. |
 | 2026-10-01 | Registered the productized Demo capability as a current authority and added the Demo/sales-enablement reading path across product, operations, Local QA, and sales docs. |
+| 2026-10-17 | Linked final scoped Merchant G4/Commercial-Ready evidence, controlled Pilot GTM gate and official Demo access register; preserved Consumer/GA boundaries. |
