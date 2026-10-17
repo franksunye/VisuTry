@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for product execution
 **Created:** 2026-07-08
-**Last updated:** 2026-10-01
+**Last updated:** 2026-10-17
 **Owner:** Product
 **Review cadence:** Weekly
 **Scope:** Current product focus, Now / Next / Later priorities, execution posture, standing initiatives, decisions needed, and execution board.
@@ -90,19 +90,21 @@ VisuTry now operates as two connected product faces:
 
 P1-M2 Merchant Operating Experience is **Product / UX / Production Accepted / Closed** at main SHA `3c29d56cce1c380bef42c3f9e99dd25f95ac8724`. The current durable Merchant UX contract is `docs/product/specs/merchant-operating-experience.md`.
 
-**Current authorized phase:** P1-M3 Merchant Live Experience, GitHub Issue #235 — “business is happening.” Scope is a compact, truthful Live Commerce Pulse on Operating Home using existing session/event/intent records. This is an 80/20 read/presentation upgrade, not a realtime-platform expansion; no new activity instrumentation, schema, polling of period Analytics, or Production mutation is in scope.
+**Current phase (2026-10-17): Controlled Founder-led Merchant Pilot — product-ready, not GA.** Merchant G4 engineering and operational evidence is Lead-signed `PASS_SCOPED` ([#414](https://github.com/franksunye/VisuTry/issues/414#issuecomment-6235433534)); commercial product readiness gate [#356](https://github.com/franksunye/VisuTry/issues/356) is closed **for this limited scope**. P1-M3 and the Operating Home live pulse are shipped baseline, not the next development gate.
 
-Current execution posture:
+**Execution is now commercial validation, not another broad feature sprint.** The next operating issue is [#353](https://github.com/franksunye/VisuTry/issues/353): acquisition → activation → verified shopper value → paid Pilot. Preparing a target shortlist/scorecard does **not** authorize first prospect contact; Owner must separately approve each controlled outreach batch. No unqualified claim of public GA, revenue uplift, live Merchant Stripe transaction, or full third-party URL import.
 
-1. Preserve Consumer production stability and paid/product flows as a standing P0 guardrail.
-2. Treat the shipped Merchant Operating Experience as the B2B baseline; do not restart shell/Control-Center redesign work without new evidence.
-3. Observe the Production baseline and close only real defects/regressions.
-4. Keep existing evidence-gated commercial/distribution work as supporting validation; do not infer a new build phase from older dated gate documents.
-5. Keep P1-M3 bounded to the explicitly approved Live Commerce Pulse; select any later gate explicitly before further feature development.
-6. Keep Shopify, CRM/marketing automation, generalized Campaign Builder, verified revenue attribution, and similar expansion evidence-gated.
-7. Treat the canonical Demo as a standing release surface: every material change to the supported Demo journey must classify Demo impact and keep Local/Production parity current.
+Current operating posture:
 
-P1-M2 remains the closed historical/product baseline; P1-M3 is the only currently authorized implementation gate.
+1. Preserve Consumer standalone product quality, runtime performance and payments as a standing P0 guardrail.
+2. Freeze the accepted core Merchant surface (Catalog/Store/Campaign, Journey/Result/Kiosk, operating UX, privacy and canonical Demo). Ship only observed P0/operational fixes during Pilot.
+3. Keep `visutry-demo-optical` the official TEST Demo and the similarly named `visutry-demo` REAL Discovery Canary strictly separate. The Owner access recovery and bounded executed QA evidence are recorded in [#414](https://github.com/franksunye/VisuTry/issues/414).
+4. Offer **Manual/CSV-first** Merchant First Value; arbitrary third-party URL import remains best-effort/Beta ([#359](https://github.com/franksunye/VisuTry/issues/359)).
+5. For first-wave Pilot, Founder owns `support@visutry.com` and checks it at least once per Asia/Shanghai business day; the public promise is normally within two business days. No backup is staffed for the initial limited wave; see [support evidence](https://github.com/franksunye/VisuTry/issues/414#issuecomment-6235386820).
+6. Accept explicit G4 evidence limits: no independently clean-anonymous non-null Hero screenshot; Campaign automatic cache purge confirmed within one PoP (not global); Stripe Test E2E and Live-config equivalence are accepted for prelaunch, **not an actual Merchant Live charge**. Monitor first legitimate external transactions and reopen on real failure.
+7. Keep Enterprise Assisted Delivery Factory [#406](https://github.com/franksunye/VisuTry/issues/406)/[#407](https://github.com/franksunye/VisuTry/issues/407), Next 16 migration, and major Agent/marketing integrations in separately gated P1/Later scope; none silently block the signed SMB Pilot.
+
+
 
 ## 5. Execution Status Definitions
 
@@ -123,24 +125,24 @@ P1-M2 remains the closed historical/product baseline; P1-M3 is the only currentl
 
 ## 6. Now / Next / Later
 
-### Now
+### Now — signed scope
 
-| Priority | Workstream | Why it matters | Status |
-| --- | --- | --- | --- |
-| P0 | Consumer production stability | Merchant work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / continuously guarded |
-| P0 | Merchant Operating baseline | Keep the Production-accepted Home/Catalog/Store/Campaigns/Analytics/Integrations/Plan/Settings baseline stable and truthful. | Production Accepted / Closed |
-| P0 | Productized Demo parity | Keep the canonical Local and Production Demo aligned with the supported shopper/product journey and suitable for repeatable QA, sales, and content production. | Shipped / continuously guarded |
-| P1 | Merchant Live Experience (Issue #235) | Make real current commerce activity legible on Home without noisy or costly realtime infrastructure. | In Progress; Local only |
-| P1 | Production observation and defect response | New work should be triggered by evidence, not by reopening completed M2 implementation. | Active operating posture |
+| Priority | Workstream | Acceptance / next behavior |
+| --- | --- | --- |
+| P0 | Consumer stability | Keep independent Face Analysis, Try-On, Compare and revenue safety green. |
+| P0 | Merchant G4 controlled Pilot | **PASS_SCOPED / closed** (#414/#356); protect accepted baseline, distinguish signed scope from GA. |
+| P0 | Founder-led Pilot operations | Monitor support mailbox and first authentic checkout/webhook, Session/Intent and onboarding outcomes without inventing data. |
+| P1 | Merchant GTM #353 | Prepare scorecard and narrow prospect batch for distinct Owner approval; **no outreach authorized by release signoff**. |
+| P1 | Repository/docs housekeeping | Finalize merged Demo owner access record, update current sources of truth and audit branches/PRs without touching active Enterprise/Next work. |
 
-### Next — candidate gates, not yet authorized after P1-M3
+### Next — evidence-triggered or separate authorization
 
 | Priority | Candidate | Entry condition |
 | --- | --- | --- |
-| P1 | First real merchant validation / controlled outreach | Only when the governing commercial/distribution evidence and operating readiness support it. |
-| P1 | OAuth / external Agent hardening | When an external Agent-enabled pilot requires it; preserve shared canonical capabilities and approval boundaries. |
-| P1 | Merchant conversion/lead capability | Only when a legitimate opt-in/merchant demand exists; do not invent revenue proof. |
-| P2 | Additional Merchant UX polish | Only from observed usability evidence; do not reopen the resource IA by default. |
+| P1 | First controlled merchant cohort | Owner approves exact audience/contact count, channel, truthful messages and stop rules under #353. |
+| P1 | Enterprise Assisted Factory #406/#407 | Dedicated P1 acceptance and two-merchant RC; not SMB G4 retroactive blocker. |
+| P1 | External Agent/OAuth, Catalog URL import refinement | Actual Pilot need, security approval and bounded own QA gates. |
+| P2 | Additional Merchant UX polish | Observed merchant friction; avoid ungrounded redesign. |
 
 ### Later / explicitly evidence-gated
 
@@ -157,9 +159,9 @@ P1-M2 remains the closed historical/product baseline; P1-M3 is the only currentl
 
 **Previous sprint:** 2B Product Advantage Gate Readiness (historical August execution context).
 
-**Current state:** stabilization / observation after P1-M2 Product + UX + Production acceptance.
+**Current state:** Merchant G4 controlled Founder-led Pilot is Lead-signed `PASS_SCOPED` (2026-10-17); prioritize stable commercial observation and authorized acquisition preparation, not another broad engineering release.
 
-**Exit condition for this posture:** Product/Lead explicitly opens the next bounded gate with a defined user/business objective, acceptance criteria, and evidence boundary.
+**Exit condition for this posture:** qualified real Merchant and Shopper/Pilot evidence justifies a scoped new implementation gate or a separately approved wider launch. Outreach remains Owner-gated by #353.
 
 The active Merchant baseline is:
 
@@ -181,9 +183,9 @@ Workspace Operating eligibility is a runtime compatibility decision, not a rewri
 | P0 | Consumer stability boundary | Engineering | Shipped / guarded | Keep Consumer critical and revenue gates green. |
 | P0 | P1-M2 Merchant Operating Experience | Product / Engineering | **Production Accepted / Closed** | Observe; open a new narrow gate only for a real regression or new product phase. |
 | P0 | Productized Demo capability | Product / Engineering / Growth / Sales | **Shipped / guarded** | For Demo-relevant product changes, classify impact, keep Local/Production parity current, and refresh reusable evidence/material only when behavior materially changes. |
-| P1 | Merchant Production observation | Product / Engineering | Active | Watch runtime/product evidence; do not mutate Production for QA without explicit bounded approval. |
-| P1 | Next product gate | Product | Not authorized | Select explicitly from current evidence; do not inherit an August sprint by default. |
-| P1 | Real merchant validation / outreach | Product / Growth | Evidence-gated | Follow its governing current commercial/gate documents when explicitly activated. |
+| P1 | Merchant Production observation | Product / Engineering | Active / Pilot | Watch authentic runtime, shopper and payment outcomes; production QA writes require explicit bounded authority. |
+| P1 | G4 signed commercial gate | Product / Engineering | **PASS_SCOPED / closed** | Preserve #414/#356 accepted limitations; not unrestricted GA. |
+| P1 | Founder-led GTM #353 | Product / Growth | Planning authorized; outreach not yet authorized | Define qualified limited batch, scorecard and Owner sign-off before contact. |
 | P1 | External Agent/OAuth hardening | Engineering | Conditional | Execute only if included in an approved pilot promise. |
 | P2 | CRM / Shopify / revenue attribution / generalized martech | Product / Engineering | Deferred | Require repeated merchant demand and trustworthy commerce evidence. |
 
