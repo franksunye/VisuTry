@@ -703,6 +703,7 @@ model Merchant {
   billingEvents MerchantBillingEvent[]
   agentCredentials MerchantAgentCredential[]
   operationAudits MerchantOperationAudit[]
+  factoryOperations MerchantFactoryOperation[]
   oauthAuthorizations MerchantOAuthAuthorization[]
   activationEvents MerchantActivationEvent[]
   decisionResults DecisionResult[]
@@ -823,6 +824,29 @@ model MerchantAgentCredential {
 }
 
 /// Minimal tenant-scoped audit trail for credential lifecycle and agent writes.
+/// Tenant-scoped idempotency reservation. A pending result must be reconciled,
+/// never automatically replayed after an unknown partially completed action.
+model MerchantFactoryOperation {
+  id           String   @id @default(cuid())
+  merchantId   String
+  operationId  String   @db.VarChar(96)
+  actorId      String   @db.VarChar(120)
+  action       String   @db.VarChar(60)
+  targetType   String   @db.VarChar(20)
+  targetId     String   @db.VarChar(120)
+  fingerprint  String   @db.VarChar(64)
+  status       String   @default("IN_PROGRESS") @db.VarChar(20)
+  beforeState  Json?
+  receipt      Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, operationId])
+  @@index([merchantId, status, updatedAt])
+}
+
 model MerchantOperationAudit {
   id           String   @id @default(cuid())
   merchantId   String
