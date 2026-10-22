@@ -584,6 +584,51 @@ describe('TryOnService', () => {
       expect(result.progress).toBe(0)
     })
 
+    it.each([429, 503])('keeps an accepted task processing after GrsAi poll HTTP %i', async (httpStatus) => {
+      const task = {
+        id: `task-poll-http-${httpStatus}`,
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'accepted-provider-task', retryCount: 0 },
+      }
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(task)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        progress: 0,
+        error: `Polling failed: ${httpStatus}`,
+      })
+
+      const result = await getTryOnResult(task.id)
+
+      expect(result).toMatchObject({ status: TaskStatus.PROCESSING, progress: 0 })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: { id: task.id, status: { not: TaskStatus.COMPLETED } },
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          errorMessage: null,
+        }),
+      })
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('treats a retryable GrsAi business code as a transient poll failure', async () => {
+      const task = {
+        id: 'task-poll-business-503',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'accepted-provider-task', retryCount: 0 },
+      }
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(task)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'upstream temporarily unavailable',
+        diagnostics: { code: 503 },
+      })
+
+      const result = await getTryOnResult(task.id)
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('should mark task as failed when GrsAi succeeds without image URL', async () => {
       const mockTask = {
         id: 'task-2',
