@@ -147,6 +147,53 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).not.toHaveBeenCalled()
     })
 
+    it('reuses an ordinary Consumer replay key without a caller opt-in', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'ordinary-existing-task',
+        status: TaskStatus.PROCESSING,
+        resultImageUrl: null,
+        errorMessage: null,
+        metadata: { serviceType: 'grsai', isAsync: true },
+      })
+
+      const result = await submitTryOnTask(
+        mockUser as any,
+        mockFile,
+        mockFile,
+        'GLASSES',
+        undefined,
+        { clientSubmissionId: 'ordinary-key' },
+      )
+
+      expect(result.taskId).toBe('ordinary-existing-task')
+      expect(prisma.tryOnTask.create).not.toHaveBeenCalled()
+      expect(put).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('recovers an ordinary Consumer P2002 replay race without a caller opt-in', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          id: 'ordinary-winner-task',
+          status: TaskStatus.PENDING,
+          metadata: { serviceType: 'grsai', isAsync: true },
+        })
+      ;(prisma.tryOnTask.create as jest.Mock).mockRejectedValue({ code: 'P2002' })
+
+      const result = await submitTryOnTask(
+        mockUser as any,
+        mockFile,
+        mockFile,
+        'GLASSES',
+        undefined,
+        { clientSubmissionId: 'ordinary-race' },
+      )
+
+      expect(result.taskId).toBe('ordinary-winner-task')
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('should use GrsAi for free users and keep user/item URLs distinct', async () => {
       ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-task-id')
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
