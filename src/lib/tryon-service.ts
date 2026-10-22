@@ -760,7 +760,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       lastExternalProgress: pollResult.progress,
       lastExternalError: pollResult.error,
       lastExternalDiagnostics: pollResult.diagnostics,
-      ...(pollResult.status !== 'failed' ? {
+      ...(task.origin === 'CONSUMER' && pollResult.status !== 'failed' ? {
         pollFailureStreak: 0,
         pollFirstTransientAt: null,
         nextProviderPollAt: null,
@@ -1118,10 +1118,12 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             errorMessage: null,
             metadata: {
               ...externalPollMetadata,
-              pollFailureStreak: failureStreak,
-              pollFirstTransientAt: firstFailureAt,
-              nextProviderPollAt: new Date(transientNow.getTime() + backoffMs).toISOString(),
-              providerPollNeedsAttention: needsOperatorAttention,
+              ...(task.origin === 'CONSUMER' ? {
+                pollFailureStreak: failureStreak,
+                pollFirstTransientAt: firstFailureAt,
+                nextProviderPollAt: new Date(transientNow.getTime() + backoffMs).toISOString(),
+                providerPollNeedsAttention: needsOperatorAttention,
+              } : {}),
             },
           },
         })
