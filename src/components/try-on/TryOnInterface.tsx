@@ -409,8 +409,10 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
             logger.error('general', 'Failed to refresh session after try-on', err)
           })
         } else if (taskData.status === "failed") {
+          analytics.trackTryOnComplete(userType, Date.now() - (tryOnStartedAtRef.current ?? Date.now()), false, type)
+          tryOnStartedAtRef.current = null
           submissionAttemptRef.current = null
-          setError({ message: taskData.errorMessage || "Processing failed. You can start a new try-on.", type: 'generic' })
+          setError({ message: taskData.error || "Processing failed. You can start a new try-on.", type: 'generic' })
           setCurrentStep("select")
           setIsProcessing(false)
         } else {
