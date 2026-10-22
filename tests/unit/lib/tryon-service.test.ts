@@ -194,6 +194,53 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).not.toHaveBeenCalled()
     })
 
+    it('durably marks an ambiguous initial GrsAi POST as UNKNOWN, not FAILED', async () => {
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'initial-unknown',
+        status: TaskStatus.PENDING,
+        metadata: { serviceType: 'grsai' },
+      })
+      ;(submitAsyncTask as jest.Mock).mockRejectedValue(new Error('GrsAi submission timed out after 25000ms'))
+
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+
+      expect(result).toMatchObject({ taskId: 'initial-unknown', status: 'submitted' })
+      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
+        where: { id: 'initial-unknown' },
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          metadata: expect.objectContaining({ dispatchOutcome: 'UNKNOWN' }),
+        }),
+      })
+      expect(prisma.tryOnTask.update).not.toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ status: TaskStatus.FAILED }) }),
+      )
+      expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+    })
+
+    it('persists an accepted GrsAi ID before submission telemetry', async () => {
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'initial-accepted',
+        status: TaskStatus.PENDING,
+        metadata: { serviceType: 'grsai' },
+      })
+      ;(submitAsyncTask as jest.Mock).mockResolvedValue('accepted-external-id')
+
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+
+      expect(result.status).toBe('submitted')
+      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
+        where: { id: 'initial-accepted' },
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          metadata: expect.objectContaining({
+            dispatchOutcome: 'ACCEPTED',
+            externalTaskId: 'accepted-external-id',
+          }),
+        }),
+      })
+    })
+
     it('should use GrsAi for free users and keep user/item URLs distinct', async () => {
       ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-task-id')
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
@@ -701,8 +748,8 @@ describe('TryOnService', () => {
 
       const result = await getTryOnResult('task-2')
 
-      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
-        where: { id: 'task-2' },
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: { id: 'task-2', status: { not: TaskStatus.COMPLETED } },
         data: expect.objectContaining({
           status: TaskStatus.FAILED,
           errorMessage: 'GrsAi task succeeded without a result image URL',
@@ -775,6 +822,134 @@ describe('TryOnService', () => {
       })
       expect(result.status).toBe(TaskStatus.PROCESSING)
       expect(result.progress).toBe(0)
+    })
+
+    it('never polls or resubmits an UNKNOWN Consumer dispatch, including stale PENDING', async () => {
+      const oldDate = new Date(Date.now() - 10 * 60 * 1000)
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'unknown-consumer',
+        origin: 'CONSUMER',
+        status: TaskStatus.PENDING,
+        createdAt: oldDate,
+        updatedAt: oldDate,
+        metadata: {
+          serviceType: 'grsai',
+          dispatchOutcome: 'UNKNOWN',
+          retryCount: 0,
+        },
+      })
+
+      const result = await getTryOnResult('unknown-consumer')
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(prisma.tryOnTask.updateMany).not.toHaveBeenCalled()
+      expect(pollTaskResult).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('claims a Consumer timeout retry once even with two concurrent pollers', async () => {
+      const task = {
+        id: 'consumer-race',
+        origin: 'CONSUMER',
+        userId: 'user-1',
+        dispatchVersion: 0,
+        userImageUrl: 'http://blob/user.jpg',
+        itemImageUrl: 'http://blob/item.jpg',
+        type: 'GLASSES',
+        status: TaskStatus.PROCESSING,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'first-provider-id',
+          retryCount: 0,
+          effectivePrompt: 'retry prompt',
+          dispatchOutcome: 'ACCEPTED',
+        },
+      }
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(task)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'provider timeout after generation',
+      })
+      ;(submitAsyncTask as jest.Mock).mockResolvedValue('second-provider-id')
+      let claimed = false
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockImplementation(async (args: any) => {
+        if (args.data?.dispatchVersion?.increment === 1) {
+          if (claimed) return { count: 0 }
+          claimed = true
+        }
+        return { count: 1 }
+      })
+
+      const results = await Promise.all([
+        getTryOnResult('consumer-race'),
+        getTryOnResult('consumer-race'),
+      ])
+
+      expect(results.map((r) => r.status)).toEqual([TaskStatus.PROCESSING, TaskStatus.PROCESSING])
+      expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+      const claims = (prisma.tryOnTask.updateMany as jest.Mock).mock.calls
+        .map(([args]) => args)
+        .filter((args) => args.data?.dispatchVersion?.increment === 1)
+      expect(claims).toHaveLength(2)
+      expect(claims[0].where).toMatchObject({
+        id: 'consumer-race',
+        origin: 'CONSUMER',
+        dispatchVersion: 0,
+        resultPersistLeaseOwner: null,
+      })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          id: 'consumer-race',
+          dispatchVersion: 1,
+          dispatchLeaseOwner: expect.any(String),
+        }),
+        data: expect.objectContaining({
+          dispatchLeaseOwner: null,
+          metadata: expect.objectContaining({
+            externalTaskId: 'second-provider-id',
+            dispatchOutcome: 'ACCEPTED',
+            retryCount: 1,
+          }),
+        }),
+      }))
+    })
+
+    it('preserves UNKNOWN after an ambiguous Consumer retry submit timeout', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'consumer-retry-unknown',
+        origin: 'CONSUMER',
+        dispatchVersion: 0,
+        userId: 'user-1',
+        userImageUrl: 'http://blob/user.jpg',
+        itemImageUrl: 'http://blob/item.jpg',
+        type: 'GLASSES',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'old-id', retryCount: 0 },
+      })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'provider timeout',
+      })
+      ;(submitAsyncTask as jest.Mock).mockRejectedValue(new Error('GrsAi submission timed out'))
+
+      const result = await getTryOnResult('consumer-retry-unknown')
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          id: 'consumer-retry-unknown',
+          dispatchVersion: 1,
+          dispatchLeaseOwner: expect.any(String),
+        }),
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          metadata: expect.objectContaining({
+            dispatchOutcome: 'UNKNOWN',
+            retryCount: 1,
+          }),
+        }),
+      }))
     })
 
     it('should recover a failed task if it still has an external task ID and GrsAi later succeeds', async () => {
