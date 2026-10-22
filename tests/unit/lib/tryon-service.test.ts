@@ -171,6 +171,26 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).not.toHaveBeenCalled()
     })
 
+    it('rejects reuse of a Consumer submission key for a different Try-On type', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'existing-different-type',
+        type: 'SUNGLASSES',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai' },
+      })
+
+      await expect(submitTryOnTask(
+        mockUser as any,
+        mockFile,
+        mockFile,
+        'GLASSES',
+        undefined,
+        { clientSubmissionId: 'reused-key' },
+      )).rejects.toThrow('Submission ID belongs to a different Try-On type')
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.create).not.toHaveBeenCalled()
+    })
+
     it('recovers an ordinary Consumer P2002 replay race without a caller opt-in', async () => {
       ;(prisma.tryOnTask.findUnique as jest.Mock)
         .mockResolvedValueOnce(null)
