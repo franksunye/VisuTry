@@ -780,6 +780,41 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).not.toHaveBeenCalled()
     })
 
+    it('resets Consumer poll backoff after a successful status query', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'consumer-poll-recovered',
+        origin: 'CONSUMER',
+        status: TaskStatus.PROCESSING,
+        dispatchVersion: 0,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'accepted-id',
+          pollFailureStreak: 3,
+          pollFirstTransientAt: new Date(Date.now() - 120_000).toISOString(),
+        },
+      })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({ status: 'processing', progress: 45 })
+
+      const result = await getTryOnResult('consumer-poll-recovered')
+
+      expect(result).toMatchObject({ status: TaskStatus.PROCESSING, progress: 45 })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'consumer-poll-recovered',
+          status: { not: TaskStatus.COMPLETED },
+          dispatchVersion: 0,
+        },
+        data: {
+          metadata: expect.objectContaining({
+            pollFailureStreak: 0,
+            pollFirstTransientAt: null,
+            nextProviderPollAt: null,
+          }),
+        },
+      })
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('treats a retryable GrsAi business code as a transient poll failure', async () => {
       const task = {
         id: 'task-poll-business-503',
