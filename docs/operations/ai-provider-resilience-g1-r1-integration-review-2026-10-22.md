@@ -20,6 +20,10 @@ The old tests/unit/lib/tryon-service.test.ts blob from #432 is intentionally **N
 
 These are behavior changes, not omissions: #436 contains positive versions of the three scenarios plus additional regression cases. The #432 audit/fixture documents describe the condition of the earlier snapshot and must not be cited as evidence that the same bugs remain on this integration branch.
 
+## Integration-only compatibility delta
+
+The combined TypeScript gate initially failed on four occurrences of `String.replaceAll` in #432's `tests/unit/lib/grsai-face-analysis.test.ts`: the repository `tsconfig.json` targets `es2020`, where the method is not in the configured type library. This branch substitutes `split('_').join('')` in that **test only**, preserving behavior and leaving the original #432 file untouched. All other imported #432/#438 blobs are content-identical to the original PRs. The first combined CI attempt #1276 is recorded as FAIL (TypeScript); a new exact-head CI is required after the repair.
+
 ## Test gates
 
 - #436 exact-head remote Quality Gate #1274: three jobs SUCCESS; 2,532 passed, one skipped.
