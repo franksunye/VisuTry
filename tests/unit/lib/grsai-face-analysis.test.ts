@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { analyzeFaceWithGrsAi } from '@/lib/grsai-face-analysis'
 import { logger } from '@/lib/logger'
 
@@ -105,6 +107,35 @@ describe('analyzeFaceWithGrsAi', () => {
       undefined,
       expect.objectContaining({ attempt: 1, isTimeout: false })
     )
+  })
+
+  it('does not resubmit after an ambiguous vendor timeout', async () => {
+    ;(global.fetch as jest.Mock).mockImplementationOnce((_url: string, options: RequestInit) => (
+      new Promise((_resolve, reject) => {
+        options.signal?.addEventListener('abort', () => {
+          reject(Object.assign(new Error('aborted'), { name: 'AbortError' }))
+        }, { once: true })
+      })
+    ))
+
+    const analysis = analyzeFaceWithGrsAi('https://example.com/face.jpg', 'Analyze this face')
+    const rejection = expect(analysis).rejects.toThrow('Face analysis timed out')
+    await jest.advanceTimersByTimeAsync(45_000)
+
+    await rejection
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the 55-second chat budget inside the 60-second route limit', () => {
+    const providerSource = readFileSync(join(process.cwd(), 'src/lib/grsai-face-analysis.ts'), 'utf8')
+    const routeSource = readFileSync(join(process.cwd(), 'src/app/api/face-analysis/submit/route.ts'), 'utf8')
+    const providerBudget = providerSource.match(/const CHAT_API_TOTAL_BUDGET_MS\s*=\s*([\d_]+)/)?.[1]
+    const routeBudget = routeSource.match(/export const maxDuration\s*=\s*([\d_]+)/)?.[1]
+
+    expect(Number(providerBudget?.replaceAll('_', ''))).toBe(55_000)
+    expect(Number(routeBudget?.replaceAll('_', ''))).toBe(60)
+    expect(Number(routeBudget?.replaceAll('_', '')) * 1_000 - Number(providerBudget?.replaceAll('_', '')))
+      .toBe(5_000)
   })
 
   it('fails normally when the single rix_api_error retry is exhausted', async () => {
