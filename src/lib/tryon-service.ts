@@ -104,10 +104,19 @@ function shouldRetryGrsAiTimeout(error?: string): boolean {
   return normalizedError.includes('timeout') || normalizedError.includes('timed out')
 }
 
-function shouldTreatPollFailureAsTransient(error?: string): boolean {
+function shouldTreatPollFailureAsTransient(error?: string, providerCode?: number): boolean {
+  // Polling is a read operation. A temporary failure to query an accepted task
+  // must never be mistaken for a terminal failure of the image generation.
+  const isRetryableStatus = (status: number) =>
+    status === 408 || status === 429 || (status >= 500 && status <= 599)
+
+  if (providerCode !== undefined && isRetryableStatus(providerCode)) return true
   if (!error) return false
 
   const normalizedError = error.toLowerCase()
+  const pollHttpStatus = /^polling failed:\s*(\d{3})\b/i.exec(error.trim())
+  if (pollHttpStatus && isRetryableStatus(Number(pollHttpStatus[1]))) return true
+
   return (
     normalizedError.includes('network error') ||
     normalizedError.includes('fetch failed') ||
@@ -987,7 +996,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         error: errorMessage
       }
     } else if (pollResult.status === 'failed') {
-      if (shouldTreatPollFailureAsTransient(pollResult.error)) {
+      if (shouldTreatPollFailureAsTransient(pollResult.error, pollResult.diagnostics?.code)) {
         logger.warn('tryon-service', 'Transient GrsAi polling failure detected, keeping task in processing', {
           taskId,
           externalTaskId: metadata.externalTaskId,
