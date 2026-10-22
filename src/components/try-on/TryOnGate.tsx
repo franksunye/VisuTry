@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
 import { ConversionPaywallBoundary } from '@/components/payments/ConversionPaywallBoundary'
 import { CreditExhaustedSurface } from '@/components/payments/CreditExhaustedBar'
@@ -17,18 +17,35 @@ interface TryOnGateProps {
 /**
  * Client-side gate for the Try-On page.
  *
- * Shows the server-rendered landing content while session is loading or
- * unauthenticated. When authenticated, renders the TryOnInterface and keeps
- * quota-exhausted purchase actions inside the current try-on context.
+ * Shows the server-rendered landing content until authentication succeeds,
+ * and again after sign-out. A background NextAuth session refresh must not
+ * unmount TryOnInterface and discard an already-generated result.
+ * Quota-exhausted purchase actions stay inside the current try-on context.
  */
 export function TryOnGate({ tryOnType, landing, structuredData }: TryOnGateProps) {
   const { data: session, status } = useSession()
+  const [lastAuthenticatedSession, setLastAuthenticatedSession] = useState<typeof session>(null)
 
-  if (status === 'loading' || !session) {
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      setLastAuthenticatedSession(session)
+    } else if (status === 'unauthenticated') {
+      // Never retain the authenticated UI after a real sign-out.
+      setLastAuthenticatedSession(null)
+    }
+  }, [session, status])
+
+  // NextAuth update() may briefly report loading with data=null. Retain the
+  // mounted try-on workspace only if this gate already saw a valid session.
+  const visibleSession = status === 'authenticated'
+    ? session
+    : status === 'loading' ? lastAuthenticatedSession : null
+
+  if (!visibleSession) {
     return <>{landing}</>
   }
 
-  const remainingCredits = session.user?.remainingTrials ?? 0
+  const remainingCredits = visibleSession.user?.remainingTrials ?? 0
 
   return (
     <AutoRefreshWrapper>
