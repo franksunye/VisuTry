@@ -82,7 +82,7 @@ The public-document screen in the linked vendor report supports these exact init
 
 Sample and stop rules to approve before the first call:
 
-- Eight paired cases (`G1-TRYON-01` … `G1-TRYON-08`) per tested exact SKU; one planned output per pair, no unbounded automatic retry. Report every attempt and its charge.
+- Eight paired cases (`G1-TRYON-01` … `G1-TRYON-08`) per tested exact SKU; **at most one outbound request per fixture, with no automatic retry, replay or cross-provider fallback**. If acceptance or billing is ambiguous, pause that candidate and reconcile the existing request/task before any further dispatch. Report every request, task/attempt ID and charge. A gateway candidate is skipped unless its upstream route and fallback/billing behavior can be constrained and observed.
 - Face Analysis: at most one `qwen3.8-flash` call per synthetic face portrait (eight calls total), no retry after ambiguous timeout, and stop at US$3. Record response token usage and the selected region. The image-generation fixtures remain separate from the geometry ground-truth set.
 - Proposed blind quality bar: at least **7/8 usable** outputs per candidate, with zero critical face-identity, exact-frame, user-photo privacy or duplicate/unknown-charge failures. A candidate failing any hard condition is a no-go regardless of price.
 - Enforce each provider/lane cap and the US$15 Try-On / US$3 Face Analysis actual-consumption ceilings at dispatch/account level where possible; stop immediately on billing ambiguity, unpriced SKU, unexpected request count, or top-up threshold. Never use actual consumer photos.
