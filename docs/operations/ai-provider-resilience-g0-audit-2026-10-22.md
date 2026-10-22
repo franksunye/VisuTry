@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-22  
 **Status:** G0 PARTIAL — PRODUCTION DEPLOYED-CODE EQUIVALENCE + BOUNDED INCIDENT LOG VERIFIED; LONGITUDINAL PRODUCTION METRICS OPEN  
-**Tracking:** [Project #430](https://github.com/franksunye/VisuTry/issues/430) · [G0 #431](https://github.com/franksunye/VisuTry/issues/431)  
+**Tracking:** [Project #430](https://github.com/franksunye/VisuTry/issues/430) · [G0 Try-On #431](https://github.com/franksunye/VisuTry/issues/431) · [Face Analysis #433](https://github.com/franksunye/VisuTry/issues/433)  
 **Code snapshot:** `main` `cbf21014a7ac371226475d692dbf0a5f0dc270ff`; live Vercel Production READY `75ff01e232b6317a3dae1ec509cf63179ffa550d`. Twelve generation-critical files were fetched at both SHAs and compared byte-for-byte identical; this is **deployed-code equivalence for those files**, not proof of current effective environment variables or job outcomes.  
 **Constraints:** No provider purchase, paid API call, secret modification, production routing change, migration or deploy. Google Direct/Vertex are excluded as **newly funded** candidates; audit existing Direct code only.
 
@@ -40,7 +40,7 @@ Evidence paths: [`src/lib/generation/providers.ts`](../../src/lib/generation/pro
 | Newer main commit | `cbf21014a7ac371226475d692dbf0a5f0dc270ff` deployment `dpl_FGpmQ8AnHREqRLFNCruXsJ1uFftU` is CANCELED with no Production aliases; **do not equate repository main SHA to the live deploy**. |
 | Source equivalence | Twelve generation-critical files, including Consumer/Store try-on, `grsai.ts`, `gemini.ts`, generation telemetry and quota, are content-identical at both SHAs. Separately fetched live `face-analysis-service.ts`, `grsai-face-analysis.ts` and `config/face-analysis.ts`. |
 | Grsai Face Analysis incident | Vercel function logs for `POST /api/face-analysis/submit` on **2026-10-22 05:53:11–05:53:12 UTC** show retry warning followed by `Chat API failed: 400`, `rix_api_error`, `该模型正在修复`, and request-level `Analysis failed` / `Submit API error`. A single request can emit multiple log entries; **do not count these as multiple affected users or image generations**. |
-| Retention / measurement | The Vercel runtime-log API rejected attempted 24h/7d queries due available retention, and the 30m window is too narrow to infer service success rate. Use authorized Production Postgres, Axiom, existing report CLI and explicit batch linkage. |
+| Retention / measurement | The Vercel runtime-log API rejected attempted 1h/24h/7d queries due available retention; the 30m window is too narrow to infer service success rate. Separate `get_runtime_errors(since:24h)` **pre-aggregated error clusters** included events with first-seen dates as early as June 2026 (98 total in one group, 16 affected users reported), so those counts are **historical groups, not valid 24h denominators or 24h incident totals**. Samples from Oct 21–22 include both Grsai model-repair 400 and Face Analysis timeouts. Use authorized Production Postgres, Axiom, existing report CLI and explicit batch linkage. |
 | Configuration | Production effective `ENABLE_SERVICE_TIERING`, API key presence, Grsai base URL and actual upstream routing are **not verified** by the deployment or logs. No secrets were retrieved. |
 
 ## 3. Failure timeline and safety boundaries
@@ -64,6 +64,8 @@ Evidence paths: [`src/lib/generation/providers.ts`](../../src/lib/generation/pro
 | P1 | Premium Direct legacy-model dependency | Legacy model earliest shutdown 2027-03-15 per updated Google page; do not purchase Google Direct/Vertex for this initiative; verify existing runtime success separately. |
 | P1 | Input privacy/transport mismatch | Grsai accepts data URIs; Kie Nano Banana 2 Lite documents hosted `image_urls`, not raw bytes; needs consented/expiring delivery or secure upload approach before test. |
 | P1 | Missing measured paid-user four-image outcome | Existing report is per request; batch/payment-to-four-output join must be defined and code-/data-verified, not inferred from success-per-image. |
+
+**Face Analysis flow-specific safety:** The authenticated submit creates a private Blob and `FaceAnalysisTask` before the synchronous Grsai call; success marks completed and then route deducts quota, while provider failure marks FAILED and returns HTTP 500. `clientSubmissionId` is metadata, not an enforced dedupe claim in this path. A provider timeout can consume much of the route's 60s maximum (Grsai handler budgets 55s, plus Blob/DB overhead), so inspect stuck tasks and concurrent re-submits with **mocks**. The quota is only deducted after a returned success, but failure between task completion and deduction can create accounting ambiguity; audit rather than assert impact.
 
 **Separate Face Analysis lane:** Its `gemini-3.1-flash-lite` vision-to-text/JSON prompt path needs a chat/vision endpoint capable of inline face input, equivalent shape/landmark contract, schema validation and privacy handling. Kie Nano Banana 2 Lite is an **image-generation candidate**, not a proven drop-in replacement for Face Analysis. Do not attempt a failover from Face Analysis to an image generator. Prefer stable, affordable multimodal chat from a provider with demonstrably independent serving failure domain; compare live pricing and strict output compatibility under a separate budget gate.
 
@@ -125,7 +127,7 @@ Run in the existing local VisuTry repo and configured Production-connected envir
 - [x] Proposed cost/quality gates and safe multi-provider design.
 - [ ] Effective environment-specific routing and runtime config safely verified (deployed SHA already verified).
 - [ ] 24h/7d/14d Production Postgres/Admin/Axiom report reconciled, Face Analysis failures isolated from image generation, and Day-0 evidence status clarified.
-- [ ] Consumer and Store concurrency/error-reproduction test artifacts from local full repository.
+- [ ] Consumer and Store concurrency/error-reproduction test artifacts from local full repository; Face Analysis 60s/55s timeout and client-submit idempotency reviewed with mocks.
 - [ ] Separate Face Analysis vision/chat candidate and output-contract parity checked; no image-generation candidate assumed suitable.
 - [ ] Face-photo vendor handling policy, upstream independence and precise candidate SKU/billing verified.
 - [ ] Lead GO/NO-GO on capped G1 tests (separate decision).
