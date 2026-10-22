@@ -147,6 +147,139 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).not.toHaveBeenCalled()
     })
 
+    it('reuses an ordinary Consumer replay key without a caller opt-in', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'ordinary-existing-task',
+        status: TaskStatus.PROCESSING,
+        resultImageUrl: null,
+        errorMessage: null,
+        metadata: { serviceType: 'grsai', isAsync: true },
+      })
+
+      const result = await submitTryOnTask(
+        mockUser as any,
+        mockFile,
+        mockFile,
+        'GLASSES',
+        undefined,
+        { clientSubmissionId: 'ordinary-key' },
+      )
+
+      expect(result.taskId).toBe('ordinary-existing-task')
+      expect(prisma.tryOnTask.create).not.toHaveBeenCalled()
+      expect(put).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('rejects reuse of a Consumer submission key for a different Try-On type', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'existing-different-type',
+        type: 'SUNGLASSES',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai' },
+      })
+
+      await expect(submitTryOnTask(
+        mockUser as any,
+        mockFile,
+        mockFile,
+        'GLASSES',
+        undefined,
+        { clientSubmissionId: 'reused-key' },
+      )).rejects.toThrow('Submission ID belongs to a different Try-On type')
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.create).not.toHaveBeenCalled()
+    })
+
+    it('recovers an ordinary Consumer P2002 replay race without a caller opt-in', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          id: 'ordinary-winner-task',
+          status: TaskStatus.PENDING,
+          metadata: { serviceType: 'grsai', isAsync: true },
+        })
+      ;(prisma.tryOnTask.create as jest.Mock).mockRejectedValue({ code: 'P2002' })
+
+      const result = await submitTryOnTask(
+        mockUser as any,
+        mockFile,
+        mockFile,
+        'GLASSES',
+        undefined,
+        { clientSubmissionId: 'ordinary-race' },
+      )
+
+      expect(result.taskId).toBe('ordinary-winner-task')
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('durably marks an ambiguous initial GrsAi POST as UNKNOWN, not FAILED', async () => {
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'initial-unknown',
+        status: TaskStatus.PENDING,
+        metadata: { serviceType: 'grsai' },
+      })
+      ;(submitAsyncTask as jest.Mock).mockRejectedValue(new Error('GrsAi submission timed out after 25000ms'))
+
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+
+      expect(result).toMatchObject({ taskId: 'initial-unknown', status: 'submitted' })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'initial-unknown',
+          origin: 'CONSUMER',
+          status: TaskStatus.PENDING,
+          dispatchVersion: 0,
+        },
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          metadata: expect.objectContaining({ dispatchOutcome: 'UNKNOWN' }),
+        }),
+      })
+      expect(prisma.tryOnTask.updateMany).not.toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ status: TaskStatus.FAILED }) }),
+      )
+      expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+    })
+
+    it('never sends an initial POST after a concurrent stale-task reconciliation won', async () => {
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'lost-initial-claim',
+        status: TaskStatus.PENDING,
+        metadata: { serviceType: 'grsai' },
+      })
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 0 })
+
+      await expect(submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES'))
+        .rejects.toThrow('Consumer initial dispatch claim no longer available')
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.update).not.toHaveBeenCalled()
+    })
+
+    it('persists an accepted GrsAi ID before submission telemetry', async () => {
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'initial-accepted',
+        status: TaskStatus.PENDING,
+        metadata: { serviceType: 'grsai' },
+      })
+      ;(submitAsyncTask as jest.Mock).mockResolvedValue('accepted-external-id')
+
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+
+      expect(result.status).toBe('submitted')
+      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
+        where: { id: 'initial-accepted' },
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          metadata: expect.objectContaining({
+            dispatchOutcome: 'ACCEPTED',
+            externalTaskId: 'accepted-external-id',
+          }),
+        }),
+      })
+    })
+
     it('should use GrsAi for free users and keep user/item URLs distinct', async () => {
       ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-task-id')
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
@@ -584,6 +717,163 @@ describe('TryOnService', () => {
       expect(result.progress).toBe(0)
     })
 
+    it.each([429, 503])('keeps an accepted task processing after GrsAi poll HTTP %i', async (httpStatus) => {
+      const task = {
+        id: `task-poll-http-${httpStatus}`,
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'accepted-provider-task', retryCount: 0 },
+      }
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(task)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        progress: 0,
+        error: `Polling failed: ${httpStatus}`,
+      })
+
+      const result = await getTryOnResult(task.id)
+
+      expect(result).toMatchObject({ status: TaskStatus.PROCESSING, progress: 0 })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: { id: task.id, status: { not: TaskStatus.COMPLETED } },
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          errorMessage: null,
+        }),
+      })
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('backs off Consumer polling after a transport error without a new generation', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'consumer-poll-backoff',
+        origin: 'CONSUMER',
+        status: TaskStatus.PROCESSING,
+        dispatchVersion: 0,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'accepted-id',
+          pollFailureStreak: 2,
+          pollFirstTransientAt: new Date().toISOString(),
+        },
+      })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'Polling failed: 503',
+      })
+
+      const result = await getTryOnResult('consumer-poll-backoff')
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'consumer-poll-backoff',
+          status: { not: TaskStatus.COMPLETED },
+          dispatchVersion: 0,
+        },
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            pollFailureStreak: 3,
+            nextProviderPollAt: expect.any(String),
+          }),
+        }),
+      })
+    })
+
+    it('respects an unexpired Consumer poll backoff without querying provider', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'consumer-poll-paused',
+        origin: 'CONSUMER',
+        status: TaskStatus.PROCESSING,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'accepted-id',
+          nextProviderPollAt: new Date(Date.now() + 20_000).toISOString(),
+        },
+      })
+
+      const result = await getTryOnResult('consumer-poll-paused')
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(pollTaskResult).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('resets Consumer poll backoff after a successful status query', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'consumer-poll-recovered',
+        origin: 'CONSUMER',
+        status: TaskStatus.PROCESSING,
+        dispatchVersion: 0,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'accepted-id',
+          pollFailureStreak: 3,
+          pollFirstTransientAt: new Date(Date.now() - 120_000).toISOString(),
+        },
+      })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({ status: 'processing', progress: 45 })
+
+      const result = await getTryOnResult('consumer-poll-recovered')
+
+      expect(result).toMatchObject({ status: TaskStatus.PROCESSING, progress: 45 })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'consumer-poll-recovered',
+          status: { not: TaskStatus.COMPLETED },
+          dispatchVersion: 0,
+        },
+        data: {
+          metadata: expect.objectContaining({
+            pollFailureStreak: 0,
+            pollFirstTransientAt: null,
+            nextProviderPollAt: null,
+          }),
+        },
+      })
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('does not add Consumer polling backoff fields to Store task metadata', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'store-no-consumer-backoff',
+        origin: 'STORE_DEMO',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'store-external-id' },
+      })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'Polling failed: 503',
+      })
+
+      const result = await getTryOnResult('store-no-consumer-backoff')
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      const updateArg = (prisma.tryOnTask.updateMany as jest.Mock).mock.calls[0][0]
+      expect(updateArg.data.metadata.pollFailureStreak).toBeUndefined()
+      expect(updateArg.data.metadata.nextProviderPollAt).toBeUndefined()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('treats a retryable GrsAi business code as a transient poll failure', async () => {
+      const task = {
+        id: 'task-poll-business-503',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'accepted-provider-task', retryCount: 0 },
+      }
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(task)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'upstream temporarily unavailable',
+        diagnostics: { code: 503 },
+      })
+
+      const result = await getTryOnResult(task.id)
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('should mark task as failed when GrsAi succeeds without image URL', async () => {
       const mockTask = {
         id: 'task-2',
@@ -609,8 +899,8 @@ describe('TryOnService', () => {
 
       const result = await getTryOnResult('task-2')
 
-      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
-        where: { id: 'task-2' },
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: { id: 'task-2', status: { not: TaskStatus.COMPLETED } },
         data: expect.objectContaining({
           status: TaskStatus.FAILED,
           errorMessage: 'GrsAi task succeeded without a result image URL',
@@ -683,6 +973,135 @@ describe('TryOnService', () => {
       })
       expect(result.status).toBe(TaskStatus.PROCESSING)
       expect(result.progress).toBe(0)
+    })
+
+    it('never polls or resubmits an UNKNOWN Consumer dispatch, including stale PENDING', async () => {
+      const oldDate = new Date(Date.now() - 10 * 60 * 1000)
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'unknown-consumer',
+        origin: 'CONSUMER',
+        status: TaskStatus.PENDING,
+        createdAt: oldDate,
+        updatedAt: oldDate,
+        metadata: {
+          serviceType: 'grsai',
+          dispatchOutcome: 'UNKNOWN',
+          retryCount: 0,
+        },
+      })
+
+      const result = await getTryOnResult('unknown-consumer')
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(prisma.tryOnTask.updateMany).not.toHaveBeenCalled()
+      expect(pollTaskResult).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('claims a Consumer timeout retry once even with two concurrent pollers', async () => {
+      const task = {
+        id: 'consumer-race',
+        origin: 'CONSUMER',
+        userId: 'user-1',
+        dispatchVersion: 0,
+        userImageUrl: 'http://blob/user.jpg',
+        itemImageUrl: 'http://blob/item.jpg',
+        type: 'GLASSES',
+        status: TaskStatus.PROCESSING,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'first-provider-id',
+          retryCount: 0,
+          effectivePrompt: 'retry prompt',
+          dispatchOutcome: 'ACCEPTED',
+        },
+      }
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(task)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'provider timeout after generation',
+      })
+      ;(submitAsyncTask as jest.Mock).mockResolvedValue('second-provider-id')
+      let claimed = false
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockImplementation(async (args: any) => {
+        if (args.data?.dispatchVersion?.increment === 1) {
+          if (claimed) return { count: 0 }
+          claimed = true
+        }
+        return { count: 1 }
+      })
+
+      const results = await Promise.all([
+        getTryOnResult('consumer-race'),
+        getTryOnResult('consumer-race'),
+      ])
+
+      expect(results.map((r) => r.status)).toEqual([TaskStatus.PROCESSING, TaskStatus.PROCESSING])
+      expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+      const claims = (prisma.tryOnTask.updateMany as jest.Mock).mock.calls
+        .map(([args]) => args)
+        .filter((args) => args.data?.dispatchVersion?.increment === 1)
+      expect(claims).toHaveLength(2)
+      expect(claims[0].where).toMatchObject({
+        id: 'consumer-race',
+        origin: 'CONSUMER',
+        dispatchVersion: 0,
+        resultPersistLeaseOwner: null,
+      })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          id: 'consumer-race',
+          dispatchVersion: 1,
+          dispatchLeaseOwner: expect.any(String),
+        }),
+        data: expect.objectContaining({
+          dispatchLeaseOwner: null,
+          metadata: expect.objectContaining({
+            externalTaskId: 'second-provider-id',
+            dispatchOutcome: 'ACCEPTED',
+            retryCount: 1,
+          }),
+        }),
+      }))
+    })
+
+    it('preserves UNKNOWN after an ambiguous Consumer retry submit timeout', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'consumer-retry-unknown',
+        origin: 'CONSUMER',
+        dispatchVersion: 0,
+        userId: 'user-1',
+        userImageUrl: 'http://blob/user.jpg',
+        itemImageUrl: 'http://blob/item.jpg',
+        type: 'GLASSES',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'old-id', retryCount: 0 },
+      })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'provider timeout',
+      })
+      ;(submitAsyncTask as jest.Mock).mockRejectedValue(new Error('GrsAi submission timed out'))
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+      const result = await getTryOnResult('consumer-retry-unknown')
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          id: 'consumer-retry-unknown',
+          dispatchVersion: 1,
+          dispatchLeaseOwner: expect.any(String),
+        }),
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          metadata: expect.objectContaining({
+            dispatchOutcome: 'UNKNOWN',
+            retryCount: 1,
+          }),
+        }),
+      }))
     })
 
     it('should recover a failed task if it still has an external task ID and GrsAi later succeeds', async () => {
