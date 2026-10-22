@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for product execution
 **Created:** 2026-07-08
-**Last updated:** 2026-10-17
+**Last updated:** 2026-10-22
 **Owner:** Product
 **Review cadence:** Weekly
 **Scope:** Current product focus, Now / Next / Later priorities, execution posture, standing initiatives, decisions needed, and execution board.
@@ -130,6 +130,7 @@ Current operating posture:
 | Priority | Workstream | Acceptance / next behavior |
 | --- | --- | --- |
 | P0 | Consumer stability | Keep independent Face Analysis, Try-On, Compare and revenue safety green. |
+| P0 | AI Provider Resilience v1 [#430](https://github.com/franksunye/VisuTry/issues/430) | **G1 no-spend candidate qualification underway** [#434](https://github.com/franksunye/VisuTry/issues/434), after [G0 audit #431](https://github.com/franksunye/VisuTry/issues/431) and Lead waiver of further longitudinal incident logs. Two lanes: Try-On image generation (Kie.ai/CometAPI/OpenRouter) and independent Face Analysis vision/chat [#433](https://github.com/franksunye/VisuTry/issues/433). Engineering safety tests remain required. Grsai stays Primary; vendor calls/budget and production changes require separate approval. Google Direct/Vertex new spend excluded. |
 | P0 | Merchant G4 controlled Pilot | **PASS_SCOPED / closed** (#414/#356); protect accepted baseline, distinguish signed scope from GA. |
 | P0 | Founder-led Pilot operations | Monitor support mailbox and first authentic checkout/webhook, Session/Intent and onboarding outcomes without inventing data. |
 | P1 | Merchant GTM #353 | Prepare scorecard and narrow prospect batch for distinct Owner approval; **no outreach authorized by release signoff**. |
@@ -181,6 +182,7 @@ Workspace Operating eligibility is a runtime compatibility decision, not a rewri
 | Priority | Initiative | Owner | Status | Next action |
 | --- | --- | --- | --- | --- |
 | P0 | Consumer stability boundary | Engineering | Shipped / guarded | Keep Consumer critical and revenue gates green. |
+| P0 | AI Provider Resilience v1 [#430](https://github.com/franksunye/VisuTry/issues/430) | Engineering / Product | **G1 Started — no-spend qualification** | [G0 #431](https://github.com/franksunye/VisuTry/issues/431) static/deployed-code audit delivered; Lead explicitly waived 24h/7d/14d incident confirmation, **not** retry/idempotency safety requirements. Progress [#434](https://github.com/franksunye/VisuTry/issues/434) independently for image Try-On and Face Analysis [#433](https://github.com/franksunye/VisuTry/issues/433). No paid trial, routing, merge or deployment without Lead gate. |
 | P0 | P1-M2 Merchant Operating Experience | Product / Engineering | **Production Accepted / Closed** | Observe; open a new narrow gate only for a real regression or new product phase. |
 | P0 | Productized Demo capability | Product / Engineering / Growth / Sales | **Shipped / guarded** | For Demo-relevant product changes, classify impact, keep Local/Production parity current, and refresh reusable evidence/material only when behavior materially changes. |
 | P1 | Merchant Production observation | Product / Engineering | Active / Pilot | Watch authentic runtime, shopper and payment outcomes; production QA writes require explicit bounded authority. |
@@ -253,3 +255,5 @@ These are durable capability areas, not authorization to start a new phase. Curr
 | 2026-08-24 | Deployed the Pilot intake migration and application through PR #128; production Business browser checks passed and request `625a1055-ffb0-4ed4-b14a-a7ca6e686c91` verified durable public submission and idempotent replay. |
 | 2026-09-23 | Rebased active execution on the P1-M2 Production-accepted Merchant Operating baseline, restored the Consumer + Merchant company North Star, removed the August sprint as the current phase, and made next-phase selection explicit. |
 | 2026-09-23 | Authorized P1-M3 Merchant Live Experience through Issue #235: a bounded real-activity Pulse on Operating Home, with no simulated events or realtime-platform expansion. |
+| 2026-10-22 | Lead accepted observed Grsai instability, waived further G0 longitudinal log verification, and started G1 no-spend provider qualification [#434](https://github.com/franksunye/VisuTry/issues/434); Face Analysis uses separate lane [#433](https://github.com/franksunye/VisuTry/issues/433), with engineering safeguards and paid-test authorization still gated. |
+| 2026-10-22 | Added P0 AI Provider Resilience v1 [#430](https://github.com/franksunye/VisuTry/issues/430) and G0 read-only audit [#431](https://github.com/franksunye/VisuTry/issues/431), with budgeted vendor qualification and production rollout explicitly approval-gated. |
