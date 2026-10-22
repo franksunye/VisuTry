@@ -1352,7 +1352,15 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         error: pollResult.error
       }
     } else {
-      // Still processing
+      // A successful status query resets the transient-query backoff; this is
+      // independent of whether the provider has completed image generation.
+      if (task.origin === 'CONSUMER' &&
+          (metadata?.pollFailureStreak || metadata?.nextProviderPollAt)) {
+        await prisma.tryOnTask.updateMany({
+          where: { id: taskId, status: { not: TaskStatus.COMPLETED }, ...consumerDispatchFence },
+          data: { metadata: externalPollMetadata },
+        })
+      }
       return {
         status: TaskStatus.PROCESSING,
         progress: pollResult.progress
