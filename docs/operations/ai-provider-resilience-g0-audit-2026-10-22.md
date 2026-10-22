@@ -1,14 +1,15 @@
 # AI Provider Resilience v1 — G0 Static Audit & G1 Decision Brief
 
 **Date:** 2026-10-22  
-**Status:** G0 PARTIAL — STATIC CODE / PRIMARY DOCS REVIEWED; PRODUCTION EVIDENCE OPEN  
+**Status:** G0 PARTIAL — PRODUCTION DEPLOYED-CODE EQUIVALENCE + BOUNDED INCIDENT LOG VERIFIED; LONGITUDINAL PRODUCTION METRICS OPEN  
 **Tracking:** [Project #430](https://github.com/franksunye/VisuTry/issues/430) · [G0 #431](https://github.com/franksunye/VisuTry/issues/431)  
-**Code snapshot:** `main` `cbf21014a7ac371226475d692dbf0a5f0dc270ff`. This is a **repository snapshot**, not a proven deployed Production SHA.  
+**Code snapshot:** `main` `cbf21014a7ac371226475d692dbf0a5f0dc270ff`; live Vercel Production READY `75ff01e232b6317a3dae1ec509cf63179ffa550d`. Twelve generation-critical files were fetched at both SHAs and compared byte-for-byte identical; this is **deployed-code equivalence for those files**, not proof of current effective environment variables or job outcomes.  
 **Constraints:** No provider purchase, paid API call, secret modification, production routing change, migration or deploy. Google Direct/Vertex are excluded as **newly funded** candidates; audit existing Direct code only.
 
 ## 1. Summary and evidence grades
 
-- **CODE-CONFIRMED:** Active Premium Consumer uses synchronous Google Gemini when `ENABLE_SERVICE_TIERING` is not `false`; other Consumer users use async Grsai; specific Top Picks/Compare callers force Grsai; Store/Campaign module submits Grsai. This is conditional on the inspected code actually being deployed and effective Production configuration.
+- **CODE-CONFIRMED:** Active Premium Consumer uses synchronous Google Gemini when `ENABLE_SERVICE_TIERING` is not `false`; other Consumer users use async Grsai; specific Top Picks/Compare callers force Grsai; Store/Campaign module submits Grsai. The 12-file deployed-code equivalence is verified; effective Production environment settings and individual journey outcomes remain unknown.
+- **PRODUCTION-OBSERVED INCIDENT:** On 2026-10-22 at 05:53 UTC, `/api/face-analysis/submit` logged a Grsai chat HTTP 400 with provider payload `rix_api_error` and Chinese message `该模型正在修复` (model under repair). A first-attempt transient warning preceded final failure. This is a **real Face Analysis failure**, not a Try-On failure-rate statistic. The Face Analysis path invokes `gemini-3.1-flash-lite` via Grsai `/v1/chat/completions`, different from Try-On image generation; candidate qualification must be separate.
 - **CODE-CONFIRMED:** One Grsai async submission uses two inline/data-URI images and `nano-banana-fast`; it obtains an external task ID, then polls. A single explicit timeout resubmission is available, but not cross-provider failover.
 - **CODE-CONFIRMED RISK:** Consumer poll-based timeout resubmission does not claim a task/attempt retry atomically before the new external provider dispatch. Concurrent pollers can plausibly create multiple costly submissions for one logical task. Reproduce with mocks before touching code. This is a risk hypothesis from control flow, not an observed incident.
 - **CODE-CONFIRMED RISK:** The ordinary Consumer submit route accepts `clientSubmissionId` but does not set `enforceIdempotency: true`, unlike Top Picks. Duplicated client requests may generate separate provider tasks. Verify the intended product semantics before a fix.
@@ -17,10 +18,11 @@
 - **DOC-DEFINED / PROD-UNVERIFIED:** `GenerationRequest`/`GenerationAttempt` schema and CLI/admin/Axiom correlation exist in code/docs, but a current 24h/7d/14d Production cohort or Day-0 baseline has **not** been collected in this G0 audit. No success-rate, 4/4 journey-rate, spend or SLO value is asserted.
 - **MODEL LIFECYCLE CORRECTION:** Google's latest official deprecations page (updated 2026-10-20) lists the **earliest** shutdown of `gemini-2.5-flash-image` as **2027-03-15**, *not* 2026-10-02. Existing code depends on a legacy model but must not be called already shut down. Current Production availability and effective account access remain unverified.
 
-## 2. Routing matrix (static, conditional)
+## 2. Routing matrix (deployed-code equivalent; effective env conditional)
 
 | Journey / entitlement | Entry point / implementation | Static provider | Critical detail |
 | --- | --- | --- | --- |
+| Face Analysis (authenticated) | `src/app/api/face-analysis/submit/route.ts` → `src/lib/face-analysis-service.ts` → `src/lib/grsai-face-analysis.ts` | Grsai chat (`gemini-3.1-flash-lite`) | Vision + structured analysis, **not image generation**. Two attempts only for 400 `rix_api_error`; observed first transient retry and terminal 400 on 2026-10-22. No cross-vendor fallback in inspected face-provider path. |
 | Consumer Free/trial (authenticated) | `src/app/api/try-on/submit/route.ts` → `src/lib/tryon-service.ts` | Grsai | Quota checked before submit; settled only after task completion by poll. |
 | Consumer $2.99 Credits Pack, no active Premium subscription | Same | Grsai | Credits are a quota bucket, **not** a provider tier. Default pack 30 credits; promo 60 and env overrides; user-reported four-image journey is a **journey**, not pack capacity. |
 | Consumer active Premium subscription | Same | Google Gemini Direct | `ENABLE_SERVICE_TIERING` defaults on; sync model ID `gemini-2.5-flash-image`; depends on runtime key and deployment. |
@@ -29,6 +31,17 @@
 | Merchant Store / Campaign Guest | `src/modules/store/infrastructure/generation/submit-store-tryon-task.ts` | Grsai | Independent Store actor, sponsored/merchant/consumer usage policies, lease/fencing and private result storage; Local Demo may intentionally use prepared fixtures. |
 
 Evidence paths: [`src/lib/generation/providers.ts`](../../src/lib/generation/providers.ts), [`src/lib/tryon-service.ts`](../../src/lib/tryon-service.ts), [`src/lib/grsai.ts`](../../src/lib/grsai.ts), [`src/lib/gemini.ts`](../../src/lib/gemini.ts), [`src/lib/quota.ts`](../../src/lib/quota.ts), [`src/config/pricing.ts`](../../src/config/pricing.ts), [`src/modules/store/infrastructure/generation/store-generation-adapter.ts`](../../src/modules/store/infrastructure/generation/store-generation-adapter.ts).
+
+### Verified live Production deployment and bounded incident evidence (2026-10-22)
+
+| Observation | Evidence and limit |
+| --- | --- |
+| Canonical Production deployment | `dpl_37Lm1mQD2g26LFyjkyLco1mJEun7` READY at `75ff01e232b6317a3dae1ec509cf63179ffa550d`; Vercel aliases include `www.visutry.com`, `visutry.com`, `visutry.vercel.app` and main alias. |
+| Newer main commit | `cbf21014a7ac371226475d692dbf0a5f0dc270ff` deployment `dpl_FGpmQ8AnHREqRLFNCruXsJ1uFftU` is CANCELED with no Production aliases; **do not equate repository main SHA to the live deploy**. |
+| Source equivalence | Twelve generation-critical files, including Consumer/Store try-on, `grsai.ts`, `gemini.ts`, generation telemetry and quota, are content-identical at both SHAs. Separately fetched live `face-analysis-service.ts`, `grsai-face-analysis.ts` and `config/face-analysis.ts`. |
+| Grsai Face Analysis incident | Vercel function logs for `POST /api/face-analysis/submit` on **2026-10-22 05:53:11–05:53:12 UTC** show retry warning followed by `Chat API failed: 400`, `rix_api_error`, `该模型正在修复`, and request-level `Analysis failed` / `Submit API error`. A single request can emit multiple log entries; **do not count these as multiple affected users or image generations**. |
+| Retention / measurement | The Vercel runtime-log API rejected attempted 24h/7d queries due available retention, and the 30m window is too narrow to infer service success rate. Use authorized Production Postgres, Axiom, existing report CLI and explicit batch linkage. |
+| Configuration | Production effective `ENABLE_SERVICE_TIERING`, API key presence, Grsai base URL and actual upstream routing are **not verified** by the deployment or logs. No secrets were retrieved. |
 
 ## 3. Failure timeline and safety boundaries
 
@@ -42,6 +55,7 @@ Evidence paths: [`src/lib/generation/providers.ts`](../../src/lib/generation/pro
 
 | Severity | Risk | Evidence / expected response |
 | --- | --- | --- |
+| P0 | Live Grsai Face Analysis outage, separate from image generation | Vercel function log at 05:53 UTC: `gemini-3.1-flash-lite` chat returned HTTP 400 `rix_api_error` / `该模型正在修复`. Existing retry handles two `rix_api_error` attempts but no alternate vendor; verify model/provider alternatives and structured-output parity separately. |
 | P0 | One-provider outage on normal Credits Pack / Store try-on | No cross-provider router in inspected try-on paths. Secondary capability needed, but **disabled by default** until proof. |
 | P0 | Duplicate provider dispatch on concurrent timeout polling | `tryon-service.ts` approx. 1016–1100: external resubmission occurs without CAS lease; create deterministic concurrency tests and a cost-safe claim before any fallback. |
 | P0 | Unknown-submit outcome billed but marked failure | Grsai timeout may occur after upstream acceptance; **do not auto-submit to fallback** until status resolved / provider idempotency proven. |
@@ -50,6 +64,8 @@ Evidence paths: [`src/lib/generation/providers.ts`](../../src/lib/generation/pro
 | P1 | Premium Direct legacy-model dependency | Legacy model earliest shutdown 2027-03-15 per updated Google page; do not purchase Google Direct/Vertex for this initiative; verify existing runtime success separately. |
 | P1 | Input privacy/transport mismatch | Grsai accepts data URIs; Kie Nano Banana 2 Lite documents hosted `image_urls`, not raw bytes; needs consented/expiring delivery or secure upload approach before test. |
 | P1 | Missing measured paid-user four-image outcome | Existing report is per request; batch/payment-to-four-output join must be defined and code-/data-verified, not inferred from success-per-image. |
+
+**Separate Face Analysis lane:** Its `gemini-3.1-flash-lite` vision-to-text/JSON prompt path needs a chat/vision endpoint capable of inline face input, equivalent shape/landmark contract, schema validation and privacy handling. Kie Nano Banana 2 Lite is an **image-generation candidate**, not a proven drop-in replacement for Face Analysis. Do not attempt a failover from Face Analysis to an image generator. Prefer stable, affordable multimodal chat from a provider with demonstrably independent serving failure domain; compare live pricing and strict output compatibility under a separate budget gate.
 
 ## 4. Secondary / alternate / emergency qualification
 
@@ -78,9 +94,11 @@ Official vendor references (research as of 2026-10-22):
 
 ## 6. G1 controlled experiment proposal — requires separate Lead authorization
 
-Start with **8 synthetic or consented face/frame fixture pairs** across occlusion, head pose, lighting, frame types, photo format and sizes. Do not copy genuine user photos or Production media to vendors for testing. Run Grsai baseline (8) plus one candidate at a time (8 each; at most 32 provider outputs for the first 4-lane comparison). Hold prompts/input photos constant and evaluate blind.
+**Lane A — Try-On image output:** Start with **8 synthetic or consented face/frame fixture pairs** across occlusion, head pose, lighting, frame types, photo format and sizes. Do not copy genuine user photos or Production media to vendors for testing. Run Grsai baseline (8) plus one candidate at a time (8 each; at most 32 provider outputs for the first 4-lane comparison). Hold prompts/input photos constant and evaluate blind.
 
 **Qualitative admission:** valid output and two-reference support in every tested pair; identity/face geometry, exact frame silhouette and color, lens placement, no doubled frames, believable nose/temple fit, no unacceptable artifacts. Every rejected result is recorded with an evidence artifact on authorized storage. An 8-case run is a compatibility/quality screen, **not** statistical reliability proof.
+
+**Lane B — Face Analysis, independent qualification:** First inspect structured result/schema prompts, quota semantics, and current failure/retry metrics read-only. Then propose separate synthetic/consented fixture tests for Grsai chat versus at least one independent multimodal vision/chat endpoint. Measure analysis field coverage, parse/schema success, grounding to MediaPipe geometry, timeout, privacy and cost. No candidate is pre-approved and no additional spend is authorized.
 
 **Operational measurement:** task acceptance, usable final image, P50/P95 observed latency, timeouts and 429/5xx, explicit charged/failed/retried cost, secure input/output retention. For a 4-image journey, measure a **batch** as successful only when all four usable outputs are delivered and charges settled correctly. The baseline requires real batch linkage or an acknowledged proxy.
 
@@ -92,21 +110,23 @@ Start with **8 synthetic or consented face/frame fixture pairs** across occlusio
 
 Run in the existing local VisuTry repo and configured Production-connected environment **read-only** after verifying the authorized account/project. Do not echo secrets, upload face images, run generation, trigger smoke requiring provider spend, or modify Production DB.
 
-1. Record local repo HEAD, origin, dirty-worktree inventory and current `origin/main` without resetting/rebasing/overwriting. Record exact deployed Vercel Production SHA and environment name; verify if this audited commit is deployed. Do not promote/rollback.
+1. Record local repo HEAD, origin, dirty-worktree inventory and current `origin/main` without resetting/rebasing/overwriting. Vercel aliases confirm Production READY SHA `75ff01e232b6317a3dae1ec509cf63179ffa550d` and canceled main SHA `cbf21014a7ac371226475d692dbf0a5f0dc270ff`; **independently cross-check** linked Vercel project and effective environment-specific routing without printing secrets. Do not promote/rollback.
 2. Using the **existing** safe report tooling, obtain `npm run report:generation-reliability -- --period 24h --environment production`, then 7d and 14d, excluding test data by default. Confirm CLI options against actual script first. If read-only DB access is absent or ambiguous, mark BLOCKED; do not seek secrets from the user in chat.
 3. Cross-check admin read-only API and CLI totals, sample only **redacted** request/attempt/providerTaskId correlations with Axiom. Audit `isTest`, origin, model alias, attempt count and stage classification. Never export image URLs, auth headers, photos, raw prompts or user identity.
-4. Independently classify 4-of-4 paid journey denominator and any missing payment/batch identifiers. Show raw counts/time range and coverage, not unsupported SLO percentages; label samples sparse when applicable.
+4. Collect **Face Analysis** submissions/success/failure by model, HTTP error type and observed request groups separately from Try-On generations, including the 2026-10-22 `rix_api_error` failure. Never count multiple logs from one request as multiple users. Independently classify 4-of-4 paid journey denominator and any missing payment/batch identifiers. Show raw counts/time range and coverage, not unsupported SLO percentages; label samples sparse when applicable.
 5. Test concurrency/idempotency/timeout classification using **mocks only** (no actual provider calls) and document reproducible race paths, API and Store isolation, quota settlement invariants.
 6. Append redacted evidence plus GO/NO-GO to #431 and optionally a report-only Draft PR update; do not merge, deploy, add secrets, top up, contact vendors or bill API calls.
 
 ## 8. Remaining G0 blockers / next gate
 
-- [x] Current static routing and failure-path inventory (bounded, snapshot only).
+- [x] Current static routing and failure-path inventory, including Face Analysis provider and limited live deployment code equivalence.
+- [x] Vercel Production READY SHA/aliases verified; current main newer deployment canceled; live Face Analysis `rix_api_error` incident captured (not Try-On-rate evidence).
 - [x] Current official Google lifecycle and initial vendor capability/docs review; earlier sunset date corrected.
 - [x] Proposed cost/quality gates and safe multi-provider design.
-- [ ] Production deployed SHA + effective environment-specific routing verified.
-- [ ] 24h/7d/14d Production Postgres/Admin/Axiom report reconciled and Day-0 evidence status clarified.
+- [ ] Effective environment-specific routing and runtime config safely verified (deployed SHA already verified).
+- [ ] 24h/7d/14d Production Postgres/Admin/Axiom report reconciled, Face Analysis failures isolated from image generation, and Day-0 evidence status clarified.
 - [ ] Consumer and Store concurrency/error-reproduction test artifacts from local full repository.
+- [ ] Separate Face Analysis vision/chat candidate and output-contract parity checked; no image-generation candidate assumed suitable.
 - [ ] Face-photo vendor handling policy, upstream independence and precise candidate SKU/billing verified.
 - [ ] Lead GO/NO-GO on capped G1 tests (separate decision).
 
