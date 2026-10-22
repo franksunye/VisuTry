@@ -931,6 +931,7 @@ describe('TryOnService', () => {
         error: 'provider timeout',
       })
       ;(submitAsyncTask as jest.Mock).mockRejectedValue(new Error('GrsAi submission timed out'))
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
 
       const result = await getTryOnResult('consumer-retry-unknown')
 
