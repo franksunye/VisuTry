@@ -522,6 +522,8 @@ export async function submitTryOnTask(
       provider: 'grsai',
       model: GRSAI_TRY_ON_MODEL,
     })
+    let submissionMayHaveReachedProvider = false
+    let acceptedExternalTaskId: string | undefined
     try {
       // Initial provider dispatch consumes request-local files and never needs
       // public source Blob URLs.
@@ -529,6 +531,22 @@ export async function submitTryOnTask(
         fileToDataUri(userImageFile),
         fileToDataUri(itemImageFile),
       ])
+
+      // Commit an explicit UNKNOWN state before any non-idempotent outbound POST.
+      // A crash, network timeout or lost response must not turn this into an
+      // apparently safe FAILED task that can be submitted a second time.
+      await prisma.tryOnTask.update({
+        where: { id: task.id },
+        data: {
+          status: TaskStatus.PROCESSING,
+          metadata: {
+            ...(task.metadata as Record<string, unknown>),
+            dispatchOutcome: 'UNKNOWN',
+            dispatchUnknownAt: new Date().toISOString(),
+          },
+        },
+      })
+      submissionMayHaveReachedProvider = true
 
       const externalTaskId = await submitAsyncTask(
         userDataUri,
@@ -543,9 +561,10 @@ export async function submitTryOnTask(
         },
       )
 
-      await markGenerationAttemptSubmitted(task.id, externalTaskId, Date.now() - submitStartedAt)
+      acceptedExternalTaskId = externalTaskId
 
-      // Update task with external ID
+      // Save the accepted ID before optional telemetry. If telemetry fails, the
+      // accepted task is still pollable and must not be re-dispatched.
       await prisma.tryOnTask.update({
         where: { id: task.id },
         data: {
@@ -553,6 +572,8 @@ export async function submitTryOnTask(
           metadata: {
             ...(task.metadata as any),
             externalTaskId,
+            dispatchOutcome: 'ACCEPTED',
+            dispatchUnknownAt: null,
             serviceType,
             isAsync,
             effectivePrompt,
@@ -563,6 +584,16 @@ export async function submitTryOnTask(
           }
         }
       })
+
+      try {
+        await markGenerationAttemptSubmitted(task.id, externalTaskId, Date.now() - submitStartedAt)
+      } catch (telemetryError) {
+        logger.warn('tryon-service', 'Accepted GrsAi task has pending submission telemetry', {
+          taskId: task.id,
+          externalTaskId,
+          reason: telemetryError instanceof Error ? telemetryError.message : String(telemetryError),
+        })
+      }
 
       return {
         taskId: task.id,
@@ -579,14 +610,36 @@ export async function submitTryOnTask(
         ...grsaiLog,
       })
       
+      if (submissionMayHaveReachedProvider) {
+        // A provider ID may have been returned even if our first DB write failed.
+        // Otherwise the pre-dispatch UNKNOWN record remains durable. Neither
+        // outcome permits an automated new POST for the same logical request.
+        if (acceptedExternalTaskId) {
+          await prisma.tryOnTask.updateMany({
+            where: { id: task.id, status: { not: TaskStatus.COMPLETED } },
+            data: {
+              status: TaskStatus.PROCESSING,
+              errorMessage: null,
+              metadata: {
+                ...(task.metadata as Record<string, unknown>),
+                externalTaskId: acceptedExternalTaskId,
+                dispatchOutcome: 'ACCEPTED',
+              },
+            },
+          })
+        }
+        logger.warn('tryon-service', 'GrsAi dispatch outcome requires reconciliation; no duplicate submit', {
+          taskId: task.id,
+          hasExternalTaskId: Boolean(acceptedExternalTaskId),
+          clientSubmissionId,
+        })
+        return { taskId: task.id, status: 'submitted', serviceType, isAsync }
+      }
+
       await prisma.tryOnTask.update({
         where: { id: task.id },
-        data: {
-          status: TaskStatus.FAILED,
-          errorMessage
-        }
+        data: { status: TaskStatus.FAILED, errorMessage },
       })
-
       await recordGenerationFailure(task.id, errorMessage, { source: 'submit', failureStage: 'SUBMIT' })
 
       throw error
