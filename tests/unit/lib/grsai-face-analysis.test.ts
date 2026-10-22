@@ -132,9 +132,9 @@ describe('analyzeFaceWithGrsAi', () => {
     const providerBudget = providerSource.match(/const CHAT_API_TOTAL_BUDGET_MS\s*=\s*([\d_]+)/)?.[1]
     const routeBudget = routeSource.match(/export const maxDuration\s*=\s*([\d_]+)/)?.[1]
 
-    expect(Number(providerBudget?.replaceAll('_', ''))).toBe(55_000)
-    expect(Number(routeBudget?.replaceAll('_', ''))).toBe(60)
-    expect(Number(routeBudget?.replaceAll('_', '')) * 1_000 - Number(providerBudget?.replaceAll('_', '')))
+    expect(Number(providerBudget?.split('_').join(''))).toBe(55_000)
+    expect(Number(routeBudget?.split('_').join(''))).toBe(60)
+    expect(Number(routeBudget?.split('_').join('')) * 1_000 - Number(providerBudget?.split('_').join('')))
       .toBe(5_000)
   })
 
