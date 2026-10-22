@@ -174,7 +174,7 @@ export async function submitTryOnTask(
   const startTime = Date.now()
   logger.debug('tryon-service', `Starting try-on task for user ${user.id}`, { type, clientSubmissionId })
 
-  if (clientSubmissionId && options?.enforceIdempotency) {
+  if (clientSubmissionId) {
     const existingTask = await prisma.tryOnTask.findUnique({
       where: {
         userId_clientSubmissionId: {
@@ -187,7 +187,7 @@ export async function submitTryOnTask(
     if (existingTask) {
       logger.info('tryon-service', 'Reusing idempotent try-on submission', {
         userId: user.id,
-        clientSubmissionId: options?.enforceIdempotency ? clientSubmissionId : null,
+        clientSubmissionId,
         taskId: existingTask.id,
       })
       return submissionResultFromTask(existingTask)
@@ -354,7 +354,7 @@ export async function submitTryOnTask(
       }
     })
   } catch (error) {
-    if (!clientSubmissionId || !options?.enforceIdempotency || !isUniqueConstraintError(error)) throw error
+    if (!clientSubmissionId || !isUniqueConstraintError(error)) throw error
 
     const existingTask = await prisma.tryOnTask.findUnique({
       where: {
