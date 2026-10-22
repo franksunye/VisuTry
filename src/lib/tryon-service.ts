@@ -542,8 +542,8 @@ export async function submitTryOnTask(
       // Commit an explicit UNKNOWN state before any non-idempotent outbound POST.
       // A crash, network timeout or lost response must not turn this into an
       // apparently safe FAILED task that can be submitted a second time.
-      await prisma.tryOnTask.update({
-        where: { id: task.id },
+      const initialClaim = await prisma.tryOnTask.updateMany({
+        where: { id: task.id, origin: 'CONSUMER', status: TaskStatus.PENDING, dispatchVersion: 0 },
         data: {
           status: TaskStatus.PROCESSING,
           metadata: {
@@ -553,6 +553,9 @@ export async function submitTryOnTask(
           },
         },
       })
+      if (initialClaim.count !== 1) {
+        throw new Error('Consumer initial dispatch claim no longer available')
+      }
       submissionMayHaveReachedProvider = true
 
       const externalTaskId = await submitAsyncTask(
@@ -643,11 +646,13 @@ export async function submitTryOnTask(
         return { taskId: task.id, status: 'submitted', serviceType, isAsync }
       }
 
-      await prisma.tryOnTask.update({
-        where: { id: task.id },
+      const definiteFailure = await prisma.tryOnTask.updateMany({
+        where: { id: task.id, origin: 'CONSUMER', status: TaskStatus.PENDING },
         data: { status: TaskStatus.FAILED, errorMessage },
       })
-      await recordGenerationFailure(task.id, errorMessage, { source: 'submit', failureStage: 'SUBMIT' })
+      if (definiteFailure.count === 1) {
+        await recordGenerationFailure(task.id, errorMessage, { source: 'submit', failureStage: 'SUBMIT' })
+      }
 
       throw error
     }
