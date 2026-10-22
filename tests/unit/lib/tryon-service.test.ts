@@ -834,6 +834,27 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).not.toHaveBeenCalled()
     })
 
+    it('does not add Consumer polling backoff fields to Store task metadata', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'store-no-consumer-backoff',
+        origin: 'STORE_DEMO',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'store-external-id' },
+      })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'Polling failed: 503',
+      })
+
+      const result = await getTryOnResult('store-no-consumer-backoff')
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      const updateArg = (prisma.tryOnTask.updateMany as jest.Mock).mock.calls[0][0]
+      expect(updateArg.data.metadata.pollFailureStreak).toBeUndefined()
+      expect(updateArg.data.metadata.nextProviderPollAt).toBeUndefined()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('treats a retryable GrsAi business code as a transient poll failure', async () => {
       const task = {
         id: 'task-poll-business-503',
