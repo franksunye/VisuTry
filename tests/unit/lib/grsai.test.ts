@@ -82,6 +82,22 @@ describe('GrsAi Library', () => {
   })
 
   describe('pollTaskResult', () => {
+    it.each([429, 503])('currently normalizes HTTP %i poll responses to failed', async (statusCode) => {
+      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: statusCode,
+        statusText: statusCode === 429 ? 'Too Many Requests' : 'Service Unavailable',
+        text: jest.fn().mockResolvedValue('temporary provider response'),
+      })
+
+      await expect(pollTaskResult(`poll-${statusCode}`)).resolves.toMatchObject({
+        status: 'failed',
+        progress: 0,
+        error: `Polling failed: ${statusCode}`,
+      })
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+    })
+
     it('should parse new response structure correctly', async () => {
       const mockResponse = {
         code: 0,

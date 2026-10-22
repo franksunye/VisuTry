@@ -1,7 +1,7 @@
 # AI Provider Resilience v1 — G1 No-Spend Vendor Protocol Screen
 
 **Date:** 2026-10-22  
-**Status:** PUBLIC DOCS SCREEN ONLY; NO ACCOUNTS, CREDENTIALS, PAYMENTS, TEST GENERATIONS OR THIRD-PARTY PHOTO UPLOADS  
+**Status:** PUBLIC DOCS + LOCAL MOCKS + SYNTHETIC FIXTURES; NO CANDIDATE-PROVIDER API CALLS, ACCOUNTS, CREDENTIALS, PAYMENTS OR THIRD-PARTY PHOTO UPLOADS
 **Decision context:** Lead accepted Grsai instability; the 24h/7d/14d incident-baseline verification under G0 was explicitly waived. This does **not** waive implementation correctness, user-image privacy, or per-vendor quality tests.  
 **Tracking:** [Project #430](https://github.com/franksunye/VisuTry/issues/430), [G1 #434](https://github.com/franksunye/VisuTry/issues/434), [Face Analysis #433](https://github.com/franksunye/VisuTry/issues/433), [G0 audit](./ai-provider-resilience-g0-audit-2026-10-22.md).
 
@@ -37,21 +37,23 @@ References: [Kie upload](https://docs.kie.ai/file-upload-api/quickstart), [Kie r
 ## 4. Face Analysis is a separate G1-B qualification
 
 - Existing Grsai image-containing request uses `/v1/chat/completions`, `messages[].content` with text + `image_url` data URI, model `gemini-3.1-flash-lite`; the output is parsed into a VisuTry face-analysis schema. A Kie image-generation task produces JPEG and **cannot replace this route**.
-- OpenRouter publicly documents vision-capable chat requests to `/api/v1/chat/completions` with `image_url` and the need to select a model supporting image input. An *exact non-Gemini economical vision model* must be selected from its current catalog **and tested for schema/MediaPipe parity** before eligibility. Source: [OpenRouter vision guide](https://openrouter.ai/blog/tutorials/send-image-to-llm/).
+- **Provisional first candidate: Alibaba Cloud Model Studio direct API, `qwen3.8-flash`.** Its official model page lists image input, text output and structured outputs. Published International-scope pricing is US$0.15 per million input tokens and US$0.47 per million output tokens; image resolution affects token usage, so the actual rate must be recorded from each response and the account meter. Sources: [model capability and pricing](https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-8-flash), [image input protocol](https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions), [structured output support](https://www.alibabacloud.com/help/en/model-studio/qwen-structured-output).
+- This provides a direct Alibaba inference path outside the Google/Gemini family and OpenRouter gateway; that reduces one common-upstream concern but does not prove independent uptime or equivalent Face Analysis quality. The official [Data Retention Policy](https://www.alibabacloud.com/help/en/model-studio/data-retention-policy) states standard prompts/responses are retained up to 30 days. ZDR requires eligible enterprise status and account-manager assessment. The listed supported series includes Qwen-Flash from `qwen3.8-flash`, but account, region, model, and ZDR enabled state must be verified before any real-user photo use. ZDR does not cover all stateful paths or service metadata.
+- The local fixture now contains eight synthetic fictional adult portraits. They remain local until the limited API-test decision is approved. Visual face-shape tags are test design targets, not landmark ground truth; generate/verify the `landmark-v1` geometry separately for parity scoring.
 - Face Analysis quota deduction after success, task creation before provider call, duplicated `clientSubmissionId`, 55s provider budget vs 60s route, and failure text disclosure are separate local mock/test topics under #434.
 
 ## 5. Concrete no-spend implementation sequence
 
-1. **Local mock-only safety suite:** reproduce concurrent try-on poll retry dispatch race, ordinary client submit duplicate, 429/5xx transient classification, Face Analysis retry/timeout/quota and Store tenant/lease invariants. Assert one logical billable dispatch in known state; mark unknown accepted-but-no-task-ID as `UNKNOWN` and never blind auto-dispatch a second provider.
-2. **Input fixture preparation:** eight synthetic/consented, private images for two-reference Try-On and a separate Face Analysis geometry/schema set; no Production photo exports.
+1. **Local mock-only safety suite:** reproduce the concurrent Consumer timeout-poll race, ordinary same-key submit replay, 429/5xx poll classification and ambiguous Face Analysis timeout. Current code confirms two retry dispatches in the concurrent race; no dispatch-safety fix is included in this no-spend evidence change. See [G1 mock and fixture readiness](./ai-provider-resilience-g1-mock-and-fixture-readiness-2026-10-22.md). A future separately authorized code change must add the task-scoped dispatch fence and durable `UNKNOWN` outcome before any candidate can be dispatched.
+2. **Input fixture preparation:** eight local synthetic face + frame pairs now exist in `tests/fixtures/ai-provider-resilience/media/`; the manifest contains their paths and test design targets. No Production photo exports are present, and external transfer is not approved. Verify MediaPipe geometry separately for Face Analysis parity.
 3. **Formal payload compatibility review:** Kie upload vs private media, Comet versioned `generateContent` input references, OpenRouter `input_references` data URL compatibility on exact model endpoint; record limits and source links.
-4. **Cost+privacy decision brief:** take account-level prices and deposit floors only through an authorized, non-charging read of a vendor dashboard. If registration/payment authorization is required, stop and ask Lead. Keep proposed **$15 spent / $25 aggregate top-ups** as a *proposal*, not authorization; Face Analysis lane needs an explicit share or separate cap.
-5. **Lead trial gate:** after desk/mocks and privacy sign-off, request permission for finite external calls with synthetic/consented inputs and exact model SKUs. Do not merge or enable production routing before verified quality and cost.
+4. **Cost + privacy decision brief:** the readiness report preserves Try-On at **$15 actual spend / $25 top-ups** and proposes a separate Face Analysis limit of **$3 actual spend / $5 top-ups**. If both lanes are approved, their combined ceiling is **$18 actual / $30 total top-ups**. All caps are unapproved. No vendor registration, account funding or API dispatch is part of this stage.
+5. **Lead trial gate:** after dispatch-safety design, exact SKU pricing, privacy review and fixture asset creation, request permission for finite external calls with synthetic/consented inputs. Do not merge or enable production routing before verified quality and cost.
 
 ## 6. Provisional result
 
-- **G1 no-spend GO:** public API compatibility and local safety mocks.
-- **G1 billable/face-photo dispatch NO-GO:** minimum top-up, exact pricing, legal/photo terms, endpoint model support and two-image output fidelity not yet proven.
+- **G1 no-spend GO:** public API compatibility review, mock-only characterization and eight local synthetic pairs. The observed concurrent retry race remains open.
+- **G1 billable dispatch NO-GO:** synthetic assets exist but external transfer is unapproved; exact account pricing/minimum top-ups and endpoint behavior still need confirmation. Face Analysis has a named candidate, but no schema/landmark parity result and no verified ZDR account state. Real-user photo transfer remains NO-GO.
 - **G2 production routing NO-GO:** no tested provider integration or safety claim exists.
 
 This is a **qualification screen**, not a vendor endorsement, reliability benchmark, or deployment plan approval.

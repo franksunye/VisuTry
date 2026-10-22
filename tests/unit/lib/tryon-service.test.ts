@@ -147,6 +147,28 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).not.toHaveBeenCalled()
     })
 
+    it('characterizes ordinary Consumer replay with the same clientSubmissionId as a 500-shaped unique conflict, not reuse', async () => {
+      const uniqueConflict = { code: 'P2002' }
+      ;(prisma.tryOnTask.create as jest.Mock)
+        .mockReset()
+        .mockResolvedValueOnce({ id: 'ordinary-first-task', status: TaskStatus.PENDING })
+        .mockRejectedValueOnce(uniqueConflict)
+      ;(submitAsyncTask as jest.Mock).mockResolvedValue('ordinary-external-1')
+
+      const options = { clientSubmissionId: 'ordinary-replay-1' }
+      const first = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES', undefined, options)
+      await expect(
+        submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES', undefined, options),
+      ).rejects.toBe(uniqueConflict)
+
+      expect(first.taskId).toBe('ordinary-first-task')
+      expect(prisma.tryOnTask.create).toHaveBeenCalledTimes(2)
+      expect(prisma.tryOnTask.findUnique).not.toHaveBeenCalled()
+      // The DB uniqueness constraint prevents a second provider dispatch, but
+      // the ordinary submit path does not recover the winner's task for replay.
+      expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+    })
+
     it('should use GrsAi for free users and keep user/item URLs distinct', async () => {
       ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-task-id')
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
@@ -208,6 +230,23 @@ describe('TryOnService', () => {
       expect(result.serviceType).toBe('grsai')
       expect(result.isAsync).toBe(true)
       expect(result.status).toBe('submitted')
+    })
+
+    it('does not blind-dispatch a second provider when the initial submit outcome is unknown', async () => {
+      const mockGenerate = require('@/lib/gemini').generateTryOnImage
+      const timeout = new Error('GrsAi submission timed out after 45000ms')
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'task-unknown-submit',
+        status: TaskStatus.PENDING,
+      })
+      ;(prisma.tryOnTask.update as jest.Mock).mockResolvedValue({})
+      ;(submitAsyncTask as jest.Mock).mockRejectedValue(timeout)
+
+      await expect(submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES'))
+        .rejects.toBe(timeout)
+
+      expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+      expect(mockGenerate).not.toHaveBeenCalled()
     })
 
     it('should use Gemini for premium users and upload result to blob', async () => {
@@ -584,6 +623,30 @@ describe('TryOnService', () => {
       expect(result.progress).toBe(0)
     })
 
+    it.each([429, 503])('characterizes GrsAi poll HTTP %i as terminal in the Consumer poll flow', async (statusCode) => {
+      const mockTask = {
+        id: `task-http-${statusCode}`,
+        userId: 'user-1',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: `external-${statusCode}`, retryCount: 0 },
+      }
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(mockTask)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        progress: 0,
+        error: `Polling failed: ${statusCode}`,
+      })
+
+      const result = await getTryOnResult(mockTask.id)
+
+      expect(result).toMatchObject({ status: TaskStatus.FAILED, error: `Polling failed: ${statusCode}` })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: { id: mockTask.id, status: { not: TaskStatus.COMPLETED } },
+        data: expect.objectContaining({ status: TaskStatus.FAILED, errorMessage: `Polling failed: ${statusCode}` }),
+      })
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('should mark task as failed when GrsAi succeeds without image URL', async () => {
       const mockTask = {
         id: 'task-2',
@@ -683,6 +746,56 @@ describe('TryOnService', () => {
       })
       expect(result.status).toBe(TaskStatus.PROCESSING)
       expect(result.progress).toBe(0)
+    })
+
+    it('reproduces duplicate provider retry dispatch when two Consumer pollers observe the same timeout', async () => {
+      const mockTask = {
+        id: 'task-concurrent-timeout',
+        userId: 'user-1',
+        userImageUrl: 'http://blob/user.jpg',
+        itemImageUrl: 'http://blob/item.jpg',
+        type: 'GLASSES',
+        origin: 'CONSUMER',
+        status: TaskStatus.PROCESSING,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'grsai-original-task',
+          retryCount: 0,
+          effectivePrompt: 'retry prompt',
+        },
+      }
+      let releasePollers!: () => void
+      const bothPollersArrived = new Promise<void>((resolve) => { releasePollers = resolve })
+      let pollCount = 0
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(mockTask)
+      ;(pollTaskResult as jest.Mock).mockImplementation(async () => {
+        pollCount += 1
+        if (pollCount === 2) releasePollers()
+        await bothPollersArrived
+        return { status: 'failed', error: 'provider task timeout' }
+      })
+      ;(submitAsyncTask as jest.Mock)
+        .mockResolvedValueOnce('grsai-retry-task-1')
+        .mockResolvedValueOnce('grsai-retry-task-2')
+
+      const results = await Promise.all([
+        getTryOnResult(mockTask.id),
+        getTryOnResult(mockTask.id),
+      ])
+
+      expect(results).toEqual([
+        { status: TaskStatus.PROCESSING, progress: 0 },
+        { status: TaskStatus.PROCESSING, progress: 0 },
+      ])
+      expect(pollTaskResult).toHaveBeenCalledTimes(2)
+      // Known unsafe baseline: GenerationAttempt telemetry is not an atomic
+      // dispatch claim. Invert this characterization after a fenced claim and
+      // durable UNKNOWN-outcome handling are implemented and reviewed.
+      expect(submitAsyncTask).toHaveBeenCalledTimes(2)
+      expect(submitAsyncTask.mock.calls.map((call) => call[4].taskId)).toEqual([
+        mockTask.id,
+        mockTask.id,
+      ])
     })
 
     it('should recover a failed task if it still has an external task ID and GrsAi later succeeds', async () => {

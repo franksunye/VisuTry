@@ -165,4 +165,19 @@ describe('Face Analysis submit critical invariants', () => {
     expect(body.success).toBe(false)
     expect(mockDeductUserQuota).not.toHaveBeenCalled()
   })
+
+  it('characterizes concurrent Face Analysis replay with one clientSubmissionId as two service calls and quota deductions', async () => {
+    const [first, replay] = await Promise.all([POST(makeRequest()), POST(makeRequest())])
+
+    expect(first.status).toBe(200)
+    expect(replay.status).toBe(200)
+    expect(mockSubmitFaceAnalysis).toHaveBeenCalledTimes(2)
+    expect(mockSubmitFaceAnalysis.mock.calls.map((call) => call[2].clientSubmissionId)).toEqual([
+      'submission-critical-1',
+      'submission-critical-1',
+    ])
+    // clientSubmissionId is currently metadata only on this path; a replay
+    // can therefore consume a second provider request and another quota unit.
+    expect(mockDeductUserQuota).toHaveBeenCalledTimes(2)
+  })
 })
