@@ -225,17 +225,36 @@ describe('TryOnService', () => {
       const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
 
       expect(result).toMatchObject({ taskId: 'initial-unknown', status: 'submitted' })
-      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
-        where: { id: 'initial-unknown' },
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'initial-unknown',
+          origin: 'CONSUMER',
+          status: TaskStatus.PENDING,
+          dispatchVersion: 0,
+        },
         data: expect.objectContaining({
           status: TaskStatus.PROCESSING,
           metadata: expect.objectContaining({ dispatchOutcome: 'UNKNOWN' }),
         }),
       })
-      expect(prisma.tryOnTask.update).not.toHaveBeenCalledWith(
+      expect(prisma.tryOnTask.updateMany).not.toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ status: TaskStatus.FAILED }) }),
       )
       expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+    })
+
+    it('never sends an initial POST after a concurrent stale-task reconciliation won', async () => {
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'lost-initial-claim',
+        status: TaskStatus.PENDING,
+        metadata: { serviceType: 'grsai' },
+      })
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 0 })
+
+      await expect(submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES'))
+        .rejects.toThrow('Consumer initial dispatch claim no longer available')
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.update).not.toHaveBeenCalled()
     })
 
     it('persists an accepted GrsAi ID before submission telemetry', async () => {
