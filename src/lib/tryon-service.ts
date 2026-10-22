@@ -685,6 +685,14 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
     return { status: TaskStatus.PROCESSING, progress: 0 }
   }
 
+  const nextProviderPollAt = typeof metadata?.nextProviderPollAt === 'string'
+    ? Date.parse(metadata.nextProviderPollAt)
+    : NaN
+  if (task.origin === 'CONSUMER' && Number.isFinite(nextProviderPollAt) &&
+      nextProviderPollAt > Date.now()) {
+    return { status: TaskStatus.PROCESSING, progress: 0 }
+  }
+
   if (
     task.createdAt instanceof Date &&
     task.updatedAt instanceof Date &&
@@ -747,6 +755,12 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       lastExternalProgress: pollResult.progress,
       lastExternalError: pollResult.error,
       lastExternalDiagnostics: pollResult.diagnostics,
+      ...(pollResult.status !== 'failed' ? {
+        pollFailureStreak: 0,
+        pollFirstTransientAt: null,
+        nextProviderPollAt: null,
+        providerPollNeedsAttention: false,
+      } : {}),
     }
     
     if (pollResult.status === 'succeeded' && pollResult.imageUrl) {
@@ -1076,6 +1090,18 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           ...pollLog,
         })
 
+        const transientNow = new Date()
+        const previousStreak = typeof metadata?.pollFailureStreak === 'number'
+          ? metadata.pollFailureStreak : 0
+        const failureStreak = Math.min(6, Math.max(0, previousStreak) + 1)
+        const backoffMs = Math.min(60_000, 2_000 * (2 ** (failureStreak - 1)))
+        const firstFailureAt = typeof metadata?.pollFirstTransientAt === 'string' &&
+          Number.isFinite(Date.parse(metadata.pollFirstTransientAt))
+          ? metadata.pollFirstTransientAt
+          : transientNow.toISOString()
+        const needsOperatorAttention =
+          transientNow.getTime() - Date.parse(firstFailureAt) >= 15 * 60 * 1000
+
         await prisma.tryOnTask.updateMany({
           where: {
             id: taskId,
@@ -1085,8 +1111,14 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           data: {
             status: TaskStatus.PROCESSING,
             errorMessage: null,
-            metadata: externalPollMetadata,
-          }
+            metadata: {
+              ...externalPollMetadata,
+              pollFailureStreak: failureStreak,
+              pollFirstTransientAt: firstFailureAt,
+              nextProviderPollAt: new Date(transientNow.getTime() + backoffMs).toISOString(),
+              providerPollNeedsAttention: needsOperatorAttention,
+            },
+          },
         })
 
         return {
