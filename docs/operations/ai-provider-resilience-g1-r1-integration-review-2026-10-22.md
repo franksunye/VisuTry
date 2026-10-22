@@ -43,3 +43,11 @@ GrsAi may return HTTP 200 plus `data.status=processing` and a retryable envelope
 - G1-R1 does not prove provider availability, billable model routing, 4/4 paid-user image experience, quality, pricing, retention or private photo transport. All such gates require independent approval/evidence.
 
 **Next decision:** Lead can review the combined Draft PR and its exact-head CI. Any deployment of Consumer safety needs a separate production release/rollback decision. Actual Kie routing remains out of scope.
+
+## Consumer browser replay follow-up (pending exact-head CI)
+
+An independent UI review found that `TryOnInterface` previously created a fresh `clientSubmissionId` on **every button click** and told users to retry after a five-minute poll deadline. That defeated same-key server replay and could trigger a second paid provider POST after unknown acceptance.
+
+This branch now retains the same key for the same selected File references after ambiguous HTTP failures; a known task ID resumes polling with **no POST** after a client deadline; completed/terminal-failed attempts release the key for a deliberate new request. Selecting new inputs is treated as a new logical task. The action bar remains available to resume a pending request even if quota is exhausted. A helper regression suite covers key replay, changed files and changed Try-On type. A true four-image browser Golden Path remains required; this component fix is not by itself end-to-end proof.
+
+See the [UNKNOWN reconciliation runbook](./ai-provider-resilience-g1-r1-unknown-reconciliation-2026-10-22.md) for privacy-safe investigation and unresolved cases older than the pending-task recovery window, and [Face Analysis G1-B design](./ai-provider-resilience-g1-b-face-analysis-idempotency-design-2026-10-22.md) for the separate migration-dependent problem.
