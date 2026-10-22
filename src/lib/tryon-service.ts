@@ -186,6 +186,9 @@ export async function submitTryOnTask(
     })
 
     if (existingTask) {
+      if (existingTask.type && existingTask.type !== type) {
+        throw new Error('Submission ID belongs to a different Try-On type')
+      }
       logger.info('tryon-service', 'Reusing idempotent try-on submission', {
         userId: user.id,
         clientSubmissionId,
@@ -366,6 +369,9 @@ export async function submitTryOnTask(
       },
     })
     if (!existingTask) throw error
+    if (existingTask.type && existingTask.type !== type) {
+      throw new Error('Submission ID belongs to a different Try-On type')
+    }
 
     logger.info('tryon-service', 'Recovered concurrent idempotent try-on submission', {
       userId: user.id,
