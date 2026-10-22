@@ -29,7 +29,11 @@ The combined TypeScript gate initially failed on four occurrences of `String.rep
 - #436 exact-head remote Quality Gate #1274: three jobs SUCCESS; 2,532 passed, one skipped.
 - #436 local Codex at b714ca2f: three Jest suites / 49 tests PASS; real disposable PostgreSQL CAS probes for first dispatch vs stale reconciliation (30), competing timeout retry (30) and stale poll write fencing (30), all PASS. These are local database-level proofs, **not browser end-to-end proof**.
 - #438 exact-head remote Quality Gate #1275: three jobs SUCCESS; 362 suites / 2,543 tests passed, one skipped, including Kie fake-client suite.
-- **Combined exact-head Quality Gate:** Pending; must pass on the integration commit before signoff. Combined CI cannot be inferred solely from the separate branch checks.
+- **Combined exact-head Quality Gate #1278:** all three jobs SUCCESS at `d631b13ff745653144b724967e6ead720f982616` (363 suites; 2,568 passed; one skipped). Subsequent integration-only Consumer business-code 429/503 polling protection adds two focused regression tests; its own new exact-head Quality Gate is required before Lead signoff. Combined CI cannot be inferred solely from separate-branch checks.
+
+## Independent review finding (G1-R1)
+
+GrsAi may return HTTP 200 plus `data.status=processing` and a retryable envelope business code (e.g. 429/503). Its parser preserves `processing` for that combination; without a Consumer-specific normalization the caller treats the query as successful and does not back off. The integration follow-up converts only such Consumer query responses into transient failures, retaining their diagnostic code and preventing re-dispatch. Store behavior is intentionally unchanged. The added tests prove both paths offline.
 
 ## Guardrails
 

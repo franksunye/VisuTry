@@ -855,6 +855,64 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).not.toHaveBeenCalled()
     })
 
+    it('backs off when GrsAi HTTP 200 says processing but has retryable business code', async () => {
+      const task = {
+        id: 'consumer-processing-business-429',
+        origin: 'CONSUMER',
+        dispatchVersion: 0,
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'accepted-provider-id', retryCount: 0 },
+      }
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(task)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'processing',
+        progress: 0,
+        diagnostics: { code: 429, message: 'rate limited', rawStatus: 0 },
+      })
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+      const result = await getTryOnResult(task.id)
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          id: task.id,
+          dispatchVersion: 0,
+          status: { not: TaskStatus.COMPLETED },
+        }),
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          metadata: expect.objectContaining({
+            pollFailureStreak: 1,
+            nextProviderPollAt: expect.any(String),
+            lastExternalStatus: 'failed',
+            lastExternalDiagnostics: { code: 429, message: 'rate limited', rawStatus: 0 },
+          }),
+        }),
+      }))
+    })
+
+    it('does not apply Consumer-only business-code backoff to Store processing replies', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'store-processing-business-503',
+        origin: 'STORE_DEMO',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'store-task-id' },
+      })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'processing',
+        progress: 15,
+        diagnostics: { code: 503, rawStatus: 0 },
+      })
+
+      const result = await getTryOnResult('store-processing-business-503')
+
+      expect(result).toMatchObject({ status: TaskStatus.PROCESSING, progress: 15 })
+      expect(prisma.tryOnTask.updateMany).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('treats a retryable GrsAi business code as a transient poll failure', async () => {
       const task = {
         id: 'task-poll-business-503',

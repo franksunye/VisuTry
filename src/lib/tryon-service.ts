@@ -743,7 +743,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
     })
 
     // Poll GrsAi
-    const pollResult = await pollTaskResult(metadata.externalTaskId, {
+    const polledResult = await pollTaskResult(metadata.externalTaskId, {
       taskId,
       clientSubmissionId:
         typeof metadata?.clientSubmissionId === 'string'
@@ -752,6 +752,19 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       origin: task.origin === 'CONSUMER' ? 'CONSUMER' : task.origin,
       ...pollLog,
     })
+    // Some GrsAi HTTP 200 responses carry a retryable business error while
+    // data.status still says "processing". Apply Consumer-only backoff rather
+    // than accepting the envelope as a successful status query. Store/Campaign
+    // poll normalization remains unchanged.
+    const pollResult = task.origin === 'CONSUMER' &&
+      polledResult.status === 'processing' &&
+      shouldTreatPollFailureAsTransient(undefined, polledResult.diagnostics?.code)
+      ? {
+          ...polledResult,
+          status: 'failed' as const,
+          error: `Polling business code: ${polledResult.diagnostics?.code}`,
+        }
+      : polledResult
     const retryCount = typeof metadata?.retryCount === 'number' ? metadata.retryCount : 0
     const externalPollMetadata = {
       ...(metadata as any),
