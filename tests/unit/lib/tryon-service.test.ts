@@ -724,6 +724,62 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).not.toHaveBeenCalled()
     })
 
+    it('backs off Consumer polling after a transport error without a new generation', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'consumer-poll-backoff',
+        origin: 'CONSUMER',
+        status: TaskStatus.PROCESSING,
+        dispatchVersion: 0,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'accepted-id',
+          pollFailureStreak: 2,
+          pollFirstTransientAt: new Date().toISOString(),
+        },
+      })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'Polling failed: 503',
+      })
+
+      const result = await getTryOnResult('consumer-poll-backoff')
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'consumer-poll-backoff',
+          status: { not: TaskStatus.COMPLETED },
+          dispatchVersion: 0,
+        },
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            pollFailureStreak: 3,
+            nextProviderPollAt: expect.any(String),
+          }),
+        }),
+      })
+    })
+
+    it('respects an unexpired Consumer poll backoff without querying provider', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'consumer-poll-paused',
+        origin: 'CONSUMER',
+        status: TaskStatus.PROCESSING,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'accepted-id',
+          nextProviderPollAt: new Date(Date.now() + 20_000).toISOString(),
+        },
+      })
+
+      const result = await getTryOnResult('consumer-poll-paused')
+
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(pollTaskResult).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('treats a retryable GrsAi business code as a transient poll failure', async () => {
       const task = {
         id: 'task-poll-business-503',
