@@ -1,10 +1,12 @@
 # AI Provider Resilience v1 — G0 Static Audit & G1 Decision Brief
 
 **Date:** 2026-10-22  
-**Status:** G0 PARTIAL — PRODUCTION DEPLOYED-CODE EQUIVALENCE + BOUNDED INCIDENT LOG VERIFIED; LONGITUDINAL PRODUCTION METRICS OPEN  
-**Tracking:** [Project #430](https://github.com/franksunye/VisuTry/issues/430) · [G0 Try-On #431](https://github.com/franksunye/VisuTry/issues/431) · [Face Analysis #433](https://github.com/franksunye/VisuTry/issues/433)  
+**Status:** G0 SCOPED CLOSED BY LEAD WAIVER — static/deployed-code risk audit delivered and a live Grsai Face Analysis incident observed; further incident-log baselining intentionally skipped. G1 **NO-SPEND** qualification authorized; G1 external provider tests remain approval-gated.  
+**Tracking:** [Project #430](https://github.com/franksunye/VisuTry/issues/430) · [G0 Try-On #431](https://github.com/franksunye/VisuTry/issues/431) · [Face Analysis #433](https://github.com/franksunye/VisuTry/issues/433) · [G1 #434](https://github.com/franksunye/VisuTry/issues/434)  
 **Code snapshot:** `main` `cbf21014a7ac371226475d692dbf0a5f0dc270ff`; live Vercel Production READY `75ff01e232b6317a3dae1ec509cf63179ffa550d`. Twelve generation-critical files were fetched at both SHAs and compared byte-for-byte identical; this is **deployed-code equivalence for those files**, not proof of current effective environment variables or job outcomes.  
 **Constraints:** No provider purchase, paid API call, secret modification, production routing change, migration or deploy. Google Direct/Vertex are excluded as **newly funded** candidates; audit existing Direct code only.
+
+**Lead decision — 2026-10-22:** Grsai instability is accepted as an operational fact based on Lead-reviewed logs. Do **not** repeat 24h/7d/14d historical incident verification as a condition for starting G1. This is a **waiver of additional incident evidence**, **not** a verified uptime/SLO, paid-user 4/4 outcome, deployment routing configuration, or exception to retry/idempotency/privacy/charging safeguards. Those safeguards are carried forward into [G1 #434](https://github.com/franksunye/VisuTry/issues/434).
 
 ## 1. Summary and evidence grades
 
@@ -15,7 +17,7 @@
 - **CODE-CONFIRMED RISK:** The ordinary Consumer submit route accepts `clientSubmissionId` but does not set `enforceIdempotency: true`, unlike Top Picks. Duplicated client requests may generate separate provider tasks. Verify the intended product semantics before a fix.
 - **CODE-CONFIRMED RISK:** Grsai poll HTTP failures are normalized to `failed`; common `Polling failed: 429/5xx` text is not currently in `shouldTreatPollFailureAsTransient`, so a temporary response can become a user-visible failure. The poll fetch also has no explicit timeout/abort in its call site.
 - **CODE-CONFIRMED MITIGATION:** Consumer and Store quota settlement already use serializable/claim-based once-only completion settlement. Store also uses dispatch/persist leases. Do not bypass these when introducing fallback.
-- **DOC-DEFINED / PROD-UNVERIFIED:** `GenerationRequest`/`GenerationAttempt` schema and CLI/admin/Axiom correlation exist in code/docs, but a current 24h/7d/14d Production cohort or Day-0 baseline has **not** been collected in this G0 audit. No success-rate, 4/4 journey-rate, spend or SLO value is asserted.
+- **DOC-DEFINED / PROD-UNVERIFIED:** `GenerationRequest`/`GenerationAttempt` schema and CLI/admin/Axiom correlation exist in code/docs, but a current 24h/7d/14d Production cohort or Day-0 baseline has **not** been collected in this G0 audit and is now **Lead-waived as an entry requirement**, not silently passed. No success-rate, 4/4 journey-rate, spend or SLO value is asserted.
 - **MODEL LIFECYCLE CORRECTION:** Google's latest official deprecations page (updated 2026-10-20) lists the **earliest** shutdown of `gemini-2.5-flash-image` as **2027-03-15**, *not* 2026-10-02. Existing code depends on a legacy model but must not be called already shut down. Current Production availability and effective account access remain unverified.
 
 ## 2. Routing matrix (deployed-code equivalent; effective env conditional)
@@ -94,7 +96,7 @@ Official vendor references (research as of 2026-10-22):
 - Collect `provider`, `model`, `attemptNumber`, `providerTaskId`, `requested/actual cost`, `errorStage`, `origin`, `isTest`, `logicalRequestId`, and `final usable result` without image/raw prompt/PII. Preserve existing Postgres/Axiom logs and clarify attribution of fallback attempts.
 - Feature flags: `DISABLED` → `SHADOW_QUALIFIED` (no billable duplicate shadow dispatch) → `MANUAL_CANARY` → `BOUNDED_AUTO_FAILOVER` only after explicit lead sign-off; instant global disable and per-provider disable.
 
-## 6. G1 controlled experiment proposal — requires separate Lead authorization
+## 6. G1 controlled experiment proposal — desk/mocks authorized; external calls require separate Lead authorization
 
 **Lane A — Try-On image output:** Start with **8 synthetic or consented face/frame fixture pairs** across occlusion, head pose, lighting, frame types, photo format and sizes. Do not copy genuine user photos or Production media to vendors for testing. Run Grsai baseline (8) plus one candidate at a time (8 each; at most 32 provider outputs for the first 4-lane comparison). Hold prompts/input photos constant and evaluate blind.
 
@@ -108,7 +110,9 @@ Official vendor references (research as of 2026-10-22):
 
 **G1 GO to G2 requires:** a selected actual SKU, two-image fidelity proof, verified safe face-photo transport/deletion, acceptable real cost, fallback classification safety, and Lead acceptance of identified tradeoffs. Production reliability/SLO requires subsequent larger, controlled observation, not extrapolation from eight fixtures.
 
-## 7. G0-LIVE local Codex read-only evidence task (OPEN)
+## 7. Superseded G0-LIVE local Codex read-only evidence task (HISTORICAL; NO LONGER REQUIRED)
+
+**Superseded by Lead decision above.** The following instructions are preserved for traceability only. Do **not** commission routine 24h/7d/14d incident re-verification under G0. Local Codex should now work from **G1 #434** on candidate docs and **mock-only engineering safety tests**. If later reliability quantification is needed for Production rollout, obtain a new and explicit task/authority.
 
 Run in the existing local VisuTry repo and configured Production-connected environment **read-only** after verifying the authorized account/project. Do not echo secrets, upload face images, run generation, trigger smoke requiring provider spend, or modify Production DB.
 
@@ -119,17 +123,18 @@ Run in the existing local VisuTry repo and configured Production-connected envir
 5. Test concurrency/idempotency/timeout classification using **mocks only** (no actual provider calls) and document reproducible race paths, API and Store isolation, quota settlement invariants.
 6. Append redacted evidence plus GO/NO-GO to #431 and optionally a report-only Draft PR update; do not merge, deploy, add secrets, top up, contact vendors or bill API calls.
 
-## 8. Remaining G0 blockers / next gate
+## 8. Scope disposition and outstanding G1 safety gates
 
 - [x] Current static routing and failure-path inventory, including Face Analysis provider and limited live deployment code equivalence.
 - [x] Vercel Production READY SHA/aliases verified; current main newer deployment canceled; live Face Analysis `rix_api_error` incident captured (not Try-On-rate evidence).
 - [x] Current official Google lifecycle and initial vendor capability/docs review; earlier sunset date corrected.
 - [x] Proposed cost/quality gates and safe multi-provider design.
 - [ ] Effective environment-specific routing and runtime config safely verified (deployed SHA already verified).
-- [ ] 24h/7d/14d Production Postgres/Admin/Axiom report reconciled, Face Analysis failures isolated from image generation, and Day-0 evidence status clarified.
-- [ ] Consumer and Store concurrency/error-reproduction test artifacts from local full repository; Face Analysis 60s/55s timeout and client-submit idempotency reviewed with mocks.
-- [ ] Separate Face Analysis vision/chat candidate and output-contract parity checked; no image-generation candidate assumed suitable.
-- [ ] Face-photo vendor handling policy, upstream independence and precise candidate SKU/billing verified.
-- [ ] Lead GO/NO-GO on capped G1 tests (separate decision).
+- [x] **Lead-waived (not verified):** additional 24h/7d/14d Production Postgres/Admin/Axiom incident re-verification and Day-0 report as a G1 entry gate. Historical success rates and 4/4 results remain unknown; do not state numeric reliability.
+- [ ] **Carried to #434, not waived:** Consumer and Store mock concurrency/error-reproduction; Face Analysis 60s/55s timeout and client-submit idempotency tests.
+- [ ] **Carried to #434, not waived:** separate Face Analysis vision/chat candidate and output-contract parity; do not assume an image-generation candidate suitable.
+- [ ] **Carried to #434, not waived:** face-photo vendor policy, upstream independence and precise candidate SKU/billing.
+- [x] Lead authorized **G1 no-spend desk and mock work**; #434 created.
+- [ ] Lead GO/NO-GO on capped **external** G1 tests (separate decision).
 
-**Status verdict:** **G0 PARTIAL / G1 NO-GO** until Production evidence and a reviewed capped test authorization exist. This report deliberately does not claim live VisuTry failure rate or a completed fallback integration.
+**Status verdict:** **G0 administratively CLOSED with explicitly waived longitudinal metrics / G1 no-spend GO / G1 provider-call NO-GO.** Engineering dispatch/quota/privacy protections remain binding; Production switch remains NO-GO. This report does not claim a measured Try-On failure rate, paid-user 4/4 reliability, or completed fallback integration.
