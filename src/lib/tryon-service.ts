@@ -47,6 +47,7 @@ const GEMINI_PREMIUM_ONLY = process.env.GEMINI_PREMIUM_ONLY !== 'false'
 const MAX_GRSAI_TIMEOUT_RETRIES = 1
 const RESULT_PERSIST_LEASE_MS = 2 * 60 * 1000
 const DISPATCH_LEASE_MS = 2 * 60 * 1000
+const MAX_KIE_RESULT_BYTES = 15 * 1024 * 1024
 
 interface FileInspection {
   name: string
@@ -111,6 +112,41 @@ function kieCreateWasNeverSent(error: unknown): boolean {
   return error instanceof Error &&
     error.name === 'KieProviderError' &&
     (error as Error & { acceptance?: unknown }).acceptance === 'not-sent'
+}
+
+async function readBoundedKieResult(response: Response): Promise<Blob> {
+  const mime = response.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase()
+  if (!mime || !['image/jpeg', 'image/png', 'image/webp'].includes(mime)) {
+    throw new Error('Kie result is not a supported image')
+  }
+  const declaredLength = response.headers.get('content-length')
+  if (declaredLength !== null && Number(declaredLength) > MAX_KIE_RESULT_BYTES) {
+    throw new Error('Kie result exceeds safe media size')
+  }
+  if (!response.body) throw new Error('Kie result has no readable image body')
+
+  // Never call response.blob() on untrusted vendor output. Content-Length can
+  // be missing or false; enforce the cap while reading, not after allocation.
+  const reader = response.body.getReader()
+  const parts: ArrayBuffer[] = []
+  let received = 0
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      received += value.byteLength
+      if (received > MAX_KIE_RESULT_BYTES) {
+        await reader.cancel()
+        throw new Error('Kie result exceeds safe media size')
+      }
+      const part = new ArrayBuffer(value.byteLength)
+      new Uint8Array(part).set(value)
+      parts.push(part)
+    }
+  } finally {
+    reader.releaseLock()
+  }
+  return new Blob(parts, { type: mime })
 }
 
 function shouldTreatPollFailureAsTransient(error?: string, providerCode?: number): boolean {
@@ -1061,19 +1097,9 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         if (!response.ok) {
           throw new Error(`Failed to fetch provider result (${response.status})`)
         }
-        if (polledProvider === 'kie') {
-          const declaredLength = Number(response.headers?.get('content-length'))
-          if (declaredLength > 15 * 1024 * 1024) {
-            throw new Error('Kie result exceeds safe media size')
-          }
-        }
-        const blob = await response.blob()
-        if (polledProvider === 'kie' && (
-          blob.size > 15 * 1024 * 1024 ||
-          !['image/jpeg', 'image/png', 'image/webp'].includes(blob.type)
-        )) {
-          throw new Error('Kie result is not a supported bounded image')
-        }
+        const blob = polledProvider === 'kie'
+          ? await readBoundedKieResult(response)
+          : await response.blob()
         const file = new File([blob], `result-${taskId}.${resultExtension}`, { type: blob.type || 'image/png' })
         const uploadedBlob = await put(resultPathname, file, resultBlobOptions)
         persistedUrl = uploadedBlob.url

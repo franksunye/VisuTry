@@ -617,8 +617,12 @@ describe('TryOnService', () => {
       })
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
-        headers: { get: jest.fn().mockReturnValue(null) },
-        blob: jest.fn().mockResolvedValue(new Blob(['synthetic-jpeg'], { type: 'image/jpeg' })),
+        headers: { get: jest.fn((key: string) => key === 'content-type' ? 'image/jpeg' : null) },
+        body: { getReader: jest.fn().mockReturnValue({
+          read: jest.fn().mockResolvedValueOnce({ done: false, value: Buffer.from('synthetic-jpeg') })
+            .mockResolvedValueOnce({ done: true }),
+          releaseLock: jest.fn(),
+        }) },
       })
       const result = await getTryOnResult('kie-success')
       expect(result).toMatchObject({ status: TaskStatus.COMPLETED, isNewCompletion: true })
@@ -633,6 +637,39 @@ describe('TryOnService', () => {
       )
       expect(submitKieTask).not.toHaveBeenCalled()
       expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('refuses oversized Kie output during streaming even without Content-Length', async () => {
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'kie-oversize', origin: 'CONSUMER', userId: 'user-1',
+        status: TaskStatus.PROCESSING, dispatchVersion: 0,
+        metadata: { serviceType: 'kie', externalTaskId: 'kie-oversize-id', dispatchOutcome: 'ACCEPTED' },
+      })
+      ;(pollKieTask as jest.Mock).mockResolvedValue({
+        status: 'succeeded', imageUrl: 'https://tempfile.redpandaai.co/too-large.jpg', progress: 100,
+      })
+      const cancel = jest.fn().mockResolvedValue(undefined)
+      const half = Buffer.alloc(8 * 1024 * 1024, 1)
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: jest.fn((key: string) => key === 'content-type' ? 'image/jpeg' : null) },
+        body: { getReader: jest.fn().mockReturnValue({
+          read: jest.fn().mockResolvedValueOnce({ done: false, value: half })
+            .mockResolvedValueOnce({ done: false, value: half }),
+          cancel,
+          releaseLock: jest.fn(),
+        }) },
+      })
+      expect(await getTryOnResult('kie-oversize')).toMatchObject({
+        status: TaskStatus.PROCESSING, isNewCompletion: false,
+      })
+      expect(cancel).toHaveBeenCalledTimes(1)
+      expect(put).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.updateMany).not.toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ status: TaskStatus.COMPLETED }),
+      }))
     })
 
     it('never retries an explicitly failed accepted Kie task via GrsAi timeout logic', async () => {

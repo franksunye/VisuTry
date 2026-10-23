@@ -39,7 +39,7 @@ Server only. From the request-local person and frame data URIs:
 2. One `POST https://api.kie.ai/api/v1/jobs/createTask` request with exact model and `input:{prompt,image_urls:[person,frame],aspect_ratio:'auto'}`. Prompt built by the same `buildTryOnPrompt` function/version as Grsai. Require business `code:200` and a syntactically valid `data.taskId`. Every ambiguous create response stays UNKNOWN; do **not** resend.
    If reference staging fails **before** createTask is sent, mark the task FAILED safely and allow an explicit user retry without a Kie generation charge; do not mislabel this provable no-submit case UNKNOWN.
 3. Poll `GET https://api.kie.ai/api/v1/jobs/recordInfo?taskId=...`; `waiting/queuing/generating` remain pending; only explicit `fail` is terminal; `success` requires exactly one HTTPS allowlisted result URL in parsed `resultJson.resultUrls`. Body errors and network failures are treated as transient and back off using the Consumer safety path.
-4. Fetch allowlisted result with redirects rejected, image-only MIME and 15 MiB cap, then persist to private Vercel Blob before marking COMPLETED and settling usage once.
+4. Fetch allowlisted result with redirects rejected, image-only MIME and a **stream-enforced** 15 MiB cap even without Content-Length; then persist to private Vercel Blob before marking COMPLETED and settling usage once.
 
 ## Data/privacy/release HOLD
 
