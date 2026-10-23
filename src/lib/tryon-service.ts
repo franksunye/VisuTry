@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma"
 import { head, put } from "@vercel/blob"
 import { generateTryOnImage } from "@/lib/gemini"
 import { submitAsyncTask, pollTaskResult } from "@/lib/grsai"
+import { submitKieTask, pollKieTask } from "@/lib/kie"
+import { kieFallbackMode } from "@/lib/generation/kie-routing"
 import { logger } from "@/lib/logger"
 import { Prisma, TaskStatus, TryOnType, User } from "@prisma/client"
 import { TRY_ON_CONFIGS } from "@/config/try-on-types"
@@ -35,7 +37,7 @@ import {
   ensureGenerationRequestFromTask,
   generationLogFields,
 } from '@/lib/generation/telemetry'
-import { GRSAI_TRY_ON_MODEL, GEMINI_TRY_ON_IMAGE_MODEL } from '@/lib/generation/providers'
+import { GRSAI_TRY_ON_MODEL, KIE_TRY_ON_MODEL, GEMINI_TRY_ON_IMAGE_MODEL } from '@/lib/generation/providers'
 
 export type { TryOnPollResult, TryOnSubmissionResult }
 
@@ -289,6 +291,13 @@ export async function submitTryOnTask(
     isAsync = serviceType === 'grsai'
   }
 
+  // Operator-directed cutover for *new* Consumer tasks only. Never changes
+  // an already accepted GrsAi task, Premium Gemini, or Store/Campaign.
+  if (serviceType === 'grsai' && !options?.forceServiceType && kieFallbackMode() === 'force-consumer') {
+    serviceType = 'kie'
+    isAsync = true
+  }
+
   logger.info('tryon-service', `Service selection: ${serviceType} (Async: ${isAsync})`, {
     userId: user.id,
     clientSubmissionId,
@@ -395,7 +404,8 @@ export async function submitTryOnTask(
     clientSubmissionId,
     generationType: type,
     provider: serviceType,
-    model: serviceType === 'gemini' ? GEMINI_TRY_ON_IMAGE_MODEL : GRSAI_TRY_ON_MODEL,
+    model: serviceType === 'gemini' ? GEMINI_TRY_ON_IMAGE_MODEL
+      : serviceType === 'kie' ? KIE_TRY_ON_MODEL : GRSAI_TRY_ON_MODEL,
     startedAt: task.createdAt ?? new Date(),
   })
 
@@ -515,19 +525,21 @@ export async function submitTryOnTask(
     }
 
   } else {
-    // --- GrsAi (Asynchronous) ---
+    // --- GrsAi / Kie (Asynchronous) ---
+    const asyncProvider = serviceType === 'kie' ? 'kie' : 'grsai'
+    const asyncModel = asyncProvider === 'kie' ? KIE_TRY_ON_MODEL : GRSAI_TRY_ON_MODEL
     const attemptHandle = await startGenerationAttempt({
       tryOnTaskId: task.id,
-      provider: 'grsai',
-      model: GRSAI_TRY_ON_MODEL,
+      provider: asyncProvider,
+      model: asyncModel,
     })
     const submitStartedAt = Date.now()
     const grsaiLog = generationLogFields(attemptHandle ?? requestHandle, {
       tryOnTaskId: task.id,
       clientSubmissionId,
       origin: 'CONSUMER',
-      provider: 'grsai',
-      model: GRSAI_TRY_ON_MODEL,
+      provider: asyncProvider,
+      model: asyncModel,
     })
     let submissionMayHaveReachedProvider = false
     let acceptedExternalTaskId: string | undefined
@@ -558,18 +570,12 @@ export async function submitTryOnTask(
       }
       submissionMayHaveReachedProvider = true
 
-      const externalTaskId = await submitAsyncTask(
-        userDataUri,
-        itemDataUri,
-        effectivePrompt,
-        promptVersion,
-        {
-          taskId: task.id,
-          clientSubmissionId,
-          origin: 'CONSUMER',
-          ...grsaiLog,
-        },
-      )
+      const externalTaskId = asyncProvider === 'kie'
+        ? await submitKieTask(userDataUri, itemDataUri, effectivePrompt, promptVersion)
+        : await submitAsyncTask(
+            userDataUri, itemDataUri, effectivePrompt, promptVersion,
+            { taskId: task.id, clientSubmissionId, origin: 'CONSUMER', ...grsaiLog },
+          )
 
       acceptedExternalTaskId = externalTaskId
 
@@ -614,11 +620,117 @@ export async function submitTryOnTask(
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error"
-      logger.error('tryon-service', 'GrsAi submission failed', error as Error, {
+      logger.error('tryon-service', 'Async provider submission failed', error as Error, {
         taskId: task.id,
         clientSubmissionId,
         ...grsaiLog,
       })
+
+      // GrsAi explicitly rejected this *initial* submit without issuing any
+      // ID. This is the only automatic cross-aggregator route: a positive
+      // acceptance, network error, HTTP 5xx, ambiguous response, and poll
+      // failure are NOT safe opportunities to start another billable task.
+      if (
+        asyncProvider === 'grsai' &&
+        error instanceof Error &&
+        error.name === 'GrsAiDefinitiveRejectionError' &&
+        typeof (error as Error & { providerCode?: unknown }).providerCode === 'number' &&
+        !acceptedExternalTaskId &&
+        kieFallbackMode() === 'auto-definitive'
+      ) {
+        const claimed = await prisma.tryOnTask.updateMany({
+          where: {
+            id: task.id, origin: 'CONSUMER', status: TaskStatus.PROCESSING,
+            dispatchVersion: 0,
+          },
+          data: {
+            dispatchVersion: { increment: 1 },
+            metadata: {
+              ...(task.metadata as Record<string, unknown>),
+              serviceType: 'kie',
+              isAsync: true,
+              dispatchOutcome: 'UNKNOWN',
+              dispatchUnknownAt: new Date().toISOString(),
+              primaryRejectionCode: (error as Error & { providerCode: number }).providerCode,
+            },
+          },
+        })
+        if (claimed.count !== 1) {
+          return { taskId: task.id, status: 'submitted', serviceType, isAsync }
+        }
+
+        let acceptedKieId: string | undefined
+        try {
+          // Close GrsAi's rejected attempt while keeping the ONE logical
+          // request open. Otherwise telemetry would attach Kie's task ID to
+          // the still-open GrsAi attempt.
+          await recordGenerationFailure(task.id, errorMessage, {
+            source: 'submit',
+            httpStatus: (error as Error & { providerCode: number }).providerCode,
+            failureStage: 'SUBMIT',
+            completeRequest: false,
+          })
+          // A failure in upload or dispatch leaves this task UNKNOWN,
+          // conservatively requiring reconciliation rather than a duplicate.
+          await startGenerationAttempt({
+            tryOnTaskId: task.id, provider: 'kie', model: KIE_TRY_ON_MODEL,
+          })
+          const [userDataUri, itemDataUri] = await Promise.all([
+            fileToDataUri(userImageFile), fileToDataUri(itemImageFile),
+          ])
+          const kieStartedAt = Date.now()
+          acceptedKieId = await submitKieTask(userDataUri, itemDataUri, effectivePrompt, promptVersion)
+          const saved = await prisma.tryOnTask.updateMany({
+            where: {
+              id: task.id, origin: 'CONSUMER', status: TaskStatus.PROCESSING,
+              dispatchVersion: 1,
+            },
+            data: {
+              metadata: {
+                ...(task.metadata as Record<string, unknown>),
+                serviceType: 'kie',
+                isAsync: true,
+                externalTaskId: acceptedKieId,
+                dispatchOutcome: 'ACCEPTED',
+                dispatchUnknownAt: null,
+                primaryRejectionCode: (error as Error & { providerCode: number }).providerCode,
+              },
+            },
+          })
+          if (saved.count !== 1) {
+            return { taskId: task.id, status: 'submitted', serviceType: 'kie', isAsync: true }
+          }
+          try {
+            await markGenerationAttemptSubmitted(task.id, acceptedKieId, Date.now() - kieStartedAt)
+          } catch {
+            // Accepted task is already safely pollable despite telemetry lag.
+          }
+          return { taskId: task.id, status: 'submitted', serviceType: 'kie', isAsync: true }
+        } catch (kieError) {
+          logger.warn('tryon-service', 'Kie fallback submission requires reconciliation', {
+            taskId: task.id, hasExternalTaskId: Boolean(acceptedKieId),
+          })
+          if (acceptedKieId) {
+            await prisma.tryOnTask.updateMany({
+              where: {
+                id: task.id, origin: 'CONSUMER', status: TaskStatus.PROCESSING,
+                dispatchVersion: 1,
+              },
+              data: {
+                metadata: {
+                  ...(task.metadata as Record<string, unknown>),
+                  serviceType: 'kie',
+                  isAsync: true,
+                  externalTaskId: acceptedKieId,
+                  dispatchOutcome: 'ACCEPTED',
+                  primaryRejectionCode: (error as Error & { providerCode: number }).providerCode,
+                },
+              },
+            })
+          }
+          return { taskId: task.id, status: 'submitted', serviceType: 'kie', isAsync: true }
+        }
+      }
       
       if (submissionMayHaveReachedProvider) {
         // A provider ID may have been returned even if our first DB write failed.
@@ -718,7 +830,9 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
   }
 
   // If task has an external GrsAi ID, keep polling even if the local status was marked FAILED.
-  if (metadata?.serviceType === 'grsai' && metadata?.externalTaskId) {
+  if ((metadata?.serviceType === 'grsai' || metadata?.serviceType === 'kie') && metadata?.externalTaskId) {
+    const polledProvider = metadata.serviceType === 'kie' ? 'kie' : 'grsai'
+    const polledModel = polledProvider === 'kie' ? KIE_TRY_ON_MODEL : GRSAI_TRY_ON_MODEL
     const pollHandle = await ensureGenerationRequestFromTask({
       id: task.id,
       origin: task.origin,
@@ -738,12 +852,14 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           ? metadata.clientSubmissionId
           : task.clientSubmissionId,
       origin: typeof metadata?.telemetryOrigin === 'string' ? metadata.telemetryOrigin : task.origin,
-      provider: 'grsai',
-      model: GRSAI_TRY_ON_MODEL,
+      provider: polledProvider,
+      model: polledModel,
     })
 
     // Poll GrsAi
-    const polledResult = await pollTaskResult(metadata.externalTaskId, {
+    const polledResult = polledProvider === 'kie'
+      ? await pollKieTask(metadata.externalTaskId)
+      : await pollTaskResult(metadata.externalTaskId, {
       taskId,
       clientSubmissionId:
         typeof metadata?.clientSubmissionId === 'string'
@@ -881,17 +997,33 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       // Consumer path: persist the generated result behind the configured Try-On
       // Blob boundary. Public sharing is handled by the result-only Share route.
       const resultOwnerKey = task.userId ?? taskId
-      const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.png`
+      const resultExtension = polledProvider === 'kie' ? 'jpg' : 'png'
+      const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.${resultExtension}`
       const resultBlobOptions = getTryOnResultBlobOptions()
 
       let persistedUrl: string | null = null
       try {
-        const response = await fetch(pollResult.imageUrl)
+        const response = await fetch(
+          pollResult.imageUrl,
+          polledProvider === 'kie' ? { redirect: 'error', cache: 'no-store' } : undefined,
+        )
         if (!response.ok) {
           throw new Error(`Failed to fetch provider result (${response.status})`)
         }
+        if (polledProvider === 'kie') {
+          const declaredLength = Number(response.headers?.get('content-length'))
+          if (declaredLength > 15 * 1024 * 1024) {
+            throw new Error('Kie result exceeds safe media size')
+          }
+        }
         const blob = await response.blob()
-        const file = new File([blob], `result-${taskId}.png`, { type: blob.type || 'image/png' })
+        if (polledProvider === 'kie' && (
+          blob.size > 15 * 1024 * 1024 ||
+          !['image/jpeg', 'image/png', 'image/webp'].includes(blob.type)
+        )) {
+          throw new Error('Kie result is not a supported bounded image')
+        }
+        const file = new File([blob], `result-${taskId}.${resultExtension}`, { type: blob.type || 'image/png' })
         const uploadedBlob = await put(resultPathname, file, resultBlobOptions)
         persistedUrl = uploadedBlob.url
         logger.info('tryon-service', 'GrsAi result uploaded to blob', {
@@ -1148,6 +1280,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       }
 
       if (
+        polledProvider === 'grsai' &&
         retryCount < MAX_GRSAI_TIMEOUT_RETRIES &&
         shouldRetryGrsAiTimeout(pollResult.error) &&
         task.userImageUrl &&

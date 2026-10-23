@@ -39,6 +39,15 @@ interface GrsAiSubmitResponse {
   }
 }
 
+/** Only a documented explicit negative admission response may allow provider
+ * switching. A timeout, HTTP 5xx, malformed body, or lost response is UNKNOWN. */
+export class GrsAiDefinitiveRejectionError extends Error {
+  constructor(public readonly providerCode: number) {
+    super(`GrsAi explicitly rejected task admission (${providerCode})`)
+    this.name = 'GrsAiDefinitiveRejectionError'
+  }
+}
+
 interface GrsAiPollResponse {
   code: number
   msg: string
@@ -178,6 +187,13 @@ export async function submitAsyncTask(
       })
       return data.data.id
     } else {
+      if (
+        typeof data.code === 'number' &&
+        [400, 401, 403, 422, 429].includes(data.code) &&
+        !data.data?.id
+      ) {
+        throw new GrsAiDefinitiveRejectionError(data.code)
+      }
       // Log full response for debugging unexpected formats
       logger.error('grsai', 'Unexpected response format', undefined, {
         fullResponse: JSON.stringify(data).substring(0, 500), // Limit length
