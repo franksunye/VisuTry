@@ -219,6 +219,31 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).not.toHaveBeenCalled()
     })
 
+    it('marks a known pre-create Kie upload rejection FAILED without charging or another submit', async () => {
+      process.env.KIE_API_KEY = 'synthetic-secret'
+      process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
+      process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'kie-upload-reject', status: TaskStatus.PENDING, metadata: { serviceType: 'kie' },
+      })
+      const uploadError = Object.assign(new Error('Kie reference upload rejected'), {
+        name: 'KieProviderError', stage: 'upload', acceptance: 'not-sent',
+      })
+      ;(submitKieTask as jest.Mock).mockRejectedValue(uploadError)
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+      expect(result).toMatchObject({ taskId: 'kie-upload-reject', status: 'failed' })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({
+          status: TaskStatus.FAILED,
+          metadata: expect.objectContaining({ dispatchOutcome: 'NOT_SENT' }),
+        }),
+      }))
+      expect(submitKieTask).toHaveBeenCalledTimes(1)
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('reuses an existing client submission before uploading or dispatching again', async () => {
       ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
         id: 'existing-task',

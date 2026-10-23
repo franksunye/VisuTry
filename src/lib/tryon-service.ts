@@ -107,6 +107,12 @@ function shouldRetryGrsAiTimeout(error?: string): boolean {
   return normalizedError.includes('timeout') || normalizedError.includes('timed out')
 }
 
+function kieCreateWasNeverSent(error: unknown): boolean {
+  return error instanceof Error &&
+    error.name === 'KieProviderError' &&
+    (error as Error & { acceptance?: unknown }).acceptance === 'not-sent'
+}
+
 function shouldTreatPollFailureAsTransient(error?: string, providerCode?: number): boolean {
   // Polling is a read operation. A temporary failure to query an accepted task
   // must never be mistaken for a terminal failure of the image generation.
@@ -626,6 +632,25 @@ export async function submitTryOnTask(
         ...grsaiLog,
       })
 
+      // A failed media-upload stage cannot have created a billable Kie task.
+      // Surface a terminal safe retry instead of leaving the user with a
+      // misleading UNKNOWN support reference. createTask ambiguity remains
+      // UNKNOWN because a remote job may exist.
+      if (asyncProvider === 'kie' && !acceptedExternalTaskId && kieCreateWasNeverSent(error)) {
+        const safeMessage = 'Backup image staging failed; please try again'
+        const failed = await prisma.tryOnTask.updateMany({
+          where: { id: task.id, origin: 'CONSUMER', status: TaskStatus.PROCESSING, dispatchVersion: 0 },
+          data: {
+            status: TaskStatus.FAILED,
+            errorMessage: safeMessage,
+            metadata: { ...(task.metadata as Record<string, unknown>), dispatchOutcome: 'NOT_SENT' },
+          },
+        })
+        if (failed.count !== 1) return { taskId: task.id, status: 'submitted', serviceType, isAsync }
+        await recordGenerationFailure(task.id, safeMessage, { source: 'upload', failureStage: 'SUBMIT' })
+        return { taskId: task.id, status: 'failed', serviceType, isAsync, error: safeMessage }
+      }
+
       // GrsAi explicitly rejected this *initial* submit without issuing any
       // ID. This is the only automatic cross-aggregator route: a positive
       // acceptance, network error, HTTP 5xx, ambiguous response, and poll
@@ -710,6 +735,30 @@ export async function submitTryOnTask(
           logger.warn('tryon-service', 'Kie fallback submission requires reconciliation', {
             taskId: task.id, hasExternalTaskId: Boolean(acceptedKieId),
           })
+          if (!acceptedKieId && kieCreateWasNeverSent(kieError)) {
+            const safeMessage = 'Backup image staging failed; please try again'
+            const stopped = await prisma.tryOnTask.updateMany({
+              where: {
+                id: task.id, origin: 'CONSUMER', status: TaskStatus.PROCESSING,
+                dispatchVersion: 1,
+              },
+              data: {
+                status: TaskStatus.FAILED,
+                errorMessage: safeMessage,
+                metadata: {
+                  ...(task.metadata as Record<string, unknown>),
+                  serviceType: 'kie',
+                  dispatchOutcome: 'NOT_SENT',
+                  primaryRejectionCode: (error as Error & { providerCode: number }).providerCode,
+                },
+              },
+            })
+            if (stopped.count !== 1) {
+              return { taskId: task.id, status: 'submitted', serviceType: 'kie', isAsync: true }
+            }
+            await recordGenerationFailure(task.id, safeMessage, { source: 'upload', failureStage: 'SUBMIT' })
+            return { taskId: task.id, status: 'failed', serviceType: 'kie', isAsync: true, error: safeMessage }
+          }
           if (acceptedKieId) {
             await prisma.tryOnTask.updateMany({
               where: {
