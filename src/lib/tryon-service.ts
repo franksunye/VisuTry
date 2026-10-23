@@ -1084,8 +1084,11 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       // Consumer path: persist the generated result behind the configured Try-On
       // Blob boundary. Public sharing is handled by the result-only Share route.
       const resultOwnerKey = task.userId ?? taskId
-      const resultExtension = polledProvider === 'kie' ? 'jpg' : 'png'
-      const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.${resultExtension}`
+      // Kie may produce JPEG, PNG, or WebP for the same underlying image
+      // model. Preserve the actual media extension; do not label PNG/WebP as
+      // .jpg merely because it came from the backup aggregator.
+      let resultExtension = polledProvider === 'kie' ? 'jpg' : 'png'
+      let resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.${resultExtension}`
       const resultBlobOptions = getTryOnResultBlobOptions()
 
       let persistedUrl: string | null = null
@@ -1100,6 +1103,10 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         const blob = polledProvider === 'kie'
           ? await readBoundedKieResult(response)
           : await response.blob()
+        if (polledProvider === 'kie') {
+          resultExtension = blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg'
+          resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.${resultExtension}`
+        }
         const file = new File([blob], `result-${taskId}.${resultExtension}`, { type: blob.type || 'image/png' })
         const uploadedBlob = await put(resultPathname, file, resultBlobOptions)
         persistedUrl = uploadedBlob.url

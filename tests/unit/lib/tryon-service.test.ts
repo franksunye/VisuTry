@@ -602,7 +602,11 @@ describe('TryOnService', () => {
       expect(submitKieTask).not.toHaveBeenCalled()
     })
 
-    it('persists a Kie image privately before completing the Consumer task', async () => {
+    it.each([
+      ['image/jpeg', 'jpg'],
+      ['image/png', 'png'],
+      ['image/webp', 'webp'],
+    ])('persists a Kie %s image privately with the matching %s extension', async (mime, extension) => {
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
       process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
       ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
@@ -617,7 +621,7 @@ describe('TryOnService', () => {
       })
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
-        headers: { get: jest.fn((key: string) => key === 'content-type' ? 'image/jpeg' : null) },
+        headers: { get: jest.fn((key: string) => key === 'content-type' ? mime : null) },
         body: { getReader: jest.fn().mockReturnValue({
           read: jest.fn().mockResolvedValueOnce({ done: false, value: Buffer.from('synthetic-jpeg') })
             .mockResolvedValueOnce({ done: true }),
@@ -631,7 +635,7 @@ describe('TryOnService', () => {
         { redirect: 'error', cache: 'no-store' },
       )
       expect(put).toHaveBeenCalledWith(
-        expect.stringContaining('tryon/result/user-1/kie-success.jpg'),
+        expect.stringContaining(`tryon/result/user-1/kie-success.${extension}`),
         expect.any(File),
         { access: 'private', storeId: 'synthetic-store' },
       )
