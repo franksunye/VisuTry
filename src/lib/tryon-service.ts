@@ -181,6 +181,8 @@ export async function submitTryOnTask(
 ): Promise<TryOnSubmissionResult> {
   const clientSubmissionId = options?.clientSubmissionId
   const startTime = Date.now()
+  // Consumer POST maxDuration=60s; reserve time to persist any accepted ID.
+  const kieSubmitDeadlineAt = startTime + 50_000
   logger.debug('tryon-service', `Starting try-on task for user ${user.id}`, { type, clientSubmissionId })
 
   if (clientSubmissionId) {
@@ -577,7 +579,7 @@ export async function submitTryOnTask(
       submissionMayHaveReachedProvider = true
 
       const externalTaskId = asyncProvider === 'kie'
-        ? await submitKieTask(userDataUri, itemDataUri, effectivePrompt, promptVersion)
+        ? await submitKieTask(userDataUri, itemDataUri, effectivePrompt, promptVersion, kieSubmitDeadlineAt)
         : await submitAsyncTask(
             userDataUri, itemDataUri, effectivePrompt, promptVersion,
             { taskId: task.id, clientSubmissionId, origin: 'CONSUMER', ...grsaiLog },
@@ -704,7 +706,7 @@ export async function submitTryOnTask(
             fileToDataUri(userImageFile), fileToDataUri(itemImageFile),
           ])
           const kieStartedAt = Date.now()
-          acceptedKieId = await submitKieTask(userDataUri, itemDataUri, effectivePrompt, promptVersion)
+          acceptedKieId = await submitKieTask(userDataUri, itemDataUri, effectivePrompt, promptVersion, kieSubmitDeadlineAt)
           const saved = await prisma.tryOnTask.updateMany({
             where: {
               id: task.id, origin: 'CONSUMER', status: TaskStatus.PROCESSING,

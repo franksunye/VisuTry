@@ -27,6 +27,8 @@ Modes:
 
 The second outbound POST is guarded by a Consumer-only durable `dispatchVersion` claim and an UNKNOWN-before-send state. Accepted external Kie IDs are stored before best-effort telemetry. Polls identify provider from task metadata and never switch an already accepted task. Kie polls do **not** enter the Grsai timeout resubmit logic. Owner-scoped auth, private image persistence before settlement, replay ID, per-attempt provider/model lineage and exactly-once quota remain existing #439 contracts.
 
+Consumer submit has a 60-second function budget. The Kie adapter therefore enforces an overall provider-admission deadline 50 seconds after entry (including earlier Grsai admission in `auto-definitive`), with a further two-second request reserve. If that deadline expires before `createTask` is sent, Kie is provably **NOT_SENT** and the task becomes safely retryable; if the createTask request was sent but acknowledgement is uncertain, it stays **UNKNOWN** for reconciliation. This bounds slow-primary-then-secondary incidents without an unpersisted extra paid generation.
+
 On an apparent provider outage, prefer **force-consumer for NEW work**, not a mass re-dispatch of accepted or uncertain tasks. Turn mode to `off` to roll back new routing. The switch is environment-controlled and takes effect when the application environment/configuration is applied; an already accepted Kie task must remain pollable after the switch is off.
 
 ## Kie protocol implemented

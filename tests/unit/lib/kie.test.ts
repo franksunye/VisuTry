@@ -69,6 +69,31 @@ describe('Kie async adapter — no real provider requests', () => {
     expect(global.fetch).toHaveBeenCalledTimes(3)
   })
 
+  it('never sends even reference photos when the Consumer route budget is exhausted', async () => {
+    await expect(submitKieTask(media, media, 'prompt', 'tryon-v1', Date.now() - 1))
+      .rejects.toMatchObject({ stage: 'upload', acceptance: 'not-sent' })
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it('never creates a paid task if the route deadline expires during reference upload', async () => {
+    let clockMs = Date.now()
+    const dateSpy = jest.spyOn(Date, 'now').mockImplementation(() => clockMs)
+    try {
+      ;(global.fetch as jest.Mock)
+        .mockResolvedValueOnce(upload('person'))
+        .mockImplementationOnce(() => {
+          clockMs += 8_000
+          return Promise.resolve(upload('frame'))
+        })
+      await expect(submitKieTask(media, media, 'prompt', 'tryon-v1', clockMs + 6_000))
+        .rejects.toMatchObject({ stage: 'submit', acceptance: 'not-sent' })
+      expect(global.fetch).toHaveBeenCalledTimes(2)
+      expect((global.fetch as jest.Mock).mock.calls.every(([url]) => String(url).includes('file-stream-upload'))).toBe(true)
+    } finally {
+      dateSpy.mockRestore()
+    }
+  })
+
   it('preserves an accepted external ID when the task is waiting', async () => {
     ;(global.fetch as jest.Mock).mockResolvedValue(envelope({
       code: 200, data: { taskId: 'kie-123', state: 'waiting' },

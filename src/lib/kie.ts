@@ -9,6 +9,7 @@ const UPLOAD_URL = 'https://kieai.redpandaai.co/api/file-stream-upload'
 const CREATE_URL = 'https://api.kie.ai/api/v1/jobs/createTask'
 const RECORD_URL = 'https://api.kie.ai/api/v1/jobs/recordInfo'
 const REQUEST_TIMEOUT_MS = 20_000
+const DEADLINE_RESERVE_MS = 2_000
 const MAX_REFERENCE_BYTES = 10 * 1024 * 1024
 
 type JsonObject = Record<string, unknown>
@@ -75,7 +76,18 @@ function mediaFromDataUri(value: string): { bytes: Uint8Array; mime: string } {
   return { bytes, mime: match[1] }
 }
 
-async function uploadReference(imageDataUri: string): Promise<string> {
+function submissionTimeout(deadlineAt: number | undefined, stage: 'upload' | 'submit'): number {
+  if (deadlineAt === undefined) return REQUEST_TIMEOUT_MS
+  const remaining = Math.floor(deadlineAt - Date.now() - DEADLINE_RESERVE_MS)
+  if (remaining <= 0) {
+    // createTask is still definitely not sent; caller can release the task
+    // for an explicit, quota-safe retry instead of fabricating UNKNOWN.
+    throw new KieProviderError(stage, 'not-sent', 'Kie submit route time budget exhausted before task admission')
+  }
+  return Math.min(REQUEST_TIMEOUT_MS, remaining)
+}
+
+async function uploadReference(imageDataUri: string, deadlineAt?: number): Promise<string> {
   const { bytes, mime } = mediaFromDataUri(imageDataUri)
   const form = new FormData()
   const extension = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg'
@@ -87,12 +99,13 @@ async function uploadReference(imageDataUri: string): Promise<string> {
   form.append('fileName', fileName)
 
   let response: Response
+  const timeout = submissionTimeout(deadlineAt, 'upload')
   try {
     response = await fetch(UPLOAD_URL, {
       method: 'POST',
       headers: config(),
       body: form,
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeout),
     })
   } catch {
     throw new KieProviderError('upload', 'not-sent', 'Kie reference upload unavailable')
@@ -115,15 +128,19 @@ export async function submitKieTask(
   itemImageDataUri: string,
   detailedInstructions: string,
   promptVersion?: string,
+  deadlineAt?: number,
 ): Promise<string> {
   // No Kie network call is made if the feature flag is off.
   if (!process.env.KIE_API_KEY) throw new KieProviderError('upload', 'not-sent', 'Kie is not configured')
   const [personUrl, frameUrl] = await Promise.all([
-    uploadReference(userImageDataUri),
-    uploadReference(itemImageDataUri),
+    uploadReference(userImageDataUri, deadlineAt),
+    uploadReference(itemImageDataUri, deadlineAt),
   ])
 
   let response: Response
+  // Check immediately before the one non-idempotent createTask. A late
+  // primary rejection must not consume the route's DB-persistence headroom.
+  const timeout = submissionTimeout(deadlineAt, 'submit')
   try {
     response = await fetch(CREATE_URL, {
       method: 'POST',
@@ -136,7 +153,7 @@ export async function submitKieTask(
           aspect_ratio: 'auto',
         },
       }),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeout),
     })
   } catch {
     throw new KieProviderError('submit', 'unknown', 'Kie task submission outcome unknown')

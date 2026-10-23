@@ -134,7 +134,7 @@ describe('TryOnService', () => {
       expect(submitKieTask).toHaveBeenCalledWith(
         expect.stringContaining('data:image/jpeg;base64,'),
         expect.stringContaining('data:image/jpeg;base64,'),
-        expect.any(String), 'tryon-v1',
+        expect.any(String), 'tryon-v1', expect.any(Number),
       )
       expect(submitAsyncTask).not.toHaveBeenCalled()
       expect(prisma.tryOnTask.update).toHaveBeenCalledWith(expect.objectContaining({
