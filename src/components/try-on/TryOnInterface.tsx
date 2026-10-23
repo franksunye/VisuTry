@@ -26,6 +26,15 @@ interface ErrorState {
   statusCode?: number
 }
 
+interface RecoverableTryOnTask {
+  taskId: string
+  status: string
+  createdAt: string
+  serviceType?: string
+  isAsync?: boolean
+  requiresReconciliation?: boolean
+}
+
 interface TryOnInterfaceProps {
   type?: TryOnType // Optional for backward compatibility, defaults to GLASSES
 }
@@ -43,6 +52,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const [result, setResult] = useState<{ imageUrl: string; taskId: string } | null>(null)
   const [currentStep, setCurrentStep] = useState<"upload" | "select" | "process" | "result">("upload")
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
+  const [olderUnconfirmedTasks, setOlderUnconfirmedTasks] = useState<RecoverableTryOnTask[]>([])
   const [isFaceNudgeDismissed, setIsFaceNudgeDismissed] = useState(false)
 
   // Get the appropriate icon for the item type
@@ -110,6 +120,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       setCurrentStep("result")
       setIsProcessing(false)
       setCurrentTaskId(null)
+      setOlderUnconfirmedTasks((tasks) => tasks.filter((pending) => pending.taskId !== currentTaskId))
       submissionAttemptRef.current = null
 
       console.log('✅ Try-on completed: Refreshing session to update usage count...')
@@ -133,6 +144,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       setCurrentStep("select")
       setIsProcessing(false)
       setCurrentTaskId(null)
+      setOlderUnconfirmedTasks((tasks) => tasks.filter((pending) => pending.taskId !== currentTaskId))
       submissionAttemptRef.current = null
     },
     onProgress: (task) => {
@@ -157,9 +169,11 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
     },
   })
 
-  // Check for pending tasks on mount (Recovery)
+  // Restore recent processing tasks and surface older ambiguous submissions.
+  // An UNKNOWN dispatch cannot be recovered by a fresh provider POST.
   useEffect(() => {
-    if (sessionStatus !== 'authenticated') return
+    if (sessionStatus !== 'authenticated' || result || isProcessing || currentTaskId ||
+        submitInFlightRef.current) return
 
     const controller = new AbortController()
     const checkPendingTasks = async () => {
@@ -168,32 +182,34 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
           signal: controller.signal,
         })
         if (!response.ok) return
-        
-        const tasks = await response.json()
-        if (tasks && tasks.length > 0) {
-          const task = tasks[0]
-          console.log('Found pending task, recovering:', task)
-          
-          setCurrentTaskId(task.taskId)
-          setIsProcessing(true)
-          setCurrentStep("process")
-          
-          if (task.serviceType === 'gemini') {
-            setProcessingMessage("Resuming AI processing... (~15-30s)")
-          } else {
-            setProcessingMessage("Resuming high-quality processing... (~2-3 mins)")
-          }
-        }
+
+        const payload: unknown = await response.json()
+        if (!Array.isArray(payload) || controller.signal.aborted) return
+        const tasks = payload.filter((task): task is RecoverableTryOnTask =>
+          Boolean(task && typeof task === 'object' && typeof task.taskId === 'string'))
+        setOlderUnconfirmedTasks(tasks.filter((task) => task.requiresReconciliation).slice(0, 5))
+
+        // Preserve existing auto-resume for normal recent tasks. Older unknown
+        // acceptance must be visible to the user, but never silently retried.
+        const recentTask = tasks.find((task) => !task.requiresReconciliation)
+        if (!recentTask || controller.signal.aborted) return
+
+        setCurrentTaskId(recentTask.taskId)
+        setIsProcessing(true)
+        setCurrentStep('process')
+        setProcessingMessage(recentTask.serviceType === 'gemini'
+          ? 'Resuming AI processing... (~15-30s)'
+          : 'Resuming high-quality processing... (~2-3 mins)')
       } catch (error) {
         if (!controller.signal.aborted) {
-          console.error("Failed to check pending tasks:", error)
+          console.error('Failed to check pending tasks:', error)
         }
       }
     }
 
     void checkPendingTasks()
     return () => controller.abort()
-  }, [sessionStatus, type])
+  }, [sessionStatus, type, result, isProcessing, currentTaskId])
 
   useEffect(() => {
     if (sessionStatus !== 'authenticated') return
@@ -613,6 +629,45 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
           </div>
         </div>
       </div>
+
+      {olderUnconfirmedTasks.length > 0 && !result ? (
+        <section aria-label="Unconfirmed Try-On requests" className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">
+          <h2 className="font-semibold">Previous Try-On status needs confirmation</h2>
+          <p className="mt-1 text-sm">
+            We cannot confirm whether the provider accepted these requests. They remain on record;
+            checking them will not start a new generation or use another credit.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {olderUnconfirmedTasks.map((pending) => (
+              <li key={pending.taskId} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-200 bg-white px-3 py-2">
+                <div className="min-w-0">
+                  <span className="block text-xs text-gray-600">Support reference</span>
+                  <code className="break-all text-xs">{pending.taskId}</code>
+                </div>
+                <button
+                  type="button"
+                  aria-label={`Check status of request ${pending.taskId}`}
+                  disabled={isProcessing}
+                  onClick={() => {
+                    setCurrentTaskId(pending.taskId)
+                    setError(null)
+                    setCurrentStep('process')
+                    setProcessingMessage('Checking your existing request; no new generation will be started.')
+                    setIsProcessing(true)
+                  }}
+                  className="min-h-11 rounded-lg border border-amber-600 px-3 py-2 text-sm font-medium hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600"
+                >
+                  Check existing status
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs">
+            If the status stays unconfirmed, contact support with the reference above.
+            Do not submit the same photos again solely because this request is old.
+          </p>
+        </section>
+      ) : null}
 
       {isGlassesTryOn && !result && !isProcessing && !isFaceNudgeDismissed ? (
         <FaceAnalysisNudge
