@@ -44,6 +44,7 @@ const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' //
 const GEMINI_PREMIUM_ONLY = process.env.GEMINI_PREMIUM_ONLY !== 'false'
 const MAX_GRSAI_TIMEOUT_RETRIES = 1
 const RESULT_PERSIST_LEASE_MS = 2 * 60 * 1000
+const DISPATCH_LEASE_MS = 2 * 60 * 1000
 
 interface FileInspection {
   name: string
@@ -104,10 +105,19 @@ function shouldRetryGrsAiTimeout(error?: string): boolean {
   return normalizedError.includes('timeout') || normalizedError.includes('timed out')
 }
 
-function shouldTreatPollFailureAsTransient(error?: string): boolean {
+function shouldTreatPollFailureAsTransient(error?: string, providerCode?: number): boolean {
+  // Polling is a read operation. A temporary failure to query an accepted task
+  // must never be mistaken for a terminal failure of the image generation.
+  const isRetryableStatus = (status: number) =>
+    status === 408 || status === 429 || (status >= 500 && status <= 599)
+
+  if (providerCode !== undefined && isRetryableStatus(providerCode)) return true
   if (!error) return false
 
   const normalizedError = error.toLowerCase()
+  const pollHttpStatus = /^polling failed:\s*(\d{3})\b/i.exec(error.trim())
+  if (pollHttpStatus && isRetryableStatus(Number(pollHttpStatus[1]))) return true
+
   return (
     normalizedError.includes('network error') ||
     normalizedError.includes('fetch failed') ||
@@ -165,7 +175,7 @@ export async function submitTryOnTask(
   const startTime = Date.now()
   logger.debug('tryon-service', `Starting try-on task for user ${user.id}`, { type, clientSubmissionId })
 
-  if (clientSubmissionId && options?.enforceIdempotency) {
+  if (clientSubmissionId) {
     const existingTask = await prisma.tryOnTask.findUnique({
       where: {
         userId_clientSubmissionId: {
@@ -176,9 +186,12 @@ export async function submitTryOnTask(
     })
 
     if (existingTask) {
+      if (existingTask.type && existingTask.type !== type) {
+        throw new Error('Submission ID belongs to a different Try-On type')
+      }
       logger.info('tryon-service', 'Reusing idempotent try-on submission', {
         userId: user.id,
-        clientSubmissionId: options?.enforceIdempotency ? clientSubmissionId : null,
+        clientSubmissionId,
         taskId: existingTask.id,
       })
       return submissionResultFromTask(existingTask)
@@ -345,7 +358,7 @@ export async function submitTryOnTask(
       }
     })
   } catch (error) {
-    if (!clientSubmissionId || !options?.enforceIdempotency || !isUniqueConstraintError(error)) throw error
+    if (!clientSubmissionId || !isUniqueConstraintError(error)) throw error
 
     const existingTask = await prisma.tryOnTask.findUnique({
       where: {
@@ -356,6 +369,9 @@ export async function submitTryOnTask(
       },
     })
     if (!existingTask) throw error
+    if (existingTask.type && existingTask.type !== type) {
+      throw new Error('Submission ID belongs to a different Try-On type')
+    }
 
     logger.info('tryon-service', 'Recovered concurrent idempotent try-on submission', {
       userId: user.id,
@@ -513,6 +529,8 @@ export async function submitTryOnTask(
       provider: 'grsai',
       model: GRSAI_TRY_ON_MODEL,
     })
+    let submissionMayHaveReachedProvider = false
+    let acceptedExternalTaskId: string | undefined
     try {
       // Initial provider dispatch consumes request-local files and never needs
       // public source Blob URLs.
@@ -520,6 +538,25 @@ export async function submitTryOnTask(
         fileToDataUri(userImageFile),
         fileToDataUri(itemImageFile),
       ])
+
+      // Commit an explicit UNKNOWN state before any non-idempotent outbound POST.
+      // A crash, network timeout or lost response must not turn this into an
+      // apparently safe FAILED task that can be submitted a second time.
+      const initialClaim = await prisma.tryOnTask.updateMany({
+        where: { id: task.id, origin: 'CONSUMER', status: TaskStatus.PENDING, dispatchVersion: 0 },
+        data: {
+          status: TaskStatus.PROCESSING,
+          metadata: {
+            ...(task.metadata as Record<string, unknown>),
+            dispatchOutcome: 'UNKNOWN',
+            dispatchUnknownAt: new Date().toISOString(),
+          },
+        },
+      })
+      if (initialClaim.count !== 1) {
+        throw new Error('Consumer initial dispatch claim no longer available')
+      }
+      submissionMayHaveReachedProvider = true
 
       const externalTaskId = await submitAsyncTask(
         userDataUri,
@@ -534,9 +571,10 @@ export async function submitTryOnTask(
         },
       )
 
-      await markGenerationAttemptSubmitted(task.id, externalTaskId, Date.now() - submitStartedAt)
+      acceptedExternalTaskId = externalTaskId
 
-      // Update task with external ID
+      // Save the accepted ID before optional telemetry. If telemetry fails, the
+      // accepted task is still pollable and must not be re-dispatched.
       await prisma.tryOnTask.update({
         where: { id: task.id },
         data: {
@@ -544,6 +582,8 @@ export async function submitTryOnTask(
           metadata: {
             ...(task.metadata as any),
             externalTaskId,
+            dispatchOutcome: 'ACCEPTED',
+            dispatchUnknownAt: null,
             serviceType,
             isAsync,
             effectivePrompt,
@@ -554,6 +594,16 @@ export async function submitTryOnTask(
           }
         }
       })
+
+      try {
+        await markGenerationAttemptSubmitted(task.id, externalTaskId, Date.now() - submitStartedAt)
+      } catch (telemetryError) {
+        logger.warn('tryon-service', 'Accepted GrsAi task has pending submission telemetry', {
+          taskId: task.id,
+          externalTaskId,
+          reason: telemetryError instanceof Error ? telemetryError.message : String(telemetryError),
+        })
+      }
 
       return {
         taskId: task.id,
@@ -570,15 +620,39 @@ export async function submitTryOnTask(
         ...grsaiLog,
       })
       
-      await prisma.tryOnTask.update({
-        where: { id: task.id },
-        data: {
-          status: TaskStatus.FAILED,
-          errorMessage
+      if (submissionMayHaveReachedProvider) {
+        // A provider ID may have been returned even if our first DB write failed.
+        // Otherwise the pre-dispatch UNKNOWN record remains durable. Neither
+        // outcome permits an automated new POST for the same logical request.
+        if (acceptedExternalTaskId) {
+          await prisma.tryOnTask.updateMany({
+            where: { id: task.id, status: { not: TaskStatus.COMPLETED } },
+            data: {
+              status: TaskStatus.PROCESSING,
+              errorMessage: null,
+              metadata: {
+                ...(task.metadata as Record<string, unknown>),
+                externalTaskId: acceptedExternalTaskId,
+                dispatchOutcome: 'ACCEPTED',
+              },
+            },
+          })
         }
-      })
+        logger.warn('tryon-service', 'GrsAi dispatch outcome requires reconciliation; no duplicate submit', {
+          taskId: task.id,
+          hasExternalTaskId: Boolean(acceptedExternalTaskId),
+          clientSubmissionId,
+        })
+        return { taskId: task.id, status: 'submitted', serviceType, isAsync }
+      }
 
-      await recordGenerationFailure(task.id, errorMessage, { source: 'submit', failureStage: 'SUBMIT' })
+      const definiteFailure = await prisma.tryOnTask.updateMany({
+        where: { id: task.id, origin: 'CONSUMER', status: TaskStatus.PENDING },
+        data: { status: TaskStatus.FAILED, errorMessage },
+      })
+      if (definiteFailure.count === 1) {
+        await recordGenerationFailure(task.id, errorMessage, { source: 'submit', failureStage: 'SUBMIT' })
+      }
 
       throw error
     }
@@ -605,6 +679,24 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
   }
 
   const metadata = task.metadata as any
+  const consumerDispatchFence = task.origin === 'CONSUMER'
+    ? { dispatchVersion: task.dispatchVersion ?? 0 }
+    : {}
+
+  // A non-idempotent submit is in flight or has an unknown acceptance outcome.
+  // Polling an older provider ID (or retrying it) cannot resolve this safely.
+  if (task.origin === 'CONSUMER' &&
+      (metadata?.dispatchOutcome === 'SUBMITTING' || metadata?.dispatchOutcome === 'UNKNOWN')) {
+    return { status: TaskStatus.PROCESSING, progress: 0 }
+  }
+
+  const nextProviderPollAt = typeof metadata?.nextProviderPollAt === 'string'
+    ? Date.parse(metadata.nextProviderPollAt)
+    : NaN
+  if (task.origin === 'CONSUMER' && Number.isFinite(nextProviderPollAt) &&
+      nextProviderPollAt > Date.now()) {
+    return { status: TaskStatus.PROCESSING, progress: 0 }
+  }
 
   if (
     task.createdAt instanceof Date &&
@@ -651,7 +743,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
     })
 
     // Poll GrsAi
-    const pollResult = await pollTaskResult(metadata.externalTaskId, {
+    const polledResult = await pollTaskResult(metadata.externalTaskId, {
       taskId,
       clientSubmissionId:
         typeof metadata?.clientSubmissionId === 'string'
@@ -660,6 +752,19 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       origin: task.origin === 'CONSUMER' ? 'CONSUMER' : task.origin,
       ...pollLog,
     })
+    // Some GrsAi HTTP 200 responses carry a retryable business error while
+    // data.status still says "processing". Apply Consumer-only backoff rather
+    // than accepting the envelope as a successful status query. Store/Campaign
+    // poll normalization remains unchanged.
+    const pollResult = task.origin === 'CONSUMER' &&
+      polledResult.status === 'processing' &&
+      shouldTreatPollFailureAsTransient(undefined, polledResult.diagnostics?.code)
+      ? {
+          ...polledResult,
+          status: 'failed' as const,
+          error: `Polling business code: ${polledResult.diagnostics?.code}`,
+        }
+      : polledResult
     const retryCount = typeof metadata?.retryCount === 'number' ? metadata.retryCount : 0
     const externalPollMetadata = {
       ...(metadata as any),
@@ -668,6 +773,12 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       lastExternalProgress: pollResult.progress,
       lastExternalError: pollResult.error,
       lastExternalDiagnostics: pollResult.diagnostics,
+      ...(task.origin === 'CONSUMER' && pollResult.status !== 'failed' ? {
+        pollFailureStreak: 0,
+        pollFirstTransientAt: null,
+        nextProviderPollAt: null,
+        providerPollNeedsAttention: false,
+      } : {}),
     }
     
     if (pollResult.status === 'succeeded' && pollResult.imageUrl) {
@@ -730,6 +841,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         where: {
           id: taskId,
           status: { not: TaskStatus.COMPLETED },
+          ...consumerDispatchFence,
           resultPersistVersion: expectedPersistVersion,
           OR: [
             { resultPersistLeaseOwner: null },
@@ -802,6 +914,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
                 where: {
                   id: taskId,
                   status: { not: TaskStatus.COMPLETED },
+                  ...consumerDispatchFence,
                   resultPersistLeaseOwner: persistLeaseOwner,
                   resultPersistVersion: persistVersion,
                 },
@@ -859,6 +972,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             where: {
               id: taskId,
               status: { not: TaskStatus.COMPLETED },
+              ...consumerDispatchFence,
               resultPersistLeaseOwner: persistLeaseOwner,
               resultPersistVersion: persistVersion,
             },
@@ -912,6 +1026,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         where: {
           id: taskId,
           status: { not: TaskStatus.COMPLETED },
+          ...consumerDispatchFence,
           resultPersistLeaseOwner: persistLeaseOwner,
           resultPersistVersion: persistVersion,
         },
@@ -971,15 +1086,13 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         ...pollLog,
       })
 
-      await prisma.tryOnTask.update({
-        where: { id: taskId },
-        data: {
-          status: TaskStatus.FAILED,
-          errorMessage,
-          metadata: externalPollMetadata,
-        }
+      const emptyResultUpdate = await prisma.tryOnTask.updateMany({
+        where: { id: taskId, status: { not: TaskStatus.COMPLETED }, ...consumerDispatchFence },
+        data: { status: TaskStatus.FAILED, errorMessage, metadata: externalPollMetadata },
       })
-
+      if (emptyResultUpdate.count === 0) {
+        return { status: TaskStatus.PROCESSING, progress: 0 }
+      }
       await recordGenerationFailure(taskId, errorMessage, { source: 'poll', failureStage: 'PROVIDER_PROCESSING' })
 
       return {
@@ -987,7 +1100,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         error: errorMessage
       }
     } else if (pollResult.status === 'failed') {
-      if (shouldTreatPollFailureAsTransient(pollResult.error)) {
+      if (shouldTreatPollFailureAsTransient(pollResult.error, pollResult.diagnostics?.code)) {
         logger.warn('tryon-service', 'Transient GrsAi polling failure detected, keeping task in processing', {
           taskId,
           externalTaskId: metadata.externalTaskId,
@@ -995,16 +1108,37 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           ...pollLog,
         })
 
+        const transientNow = new Date()
+        const previousStreak = typeof metadata?.pollFailureStreak === 'number'
+          ? metadata.pollFailureStreak : 0
+        const failureStreak = Math.min(6, Math.max(0, previousStreak) + 1)
+        const backoffMs = Math.min(60_000, 2_000 * (2 ** (failureStreak - 1)))
+        const firstFailureAt = typeof metadata?.pollFirstTransientAt === 'string' &&
+          Number.isFinite(Date.parse(metadata.pollFirstTransientAt))
+          ? metadata.pollFirstTransientAt
+          : transientNow.toISOString()
+        const needsOperatorAttention =
+          transientNow.getTime() - Date.parse(firstFailureAt) >= 15 * 60 * 1000
+
         await prisma.tryOnTask.updateMany({
           where: {
             id: taskId,
             status: { not: TaskStatus.COMPLETED },
+            ...consumerDispatchFence,
           },
           data: {
             status: TaskStatus.PROCESSING,
             errorMessage: null,
-            metadata: externalPollMetadata,
-          }
+            metadata: {
+              ...externalPollMetadata,
+              ...(task.origin === 'CONSUMER' ? {
+                pollFailureStreak: failureStreak,
+                pollFirstTransientAt: firstFailureAt,
+                nextProviderPollAt: new Date(transientNow.getTime() + backoffMs).toISOString(),
+                providerPollNeedsAttention: needsOperatorAttention,
+              } : {}),
+            },
+          },
         })
 
         return {
@@ -1022,6 +1156,47 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         const retryPrompt = metadata?.effectivePrompt || TRY_ON_CONFIGS[task.type].aiPrompt
         // Tasks created before prompt versioning used the prompt now registered as v1.
         const retryPromptVersion = metadata?.promptVersion || DEFAULT_TRY_ON_PROMPT_VERSION
+        const retryStartedAt = new Date()
+        const consumerRetryOwner = task.origin === 'CONSUMER' ? randomUUID() : null
+        const expectedDispatchVersion = task.dispatchVersion ?? 0
+        const retryAt = retryStartedAt.toISOString()
+
+        if (consumerRetryOwner) {
+          // The claim, not the poll result, authorizes an extra paid submission.
+          // A crash after claim is UNKNOWN; an expired lease never auto-retries.
+          const claim = await prisma.tryOnTask.updateMany({
+            where: {
+              id: taskId,
+              origin: 'CONSUMER',
+              status: { not: TaskStatus.COMPLETED },
+              dispatchVersion: expectedDispatchVersion,
+              resultPersistLeaseOwner: null,
+              OR: [
+                { dispatchLeaseOwner: null },
+                { dispatchLeaseUntil: null },
+                { dispatchLeaseUntil: { lt: retryStartedAt } },
+              ],
+            },
+            data: {
+              status: TaskStatus.PROCESSING,
+              errorMessage: null,
+              dispatchLeaseOwner: consumerRetryOwner,
+              dispatchLeaseUntil: new Date(retryStartedAt.getTime() + DISPATCH_LEASE_MS),
+              dispatchVersion: { increment: 1 },
+              metadata: {
+                ...externalPollMetadata,
+                dispatchOutcome: 'SUBMITTING',
+                retryCount: retryCount + 1,
+                previousExternalTaskId: metadata.externalTaskId,
+                lastRetryAt: retryAt,
+                lastRetryReason: pollResult.error,
+              },
+            },
+          })
+          if (claim.count !== 1) {
+            return { status: TaskStatus.PROCESSING, progress: 0 }
+          }
+        }
 
         logger.warn('tryon-service', 'Retrying GrsAi task after timeout', {
           taskId,
@@ -1032,16 +1207,15 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           ...pollLog,
         })
 
-        await recordGenerationTimeoutForRetry(taskId, pollResult.error)
-
+        let acceptedRetryId: string | undefined
         try {
+          await recordGenerationTimeoutForRetry(taskId, pollResult.error)
           // Preserve legacy public provider inputs exactly, while private Blob
           // sources are resolved server-side into short-lived in-memory data URIs.
           const [retryUserInput, retryItemInput] = await Promise.all([
             tryOnProviderMediaInput(task.userImageUrl),
             tryOnProviderMediaInput(task.itemImageUrl),
           ])
-
           const retryAttempt = await startGenerationAttempt({
             tryOnTaskId: taskId,
             provider: 'grsai',
@@ -1057,10 +1231,10 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             origin: 'CONSUMER',
             provider: 'grsai',
             model: GRSAI_TRY_ON_MODEL,
-            attemptNumber: (retryCount ?? 0) + 2,
+            attemptNumber: retryCount + 2,
           })
 
-          const retriedExternalTaskId = await submitAsyncTask(
+          acceptedRetryId = await submitAsyncTask(
             retryUserInput,
             retryItemInput,
             retryPrompt,
@@ -1076,33 +1250,63 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             },
           )
 
-          await markGenerationAttemptSubmitted(taskId, retriedExternalTaskId, Date.now() - retrySubmitStartedAt)
-
-          await prisma.tryOnTask.updateMany({
-            where: {
-              id: taskId,
-              status: { not: TaskStatus.COMPLETED },
-            },
-            data: {
-              status: TaskStatus.PROCESSING,
-              errorMessage: null,
-              metadata: {
-                ...externalPollMetadata,
-                externalTaskId: retriedExternalTaskId,
-                retryCount: retryCount + 1,
-                lastRetryAt: new Date().toISOString(),
-                lastRetryReason: pollResult.error,
-                previousExternalTaskId: metadata.externalTaskId,
-                effectivePrompt: retryPrompt,
-                promptVersion: retryPromptVersion,
-              }
-            }
-          })
-
-          return {
-            status: TaskStatus.PROCESSING,
-            progress: 0,
+          const nextMetadata = {
+            ...externalPollMetadata,
+            externalTaskId: acceptedRetryId,
+            retryCount: retryCount + 1,
+            lastRetryAt: retryAt,
+            lastRetryReason: pollResult.error,
+            previousExternalTaskId: metadata.externalTaskId,
+            effectivePrompt: retryPrompt,
+            promptVersion: retryPromptVersion,
+            ...(consumerRetryOwner ? { dispatchOutcome: 'ACCEPTED' } : {}),
           }
+
+          if (consumerRetryOwner) {
+            const confirmed = await prisma.tryOnTask.updateMany({
+              where: {
+                id: taskId,
+                origin: 'CONSUMER',
+                status: TaskStatus.PROCESSING,
+                dispatchVersion: expectedDispatchVersion + 1,
+                dispatchLeaseOwner: consumerRetryOwner,
+              },
+              data: {
+                status: TaskStatus.PROCESSING,
+                errorMessage: null,
+                dispatchLeaseOwner: null,
+                dispatchLeaseUntil: null,
+                metadata: nextMetadata,
+              },
+            })
+            if (confirmed.count !== 1) {
+              logger.warn('tryon-service', 'Accepted retry lost DB claim; operator reconciliation required', {
+                taskId, externalTaskId: acceptedRetryId,
+              })
+              return { status: TaskStatus.PROCESSING, progress: 0 }
+            }
+          } else {
+            // Preserve the existing Store compatibility path in this Consumer-scoped patch.
+            await prisma.tryOnTask.updateMany({
+              where: { id: taskId, status: { not: TaskStatus.COMPLETED } },
+              data: {
+                status: TaskStatus.PROCESSING,
+                errorMessage: null,
+                metadata: nextMetadata,
+              },
+            })
+          }
+
+          try {
+            await markGenerationAttemptSubmitted(taskId, acceptedRetryId, Date.now() - retrySubmitStartedAt)
+          } catch (telemetryError) {
+            logger.warn('tryon-service', 'Accepted GrsAi retry has pending submission telemetry', {
+              taskId,
+              externalTaskId: acceptedRetryId,
+              reason: telemetryError instanceof Error ? telemetryError.message : String(telemetryError),
+            })
+          }
+          return { status: TaskStatus.PROCESSING, progress: 0 }
         } catch (retryError) {
           logger.error('tryon-service', 'Failed to resubmit GrsAi task after timeout', retryError as Error, {
             taskId,
@@ -1110,14 +1314,46 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             retryCount,
             ...pollLog,
           })
+
+          if (consumerRetryOwner) {
+            // Even if the response was lost, do not fire another POST. If a
+            // provider ID is known, retain it for polling; otherwise this task
+            // remains UNKNOWN for explicit operator reconciliation.
+            await prisma.tryOnTask.updateMany({
+              where: {
+                id: taskId,
+                origin: 'CONSUMER',
+                status: { not: TaskStatus.COMPLETED },
+                dispatchVersion: expectedDispatchVersion + 1,
+                dispatchLeaseOwner: consumerRetryOwner,
+              },
+              data: {
+                status: TaskStatus.PROCESSING,
+                errorMessage: null,
+                dispatchLeaseOwner: null,
+                dispatchLeaseUntil: null,
+                metadata: {
+                  ...externalPollMetadata,
+                  ...(acceptedRetryId ? { externalTaskId: acceptedRetryId } : {}),
+                  dispatchOutcome: acceptedRetryId ? 'ACCEPTED' : 'UNKNOWN',
+                  retryCount: retryCount + 1,
+                  lastRetryAt: retryAt,
+                  lastRetryReason: pollResult.error,
+                  previousExternalTaskId: metadata.externalTaskId,
+                },
+              },
+            })
+            return { status: TaskStatus.PROCESSING, progress: 0 }
+          }
         }
       }
 
       // Update DB to FAILED without allowing a stale poll to regress COMPLETED.
-      await prisma.tryOnTask.updateMany({
+      const failedUpdate = await prisma.tryOnTask.updateMany({
         where: {
           id: taskId,
           status: { not: TaskStatus.COMPLETED },
+          ...consumerDispatchFence,
         },
         data: {
           status: TaskStatus.FAILED,
@@ -1126,6 +1362,9 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         }
       })
 
+      if (failedUpdate.count === 0) {
+        return { status: TaskStatus.PROCESSING, progress: pollResult.progress ?? 0 }
+      }
       await recordGenerationFailure(taskId, pollResult.error, { source: 'poll' })
       
       return {
@@ -1133,7 +1372,15 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         error: pollResult.error
       }
     } else {
-      // Still processing
+      // A successful status query resets the transient-query backoff; this is
+      // independent of whether the provider has completed image generation.
+      if (task.origin === 'CONSUMER' &&
+          (metadata?.pollFailureStreak || metadata?.nextProviderPollAt)) {
+        await prisma.tryOnTask.updateMany({
+          where: { id: taskId, status: { not: TaskStatus.COMPLETED }, ...consumerDispatchFence },
+          data: { metadata: externalPollMetadata },
+        })
+      }
       return {
         status: TaskStatus.PROCESSING,
         progress: pollResult.progress

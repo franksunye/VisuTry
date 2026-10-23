@@ -175,6 +175,7 @@ describe('ADR-007 Consumer stability boundary', () => {
       url: `https://blob.vercel-storage.com/${path}`,
     }))
     ;(submitAsyncTask as jest.Mock).mockResolvedValue('ext-1')
+    ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       blob: jest.fn().mockResolvedValue(new Blob(['fake'], { type: 'image/png' })),
@@ -200,6 +201,15 @@ describe('ADR-007 Consumer stability boundary', () => {
         expiresAt: expect.any(Date),
       }),
     })
+    expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        id: 'consumer-task-1',
+        origin: 'CONSUMER',
+        status: TaskStatus.PENDING,
+        dispatchVersion: 0,
+      },
+      data: expect.objectContaining({ status: TaskStatus.PROCESSING }),
+    }))
     const createData = (prisma.tryOnTask.create as jest.Mock).mock.calls[0][0].data
     expect(createData.merchantId).toBeUndefined()
     expect(createData.merchantSessionId).toBeUndefined()

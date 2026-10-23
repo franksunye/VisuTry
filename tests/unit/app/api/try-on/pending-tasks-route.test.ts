@@ -13,6 +13,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     tryOnTask: {
       findFirst: jest.fn(),
+      findMany: jest.fn(),
     },
   },
 }))
@@ -28,6 +29,7 @@ describe('GET /api/try-on/pending-tasks', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     ;(requireAuth as jest.Mock).mockResolvedValue({ ok: true, userId: 'user-1' })
+    ;(prisma.tryOnTask.findMany as jest.Mock).mockResolvedValue([])
   })
 
   it('requires a valid Try-On type', async () => {
@@ -35,6 +37,7 @@ describe('GET /api/try-on/pending-tasks', () => {
 
     expect(response.status).toBe(400)
     expect(prisma.tryOnTask.findFirst).not.toHaveBeenCalled()
+    expect(prisma.tryOnTask.findMany).not.toHaveBeenCalled()
   })
 
   it('filters recovery by authenticated user and current Try-On type', async () => {
@@ -50,7 +53,14 @@ describe('GET /api/try-on/pending-tasks', () => {
       where: expect.objectContaining({
         userId: 'user-1',
         type: 'GLASSES',
+        origin: 'CONSUMER',
       }),
+    }))
+    expect(prisma.tryOnTask.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'user-1', type: 'GLASSES', origin: 'CONSUMER',
+      }),
+      take: 5,
     }))
   })
 })

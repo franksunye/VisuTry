@@ -41,33 +41,36 @@ export function ResultDisplay({
   }
 
   return (
-    <div className={cn("w-full h-full flex flex-col", className)}>
-      <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full">
-        {/* Result Image - Optimized with Next.js Image (responsive layout) */}
-        <div className="relative flex-1 bg-gray-50 min-h-0">
+    <div className={cn("w-full h-full min-h-0 flex flex-col", className)}>
+      <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full min-h-0">
+        {/* Keep the full result image inside the fixed-height viewport. An
+            intrinsic-height image can otherwise cover the action buttons. */}
+        <div data-testid="try-on-result-image-viewport" className="relative min-h-0 flex-1 overflow-hidden bg-gray-50">
           <TryOnResultImage
             src={resultImageUrl}
             alt="AI Try-On Result"
             priority={true}
-            useFill={false}
-            className="w-full h-auto"
+            useFill={true}
+            className="object-contain"
           />
         </div>
 
-        {/* Action Area */}
-        <div className="p-4 flex-shrink-0">
+        {/* Keep actions above the image, reachable even at narrow heights. */}
+        <div className="relative z-10 flex-shrink-0 border-t border-gray-100 bg-white p-4">
           <div className="grid grid-cols-2 gap-2">
             <button
+              type="button"
               onClick={handleDownload}
-              className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              className="flex min-h-11 items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <Download className="w-4 h-4 mr-2" />
               Download
             </button>
 
             <button
+              type="button"
               onClick={onTryAgain}
-              className="flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+              className="flex min-h-11 items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <RotateCcw className="w-4 h-4 mr-2" />
               Try Again

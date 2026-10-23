@@ -24,43 +24,65 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 2. Find latest task that is still processing
-    // Logic:
-    // - ONLY return tasks with status PENDING or PROCESSING
-    // - COMPLETED or FAILED tasks should NOT be recovered
-    //   (if completed, user already saw the result before leaving)
-    //   (user can view completed results in Dashboard/History)
-    // - Safety cutoff: 30 minutes to avoid zombie tasks
-
+    // Recent active tasks keep the original 30-minute recovery behavior.
+    // Older ambiguous provider submissions are the exception: aging alone
+    // cannot prove a non-idempotent generation POST was rejected or unbilled.
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000)
+    const activeStatus = { in: [TaskStatus.PENDING, TaskStatus.PROCESSING] }
 
-    const pendingTask = await prisma.tryOnTask.findFirst({
-      where: {
-        userId: userId,
-        type,
-        status: {
-          in: [TaskStatus.PENDING, TaskStatus.PROCESSING]
+    const [recentTask, olderUnconfirmed] = await Promise.all([
+      prisma.tryOnTask.findFirst({
+        where: {
+          userId,
+          origin: 'CONSUMER',
+          type,
+          status: activeStatus,
+          createdAt: { gt: thirtyMinutesAgo },
         },
-        createdAt: {
-          gt: thirtyMinutesAgo
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, status: true, createdAt: true, metadata: true },
+      }),
+      prisma.tryOnTask.findMany({
+        where: {
+          userId,
+          origin: 'CONSUMER',
+          type,
+          status: activeStatus,
+          createdAt: { lte: thirtyMinutesAgo },
+          OR: [
+            { metadata: { path: ['dispatchOutcome'], equals: 'UNKNOWN' } },
+            { metadata: { path: ['dispatchOutcome'], equals: 'SUBMITTING' } },
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5, // A bounded, private support queue; never return source media.
+        select: { id: true, status: true, createdAt: true, metadata: true },
+      }),
+    ])
 
-    if (!pendingTask) {
-      return NextResponse.json([])
+    const summarize = (
+      task: NonNullable<typeof recentTask>,
+      requiresReconciliation: boolean,
+    ) => {
+      const metadata = task.metadata && typeof task.metadata === 'object' &&
+        !Array.isArray(task.metadata)
+        ? task.metadata as Record<string, unknown>
+        : {}
+
+      return {
+        taskId: task.id,
+        status: task.status,
+        createdAt: task.createdAt,
+        serviceType: typeof metadata.serviceType === 'string' ? metadata.serviceType : undefined,
+        isAsync: metadata.isAsync === true,
+        requiresReconciliation,
+      }
     }
 
-    return NextResponse.json([{
-      taskId: pendingTask.id,
-      status: pendingTask.status,
-      createdAt: pendingTask.createdAt,
-      serviceType: (pendingTask.metadata as any)?.serviceType,
-      isAsync: (pendingTask.metadata as any)?.isAsync
-    }])
+    return NextResponse.json([
+      ...(recentTask ? [summarize(recentTask, false)] : []),
+      ...olderUnconfirmed.map((task) => summarize(task, true)),
+    ])
 
   } catch (error) {
     console.error("Pending Tasks API error:", error)

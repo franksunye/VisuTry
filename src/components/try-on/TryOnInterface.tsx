@@ -18,11 +18,21 @@ import { localizedPath } from "@/lib/localized-path"
 import { useQuota } from "@/hooks/useQuota"
 import { useTryOnTaskPolling } from "@/hooks/useTryOnTaskPolling"
 import { consumeFaceAnalysisPhotoHandoff } from "@/lib/face-analysis-photo-handoff"
+import { getOrCreateConsumerSubmission } from "@/lib/try-on/consumer-replay-key"
 
 interface ErrorState {
   message: string
   type: 'quota' | 'processing' | 'generic'
   statusCode?: number
+}
+
+interface RecoverableTryOnTask {
+  taskId: string
+  status: string
+  createdAt: string
+  serviceType?: string
+  isAsync?: boolean
+  requiresReconciliation?: boolean
 }
 
 interface TryOnInterfaceProps {
@@ -42,6 +52,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const [result, setResult] = useState<{ imageUrl: string; taskId: string } | null>(null)
   const [currentStep, setCurrentStep] = useState<"upload" | "select" | "process" | "result">("upload")
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
+  const [olderUnconfirmedTasks, setOlderUnconfirmedTasks] = useState<RecoverableTryOnTask[]>([])
   const [isFaceNudgeDismissed, setIsFaceNudgeDismissed] = useState(false)
 
   // Get the appropriate icon for the item type
@@ -61,6 +72,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   }
   const [processingMessage, setProcessingMessage] = useState(`AI is processing your ${config.name.toLowerCase()} try-on request...`)
   const [error, setError] = useState<ErrorState | null>(null)
+  const submissionAttemptRef = useRef<ReturnType<typeof getOrCreateConsumerSubmission> | null>(null)
   const submitInFlightRef = useRef(false)
   const tryOnStartedAtRef = useRef<number | null>(null)
   const handledPhotoHandoffRef = useRef<string | null>(null)
@@ -108,6 +120,8 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       setCurrentStep("result")
       setIsProcessing(false)
       setCurrentTaskId(null)
+      setOlderUnconfirmedTasks((tasks) => tasks.filter((pending) => pending.taskId !== currentTaskId))
+      submissionAttemptRef.current = null
 
       console.log('✅ Try-on completed: Refreshing session to update usage count...')
       logger.info('general', 'Try-on completed, refreshing session')
@@ -130,6 +144,8 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       setCurrentStep("select")
       setIsProcessing(false)
       setCurrentTaskId(null)
+      setOlderUnconfirmedTasks((tasks) => tasks.filter((pending) => pending.taskId !== currentTaskId))
+      submissionAttemptRef.current = null
     },
     onProgress: (task) => {
       if (task.progress !== undefined) {
@@ -137,11 +153,13 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       }
     },
     onTimeout: () => {
+      // A polling deadline does not prove that GrsAi rejected or failed the task.
+      // Keep its ID so the CTA resumes polling rather than creating a paid POST.
       setIsProcessing(false)
-      setCurrentTaskId(null)
+      setCurrentStep("select")
       setError({
-        message: "Processing timed out. Please try again.",
-        type: 'generic'
+        message: "We could not confirm your Try-On result yet. Your request may still be processing. Use Check Existing Try-On to continue safely; no new generation will be started.",
+        type: 'processing'
       })
     },
     onError: (error) => {
@@ -151,9 +169,11 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
     },
   })
 
-  // Check for pending tasks on mount (Recovery)
+  // Restore recent processing tasks and surface older ambiguous submissions.
+  // An UNKNOWN dispatch cannot be recovered by a fresh provider POST.
   useEffect(() => {
-    if (sessionStatus !== 'authenticated') return
+    if (sessionStatus !== 'authenticated' || result || isProcessing || currentTaskId ||
+        submitInFlightRef.current) return
 
     const controller = new AbortController()
     const checkPendingTasks = async () => {
@@ -162,32 +182,34 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
           signal: controller.signal,
         })
         if (!response.ok) return
-        
-        const tasks = await response.json()
-        if (tasks && tasks.length > 0) {
-          const task = tasks[0]
-          console.log('Found pending task, recovering:', task)
-          
-          setCurrentTaskId(task.taskId)
-          setIsProcessing(true)
-          setCurrentStep("process")
-          
-          if (task.serviceType === 'gemini') {
-            setProcessingMessage("Resuming AI processing... (~15-30s)")
-          } else {
-            setProcessingMessage("Resuming high-quality processing... (~2-3 mins)")
-          }
-        }
+
+        const payload: unknown = await response.json()
+        if (!Array.isArray(payload) || controller.signal.aborted) return
+        const tasks = payload.filter((task): task is RecoverableTryOnTask =>
+          Boolean(task && typeof task === 'object' && typeof task.taskId === 'string'))
+        setOlderUnconfirmedTasks(tasks.filter((task) => task.requiresReconciliation).slice(0, 5))
+
+        // Preserve existing auto-resume for normal recent tasks. Older unknown
+        // acceptance must be visible to the user, but never silently retried.
+        const recentTask = tasks.find((task) => !task.requiresReconciliation)
+        if (!recentTask || controller.signal.aborted) return
+
+        setCurrentTaskId(recentTask.taskId)
+        setIsProcessing(true)
+        setCurrentStep('process')
+        setProcessingMessage(recentTask.serviceType === 'gemini'
+          ? 'Resuming AI processing... (~15-30s)'
+          : 'Resuming high-quality processing... (~2-3 mins)')
       } catch (error) {
         if (!controller.signal.aborted) {
-          console.error("Failed to check pending tasks:", error)
+          console.error('Failed to check pending tasks:', error)
         }
       }
     }
 
     void checkPendingTasks()
     return () => controller.abort()
-  }, [sessionStatus, type])
+  }, [sessionStatus, type, result, isProcessing, currentTaskId])
 
   useEffect(() => {
     if (sessionStatus !== 'authenticated') return
@@ -205,6 +227,8 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
 
         const preview = URL.createObjectURL(file)
         handoffPreviewUrlRef.current = preview
+        submissionAttemptRef.current = null
+        setCurrentTaskId(null)
         setUserImage({ file, preview })
         setCurrentStep('select')
         setError(null)
@@ -241,6 +265,8 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   }, [])
 
   const handleUserImageSelect = (file: File, preview: string) => {
+    submissionAttemptRef.current = null
+    setCurrentTaskId(null)
     setUserImage({ file, preview })
     if (currentStep === "upload") {
       setCurrentStep("select")
@@ -248,27 +274,44 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   }
 
   const handleUserImageRemove = () => {
+    submissionAttemptRef.current = null
+    setCurrentTaskId(null)
     setUserImage(null)
     setCurrentStep("upload")
   }
 
   const handleItemImageSelect = (file: File, preview: string) => {
+    submissionAttemptRef.current = null
+    setCurrentTaskId(null)
     setItemImage({ file, preview })
   }
 
   const handleItemImageRemove = () => {
+    submissionAttemptRef.current = null
+    setCurrentTaskId(null)
     setItemImage(null)
   }
 
   const handleStartTryOn = async () => {
-    if (!userImage || !itemImage) {
-      return
-    }
-    if (submitInFlightRef.current || isProcessing) {
+    if (submitInFlightRef.current || isProcessing) return
+
+    if (currentTaskId) {
+      // A timed-out/recovered task already exists. Never issue a fresh POST.
+      setError(null)
+      setCurrentStep("process")
+      setProcessingMessage("Checking your existing Try-On; no new generation is being started.")
+      setIsProcessing(true)
       return
     }
 
-    const clientSubmissionId = `tryon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    if (!userImage || !itemImage) return
+
+    const attempt = getOrCreateConsumerSubmission(
+      submissionAttemptRef.current,
+      { type, userImageFile: userImage.file, itemImageFile: itemImage.file },
+      () => `tryon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    )
+    const clientSubmissionId = attempt.clientSubmissionId
     const sameMetadata =
       userImage.file.name === itemImage.file.name &&
       userImage.file.size === itemImage.file.size &&
@@ -329,6 +372,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       }
     }
 
+    submissionAttemptRef.current = attempt
     setIsProcessing(true)
     submitInFlightRef.current = true
     setCurrentStep("process")
@@ -370,6 +414,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
           })
           setCurrentStep("result")
           setIsProcessing(false)
+          submissionAttemptRef.current = null
 
           // Refresh session to update usage count
           console.log('✅ Try-on completed: Refreshing session to update usage count...')
@@ -379,8 +424,16 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
             console.error('❌ Failed to refresh session after try-on:', error)
             logger.error('general', 'Failed to refresh session after try-on', err)
           })
+        } else if (taskData.status === "failed") {
+          analytics.trackTryOnComplete(userType, Date.now() - (tryOnStartedAtRef.current ?? Date.now()), false, type)
+          tryOnStartedAtRef.current = null
+          submissionAttemptRef.current = null
+          setError({ message: taskData.error || "Processing failed. You can start a new try-on.", type: 'generic' })
+          setCurrentStep("select")
+          setIsProcessing(false)
         } else {
-          // Task still processing, start polling
+          // Task still processing, or the original submit response was lost.
+          // Retain the same logical request and its existing provider task.
           setCurrentTaskId(taskData.taskId)
           
           // Set message based on service type
@@ -398,13 +451,21 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
           ? Date.now() - tryOnStartedAtRef.current
           : 0
         tryOnStartedAtRef.current = null
-        analytics.trackTryOnComplete(userType, processingTime, false, type)
+        const definitePreDispatchRejection = [400, 403, 409].includes(response.status)
+        // HTTP 5xx/lost response is not evidence that a generation failed.
+        if (definitePreDispatchRejection) {
+          analytics.trackTryOnComplete(userType, processingTime, false, type)
+        }
         const errorMessage = data.error || "Try-on failed"
         const isQuotaError = response.status === 403 && errorMessage.includes("quota")
 
+        if (definitePreDispatchRejection) {
+          // These validation/quota/conflict responses cannot start a new provider call.
+          submissionAttemptRef.current = null
+        }
         setError({
-          message: errorMessage,
-          type: isQuotaError ? 'quota' : 'generic',
+          message: definitePreDispatchRejection ? errorMessage : "We could not confirm your submission. Use Resume Safe Request to check the same request without starting another generation.",
+          type: isQuotaError ? 'quota' : definitePreDispatchRejection ? 'generic' : 'processing',
           statusCode: response.status
         })
 
@@ -412,17 +473,15 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         setIsProcessing(false)
       }
     } catch (error) {
-      const processingTime = tryOnStartedAtRef.current
-        ? Date.now() - tryOnStartedAtRef.current
-        : 0
       tryOnStartedAtRef.current = null
-      analytics.trackTryOnComplete(quota.userType, processingTime, false, type)
+      // The HTTP response may be lost after a successful upstream acceptance.
+      // Do not report a terminal generation failure for a transport ambiguity.
       const err = error instanceof Error ? error : new Error(String(error))
       console.error("Try-on failed:", error)
       logger.error('general', 'Try-on failed', err)
       setError({
-        message: "An unexpected error occurred. Please try again.",
-        type: 'generic'
+        message: "We could not confirm your submission. Use Resume Safe Request to check the same request without starting another generation.",
+        type: 'processing'
       })
       setCurrentStep("select")
       setIsProcessing(false)
@@ -432,12 +491,13 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   }
 
   const handleTryAgain = () => {
+    submissionAttemptRef.current = null
     setResult(null)
     setCurrentTaskId(null)
     setCurrentStep("select")  // Return to step 2 (select glasses) instead of step 1, keeping uploaded photos
   }
 
-  const canProceed = userImage && itemImage
+  const canProceed = Boolean(currentTaskId || (userImage && itemImage))
 
   const trackFaceAnalysisNudgeClick = (stage: 'pre' | 'post') => {
     const userType = quota.userType
@@ -458,6 +518,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
     if (!error) return null
 
     const isQuotaError = error.type === 'quota'
+    const isUnconfirmed = error.type === 'processing'
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -468,7 +529,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
               <div className="flex items-center gap-2">
                 <AlertCircle className={`w-5 h-5 ${isQuotaError ? 'text-red-600' : 'text-orange-600'}`} />
                 <h3 className={`font-semibold ${isQuotaError ? 'text-red-900' : 'text-orange-900'}`}>
-                  {isQuotaError ? 'No Try-Ons Available' : 'Try-On Failed'}
+                  {isQuotaError ? 'No Try-Ons Available' : isUnconfirmed ? 'Try-On Status Unconfirmed' : 'Try-On Failed'}
                 </h3>
               </div>
               <button
@@ -569,6 +630,45 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         </div>
       </div>
 
+      {olderUnconfirmedTasks.length > 0 && !result ? (
+        <section aria-label="Unconfirmed Try-On requests" className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">
+          <h2 className="font-semibold">Previous Try-On status needs confirmation</h2>
+          <p className="mt-1 text-sm">
+            We cannot confirm whether the provider accepted these requests. They remain on record;
+            checking them will not start a new generation or use another credit.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {olderUnconfirmedTasks.map((pending) => (
+              <li key={pending.taskId} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-200 bg-white px-3 py-2">
+                <div className="min-w-0">
+                  <span className="block text-xs text-gray-600">Support reference</span>
+                  <code className="break-all text-xs">{pending.taskId}</code>
+                </div>
+                <button
+                  type="button"
+                  aria-label={`Check status of request ${pending.taskId}`}
+                  disabled={isProcessing}
+                  onClick={() => {
+                    setCurrentTaskId(pending.taskId)
+                    setError(null)
+                    setCurrentStep('process')
+                    setProcessingMessage('Checking your existing request; no new generation will be started.')
+                    setIsProcessing(true)
+                  }}
+                  className="min-h-11 rounded-lg border border-amber-600 px-3 py-2 text-sm font-medium hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600"
+                >
+                  Check existing status
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs">
+            If the status stays unconfirmed, contact support with the reference above.
+            Do not submit the same photos again solely because this request is old.
+          </p>
+        </section>
+      ) : null}
+
       {isGlassesTryOn && !result && !isProcessing && !isFaceNudgeDismissed ? (
         <FaceAnalysisNudge
           href={faceAnalysisHref}
@@ -612,7 +712,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
 
         {/* Action Button with Status - Second on mobile (sticky), below grid on desktop */}
         <div className="order-2 lg:order-3 lg:col-span-2 sticky bottom-0 lg:static bg-white py-4 lg:py-0 -mx-4 px-4 lg:mx-0 lg:px-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] lg:shadow-none z-10">
-          {hasQuota ? (
+          {(hasQuota || Boolean(currentTaskId) || (error?.type === 'processing' && Boolean(submissionAttemptRef.current))) ? (
             // Normal state: Clean action bar
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 text-sm text-gray-600">
@@ -636,7 +736,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5 mr-2" />
-                    Try On
+                    {currentTaskId ? "Check Existing Try-On" : error?.type === 'processing' && submissionAttemptRef.current ? "Resume Safe Request" : "Try On"}
                   </>
                 )}
               </button>

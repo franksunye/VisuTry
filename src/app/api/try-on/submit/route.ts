@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuthWithUser } from "@/lib/api-auth"
 import { getRequestContext, logger } from "@/lib/logger"
+import { prisma } from '@/lib/prisma'
 import { checkUserQuota, settleTryOnTaskQuota } from "@/lib/quota"
 import { submitTryOnTask } from "@/lib/tryon-service"
 import { tryOnMediaPath } from '@/lib/tryon-media'
@@ -19,14 +20,9 @@ export async function POST(request: NextRequest) {
     const user = auth.user
     const userId = auth.userId
 
-    // 2. Check Quota
+    // 2. Check quota before any new provider dispatch. Replays may reuse an
+    // existing task even after remaining credits have reached zero.
     const quotaCheck = checkUserQuota(user)
-    if (!quotaCheck.allowed) {
-      return NextResponse.json(
-        { success: false, error: quotaCheck.reason },
-        { status: 403 }
-      )
-    }
 
     // 3. Parse Request Data
     const formData = await request.formData()
@@ -49,6 +45,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: `Invalid try-on type: ${tryOnTypeParam}` },
         { status: 400 }
+      )
+    }
+
+    const priorTask = clientSubmissionId
+      ? await prisma.tryOnTask.findUnique({
+          where: { userId_clientSubmissionId: { userId, clientSubmissionId } },
+          select: { id: true, type: true },
+        })
+      : null
+    if (priorTask && priorTask.type !== tryOnType) {
+      return NextResponse.json(
+        { success: false, error: 'Submission ID belongs to a different Try-On type' },
+        { status: 409 },
+      )
+    }
+    if (!quotaCheck.allowed && !priorTask) {
+      return NextResponse.json(
+        { success: false, error: quotaCheck.reason },
+        { status: 403 },
       )
     }
 
