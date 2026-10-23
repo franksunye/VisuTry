@@ -4,6 +4,7 @@ import { Download, RotateCcw } from "lucide-react"
 import { cn } from "@/utils/cn"
 import { TryOnResultImage } from "@/components/OptimizedImage"
 import { logger } from "@/lib/logger"
+import { getTryOnDownloadFilename } from "@/lib/tryon-download"
 
 interface ResultDisplayProps {
   resultImageUrl: string
@@ -26,7 +27,7 @@ export function ResultDisplay({
 
       const link = document.createElement("a")
       link.href = url
-      link.download = `visutry-result-${taskId}.jpg`
+      link.download = getTryOnDownloadFilename(taskId, blob.type)
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
