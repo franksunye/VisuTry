@@ -3,7 +3,7 @@ import { head, put } from "@vercel/blob"
 import { generateTryOnImage } from "@/lib/gemini"
 import { submitAsyncTask, pollTaskResult } from "@/lib/grsai"
 import { submitKieTask, pollKieTask } from "@/lib/kie"
-import { kieFallbackMode } from "@/lib/generation/kie-routing"
+import { kieFallbackMode, selectNewTryOnProvider } from "@/lib/generation/kie-routing"
 import { logger } from "@/lib/logger"
 import { Prisma, TaskStatus, TryOnType, User } from "@prisma/client"
 import { TRY_ON_CONFIGS } from "@/config/try-on-types"
@@ -337,7 +337,7 @@ export async function submitTryOnTask(
 
   // Operator-directed cutover for *new* Consumer tasks only. Never changes
   // an already accepted GrsAi task, Premium Gemini, or Store/Campaign.
-  if (serviceType === 'grsai' && !options?.forceServiceType && kieFallbackMode() === 'force-consumer') {
+  if (serviceType === 'grsai' && !options?.forceServiceType && selectNewTryOnProvider('consumer') === 'kie') {
     serviceType = 'kie'
     isAsync = true
   }
