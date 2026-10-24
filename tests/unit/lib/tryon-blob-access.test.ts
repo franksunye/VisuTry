@@ -45,12 +45,12 @@ describe('Try-On Blob access policy', () => {
   it('uses explicit Try-On private store configuration for source and result media', () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-token'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_tryon_synthetic'
 
     const expected = {
       access: 'private',
       storeId: 'store_tryon',
-      token: 'synthetic-token',
+      token: 'vercel_blob_rw_tryon_synthetic',
     }
     expect(getTryOnSourceBlobOptions()).toEqual(expected)
     expect(getTryOnResultBlobOptions()).toEqual(expected)
@@ -61,12 +61,12 @@ describe('Try-On Blob access policy', () => {
     process.env.FACE_ANALYSIS_BLOB_ACCESS_MODE = 'private'
     process.env.FACE_ANALYSIS_BLOB_STORE_ID = 'store_face_analysis'
     process.env.RPIVATE_BLOB_STORE_ID = 'store_legacy'
-    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'synthetic-legacy-token'
+    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_legacy_synthetic'
 
     const expected = {
       access: 'private',
       storeId: 'store_legacy',
-      token: 'synthetic-legacy-token',
+      token: 'vercel_blob_rw_legacy_synthetic',
     }
     expect(getTryOnSourceBlobOptions()).toEqual(expected)
     expect(getTryOnResultBlobOptions()).toEqual(expected)
@@ -97,12 +97,52 @@ describe('Try-On Blob access policy', () => {
   it('rejects partial explicit identity even when the legacy store exists', () => {
     process.env.TRY_ON_BLOB_STORE_ID = 'store_explicit'
     process.env.RPIVATE_BLOB_STORE_ID = 'store_legacy'
-    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'synthetic-legacy-token'
+    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_legacy_synthetic'
     expect(() => getPrivateTryOnBlobOptions()).toThrow('must be configured together')
     expect(hasPrivateTryOnBlobIdentity()).toBe(false)
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-explicit-token'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_explicit_synthetic'
     expect(getPrivateTryOnBlobOptions()).toEqual({
-      access: 'private', storeId: 'store_explicit', token: 'synthetic-explicit-token',
+      access: 'private', storeId: 'store_explicit', token: 'vercel_blob_rw_explicit_synthetic',
     })
+  })
+  it.each([
+    ['store_wrong', 'vercel_blob_rw_tryon_secret'],
+    ['store_tryon', 'vercel_blob_rw_wrong_secret'],
+    ['store_tryon', 'vercel_blob_rw_Tryon_secret'],
+    ['store_tryon', 'malformed-token'],
+    ['store_tryon', 'vercel_blob_rw_tryon_'],
+    ['store_tryon', 'vercel_blob_rw__secret'],
+    ['store_tryon', 'vercel_blob_rw_tryon'],
+    ['store_tryon_extra', 'vercel_blob_rw_tryon_secret'],
+    ['store_tryon', 'vercel_blob_ro_tryon_secret'],
+  ])('fails closed for mismatched or malformed explicit identity %s', (id, token) => {
+    process.env.TRY_ON_BLOB_STORE_ID = id
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = token
+    process.env.BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_public_synthetic'
+    expect(() => getPrivateTryOnBlobOptions()).toThrow('identity do not match or have invalid format')
+    expect(hasPrivateTryOnBlobIdentity()).toBe(false)
+    try {
+      getPrivateTryOnBlobOptions()
+    } catch (error) {
+      expect(String(error)).not.toContain(token)
+    }
+    delete process.env.BLOB_READ_WRITE_TOKEN
+  })
+
+  it('accepts a bare store ID and preserves case-sensitive normalization', () => {
+    process.env.TRY_ON_BLOB_STORE_ID = 'QaStore'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_QaStore_synthetic'
+    expect(getPrivateTryOnBlobOptions()).toEqual({
+      access: 'private', storeId: 'QaStore', token: 'vercel_blob_rw_QaStore_synthetic',
+    })
+    process.env.TRY_ON_BLOB_STORE_ID = 'store_QaStore'
+    expect(hasPrivateTryOnBlobIdentity()).toBe(true)
+  })
+
+  it('fails closed for mismatched legacy private store without an explicit Try-On pair', () => {
+    process.env.RPIVATE_BLOB_STORE_ID = 'store_legacy'
+    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_other_synthetic'
+    expect(() => getTryOnResultBlobOptions()).toThrow('identity do not match')
+    expect(hasPrivateTryOnBlobIdentity()).toBe(false)
   })
 })

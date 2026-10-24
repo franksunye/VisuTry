@@ -8,6 +8,21 @@ export const TRY_ON_BLOB_DELETE_TOKEN_ENV = PRIVATE_BLOB_READ_WRITE_TOKEN_ENV
 export const TRY_ON_BLOB_READ_WRITE_TOKEN_ENV = 'TRY_ON_BLOB_READ_WRITE_TOKEN'
 
 /**
+ * The pinned @vercel/blob 2.6.x SDK derives the effective store identity
+ * from segment 4 of vercel_blob_rw_<id>_<secret>, and does not compare
+ * options.storeId when an explicit RW token is present. Validate both here
+ * before any private SDK call or Kie routing decision. Do not log credentials.
+ * Accept the SDK's store_<id> and bare <id> spellings (case-sensitive).
+ */
+function assertPrivateTryOnBlobIdentity(storeId: string, token: string): void {
+  const match = /^vercel_blob_rw_([A-Za-z0-9]+)_([A-Za-z0-9_-]+)$/.exec(token)
+  const declared = storeId.startsWith('store_') ? storeId.slice('store_'.length) : storeId
+  if (!match || !/^[A-Za-z0-9]+$/.test(declared) || declared !== match[1]) {
+    throw new Error('Private Try-On Blob Store ID and RW token identity do not match or have invalid format')
+  }
+}
+
+/**
  * Private Try-On must select one complete Store ID + RW Token pair.
  * Preserve the deployed RPIVATE_BLOB_* typo for compatibility, but never
  * implicitly use BLOB_READ_WRITE_TOKEN (which may be a public store).
@@ -21,6 +36,7 @@ export function getPrivateTryOnBlobOptions(
     if (!selectedId || !selectedToken) {
       throw new Error('TRY_ON_BLOB_STORE_ID and TRY_ON_BLOB_READ_WRITE_TOKEN must be configured together')
     }
+    assertPrivateTryOnBlobIdentity(selectedId, selectedToken)
     return { access: 'private', storeId: selectedId, token: selectedToken }
   }
   const legacyId = env.RPIVATE_BLOB_STORE_ID?.trim()
@@ -28,6 +44,7 @@ export function getPrivateTryOnBlobOptions(
   if (!legacyId || !legacyToken) {
     throw new Error('Private Try-On Blob requires a complete TRY_ON_BLOB_* or RPIVATE_BLOB_* store identity')
   }
+  assertPrivateTryOnBlobIdentity(legacyId, legacyToken)
   return { access: 'private', storeId: legacyId, token: legacyToken }
 }
 

@@ -26,7 +26,7 @@ describe('shared new-task Kie routing policy (no provider/network calls)', () =>
     process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     process.env.TRY_ON_BLOB_STORE_ID = 'store_qa'
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_qa_synthetic'
     process.env.KIE_TRYON_FALLBACK_MODE = mode
   }
 
@@ -84,6 +84,21 @@ describe('shared new-task Kie routing policy (no provider/network calls)', () =>
     enablePrivateKie('force-all')
     delete process.env.TRY_ON_BLOB_READ_WRITE_TOKEN
     expect(kieFallbackMode()).toBe('off')
+    expect(selectNewTryOnProvider('store', { storePrivateAssets: true })).toBe('grsai')
+  })
+  it('rejects a complete but mismatched Store ID/RW-token pair for both surfaces', () => {
+    enablePrivateKie('force-all')
+    process.env.TRY_ON_BLOB_STORE_ID = 'store_wrong'
+    expect(kieFallbackMode()).toBe('off')
+    expect(selectNewTryOnProvider('consumer')).toBe('grsai')
+    expect(selectNewTryOnProvider('store', { storePrivateAssets: true })).toBe('grsai')
+  })
+
+  it('rejects a correct ID with a RW token from a different store', () => {
+    enablePrivateKie('force-all')
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_wrong_synthetic'
+    expect(kieFallbackMode()).toBe('off')
+    expect(selectNewTryOnProvider('consumer')).toBe('grsai')
     expect(selectNewTryOnProvider('store', { storePrivateAssets: true })).toBe('grsai')
   })
 })
