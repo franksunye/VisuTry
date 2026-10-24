@@ -14,7 +14,8 @@ export const metadata: Metadata = generateSEO({
 })
 
 export default async function PrivacyPage({ params }: { params: { locale: string } }) {
-  const lastUpdated = 'January 15, 2025'
+  // Change to the actual public release date at approval/merge time.
+  const lastUpdated = 'October 24, 2026'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -75,8 +76,8 @@ export default async function PrivacyPage({ params }: { params: { locale: string
                 When you create an account or use our service, we may collect:
               </p>
               <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
-                <li>Name and email address (via Twitter OAuth)</li>
-                <li>Profile information from your Twitter account</li>
+                <li>Name and email address associated with your sign-in method</li>
+                <li>Profile information shared by your selected sign-in provider</li>
                 <li>Payment information (processed securely by Stripe)</li>
                 <li>Account preferences and settings</li>
               </ul>
@@ -139,13 +140,29 @@ export default async function PrivacyPage({ params }: { params: { locale: string
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <h4 className="font-semibold text-gray-900 mb-2">Google Gemini AI</h4>
+                <h4 className="font-semibold text-gray-900 mb-2">AI Virtual Try-On Processing</h4>
+                <p className="text-gray-700 text-sm mb-3">
+                  To generate virtual eyewear try-on images, we share the relevant portrait, eyewear reference image,
+                  and generation instructions with our AI image-processing providers. Our primary route uses Grsai
+                  for eligible standard try-on requests, while other supported requests may use Google Gemini
+                  image-generation services. These services may rely on underlying AI model infrastructure.
+                </p>
+                <p className="text-gray-700 text-sm mb-3">
+                  When approved and enabled, we may use Kie.ai as a backup processing provider for eligible new
+                  Consumer, Store, or Campaign try-on requests. Kie.ai is not used for these requests while that
+                  backup route is disabled. Customer images may be temporarily held by the provider or its
+                  underlying processing services to complete the requested generation.
+                </p>
                 <p className="text-gray-700 text-sm">
-                  We use Google Gemini AI to process your images for virtual try-on. Your images are sent to Google&apos;s
-                  servers for processing. Please review Google&apos;s Privacy Policy at{' '}
+                  Learn more about provider practices in{' '}
                   <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    policies.google.com/privacy
+                    Google&apos;s Privacy Policy
                   </a>
+                  ,{' '}
+                  <a href="https://kie.ai/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    Kie.ai&apos;s Privacy Policy
+                  </a>
+                  {' '}and the relevant service terms.
                 </p>
               </div>
 
@@ -161,12 +178,14 @@ export default async function PrivacyPage({ params }: { params: { locale: string
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <h4 className="font-semibold text-gray-900 mb-2">Twitter OAuth</h4>
+                <h4 className="font-semibold text-gray-900 mb-2">Auth0 (Authentication)</h4>
                 <p className="text-gray-700 text-sm">
-                  We use Twitter OAuth for authentication. Please review Twitter&apos;s Privacy Policy at{' '}
-                  <a href="https://twitter.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    twitter.com/privacy
+                  We use Auth0 to support account sign-in through available identity-provider connections.
+                  Please review{' '}
+                  <a href="https://auth0.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    Auth0&apos;s Privacy Policy
                   </a>
+                  .
                 </p>
               </div>
             </section>
@@ -198,10 +217,17 @@ export default async function PrivacyPage({ params }: { params: { locale: string
               </p>
               <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
                 <li>Account information: Until you delete your account</li>
-                <li>Uploaded images: Until you delete them or your account</li>
+                <li>Uploaded try-on photos and generated results: Subject to applicable product and plan retention policies, and earlier deletion where available</li>
                 <li>Payment records: As required by law (typically 7 years)</li>
                 <li>Usage data: Up to 2 years for analytics purposes</li>
               </ul>
+              <p className="text-gray-700">
+                For anonymous Store and Campaign experiences, image and result retention follows the applicable
+                merchant experience and session rules rather than a Consumer account plan. External AI providers
+                may also temporarily retain processing inputs, results, or task records under their own policies.
+                Deleting a VisuTry image does not necessarily immediately delete copies or logs retained by an
+                external provider. You can contact us to request information about deletion of your data.
+              </p>
             </section>
 
             {/* Your Rights */}
