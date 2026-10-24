@@ -51,9 +51,10 @@ function allowedKieUpload(hostname: string): boolean {
 }
 
 function allowedKieOutput(hostname: string): boolean {
-  // Keep a restrictive allowlist until a synthetic live task confirms all
-  // of Kie's actual output hosts. Never fetch arbitrary URLs as our server.
-  return hostname === 'tempfile.redpandaai.co' ||
+  // One synthetic live task and Kie's download docs confirm this exact output
+  // hostname. Do not allow its subdomains or broaden upload host policy.
+  return hostname === 'tempfile.aiquickdraw.com' ||
+    hostname === 'tempfile.redpandaai.co' ||
     hostname === 'kie.ai' || hostname.endsWith('.kie.ai') ||
     hostname === 'redpandaai.co' || hostname.endsWith('.redpandaai.co')
 }

@@ -115,6 +115,54 @@ describe('Kie async adapter — no real provider requests', () => {
     })
   })
 
+  it('accepts the exact Kie output hostname confirmed by a synthetic live task', async () => {
+    const imageUrl = 'https://tempfile.aiquickdraw.com/generation/synthetic-result.jpg'
+    ;(global.fetch as jest.Mock).mockResolvedValue(envelope({
+      code: 200, data: {
+        taskId: 'kie-123', state: 'success',
+        resultJson: JSON.stringify({ resultUrls: [imageUrl] }),
+      },
+    }))
+    expect(await pollKieTask('kie-123')).toMatchObject({
+      status: 'succeeded', progress: 100, imageUrl,
+    })
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+    const [url] = (global.fetch as jest.Mock).mock.calls[0]
+    expect(url.toString()).toContain('/api/v1/jobs/recordInfo?taskId=kie-123')
+  })
+
+  it.each([
+    'http://tempfile.aiquickdraw.com/result.jpg',
+    'https://tempfile.aiquickdraw.com:8443/result.jpg',
+    'https://user:password@tempfile.aiquickdraw.com/result.jpg',
+    'https://tempfile.aiquickdraw.com.evil.example/result.jpg',
+    'https://sub.tempfile.aiquickdraw.com/result.jpg',
+    'https://fake-tempfile.aiquickdraw.com/result.jpg',
+    'https://tempfile.aiquickdraw.com@127.0.0.1/admin',
+    'https://127.0.0.1/admin',
+  ])('rejects unsafe Kie success media URL: %s', async (untrustedUrl) => {
+    ;(global.fetch as jest.Mock).mockResolvedValue(envelope({
+      code: 200, data: {
+        taskId: 'kie-123', state: 'success',
+        resultJson: JSON.stringify({ resultUrls: [untrustedUrl] }),
+      },
+    }))
+    expect(await pollKieTask('kie-123')).toMatchObject({
+      status: 'failed', diagnostics: { code: 503 },
+    })
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not allow the output-only host in the reference-upload response', async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValue(envelope({
+      success: true, code: 200,
+      data: { downloadUrl: 'https://tempfile.aiquickdraw.com/references/synthetic.jpg' },
+    }))
+    await expect(submitKieTask(media, media, 'prompt')).rejects.toThrow('upload rejected')
+    expect((global.fetch as jest.Mock).mock.calls.every(([url]) =>
+      url === 'https://kieai.redpandaai.co/api/file-stream-upload')).toBe(true)
+  })
+
   it('never returns an attacker-supplied internal/private result URL', async () => {
     ;(global.fetch as jest.Mock).mockResolvedValue(envelope({
       code: 200, data: {
