@@ -1,6 +1,6 @@
 import { get } from '@vercel/blob'
 import { pathnameFromPrivateBlobUrl } from '@/lib/blob/private-signed-url'
-import { getTryOnBlobStoreId } from '@/lib/tryon-blob-access'
+import { getPrivateTryOnBlobOptions } from '@/lib/tryon-blob-access'
 import {
   decodeLegacyTryOnDataUrl,
   parseLegacyTryOnHttpUrl,
@@ -58,10 +58,7 @@ export async function loadPrivateTryOnMedia(sourceUrl: string): Promise<LoadedTr
   const pathname = pathnameFromPrivateBlobUrl(sourceUrl)
   if (!pathname) return null
 
-  const result = await get(pathname, {
-    access: 'private',
-    storeId: getTryOnBlobStoreId(),
-  })
+  const result = await get(pathname, getPrivateTryOnBlobOptions())
   if (!result?.stream) throw new Error('Failed to load private Try-On media')
 
   return {
