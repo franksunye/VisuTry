@@ -38,8 +38,14 @@ jest.mock('@/lib/blob/private-signed-url', () => ({
 const runtime = { merchants: {}, sessions: {}, experiences: {}, assets: {} }
 
 describe('private Store media redirects', () => {
+  afterAll(() => {
+    delete process.env.TRY_ON_BLOB_STORE_ID
+    delete process.env.TRY_ON_BLOB_READ_WRITE_TOKEN
+  })
   beforeEach(() => {
     jest.clearAllMocks()
+    process.env.TRY_ON_BLOB_STORE_ID = 'store_qa'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
     ;(createStoreRuntime as jest.Mock).mockReturnValue(runtime)
     ;(readStoreCapabilityToken as jest.Mock).mockReturnValue('cap-a')
     ;(createPrivateBlobGetUrl as jest.Mock).mockResolvedValue({

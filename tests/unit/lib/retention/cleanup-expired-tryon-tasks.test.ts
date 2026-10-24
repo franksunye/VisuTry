@@ -63,6 +63,7 @@ describe('cleanupExpiredTryOnTasks Blob credential binding', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = PRIVATE_BLOB_TOKEN
+    process.env.RPIVATE_BLOB_STORE_ID = 'store_retention'
     mockedUpdate.mockResolvedValue({})
     mockedDelete.mockResolvedValue({})
     mockedDel.mockResolvedValue(undefined)
@@ -70,6 +71,7 @@ describe('cleanupExpiredTryOnTasks Blob credential binding', () => {
 
   afterEach(() => {
     delete process.env.RPIVATE_BLOB_READ_WRITE_TOKEN
+    delete process.env.RPIVATE_BLOB_STORE_ID
   })
 
   it('deletes canonical Try-On blobs with the explicit private-store token', async () => {
