@@ -849,7 +849,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
 
   // A non-idempotent submit is in flight or has an unknown acceptance outcome.
   // Polling an older provider ID (or retrying it) cannot resolve this safely.
-  if (task.origin === 'CONSUMER' &&
+  if ((task.origin === 'CONSUMER' || isStoreTryOnOrigin(task.origin)) &&
       (metadata?.dispatchOutcome === 'SUBMITTING' || metadata?.dispatchOutcome === 'UNKNOWN')) {
     return { status: TaskStatus.PROCESSING, progress: 0 }
   }
