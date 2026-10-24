@@ -141,6 +141,7 @@ describe('Try-On Blob access policy', () => {
   })
 
   it('fails closed for mismatched legacy private store without an explicit Try-On pair', () => {
+    process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     process.env.RPIVATE_BLOB_STORE_ID = 'store_legacy'
     process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_other_synthetic'
     expect(() => getTryOnResultBlobOptions()).toThrow('identity do not match')
