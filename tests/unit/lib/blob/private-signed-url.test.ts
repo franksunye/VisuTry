@@ -73,4 +73,17 @@ describe('private Blob signed GET grants', () => {
       'https://store.public.blob.vercel-storage.com/store/a/photo.jpg',
     )).toBeNull()
   })
+  it('binds private token to both delegation and presigning', async () => {
+    await createPrivateBlobGetUrl({
+      pathname: 'store/session/photo.png',
+      now: 1_700_000_000_000,
+      storeId: 'store_qa', token: 'synthetic-qa-token',
+    })
+    expect(issueSignedToken).toHaveBeenCalledWith(expect.objectContaining({
+      storeId: 'store_qa', token: 'synthetic-qa-token',
+    }))
+    expect(presignUrl).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      storeId: 'store_qa', token: 'synthetic-qa-token',
+    }))
+  })
 })

@@ -7,6 +7,7 @@ import {
   storeErrorResponse,
 } from '@/modules/store/application'
 import { readStoreCapabilityToken } from '@/modules/store/infrastructure'
+import { getPrivateTryOnBlobOptions } from '@/lib/tryon-blob-access'
 import {
   createPrivateBlobGetUrl,
   pathnameFromPrivateBlobUrl,
@@ -53,6 +54,7 @@ export async function GET(
         throw new Error('Private Store result is missing a Blob pathname')
       }
       const grant = await createPrivateBlobGetUrl({
+        ...getPrivateTryOnBlobOptions(),
         pathname,
         businessExpiresAt: access.expiresAt,
       })

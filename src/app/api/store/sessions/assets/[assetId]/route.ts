@@ -7,6 +7,7 @@ import {
 } from '@/modules/store/application'
 import { readStoreCapabilityToken } from '@/modules/store/infrastructure'
 import { isMockMode } from '@/lib/mocks'
+import { getPrivateTryOnBlobOptions } from '@/lib/tryon-blob-access'
 import {
   createPrivateBlobGetUrl,
   privateBlobRedirect,
@@ -48,6 +49,7 @@ export async function GET(
 
     if (access.accessMode === 'PRIVATE_SIGNED' && !isMockMode) {
       const grant = await createPrivateBlobGetUrl({
+        ...getPrivateTryOnBlobOptions(),
         pathname: access.storageKey,
         businessExpiresAt: access.expiresAt,
       })

@@ -1090,7 +1090,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         if (resultBlobOptions.access === 'private') {
           if (isBlobAlreadyExistsError(uploadError)) {
             try {
-              const existing = await head(resultPathname, { storeId: resultBlobOptions.storeId })
+              const existing = await head(resultPathname, resultBlobOptions)
               const reconciled = await prisma.tryOnTask.updateMany({
                 where: {
                   id: taskId,
