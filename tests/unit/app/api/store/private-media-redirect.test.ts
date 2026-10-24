@@ -45,7 +45,7 @@ describe('private Store media redirects', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     process.env.TRY_ON_BLOB_STORE_ID = 'store_qa'
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_qa_synthetic'
     ;(createStoreRuntime as jest.Mock).mockReturnValue(runtime)
     ;(readStoreCapabilityToken as jest.Mock).mockReturnValue('cap-a')
     ;(createPrivateBlobGetUrl as jest.Mock).mockResolvedValue({

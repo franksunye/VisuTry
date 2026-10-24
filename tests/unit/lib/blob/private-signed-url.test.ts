@@ -77,13 +77,13 @@ describe('private Blob signed GET grants', () => {
     await createPrivateBlobGetUrl({
       pathname: 'store/session/photo.png',
       now: 1_700_000_000_000,
-      storeId: 'store_qa', token: 'synthetic-qa-token',
+      storeId: 'store_qa', token: 'vercel_blob_rw_qa_synthetic',
     })
     expect(issueSignedToken).toHaveBeenCalledWith(expect.objectContaining({
-      storeId: 'store_qa', token: 'synthetic-qa-token',
+      storeId: 'store_qa', token: 'vercel_blob_rw_qa_synthetic',
     }))
     expect(presignUrl).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      storeId: 'store_qa', token: 'synthetic-qa-token',
+      storeId: 'store_qa', token: 'vercel_blob_rw_qa_synthetic',
     }))
   })
 })
