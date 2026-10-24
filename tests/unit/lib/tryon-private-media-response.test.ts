@@ -18,15 +18,19 @@ import { loadTryOnMediaFile, serveLegacyTryOnMedia } from '@/lib/tryon-media-res
 
 describe('Try-On private source media delivery', () => {
   const previousStoreId = process.env.TRY_ON_BLOB_STORE_ID
+  const previousToken = process.env.TRY_ON_BLOB_READ_WRITE_TOKEN
 
   beforeEach(() => {
     jest.clearAllMocks()
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
   })
 
   afterAll(() => {
     if (previousStoreId === undefined) delete process.env.TRY_ON_BLOB_STORE_ID
     else process.env.TRY_ON_BLOB_STORE_ID = previousStoreId
+    if (previousToken === undefined) delete process.env.TRY_ON_BLOB_READ_WRITE_TOKEN
+    else process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = previousToken
   })
 
   function privateBlobResult(bytes: number[], contentType = 'image/jpeg') {
@@ -53,6 +57,7 @@ describe('Try-On private source media delivery', () => {
     expect(mockGet).toHaveBeenCalledWith('tryon/user/user-1/source.jpg', {
       access: 'private',
       storeId: 'store_tryon',
+      token: 'synthetic-qa-token',
     })
     expect(fetchSpy).not.toHaveBeenCalled()
     expect(file.type).toBe('image/jpeg')
@@ -72,6 +77,7 @@ describe('Try-On private source media delivery', () => {
     expect(mockGet).toHaveBeenCalledWith('tryon/user/user-1/source.png', {
       access: 'private',
       storeId: 'store_tryon',
+      token: 'synthetic-qa-token',
     })
   })
 

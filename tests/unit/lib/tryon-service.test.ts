@@ -896,6 +896,7 @@ describe('TryOnService', () => {
     it('reconciles a deterministic Blob already-exists conflict without retrying or duplicating', async () => {
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
       process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
+      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
       ;(prisma.tryOnTask.findUnique as jest.Mock)
         .mockResolvedValueOnce({
           id: 'duplicate-task',
@@ -931,7 +932,7 @@ describe('TryOnService', () => {
       expect(put).toHaveBeenCalledTimes(1)
       expect(head).toHaveBeenCalledWith(
         'tryon/result/user-1/duplicate-task.png',
-        { storeId: 'store_tryon' },
+        { access: 'private', storeId: 'store_tryon', token: 'synthetic-qa-token' },
       )
       expect(result.error).toBeUndefined()
     })
