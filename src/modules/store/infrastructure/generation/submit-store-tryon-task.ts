@@ -18,6 +18,7 @@ import { randomUUID } from "node:crypto"
 import { resolveTryOnPrompt } from "@/lib/try-on-prompt-registry"
 import { recordStoreOrphanBlob } from "@/modules/store/application/cleanup-store-orphan-blobs"
 import { isMockMode } from "@/lib/mocks"
+import { getPrivateTryOnBlobOptions } from "@/lib/tryon-blob-access"
 import { mockBlobUpload } from "@/lib/mocks/blob"
 import { resolveStoreAssetAccessPolicy } from "@/modules/store/infrastructure/config/store-asset-access-policy"
 import type { TryOnSubmissionResult } from "@/lib/generation/tryon-types"
@@ -277,7 +278,7 @@ export async function submitStoreTryOnTask(
     ] as const) {
       if (!url) continue
       try {
-        if (!isMockMode) await del(path)
+        if (!isMockMode) await del(path, storeAssetPolicy.blobAccess === 'private' ? getPrivateTryOnBlobOptions() : undefined)
       } catch (delError) {
         await recordStoreOrphanBlob({
           url,
@@ -312,11 +313,11 @@ export async function submitStoreTryOnTask(
     } else {
       const settled = await Promise.allSettled([
         put(userPath, userImageFile, {
-          access: storeAssetPolicy.blobAccess,
+          ...(storeAssetPolicy.blobAccess === 'private' ? getPrivateTryOnBlobOptions() : { access: 'public' as const }),
           contentType: userImageFile.type || 'image/jpeg',
         }),
         put(itemPath, itemImageFile, {
-          access: storeAssetPolicy.blobAccess,
+          ...(storeAssetPolicy.blobAccess === 'private' ? getPrivateTryOnBlobOptions() : { access: 'public' as const }),
           contentType: itemImageFile.type || 'image/jpeg',
         }),
       ])

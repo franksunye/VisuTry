@@ -8,6 +8,7 @@ import { del, get, put } from '@vercel/blob'
 import type { StoreAsset } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { isMockMode } from '@/lib/mocks'
+import { getPrivateTryOnBlobOptions } from '@/lib/tryon-blob-access'
 import { MockBlob, mockBlobUpload, readMockBlob } from '@/lib/mocks/blob'
 import type {
   AssetStore,
@@ -79,7 +80,7 @@ async function readPrivateOrPublicBytes(
   }
 
   if (accessMode === 'PRIVATE_SIGNED') {
-    const result = await get(storageKey, { access: 'private' })
+    const result = await get(storageKey, getPrivateTryOnBlobOptions())
     if (!result?.stream) {
       throw new Error('Private store asset not found')
     }
@@ -118,7 +119,7 @@ export function createVercelBlobAssetStore(): AssetStore {
         } else if (input.accessMode === 'PRIVATE_SIGNED') {
           try {
             const blob = await put(input.storageKey, input.body, {
-              access: 'private',
+              ...getPrivateTryOnBlobOptions(),
               contentType: input.contentType,
             })
             providerUrl = blob.url
@@ -163,6 +164,7 @@ export function createVercelBlobAssetStore(): AssetStore {
           try {
             await del(
               input.accessMode === 'PRIVATE_SIGNED' ? input.storageKey : providerUrl,
+              input.accessMode === 'PRIVATE_SIGNED' ? getPrivateTryOnBlobOptions() : undefined,
             )
           } catch (delError) {
             const { recordStoreOrphanBlob } = await import(
@@ -224,7 +226,10 @@ export function createVercelBlobAssetStore(): AssetStore {
         await MockBlob.del(row.providerUrl)
       } else if (row.providerUrl) {
         try {
-          await del(row.accessMode === 'PRIVATE_SIGNED' ? row.storageKey : row.providerUrl)
+          await del(
+            row.accessMode === 'PRIVATE_SIGNED' ? row.storageKey : row.providerUrl,
+            row.accessMode === 'PRIVATE_SIGNED' ? getPrivateTryOnBlobOptions() : undefined,
+          )
         } catch (error) {
           if (!isBlobNotFoundError(error)) {
             const message =

@@ -8,6 +8,7 @@ import { get } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { isMockMode } from '@/lib/mocks'
 import { readMockBlob } from '@/lib/mocks/blob'
+import { getPrivateTryOnBlobOptions } from '@/lib/tryon-blob-access'
 import {
   StoreDomainError,
   merchantInactive,
@@ -66,7 +67,7 @@ async function readStoreResultBytes(input: {
   }
 
   const key = input.resultPathname || input.resultImageUrl
-  const result = await get(key, { access: 'private' })
+  const result = await get(key, getPrivateTryOnBlobOptions())
   if (!result?.stream) {
     throw new StoreDomainError('VALIDATION_ERROR', 'Result image unavailable.', 404)
   }

@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { TaskStatus } from '@prisma/client'
 import { isMockMode } from '@/lib/mocks'
+import { getPrivateTryOnBlobOptions } from '@/lib/tryon-blob-access'
 import { mockBlobUpload } from '@/lib/mocks/blob'
 import { isBlobConflictError, type DispatchFence } from '@/modules/store/application/store-dispatch-lease'
 import { acquireStoreResultPersistLease } from '@/modules/store/application/store-task-leases'
@@ -54,7 +55,7 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
       : [resultPathname]
     for (const pathname of paths) {
       try {
-        const existing = await head(pathname)
+        const existing = await head(pathname, storeResultPolicy.blobAccess === 'private' ? getPrivateTryOnBlobOptions() : undefined)
         return { url: existing.url, pathname }
       } catch {
         // No matching object yet; inspect the next supported media format.
@@ -190,7 +191,7 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
     } else {
       try {
         const uploadedBlob = await put(resultPathname, file, {
-          access: storeResultPolicy.blobAccess,
+          ...(storeResultPolicy.blobAccess === 'private' ? getPrivateTryOnBlobOptions() : { access: 'public' as const }),
           contentType: file.type || 'image/png',
         })
         persistedUrl = uploadedBlob.url
