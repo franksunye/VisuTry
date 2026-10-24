@@ -81,11 +81,20 @@ describe('G2-R2 Store Kie dispatch safety (isolated mocks)', () => {
     jest.mocked(markGenerationAttemptSubmitted).mockResolvedValue(undefined as never)
   })
 
+  function syntheticImage(contents: string, filename: string): File {
+    // The jsdom File lacks arrayBuffer(), but the real Node File supplies it.
+    const file = new File([contents], filename, { type: 'image/jpeg' })
+    Object.defineProperty(file, 'arrayBuffer', {
+      value: async () => Uint8Array.from(Buffer.from(contents)).buffer,
+    })
+    return file
+  }
+
   async function call(options = option()) {
     return submitStoreTryOnTask(
       attribution,
-      new File(['synthetic face'], 'face.jpg', { type: 'image/jpeg' }),
-      new File(['synthetic frame'], 'frame.jpg', { type: 'image/jpeg' }),
+      syntheticImage('synthetic face', 'face.jpg'),
+      syntheticImage('synthetic frame', 'frame.jpg'),
       options,
     )
   }

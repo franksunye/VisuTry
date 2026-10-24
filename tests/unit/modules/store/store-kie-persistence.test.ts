@@ -2,6 +2,7 @@ import { persistStoreGrsaiSucceededResult } from '@/modules/store/infrastructure
 import { prisma } from '@/lib/prisma'
 import { mockBlobUpload } from '@/lib/mocks/blob'
 import { recordUsableGenerationSuccess } from '@/lib/generation/telemetry'
+import { mockKieStreamResponse } from '../../../support/kie-stream-response'
 
 jest.mock('@/lib/prisma', () => ({
   prisma: { tryOnTask: { updateMany: jest.fn(), findUnique: jest.fn() } },
@@ -50,9 +51,7 @@ describe('Store Kie image persistence uses shared safety boundary (offline)', ()
     ['image/png', 'png', [137, 80, 78, 71]],
     ['image/webp', 'webp', [82, 73, 70, 70]],
   ])('stores Kie %s as a private %s result pathname', async (mime, ext, data) => {
-    global.fetch = jest.fn().mockResolvedValue(new Response(new Uint8Array(data), {
-      headers: { 'content-type': mime },
-    }))
+    global.fetch = jest.fn().mockResolvedValue(mockKieStreamResponse(mime, data))
     const result = await persistStoreGrsaiSucceededResult(baseInput as never)
     expect(result).toMatchObject({ status: 'COMPLETED', isNewCompletion: true })
     const uploaded = jest.mocked(mockBlobUpload).mock.calls[0]
@@ -66,9 +65,7 @@ describe('Store Kie image persistence uses shared safety boundary (offline)', ()
   })
 
   it('does not persist an invalid Kie output or settle quota', async () => {
-    global.fetch = jest.fn().mockResolvedValue(
-      new Response('{}', { headers: { 'content-type': 'text/html' } }),
-    )
+    global.fetch = jest.fn().mockResolvedValue(mockKieStreamResponse('text/html', [123, 125]))
     jest.mocked(prisma.tryOnTask.findUnique).mockResolvedValue({
       status: 'PROCESSING', resultImageUrl: null,
     } as never)
