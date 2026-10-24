@@ -12,6 +12,7 @@ export async function createPrivateBlobGetUrl(input: {
   businessExpiresAt?: Date | null
   now?: number
   storeId?: string
+  token?: string
 }): Promise<{ url: string; validUntil: number }> {
   const pathname = input.pathname.trim()
   if (!pathname || pathname.includes('*') || pathname.startsWith('/')) {
@@ -30,6 +31,7 @@ export async function createPrivateBlobGetUrl(input: {
     operations: ['get'],
     validUntil,
     ...(input.storeId ? { storeId: input.storeId } : {}),
+    ...(input.token ? { token: input.token } : {}),
   })
   const { presignedUrl } = await presignUrl(token, {
     access: 'private',
@@ -37,6 +39,7 @@ export async function createPrivateBlobGetUrl(input: {
     pathname,
     validUntil,
     ...(input.storeId ? { storeId: input.storeId } : {}),
+    ...(input.token ? { token: input.token } : {}),
   })
 
   return { url: presignedUrl, validUntil }

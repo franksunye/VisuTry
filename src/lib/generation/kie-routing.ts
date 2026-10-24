@@ -1,5 +1,5 @@
 /** Server-only fail-closed switch for the Consumer Try-On Kie secondary. */
-import { resolveTryOnBlobAccessMode } from '@/lib/tryon-blob-access'
+import { hasPrivateTryOnBlobIdentity, resolveTryOnBlobAccessMode } from '@/lib/tryon-blob-access'
 export type KieFallbackMode = 'off' | 'force-consumer' | 'force-all' | 'auto-definitive'
 export type TryOnSurface = 'consumer' | 'store'
 
@@ -8,7 +8,8 @@ export function kieFallbackMode(): KieFallbackMode {
   // casual flag flip before the explicit media-transfer/privacy release gate.
   if (!process.env.KIE_API_KEY ||
       process.env.KIE_MEDIA_EXPORT_APPROVED !== 'true' ||
-      resolveTryOnBlobAccessMode() !== 'private') return 'off'
+      resolveTryOnBlobAccessMode() !== 'private' ||
+      !hasPrivateTryOnBlobIdentity()) return 'off'
   const mode = process.env.KIE_TRYON_FALLBACK_MODE
   return mode === 'force-consumer' || mode === 'force-all' || mode === 'auto-definitive'
     ? mode : 'off'

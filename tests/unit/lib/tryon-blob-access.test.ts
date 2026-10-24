@@ -1,5 +1,7 @@
 import {
   getTryOnBlobStoreId,
+  getPrivateTryOnBlobOptions,
+  hasPrivateTryOnBlobIdentity,
   getTryOnResultBlobOptions,
   getTryOnSourceBlobOptions,
   resolveTryOnBlobAccessMode,
@@ -8,6 +10,9 @@ import {
 const ENV_KEYS = [
   'TRY_ON_BLOB_ACCESS_MODE',
   'TRY_ON_BLOB_STORE_ID',
+  'TRY_ON_BLOB_READ_WRITE_TOKEN',
+  'RPIVATE_BLOB_STORE_ID',
+  'RPIVATE_BLOB_READ_WRITE_TOKEN',
   'FACE_ANALYSIS_BLOB_ACCESS_MODE',
   'FACE_ANALYSIS_BLOB_STORE_ID',
 ] as const
@@ -40,10 +45,12 @@ describe('Try-On Blob access policy', () => {
   it('uses explicit Try-On private store configuration for source and result media', () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-token'
 
     const expected = {
       access: 'private',
       storeId: 'store_tryon',
+      token: 'synthetic-token',
     }
     expect(getTryOnSourceBlobOptions()).toEqual(expected)
     expect(getTryOnResultBlobOptions()).toEqual(expected)
@@ -53,10 +60,13 @@ describe('Try-On Blob access policy', () => {
   it('can reuse the established Face Analysis private store during rollout', () => {
     process.env.FACE_ANALYSIS_BLOB_ACCESS_MODE = 'private'
     process.env.FACE_ANALYSIS_BLOB_STORE_ID = 'store_face_analysis'
+    process.env.RPIVATE_BLOB_STORE_ID = 'store_legacy'
+    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'synthetic-legacy-token'
 
     const expected = {
       access: 'private',
-      storeId: 'store_face_analysis',
+      storeId: 'store_legacy',
+      token: 'synthetic-legacy-token',
     }
     expect(getTryOnSourceBlobOptions()).toEqual(expected)
     expect(getTryOnResultBlobOptions()).toEqual(expected)
@@ -81,11 +91,18 @@ describe('Try-On Blob access policy', () => {
   it('requires a store binding before private writes are enabled', () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
 
-    expect(() => getTryOnSourceBlobOptions()).toThrow(
-      'TRY_ON_BLOB_STORE_ID is required when Try-On Blob access is private',
-    )
-    expect(() => getTryOnResultBlobOptions()).toThrow(
-      'TRY_ON_BLOB_STORE_ID is required when Try-On Blob access is private',
-    )
+    expect(() => getTryOnSourceBlobOptions()).toThrow('Private Try-On Blob requires a complete')
+    expect(() => getTryOnResultBlobOptions()).toThrow('Private Try-On Blob requires a complete')
+  })
+  it('rejects partial explicit identity even when the legacy store exists', () => {
+    process.env.TRY_ON_BLOB_STORE_ID = 'store_explicit'
+    process.env.RPIVATE_BLOB_STORE_ID = 'store_legacy'
+    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'synthetic-legacy-token'
+    expect(() => getPrivateTryOnBlobOptions()).toThrow('must be configured together')
+    expect(hasPrivateTryOnBlobIdentity()).toBe(false)
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-explicit-token'
+    expect(getPrivateTryOnBlobOptions()).toEqual({
+      access: 'private', storeId: 'store_explicit', token: 'synthetic-explicit-token',
+    })
   })
 })

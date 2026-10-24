@@ -5,6 +5,42 @@ export type TryOnBlobAccessMode = 'public' | 'private'
 // must pass it explicitly rather than falling back to BLOB_READ_WRITE_TOKEN.
 export const PRIVATE_BLOB_READ_WRITE_TOKEN_ENV = 'RPIVATE_BLOB_READ_WRITE_TOKEN'
 export const TRY_ON_BLOB_DELETE_TOKEN_ENV = PRIVATE_BLOB_READ_WRITE_TOKEN_ENV
+export const TRY_ON_BLOB_READ_WRITE_TOKEN_ENV = 'TRY_ON_BLOB_READ_WRITE_TOKEN'
+
+/**
+ * Private Try-On must select one complete Store ID + RW Token pair.
+ * Preserve the deployed RPIVATE_BLOB_* typo for compatibility, but never
+ * implicitly use BLOB_READ_WRITE_TOKEN (which may be a public store).
+ */
+export function getPrivateTryOnBlobOptions(
+  env: Record<string, string | undefined> = process.env,
+): { access: 'private'; storeId: string; token: string } {
+  const selectedId = env.TRY_ON_BLOB_STORE_ID?.trim()
+  const selectedToken = env[TRY_ON_BLOB_READ_WRITE_TOKEN_ENV]?.trim()
+  if (selectedId || selectedToken) {
+    if (!selectedId || !selectedToken) {
+      throw new Error('TRY_ON_BLOB_STORE_ID and TRY_ON_BLOB_READ_WRITE_TOKEN must be configured together')
+    }
+    return { access: 'private', storeId: selectedId, token: selectedToken }
+  }
+  const legacyId = env.RPIVATE_BLOB_STORE_ID?.trim()
+  const legacyToken = env[PRIVATE_BLOB_READ_WRITE_TOKEN_ENV]?.trim()
+  if (!legacyId || !legacyToken) {
+    throw new Error('Private Try-On Blob requires a complete TRY_ON_BLOB_* or RPIVATE_BLOB_* store identity')
+  }
+  return { access: 'private', storeId: legacyId, token: legacyToken }
+}
+
+export function hasPrivateTryOnBlobIdentity(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  try {
+    getPrivateTryOnBlobOptions(env)
+    return true
+  } catch {
+    return false
+  }
+}
 
 export function getPrivateBlobReadWriteToken(
   env: Record<string, string | undefined> = process.env,
@@ -37,23 +73,14 @@ export function getTryOnBlobStoreId(
  * falls back to BLOB_READ_WRITE_TOKEN, which may belong to another store.
  */
 export function getTryOnBlobDeleteToken(): string {
-  const token = getPrivateBlobReadWriteToken()
-  if (!token) {
-    throw new Error(
-      `${TRY_ON_BLOB_DELETE_TOKEN_ENV} is required for Try-On Blob retention cleanup`,
-    )
-  }
-  return token
+  return getPrivateTryOnBlobOptions().token
 }
 
 export function getTryOnSourceBlobOptions():
   | { access: 'public' }
-  | { access: 'private'; storeId: string } {
+  | { access: 'private'; storeId: string; token: string } {
   if (resolveTryOnBlobAccessMode() === 'private') {
-    return {
-      access: 'private',
-      storeId: getTryOnBlobStoreId(),
-    }
+    return getPrivateTryOnBlobOptions()
   }
   return { access: 'public' }
 }
@@ -65,6 +92,6 @@ export function getTryOnSourceBlobOptions():
  */
 export function getTryOnResultBlobOptions():
   | { access: 'public' }
-  | { access: 'private'; storeId: string } {
+  | { access: 'private'; storeId: string; token: string } {
   return getTryOnSourceBlobOptions()
 }
