@@ -33,7 +33,16 @@ Consumer submit has a 60-second function budget. The Kie adapter therefore enfor
 
 ## Operator incident workflow — manual only
 
-This is currently a **server environment-variable routing choice**, **not** an instant administrator UI switch. There is no automatic failure-rate circuit breaker. Changing a Vercel production environment variable by itself may not change already-running deployments: apply the setting through the approved runtime configuration/deployment procedure, verify the active version, and only then infer that new requests are using the selected route.
+This is currently a **server environment-variable routing choice**, **not** an instant administrator UI switch. There is no automatic failure-rate circuit breaker. Vercel environment variable edits apply **only to new deployments**; old function instances keep their snapshot. The site's `scripts/vercel-ignore-build.sh` deliberately skips all Preview builds and docs-only Production pushes. **Do not infer success from updating an env variable or requesting a redeploy.**
+
+**Approved-operator redeploy procedure (only after separate production-change approval):**
+1. Record the incident/change ticket, exact known-good READY Production deployment SHA, current `main` SHA, active `visutry.com` and `www.visutry.com` aliases, previous rollback candidate and current route mode.
+2. Apply the approved Production-only `KIE_TRYON_FALLBACK_MODE` value. Do not change unrelated keys, private Blob mapping, user data, or preview environments.
+3. In Vercel **Project → Deployments**, choose the *approved* deployed code revision, open **… → Redeploy**, and **uncheck “Use project's Ignore Build Step”** to bypass `scripts/vercel-ignore-build.sh`. Confirm the redeploy is targeted to **Production**, not Preview, and will include the new environment snapshot. See [Vercel's Ignored Build Step on redeploy guidance](https://vercel.com/docs/project-configuration/project-settings#ignore-build-step-on-redeploy).
+4. Wait for READY. Inspect the new deployment source SHA, Production target and both actual public aliases; confirm fresh synthetic Consumer, Store and Campaign routes. Only **new** tasks should see the changed provider; old accepted/UNKNOWN tasks retain their recorded provider. Measure actual decision-to-confirmed-traffic time rather than assuming the historical 3–5 minute build is a complete switch SLA.
+5. If build is skipped/canceled, alias is not reassigned, provider mismatches or safety checks fail, stop the cutover. Revert to the prior approved mode by the same *approved* new-deployment method; confirm active alias and existing tasks remain safe. Keep the previous READY deployment as a rollback candidate.
+
+**No production operation is authorized by this runbook itself.** The skip-build override is only an operator procedure, not a request to alter the project's default cost-optimized build policy.
 
 1. **Normal operation after the separate media/privacy release approval:** configure `KIE_TRYON_FALLBACK_MODE=auto-definitive` to keep Grsai primary and permit Consumer-only clear-rejection fallback. If privacy gates have not been approved, leave Kie disabled (`off`, missing key and missing `KIE_MEDIA_EXPORT_APPROVED`).
 2. **Human-confirmed Grsai incident:** record incident/operator/time and target deployment SHA; change mode to `force-all`, apply the runtime configuration and verify fresh **synthetic** ordinary Consumer, live Store and Campaign requests go to Kie once. Confirm the Store asset policy is private. No automated resubmission or migration of preexisting Grsai/UNKNOWN tasks.
@@ -41,7 +50,7 @@ This is currently a **server environment-variable routing choice**, **not** an i
 4. **Human-confirmed recovery:** restore `auto-definitive` (or `off` if temporarily disabling Kie), apply configuration, verify new tasks route to Grsai and accepted old Kie tasks continue polling Kie. Log rollback time and post-switch checks.
 5. **Privacy/security failure:** use `off`, revoke Kie export authorization and key as appropriate, keep previously submitted tasks pinned, and reconcile any UNKNOWN/accepted tasks without reposting original user media. Follow the security incident process.
 
-**Release gate:** `force-all` has not been approved for production. Neither env editing nor route-mode selection is authorized until vendor real-photo transfer/retention terms, private Blob readiness, versioned production deployment and canary/rollback approvals are recorded. Do not interpret passing mock-based local E2E as permission to send real images to Kie.
+**Release gate:** `force-all` has not been approved for production. An extra Kie supplier enquiry/DPA letter is **not required** per the product owner's decision. Actual Consumer/Store user-photo export still requires **VisuTry owner approval**, accurate public disclosure (Draft #444), verified private Blob readiness, versioned Production deployment and controlled canary/rollback authorization. Do not interpret passing synthetic E2E or this runbook as permission to enable Kie or send real images.
 
 ## G2-R2 local engineering verification (synthetic only)
 
