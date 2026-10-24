@@ -109,8 +109,10 @@ describe('G2-R2 Store Kie dispatch safety (isolated mocks)', () => {
     expect(jest.mocked(db.updateMany).mock.calls[1][0]?.data).toMatchObject({
       status: 'PROCESSING', metadata: { dispatchOutcome: 'UNKNOWN' },
     })
+    // The task is already PROCESSING from the pre-submit UNKNOWN fence.
+    // Acceptance only persists the Kie task ID and clears the dispatch lease.
     expect(jest.mocked(db.updateMany).mock.calls[2][0]?.data).toMatchObject({
-      status: 'PROCESSING',
+      dispatchLeaseOwner: null,
       metadata: { serviceType: 'kie', externalTaskId: 'kie-synthetic-1', dispatchOutcome: 'ACCEPTED' },
     })
     expect(opts.onProviderAccepted).toHaveBeenCalledTimes(1)
