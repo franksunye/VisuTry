@@ -86,7 +86,13 @@ describe('Merchant Catalog product photo staging', () => {
 
   it('enforces actual multipart bytes despite dishonest Content-Length', async () => {
     const huge = new File([new ArrayBuffer(4 * 1024 * 1024 + 40 * 1024)], 'large.png', { type: 'image/png' })
-    const incoming = request(huge)
+    // Serialize the synthetic multipart first, avoiding a background
+    // FormData producer writing after the bounded reader cancels early.
+    const multipart = request(huge)
+    const incoming = new NextRequest(multipart.url, {
+      method: 'POST', headers: multipart.headers,
+      body: Buffer.from(await multipart.arrayBuffer()),
+    })
     incoming.headers.set('content-length', '1')
     expect((await POST(incoming, { params: { merchantId } })).status).toBe(400)
     expect(put).not.toHaveBeenCalled()

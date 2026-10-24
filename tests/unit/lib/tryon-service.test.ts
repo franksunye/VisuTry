@@ -1,6 +1,7 @@
 import { submitTryOnTask, getTryOnResult } from '@/lib/tryon-service'
 import { prisma } from '@/lib/prisma'
 import { submitAsyncTask, pollTaskResult } from '@/lib/grsai'
+import { submitKieTask, pollKieTask } from '@/lib/kie'
 import { head, put } from '@vercel/blob'
 // Remove import { TaskStatus } from '@prisma/client' to avoid issues
 // Define mock enum
@@ -43,6 +44,11 @@ jest.mock('@vercel/blob', () => ({
 jest.mock('@/lib/grsai', () => ({
   submitAsyncTask: jest.fn(),
   pollTaskResult: jest.fn(),
+}))
+
+jest.mock('@/lib/kie', () => ({
+  submitKieTask: jest.fn(),
+  pollKieTask: jest.fn(),
 }))
 
 jest.mock('@/lib/gemini', () => ({
@@ -88,6 +94,9 @@ describe('TryOnService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    delete process.env.KIE_TRYON_FALLBACK_MODE
+    delete process.env.KIE_API_KEY
+    delete process.env.KIE_MEDIA_EXPORT_APPROVED
     delete process.env.TRY_ON_BLOB_ACCESS_MODE
     delete process.env.TRY_ON_BLOB_STORE_ID
     ;(prisma.tryOnTask.findUnique as jest.Mock).mockReset()
@@ -98,6 +107,143 @@ describe('TryOnService', () => {
   })
 
   describe('submitTryOnTask', () => {
+    it('keeps GrsAi primary when Kie is not enabled, even if its secret is configured', async () => {
+      process.env.KIE_API_KEY = 'synthetic-secret'
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'off-primary', status: TaskStatus.PENDING, metadata: {},
+      })
+      ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-accepted')
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+      expect(result.serviceType).toBe('grsai')
+      expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+      expect(submitKieTask).not.toHaveBeenCalled()
+    })
+
+    it('routes only new regular Consumer tasks to Kie under the operator switch', async () => {
+      process.env.KIE_API_KEY = 'synthetic-secret'
+      process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
+      process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'manual-kie', status: TaskStatus.PENDING, metadata: { serviceType: 'kie' },
+      })
+      ;(submitKieTask as jest.Mock).mockResolvedValue('kie-external')
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+      expect(result).toMatchObject({ taskId: 'manual-kie', serviceType: 'kie', status: 'submitted' })
+      expect(submitKieTask).toHaveBeenCalledWith(
+        expect.stringContaining('data:image/jpeg;base64,'),
+        expect.stringContaining('data:image/jpeg;base64,'),
+        expect.any(String), 'tryon-v1', expect.any(Number),
+      )
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.update).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ metadata: expect.objectContaining({
+          serviceType: 'kie', dispatchOutcome: 'ACCEPTED', externalTaskId: 'kie-external',
+        }) }),
+      }))
+    })
+
+    it('does not reroute explicitly forced GrsAi batch submissions', async () => {
+      process.env.KIE_API_KEY = 'synthetic-secret'
+      process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
+      process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'forced-grsai', status: TaskStatus.PENDING, metadata: {},
+      })
+      ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-forced')
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES', undefined, {
+        forceServiceType: 'grsai',
+      })
+      expect(result.serviceType).toBe('grsai')
+      expect(submitKieTask).not.toHaveBeenCalled()
+    })
+
+    it('automatically cuts over only after explicit GrsAi negative admission', async () => {
+      process.env.KIE_API_KEY = 'synthetic-secret'
+      process.env.KIE_TRYON_FALLBACK_MODE = 'auto-definitive'
+      process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'definitive', status: TaskStatus.PENDING, metadata: {},
+      })
+      const error = Object.assign(new Error('GrsAi rejected'), {
+        name: 'GrsAiDefinitiveRejectionError', providerCode: 429,
+      })
+      ;(submitAsyncTask as jest.Mock).mockRejectedValue(error)
+      ;(submitKieTask as jest.Mock).mockResolvedValue('kie-accepted')
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+      expect(result).toMatchObject({ taskId: 'definitive', serviceType: 'kie', status: 'submitted' })
+      expect(submitAsyncTask).toHaveBeenCalledTimes(1)
+      expect(submitKieTask).toHaveBeenCalledTimes(1)
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({ dispatchVersion: 0 }),
+        data: expect.objectContaining({
+          dispatchVersion: { increment: 1 },
+          metadata: expect.objectContaining({ dispatchOutcome: 'UNKNOWN', primaryRejectionCode: 429 }),
+        }),
+      }))
+    })
+
+    it('never switches providers after ambiguous GrsAi timeout, even in automatic mode', async () => {
+      process.env.KIE_API_KEY = 'synthetic-secret'
+      process.env.KIE_TRYON_FALLBACK_MODE = 'auto-definitive'
+      process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'uncertain', status: TaskStatus.PENDING, metadata: {},
+      })
+      ;(submitAsyncTask as jest.Mock).mockRejectedValue(new Error('timed out'))
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+      expect(result).toMatchObject({ serviceType: 'grsai', status: 'submitted' })
+      expect(submitKieTask).not.toHaveBeenCalled()
+    })
+
+    it('leaves Kie outcome UNKNOWN on lost createTask response without a second POST', async () => {
+      process.env.KIE_API_KEY = 'synthetic-secret'
+      process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
+      process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'kie-lost', status: TaskStatus.PENDING, metadata: { serviceType: 'kie' },
+      })
+      ;(submitKieTask as jest.Mock).mockRejectedValue(new Error('Kie admission unknown'))
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+      expect(result).toMatchObject({ taskId: 'kie-lost', status: 'submitted' })
+      expect(submitKieTask).toHaveBeenCalledTimes(1)
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('marks a known pre-create Kie upload rejection FAILED without charging or another submit', async () => {
+      process.env.KIE_API_KEY = 'synthetic-secret'
+      process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
+      process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'kie-upload-reject', status: TaskStatus.PENDING, metadata: { serviceType: 'kie' },
+      })
+      const uploadError = Object.assign(new Error('Kie reference upload rejected'), {
+        name: 'KieProviderError', stage: 'upload', acceptance: 'not-sent',
+      })
+      ;(submitKieTask as jest.Mock).mockRejectedValue(uploadError)
+      const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+      expect(result).toMatchObject({ taskId: 'kie-upload-reject', status: 'failed' })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({
+          status: TaskStatus.FAILED,
+          metadata: expect.objectContaining({ dispatchOutcome: 'NOT_SENT' }),
+        }),
+      }))
+      expect(submitKieTask).toHaveBeenCalledTimes(1)
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('reuses an existing client submission before uploading or dispatching again', async () => {
       ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
         id: 'existing-task',
@@ -442,6 +588,107 @@ describe('TryOnService', () => {
   })
 
   describe('getTryOnResult', () => {
+    it('polls an existing Kie task instead of dispatching another provider request', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'kie-processing', origin: 'CONSUMER', userId: 'user-1',
+        status: TaskStatus.PROCESSING, dispatchVersion: 0,
+        metadata: { serviceType: 'kie', externalTaskId: 'kie-accepted', dispatchOutcome: 'ACCEPTED' },
+      })
+      ;(pollKieTask as jest.Mock).mockResolvedValue({ status: 'processing', progress: 30 })
+      const result = await getTryOnResult('kie-processing')
+      expect(result).toMatchObject({ status: TaskStatus.PROCESSING, progress: 30 })
+      expect(pollKieTask).toHaveBeenCalledWith('kie-accepted')
+      expect(pollTaskResult).not.toHaveBeenCalled()
+      expect(submitKieTask).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      ['image/jpeg', 'jpg'],
+      ['image/png', 'png'],
+      ['image/webp', 'webp'],
+    ])('persists a Kie %s image privately with the matching %s extension', async (mime, extension) => {
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'kie-success', origin: 'CONSUMER', userId: 'user-1',
+        status: TaskStatus.PROCESSING, dispatchVersion: 0,
+        metadata: { serviceType: 'kie', externalTaskId: 'kie-result', dispatchOutcome: 'ACCEPTED' },
+      })
+      ;(pollKieTask as jest.Mock).mockResolvedValue({
+        status: 'succeeded',
+        imageUrl: 'https://tempfile.redpandaai.co/output/photo.jpg',
+        progress: 100,
+      })
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: jest.fn((key: string) => key === 'content-type' ? mime : null) },
+        body: { getReader: jest.fn().mockReturnValue({
+          read: jest.fn().mockResolvedValueOnce({ done: false, value: Buffer.from('synthetic-jpeg') })
+            .mockResolvedValueOnce({ done: true }),
+          releaseLock: jest.fn(),
+        }) },
+      })
+      const result = await getTryOnResult('kie-success')
+      expect(result).toMatchObject({ status: TaskStatus.COMPLETED, isNewCompletion: true })
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://tempfile.redpandaai.co/output/photo.jpg',
+        { redirect: 'error', cache: 'no-store' },
+      )
+      expect(put).toHaveBeenCalledWith(
+        expect.stringContaining(`tryon/result/user-1/kie-success.${extension}`),
+        expect.any(File),
+        { access: 'private', storeId: 'synthetic-store' },
+      )
+      expect(submitKieTask).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('refuses oversized Kie output during streaming even without Content-Length', async () => {
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'kie-oversize', origin: 'CONSUMER', userId: 'user-1',
+        status: TaskStatus.PROCESSING, dispatchVersion: 0,
+        metadata: { serviceType: 'kie', externalTaskId: 'kie-oversize-id', dispatchOutcome: 'ACCEPTED' },
+      })
+      ;(pollKieTask as jest.Mock).mockResolvedValue({
+        status: 'succeeded', imageUrl: 'https://tempfile.redpandaai.co/too-large.jpg', progress: 100,
+      })
+      const cancel = jest.fn().mockResolvedValue(undefined)
+      const half = Buffer.alloc(8 * 1024 * 1024, 1)
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: { get: jest.fn((key: string) => key === 'content-type' ? 'image/jpeg' : null) },
+        body: { getReader: jest.fn().mockReturnValue({
+          read: jest.fn().mockResolvedValueOnce({ done: false, value: half })
+            .mockResolvedValueOnce({ done: false, value: half }),
+          cancel,
+          releaseLock: jest.fn(),
+        }) },
+      })
+      expect(await getTryOnResult('kie-oversize')).toMatchObject({
+        status: TaskStatus.PROCESSING, isNewCompletion: false,
+      })
+      expect(cancel).toHaveBeenCalledTimes(1)
+      expect(put).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.updateMany).not.toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ status: TaskStatus.COMPLETED }),
+      }))
+    })
+
+    it('never retries an explicitly failed accepted Kie task via GrsAi timeout logic', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'kie-failed', origin: 'CONSUMER', userId: 'user-1',
+        status: TaskStatus.PROCESSING, dispatchVersion: 0,
+        metadata: { serviceType: 'kie', externalTaskId: 'kie-failed-id', dispatchOutcome: 'ACCEPTED' },
+      })
+      ;(pollKieTask as jest.Mock).mockResolvedValue({ status: 'failed', error: 'Kie task failed (TIMED_OUT)' })
+      const result = await getTryOnResult('kie-failed')
+      expect(result).toMatchObject({ status: TaskStatus.FAILED })
+      expect(submitKieTask).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('fails a stale Consumer PENDING task with no external ID during polling', async () => {
       const createdAt = new Date(Date.now() - 3 * 60 * 1000)
       ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({

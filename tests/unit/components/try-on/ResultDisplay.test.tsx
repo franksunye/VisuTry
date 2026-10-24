@@ -45,13 +45,20 @@ describe('ResultDisplay constrained result viewport', () => {
     expect(onTryAgain).toHaveBeenCalledTimes(1)
   })
 
-  it('downloads the generated media without a second generation request', async () => {
+  it.each([
+    ['image/jpeg', 'jpg'],
+    ['image/png', 'png'],
+    ['image/webp', 'webp'],
+  ])('downloads the generated %s image as %s without another generation request', async (mime, extension) => {
     const originalFetch = global.fetch
     const originalCreateObjectURL = URL.createObjectURL
     const originalRevokeObjectURL = URL.revokeObjectURL
-    const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const downloadedNames: string[] = []
+    const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      downloadedNames.push(this.download)
+    })
     const fetchMock = jest.fn().mockResolvedValue({
-      blob: async () => new Blob(['synthetic-result'], { type: 'image/jpeg' }),
+      blob: async () => new Blob(['synthetic-result'], { type: mime }),
     })
     global.fetch = fetchMock as typeof fetch
     URL.createObjectURL = jest.fn().mockReturnValue('blob:synthetic-result')
@@ -62,6 +69,7 @@ describe('ResultDisplay constrained result viewport', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Download' }))
 
       await waitFor(() => expect(clickSpy).toHaveBeenCalledTimes(1))
+      expect(downloadedNames).toEqual([`visutry-result-${taskId}.${extension}`])
       expect(fetchMock).toHaveBeenCalledTimes(1)
       expect(fetchMock).toHaveBeenCalledWith(resultImageUrl)
       expect(URL.createObjectURL).toHaveBeenCalledTimes(1)

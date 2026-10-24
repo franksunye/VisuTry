@@ -248,7 +248,14 @@ describe('POST /api/merchant/[merchantId]/brand/media with mocked Blob and trans
 
   it('rejects oversized streamed multipart bytes even with a dishonest Content-Length header', async () => {
     const huge = new File([new Uint8Array(4 * 1024 * 1024 + 48 * 1024)], 'large.png', { type: 'image/png' })
-    const request = uploadRequest({ kind: 'logo', file: huge })
+    // Fully serialize the synthetic FormData producer before testing early
+    // stream cancellation. Native Request(FormData) may otherwise enqueue
+    // into a canceled stream on a later microtask (Node 24 / Jest).
+    const multipart = uploadRequest({ kind: 'logo', file: huge })
+    const request = new NextRequest(multipart.url, {
+      method: 'POST', headers: multipart.headers,
+      body: Buffer.from(await multipart.arrayBuffer()),
+    })
     // Client-controlled length cannot override the actual consumed byte cap.
     request.headers.set('content-length', '1')
     const response = await POST(request, { params: { merchantId } })

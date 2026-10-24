@@ -1,4 +1,4 @@
-import { pollTaskResult, submitAsyncTask } from '@/lib/grsai'
+import { pollTaskResult, submitAsyncTask, GrsAiDefinitiveRejectionError } from '@/lib/grsai'
 import { logger } from '@/lib/logger'
 
 // Mock fetch
@@ -38,6 +38,21 @@ describe('GrsAi Library', () => {
   })
 
   describe('submitAsyncTask', () => {
+    it('distinguishes an explicit 429 non-admission from an ambiguous 503', async () => {
+      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ code: 429, msg: 'rate limited' }),
+      })
+      await expect(submitAsyncTask('data:image/jpeg;base64,a', 'data:image/jpeg;base64,b', 'prompt'))
+        .rejects.toBeInstanceOf(GrsAiDefinitiveRejectionError)
+
+      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ code: 503, msg: 'temporary outage' }),
+      })
+      await expect(submitAsyncTask('data:image/jpeg;base64,a', 'data:image/jpeg;base64,b', 'prompt'))
+        .rejects.toThrow('No Task ID received')
+    })
     it('adds a bounded timeout and correlated task context', async () => {
       ;(global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
