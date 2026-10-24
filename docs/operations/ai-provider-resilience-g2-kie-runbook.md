@@ -10,6 +10,8 @@ Owner: ChatGPT Lead. Governing issues: #430, #434, #440. Stacked safety foundati
 
 ## Flags and safety
 
+The Production private-storage cutover has a separate [G2 private Blob preflight](./g2-private-blob-cutover-preflight.md). Complete its OFF-deployment and legacy-media checks before treating any Kie routing flag as releasable.
+
 Kie routing defaults to OFF. It requires all of the following server-only env values:
 
 | Variable | Required to arm | Default |
