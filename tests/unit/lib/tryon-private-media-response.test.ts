@@ -23,7 +23,7 @@ describe('Try-On private source media delivery', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_tryon_synthetic'
   })
 
   afterAll(() => {
@@ -57,7 +57,7 @@ describe('Try-On private source media delivery', () => {
     expect(mockGet).toHaveBeenCalledWith('tryon/user/user-1/source.jpg', {
       access: 'private',
       storeId: 'store_tryon',
-      token: 'synthetic-qa-token',
+      token: 'vercel_blob_rw_tryon_synthetic',
     })
     expect(fetchSpy).not.toHaveBeenCalled()
     expect(file.type).toBe('image/jpeg')
@@ -77,7 +77,7 @@ describe('Try-On private source media delivery', () => {
     expect(mockGet).toHaveBeenCalledWith('tryon/user/user-1/source.png', {
       access: 'private',
       storeId: 'store_tryon',
-      token: 'synthetic-qa-token',
+      token: 'vercel_blob_rw_tryon_synthetic',
     })
   })
 

@@ -125,8 +125,8 @@ describe('TryOnService', () => {
       process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
       process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
-      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
-      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+      process.env.TRY_ON_BLOB_STORE_ID = 'store_synthetic'
+      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_synthetic_test'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
         id: 'manual-kie', status: TaskStatus.PENDING, metadata: { serviceType: 'kie' },
       })
@@ -151,8 +151,8 @@ describe('TryOnService', () => {
       process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
       process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
-      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
-      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+      process.env.TRY_ON_BLOB_STORE_ID = 'store_synthetic'
+      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_synthetic_test'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
         id: 'forced-grsai', status: TaskStatus.PENDING, metadata: {},
       })
@@ -169,8 +169,8 @@ describe('TryOnService', () => {
       process.env.KIE_TRYON_FALLBACK_MODE = 'auto-definitive'
       process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
-      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
-      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+      process.env.TRY_ON_BLOB_STORE_ID = 'store_synthetic'
+      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_synthetic_test'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
         id: 'definitive', status: TaskStatus.PENDING, metadata: {},
       })
@@ -197,8 +197,8 @@ describe('TryOnService', () => {
       process.env.KIE_TRYON_FALLBACK_MODE = 'auto-definitive'
       process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
-      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
-      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+      process.env.TRY_ON_BLOB_STORE_ID = 'store_synthetic'
+      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_synthetic_test'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
         id: 'uncertain', status: TaskStatus.PENDING, metadata: {},
       })
@@ -213,8 +213,8 @@ describe('TryOnService', () => {
       process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
       process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
-      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
-      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+      process.env.TRY_ON_BLOB_STORE_ID = 'store_synthetic'
+      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_synthetic_test'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
         id: 'kie-lost', status: TaskStatus.PENDING, metadata: { serviceType: 'kie' },
       })
@@ -230,8 +230,8 @@ describe('TryOnService', () => {
       process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
       process.env.KIE_MEDIA_EXPORT_APPROVED = 'true'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
-      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
-      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+      process.env.TRY_ON_BLOB_STORE_ID = 'store_synthetic'
+      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_synthetic_test'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
         id: 'kie-upload-reject', status: TaskStatus.PENDING, metadata: { serviceType: 'kie' },
       })
@@ -615,8 +615,8 @@ describe('TryOnService', () => {
       ['image/webp', 'webp'],
     ])('persists a Kie %s image privately with the matching %s extension', async (mime, extension) => {
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
-      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
-      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+      process.env.TRY_ON_BLOB_STORE_ID = 'store_synthetic'
+      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_synthetic_test'
       ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
         id: 'kie-success', origin: 'CONSUMER', userId: 'user-1',
         status: TaskStatus.PROCESSING, dispatchVersion: 0,
@@ -645,7 +645,7 @@ describe('TryOnService', () => {
       expect(put).toHaveBeenCalledWith(
         expect.stringContaining(`tryon/result/user-1/kie-success.${extension}`),
         expect.any(File),
-        { access: 'private', storeId: 'synthetic-store', token: 'synthetic-qa-token' },
+        { access: 'private', storeId: 'store_synthetic', token: 'vercel_blob_rw_synthetic_test' },
       )
       expect(submitKieTask).not.toHaveBeenCalled()
       expect(submitAsyncTask).not.toHaveBeenCalled()
@@ -653,8 +653,8 @@ describe('TryOnService', () => {
 
     it('refuses oversized Kie output during streaming even without Content-Length', async () => {
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
-      process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
-      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+      process.env.TRY_ON_BLOB_STORE_ID = 'store_synthetic'
+      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_synthetic_test'
       ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
         id: 'kie-oversize', origin: 'CONSUMER', userId: 'user-1',
         status: TaskStatus.PROCESSING, dispatchVersion: 0,
@@ -896,7 +896,7 @@ describe('TryOnService', () => {
     it('reconciles a deterministic Blob already-exists conflict without retrying or duplicating', async () => {
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
       process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
-      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-qa-token'
+      process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_tryon_test'
       ;(prisma.tryOnTask.findUnique as jest.Mock)
         .mockResolvedValueOnce({
           id: 'duplicate-task',
@@ -932,7 +932,7 @@ describe('TryOnService', () => {
       expect(put).toHaveBeenCalledTimes(1)
       expect(head).toHaveBeenCalledWith(
         'tryon/result/user-1/duplicate-task.png',
-        { access: 'private', storeId: 'store_tryon', token: 'synthetic-qa-token' },
+        { access: 'private', storeId: 'store_tryon', token: 'vercel_blob_rw_tryon_test' },
       )
       expect(result.error).toBeUndefined()
     })

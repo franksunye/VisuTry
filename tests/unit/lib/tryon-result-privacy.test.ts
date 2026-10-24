@@ -141,7 +141,7 @@ describe('Try-On result privacy persistence', () => {
   it('persists a new consumer result privately when private policy is enabled', async () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-private-token'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_tryon_synthetic'
     prepareSucceededPoll()
     mockPut.mockResolvedValue({
       url: 'https://abc.private.blob.vercel-storage.com/tryon/result/user-1/task-private-result.png',
@@ -153,7 +153,7 @@ describe('Try-On result privacy persistence', () => {
     expect(mockPut).toHaveBeenCalledWith(
       'tryon/result/user-1/task-private-result.png',
       expect.any(File),
-      { access: 'private', storeId: 'store_tryon', token: 'synthetic-private-token' },
+      { access: 'private', storeId: 'store_tryon', token: 'vercel_blob_rw_tryon_synthetic' },
     )
     expect(mockUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({
@@ -194,7 +194,7 @@ describe('Try-On result privacy persistence', () => {
   it('does not download or write the result when another request owns the persistence claim', async () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-private-token'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_tryon_synthetic'
     prepareSucceededPoll()
     mockUpdateMany.mockResolvedValueOnce({ count: 0 })
     mockFindUnique.mockResolvedValueOnce({
@@ -216,7 +216,7 @@ describe('Try-On result privacy persistence', () => {
   it('never falls back to a provider URL when private result persistence fails', async () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-private-token'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_tryon_synthetic'
     prepareSucceededPoll()
     mockPut.mockRejectedValue(new Error('private blob unavailable'))
 
@@ -252,7 +252,7 @@ describe('Try-On result privacy persistence', () => {
   it('reconciles a private deterministic Blob already-exists conflict via head', async () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-private-token'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_tryon_synthetic'
     prepareSucceededPoll()
     const conflict = new Error('This blob already exists')
     conflict.name = 'BlobPreconditionFailedError'
@@ -265,7 +265,7 @@ describe('Try-On result privacy persistence', () => {
 
     expect(mockHead).toHaveBeenCalledWith(
       'tryon/result/user-1/task-private-result.png',
-      { access: 'private', storeId: 'store_tryon', token: 'synthetic-private-token' },
+      { access: 'private', storeId: 'store_tryon', token: 'vercel_blob_rw_tryon_synthetic' },
     )
     expect(mockUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({
@@ -289,7 +289,7 @@ describe('Try-On result privacy persistence', () => {
   it('does not regress a completed task when a stale private persist failure arrives', async () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'synthetic-private-token'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_tryon_synthetic'
     prepareSucceededPoll()
     mockPut.mockRejectedValue(new Error('private blob unavailable'))
     mockUpdateMany

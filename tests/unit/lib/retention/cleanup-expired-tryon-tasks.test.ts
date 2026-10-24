@@ -36,7 +36,7 @@ const mockedUpdate = prisma.tryOnTask.update as jest.Mock
 const mockedDelete = prisma.tryOnTask.delete as jest.Mock
 const mockedWarn = logger.warn as jest.Mock
 
-const PRIVATE_BLOB_TOKEN = 'private-token-for-retention-test'
+const PRIVATE_BLOB_TOKEN = 'vercel_blob_rw_retention_synthetic'
 
 function makeTask(overrides: Record<string, unknown> = {}) {
   return {
