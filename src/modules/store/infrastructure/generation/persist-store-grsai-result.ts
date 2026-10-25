@@ -1,5 +1,5 @@
 /**
- * Store-specific GrsAI result persistence (private blob + result leases).
+ * Store-specific provider result persistence (existing Blob policy + result leases).
  * Registered into shared poll core — Consumer tryon-service must not import this.
  */
 
@@ -169,9 +169,6 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
 
   let persistedUrl: string | null = null
   try {
-    if (isKie && storeResultPolicy.blobAccess !== 'private') {
-      throw new Error('Kie Store results require private asset storage')
-    }
     const response = await fetch(
       pollImageUrl,
       isKie ? { redirect: 'error', cache: 'no-store' } : undefined,
