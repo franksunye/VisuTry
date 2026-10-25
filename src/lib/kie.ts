@@ -105,6 +105,7 @@ async function uploadReference(imageDataUri: string, deadlineAt?: number): Promi
     response = await fetch(UPLOAD_URL, {
       method: 'POST',
       headers: config(),
+      redirect: 'error',
       body: form,
       signal: AbortSignal.timeout(timeout),
     })
@@ -146,6 +147,7 @@ export async function submitKieTask(
     response = await fetch(CREATE_URL, {
       method: 'POST',
       headers: { ...config(), 'Content-Type': 'application/json' },
+      redirect: 'error',
       body: JSON.stringify({
         model: KIE_TRY_ON_MODEL,
         input: {
@@ -179,6 +181,7 @@ export async function pollKieTask(externalTaskId: string): Promise<GrsAiResult> 
     url.searchParams.set('taskId', externalTaskId)
     const response = await fetch(url, {
       headers: config(),
+      redirect: 'error',
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
     const body = await parseEnvelope(response)
