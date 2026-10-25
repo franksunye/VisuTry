@@ -107,10 +107,8 @@ export async function submitStoreTryOnTask(
   const isAsync = true
   const storeAssetPolicy = resolveStoreAssetAccessPolicy()
   // Operator routing applies only to newly claimed requests. Store/Campaign
-  // must have private assets before exporting any shopper image to Kie.
-  const serviceType = selectNewTryOnProvider('store', {
-    storePrivateAssets: storeAssetPolicy.blobAccess === 'private',
-  })
+  // keep the same selected storage access policy as Grsai.
+  const serviceType = selectNewTryOnProvider('store')
   const providerModel = serviceType === 'kie' ? KIE_TRY_ON_MODEL : GRSAI_TRY_ON_MODEL
   const metadataTelemetry = (options?.metadata ?? {}) as Record<string, unknown>
   const telemetryOrigin =
@@ -460,7 +458,7 @@ export async function submitStoreTryOnTask(
               providerSubmissionStatus: 'ACCEPTED',
               dispatchMs: Date.now() - startTime,
               inputAssetAccessMode: storeAssetPolicy.assetAccessMode,
-              privateBlob: true,
+              privateBlob: storeAssetPolicy.blobAccess === 'private',
             },
           },
         })
@@ -508,7 +506,7 @@ export async function submitStoreTryOnTask(
               ...(acceptedId ? { externalTaskId: acceptedId } : {}),
               dispatchOutcome: definitelyNotSent ? 'NOT_SENT' : 'UNKNOWN',
               providerSubmissionStatus: definitelyNotSent ? 'NOT_SENT' : 'UNKNOWN',
-              privateBlob: true,
+              privateBlob: storeAssetPolicy.blobAccess === 'private',
             },
           },
         })
