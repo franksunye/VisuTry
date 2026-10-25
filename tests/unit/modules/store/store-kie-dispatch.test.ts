@@ -4,6 +4,7 @@ import { submitKieTask, KieProviderError } from '@/lib/kie'
 import { selectNewTryOnProvider } from '@/lib/generation/kie-routing'
 import { mockBlobUpload } from '@/lib/mocks/blob'
 import { startGenerationRequest, startGenerationAttempt, markGenerationAttemptSubmitted } from '@/lib/generation/telemetry'
+import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
@@ -34,7 +35,7 @@ jest.mock('@/lib/try-on-prompt-registry', () => ({
 }))
 jest.mock('@/modules/store/infrastructure/config/store-asset-access-policy', () => ({
   resolveStoreAssetAccessPolicy: jest.fn(() => ({
-    assetAccessMode: 'PRIVATE_SIGNED', blobAccess: 'private', publicPoc: false,
+    assetAccessMode: 'PUBLIC_TEMPORARY', blobAccess: 'public', publicPoc: true,
   })),
 }))
 jest.mock('@/lib/logger', () => ({
@@ -106,6 +107,7 @@ describe('G2-R2 Store Kie dispatch safety (isolated mocks)', () => {
       taskId: 'task-synthetic', status: 'submitted', serviceType: 'kie',
     })
     expect(accepted).toHaveBeenCalledTimes(1)
+    expect(selectNewTryOnProvider).toHaveBeenCalledWith('store')
     expect(jest.mocked(db.updateMany).mock.calls[1][0]?.data).toMatchObject({
       status: 'PROCESSING', metadata: { dispatchOutcome: 'UNKNOWN' },
     })
@@ -113,7 +115,11 @@ describe('G2-R2 Store Kie dispatch safety (isolated mocks)', () => {
     // Acceptance only persists the Kie task ID and clears the dispatch lease.
     expect(jest.mocked(db.updateMany).mock.calls[2][0]?.data).toMatchObject({
       dispatchLeaseOwner: null,
-      metadata: { serviceType: 'kie', externalTaskId: 'kie-synthetic-1', dispatchOutcome: 'ACCEPTED' },
+      metadata: {
+        serviceType: 'kie', externalTaskId: 'kie-synthetic-1',
+        dispatchOutcome: 'ACCEPTED',
+        inputAssetAccessMode: 'PUBLIC_TEMPORARY', privateBlob: false,
+      },
     })
     expect(opts.onProviderAccepted).toHaveBeenCalledTimes(1)
     expect(markGenerationAttemptSubmitted).toHaveBeenCalledTimes(1)
@@ -128,9 +134,21 @@ describe('G2-R2 Store Kie dispatch safety (isolated mocks)', () => {
     const writes = jest.mocked(db.updateMany).mock.calls.map(args => args[0]?.data)
     expect(writes).toContainEqual(expect.objectContaining({
       status: 'PROCESSING',
-      metadata: expect.objectContaining({ dispatchOutcome: 'UNKNOWN' }),
+      metadata: expect.objectContaining({ dispatchOutcome: 'UNKNOWN', privateBlob: false }),
     }))
     expect(writes.some(write => write?.status === 'FAILED')).toBe(false)
+  })
+
+  it('keeps private asset metadata when existing Store policy is private', async () => {
+    jest.mocked(resolveStoreAssetAccessPolicy).mockReturnValueOnce({
+      assetAccessMode: 'PRIVATE_SIGNED', blobAccess: 'private', publicPoc: false,
+    })
+    accepted.mockResolvedValue('kie-private')
+    await expect(call()).resolves.toMatchObject({ serviceType: 'kie', status: 'submitted' })
+    const writes = jest.mocked(db.updateMany).mock.calls.map(args => args[0]?.data)
+    expect(writes).toContainEqual(expect.objectContaining({
+      metadata: expect.objectContaining({ dispatchOutcome: 'ACCEPTED', privateBlob: true }),
+    }))
   })
 
   it('marks provably unsubmitted Kie create as FAILED and does not settle', async () => {
