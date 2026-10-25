@@ -24,7 +24,7 @@ describe('Kie async adapter — no real provider requests', () => {
     delete process.env.KIE_API_KEY
   })
 
-  it('uploads both references privately before creating one exact-model async task', async () => {
+  it('uploads both references to Kie before creating one exact-model async task', async () => {
     ;(global.fetch as jest.Mock)
       .mockResolvedValueOnce(upload('person'))
       .mockResolvedValueOnce(upload('frame'))
@@ -32,6 +32,7 @@ describe('Kie async adapter — no real provider requests', () => {
     await expect(submitKieTask(media, media, 'test instruction', 'tryon-v1')).resolves.toBe('kie-123')
     const calls = (global.fetch as jest.Mock).mock.calls
     expect(calls).toHaveLength(3)
+    expect(calls.every(([, options]) => options.redirect === 'error')).toBe(true)
     expect(calls[0][0]).toBe('https://kieai.redpandaai.co/api/file-stream-upload')
     expect(calls[1][0]).toBe('https://kieai.redpandaai.co/api/file-stream-upload')
     expect(calls[0][1]).toMatchObject({ method: 'POST', headers: { Authorization: 'Bearer synthetic-test-key' } })
@@ -101,6 +102,7 @@ describe('Kie async adapter — no real provider requests', () => {
     expect(await pollKieTask('kie-123')).toMatchObject({ status: 'processing' })
     const url = (global.fetch as jest.Mock).mock.calls[0][0] as URL
     expect(url.searchParams.get('taskId')).toBe('kie-123')
+    expect((global.fetch as jest.Mock).mock.calls[0][1].redirect).toBe('error')
   })
 
   it('returns a single allowlisted HTTPS JPEG output as usable success', async () => {
