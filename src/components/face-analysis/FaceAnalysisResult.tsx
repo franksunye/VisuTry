@@ -81,6 +81,7 @@ export function FaceAnalysisResult({
 
   const geometry = full?.geometry ?? basic.geometry
   const hasMeasuredGeometry = geometry?.status === 'measured'
+  const isAlgorithmOnly = basic.analysisSource === 'algorithm-only'
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -91,11 +92,11 @@ export function FaceAnalysisResult({
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg font-semibold tracking-tight text-gray-950 sm:text-xl">
-              Your AI Face Shape Report
+              {isAlgorithmOnly ? 'Your Face Shape Report' : 'Your AI Face Shape Report'}
             </h2>
             <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 sm:px-2.5 sm:py-1 sm:text-xs">
               <Sparkles className="mr-1 h-3.5 w-3.5" />
-              {hasMeasuredGeometry ? 'Landmark measured' : 'AI-powered'}
+              {isAlgorithmOnly ? 'Landmark-only result' : hasMeasuredGeometry ? 'Landmark measured' : 'AI-powered'}
             </span>
             {task.status === 'completed' && (
               <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700 sm:px-2.5 sm:py-1 sm:text-xs">
@@ -105,9 +106,11 @@ export function FaceAnalysisResult({
             )}
           </div>
           <p className="mt-1 max-w-2xl text-xs leading-5 text-gray-500 sm:text-sm">
-            {hasMeasuredGeometry
-              ? 'Landmark-assisted proportions with AI styling guidance. Not medical or biometric advice.'
-              : 'Style guidance for frame selection and AI try-on. Not medical or biometric advice.'}
+            {isAlgorithmOnly
+              ? 'AI analysis was unavailable. Your face shape is based on on-device landmark measurements; styling tips are general guidance, not AI interpretation or medical advice.'
+              : hasMeasuredGeometry
+                ? 'Landmark-assisted proportions with AI styling guidance. Not medical or biometric advice.'
+                : 'Style guidance for frame selection and AI try-on. Not medical or biometric advice.'}
           </p>
         </div>
       </div>
