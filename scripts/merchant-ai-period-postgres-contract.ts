@@ -77,6 +77,7 @@ async function claim(f: Fixture, key: string, at: Date = now) {
       maxCompareFrames: 4,
       usagePolicyKind: 'merchant_allowance',
       isTest: true,
+      db,
     })
     if (!row.reusedExisting) simulatedDispatchCount += 1
     return { decision: row.reusedExisting ? 'EXISTING' : 'RESERVED', taskId: row.taskId }
@@ -110,7 +111,7 @@ async function main() {
     const usage = {} as unknown as Parameters<typeof settleStoreTryOnUsage>[0]['usage']
     const settleInput = {
       taskId: successTaskId, merchantId: a.merchantId, merchantSessionId: a.sessionId,
-      usagePolicy: { kind: 'merchant_allowance' as const, merchantId: a.merchantId }, usage,
+      usagePolicy: { kind: 'merchant_allowance' as const, merchantId: a.merchantId }, usage, db,
     }
     assert.equal((await settleStoreTryOnUsage(settleInput)).settled, true)
     assert.equal((await settleStoreTryOnUsage(settleInput)).alreadySettled, true)
@@ -146,7 +147,7 @@ async function main() {
       where: { id: first.taskId! }, data: { status: 'FAILED' },
     })
     assert.equal(await releaseMerchantAiRenderForTerminalFailure({
-      taskId: first.taskId!, merchantId: b.merchantId, merchantSessionId: b.sessionId,
+      taskId: first.taskId!, merchantId: b.merchantId, merchantSessionId: b.sessionId, db,
     }), 'RELEASED')
 
     const unknown = await claim(b, 'ambiguous-' + suffix)
@@ -162,7 +163,7 @@ async function main() {
       },
     })
     assert.equal(await releaseMerchantAiRenderForTerminalFailure({
-      taskId: unknown.taskId!, merchantId: b.merchantId, merchantSessionId: b.sessionId,
+      taskId: unknown.taskId!, merchantId: b.merchantId, merchantSessionId: b.sessionId, db,
     }), 'HELD_AMBIGUOUS')
     assert.equal((await claim(b, 'blocked-unknown-' + suffix)).decision, 'DENIED')
 
@@ -177,10 +178,10 @@ async function main() {
       },
     })
     assert.equal(await releaseMerchantAiRenderForTerminalFailure({
-      taskId: unknown.taskId!, merchantId: b.merchantId, merchantSessionId: b.sessionId,
+      taskId: unknown.taskId!, merchantId: b.merchantId, merchantSessionId: b.sessionId, db,
     }), 'RELEASED')
     assert.equal(await releaseMerchantAiRenderForTerminalFailure({
-      taskId: unknown.taskId!, merchantId: b.merchantId, merchantSessionId: b.sessionId,
+      taskId: unknown.taskId!, merchantId: b.merchantId, merchantSessionId: b.sessionId, db,
     }), 'ALREADY_RELEASED')
     assert.equal((await claim(b, 'released-slot-' + suffix)).decision, 'RESERVED')
 
@@ -189,7 +190,7 @@ async function main() {
     assert.equal(await db.merchantAiRenderReservation.count({
       where: { merchantId: v1.merchantId },
     }), 0)
-    const crossTenant = await prisma.$transaction(tx =>
+    const crossTenant = await db.$transaction(tx =>
       reserveMerchantAiPeriodRenderInTransaction(tx, {
         merchantId: b.merchantId, merchantSessionId: a.sessionId,
         idempotencyKey: 'foreign-' + suffix, now,

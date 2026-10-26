@@ -262,6 +262,8 @@ export async function claimStoreTryOnSlot(input: {
   clientSubmissionId: string
   /** Internal deterministic PostgreSQL contract-clock override; public API cannot set this. */
   now?: Date
+  /** Internal-only database override for disposable PostgreSQL contract execution. */
+  db?: typeof prisma
   clientIp?: string | null
   expiresAt?: Date
   renderLimits: import('../domain').StoreDemoLimits
@@ -289,7 +291,7 @@ export async function claimStoreTryOnSlot(input: {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await prisma.$transaction(
+      return await (input.db ?? prisma).$transaction(
         async (tx) => {
           const existing = await tx.tryOnTask.findUnique({
             where: { idempotencyKey: input.idempotencyKey },

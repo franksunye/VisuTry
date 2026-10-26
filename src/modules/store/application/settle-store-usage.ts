@@ -17,6 +17,8 @@ export async function settleStoreTryOnUsage(input: {
   merchantSessionId: string
   usagePolicy: UsagePolicy
   usage: StoreUsageRepository
+  /** Internal-only database override for disposable PostgreSQL contract execution. */
+  db?: typeof prisma
 }): Promise<StoreUsageSettlementResult> {
   const quotaSource =
     input.usagePolicy.kind === 'merchant_sponsored'
@@ -28,7 +30,7 @@ export async function settleStoreTryOnUsage(input: {
   const maxAttempts = 3
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const result: StoreUsageSettlementResult = await prisma.$transaction(
+      const result: StoreUsageSettlementResult = await (input.db ?? prisma).$transaction(
         async (tx) => {
           const claim = await tx.tryOnTask.updateMany({
             where: {

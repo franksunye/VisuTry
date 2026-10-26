@@ -61,8 +61,10 @@ export async function releaseMerchantAiRenderForTerminalFailure(input: {
   taskId: string
   merchantId: string
   merchantSessionId: string
+  /** Internal-only database override for disposable PostgreSQL contract execution. */
+  db?: typeof prisma
 }): Promise<MerchantAiFailedReleaseResult> {
-  return prisma.$transaction(async (tx) => {
+  return (input.db ?? prisma).$transaction(async (tx) => {
     const task = await tx.tryOnTask.findFirst({
       where: { id: input.taskId, merchantId: input.merchantId, merchantSessionId: input.merchantSessionId },
       select: {
