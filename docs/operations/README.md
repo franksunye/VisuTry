@@ -73,6 +73,8 @@ The Next App Router separates the anonymous Public Web shell from the session-aw
 | `production-route-migration-performance-protocol.md` | **Active / Scoped** | Protocol for future **non-Next capability** migrations. It does not authorize Next ownership changes while ADR-011 is active. |
 | `vercel-quota-emergency-reduction.md` | **Active playbook** | Emergency Vercel quota/resource reduction actions. |
 | `try-on-generation-reliability-baseline.md` | **Active / Measurement** | Generation reliability request/attempt model, DB evidence, Axiom correlation, and measurement process. |
+| `ai-provider-resilience-g1-r1-unknown-reconciliation-2026-10-22.md` | **Draft / NOT DEPLOYED** | Consumer ambiguous provider acceptance: read-only queue, fail-closed triage, support and release gates. |
+| `ai-provider-resilience-g1-b-face-analysis-idempotency-design-2026-10-22.md` | **Proposal / NOT IMPLEMENTED** | Face Analysis replay/unique key, ambiguous submission, quota-once transaction and tests before migration approval. |
 | `cloudflare-next-static-route-incident-2026-08-19.md` | **Resolved P0 / Permanent guardrail** | Incident evidence behind the single Next frontend owner rule. |
 
 ## Exact production edge contracts

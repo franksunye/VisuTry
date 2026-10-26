@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "status": "synthetic local-only image assets; external transfer not approved",
+  "assetGeneration": {
+    "method": "OpenAI built-in image generation; generated 2026-10-22 as two contact sheets, then cropped and re-encoded as JPEG",
+    "people": "fictional synthetic adults, age 25+; not based on real people",
+    "metadata": "cropped JPEGs were newly encoded without source metadata",
+    "externalProviderTransferApproved": false
+  },
+  "sourcePolicy": {
+    "faces": "newly generated synthetic adult portraits or explicitly consented volunteers",
+    "frames": "synthetic or catalog images with documented testing permission",
+    "productionExportsAllowed": false,
+    "externalProviderTransferAllowed": false
+  },
+  "cases": [
+    {
+      "fixtureId": "G1-TRYON-01",
+      "face": { "media": "media/face-01.jpg", "skinTone": "light", "visualShapeDesignTarget": "oval", "pose": "front-facing, neutral expression", "quality": "sharp, even daylight", "occlusion": "none" },
+      "frame": { "media": "media/frame-01.jpg", "geometry": "full-rim rectangle", "materialColor": "black acetate", "lens": "clear, low reflection" }
+    },
+    {
+      "fixtureId": "G1-TRYON-02",
+      "face": { "media": "media/face-02.jpg", "skinTone": "light-medium", "visualShapeDesignTarget": "round", "pose": "15-degree yaw", "quality": "sharp, soft side light", "occlusion": "short hair near one temple" },
+      "frame": { "media": "media/frame-02.jpg", "geometry": "round, thin metal", "materialColor": "warm gold", "lens": "clear with mild diffuse reflection" }
+    },
+    {
+      "fixtureId": "G1-TRYON-03",
+      "face": { "media": "media/face-03.jpg", "skinTone": "medium", "visualShapeDesignTarget": "square", "pose": "front-facing, slight smile", "quality": "high resolution", "occlusion": "none" },
+      "frame": { "media": "media/frame-03.jpg", "geometry": "browline", "materialColor": "black and silver", "lens": "clear with one controlled specular highlight" }
+    },
+    {
+      "fixtureId": "G1-TRYON-04",
+      "face": { "media": "media/face-04.jpg", "skinTone": "olive", "visualShapeDesignTarget": "oblong", "pose": "20-degree yaw with slight head tilt", "quality": "sharp, indoor neutral light", "occlusion": "loose hair at one cheek edge" },
+      "frame": { "media": "media/frame-04.jpg", "geometry": "aviator", "materialColor": "brushed titanium", "lens": "light tint with asymmetric reflection" }
+    },
+    {
+      "fixtureId": "G1-TRYON-05",
+      "face": { "media": "media/face-05.jpg", "skinTone": "brown", "visualShapeDesignTarget": "heart", "pose": "front-facing", "quality": "sharp, even daylight", "occlusion": "curly hair close to both temples" },
+      "frame": { "media": "media/frame-05.jpg", "geometry": "cat-eye", "materialColor": "translucent tortoiseshell", "lens": "clear, low reflection" }
+    },
+    {
+      "fixtureId": "G1-TRYON-06",
+      "face": { "media": "media/face-06.jpg", "skinTone": "deep", "visualShapeDesignTarget": "diamond", "pose": "three-quarter view", "quality": "slightly underexposed, mild sensor noise", "occlusion": "none" },
+      "frame": { "media": "media/frame-06.jpg", "geometry": "narrow rectangle", "materialColor": "matte charcoal", "lens": "dark sun lens with visible reflection" }
+    },
+    {
+      "fixtureId": "G1-TRYON-07",
+      "face": { "media": "media/face-07.jpg", "skinTone": "light", "visualShapeDesignTarget": "oval", "pose": "front-facing", "quality": "mildly compressed and slightly soft", "occlusion": "fine hair over one eyebrow" },
+      "frame": { "media": "media/frame-07.jpg", "geometry": "oval rimless", "materialColor": "silver hardware", "lens": "clear with a faint reflection" }
+    },
+    {
+      "fixtureId": "G1-TRYON-08",
+      "face": { "media": "media/face-08.jpg", "skinTone": "medium-deep", "visualShapeDesignTarget": "square", "pose": "front-facing, broad face proportions", "quality": "sharp with bright backlight", "occlusion": "none" },
+      "frame": { "media": "media/frame-08.jpg", "geometry": "hexagonal full-rim", "materialColor": "dark green acetate", "lens": "clear with localized glare" }
+    }
+  ]
+}
