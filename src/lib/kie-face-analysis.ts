@@ -34,7 +34,6 @@ export async function analyzeFaceWithKie(imageDataUri: string, prompt: string): 
         stream: false,
         include_thoughts: false,
         reasoning_effort: 'low',
-        max_tokens: 4096,
         messages: [{
           role: 'user',
           content: [
