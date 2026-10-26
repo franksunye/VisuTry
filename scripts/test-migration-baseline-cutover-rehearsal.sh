@@ -49,6 +49,27 @@ fi
 
 FUTURE_MIGRATION="20261003010000_db2_rehearsal_future_delta"
 FUTURE_DIR="$PWD/prisma/migrations/$FUTURE_MIGRATION"
+
+# This baseline adoption rehearsal must remain valid after legitimate
+# post-baseline migrations are added. Exclude only their exact known names
+# when checking that the 56 historical Production-like rows were untouched.
+POST_BASELINE_MIGRATIONS=()
+EXCLUDED_FROM_HISTORICAL_CHECK="'$CANONICAL_BASELINE_MIGRATION', '$FUTURE_MIGRATION'"
+while IFS= read -r migration_directory; do
+  migration_name="$(basename "$migration_directory")"
+  if [[ "$migration_name" == "$CANONICAL_BASELINE_MIGRATION" || "$migration_name" == "$FUTURE_MIGRATION" ]]; then
+    continue
+  fi
+  if [[ ! "$migration_name" =~ ^[A-Za-z0-9_]+$ || ! -s "$migration_directory/migration.sql" ]]; then
+    echo "❌ Invalid active post-baseline migration directory: $migration_directory" >&2
+    exit 1
+  fi
+  POST_BASELINE_MIGRATIONS+=("$migration_name")
+  EXCLUDED_FROM_HISTORICAL_CHECK+=", '$migration_name'"
+done < <(find prisma/migrations -mindepth 1 -maxdepth 1 -type d | sort)
+POST_BASELINE_MIGRATION_COUNT="${#POST_BASELINE_MIGRATIONS[@]}"
+EXPECTED_DEPLOYED_ROW_COUNT="$((57 + POST_BASELINE_MIGRATION_COUNT))"
+EXPECTED_AFTER_PROBE_ROW_COUNT="$((58 + POST_BASELINE_MIGRATION_COUNT))"
 FUTURE_CREATED=0
 cleanup() {
   if [[ "$FUTURE_CREATED" == "1" ]]; then
@@ -161,9 +182,9 @@ assert_old_rows_untouched() {
   local current_snapshot=""
   local current_hash=""
   local current_count=""
-  current_snapshot="$(psql "$TEST_DATABASE_URL" -X -Atc "SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY id)::text, '[]') FROM \"_prisma_migrations\" m WHERE migration_name NOT IN ('$CANONICAL_BASELINE_MIGRATION', '$FUTURE_MIGRATION')")"
+  current_snapshot="$(psql "$TEST_DATABASE_URL" -X -Atc "SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY id)::text, '[]') FROM \"_prisma_migrations\" m WHERE migration_name NOT IN ($EXCLUDED_FROM_HISTORICAL_CHECK)")"
   current_hash="$(snapshot_hash "$current_snapshot")"
-  current_count="$(psql "$TEST_DATABASE_URL" -X -Atc "SELECT COUNT(*) FROM \"_prisma_migrations\" WHERE migration_name NOT IN ('$CANONICAL_BASELINE_MIGRATION', '$FUTURE_MIGRATION')")"
+  current_count="$(psql "$TEST_DATABASE_URL" -X -Atc "SELECT COUNT(*) FROM \"_prisma_migrations\" WHERE migration_name NOT IN ($EXCLUDED_FROM_HISTORICAL_CHECK)")"
   if [[ "$current_count" != "56" || "$current_hash" != "$OLD_ROW_HASH" ]]; then
     echo "❌ Historical ledger rows changed during the cutover rehearsal." >&2
     echo "   expected count/hash: 56/$OLD_ROW_HASH; actual: $current_count/$current_hash" >&2
@@ -210,24 +231,29 @@ if [[ "$(psql "$TEST_DATABASE_URL" -X -Atc 'SELECT COUNT(*) FROM "_prisma_migrat
 fi
 echo "✓ 56 historical rows preserved; one finished baseline adoption row added"
 
-echo "→ Verifying Prisma status after adoption"
-DATABASE_URL="$TEST_DATABASE_URL" DATABASE_URL_UNPOOLED="$TEST_DATABASE_URL" \
-  npx prisma migrate status
+echo "→ Verifying the baseline adoption, then applying each authorized post-baseline migration"
 assert_baseline_anchor
 assert_old_rows_untouched
+echo "   active post-baseline migrations: $POST_BASELINE_MIGRATION_COUNT"
 
-echo "→ Running two idempotent Prisma deploys with the frozen baseline tree"
+echo "→ Running two idempotent Prisma deploys with the frozen baseline and post-baseline tree"
 for deploy_attempt in 1 2; do
   echo "   deploy attempt $deploy_attempt"
   DATABASE_URL="$TEST_DATABASE_URL" DATABASE_URL_UNPOOLED="$TEST_DATABASE_URL" \
     npx prisma migrate deploy
   assert_baseline_anchor
   assert_old_rows_untouched
-  if [[ "$(psql "$TEST_DATABASE_URL" -X -Atc 'SELECT COUNT(*) FROM "_prisma_migrations"')" != "57" ]]; then
-    echo "❌ Baseline deploy was not idempotent; migration ledger row count changed." >&2
+  if [[ "$(psql "$TEST_DATABASE_URL" -X -Atc 'SELECT COUNT(*) FROM "_prisma_migrations"')" != "$EXPECTED_DEPLOYED_ROW_COUNT" ]]; then
+    echo "❌ Baseline or post-baseline deploy was not idempotent; migration ledger row count changed." >&2
     exit 1
   fi
 done
+
+echo "→ Verifying Prisma migration status after all approved post-baseline migrations"
+DATABASE_URL="$TEST_DATABASE_URL" DATABASE_URL_UNPOOLED="$TEST_DATABASE_URL" \
+  npx prisma migrate status
+assert_baseline_anchor
+assert_old_rows_untouched
 
 echo "→ Adding an ephemeral future delta and exercising the actual fail-closed deployment wrapper"
 mkdir "$FUTURE_DIR"
@@ -246,8 +272,8 @@ if [[ "$FUTURE_ROW" != "1|1" || "$FUTURE_TABLE_EXISTS" != "t" ]]; then
 fi
 assert_baseline_anchor
 assert_old_rows_untouched
-if [[ "$(psql "$TEST_DATABASE_URL" -X -Atc 'SELECT COUNT(*) FROM "_prisma_migrations"')" != "58" ]]; then
-  echo "❌ Expected 56 old rows + baseline anchor + one future delta row." >&2
+if [[ "$(psql "$TEST_DATABASE_URL" -X -Atc 'SELECT COUNT(*) FROM "_prisma_migrations"')" != "$EXPECTED_AFTER_PROBE_ROW_COUNT" ]]; then
+  echo "❌ Expected 56 old rows + baseline anchor + $POST_BASELINE_MIGRATION_COUNT active migration(s) + one future delta row." >&2
   exit 1
 fi
 
