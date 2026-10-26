@@ -157,6 +157,7 @@ export async function submitFaceAnalysis(
         provider,
         model,
         geometryQuality: geometry?.qualityScore,
+        resultStatus: 'algorithm-only',
       })
     }
     const basicResult = buildBasicResult(aiResult, geometry, analysisSource)
@@ -195,7 +196,9 @@ export async function submitFaceAnalysis(
       userId: user.id,
       detectedShape: aiResult.faceShape,
       confidence: aiResult.confidence,
-      analysisSource,
+      provider,
+      model,
+      resultStatus: analysisSource,
       reportUnlocked,
       completionTimeMs: Date.now() - startTime,
     })
