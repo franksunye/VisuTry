@@ -1,0 +1,157 @@
+import { Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
+
+/**
+ * M1a: OFF-by-default foundation. Not called from Store/Campaign or Billing.
+ *
+ * Exactly one Merchant v2 reservation may enter the funded billing-period
+ * capacity per logical Store request. Historical MerchantSponsoredUsage rows
+ * count rolling first value and are NOT the same quota meter.
+ */
+export type MerchantAiPeriodAdmission =
+  | { decision: 'RESERVED'; reservationId: string; usedIncludingReservations: number; limit: number }
+  | { decision: 'EXISTING'; reservationId: string; status: 'RESERVED' | 'SETTLED' | 'RELEASED' }
+  | { decision: 'DENIED'; reason: 'NOT_ENROLLED' | 'PERIOD_INACTIVE' | 'LIMIT_REACHED' | 'SESSION_NOT_FOUND'; usedIncludingReservations?: number; limit?: number }
+
+type ReservationInput = {
+  merchantId: string
+  merchantSessionId: string
+  /** Server-owned Store idempotency key; must identify one logical image. */
+  idempotencyKey: string
+  now?: Date
+}
+
+function assertKey(input: ReservationInput): void {
+  for (const key of [input.merchantId, input.merchantSessionId, input.idempotencyKey]) {
+    if (typeof key !== 'string' || !key.trim() || key.length > 256) {
+      throw new Error('Invalid Merchant AI reservation identity')
+    }
+  }
+}
+
+type ExistingHold = {
+  id: string
+  merchantId: string
+  merchantSessionId: string
+  status: 'RESERVED' | 'SETTLED' | 'RELEASED'
+}
+
+function reuseReservation(input: ReservationInput, hold: ExistingHold): MerchantAiPeriodAdmission {
+  if (hold.merchantId !== input.merchantId || hold.merchantSessionId !== input.merchantSessionId) {
+    throw new Error('Merchant AI reservation tenant mismatch')
+  }
+  return { decision: 'EXISTING', reservationId: hold.id, status: hold.status }
+}
+
+const eligibleMonthlyPlans = new Set(['LAUNCH', 'GROWTH', 'SCALE'])
+const eligibleStatuses = new Set(['PAID_ACTIVE', 'USAGE_WARNING', 'CANCEL_AT_PERIOD_END'])
+
+/**
+ * Admission is derived from persisted Merchant contract and MerchantSession.
+ * Do not accept a caller-provided allowance or period. No path invokes this
+ * in current production; future M1b must perform this BEFORE provider dispatch.
+ *
+ * The v2 cohort must begin with zero in-flight legacy tasks and its first
+ * effective period must not be partially consumed before activation.
+ */
+export async function reserveMerchantAiPeriodRender(input: ReservationInput): Promise<MerchantAiPeriodAdmission> {
+  assertKey(input)
+  const now = input.now ?? new Date()
+  if (!Number.isFinite(now.getTime())) throw new Error('Invalid Merchant AI reservation time')
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const merchant = await tx.merchant.findUnique({
+          where: { id: input.merchantId },
+          select: {
+            id: true, planCode: true, commercialStatus: true,
+            entitlementVersion: true, pricingVersion: true,
+            standardRenderAllowance: true, entitlementEffectiveFrom: true,
+            billingPeriodEnd: true,
+          },
+        })
+        if (!merchant) return { decision: 'DENIED', reason: 'NOT_ENROLLED' } as const
+        // Fail closed unless a new contract explicitly opted into v2. Do not
+        // infer it from a paid plan, existing Pilot, or missing values.
+        const included = merchant.standardRenderAllowance
+        if (
+          merchant.entitlementVersion !== 'v2'
+          || !merchant.pricingVersion?.startsWith('v2-')
+          || !eligibleMonthlyPlans.has(merchant.planCode ?? '')
+          || !eligibleStatuses.has(merchant.commercialStatus ?? '')
+          || !Number.isInteger(included) || included === null || included <= 0
+          || !merchant.entitlementEffectiveFrom || !merchant.billingPeriodEnd
+        ) return { decision: 'DENIED', reason: 'NOT_ENROLLED' } as const
+
+        const start = merchant.entitlementEffectiveFrom
+        const end = merchant.billingPeriodEnd
+        if (start.getTime() >= end.getTime() || now < start || now >= end) {
+          return { decision: 'DENIED', reason: 'PERIOD_INACTIVE' } as const
+        }
+
+        const session = await tx.merchantSession.findFirst({
+          where: { id: input.merchantSessionId, merchantId: input.merchantId },
+          select: { id: true },
+        })
+        if (!session) return { decision: 'DENIED', reason: 'SESSION_NOT_FOUND' } as const
+
+        const existing = await tx.merchantAiRenderReservation.findUnique({
+          where: { idempotencyKey: input.idempotencyKey },
+          select: { id: true, merchantId: true, merchantSessionId: true, status: true },
+        })
+        if (existing) return reuseReservation(input, existing)
+
+        // Serialize all new requests competing for this merchant-period slot.
+        // Serializable retry handles stale snapshots/phantoms after lock waits.
+        const lockKey = `merchant-ai-period:${input.merchantId}:${start.toISOString()}:${end.toISOString()}`
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`
+        const afterLock = await tx.merchantAiRenderReservation.findUnique({
+          where: { idempotencyKey: input.idempotencyKey },
+          select: { id: true, merchantId: true, merchantSessionId: true, status: true },
+        })
+        if (afterLock) return reuseReservation(input, afterLock)
+
+        // M1b will SETTLE a hold atomically with RENDER_SUCCESS after protected
+        // result persistence; both RESERVED and SETTLED occupy the same slot.
+        const used = await tx.merchantAiRenderReservation.count({
+          where: {
+            merchantId: input.merchantId,
+            periodStart: start,
+            periodEnd: end,
+            status: { in: ['RESERVED', 'SETTLED'] },
+          },
+        })
+        if (used >= included) {
+          return { decision: 'DENIED', reason: 'LIMIT_REACHED', usedIncludingReservations: used, limit: included } as const
+        }
+        const reserved = await tx.merchantAiRenderReservation.create({
+          data: {
+            merchantId: input.merchantId,
+            merchantSessionId: input.merchantSessionId,
+            idempotencyKey: input.idempotencyKey,
+            periodStart: start,
+            periodEnd: end,
+            pricingVersion: merchant.pricingVersion,
+            entitlementVersion: merchant.entitlementVersion,
+            includedRenderLimit: included,
+            reservedAt: now,
+          },
+          select: { id: true },
+        })
+        return { decision: 'RESERVED', reservationId: reserved.id, usedIncludingReservations: used + 1, limit: included } as const
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+    } catch (error) {
+      const code = (error as { code?: string })?.code
+      if (code === 'P2002') {
+        const existing = await prisma.merchantAiRenderReservation.findUnique({
+          where: { idempotencyKey: input.idempotencyKey },
+          select: { id: true, merchantId: true, merchantSessionId: true, status: true },
+        })
+        if (existing) return reuseReservation(input, existing)
+      }
+      if (code !== 'P2034' || attempt === 3) throw error
+    }
+  }
+  throw new Error('Merchant AI reservation serialization retries exhausted')
+}
