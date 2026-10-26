@@ -91,7 +91,7 @@ export NEXT_TELEMETRY_DISABLED=1 SKIP_ENV_VALIDATION=1
 export NEXTAUTH_URL=http://127.0.0.1:3003
 export NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3003
 export NEXTAUTH_SECRET=container-only-nextauth-secret
-export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5439/visutry_local_container_e2e
+export DATABASE_URL=postgresql://postgres@127.0.0.1:5439/visutry_local_container_e2e
 export DATABASE_URL_UNPOOLED="$DATABASE_URL" DIRECT_URL="$DATABASE_URL"
 export VISUTRY_DATABASE_IDENTITY=local:127.0.0.1:5439/visutry_local_container_e2e
 export STRIPE_MERCHANT_BILLING_MODE=test STRIPE_SECRET_KEY=sk_test_container_placeholder
