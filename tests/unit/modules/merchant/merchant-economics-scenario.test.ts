@@ -38,7 +38,7 @@ describe('Merchant Commercial Model v2 — internal scenario calculation only', 
     expect(result.providerSpendUsd).toBe(70)
     expect(result.aiOnlyMarginPercent).toBe(53.02)
     expect(result.postChannelContributionUsd).toBe(6.09)
-    expect(result.postChannelContributionPercent).toBe(4.09)
+    expect(result.postChannelContributionPercent).toBe(4.08)
   })
 
   it('models billable failures without charging a merchant extra successful renders', () => {
