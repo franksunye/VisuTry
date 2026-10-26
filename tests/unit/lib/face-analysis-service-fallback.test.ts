@@ -3,6 +3,7 @@
 import type { User } from '@prisma/client'
 import type { FaceGeometryAnalysis } from '@/types/face-analysis'
 import { submitFaceAnalysis } from '@/lib/face-analysis-service'
+import { logger } from '@/lib/logger'
 
 const mockPut = jest.fn()
 const mockCreate = jest.fn()
@@ -82,6 +83,16 @@ describe('Face Analysis algorithm-only service fallback', () => {
     expect(data.detectedShape).toBe('diamond')
     expect(data.reportUnlocked).toBe(true)
     expect(data.metadata.analysisSource).toBe('algorithm-only')
+    expect(logger.warn).toHaveBeenCalledWith(
+      'face-analysis-service',
+      'AI provider failed; completed with landmark-only analysis',
+      expect.objectContaining({ provider: 'kie', resultStatus: 'algorithm-only', taskId: 'task-1' }),
+    )
+    expect(logger.info).toHaveBeenCalledWith(
+      'face-analysis-service',
+      'Face analysis task completed',
+      expect.objectContaining({ provider: 'kie', resultStatus: 'algorithm-only', taskId: 'task-1' }),
+    )
   })
 
   it('keeps the existing locked report and full report storage semantics', async () => {
@@ -113,6 +124,12 @@ describe('Face Analysis algorithm-only service fallback', () => {
     expect(result.basicResult?.faceShape).toBe('square')
     expect(result.basicResult?.analysisSource).toBe('ai-assisted')
     expect(mockUpdate.mock.calls[0][0].data.metadata.analysisSource).toBe('ai-assisted')
+    expect(logger.info).toHaveBeenCalledWith(
+      'face-analysis-service',
+      'Face analysis task completed',
+      expect.objectContaining({ provider: 'kie', resultStatus: 'ai-assisted' }),
+    )
+    expect(logger.warn).not.toHaveBeenCalled()
   })
 
   it('also uses landmark-only fallback for a Grsai failure', async () => {
@@ -122,5 +139,10 @@ describe('Face Analysis algorithm-only service fallback', () => {
     expect(result.basicResult?.analysisSource).toBe('algorithm-only')
     expect(mockGrsai).toHaveBeenCalledTimes(1)
     expect(mockKie).not.toHaveBeenCalled()
+    expect(logger.warn).toHaveBeenCalledWith(
+      'face-analysis-service',
+      'AI provider failed; completed with landmark-only analysis',
+      expect.objectContaining({ provider: 'grsai', resultStatus: 'algorithm-only' }),
+    )
   })
 })

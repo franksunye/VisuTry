@@ -147,6 +147,32 @@ describe('normalizeLogData', () => {
     expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.has('data.source_class')).toBe(false)
   })
 
+  it('preserves Face Analysis result provenance through the existing Axiom resultStatus field', () => {
+    for (const resultStatus of ['algorithm-only', 'ai-assisted']) {
+      const serialized = serializeAxiomRecord({
+        id: 'face-analysis-result-log',
+        timestamp: '2026-10-26T00:00:00.000Z',
+        level: 'info',
+        category: 'face-analysis-service',
+        message: 'Face analysis task completed',
+        data: {
+          taskId: 'task-1',
+          provider: 'kie',
+          model: 'gemini-3-8-flash-openai',
+          resultStatus,
+          analysisSource: resultStatus,
+        } as never,
+      })
+      expect(serialized.data).toMatchObject({
+        taskId: 'task-1', provider: 'kie', model: 'gemini-3-8-flash-openai', resultStatus,
+      })
+      expect(serialized.data).not.toHaveProperty('analysisSource')
+      expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.has('data.resultStatus')).toBe(true)
+      expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.has('data.analysisSource')).toBe(false)
+      expect(collectSerializedKeys(serialized).every(key => VISUTRY_PRO_FIELDS.has(key))).toBe(true)
+    }
+  })
+
   it('keeps every operational serializer key inside the checked-in production schema', () => {
     expect(VISUTRY_PRO_FIELDS.size).toBe(262)
     expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.size).toBe(182)
