@@ -254,12 +254,14 @@ async function markStoreClaimFailed(
  * Atomically claim a placeholder TryOnTask + RENDER_ATTEMPT (+ merchant abuse bump).
  * Reuse of the same idempotency key burns no additional attempt.
  */
-async function claimStoreTryOnSlot(input: {
+export async function claimStoreTryOnSlot(input: {
   merchantId: string
   merchantSessionId: string
   merchantFrameId: string
   idempotencyKey: string
   clientSubmissionId: string
+  /** Internal deterministic PostgreSQL contract-clock override; public API cannot set this. */
+  now?: Date
   clientIp?: string | null
   expiresAt?: Date
   renderLimits: import('../domain').StoreDemoLimits
@@ -434,6 +436,7 @@ async function claimStoreTryOnSlot(input: {
                 merchantId: input.merchantId,
                 merchantSessionId: input.merchantSessionId,
                 idempotencyKey: input.idempotencyKey,
+                now: input.now,
               })
               if (admission.decision === 'DENIED') {
                 const exhausted = admission.reason === 'LIMIT_REACHED'
