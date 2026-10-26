@@ -1,7 +1,7 @@
 import { submitStoreTryOnTask } from '@/modules/store/infrastructure/generation/submit-store-tryon-task'
 import { prisma } from '@/lib/prisma'
 import { submitKieTask, KieProviderError } from '@/lib/kie'
-import { selectNewTryOnProvider } from '@/lib/generation/kie-routing'
+import { selectNewTryOnProvider } from '@/lib/generation/ai-provider-routing'
 import { mockBlobUpload } from '@/lib/mocks/blob'
 import { startGenerationRequest, startGenerationAttempt, markGenerationAttemptSubmitted } from '@/lib/generation/telemetry'
 import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
@@ -17,7 +17,7 @@ jest.mock('@/lib/kie', () => ({
   ...jest.requireActual('@/lib/kie'),
   submitKieTask: jest.fn(),
 }))
-jest.mock('@/lib/generation/kie-routing', () => ({ selectNewTryOnProvider: jest.fn() }))
+jest.mock('@/lib/generation/ai-provider-routing', () => ({ selectNewTryOnProvider: jest.fn() }))
 jest.mock('@/lib/mocks', () => ({ isMockMode: true }))
 jest.mock('@/lib/mocks/blob', () => ({ mockBlobUpload: jest.fn() }))
 jest.mock('@/lib/generation/telemetry', () => ({

@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { buildFaceAnalysisPrompt } from '@/lib/prompts/face-analysis-prompt'
 import { analyzeFaceWithGrsAi } from '@/lib/grsai-face-analysis'
+import { analyzeFaceWithKie, KIE_FACE_ANALYSIS_MODEL } from '@/lib/kie-face-analysis'
+import { selectFaceAnalysisProvider } from '@/lib/generation/ai-provider-routing'
 import { normalizeGeometryAnalysis } from '@/lib/face-landmark-metrics'
 import {
   getFaceAnalysisBlobOptions,
@@ -86,10 +88,16 @@ export async function submitFaceAnalysis(
   }
 ): Promise<FaceAnalysisSubmitResult> {
   const startTime = Date.now()
+  // Pin the provider before storing any task or dispatching media. A later
+  // operator switch must never reroute this already-created analysis task.
+  const provider = selectFaceAnalysisProvider()
+  const serviceType = provider === 'kie' ? 'kie-face-chat' : 'grsai-face-chat'
+  const model = provider === 'kie' ? KIE_FACE_ANALYSIS_MODEL : FACE_ANALYSIS_MODEL
   const geometry = normalizeGeometryAnalysis(options?.geometry)
   const baseMetadata = {
-    serviceType: 'grsai-face-chat',
-    model: FACE_ANALYSIS_MODEL,
+    serviceType,
+    provider,
+    model,
     clientSubmissionId: options?.clientSubmissionId,
     originalFileName: userImageFile.name,
     geometry,
@@ -128,7 +136,9 @@ export async function submitFaceAnalysis(
     const imageMime = userImageFile.type || 'image/jpeg'
     const imageDataUri = `data:${imageMime};base64,${imageBuffer.toString('base64')}`
 
-    const rawContent = await analyzeFaceWithGrsAi(imageDataUri, prompt)
+    const rawContent = provider === 'kie'
+      ? await analyzeFaceWithKie(imageDataUri, prompt)
+      : await analyzeFaceWithGrsAi(imageDataUri, prompt)
     const aiResult = parseFaceAnalysisContent(rawContent)
     const basicResult = buildBasicResult(aiResult, geometry)
     const fullResult = buildFullResult(aiResult, geometry)
@@ -137,8 +147,9 @@ export async function submitFaceAnalysis(
 
     const reportUnlocked = options?.reportUnlocked ?? false
     const completionMetadata = toJsonSafe({
-      serviceType: 'grsai-face-chat',
-      model: FACE_ANALYSIS_MODEL,
+      serviceType,
+      provider,
+      model,
       clientSubmissionId: options?.clientSubmissionId,
       completionTimeMs: Date.now() - startTime,
       geometry,
@@ -171,7 +182,7 @@ export async function submitFaceAnalysis(
     return {
       taskId: task.id,
       status: 'completed',
-      serviceType: 'grsai-face-chat',
+      serviceType,
       basicResult,
       fullResult: reportUnlocked ? fullResult : undefined,
       reportUnlocked,

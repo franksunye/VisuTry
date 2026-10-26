@@ -88,7 +88,11 @@ function submissionTimeout(deadlineAt: number | undefined, stage: 'upload' | 'su
   return Math.min(REQUEST_TIMEOUT_MS, remaining)
 }
 
-async function uploadReference(imageDataUri: string, deadlineAt?: number): Promise<string> {
+async function uploadReference(
+  imageDataUri: string,
+  deadlineAt?: number,
+  uploadPath: 'visutry/tryon/references' | 'visutry/face-analysis/references' = 'visutry/tryon/references',
+): Promise<string> {
   const { bytes, mime } = mediaFromDataUri(imageDataUri)
   const form = new FormData()
   const extension = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg'
@@ -96,7 +100,7 @@ async function uploadReference(imageDataUri: string, deadlineAt?: number): Promi
   const imageBuffer = new ArrayBuffer(bytes.byteLength)
   new Uint8Array(imageBuffer).set(bytes)
   form.append('file', new Blob([imageBuffer], { type: mime }), fileName)
-  form.append('uploadPath', 'visutry/tryon/references')
+  form.append('uploadPath', uploadPath)
   form.append('fileName', fileName)
 
   let response: Response
@@ -118,6 +122,11 @@ async function uploadReference(imageDataUri: string, deadlineAt?: number): Promi
     throw new KieProviderError('upload', 'not-sent', 'Kie reference upload rejected')
   }
   return url
+}
+
+/** Server-only staging for a single Face Analysis request; never return this URL to a client. */
+export async function uploadKieFaceAnalysisImage(imageDataUri: string, deadlineAt: number): Promise<string> {
+  return uploadReference(imageDataUri, deadlineAt, 'visutry/face-analysis/references')
 }
 
 /**

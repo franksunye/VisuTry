@@ -11,7 +11,7 @@ import {
 } from "@/modules/store/application/store-dispatch-lease"
 import { submitAsyncTask } from "@/lib/grsai"
 import { submitKieTask, KieProviderError } from "@/lib/kie"
-import { selectNewTryOnProvider } from "@/lib/generation/kie-routing"
+import { selectNewTryOnProvider } from "@/lib/generation/ai-provider-routing"
 import { logger } from "@/lib/logger"
 import { TaskStatus, TryOnType } from "@prisma/client"
 import { randomUUID } from "node:crypto"
