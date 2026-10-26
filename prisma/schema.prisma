@@ -695,6 +695,7 @@ model Merchant {
   assets   StoreAsset[]
   usage    MerchantUsageLedger[]
   sponsoredUsages MerchantSponsoredUsage[]
+  aiRenderReservations MerchantAiRenderReservation[]
   tryOnTasks TryOnTask[]
   orphanBlobs StoreOrphanBlob[]
   abuseCounters StoreAbuseCounter[]
@@ -1132,6 +1133,7 @@ model Experience {
   intents  MerchantIntent[]
   events   MerchantEvent[]
   sponsoredUsages MerchantSponsoredUsage[]
+  aiRenderReservations MerchantAiRenderReservation[]
   decisionResults DecisionResult[]
 
   createdAt DateTime @default(now())
@@ -1411,6 +1413,39 @@ model MerchantSponsoredUsage {
   @@index([merchantId, shopperIdentityHash, usageType, createdAt], map: "MerchantSponsoredUsage_merchantId_shopperIdentityHash_usageType")
   @@index([merchantId, userId, usageType, createdAt], map: "MerchantSponsoredUsage_merchantId_userId_usageType_createdAt_id")
   @@index([status, reservedAt])
+}
+
+enum MerchantAiRenderReservationStatus {
+  RESERVED
+  SETTLED
+  RELEASED
+}
+
+/// Opt-in Merchant v2 billing-period admission. Not a Consumer credit or
+/// rolling sponsored-use meter. No runtime path uses this table by default.
+model MerchantAiRenderReservation {
+  id                  String @id @default(cuid())
+  merchantId          String
+  merchantSessionId   String
+  idempotencyKey      String @unique
+  periodStart         DateTime
+  periodEnd           DateTime
+  pricingVersion      String
+  entitlementVersion  String
+  includedRenderLimit Int
+  status              MerchantAiRenderReservationStatus @default(RESERVED)
+  tryOnTaskId         String? @unique
+  reservedAt          DateTime @default(now())
+  settledAt           DateTime?
+  releasedAt          DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  session MerchantSession @relation(fields: [merchantSessionId, merchantId], references: [id, merchantId], onDelete: Restrict)
+
+  @@index([merchantId, periodStart, periodEnd, status])
+  @@index([merchantId, merchantSessionId, status])
 }
 
 /// Blobs uploaded without a durable task/asset row — cleaned by cron.
