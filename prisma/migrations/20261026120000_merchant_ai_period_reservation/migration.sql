@@ -30,10 +30,10 @@ ON "MerchantAiRenderReservation"("idempotencyKey");
 CREATE UNIQUE INDEX "MerchantAiRenderReservation_tryOnTaskId_key"
 ON "MerchantAiRenderReservation"("tryOnTaskId");
 
-CREATE INDEX "MerchantAiRenderReservation_merchantId_periodStart_periodEnd_status_idx"
+CREATE INDEX "MerchantAiRenderReservation_period_status_idx"
 ON "MerchantAiRenderReservation"("merchantId", "periodStart", "periodEnd", "status");
 
-CREATE INDEX "MerchantAiRenderReservation_merchantId_merchantSessionId_status_idx"
+CREATE INDEX "MerchantAiRenderReservation_session_status_idx"
 ON "MerchantAiRenderReservation"("merchantId", "merchantSessionId", "status");
 
 ALTER TABLE "MerchantAiRenderReservation"
