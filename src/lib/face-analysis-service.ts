@@ -15,6 +15,7 @@ import {
   resolveFaceAnalysisBlobAccessMode,
 } from '@/lib/face-analysis-blob-access'
 import {
+  buildAlgorithmOnlyFaceAnalysis,
   buildBasicResult,
   buildFullResult,
   buildLockedTeaser,
@@ -136,12 +137,30 @@ export async function submitFaceAnalysis(
     const imageMime = userImageFile.type || 'image/jpeg'
     const imageDataUri = `data:${imageMime};base64,${imageBuffer.toString('base64')}`
 
-    const rawContent = provider === 'kie'
-      ? await analyzeFaceWithKie(imageDataUri, prompt)
-      : await analyzeFaceWithGrsAi(imageDataUri, prompt)
-    const aiResult = parseFaceAnalysisContent(rawContent)
-    const basicResult = buildBasicResult(aiResult, geometry)
-    const fullResult = buildFullResult(aiResult, geometry)
+    let aiResult: ReturnType<typeof parseFaceAnalysisContent>
+    let analysisSource: 'ai-assisted' | 'algorithm-only' = 'ai-assisted'
+    try {
+      const rawContent = provider === 'kie'
+        ? await analyzeFaceWithKie(imageDataUri, prompt)
+        : await analyzeFaceWithGrsAi(imageDataUri, prompt)
+      aiResult = parseFaceAnalysisContent(rawContent)
+    } catch (providerError) {
+      // This is the only fallback boundary: never hide Blob or database failures.
+      // Do not retry an ambiguous provider submission (cost / duplicate safety).
+      const measuredResult = buildAlgorithmOnlyFaceAnalysis(geometry)
+      if (!measuredResult) throw providerError
+      aiResult = measuredResult
+      analysisSource = 'algorithm-only'
+      logger.warn('face-analysis-service', 'AI provider failed; completed with landmark-only analysis', {
+        taskId: task.id,
+        userId: user.id,
+        provider,
+        model,
+        geometryQuality: geometry?.qualityScore,
+      })
+    }
+    const basicResult = buildBasicResult(aiResult, geometry, analysisSource)
+    const fullResult = buildFullResult(aiResult, geometry, analysisSource)
     const basicResultJson = toJsonSafe(basicResult)
     const fullResultJson = toJsonSafe(fullResult)
 
@@ -152,6 +171,7 @@ export async function submitFaceAnalysis(
       model,
       clientSubmissionId: options?.clientSubmissionId,
       completionTimeMs: Date.now() - startTime,
+      analysisSource,
       geometry,
       blobAccess,
       blobPathname: blob.pathname,
@@ -175,6 +195,7 @@ export async function submitFaceAnalysis(
       userId: user.id,
       detectedShape: aiResult.faceShape,
       confidence: aiResult.confidence,
+      analysisSource,
       reportUnlocked,
       completionTimeMs: Date.now() - startTime,
     })
