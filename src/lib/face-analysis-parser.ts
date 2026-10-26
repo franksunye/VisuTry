@@ -78,7 +78,8 @@ function getCatalogEntry(shape: CanonicalFaceShape) {
 
 export function buildBasicResult(
   ai: FaceAnalysisAiResult,
-  geometry?: FaceGeometryAnalysis | null
+  geometry?: FaceGeometryAnalysis | null,
+  analysisSource: 'ai-assisted' | 'algorithm-only' = 'ai-assisted'
 ): FaceAnalysisBasicResult {
   const catalog = getCatalogEntry(ai.faceShape)
   return {
@@ -95,6 +96,7 @@ export function buildBasicResult(
           ? [catalog.displayName]
           : [],
     geometry: geometry ?? undefined,
+    analysisSource,
   }
 }
 
@@ -108,9 +110,10 @@ export function buildLockedTeaser(full: FaceAnalysisFullResult): FaceAnalysisLoc
 
 export function buildFullResult(
   ai: FaceAnalysisAiResult,
-  geometry?: FaceGeometryAnalysis | null
+  geometry?: FaceGeometryAnalysis | null,
+  analysisSource: 'ai-assisted' | 'algorithm-only' = 'ai-assisted'
 ): FaceAnalysisFullResult {
-  const basic = buildBasicResult(ai, geometry)
+  const basic = buildBasicResult(ai, geometry, analysisSource)
   const catalog = getCatalogEntry(ai.faceShape)
   const frameRecommendations = buildFrameRecommendations(ai.faceShape)
   const avoidRecommendations = buildAvoidRecommendations(ai.faceShape)
@@ -144,6 +147,37 @@ export function buildFullResult(
     styleTips,
     tryOnGuidance: buildTryOnGuidance(ai.faceShape),
     geometry: geometry ?? undefined,
+  }
+}
+
+/** Use only reliable on-device measurements; never guess an oval face on provider failure. */
+export function buildAlgorithmOnlyFaceAnalysis(
+  geometry: FaceGeometryAnalysis | null
+): FaceAnalysisAiResult | null {
+  if (
+    geometry?.status !== 'measured' ||
+    geometry.source !== 'mediapipe-face-landmarker' ||
+    !geometry.faceDetected ||
+    geometry.faceCount !== 1 ||
+    geometry.qualityScore < 60 ||
+    !geometry.ratios ||
+    !geometry.measuredShape ||
+    typeof geometry.measuredConfidence !== 'number' ||
+    !Number.isFinite(geometry.measuredConfidence) ||
+    geometry.measuredConfidence < 0.5
+  ) return null
+
+  const shape = geometry.measuredShape
+  const catalog = getCatalogEntry(shape)
+  const displayName = catalog?.displayName ?? shape
+  return {
+    faceShape: shape,
+    confidence: geometry.measuredConfidence,
+    summary: `On-device facial landmark measurements indicate a ${displayName.toLowerCase()}. AI interpretation is temporarily unavailable; frame suggestions below use general face-shape guidance.`,
+    keyFeatures: geometry.signals.slice(0, 5),
+    bestFrames: [],
+    framesToAvoid: [],
+    styleGuide: 'Frame suggestions are based on measured face proportions and general styling guidance, without AI interpretation.',
   }
 }
 
