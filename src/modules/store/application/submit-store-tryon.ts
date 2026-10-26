@@ -282,6 +282,7 @@ export async function claimStoreTryOnSlot(input: {
   taskId: string
   reusedExisting: boolean
   dispatchLease: DispatchFence | null
+  merchantAiReservationId: string | null
 }> {
   const maxAttempts = 3
   const abuseWindow = dayWindowStart()
@@ -304,7 +305,12 @@ export async function claimStoreTryOnSlot(input: {
                 409,
               )
             }
-            return { taskId: existing.id, reusedExisting: true, dispatchLease: null }
+            const existingMeta = (existing.metadata ?? {}) as Record<string, unknown>
+            return {
+              taskId: existing.id, reusedExisting: true, dispatchLease: null,
+              merchantAiReservationId: typeof existingMeta.merchantAiReservationId === 'string'
+                ? existingMeta.merchantAiReservationId : null,
+            }
           }
 
           await reserveStoreBatchFrame(tx, {
@@ -527,6 +533,7 @@ export async function claimStoreTryOnSlot(input: {
             taskId: task.id,
             reusedExisting: false,
             dispatchLease: { owner: leaseOwner, version: 1 },
+            merchantAiReservationId,
           }
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
@@ -535,11 +542,16 @@ export async function claimStoreTryOnSlot(input: {
       if (error instanceof StoreDomainError) throw error
       const code = (error as { code?: string })?.code
       if (code === 'P2002') {
-        const raced = await prisma.tryOnTask.findUnique({
+        const raced = await (input.db ?? prisma).tryOnTask.findUnique({
           where: { idempotencyKey: input.idempotencyKey },
         })
         if (raced) {
-          return { taskId: raced.id, reusedExisting: true, dispatchLease: null }
+          const racedMeta = (raced.metadata ?? {}) as Record<string, unknown>
+          return {
+            taskId: raced.id, reusedExisting: true, dispatchLease: null,
+            merchantAiReservationId: typeof racedMeta.merchantAiReservationId === 'string'
+              ? racedMeta.merchantAiReservationId : null,
+          }
         }
       }
       if (code !== 'P2034' || attempt === maxAttempts) throw error
@@ -979,11 +991,13 @@ export async function submitStoreFrameTryOn(
     // Release only if a durable terminal failure proves that dispatch never
     // happened (or the provider's accepted task conclusively failed).
     // UNKNOWN remains RESERVED and cannot fund a duplicate provider create.
-    await releaseMerchantAiRenderForTerminalFailure({
-      taskId: claim.taskId,
-      merchantId: merchant.id,
-      merchantSessionId: session.id,
-    })
+    if (claim.merchantAiReservationId) {
+      await releaseMerchantAiRenderForTerminalFailure({
+        taskId: claim.taskId,
+        merchantId: merchant.id,
+        merchantSessionId: session.id,
+      })
+    }
     if (!markedFailed) throw error
 
     await recordStoreTryOnAttempt({

@@ -91,6 +91,7 @@ async function claim(f: Fixture, key: string, at: Date = now) {
 async function main() {
   const a = await fixture('concurrency', 1); fixtures.push(a)
   const b = await fixture('failure', 1); fixtures.push(b)
+  const idem = await fixture('same-key', 1); fixtures.push(idem)
   const v1 = await fixture('legacy', 1, 'v1'); fixtures.push(v1)
 
   try {
@@ -126,6 +127,21 @@ async function main() {
     assert.equal((await claim(a, 'after-success-' + suffix)).decision, 'DENIED')
     assert.equal((await claim(a, 'left-' + suffix)).decision, 'EXISTING',
       'same logical request remains bound to its original period/task')
+
+    // The same key under simultaneous requests must map to one task and
+    // exactly one mock dispatch. The Store claim re-checks idempotency after
+    // PostgreSQL serializable conflicts rather than reusing capacity.
+    const dispatchBeforeReplay = simulatedDispatchCount
+    const [replayOne, replayTwo] = await Promise.all([
+      claim(idem, 'same-key-' + suffix), claim(idem, 'same-key-' + suffix),
+    ])
+    assert.equal(replayOne.taskId, replayTwo.taskId)
+    assert.deepEqual([replayOne.decision, replayTwo.decision].sort(),
+      ['EXISTING', 'RESERVED'])
+    assert.equal(simulatedDispatchCount, dispatchBeforeReplay + 1)
+    assert.equal(await db.merchantAiRenderReservation.count({
+      where: { merchantId: idem.merchantId },
+    }), 1)
 
     // Renewal must count a different period while preserving the old SETTLED.
     const newPeriodEnd = new Date(periodEnd.getTime() + 30 * 24 * 3600_000)
@@ -200,6 +216,7 @@ async function main() {
     console.log(JSON.stringify({
       result: 'PASS', localPostgres: true, simulatedDispatchOnly: true,
       finalSlotConcurrentWinners: winners.length,
+      sameKeyConcurrentSingleTask: true,
       ambiguousRemainsReserved: true, onceOnlySuccess: true,
       legacyUnchanged: true,
     }))
