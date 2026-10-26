@@ -392,14 +392,14 @@ test.describe('@critical Store Pilot Flow', () => {
     await recommendationSection.locator('ul button').first().click();
     await page.locator('[data-selection-cta="desktop"]').click();
     await expect(page.getByText('Frames ready')).toBeVisible();
-    await page.getByRole('button', { name: 'Try on 1 frame' }).click();
-    await expect(page.getByRole('button', { name: 'Retry', exact: true })).toBeVisible();
+    await page.getByTestId('store-tryon-start').click();
+    await expect(page.getByTestId('store-tryon-try-again')).toBeVisible();
     await expect(page.getByRole('alert').filter({ hasText: /Your sponsored Try-On is used|Your Consumer credits are unavailable/ })).toHaveCount(0);
     expect(pollCalls).toBe(0);
 
-    await page.getByRole('button', { name: 'Retry', exact: true }).click();
+    await page.getByTestId('store-tryon-try-again').click();
     await expect.poll(() => pollCalls).toBeGreaterThan(0);
-    await expect(page.getByRole('button', { name: 'Retry', exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('store-tryon-try-again')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'View product', exact: true })).toBeVisible();
   });
 
