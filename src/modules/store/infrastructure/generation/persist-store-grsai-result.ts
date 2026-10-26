@@ -1,5 +1,5 @@
 /**
- * Store-specific GrsAI result persistence (private blob + result leases).
+ * Store-specific provider result persistence (existing Blob policy + result leases).
  * Registered into shared poll core — Consumer tryon-service must not import this.
  */
 
@@ -18,6 +18,7 @@ import type {
 } from '@/lib/generation/tryon-result-persist'
 import type { TryOnPollResult } from '@/lib/generation/tryon-types'
 import { recordUsableGenerationSuccess } from '@/lib/generation/telemetry'
+import { readBoundedKieResult, kieResultExtension } from '@/lib/generation/kie-result-media'
 
 async function storeCompletedResult(taskId: string, result: TryOnPollResult): Promise<TryOnPollResult> {
   if (result.status === TaskStatus.COMPLETED) {
@@ -41,7 +42,26 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
 
   const storeResultPolicy = resolveStoreAssetAccessPolicy()
   const resultOwnerKey = `store/${merchantId ?? taskId}`
-  const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.png`
+  const isKie = externalPollMetadata.serviceType === 'kie'
+  const resultBasePath = `tryon/result/${resultOwnerKey}/${taskId}`
+  let resultPathname = `${resultBasePath}.png`
+
+  // A peer may have already persisted JPEG/PNG/WebP. Check the real pathname
+  // when reconciling a leased result; never pretend a JPEG is a .png blob.
+  async function findExistingResult(): Promise<{ url: string; pathname: string }> {
+    const paths = isKie
+      ? ['jpg', 'png', 'webp'].map(ext => `${resultBasePath}.${ext}`)
+      : [resultPathname]
+    for (const pathname of paths) {
+      try {
+        const existing = await head(pathname)
+        return { url: existing.url, pathname }
+      } catch {
+        // No matching object yet; inspect the next supported media format.
+      }
+    }
+    throw new Error('Store result blob unavailable')
+  }
 
   if (latestBeforePersist?.status === TaskStatus.COMPLETED) {
     return storeCompletedResult(taskId, {
@@ -61,7 +81,7 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
       latestBeforePersist.resultPersistLeaseUntil.getTime() > now.getTime()
     if (leaseIsActive) {
       try {
-        const existing = await head(resultPathname)
+        const existing = await findExistingResult()
         const updateResult = await prisma.tryOnTask.updateMany({
           where: {
             id: taskId,
@@ -74,7 +94,7 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
             metadata: {
               ...metaBefore,
               ...externalPollMetadata,
-              resultPathname,
+              resultPathname: existing.pathname,
               resultAssetAccessMode: storeResultPolicy.assetAccessMode,
               privateBlob: !storeResultPolicy.publicPoc,
               privatePersistPending: false,
@@ -109,7 +129,7 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
     })
     if (!acquired) {
       try {
-        const existing = await head(resultPathname)
+        const existing = await findExistingResult()
         const reconciled = await prisma.tryOnTask.updateMany({
           where: { id: taskId, status: { not: TaskStatus.COMPLETED } },
           data: {
@@ -119,7 +139,7 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
             metadata: {
               ...metaBefore,
               ...externalPollMetadata,
-              resultPathname,
+              resultPathname: existing.pathname,
               resultAssetAccessMode: storeResultPolicy.assetAccessMode,
               privateBlob: !storeResultPolicy.publicPoc,
               privatePersistPending: false,
@@ -149,12 +169,17 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
 
   let persistedUrl: string | null = null
   try {
-    const response = await fetch(pollImageUrl)
+    const response = await fetch(
+      pollImageUrl,
+      isKie ? { redirect: 'error', cache: 'no-store' } : undefined,
+    )
     if (!response.ok) {
       throw new Error(`Failed to fetch provider result (${response.status})`)
     }
-    const blob = await response.blob()
-    const file = new File([blob], `result-${taskId}.png`, { type: blob.type || 'image/png' })
+    const blob = isKie ? await readBoundedKieResult(response) : await response.blob()
+    const extension = isKie ? kieResultExtension(blob.type) : 'png'
+    resultPathname = `${resultBasePath}.${extension}`
+    const file = new File([blob], `result-${taskId}.${extension}`, { type: blob.type || 'image/png' })
 
     if (isMockMode) {
       const uploaded = await mockBlobUpload(resultPathname, file)
@@ -168,7 +193,7 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
         persistedUrl = uploadedBlob.url
       } catch (putError) {
         if (!isBlobConflictError(putError)) throw putError
-        const existing = await head(resultPathname)
+        const existing = await findExistingResult()
         persistedUrl = existing.url
         logger.debug('store', 'Store result blob already present; reconciling', {
           taskId,
@@ -191,7 +216,7 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
 
     if (isBlobConflictError(uploadError) && !isMockMode) {
       try {
-        const existing = await head(resultPathname)
+        const existing = await findExistingResult()
         persistedUrl = existing.url
       } catch {
         persistedUrl = null

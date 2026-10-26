@@ -10,6 +10,8 @@ import {
   type DispatchFence,
 } from "@/modules/store/application/store-dispatch-lease"
 import { submitAsyncTask } from "@/lib/grsai"
+import { submitKieTask, KieProviderError } from "@/lib/kie"
+import { selectNewTryOnProvider } from "@/lib/generation/kie-routing"
 import { logger } from "@/lib/logger"
 import { TaskStatus, TryOnType } from "@prisma/client"
 import { randomUUID } from "node:crypto"
@@ -26,7 +28,7 @@ import {
   recordGenerationFailure,
   generationLogFields,
 } from "@/lib/generation/telemetry"
-import { GRSAI_TRY_ON_MODEL } from "@/lib/generation/providers"
+import { GRSAI_TRY_ON_MODEL, KIE_TRY_ON_MODEL } from "@/lib/generation/providers"
 
 function submissionResultFromTask(task: {
   id: string
@@ -71,7 +73,7 @@ export type StoreTryOnAttribution = {
 /**
  * Store-attributed Try-On submission.
  * Does not require a consumer User and never settles consumer credits.
- * Forces GrsAI async path for D0 parity with Frame Compare.
+ * Uses the shared new-task provider selection; Store sponsorship remains local.
  */
 export async function submitStoreTryOnTask(
   attribution: StoreTryOnAttribution,
@@ -102,9 +104,12 @@ export async function submitStoreTryOnTask(
   const resolvedPrompt = resolveTryOnPrompt(TryOnType.GLASSES, options?.prompt)
   const effectivePrompt = resolvedPrompt.detailedInstructions
   const promptVersion = resolvedPrompt.version
-  const serviceType = 'grsai'
   const isAsync = true
   const storeAssetPolicy = resolveStoreAssetAccessPolicy()
+  // Operator routing applies only to newly claimed requests. Store/Campaign
+  // keep the same selected storage access policy as Grsai.
+  const serviceType = selectNewTryOnProvider('store')
+  const providerModel = serviceType === 'kie' ? KIE_TRY_ON_MODEL : GRSAI_TRY_ON_MODEL
   const metadataTelemetry = (options?.metadata ?? {}) as Record<string, unknown>
   const telemetryOrigin =
     metadataTelemetry.telemetryOrigin === 'CAMPAIGN' ? 'CAMPAIGN' : 'STORE'
@@ -249,8 +254,8 @@ export async function submitStoreTryOnTask(
     campaignId: telemetryCampaignId,
     clientSubmissionId,
     generationType: 'GLASSES',
-    provider: 'grsai',
-    model: GRSAI_TRY_ON_MODEL,
+    provider: serviceType,
+    model: providerModel,
     startedAt: task.createdAt,
     isTest: telemetryIsTest,
   })
@@ -387,6 +392,128 @@ export async function submitStoreTryOnTask(
     const userDataUri = `data:${userMime};base64,${userBuffer.toString('base64')}`
     const itemDataUri = `data:${itemMime};base64,${itemBuffer.toString('base64')}`
 
+    // Kie has no cross-provider idempotent createTask endpoint. Persist
+    // PROCESSING/UNKNOWN before outbound submission; never turn an ambiguous
+    // response into FAILED or permit an automatic re-dispatch.
+    if (serviceType === 'kie') {
+      const attemptHandle = await startGenerationAttempt({
+        tryOnTaskId: task.id,
+        provider: 'kie',
+        model: KIE_TRY_ON_MODEL,
+      })
+      const armed = await prisma.tryOnTask.updateMany({
+        where: {
+          id: task.id,
+          dispatchLeaseOwner: dispatchFence.owner,
+          dispatchVersion: dispatchFence.version,
+          status: TaskStatus.PENDING,
+        },
+        data: {
+          status: TaskStatus.PROCESSING,
+          metadata: {
+            ...(task.metadata as object),
+            serviceType: 'kie',
+            isAsync: true,
+            dispatchOutcome: 'UNKNOWN',
+            providerSubmissionStatus: 'SUBMITTING',
+          },
+        },
+      })
+      if (armed.count !== 1) {
+        throw new Error('Store Kie dispatch lease lost before submission')
+      }
+      let acceptedId: string | undefined
+      const submitStartedAt = Date.now()
+      const attemptLog = generationLogFields(attemptHandle, {
+        tryOnTaskId: task.id,
+        clientSubmissionId,
+        origin: telemetryOrigin,
+        provider: 'kie',
+        model: KIE_TRY_ON_MODEL,
+      })
+      try {
+        providerStarted = true
+        // Includes both reference uploads and the single non-idempotent
+        // createTask. The route has a 60-second execution budget.
+        acceptedId = await submitKieTask(
+          userDataUri, itemDataUri, effectivePrompt, promptVersion,
+          startTime + 50_000,
+        )
+        const committed = await prisma.tryOnTask.updateMany({
+          where: {
+            id: task.id,
+            dispatchLeaseOwner: dispatchFence.owner,
+            dispatchVersion: dispatchFence.version,
+            status: TaskStatus.PROCESSING,
+          },
+          data: {
+            dispatchLeaseOwner: null,
+            dispatchLeaseUntil: null,
+            metadata: {
+              ...(task.metadata as object),
+              externalTaskId: acceptedId,
+              serviceType: 'kie',
+              isAsync: true,
+              dispatchOutcome: 'ACCEPTED',
+              providerSubmissionStatus: 'ACCEPTED',
+              dispatchMs: Date.now() - startTime,
+              inputAssetAccessMode: storeAssetPolicy.assetAccessMode,
+              privateBlob: storeAssetPolicy.blobAccess === 'private',
+            },
+          },
+        })
+        if (committed.count !== 1) {
+          throw new Error('Store Kie task accepted but local dispatch fence changed')
+        }
+        // Telemetry/usage write failure must never erase the already-persisted
+        // provider ID or allow a second billable task.
+        try {
+          await markGenerationAttemptSubmitted(task.id, acceptedId, Date.now() - submitStartedAt)
+        } catch (telemetryError) {
+          logger.warn('store', 'Accepted Kie task needs telemetry reconciliation', {
+            taskId: task.id, merchantId,
+          })
+        }
+        try {
+          await options?.onProviderAccepted?.()
+        } catch (accountingError) {
+          logger.error('store', 'Kie task accepted; sponsored usage reconciliation required',
+            accountingError as Error, { taskId: task.id, merchantId })
+        }
+        return { taskId: task.id, status: 'submitted', serviceType: 'kie', isAsync: true }
+      } catch (error) {
+        const definitelyNotSent =
+          error instanceof KieProviderError && error.acceptance === 'not-sent'
+        if (definitelyNotSent) {
+          // No billable createTask was sent. Explicit retries may use a NEW
+          // logical task, and the sponsored reservation can be released.
+          providerStarted = false
+        }
+        await prisma.tryOnTask.updateMany({
+          where: {
+            id: task.id,
+            dispatchLeaseOwner: dispatchFence.owner,
+            dispatchVersion: dispatchFence.version,
+            status: TaskStatus.PROCESSING,
+          },
+          data: {
+            status: definitelyNotSent ? TaskStatus.FAILED : TaskStatus.PROCESSING,
+            errorMessage: definitelyNotSent ? 'Kie did not accept the generation request' : null,
+            metadata: {
+              ...(task.metadata as object),
+              serviceType: 'kie',
+              isAsync: true,
+              ...(acceptedId ? { externalTaskId: acceptedId } : {}),
+              dispatchOutcome: definitelyNotSent ? 'NOT_SENT' : 'UNKNOWN',
+              providerSubmissionStatus: definitelyNotSent ? 'NOT_SENT' : 'UNKNOWN',
+              privateBlob: storeAssetPolicy.blobAccess === 'private',
+            },
+          },
+        })
+        throw error
+      }
+    }
+
     // Set immediately before the provider call. A thrown request may have
     // reached the provider, so the caller must retain the reservation.
     providerStarted = true
@@ -471,24 +598,28 @@ export async function submitStoreTryOnTask(
     if (error && typeof error === 'object') {
       ;(error as { providerStarted?: boolean }).providerStarted = providerStarted
     }
-    logger.error('store', 'Store GrsAi submission failed', error as Error, {
+    logger.error('store', 'Store generation submission failed', error as Error, {
       taskId: task.id,
       merchantId,
       origin: telemetryOrigin,
     })
-    await prisma.tryOnTask.updateMany({
-      where: {
-        id: task.id,
-        dispatchLeaseOwner: dispatchFence.owner,
-        dispatchVersion: dispatchFence.version,
-        status: { not: TaskStatus.COMPLETED },
-      },
-      data: {
-        status: TaskStatus.FAILED,
-        errorMessage,
-      },
-    })
+    if (serviceType !== 'kie' || !providerStarted) {
+      // Kie with a known NOT_SENT outcome is safe to mark FAILED. UNKNOWN
+      // acceptance must remain PROCESSING and must not release reservations.
+      await prisma.tryOnTask.updateMany({
+        where: {
+          id: task.id,
+          dispatchLeaseOwner: dispatchFence.owner,
+          dispatchVersion: dispatchFence.version,
+          status: { not: TaskStatus.COMPLETED },
+        },
+        data: {
+          status: TaskStatus.FAILED,
+          errorMessage,
+        },
+      })
       await recordGenerationFailure(task.id, errorMessage, { source: 'submit', failureStage: 'SUBMIT' })
+    }
     throw error
   }
 }
