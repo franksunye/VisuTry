@@ -4,7 +4,7 @@ import { generateTryOnImage } from "@/lib/gemini"
 import { submitAsyncTask, pollTaskResult } from "@/lib/grsai"
 import { submitKieTask, pollKieTask } from "@/lib/kie"
 import { readBoundedKieResult, kieResultExtension } from "@/lib/generation/kie-result-media"
-import { kieFallbackMode, selectNewTryOnProvider } from "@/lib/generation/kie-routing"
+import { selectNewTryOnProvider } from "@/lib/generation/ai-provider-routing"
 import { logger } from "@/lib/logger"
 import { Prisma, TaskStatus, TryOnType, User } from "@prisma/client"
 import { TRY_ON_CONFIGS } from "@/config/try-on-types"
@@ -260,6 +260,30 @@ export async function submitTryOnTask(
     })
   }
 
+  // Resolve the server-only provider before any Blob writes. A malformed
+  // cutover setting must fail closed without creating orphan source images.
+  let serviceType = 'grsai'
+  let isAsync = true
+  const isPremiumActive = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
+  if (ENABLE_SERVICE_TIERING && isPremiumActive) {
+    serviceType = 'gemini'
+    isAsync = false // Preserve the pre-existing direct-Gemini Premium path.
+  }
+  if (options?.forceServiceType) {
+    serviceType = options.forceServiceType
+    isAsync = serviceType === 'grsai'
+  }
+  if (serviceType === 'grsai' && !options?.forceServiceType && selectNewTryOnProvider('consumer') === 'kie') {
+    serviceType = 'kie'
+    isAsync = true
+  }
+
+  logger.info('tryon-service', `Service selection: ${serviceType} (Async: ${isAsync})`, {
+    userId: user.id,
+    clientSubmissionId,
+    isPremium: isPremiumActive,
+  })
+
   // 1. Upload images to Vercel Blob for persistence. New user/item source media
   // follows the configured protected source-media access policy.
   const sourceBlobOptions = getTryOnSourceBlobOptions()
@@ -279,40 +303,7 @@ export async function submitTryOnTask(
     throw new Error("Failed to upload images")
   }
 
-  // 2. Determine Service Type
-  // Logic:
-  // - If user is Premium: Use Gemini (Fast/Real-time)
-  // - If user is Free: Use GrsAi (Async/Slower)
-  
-  let serviceType = 'grsai'
-  let isAsync = true
-
-  // Check premium status logic (same as in existing route)
-  const isPremiumActive = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
-  
-  if (ENABLE_SERVICE_TIERING && isPremiumActive) {
-    serviceType = 'gemini'
-    isAsync = false // Gemini is currently synchronous
-  }
-
-  if (options?.forceServiceType) {
-    serviceType = options.forceServiceType
-    isAsync = serviceType === 'grsai'
-  }
-
-  // Operator-directed cutover for *new* Consumer tasks only. Never changes
-  // an already accepted GrsAi task, Premium Gemini, or Store/Campaign.
-  if (serviceType === 'grsai' && !options?.forceServiceType && selectNewTryOnProvider('consumer') === 'kie') {
-    serviceType = 'kie'
-    isAsync = true
-  }
-
-  logger.info('tryon-service', `Service selection: ${serviceType} (Async: ${isAsync})`, {
-    userId: user.id,
-    clientSubmissionId,
-    isPremium: isPremiumActive
-  })
-
+  // 2. Use the already-pinned service type for this new task.
   const uploadDiagnostics: TryOnUploadDiagnostics = {
     userImageUrl: userBlob.url,
     itemImageUrl: itemBlob.url,
@@ -654,136 +645,6 @@ export async function submitTryOnTask(
         return { taskId: task.id, status: 'failed', serviceType, isAsync, error: safeMessage }
       }
 
-      // GrsAi explicitly rejected this *initial* submit without issuing any
-      // ID. This is the only automatic cross-aggregator route: a positive
-      // acceptance, network error, HTTP 5xx, ambiguous response, and poll
-      // failure are NOT safe opportunities to start another billable task.
-      if (
-        asyncProvider === 'grsai' &&
-        error instanceof Error &&
-        error.name === 'GrsAiDefinitiveRejectionError' &&
-        typeof (error as Error & { providerCode?: unknown }).providerCode === 'number' &&
-        !acceptedExternalTaskId &&
-        kieFallbackMode() === 'auto-definitive'
-      ) {
-        const claimed = await prisma.tryOnTask.updateMany({
-          where: {
-            id: task.id, origin: 'CONSUMER', status: TaskStatus.PROCESSING,
-            dispatchVersion: 0,
-          },
-          data: {
-            dispatchVersion: { increment: 1 },
-            metadata: {
-              ...(task.metadata as Record<string, unknown>),
-              serviceType: 'kie',
-              isAsync: true,
-              dispatchOutcome: 'UNKNOWN',
-              dispatchUnknownAt: new Date().toISOString(),
-              primaryRejectionCode: (error as Error & { providerCode: number }).providerCode,
-            },
-          },
-        })
-        if (claimed.count !== 1) {
-          return { taskId: task.id, status: 'submitted', serviceType, isAsync }
-        }
-
-        let acceptedKieId: string | undefined
-        try {
-          // Close GrsAi's rejected attempt while keeping the ONE logical
-          // request open. Otherwise telemetry would attach Kie's task ID to
-          // the still-open GrsAi attempt.
-          await recordGenerationFailure(task.id, errorMessage, {
-            source: 'submit',
-            httpStatus: (error as Error & { providerCode: number }).providerCode,
-            failureStage: 'SUBMIT',
-            completeRequest: false,
-          })
-          // A failure in upload or dispatch leaves this task UNKNOWN,
-          // conservatively requiring reconciliation rather than a duplicate.
-          await startGenerationAttempt({
-            tryOnTaskId: task.id, provider: 'kie', model: KIE_TRY_ON_MODEL,
-          })
-          const [userDataUri, itemDataUri] = await Promise.all([
-            fileToDataUri(userImageFile), fileToDataUri(itemImageFile),
-          ])
-          const kieStartedAt = Date.now()
-          acceptedKieId = await submitKieTask(userDataUri, itemDataUri, effectivePrompt, promptVersion, kieSubmitDeadlineAt)
-          const saved = await prisma.tryOnTask.updateMany({
-            where: {
-              id: task.id, origin: 'CONSUMER', status: TaskStatus.PROCESSING,
-              dispatchVersion: 1,
-            },
-            data: {
-              metadata: {
-                ...(task.metadata as Record<string, unknown>),
-                serviceType: 'kie',
-                isAsync: true,
-                externalTaskId: acceptedKieId,
-                dispatchOutcome: 'ACCEPTED',
-                dispatchUnknownAt: null,
-                primaryRejectionCode: (error as Error & { providerCode: number }).providerCode,
-              },
-            },
-          })
-          if (saved.count !== 1) {
-            return { taskId: task.id, status: 'submitted', serviceType: 'kie', isAsync: true }
-          }
-          try {
-            await markGenerationAttemptSubmitted(task.id, acceptedKieId, Date.now() - kieStartedAt)
-          } catch {
-            // Accepted task is already safely pollable despite telemetry lag.
-          }
-          return { taskId: task.id, status: 'submitted', serviceType: 'kie', isAsync: true }
-        } catch (kieError) {
-          logger.warn('tryon-service', 'Kie fallback submission requires reconciliation', {
-            taskId: task.id, hasExternalTaskId: Boolean(acceptedKieId),
-          })
-          if (!acceptedKieId && kieCreateWasNeverSent(kieError)) {
-            const safeMessage = 'Backup image staging failed; please try again'
-            const stopped = await prisma.tryOnTask.updateMany({
-              where: {
-                id: task.id, origin: 'CONSUMER', status: TaskStatus.PROCESSING,
-                dispatchVersion: 1,
-              },
-              data: {
-                status: TaskStatus.FAILED,
-                errorMessage: safeMessage,
-                metadata: {
-                  ...(task.metadata as Record<string, unknown>),
-                  serviceType: 'kie',
-                  dispatchOutcome: 'NOT_SENT',
-                  primaryRejectionCode: (error as Error & { providerCode: number }).providerCode,
-                },
-              },
-            })
-            if (stopped.count !== 1) {
-              return { taskId: task.id, status: 'submitted', serviceType: 'kie', isAsync: true }
-            }
-            await recordGenerationFailure(task.id, safeMessage, { source: 'upload', failureStage: 'SUBMIT' })
-            return { taskId: task.id, status: 'failed', serviceType: 'kie', isAsync: true, error: safeMessage }
-          }
-          if (acceptedKieId) {
-            await prisma.tryOnTask.updateMany({
-              where: {
-                id: task.id, origin: 'CONSUMER', status: TaskStatus.PROCESSING,
-                dispatchVersion: 1,
-              },
-              data: {
-                metadata: {
-                  ...(task.metadata as Record<string, unknown>),
-                  serviceType: 'kie',
-                  isAsync: true,
-                  externalTaskId: acceptedKieId,
-                  dispatchOutcome: 'ACCEPTED',
-                  primaryRejectionCode: (error as Error & { providerCode: number }).providerCode,
-                },
-              },
-            })
-          }
-          return { taskId: task.id, status: 'submitted', serviceType: 'kie', isAsync: true }
-        }
-      }
-      
       if (submissionMayHaveReachedProvider) {
         // A provider ID may have been returned even if our first DB write failed.
         // Otherwise the pre-dispatch UNKNOWN record remains durable. Neither

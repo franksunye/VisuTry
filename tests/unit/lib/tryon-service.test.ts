@@ -94,6 +94,7 @@ describe('TryOnService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    delete process.env.AI_PROVIDER
     delete process.env.KIE_TRYON_FALLBACK_MODE
     delete process.env.KIE_API_KEY
     delete process.env.KIE_MEDIA_EXPORT_APPROVED
@@ -107,6 +108,16 @@ describe('TryOnService', () => {
   })
 
   describe('submitTryOnTask', () => {
+    it('rejects Kie cutover without a secret before writing source blobs or creating tasks', async () => {
+      process.env.AI_PROVIDER = 'kie'
+      await expect(submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES'))
+        .rejects.toThrow('requires KIE_API_KEY')
+      expect(put).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.create).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+      expect(submitKieTask).not.toHaveBeenCalled()
+    })
+
     it('keeps GrsAi primary when Kie is not enabled, even if its secret is configured', async () => {
       process.env.KIE_API_KEY = 'synthetic-secret'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
@@ -121,7 +132,7 @@ describe('TryOnService', () => {
 
     it('routes new Consumer tasks using the existing public Blob policy without extra media env gates', async () => {
       process.env.KIE_API_KEY = 'synthetic-secret'
-      process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
+      process.env.AI_PROVIDER = 'kie'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'public'
       process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
@@ -145,7 +156,7 @@ describe('TryOnService', () => {
 
     it('does not reroute explicitly forced GrsAi batch submissions', async () => {
       process.env.KIE_API_KEY = 'synthetic-secret'
-      process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
+      process.env.AI_PROVIDER = 'kie'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
       process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
@@ -159,7 +170,7 @@ describe('TryOnService', () => {
       expect(submitKieTask).not.toHaveBeenCalled()
     })
 
-    it('automatically cuts over only after explicit GrsAi negative admission', async () => {
+    it('does not cross-submit to Kie after a definitive Grsai rejection, even with the old auto flag', async () => {
       process.env.KIE_API_KEY = 'synthetic-secret'
       process.env.KIE_TRYON_FALLBACK_MODE = 'auto-definitive'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
@@ -173,16 +184,9 @@ describe('TryOnService', () => {
       ;(submitAsyncTask as jest.Mock).mockRejectedValue(error)
       ;(submitKieTask as jest.Mock).mockResolvedValue('kie-accepted')
       const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
-      expect(result).toMatchObject({ taskId: 'definitive', serviceType: 'kie', status: 'submitted' })
+      expect(result).toMatchObject({ taskId: 'definitive', serviceType: 'grsai' })
       expect(submitAsyncTask).toHaveBeenCalledTimes(1)
-      expect(submitKieTask).toHaveBeenCalledTimes(1)
-      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: expect.objectContaining({ dispatchVersion: 0 }),
-        data: expect.objectContaining({
-          dispatchVersion: { increment: 1 },
-          metadata: expect.objectContaining({ dispatchOutcome: 'UNKNOWN', primaryRejectionCode: 429 }),
-        }),
-      }))
+      expect(submitKieTask).not.toHaveBeenCalled()
     })
 
     it('never switches providers after ambiguous GrsAi timeout, even in automatic mode', async () => {
@@ -201,7 +205,7 @@ describe('TryOnService', () => {
 
     it('leaves Kie outcome UNKNOWN on lost createTask response without a second POST', async () => {
       process.env.KIE_API_KEY = 'synthetic-secret'
-      process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
+      process.env.AI_PROVIDER = 'kie'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
       process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
@@ -216,7 +220,7 @@ describe('TryOnService', () => {
 
     it('marks a known pre-create Kie upload rejection FAILED without charging or another submit', async () => {
       process.env.KIE_API_KEY = 'synthetic-secret'
-      process.env.KIE_TRYON_FALLBACK_MODE = 'force-consumer'
+      process.env.AI_PROVIDER = 'kie'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
       process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
