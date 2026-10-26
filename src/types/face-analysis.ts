@@ -19,6 +19,8 @@ export interface FaceAnalysisBasicResult {
   summary: string
   keyFeatures: string[]
   geometry?: FaceGeometryAnalysis
+  /** Indicates whether this report was AI-assisted or produced from validated on-device landmarks. */
+  analysisSource?: 'ai-assisted' | 'algorithm-only'
 }
 
 export interface FaceAnalysisFullResult extends FaceAnalysisBasicResult {
