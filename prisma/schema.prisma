@@ -1444,8 +1444,8 @@ model MerchantAiRenderReservation {
   merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   session MerchantSession @relation(fields: [merchantSessionId, merchantId], references: [id, merchantId], onDelete: Restrict)
 
-  @@index([merchantId, periodStart, periodEnd, status])
-  @@index([merchantId, merchantSessionId, status])
+  @@index([merchantId, periodStart, periodEnd, status], map: "MerchantAiRenderReservation_period_status_idx")
+  @@index([merchantId, merchantSessionId, status], map: "MerchantAiRenderReservation_session_status_idx")
 }
 
 /// Blobs uploaded without a durable task/asset row — cleaned by cron.
