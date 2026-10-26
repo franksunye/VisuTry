@@ -14,8 +14,7 @@ export const metadata: Metadata = generateSEO({
 })
 
 export default async function PrivacyPage({ params }: { params: { locale: string } }) {
-  // Update to actual publication date only after owner approval.
-  const lastUpdated = 'January 15, 2025'
+  const lastUpdated = 'October 26, 2026'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -140,22 +139,21 @@ export default async function PrivacyPage({ params }: { params: { locale: string
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <h4 className="font-semibold text-gray-900 mb-2">AI Virtual Try-On Processing</h4>
+                <h4 className="font-semibold text-gray-900 mb-2">AI Face Analysis &amp; Virtual Try-On Processing</h4>
                 <p className="text-gray-700 text-sm mb-3">
-                  To generate virtual eyewear try-on images, we share the relevant portrait, eyewear
-                  reference image, and generation instructions with AI image-processing providers.
-                  Grsai is our primary intermediary for eligible standard try-on requests; other
-                  supported paths may use Google Gemini services.
+                  To provide face analysis and virtual eyewear try-on, we send submitted portraits,
+                  relevant eyewear reference images, and necessary processing instructions to
+                  third-party AI services. Grsai handles eligible standard requests; when enabled,
+                  Kie.ai may handle new Consumer, Store, and Campaign requests instead. Some
+                  supported paths use Google Gemini directly.
                 </p>
                 <p className="text-gray-700 text-sm mb-3">
-                  If separately approved and enabled, Kie.ai may process eligible new Consumer, Store,
-                  and Campaign try-on requests as an alternative to Grsai. Unlike Grsai&apos;s direct
-                  image-data submission, Kie.ai first receives uploaded reference images and then
-                  uses temporary provider-hosted image URLs to create the generation task.
-                  The provider controls these temporary URLs, which may be accessible to anyone
-                  holding the link while it is active. Providers may retain reference images,
-                  generated results, or task records under their own policies. Deleting an image
-                  from VisuTry does not necessarily immediately remove provider-held copies.
+                  Grsai receives image data directly. Kie.ai first receives uploaded images and
+                  then uses provider-hosted temporary image URLs for analysis or image generation.
+                  Kie.ai controls these temporary URLs, which may be accessible to anyone holding
+                  the link while active. Providers may retain uploaded images, generated results,
+                  or task records under their own policies. Deleting content from VisuTry does not
+                  necessarily immediately remove provider-held copies.
                 </p>
                 <p className="text-gray-700 text-sm">
                   Provider information:{' '}
