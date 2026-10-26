@@ -6,7 +6,7 @@ jest.mock('@/lib/prisma', () => ({
 }))
 
 import { prisma } from '@/lib/prisma'
-import { reserveMerchantAiPeriodRender } from '@/modules/merchant/application/merchant-ai-period-admission'
+import { merchantAiBudgetMode, reserveMerchantAiPeriodRender } from '@/modules/merchant/application/merchant-ai-period-admission'
 
 const start = new Date('2026-10-01T00:00:00Z')
 const end = new Date('2026-11-01T00:00:00Z')
@@ -51,7 +51,7 @@ function reserve(key: string, overrides: Partial<{ merchantId: string; merchantS
   })
 }
 
-describe('M1a Merchant opt-in period reservation (OFF in all live paths)', () => {
+describe('M1b Merchant opt-in period admission and explicit rollout switch', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     rows = []
@@ -76,6 +76,23 @@ describe('M1a Merchant opt-in period reservation (OFF in all live paths)', () =>
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => callback(tx))
     ;(prisma.merchantAiRenderReservation.findUnique as jest.Mock).mockImplementation(async ({ where }: { where: { idempotencyKey: string } }) =>
       rows.find((row) => row.idempotencyKey === where.idempotencyKey) ?? null)
+  })
+
+  it('defaults OFF and ignores unknown rollout flag values', () => {
+    const original = process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE
+    try {
+      delete process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE
+      expect(merchantAiBudgetMode()).toBe('OFF')
+      process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'something-unsafe'
+      expect(merchantAiBudgetMode()).toBe('OFF')
+      process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'SHADOW'
+      expect(merchantAiBudgetMode()).toBe('SHADOW')
+      process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'ENFORCE'
+      expect(merchantAiBudgetMode()).toBe('ENFORCE')
+    } finally {
+      if (original === undefined) delete process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE
+      else process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = original
+    }
   })
 
   it('reserves both capacity slots and denies the third; holds count before successful usage', async () => {

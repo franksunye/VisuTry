@@ -572,6 +572,8 @@ export async function submitStoreTryOnTask(
           externalTaskId,
           serviceType,
           isAsync,
+          dispatchOutcome: 'ACCEPTED',
+          providerSubmissionStatus: 'ACCEPTED',
           effectivePrompt,
           renderedPrompt: resolvedPrompt.renderedPrompt,
           promptVersion,

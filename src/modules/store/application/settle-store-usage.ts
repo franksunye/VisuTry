@@ -1,6 +1,7 @@
 import { Prisma, TaskStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
+import { settleMerchantAiRenderInTransaction } from '@/modules/merchant/application/merchant-ai-period-lifecycle'
 import type { UsagePolicy } from '../domain/usage-policy'
 import type { StoreUsageRepository } from './ports/repositories'
 
@@ -58,6 +59,7 @@ export async function settleStoreTryOnUsage(input: {
             return { settled: false, alreadySettled: false, source: null }
           }
 
+          let newLedger = true
           try {
             await tx.merchantUsageLedger.create({
               data: {
@@ -68,18 +70,20 @@ export async function settleStoreTryOnUsage(input: {
               },
             })
           } catch (error) {
-            const code = (error as { code?: string }).code
-            if (code === 'P2002') {
-              return {
-                settled: false,
-                alreadySettled: true,
-                source: quotaSource,
-              }
-            }
-            throw error
+            if ((error as { code?: string }).code !== 'P2002') throw error
+            newLedger = false
           }
 
-          return { settled: true, alreadySettled: false, source: quotaSource }
+          // Commit the v2 hold with the SAME transaction as the once-only
+          // RENDER_SUCCESS ledger. If this fails, neither write may commit.
+          // Legacy/no-hold tasks continue using the existing ledger path.
+          await settleMerchantAiRenderInTransaction(tx, {
+            taskId: input.taskId,
+            merchantId: input.merchantId,
+            merchantSessionId: input.merchantSessionId,
+          })
+
+          return { settled: newLedger, alreadySettled: !newLedger, source: quotaSource }
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )

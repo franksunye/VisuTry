@@ -22,6 +22,8 @@ import {
 } from '../domain'
 import { resolveMerchantCommercialCapability, decideMerchantCommercialFeature } from '../domain/merchant-commercial-capability'
 import { consumeAICommerceSession } from '@/modules/merchant/application/merchant-commercial-entitlements'
+import { merchantAiBudgetMode, reserveMerchantAiPeriodRenderInTransaction } from '@/modules/merchant/application/merchant-ai-period-admission'
+import { releaseMerchantAiRenderForTerminalFailure } from '@/modules/merchant/application/merchant-ai-period-lifecycle'
 import { checkUserQuota } from '@/lib/quota'
 import { calculateExpiresAt } from '@/config/retention'
 import type { AssetStore } from './ports/asset-store'
@@ -415,6 +417,47 @@ async function claimStoreTryOnSlot(input: {
             )
           }
 
+          // Only an explicitly versioned Merchant v2 contract in an operator-
+          // enabled cohort uses billing-period credits. Legacy, Pilot, Demo
+          // and Consumer continuation remain on their existing exact path.
+          // Keep the hold in this SAME transaction as the task + attempt.
+          let merchantAiReservationId: string | null = null
+          if (merchantAiBudgetMode() === 'ENFORCE' && input.usagePolicyKind !== 'consumer_quota') {
+            const contract = await tx.merchant.findUnique({
+              where: { id: input.merchantId },
+              select: { entitlementVersion: true, pricingVersion: true },
+            })
+            const isV2Candidate = contract?.entitlementVersion === 'v2'
+              || contract?.pricingVersion?.startsWith('v2-')
+            if (isV2Candidate) {
+              const admission = await reserveMerchantAiPeriodRenderInTransaction(tx, {
+                merchantId: input.merchantId,
+                merchantSessionId: input.merchantSessionId,
+                idempotencyKey: input.idempotencyKey,
+              })
+              if (admission.decision === 'DENIED') {
+                const exhausted = admission.reason === 'LIMIT_REACHED'
+                throw new StoreDomainError(
+                  exhausted ? 'AI_USAGE_LIMIT_REACHED' : 'COMMERCIAL_PERIOD_EXPIRED',
+                  exhausted
+                    ? 'This Store has used its included AI Try-On generations.'
+                    : 'Virtual Try-On is temporarily unavailable for this Store.',
+                  exhausted ? 429 : 409,
+                )
+              }
+              if (admission.decision === 'EXISTING') {
+                // A bound task must already have been returned by the first
+                // idempotency check. Never dispatch against an orphan hold.
+                throw new StoreDomainError(
+                  'IDEMPOTENCY_CONFLICT',
+                  'This Try-On is already being processed.',
+                  409,
+                )
+              }
+              merchantAiReservationId = admission.reservationId
+            }
+          }
+
           const task = await tx.tryOnTask.create({
             data: {
               userId: input.userId ?? null,
@@ -442,12 +485,29 @@ async function claimStoreTryOnSlot(input: {
                 ...(input.sponsoredReservationId
                   ? { sponsoredReservationId: input.sponsoredReservationId }
                   : {}),
+                ...(merchantAiReservationId
+                  ? { merchantAiReservationId }
+                  : {}),
               },
               dispatchLeaseOwner: leaseOwner,
               dispatchLeaseUntil: new Date(lease.dispatchLeaseUntil),
               dispatchVersion: 1,
             },
           })
+
+          if (merchantAiReservationId) {
+            const bound = await tx.merchantAiRenderReservation.updateMany({
+              where: {
+                id: merchantAiReservationId,
+                merchantId: input.merchantId,
+                merchantSessionId: input.merchantSessionId,
+                tryOnTaskId: null,
+                status: 'RESERVED',
+              },
+              data: { tryOnTaskId: task.id },
+            })
+            if (bound.count !== 1) throw new Error('Merchant AI hold/task binding failed')
+          }
 
           await tx.merchantUsageLedger.create({
             data: {
@@ -911,6 +971,14 @@ export async function submitStoreFrameTryOn(
       await input.sponsoredUsage.release(sponsoredReservationId).catch(() => undefined)
     }
     const markedFailed = await markStoreClaimFailed(claim.taskId, dispatchLease, error)
+    // Release only if a durable terminal failure proves that dispatch never
+    // happened (or the provider's accepted task conclusively failed).
+    // UNKNOWN remains RESERVED and cannot fund a duplicate provider create.
+    await releaseMerchantAiRenderForTerminalFailure({
+      taskId: claim.taskId,
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+    })
     if (!markedFailed) throw error
 
     await recordStoreTryOnAttempt({
