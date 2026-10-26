@@ -1133,7 +1133,6 @@ model Experience {
   intents  MerchantIntent[]
   events   MerchantEvent[]
   sponsoredUsages MerchantSponsoredUsage[]
-  aiRenderReservations MerchantAiRenderReservation[]
   decisionResults DecisionResult[]
 
   createdAt DateTime @default(now())
@@ -1203,6 +1202,7 @@ model MerchantSession {
   usage      MerchantUsageLedger[]
   tryOnTasks TryOnTask[]
   sponsoredUsages MerchantSponsoredUsage[]
+  aiRenderReservations MerchantAiRenderReservation[]
   decisionResults DecisionResult[]
 
   createdAt DateTime @default(now())
