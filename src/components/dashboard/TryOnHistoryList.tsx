@@ -19,6 +19,7 @@ import { cn } from "@/utils/cn"
 import { TryOnThumbnail } from "@/components/OptimizedImage"
 import { getTryOnConfig, type TryOnType } from "@/config/try-on-types"
 import { localizedPath } from "@/lib/localized-path"
+import { getTryOnDownloadFilename } from "@/lib/tryon-download"
 
 interface TryOnTask {
   id: string
@@ -127,7 +128,7 @@ export function TryOnHistoryList({
       
       const link = document.createElement("a")
       link.href = url
-      link.download = `visutry-result-${taskId}.jpg`
+      link.download = getTryOnDownloadFilename(taskId, blob.type)
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
