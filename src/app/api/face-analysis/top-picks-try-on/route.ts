@@ -258,7 +258,7 @@ async function processPresetTask({
     await submitTryOnTask(user, userImageFile, itemImageFile, TryOnType.GLASSES, prompt, {
       clientSubmissionId: `${batchId}:${preset.id}:${attempt}`,
       enforceIdempotency: true,
-      forceServiceType: 'grsai',
+      requireAsyncProvider: true,
       metadata,
     })
   } catch (error) {
@@ -435,7 +435,6 @@ export async function POST(request: NextRequest) {
       batchId,
       batchVersion: TOP_PICKS_BATCH_VERSION,
       source: TOP_PICKS_SOURCE,
-      serviceType: 'grsai',
       faceAnalysisTaskId: faceAnalysisTask.id,
       faceShape: faceAnalysisTask.detectedShape,
       batchSize: expectedPresetIds.length,

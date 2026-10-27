@@ -154,20 +154,24 @@ describe('TryOnService', () => {
       }))
     })
 
-    it('does not reroute explicitly forced GrsAi batch submissions', async () => {
+    it('routes async-only Consumer batches to Kie when selected', async () => {
       process.env.KIE_API_KEY = 'synthetic-secret'
       process.env.AI_PROVIDER = 'kie'
       process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
       process.env.TRY_ON_BLOB_STORE_ID = 'synthetic-store'
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
-        id: 'forced-grsai', status: TaskStatus.PENDING, metadata: {},
+        id: 'batch-kie', status: TaskStatus.PENDING, metadata: {},
       })
-      ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-forced')
+      ;(submitKieTask as jest.Mock).mockResolvedValue('kie-batch-task')
       const result = await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES', undefined, {
-        forceServiceType: 'grsai',
+        requireAsyncProvider: true,
       })
-      expect(result.serviceType).toBe('grsai')
-      expect(submitKieTask).not.toHaveBeenCalled()
+      expect(result).toMatchObject({ taskId: 'batch-kie', serviceType: 'kie', isAsync: true })
+      expect(submitKieTask).toHaveBeenCalledTimes(1)
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ metadata: expect.objectContaining({ serviceType: 'kie', isAsync: true }) }),
+      })
     })
 
     it('does not cross-submit to Kie after a definitive Grsai rejection, even with the old auto flag', async () => {
@@ -540,7 +544,7 @@ describe('TryOnService', () => {
       })
     })
 
-    it('should allow callers to force GrsAi for premium batch workflows', async () => {
+    it('uses the configured Grsai async provider for premium batch workflows', async () => {
       const premiumUser = { ...mockUser, isPremium: true, premiumExpiresAt: new Date(Date.now() + 10000) }
       const mockGenerate = require('@/lib/gemini').generateTryOnImage
 
@@ -559,7 +563,7 @@ describe('TryOnService', () => {
         'GLASSES',
         'batch prompt',
         {
-          forceServiceType: 'grsai',
+          requireAsyncProvider: true,
           metadata: {
             source: 'face-analysis-top-picks',
             framePresetId: 'rectangle-classic',
@@ -582,6 +586,25 @@ describe('TryOnService', () => {
       expect(result.serviceType).toBe('grsai')
       expect(result.isAsync).toBe(true)
       expect(result.status).toBe('submitted')
+    })
+
+    it('uses the configured Kie async provider for premium batch workflows', async () => {
+      process.env.AI_PROVIDER = 'kie'
+      process.env.KIE_API_KEY = 'synthetic-secret'
+      const premiumUser = { ...mockUser, isPremium: true, premiumExpiresAt: new Date(Date.now() + 10000) }
+      const mockGenerate = require('@/lib/gemini').generateTryOnImage
+      ;(submitKieTask as jest.Mock).mockResolvedValue('kie-premium-batch')
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'premium-batch', status: TaskStatus.PENDING, metadata: {},
+      })
+      const result = await submitTryOnTask(
+        premiumUser as any, mockFile, mockFile, 'GLASSES', 'batch prompt',
+        { requireAsyncProvider: true, metadata: { source: 'frame-compare' } },
+      )
+      expect(result).toMatchObject({ taskId: 'premium-batch', serviceType: 'kie', isAsync: true })
+      expect(mockGenerate).not.toHaveBeenCalled()
+      expect(submitKieTask).toHaveBeenCalledTimes(1)
+      expect(submitAsyncTask).not.toHaveBeenCalled()
     })
   })
 

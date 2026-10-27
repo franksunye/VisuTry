@@ -63,7 +63,6 @@ export async function POST(request: NextRequest) {
       batchMetadata: {
         batchId,
         source: 'style-explorer',
-        serviceType: 'grsai',
         styleIntent: styleIntent as StyleIntent,
         occasion: typeof occasion === 'string' && occasion ? occasion as StyleOccasion : undefined,
         category,

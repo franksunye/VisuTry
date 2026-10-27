@@ -62,7 +62,8 @@ interface TryOnSubmissionOptions {
   clientSubmissionId?: string
   enforceIdempotency?: boolean
   metadata?: Record<string, unknown>
-  forceServiceType?: 'grsai' | 'gemini'
+  /** Batch workflows need asynchronous dispatch, but still obey AI_PROVIDER. */
+  requireAsyncProvider?: boolean
 }
 
 function submissionResultFromTask(task: {
@@ -262,21 +263,10 @@ export async function submitTryOnTask(
 
   // Resolve the server-only provider before any Blob writes. A malformed
   // cutover setting must fail closed without creating orphan source images.
-  let serviceType = 'grsai'
-  let isAsync = true
   const isPremiumActive = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
-  if (ENABLE_SERVICE_TIERING && isPremiumActive) {
-    serviceType = 'gemini'
-    isAsync = false // Preserve the pre-existing direct-Gemini Premium path.
-  }
-  if (options?.forceServiceType) {
-    serviceType = options.forceServiceType
-    isAsync = serviceType === 'grsai'
-  }
-  if (serviceType === 'grsai' && !options?.forceServiceType && selectNewTryOnProvider('consumer') === 'kie') {
-    serviceType = 'kie'
-    isAsync = true
-  }
+  const usePremiumGemini = ENABLE_SERVICE_TIERING && isPremiumActive && !options?.requireAsyncProvider
+  const serviceType = usePremiumGemini ? 'gemini' : selectNewTryOnProvider('consumer')
+  const isAsync = serviceType !== 'gemini'
 
   logger.info('tryon-service', `Service selection: ${serviceType} (Async: ${isAsync})`, {
     userId: user.id,
