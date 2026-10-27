@@ -329,7 +329,7 @@ export function MerchantCampaignDetailWorkspace({
   const selectedMissing = campaign.selectedFrames.filter((frame) => !frame.valid && selectedIds.includes(frame.id))
   const liveUrl = `${typeof window === 'undefined' ? '' : window.location.origin}${campaignUrl}`
 
-  return <section data-testid="merchant-campaign-detail" className="mx-auto max-w-5xl space-y-5" aria-labelledby="campaign-detail-heading">
+  return <section data-testid="merchant-campaign-detail" className="mx-auto w-full max-w-[1440px] space-y-5" aria-labelledby="campaign-detail-heading">
     <Link href={merchantWorkspaceHref({ locale, section: 'campaigns', merchantId })} className="inline-flex min-h-9 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-950"><ArrowLeft className="h-4 w-4" aria-hidden="true" />Campaigns</Link>
 
     <header className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
@@ -349,8 +349,8 @@ export function MerchantCampaignDetailWorkspace({
     {presentation.liveSaveWarning ? <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">{presentation.liveSaveWarning}</p> : null}
     {readOnly ? <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">This Campaign is archived and is read-only here. Existing public links may remain accessible under VisuTry’s archive and discovery policy.</p> : null}
 
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]">
-      <div className="space-y-5">
+    <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="min-w-0 space-y-5">
         <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5" aria-labelledby="campaign-core-heading">
           <div className="flex items-start justify-between gap-4"><div><h2 id="campaign-core-heading" className="text-base font-semibold text-slate-950">Campaign details</h2><p className="mt-1 text-sm text-slate-600">Start with a clear name and headline.</p></div>{detailsDirty ? <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Unsaved detail changes</span> : null}</div>
           <div className="mt-4 grid gap-4">
@@ -448,7 +448,7 @@ export function MerchantCampaignDetailWorkspace({
         </details> : <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5"><h2 className="text-sm font-semibold text-slate-900">Campaign setup</h2><p className="mt-2 text-sm text-slate-600">{policyLabels.objective} · {policyLabels.gate} · {policyLabels.presentationMode}</p>{campaign.description ? <p className="mt-3 text-sm leading-6 text-slate-700">{campaign.description}</p> : null}</section>}
       </div>
 
-      <aside className="space-y-4">
+      <aside className="order-first min-w-0 space-y-4 xl:order-last xl:self-start">
         <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5" aria-labelledby="campaign-readiness-heading">
           <div className="flex items-center justify-between gap-3"><h2 id="campaign-readiness-heading" className="text-base font-semibold text-slate-950">Readiness</h2><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${campaign.readiness.ready ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}`}>{campaign.status === 'ARCHIVED' ? 'Archived' : campaign.readiness.ready ? 'Ready' : 'Needs attention'}</span></div>
           {campaign.readiness.blockingIssues.length ? <ul className="mt-3 space-y-2 text-sm text-slate-700">{presentation.issues.map((issue) => <li key={issue} className="flex gap-2"><span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />{issue}</li>)}</ul> : <p className="mt-3 text-sm text-slate-600">The saved Campaign meets the current publish checks.</p>}
