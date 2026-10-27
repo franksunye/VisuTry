@@ -195,7 +195,7 @@ async function main() {
       assert.equal(await releaseMerchantAiRenderForTerminalFailure({
         taskId: first, merchantId: f.merchantId, merchantSessionId: f.sessionId, db,
       }), 'RELEASED')
-      assert.equal((await claim(f, 'session-after-release-' + suffix)).decision, 'RESERVED',
+      assert.equal((await claim(f, 'session-after-release-' + f.sessionLimit + '-' + suffix)).decision, 'RESERVED',
         'definitive failure restores session allowance')
     }
 
