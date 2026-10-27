@@ -219,6 +219,31 @@ describe('StoreTryOnComparePanel retry and rehydration', () => {
     })
   })
 
+  it('stops offering generation retries after a v2 session limit response', async () => {
+    ;(global.fetch as jest.Mock).mockImplementation(async (url: string) => {
+      if (String(url).includes('/poll')) {
+        return jsonResponse(200, {
+          success: true,
+          data: { status: 'failed', errorMessage: 'provider failed' },
+        })
+      }
+      return jsonResponse(429, {
+        success: false,
+        code: 'AI_SESSION_LIMIT_REACHED',
+        error: 'This shopping session has reached its Try-On limit.',
+      })
+    })
+
+    renderPanel()
+    expect(await screen.findByTestId('store-tryon-try-again')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('store-tryon-try-again'))
+    expect(await screen.findByTestId('store-tryon-session-limit')).toBeVisible()
+    expect(screen.queryByTestId('store-tryon-try-again')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('store-tryon-start')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('merchant-entitlement-continuation')).not.toBeInTheDocument()
+    expect(tryOnSubmitCalls()).toHaveLength(1)
+  })
+
   it('does not create two submissions from a duplicate Try again click', async () => {
     let resolveSubmit: ((value: Response) => void) | undefined
     ;(global.fetch as jest.Mock).mockImplementation(async (url: string) => {
