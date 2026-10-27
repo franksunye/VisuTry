@@ -171,8 +171,10 @@ async function main() {
     // using the existing merchant period advisory lock. The 10-image
     // monthly allowance deliberately exceeds each session cap.
     for (const f of sessionCapped) {
-      const admitted = await Promise.all(Array.from({ length: f.sessionLimit }, (_, i) =>
-        claim(f, 'session-cap-' + f.sessionLimit + '-' + i + '-' + suffix)))
+      const admitted: Array<Awaited<ReturnType<typeof claim>>> = []
+      for (let i = 0; i < f.sessionLimit; i++) {
+        admitted.push(await claim(f, 'session-cap-' + f.sessionLimit + '-' + i + '-' + suffix))
+      }
       assert.equal(admitted.filter(x => x.decision === 'RESERVED').length, f.sessionLimit)
       assert.equal((await claim(f, 'session-overflow-' + suffix)).decision, 'DENIED',
         'session cap must precede the monthly 10-image ceiling')

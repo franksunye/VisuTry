@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { merchantAiBudgetMode } from './merchant-ai-period-admission'
 
 /** Read-only, tenant-scoped billing-period counters. No simulated events. */
 export type MerchantAiUsageSnapshot = {
@@ -12,6 +13,8 @@ export type MerchantAiUsageSnapshot = {
 }
 
 export async function getMerchantAiUsageSnapshot(merchantId: string): Promise<MerchantAiUsageSnapshot | null> {
+  // SHADOW/OFF has no authoritative v2 reservation ledger to report.
+  if (merchantAiBudgetMode() !== 'ENFORCE') return null
   const merchant = await prisma.merchant.findUnique({
     where: { id: merchantId },
     select: {
