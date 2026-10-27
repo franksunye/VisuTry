@@ -156,8 +156,9 @@ async function main() {
       where: { tryOnTaskId: successTaskId },
     }))?.status, 'SETTLED')
     assert.equal((await claim(a, 'after-success-' + suffix)).decision, 'DENIED')
-    assert.equal((await claim(a, 'left-' + suffix)).decision, 'EXISTING',
-      'same logical request remains bound to its original period/task')
+    const winnerKey = left.decision === 'RESERVED' ? 'left-' + suffix : 'right-' + suffix
+    assert.equal((await claim(a, winnerKey)).decision, 'EXISTING',
+      'the actual concurrent winner stays bound to its original task')
 
     // The same key under simultaneous requests must map to one task and
     // exactly one mock dispatch. The Store claim re-checks idempotency after
