@@ -1,0 +1,65 @@
+name: Style Explorer Static Build Gate
+
+# Only run this full prerender check when the public Style Explorer route changes.
+# Unlike Vercel Preview, this never deploys anything and has no production secrets.
+on:
+  pull_request:
+    paths:
+      - 'src/app/**/style-explorer/page.tsx'
+      - 'src/components/style-explorer/**'
+      - 'tests/unit/app/style-explorer-page.test.tsx'
+      - 'scripts/assert-style-explorer-static.mjs'
+      - '.github/workflows/style-explorer-static-build.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: style-explorer-static-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prerender:
+    name: Disposable PostgreSQL + Static Prerender
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: visutry_static_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d visutry_static_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: 1
+      SKIP_ENV_VALIDATION: 1
+      NEXTAUTH_SECRET: ci-only-nextauth-secret
+      NEXTAUTH_URL: http://127.0.0.1:3001
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/visutry_static_ci
+      DATABASE_URL_UNPOOLED: postgresql://ci:ci@127.0.0.1:5432/visutry_static_ci
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - name: Migrate disposable CI PostgreSQL only
+        run: npx prisma migrate deploy
+      - name: Build without production migration hook
+        run: npm run build:ci
+      - name: Assert Style Explorer is statically prerendered for all locales
+        run: node scripts/assert-style-explorer-static.mjs
