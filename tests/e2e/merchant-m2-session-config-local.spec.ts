@@ -143,7 +143,7 @@ test.describe('M2 local-only Merchant settings and real shopper limits', () => {
       const choices = reco.frames.slice(0, 3).map((f) => f.id)
       expect(choices).toHaveLength(3)
       await body(await request.post('/api/store/sessions/select-frames', {
-        data: { merchantSlug: slug, merchantSessionId: session, frameIds: choices,
+        data: { merchantSlug: slug, merchantSessionId: session, frameIds: choices.slice(0, 2),
           clientActionId: 'm2-select-' + run + '-' + (experienceSlug ?? 'store'),
           locale: 'en', deviceType: 'desktop' },
       }))
@@ -174,6 +174,13 @@ test.describe('M2 local-only Merchant settings and real shopper limits', () => {
     const campaignShopper = await shopper(campaignModel.slug)
     await completed(campaignShopper.session, campaignShopper.choices[0]!, 'm2-campaign-a-' + run)
     await completed(campaignShopper.session, campaignShopper.choices[1]!, 'm2-campaign-b-' + run)
+    // A new selection of the remaining Catalog frame is still the same
+    // shopper Session. The per-Session limit must survive another shortlist.
+    await body(await request.post('/api/store/sessions/select-frames', {
+      data: { merchantSlug: slug, merchantSessionId: campaignShopper.session,
+        frameIds: [campaignShopper.choices[2]!], clientActionId: 'm2-select-next-' + run,
+        locale: 'en', deviceType: 'desktop' },
+    }))
     const campaignDenied = await generate(campaignShopper.session, campaignShopper.choices[2]!, 'm2-campaign-c-' + run)
     expect(campaignDenied.status(), await campaignDenied.text()).toBe(429)
     expect((await campaignDenied.json()).code).toBe('AI_SESSION_LIMIT_REACHED')
