@@ -1,6 +1,7 @@
 # VisuTry Public Facts Registry
 
-Status: working baseline for public website copy, AEO pages, structured data, pricing, and privacy review.
+**Status:** Working baseline for public website copy, AEO pages, structured data, pricing, and privacy review.
+**Owner:** Product / Growth.
 
 ## Scope
 
@@ -37,6 +38,19 @@ This registry supports public-facing AEO work only: page copy, metadata, FAQ, st
 - Public copy must not imply that non-expiring credits mean permanent image storage.
 - Current card copy: “Purchased credits do not expire. Images and generated results follow the plan's data-retention period.”
 - Do not broaden deletion or retention claims beyond what has been verified. Any backend implementation gaps are separate engineering work, not part of this AEO PR.
+
+## Merchant Pricing and usage copy (2026-10-27)
+
+- Merchant `AI Commerce Sessions` and completed Standard Try-On images are **different meters**. Do not equate a session with an unlimited number of generated images.
+- Merchant Store and Campaign let the owner configure **1 / 2 / 4 Try-On images per shopper session (default 2)**, subject to the remaining contractual merchant-period image allowance.
+- The standard Founding Pilot offer is **from $149 / 30 days, up to 1,500 AI Commerce Sessions and 3,500 completed Try-On images**. An explicitly authorized Founding Launch Bonus may raise the image allowance to 5,000; do not represent that exception as the standard offer.
+- Current public recurring plans remain Launch **$199 / 1,000 sessions**, Growth **$499 / 5,000 sessions**, Scale **$999 / 10,000 sessions** per month. Their numerical image allowances are **not publicly defined in the canonical v1 plans** and must be explicitly provisioned per contract before paid Try-On use. Do not publish proposed v2 monthly image caps or imply unlimited images.
+- Ordinary Store/Campaign browsing and merchant actions continue when AI capacity runs out. No automatic image overage charges are authorized. Treat the Stripe recurring-enrollment image-allowance gap in `docs/commercial-entitlements-v1.md` as a product/billing release concern, not as permission for stronger marketing claims.
+
+Canonical sources: `src/modules/merchant/domain/merchant-commercial-plans.ts`,
+`src/modules/store/domain/session-tryon-limit.ts`,
+`docs/commercial-entitlements-v1.md`. The separate internal v2 financial
+stress-test is not public-price authority.
 
 ## Fit and output boundaries
 

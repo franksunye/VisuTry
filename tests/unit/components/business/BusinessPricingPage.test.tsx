@@ -71,6 +71,7 @@ describe('BusinessPricingPage v2 product-market narrative', () => {
     }
 
     expect(Array.from(values('AI Commerce Sessions'), (cell) => cell.textContent)).toEqual(['Not applicable', '1,000', '5,000', '10,000', 'Custom'])
+    expect(Array.from(values('Standard Try-On images'), (cell) => cell.textContent)).toEqual(['Not included', 'Confirmed at activation', 'Confirmed at activation', 'Confirmed at activation', 'Custom'])
     expect(Array.from(values('Decision Result \+ mobile continuation'), (cell) => cell.textContent)).toEqual(['—', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
     expect(Array.from(values('Merchant Actions'), (cell) => cell.textContent)).toEqual(['Basic product links', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
     expect(Array.from(values('In-store Kiosk Mode'), (cell) => cell.textContent)).toEqual(['—', 'Add-on', 'Add-on', 'Included', 'Custom'])
@@ -116,9 +117,11 @@ describe('BusinessPricingPage v2 product-market narrative', () => {
     expect(screen.getByRole('link', { name: 'Start Free' })).toHaveAttribute('href', '/en/merchant?commercialIntent=FREE')
     expect(screen.getByRole('link', { name: 'Request Pilot Review' })).toHaveAttribute('href', '/en/business/pilot')
     expect(screen.getByText(/Final scope and pilot fee are confirmed based on your deployment configuration/i)).toBeVisible()
+    expect(screen.getByText(/up to 1,500 AI Commerce Sessions and 3,500 completed Try-On images over 30 days/i)).toBeVisible()
     expect(screen.getByText(/Hosted, Campaign, in-store, and other deployment configurations may vary in scope and pricing/i)).toBeVisible()
-    expect(screen.queryByText('AI-assisted shoppers')).not.toBeInTheDocument()
-    expect(screen.queryByText('Standard Try-On generations')).not.toBeInTheDocument()
+    expect(screen.getByText(/Each Store or Campaign can allow 1, 2, or 4 Try-On images per shopper session/i)).toBeVisible()
+    expect(screen.getByText(/Completed Try-On images are counted separately against the included image allowance/i)).toBeVisible()
+    expect(screen.getByText('How many Try-Ons can one shopper make?')).toBeVisible()
     expect(screen.getByRole('link', { name: 'Contact Sales' })).toHaveAttribute('href', '/en/business/pilot?plan=enterprise')
 
     await user.click(screen.getByRole('link', { name: 'Request Pilot Review' }))

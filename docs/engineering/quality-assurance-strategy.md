@@ -276,6 +276,26 @@ collects or executes Playwright specs.
 
 ### Optional container Merchant browser gate (Linux x86_64)
 
+For **public Merchant Pricing/marketing copy only**, this lightweight browser
+gate needs **no database**:
+
+```bash
+npm ci
+npx prisma generate
+bash scripts/container-e2e/run-business-marketing-browser.sh
+```
+
+It starts local Next.js through Playwright, checks Pricing and the 390px
+comparison layout plus non-English route canonicalization, then shuts down
+the test server. Use a disposable checkout without `.env` files.
+`PLAYWRIGHT_BROWSERS_PATH` points to the ignored container cache. The bundled
+installer uses official Chrome for Testing if Playwright CDN downloads fail,
+repairs a lost executable bit, and proves Chromium can start. Browser passing
+here establishes public presentation behavior, not payment, AI or database
+correctness.
+
+For full Store/Campaign flows with local database state, use the heavier gate:
+
 Run `npm ci` and `npm run test:e2e:merchant:container` in a disposable Linux
 development container. This is an **opt-in local development loop**, not a
 production release gate. It starts an isolated PGlite (PostgreSQL WASM) server

@@ -20,6 +20,12 @@ read -r browser_revision browser_version < <(node -e '
 : "${PLAYWRIGHT_BROWSERS_PATH:?Set an isolated Playwright browser cache directory}"
 binary="$PLAYWRIGHT_BROWSERS_PATH/chromium_headless_shell-$browser_revision/chrome-headless-shell-linux64/chrome-headless-shell"
 
+# A persisted container cache may lose the executable bit; repair it before
+# downloading the same browser archive again.
+if [[ -f "$binary" && ! -x "$binary" ]]; then
+  chmod u+x "$binary"
+fi
+
 if [[ ! -x "$binary" ]]; then
   install_dir="$(dirname "$(dirname "$binary")")"
   mkdir -p "$install_dir"

@@ -126,7 +126,7 @@ test.describe('@critical Business market-facing narrative', () => {
     expect(response!.status()).toBeLessThan(400);
     await expect(page).toHaveTitle(/VisuTry Eyewear AI Commerce Pricing/);
     await expect(page.getByRole('heading', { name: /Simple pricing for the full eyewear decision journey/i })).toBeVisible();
-    await expect(page.getByText(/not individual renders/i)).toBeVisible();
+    await expect(page.getByText(/Try-On images are tracked separately, with a configurable per-shopper limit/i)).toBeVisible();
     await expect(page.getByText('No surprise usage billing.')).toBeVisible();
     await expect(page.locator('[data-primary-plan="true"]')).toHaveCount(3);
     await expect(page.locator('[data-plan-code="LAUNCH"][data-primary-plan="true"]')).toContainText('$199/month');
@@ -151,8 +151,9 @@ test.describe('@critical Business market-facing narrative', () => {
     await expect(page.locator('#pilot')).toContainText('Virtual Try-On + Compare');
     await expect(page.locator('#pilot')).toContainText('Scope confirmed before billing');
     await expect(page.locator('#pilot')).toContainText(/deployment configurations may vary in scope and pricing/i);
-    await expect(page.locator('#pilot')).not.toContainText('1,500');
-    await expect(page.locator('#pilot')).not.toContainText('3,500');
+    await expect(page.locator('#pilot')).toContainText('1,500 AI Commerce Sessions');
+    await expect(page.locator('#pilot')).toContainText('3,500 completed Try-On images');
+    await expect(page.getByText(/Each Store or Campaign can allow 1, 2, or 4 Try-On images per shopper session/i)).toBeVisible();
     await expect(page.getByRole('heading', { name: /One shopper journey, one session/i })).toBeVisible();
     await expect(page.getByText(/A shopper enters a Store or Campaign, starts Recommendation/i)).toBeVisible();
     await expect(page.getByText(/There are no automatic overage charges and no rollover/i)).toBeVisible();

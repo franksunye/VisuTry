@@ -1,8 +1,20 @@
 # Merchant Commercial v2 — Executive Financial & Market Decision Gate
 
 **Status:** Internal planning stress test, **not approved pricing, not a sales commitment**.
+**Owner:** Product / Commercial Finance.
 **As of:** 2026-10-26. **Authority:** [P0 #452](https://github.com/franksunye/VisuTry/issues/452).
 **Source of current live plans:** src/modules/merchant/domain/merchant-commercial-plans.ts and docs/strategy/merchant-pricing-packaging-unit-economics.md. These are not altered by this paper.
+
+**2026-10-27 implementation update:** The standard merchant-period image
+reservation meter and configurable Store/Campaign shopper limits (1/2/4,
+default 2) have shipped. This fulfills the engineering direction but **does
+not lift Pricing HOLD**: the candidate v2 recurring image quotas, changes to
+public plan prices, and partner rates remain unapproved. Published recurring
+plans retain their v1 session capacities and require an explicit positive
+period-image allowance at merchant enrollment; Stripe recurring enrollment
+currently does not populate that field. Reconcile this production contract
+gap before activating a new paid recurring customer. See
+`docs/commercial-entitlements-v1.md` for the public/contractual matrix.
 
 ## Lead decision in one minute
 
