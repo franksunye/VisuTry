@@ -396,6 +396,7 @@ export function MerchantCampaignDetailWorkspace({
               ...current,
               journeyPolicy: savedDraft.journeyPolicy,
               deliveryPolicy: savedDraft.deliveryPolicy,
+              sessionTryOnLimit: savedDraft.sessionTryOnLimit,
               presentationMode: savedDraft.presentationMode,
               primaryCtaType: savedDraft.primaryCtaType,
               primaryCtaLabel: savedDraft.primaryCtaLabel,

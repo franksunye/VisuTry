@@ -152,3 +152,7 @@ echo 'Running M1b v2 real Store/Campaign API, fixture Try-On and billing ledger 
 node --import tsx scripts/seed-merchant-ai-v2-container.ts
 ./node_modules/.bin/playwright test tests/e2e/merchant-ai-v2-local.spec.ts \
   --project=chromium --workers=1 --retries=0
+
+echo 'Running M2 real Store/Campaign configuration save, reload and shopper limits'
+./node_modules/.bin/playwright test tests/e2e/merchant-m2-session-config-local.spec.ts \
+  --project=chromium --workers=1 --retries=0

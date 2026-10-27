@@ -39,7 +39,27 @@ async function main() {
     data: { imageUrl: localFrameImage },
   })
   if (updated.count < 2) throw new Error('Expected at least two valid local fixture frames')
-  console.log(JSON.stringify({ localOnly: true, merchant: 'reference-fixture', renderLimit: 2, frameCount: updated.count, result: 'PASS' }))
+  const qa = await prisma.merchant.findUnique({
+    where: { slug: 'local-qa-usage' },
+    select: { id: true, classification: true },
+  })
+  if (!qa || qa.classification !== 'TEST') throw new Error('Expected local TEST merchant for M2')
+  await prisma.merchant.update({
+    where: { id: qa.id },
+    data: {
+      planCode: 'GROWTH',
+      commercialStatus: 'PAID_ACTIVE',
+      entitlementVersion: 'v2',
+      pricingVersion: 'v2-container-e2e',
+      standardRenderAllowance: 20,
+      commerceSessionAllowance: 50,
+      entitlementEffectiveFrom: new Date(now - 3600000),
+      billingPeriodEnd: new Date(now + 30 * 86400000),
+      sponsoredUsagePolicyKey: 'DISABLED',
+    },
+  })
+  console.log(JSON.stringify({ localOnly: true, merchant: 'reference-fixture',
+    renderLimit: 2, frameCount: updated.count, m2TestMerchantLimit: 20, result: 'PASS' }))
 }
 main().catch((error) => { console.error(error); process.exitCode = 1 })
   .finally(() => prisma.$disconnect())
