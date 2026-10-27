@@ -1,9 +1,24 @@
 # Merchant Commercial Model v2 — Cost-Safe Dual Meter & Merchant First Value
 
-**Status:** M0 ENGINEERING CONTRACT / PROPOSED. **Not published, not activated, no changes to live contract.**
+**Status:** Historical M0 proposal / v2 commercial design. The standard
+Merchant engineering implementation subsequently shipped to Production on
+2026-10-27; this document is **not** the live enrollment, rollout, or public
+pricing authority. See `docs/engineering/merchant-ai-period-budget-m1b-runbook.md`
+and `docs/commercial-entitlements-v1.md` for current implemented behavior.
 **Lead authorization:** 2026-10-26, [Issue #452](https://github.com/franksunye/VisuTry/issues/452).
 **Base audit:** main commit 8665b8354560caa17f6338939e7a867ec5bfb2b7.
 **Owner:** Product/Lead decides commercial terms; Engineering implements and validates against exact SHA.
+
+> **2026-10-27 reconciliation:** The deployed standard path enforces one
+> merchant-period reservation ledger and configured Store/Campaign per-session
+> Try-On limits of 1 / 2 / 4 (default 2), without a `SHADOW`/opt-in rollout
+> mode. Its paid-plan period allowance must be persisted; legacy canonical
+> recurring plan definitions still have no declared numeric image quota.
+> The opt-in architecture, milestone statuses and proposed v2 image numbers
+> below describe the original proposal and **must not be presented as the
+> current runtime or an approved customer offer**. Founding Pilot 3,500 images
+> (or explicitly approved 5,000) remain contractually protected. The pricing
+> revision and partner financial proposal remain on HOLD.
 
 ## 1. Why this is required
 

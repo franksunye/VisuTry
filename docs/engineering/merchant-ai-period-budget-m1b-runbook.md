@@ -1,7 +1,23 @@
 # Merchant AI Usage — Standard Production Contract
 
-Status: Engineering validation pending on unified-standard branch. This is an upgrade
-of the Merchant product, **not** an opt-in feature flag or a shadow migration.
+**Status:** Merchant standard functionality deployed to Production (2026-10-27;
+standard release `4719942cdf9aacc64cde4f02c5dd8f6f786d9509`, followed by
+Campaign responsive fix `59a9299807addf54b470ecea798d04bec7d239c6`).
+**Owner:** Merchant Engineering / Product.
+This is an upgrade of the Merchant product, **not** an opt-in feature flag or
+a shadow migration. No production paid-merchant usage distribution is inferred
+from local/mock validation.
+
+**Commercial copy boundary:** The currently published Launch/Growth/Scale
+subscription prices and AI Commerce Session capacities remain unchanged.
+Recurring `standardTryOnGenerations=null` in canonical plan definitions is
+not an unlimited-generation promise: the standard reservation path requires
+a positive merchant-specific persisted `standardRenderAllowance`. Public
+pricing must identify the image allowance as contract-specific, pending
+provisioning, while keeping the agreed Founding Pilot 3,500 / authorized
+5,000 image commitment. The billing enrollment path does not yet persist a
+recurring image allowance; verify/fix that separately before treating paid
+recurring activation as a completed usable Try-On journey.
 
 ## Product behavior
 

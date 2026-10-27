@@ -265,7 +265,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     metaDescription: 'Simple pricing for the full eyewear decision journey. Compare Free, the Founding Pilot from $149 / 30 days, Launch, Growth, Scale, and Enterprise by AI Commerce Sessions, Campaigns, analytics, and delivery capabilities.',
     eyebrow: 'Pricing',
     title: 'Simple pricing for the full eyewear decision journey.',
-    description: 'One AI Commerce Session covers a shopper’s Recommendation, Try-On, and Compare journey — so you scale with meaningful shopper decisions, not individual renders.',
+    description: 'One AI Commerce Session covers an eligible shopper decision journey. Try-On images are tracked separately, with a configurable per-shopper limit and your agreed image allowance.',
     primaryCta: { label: 'Start 30-Day Pilot', href: pilotHref },
     secondaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     sections: [],

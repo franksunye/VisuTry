@@ -133,6 +133,13 @@ function kioskDeliveryLabel(planCode: ComparisonPlanCode) {
   return '—'
 }
 
+function imageAllowanceLabel(planCode: ComparisonPlanCode) {
+  const plan = getMerchantPlanDefinition(planCode)
+  if (!plan.generativeTryOn) return 'Not included'
+  if (plan.standardTryOnGenerations !== null) return formatNumber(plan.standardTryOnGenerations)
+  return planCode === 'ENTERPRISE' ? 'Custom' : 'Confirmed at activation'
+}
+
 function comparisonRows() {
   const plans = comparisonPlanCodes.map((code) => getMerchantPlanDefinition(code))
   return [
@@ -141,8 +148,9 @@ function comparisonRows() {
     { group: 'Capacity', label: 'Catalog items', values: plans.map((plan) => formatNumber(plan.catalogItems)) },
     { group: 'Capacity', label: 'Active Campaigns', tooltip: 'Only published and active Campaigns count toward your plan limit. Draft Campaigns do not.', values: plans.map((plan) => formatNumber(plan.activeCampaigns)) },
     { group: 'Capacity', label: 'AI Commerce Sessions', tooltip: 'One shopper using Recommendation, Try-On, or Compare within the same session counts as 1 AI Commerce Session. Plain browsing does not count.', values: plans.map((plan) => plan.code === 'FREE' ? 'Not applicable' : formatNumber(plan.aiCommerceSessions)) },
+    { group: 'Capacity', label: 'Standard Try-On images', values: comparisonPlanCodes.map(imageAllowanceLabel) },
     { group: 'Decision journey', label: 'AI Recommendation', values: plans.map((plan) => plan.recommendation ? plan.code === 'FREE' ? 'Basic' : '✓ Included' : '—') },
-    { group: 'Decision journey', label: 'Generative Try-On', tooltip: 'If included AI Commerce Session capacity is exhausted, your Store stays live while generative Try-On pauses until capacity is restored.', values: plans.map((plan) => plan.generativeTryOn ? '✓ Included' : '—') },
+    { group: 'Decision journey', label: 'Generative Try-On', tooltip: 'Generative Try-On requires both available AI Commerce Sessions and available contracted Try-On image capacity. When either is exhausted, your Store stays live.', values: plans.map((plan) => plan.generativeTryOn ? '✓ Included' : '—') },
     { group: 'Decision journey', label: 'Frame Compare', values: plans.map((plan) => plan.compare ? '✓ Included' : '—') },
     { group: 'Decision journey', label: 'Decision Result + mobile continuation', tooltip: 'Paid plans can carry a shopper’s decision result to their phone through a secure continuation link or QR code.', values: plans.map((plan) => plan.decisionResult ? '✓ Included' : '—') },
     { group: 'Commerce', label: 'Merchant Actions', tooltip: 'Free Stores can link to products. Paid plans can use configured actions such as store visit, appointment, inquiry, or supported merchant destinations.', values: plans.map((plan) => plan.merchantHandoff ? '✓ Included' : 'Basic product links') },
@@ -229,6 +237,7 @@ function PilotSection({ locale }: { locale: string }) {
           <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">Start with a focused, real-world pilot using your own eyewear catalog. Final scope and pilot fee are confirmed based on your deployment configuration.</p>
           <p className="mt-7 text-5xl font-semibold tracking-[-0.05em] text-slate-950">From {FOUNDING_PILOT_OFFER.priceLabel}</p>
           <p className="mt-3 text-sm font-semibold text-violet-950">30 days · No auto-renew · Scope confirmed before billing</p>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">Standard hosted Pilot: up to {formatNumber(FOUNDING_PILOT_OFFER.aiAssistedShoppers)} AI Commerce Sessions and {formatNumber(FOUNDING_PILOT_OFFER.standardTryOnGenerations)} completed Try-On images over 30 days. Your confirmed scope governs.</p>
           <BusinessTrackedCtaLink href={businessHref(locale, planPath('FOUNDING_PILOT'))} locale={locale} ctaLocation="pricing_pilot" intentType="pilot_request" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800">
             {planCta('FOUNDING_PILOT')}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -286,15 +295,15 @@ function UsageSection() {
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">How AI Commerce Sessions work</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">One shopper journey, one session.</h2>
-          <p className="mt-5 text-base leading-7 text-slate-300">A shopper enters a Store or Campaign, starts Recommendation, Try-On, or Compare, and can continue through multiple AI interactions within the same visit. That journey counts as one AI Commerce Session — not one charge per recommendation or individual try-on.</p>
+          <p className="mt-5 text-base leading-7 text-slate-300">A shopper enters a Store or Campaign, starts Recommendation, Try-On, or Compare, and continues within the same visit. That counts as one AI Commerce Session. Completed Try-On images are counted separately against the included image allowance.</p>
         </div>
         <div aria-label="AI Commerce Session journey" className="mt-10 flex flex-col gap-3 rounded-2xl border border-white/15 bg-white/5 p-5 text-sm font-semibold text-white sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-6">
           <span>Store or Campaign</span><ArrowRight className="hidden h-4 w-4 text-sky-300 sm:block" aria-hidden="true" /><span>Guided AI decision journey</span><ArrowRight className="hidden h-4 w-4 text-sky-300 sm:block" aria-hidden="true" /><span>1 AI Commerce Session</span>
         </div>
-        <p className="mt-4 text-sm text-slate-400">Recommendation, multiple Try-Ons, and Compare within the same attributed visit still count as one AI Commerce Session. Decision Result, QR continuation, and Merchant Actions do not add a second session meter. Plain browsing, product views, and product clicks do not consume a paid AI Commerce Session.</p>
+        <p className="mt-4 text-sm text-slate-400">Each Store or Campaign can allow 1, 2, or 4 Try-On images per shopper session (default 2), subject to the merchant’s remaining image allowance. Decision Result, QR continuation, and Merchant Actions do not start another AI Commerce Session. Plain browsing, product views, and product clicks do not consume one.</p>
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
           <article className="rounded-2xl border border-white/15 bg-white/5 p-6"><p className="text-sm font-semibold text-white">Store stays live</p><p className="mt-3 text-sm leading-6 text-slate-300">When included capacity is reached, Store browsing, product links, inquiries, and analytics remain available.</p></article>
-          <article className="rounded-2xl border border-white/15 bg-white/5 p-6"><p className="text-sm font-semibold text-white">Try-On pauses</p><p className="mt-3 text-sm leading-6 text-slate-300">Generative Try-On pauses until capacity is restored or the next billing period begins. Basic Recommendation follows plan policy.</p></article>
+          <article className="rounded-2xl border border-white/15 bg-white/5 p-6"><p className="text-sm font-semibold text-white">Try-On pauses</p><p className="mt-3 text-sm leading-6 text-slate-300">Generative Try-On pauses when session or image capacity runs out, or the configured shopper limit is reached. Basic Recommendation follows plan policy.</p></article>
           <article className="rounded-2xl border border-white/15 bg-white/5 p-6"><p className="text-sm font-semibold text-white">No surprise billing</p><p className="mt-3 text-sm leading-6 text-slate-300">There are no automatic overage charges and no rollover. Included usage resets each billing period.</p></article>
         </div>
         <div className="mt-8 flex items-start gap-3 border-t border-white/15 pt-6 text-sm leading-6 text-slate-300"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-sky-300" aria-hidden="true" /><span>One Merchant / Brand has one canonical Store. Campaigns are focused marketing activations that use the same catalog.</span></div>
@@ -331,8 +340,9 @@ function ProductProofSection({ locale }: { locale: string }) {
 
 function FaqSection() {
   const faq = [
-    ['What counts as an AI Commerce Session?', 'One shopper starts an AI-assisted shopping journey in one Store or Campaign. Recommendation, multiple Try-Ons, Compare, and Intent in that journey count as one session. Plain browsing does not.'],
-    ['What happens when I reach my session limit?', 'Your Store, catalog, product browsing, product links, inquiries, and analytics remain available. Generative Try-On pauses until capacity is restored.'],
+    ['What counts as an AI Commerce Session?', 'One shopper starts an AI-assisted shopping journey in one Store or Campaign. Recommendation, Try-On, Compare, and Intent in that journey count as one session. Each completed Try-On image also counts against the separate image allowance. Plain browsing does not.'],
+    ['How many Try-Ons can one shopper make?', 'You can configure 1, 2, or 4 Try-On images per shopper session for each Store or Campaign (default 2), subject to your remaining contracted image allowance.'],
+    ['What happens when I reach a usage limit?', 'Your Store, catalog, product browsing, product links, inquiries, and analytics remain available. Generative Try-On pauses when session or image capacity runs out; a per-shopper limit pauses further images in that session.'],
     ['Does the Founding Pilot renew automatically?', 'No. The Founding Pilot starts from $149 / 30 days. Final scope and fee are confirmed based on deployment configuration, with no automatic renewal or silent conversion to a monthly plan.'],
     ['Can I upgrade later?', 'Yes. Start with Free or the Founding Pilot, then choose Launch, Growth, or Scale based on the capacity you need.'],
     ['Do I keep my Store if my paid plan ends?', 'Yes. The Store and catalog are retained. Paid AI features change according to the commercial state and plan.'],

@@ -1,9 +1,48 @@
 # VisuTry Merchant Commercial Entitlements v1
 
+**Status:** Current public Merchant plan and standard AI usage contract.
+**Owner:** Product / Merchant Engineering.
+
 The canonical plan contract lives in
-`src/modules/store/domain/merchant-commercial-plans.ts`. This document records
+`src/modules/merchant/domain/merchant-commercial-plans.ts`. This document records
 the version and the rules that runtime, Merchant UX, Admin, and future billing
 integrations must share.
+
+## Current public contract and standard AI usage (2026-10-27)
+
+The Merchant standard AI period reservation and per-Experience shopper controls
+have shipped. This does **not** authorize the unapproved candidate v2
+subscription pricing or image caps in
+`docs/strategy/merchant-commercial-v2-price-gate-2026-10-26.md`.
+
+| Public offer | Price | AI Commerce Sessions | Standard Try-On image allowance |
+| --- | --- | --- | --- |
+| Free | $0 | Not applicable | No generative Try-On |
+| Launch | $199/month | 1,000/period | Contract-specific; must be explicitly provisioned at activation |
+| Growth | $499/month | 5,000/period | Contract-specific; must be explicitly provisioned at activation |
+| Scale | $999/month | 10,000/period | Contract-specific; must be explicitly provisioned at activation |
+| Enterprise | From $2,500/month | Custom | Custom agreement and provisioning |
+| Founding Pilot | From $149/30 days | Up to 1,500/30 days | 3,500 successful images; approved 5,000 bonus only by explicit exception |
+
+One `AI Commerce Session` is an eligible shopper journey; each usable
+completed Try-On image is accounted for separately. Store and Campaign each
+have a saved `Try-Ons per shopper session` setting of **1 / 2 / 4** (default
+**2**). It is a shopper-experience ceiling, **not** a substitute for the
+merchant-period image allowance. An accepted/in-progress generation holds
+capacity; successful, durably persisted images settle once. Ordinary browsing,
+Recommendation without generation, and Merchant Actions remain available on
+AI exhaustion according to plan entitlement. There is no automatic image
+overage charge.
+
+Public wording must not say that a subscription's sessions include unlimited
+generated images, nor advertise unapproved v2 render quotas. The recurring
+plan definitions currently have `standardTryOnGenerations=null`; the live
+reservation path requires a positive, persisted `Merchant.standardRenderAllowance`
+and active period. **Commercial integration follow-up:** Stripe enrollment
+currently updates plan/status/period but does not populate that allowance; a
+new recurring subscription must not be considered Try-On-ready until the
+contract and enrollment are reconciled. This is a separately tracked billing
+implementation gap, not permission to invent a published quota.
 
 ## Plans
 
