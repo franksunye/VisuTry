@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { StyleExplorerHandoffGate } from '@/components/style-explorer/StyleExplorerHandoffGate'
-import { StyleExplorerMarketing } from '@/components/style-explorer/StyleExplorerMarketing'
 import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 interface StyleExplorerPageProps {
@@ -10,7 +8,7 @@ interface StyleExplorerPageProps {
 }
 
 // Marketing must not invoke a server function for every anonymous visit.
-// URL query context is resolved after hydration in a client Suspense boundary.
+// URL query context is resolved after hydration in a client-only effect.
 export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: StyleExplorerPageProps): Promise<Metadata> {
@@ -40,14 +38,9 @@ export async function generateMetadata({ params }: StyleExplorerPageProps): Prom
 
 export default function StyleExplorerPage({ params }: StyleExplorerPageProps) {
   setRequestLocale(params.locale)
-  const callbackUrl = `/${params.locale}/style-explorer`
-  const signInHref = `/${params.locale}/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
-
   return (
     <RouteMessagesProvider namespaces={['marketing.styleExplorer']}>
-      <Suspense fallback={<StyleExplorerMarketing locale={params.locale} signInHref={signInHref} />}>
-        <StyleExplorerHandoffGate locale={params.locale} />
-      </Suspense>
+      <StyleExplorerHandoffGate locale={params.locale} />
     </RouteMessagesProvider>
   )
 }

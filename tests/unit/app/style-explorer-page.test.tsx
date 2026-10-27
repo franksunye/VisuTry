@@ -2,12 +2,6 @@ import { render, screen } from '@testing-library/react'
 import StyleExplorerPage, { dynamic } from '@/app/[locale]/(consumer-app)/style-explorer/page'
 import { StyleExplorerHandoffGate } from '@/components/style-explorer/StyleExplorerHandoffGate'
 
-let mockSearchParams = new URLSearchParams()
-
-jest.mock('next/navigation', () => ({
-  useSearchParams: () => mockSearchParams,
-}))
-
 jest.mock('next-intl/server', () => ({
   getTranslations: jest.fn(),
   setRequestLocale: jest.fn(),
@@ -41,7 +35,6 @@ jest.mock('@/components/style-explorer/StyleExplorerGate', () => ({
 
 describe('Style Explorer page handoff context', () => {
   beforeEach(() => {
-    mockSearchParams = new URLSearchParams()
     window.history.replaceState(null, '', '/en/style-explorer')
   })
 
@@ -55,7 +48,6 @@ describe('Style Explorer page handoff context', () => {
   })
 
   it('preserves the Face Analysis source through authentication', () => {
-    mockSearchParams = new URLSearchParams('source=face-analysis&taskId=analysis-1')
     window.history.replaceState(null, '', '/en/style-explorer?source=face-analysis&taskId=analysis-1')
     render(<StyleExplorerHandoffGate locale="en" />)
 
@@ -68,7 +60,6 @@ describe('Style Explorer page handoff context', () => {
   })
 
   it('does not treat an unrecognized source as a Face Analysis handoff', () => {
-    mockSearchParams = new URLSearchParams('source=other&taskId=analysis-1')
     window.history.replaceState(null, '', '/en/style-explorer?source=other&taskId=analysis-1')
     render(<StyleExplorerHandoffGate locale="en" />)
 
@@ -81,7 +72,6 @@ describe('Style Explorer page handoff context', () => {
   })
 
   it('does not forward ambiguous duplicate task IDs', () => {
-    mockSearchParams = new URLSearchParams('source=face-analysis&taskId=a&taskId=b')
     window.history.replaceState(null, '', '/en/style-explorer?source=face-analysis&taskId=a&taskId=b')
     render(<StyleExplorerHandoffGate locale="en" />)
     expect(screen.getByTestId('style-explorer-gate')).toHaveAttribute('data-face-analysis-task-id', '')

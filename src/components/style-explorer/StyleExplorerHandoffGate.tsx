@@ -1,25 +1,22 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { StyleExplorerGate } from './StyleExplorerGate'
 
 /** Keep URL-derived Face Analysis context out of static server rendering. */
 export function StyleExplorerHandoffGate({ locale }: { locale: string }) {
-  const searchParams = useSearchParams()
-  const [browserSearch, setBrowserSearch] = useState<string | null>(null)
+  const [browserSearch, setBrowserSearch] = useState('')
 
   useEffect(() => {
-    // Next.js 14 `force-static` can hydrate the router's search params as
-    // empty even for a query-bearing URL. Read the browser's actual location
-    // after hydration, without invoking any server-rendered dynamic API.
+    // No Next.js searchParams/Suspense bailout is necessary. Read only after
+    // hydration, and update on browser history navigation.
     const sync = () => setBrowserSearch(window.location.search)
     sync()
     window.addEventListener('popstate', sync)
     return () => window.removeEventListener('popstate', sync)
-  }, [searchParams])
+  }, [])
 
-  const query = browserSearch === null ? searchParams : new URLSearchParams(browserSearch)
+  const query = new URLSearchParams(browserSearch)
   // Reject ambiguous duplicate keys, matching the former server parser.
   const source = query.getAll('source')
   const taskIds = query.getAll('taskId')
