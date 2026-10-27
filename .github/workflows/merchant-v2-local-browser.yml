@@ -1,0 +1,48 @@
+name: Merchant v2 Local Browser Contract
+
+on:
+  pull_request:
+    paths:
+      - 'src/modules/merchant/application/merchant-ai-period-*.ts'
+      - 'src/modules/store/application/submit-store-tryon.ts'
+      - 'src/modules/store/application/settle-store-usage.ts'
+      - 'src/modules/store/infrastructure/generation/store-generation-adapter.ts'
+      - 'scripts/merchant-ai-period-postgres-contract.ts'
+      - 'scripts/container-e2e/**'
+      - 'scripts/seed-merchant-ai-v2-container.ts'
+      - 'tests/e2e/merchant-ai-v2-local.spec.ts'
+      - '.github/workflows/merchant-v2-local-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: merchant-v2-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    name: M1b real Store API + disposable PGlite + Chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+      SKIP_ENV_VALIDATION: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
+      - name: Execute real local Merchant v2 browser contract
+        run: npm run test:e2e:merchant:container

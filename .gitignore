@@ -22,6 +22,7 @@
 /.local/merchant-dashboard-capture/
 /.local/merchant-e2e/
 /.local/sales-demo/
+/.local/container-e2e/
 
 # production
 /build

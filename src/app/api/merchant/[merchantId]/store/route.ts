@@ -25,6 +25,7 @@ const storeDetailsSchema = z.object({
     kioskIdleTimeoutSeconds: z.number().int().min(MIN_KIOSK_IDLE_TIMEOUT_SECONDS).max(MAX_KIOSK_IDLE_TIMEOUT_SECONDS),
   }).strict().optional(),
   presentationMode: z.enum(PRESENTATION_MODES).optional(),
+  sessionTryOnLimit: z.union([z.literal(1), z.literal(2), z.literal(4)]).optional(),
   primaryCtaType: z.string().trim().max(40).nullable().optional(),
   primaryCtaLabel: z.string().trim().max(120).nullable().optional(),
   primaryCtaUrl: z.string().trim().max(2000).nullable().optional(),

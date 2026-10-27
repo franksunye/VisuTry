@@ -105,6 +105,9 @@ jobs:
       - name: Run merchant tenant FK PostgreSQL contract
         run: npx tsx scripts/merchant-tenant-fk-postgres-contract.ts
 
+      - name: Verify Merchant v2 atomic billing-period render holds (mock dispatch only)
+        run: npx tsx scripts/merchant-ai-period-postgres-contract.ts
+
   static-and-unit:
     name: Static + Critical Business Regression
     runs-on: ubuntu-latest

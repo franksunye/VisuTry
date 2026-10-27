@@ -2,13 +2,14 @@
 
 import { AlertTriangle, ArrowRight, BarChart3, Boxes, Check, CheckCircle2, Info, Megaphone, Sparkles } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
+import type { MerchantAiUsageSnapshot } from "@/modules/merchant/application/merchant-ai-usage-snapshot";
 import type { MerchantCommercialPresentation } from "@/modules/merchant/application/merchant-control-center";
 import { merchantCommercialActionLabel, merchantCommercialStatusCopy } from "@/modules/merchant/domain/merchant-commercial-copy";
 import { MerchantBillingActions } from "@/components/merchant/MerchantBillingActions";
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
 
-type Props = { commercial: MerchantCommercialPresentation; merchantId?: string; locale?: string; storeStatus?: string | null };
+type Props = { aiUsage?: MerchantAiUsageSnapshot | null; commercial: MerchantCommercialPresentation; merchantId?: string; locale?: string; storeStatus?: string | null };
 
 const buttonClass = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2";
 
@@ -41,7 +42,7 @@ function allowance(value: number, limit: number | null) {
   return { value: `${value.toLocaleString()} / ${limit.toLocaleString()}`, detail: "Plan limit" };
 }
 
-export function MerchantPlanUsage({ commercial, merchantId, locale = "en", storeStatus = null }: Props) {
+export function MerchantPlanUsage({ aiUsage = null, commercial, merchantId, locale = "en", storeStatus = null }: Props) {
   const isDemo = commercial.commercialState === "DEMO";
   useEffect(() => {
     if (commercial.commercialState === "DEMO") return;
@@ -63,7 +64,7 @@ export function MerchantPlanUsage({ commercial, merchantId, locale = "en", store
           ? `${dateLabel(commercial.periodStart)} – ${dateLabel(commercial.periodEnd)}`
           : commercial.planCode === "FREE" ? "No billing period" : "Current period";
 
-  const aiUsage = commercial.aiCommerceSessionLimit === 0
+  const sessionUsage = commercial.aiCommerceSessionLimit === 0
     ? { value: "Not included", detail: null }
     : commercial.aiCommerceSessionLimit === null
     ? commercial.status === "LEGACY_UNMIGRATED"
@@ -100,7 +101,14 @@ export function MerchantPlanUsage({ commercial, merchantId, locale = "en", store
       </header>
 
       <div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${showPilot ? "xl:grid-cols-4" : "lg:grid-cols-3"}`} aria-label="Plan usage summary">
-        <Metric icon={<BarChart3 className="h-4 w-4" aria-hidden="true" />} label="AI Commerce Sessions" value={aiUsage.value} detail={aiUsage.detail} percentage={commercial.aiCommerceSessionPercentage} threshold={commercial.threshold} />
+        <Metric icon={<BarChart3 className="h-4 w-4" aria-hidden="true" />} label="AI Commerce Sessions" value={sessionUsage.value} detail={sessionUsage.detail} percentage={commercial.aiCommerceSessionPercentage} threshold={commercial.threshold} />
+        {aiUsage ? <Metric icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}
+          label="AI Try-On generations"
+          value={`${aiUsage.successful.toLocaleString()} / ${aiUsage.limit.toLocaleString()}`}
+          detail={`${aiUsage.held.toLocaleString()} in progress · ${aiUsage.remaining.toLocaleString()} available`}
+          percentage={aiUsage.usedPercent}
+          threshold={aiUsage.usedPercent >= 100 ? "LIMIT_REACHED" : aiUsage.usedPercent >= 90 ? "WARNING" : aiUsage.usedPercent >= 70 ? "NOTICE" : null}
+        /> : null}
         <Metric icon={<Megaphone className="h-4 w-4" aria-hidden="true" />} label="Active Campaigns" {...allowance(commercial.usage.activeCampaigns, commercial.limits.activeCampaigns)} />
         <Metric icon={<Boxes className="h-4 w-4" aria-hidden="true" />} label="Catalog Items" {...allowance(commercial.usage.catalogItems, commercial.limits.catalogItems)} />
         {showPilot ? <Metric icon={<Sparkles className="h-4 w-4" aria-hidden="true" />} label="Standard Try-On" {...allowance(commercial.usage.standardTryOnGenerations, commercial.limits.standardTryOnGenerations)} /> : null}

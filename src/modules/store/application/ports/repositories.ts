@@ -122,6 +122,7 @@ export type ExperienceRecord = {
   campaignObjective?: CampaignObjective | null
   campaignGate?: CampaignGate | null
   presentationMode?: PresentationMode | null
+  sessionTryOnLimit?: number | null
   referenceData: boolean
   defaultSource: string | null
   defaultCampaign: string | null

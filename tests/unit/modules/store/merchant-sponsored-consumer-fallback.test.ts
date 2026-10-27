@@ -202,6 +202,10 @@ describe('merchant-sponsored signed-in fallback', () => {
     mockedPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
       const tx = {
         $executeRaw: jest.fn().mockResolvedValue(1),
+        // The VisuTry Demo is intentionally not an enrolled paid Merchant.
+        // Standard Merchant allowance admission inspects plan identity,
+        // while sponsored first-value retains its separate fixed budget.
+        merchant: { findUnique: jest.fn().mockResolvedValue({ planCode: null }) },
         tryOnTask: {
           findUnique: jest.fn().mockResolvedValue(null),
           findMany: jest.fn().mockResolvedValue([]),

@@ -19,6 +19,7 @@ import type {
 import { requireOperableStoreSession } from './require-store-session'
 import { settleStoreTryOnUsage } from './settle-store-usage'
 import { settleTryOnTaskQuota } from '@/lib/quota'
+import { releaseMerchantAiRenderForTerminalFailure } from '@/modules/merchant/application/merchant-ai-period-lifecycle'
 import { buildStoreTryOnResultDeliveryUrl } from './store-result-delivery'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
@@ -190,6 +191,15 @@ export async function pollStoreFrameTryOn(
   }
 
   if (status.status === 'FAILED' && owned.merchantFrameId) {
+    // Unversioned historical tasks never had a billing-period reservation:
+    // avoid an additional database transaction on every legacy failure poll.
+    if (typeof taskMetadata.merchantAiReservationId === 'string') {
+      await releaseMerchantAiRenderForTerminalFailure({
+        taskId: input.taskId,
+        merchantId: merchant.id,
+        merchantSessionId: session.id,
+      })
+    }
     const failedEvent = await input.events.appendIdempotent({
       eventId: buildStoreEventIdempotencyKey({
         type: 'merchant_tryon_failed',

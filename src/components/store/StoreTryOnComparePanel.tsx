@@ -137,6 +137,7 @@ export function StoreTryOnComparePanel({
   const [inquirySending, setInquirySending] = useState(false)
   const [inquirySent, setInquirySent] = useState(false)
   const [continuationState, setContinuationState] = useState<'AUTH_REQUIRED' | 'CONSUMER_CREDITS_REQUIRED' | null>(null)
+  const [sessionLimitReached, setSessionLimitReached] = useState(false)
   const [sessionNotice, setSessionNotice] = useState<'session_restart' | 'unavailable' | null>(null)
   const pollControllersRef = useRef(new Map<string, () => void>())
   const inFlightSubmitRef = useRef(new Set<string>())
@@ -144,6 +145,9 @@ export function StoreTryOnComparePanel({
   useEffect(() => {
     if (initialBatchId && !batchId) setBatchId(initialBatchId)
   }, [batchId, initialBatchId])
+
+  // A new shopper Session starts a new, independent interaction allowance.
+  useEffect(() => { setSessionLimitReached(false) }, [merchantSessionId])
 
   const merchantContinuation: MerchantContinuationContext | null = createMerchantContinuation({
     locale,
@@ -193,7 +197,7 @@ export function StoreTryOnComparePanel({
   )
 
   const startTryOn = useCallback(async () => {
-    if (!experiencePolicy.tryOnEnabled || selectedFrames.length === 0 || dispatching) return
+    if (!experiencePolicy.tryOnEnabled || selectedFrames.length === 0 || dispatching || sessionLimitReached) return
     const framesToSubmit = selectedFrames.filter(
       (frame) => !tiles.some((tile) => tile.merchantFrameId === frame.id && (Boolean(tile.taskId) || Boolean(tile.sourceRef))),
     )
@@ -254,6 +258,13 @@ export function StoreTryOnComparePanel({
         })
         const json = await res.json()
         if (!res.ok || !json.success) {
+          if (json.code === 'AI_SESSION_LIMIT_REACHED') {
+            setSessionLimitReached(true)
+            // Keep only delivered / task-backed tiles. The remainder were
+            // never accepted by the server and must not offer "Try again".
+            setTiles((current) => current.filter((tile) => tile.taskId || tile.sourceRef))
+            break
+          }
           if (json.code === 'AUTH_REQUIRED' || json.code === 'CONSUMER_CREDITS_REQUIRED') {
             setContinuationState(json.code)
             onContinuationBatchId?.(nextBatchId)
@@ -341,6 +352,7 @@ export function StoreTryOnComparePanel({
     onContinuationBatchId,
     onCompareStarted,
     experiencePolicy.tryOnEnabled,
+    sessionLimitReached,
     t,
   ])
 
@@ -553,6 +565,15 @@ export function StoreTryOnComparePanel({
       })
       const json = await res.json()
       if (!res.ok || !json.success) {
+        if (json.code === 'AI_SESSION_LIMIT_REACHED') {
+          setSessionLimitReached(true)
+          setTiles((current) => current.map((item) =>
+            item.merchantFrameId === tile.merchantFrameId
+              ? { ...item, status: 'failed', errorMessage: 'This shopping session has reached its Try-On limit.', retryAction: 'none' }
+              : item,
+          ))
+          return
+        }
         if (json.code === 'AUTH_REQUIRED' || json.code === 'CONSUMER_CREDITS_REQUIRED') {
           setContinuationState(json.code)
           onContinuationBatchId?.(batchId)
@@ -624,7 +645,7 @@ export function StoreTryOnComparePanel({
           <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('tryOn.title')}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{t('tryOn.subtitle')}</p>
         </div>
-        {framesNeedingSubmit.length > 0 ? (
+        {framesNeedingSubmit.length > 0 && !sessionLimitReached ? (
           <button
             type="button"
             onClick={() => void startTryOn()}
@@ -649,6 +670,13 @@ export function StoreTryOnComparePanel({
           </button>
         ) : null}
       </div>
+
+      {sessionLimitReached ? (
+        <div role="status" data-testid="store-tryon-session-limit" className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
+          <p className="font-semibold">You have used the Try-Ons included in this shopping session.</p>
+          <p className="mt-1">You can still view your results, compare completed looks and visit products.</p>
+        </div>
+      ) : null}
 
       {sessionNotice ? (
         <div

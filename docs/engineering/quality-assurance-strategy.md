@@ -274,6 +274,36 @@ directories ignored as a second guard. Browser execution remains explicit via
 `npm run test:e2e:playwright` (or the `npm run test:e2e` alias); Jest never
 collects or executes Playwright specs.
 
+### Optional container Merchant browser gate (Linux x86_64)
+
+Run `npm ci` and `npm run test:e2e:merchant:container` in a disposable Linux
+development container. This is an **opt-in local development loop**, not a
+production release gate. It starts an isolated PGlite (PostgreSQL WASM) server
+bound to `127.0.0.1:5439`, applies the canonical Prisma migrations, registers a
+`LOCAL` database marker, seeds QA and Reference Pilot data, then runs real
+Next.js SSR and selected desktop/mobile Chromium Store/Campaign browser paths.
+Shopper AI and entitlement responses are mocked by the existing Playwright
+specs; the test runner explicitly strips external provider credentials.
+
+- Dependencies and browser binaries are cached under ignored
+  `.local/container-e2e/`. The official Google Chrome for Testing headless-shell
+  archive is used when the Playwright CDN does not supply a valid ZIP. Its
+  version comes directly from the installed Playwright browser manifest.
+- The database, Next.js, and Playwright all run as children of **one shell** so
+  they share loopback networking in isolated execution environments.
+- The container's restricted Unix sockets may prevent the `tsx` CLI starting;
+  the runner uses `node --import tsx` for seed/preflight scripts.
+- Each run creates its own disposable `visutry_local_container_e2e` database
+  directory under the ignored cache, alongside local diagnostic logs. Run this
+  only in a clean checkout **without `.env`/`.env.local`**, because Next.js
+  reloads those files. External database URLs, Vercel execution and occupied
+  test ports are refused; external provider credentials are removed.
+- **Do not treat PGlite as a native PostgreSQL concurrency equivalent.**
+  Production-like Merchant v2 atomic reservation, idempotency, migration and
+  billing correctness remain verified by GitHub Actions with PostgreSQL 16.
+  Browser success here is a fast UI → SSR → API/mock → data smoke, not M1b
+  release approval.
+
 ## 7. Merge Gate Policy
 
 Required before merge:

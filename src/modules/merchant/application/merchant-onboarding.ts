@@ -23,6 +23,7 @@ import { recordMerchantActivationEventWithClient } from './merchant-activation'
 import { experienceCommands } from '@/modules/store/application/experience-command-service-prisma'
 import { resolveDecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
 import { resolvePublicDecisionJourney } from '@/modules/store/domain/experience-policy'
+import { resolveSessionTryOnLimit } from '@/modules/store/domain/session-tryon-limit'
 import { resolveExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 import { getMerchantCommercialCapability } from './merchant-commercial-entitlements'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
@@ -581,6 +582,7 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
     tryOnEnabled: (capabilitySource?.tryOnEnabled ?? true) && Boolean(commercialCapability?.decisions.GENERATIVE_TRY_ON.allowed),
     compareEnabled: (capabilitySource?.compareEnabled ?? true) && Boolean(commercialCapability?.decisions.COMPARE.allowed),
     kioskDeliveryEnabled: commercialCapability?.decisions.KIOSK_DELIVERY.allowed ?? false,
+    sessionTryOnLimitsEnabled: true,
   }
   return {
     store: store ? {
@@ -595,6 +597,7 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
       journeyPolicy: resolveDecisionJourneyPolicy(store.journeyPolicy),
       effectiveJourneyPolicy: resolvePublicDecisionJourney(capabilities, store),
       deliveryPolicy: resolveExperienceDeliveryPolicy(store.deliveryPolicy),
+      sessionTryOnLimit: resolveSessionTryOnLimit(store.sessionTryOnLimit),
       presentationMode: resolvePresentationMode({ experienceType: 'STORE', persistedPresentationMode: store.presentationMode }),
       primaryCtaType: store.primaryCtaType,
       primaryCtaLabel: store.primaryCtaLabel,
@@ -678,6 +681,7 @@ export async function updateMerchantStore(input: {
   description?: string | null
   journeyPolicy?: DecisionJourneyPolicy
   deliveryPolicy?: ExperienceDeliveryPolicy
+  sessionTryOnLimit?: 1 | 2 | 4
   presentationMode?: PresentationMode
   primaryCtaType?: string | null
   primaryCtaLabel?: string | null
@@ -691,7 +695,7 @@ export async function updateMerchantStore(input: {
     where: { id: input.storeId, merchantId: input.actor.merchantId, type: 'STORE' },
     select: {
       id: true, slug: true, name: true, status: true, headline: true, description: true,
-      journeyPolicy: true, deliveryPolicy: true, presentationMode: true,
+      journeyPolicy: true, deliveryPolicy: true, sessionTryOnLimit: true, presentationMode: true,
       primaryCtaType: true, primaryCtaLabel: true, primaryCtaUrl: true,
       secondaryCtaType: true, secondaryCtaLabel: true, secondaryCtaUrl: true,
     },
@@ -709,6 +713,7 @@ export async function updateMerchantStore(input: {
     name, headline, description,
     ...(input.journeyPolicy !== undefined ? { journeyPolicy: input.journeyPolicy } : {}),
     ...(input.deliveryPolicy !== undefined ? { deliveryPolicy: input.deliveryPolicy } : {}),
+    ...(input.sessionTryOnLimit !== undefined ? { sessionTryOnLimit: input.sessionTryOnLimit } : {}),
     ...(input.presentationMode !== undefined ? { presentationMode: input.presentationMode } : {}),
     ...(input.primaryCtaType !== undefined ? { primaryCtaType: input.primaryCtaType } : {}),
     ...(input.primaryCtaLabel !== undefined ? { primaryCtaLabel: input.primaryCtaLabel } : {}),

@@ -22,6 +22,8 @@ import {
 } from '../domain'
 import { resolveMerchantCommercialCapability, decideMerchantCommercialFeature } from '../domain/merchant-commercial-capability'
 import { consumeAICommerceSession } from '@/modules/merchant/application/merchant-commercial-entitlements'
+import { isMeteredMerchantPlan, reserveMerchantAiPeriodRenderInTransaction } from '@/modules/merchant/application/merchant-ai-period-admission'
+import { releaseMerchantAiRenderForTerminalFailure } from '@/modules/merchant/application/merchant-ai-period-lifecycle'
 import { checkUserQuota } from '@/lib/quota'
 import { calculateExpiresAt } from '@/config/retention'
 import type { AssetStore } from './ports/asset-store'
@@ -252,12 +254,16 @@ async function markStoreClaimFailed(
  * Atomically claim a placeholder TryOnTask + RENDER_ATTEMPT (+ merchant abuse bump).
  * Reuse of the same idempotency key burns no additional attempt.
  */
-async function claimStoreTryOnSlot(input: {
+export async function claimStoreTryOnSlot(input: {
   merchantId: string
   merchantSessionId: string
   merchantFrameId: string
   idempotencyKey: string
   clientSubmissionId: string
+  /** Internal deterministic PostgreSQL contract-clock override; public API cannot set this. */
+  now?: Date
+  /** Internal-only database override for disposable PostgreSQL contract execution. */
+  db?: typeof prisma
   clientIp?: string | null
   expiresAt?: Date
   renderLimits: import('../domain').StoreDemoLimits
@@ -276,6 +282,7 @@ async function claimStoreTryOnSlot(input: {
   taskId: string
   reusedExisting: boolean
   dispatchLease: DispatchFence | null
+  merchantAiReservationId: string | null
 }> {
   const maxAttempts = 3
   const abuseWindow = dayWindowStart()
@@ -285,7 +292,7 @@ async function claimStoreTryOnSlot(input: {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await prisma.$transaction(
+      const claimed = await (input.db ?? prisma).$transaction(
         async (tx) => {
           const existing = await tx.tryOnTask.findUnique({
             where: { idempotencyKey: input.idempotencyKey },
@@ -298,7 +305,12 @@ async function claimStoreTryOnSlot(input: {
                 409,
               )
             }
-            return { taskId: existing.id, reusedExisting: true, dispatchLease: null }
+            const existingMeta = (existing.metadata ?? {}) as Record<string, unknown>
+            return {
+              taskId: existing.id, reusedExisting: true, dispatchLease: null,
+              merchantAiReservationId: typeof existingMeta.merchantAiReservationId === 'string'
+                ? existingMeta.merchantAiReservationId : null,
+            }
           }
 
           await reserveStoreBatchFrame(tx, {
@@ -415,6 +427,41 @@ async function claimStoreTryOnSlot(input: {
             )
           }
 
+          // Standard merchant-paid quota. Demo without a paid plan uses its
+          // explicit demo allocation; Consumer continuation remains distinct.
+          let merchantAiReservationId: string | null = null
+          if (input.usagePolicyKind !== 'consumer_quota') {
+            const merchantPlan = await tx.merchant.findUnique({
+              where: { id: input.merchantId },
+              select: { planCode: true },
+            })
+            if (isMeteredMerchantPlan(merchantPlan?.planCode)) {
+              const admission = await reserveMerchantAiPeriodRenderInTransaction(tx, {
+                merchantId: input.merchantId,
+                merchantSessionId: input.merchantSessionId,
+                idempotencyKey: input.idempotencyKey,
+                now: input.now,
+              })
+              if (admission.decision === 'DENIED') {
+                const sessionLimitReached = admission.reason === 'SESSION_LIMIT_REACHED'
+                const exhausted = admission.reason === 'LIMIT_REACHED'
+                throw new StoreDomainError(
+                  sessionLimitReached ? 'AI_SESSION_LIMIT_REACHED' : exhausted ? 'AI_USAGE_LIMIT_REACHED' : 'COMMERCIAL_PERIOD_EXPIRED',
+                  sessionLimitReached
+                    ? 'You have reached the Try-On limit for this shopping session. Your results and recommendations are still available.'
+                    : exhausted
+                      ? 'This Store has used its included AI Try-On generations.'
+                      : 'Virtual Try-On is temporarily unavailable for this Store.',
+                  sessionLimitReached || exhausted ? 429 : 409,
+                )
+              }
+              if (admission.decision === 'EXISTING') {
+                throw new StoreDomainError('IDEMPOTENCY_CONFLICT', 'This Try-On is already being processed.', 409)
+              }
+              merchantAiReservationId = admission.reservationId
+            }
+          }
+
           const task = await tx.tryOnTask.create({
             data: {
               userId: input.userId ?? null,
@@ -442,12 +489,29 @@ async function claimStoreTryOnSlot(input: {
                 ...(input.sponsoredReservationId
                   ? { sponsoredReservationId: input.sponsoredReservationId }
                   : {}),
+                ...(merchantAiReservationId
+                  ? { merchantAiReservationId }
+                  : {}),
               },
               dispatchLeaseOwner: leaseOwner,
               dispatchLeaseUntil: new Date(lease.dispatchLeaseUntil),
               dispatchVersion: 1,
             },
           })
+
+          if (merchantAiReservationId) {
+            const bound = await tx.merchantAiRenderReservation.updateMany({
+              where: {
+                id: merchantAiReservationId,
+                merchantId: input.merchantId,
+                merchantSessionId: input.merchantSessionId,
+                tryOnTaskId: null,
+                status: 'RESERVED',
+              },
+              data: { tryOnTaskId: task.id },
+            })
+            if (bound.count !== 1) throw new Error('Merchant AI hold/task binding failed')
+          }
 
           await tx.merchantUsageLedger.create({
             data: {
@@ -462,19 +526,26 @@ async function claimStoreTryOnSlot(input: {
             taskId: task.id,
             reusedExisting: false,
             dispatchLease: { owner: leaseOwner, version: 1 },
+            merchantAiReservationId,
           }
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )
+      return claimed
     } catch (error) {
       if (error instanceof StoreDomainError) throw error
       const code = (error as { code?: string })?.code
       if (code === 'P2002') {
-        const raced = await prisma.tryOnTask.findUnique({
+        const raced = await (input.db ?? prisma).tryOnTask.findUnique({
           where: { idempotencyKey: input.idempotencyKey },
         })
         if (raced) {
-          return { taskId: raced.id, reusedExisting: true, dispatchLease: null }
+          const racedMeta = (raced.metadata ?? {}) as Record<string, unknown>
+          return {
+            taskId: raced.id, reusedExisting: true, dispatchLease: null,
+            merchantAiReservationId: typeof racedMeta.merchantAiReservationId === 'string'
+              ? racedMeta.merchantAiReservationId : null,
+          }
         }
       }
       if (code !== 'P2034' || attempt === maxAttempts) throw error
@@ -911,6 +982,16 @@ export async function submitStoreFrameTryOn(
       await input.sponsoredUsage.release(sponsoredReservationId).catch(() => undefined)
     }
     const markedFailed = await markStoreClaimFailed(claim.taskId, dispatchLease, error)
+    // Release only if a durable terminal failure proves that dispatch never
+    // happened (or the provider's accepted task conclusively failed).
+    // UNKNOWN remains RESERVED and cannot fund a duplicate provider create.
+    if (claim.merchantAiReservationId) {
+      await releaseMerchantAiRenderForTerminalFailure({
+        taskId: claim.taskId,
+        merchantId: merchant.id,
+        merchantSessionId: session.id,
+      })
+    }
     if (!markedFailed) throw error
 
     await recordStoreTryOnAttempt({
