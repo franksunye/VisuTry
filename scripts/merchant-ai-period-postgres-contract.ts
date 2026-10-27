@@ -96,6 +96,9 @@ async function main() {
   const v1 = await fixture('legacy', 1, 'v1'); fixtures.push(v1)
   const missingResult = await fixture('missing-result', 1); fixtures.push(missingResult)
   const shadow = await fixture('shadow', 1); fixtures.push(shadow)
+  const grsaiFailure = await fixture('grsai-failure', 1); fixtures.push(grsaiFailure)
+  const kieFailure = await fixture('kie-failure', 1); fixtures.push(kieFailure)
+  const lateSettlement = await fixture('late-settlement', 1); fixtures.push(lateSettlement)
 
   try {
     // Distinct concurrent final-slot claims use real SERIALIZABLE PG txs.
@@ -260,6 +263,82 @@ async function main() {
     }), 'ALREADY_RELEASED')
     assert.equal((await claim(b, 'released-slot-' + suffix)).decision, 'RESERVED')
 
+    // Both aggregator adapters must obey the same idempotent/ambiguous
+    // merchant-budget rule. HTTP 429/503 alone does not prove rejection.
+    for (const [kind, f, httpCode] of [
+      ['grsai', grsaiFailure, 503],
+      ['kie', kieFailure, 429],
+    ] as const) {
+      const initial = await claim(f, kind + '-initial-' + suffix)
+      assert.equal(initial.decision, 'RESERVED')
+      assert.ok(initial.taskId)
+      await db.tryOnTask.update({
+        where: { id: initial.taskId! },
+        data: {
+          status: 'FAILED', userImageUrl: 'mock://uploaded-user',
+          errorMessage: 'Synthetic provider ' + httpCode,
+          metadata: {
+            serviceType: kind, dispatchOutcome: 'UNKNOWN',
+            providerSubmissionStatus: 'UNKNOWN', httpStatus: httpCode,
+          },
+        },
+      })
+      assert.equal(await releaseMerchantAiRenderForTerminalFailure({
+        taskId: initial.taskId!, merchantId: f.merchantId, merchantSessionId: f.sessionId, db,
+      }), 'HELD_AMBIGUOUS', 'HTTP error cannot be equated to no billable dispatch')
+      const countBeforeReplay = simulatedDispatchCount
+      const replay = await claim(f, kind + '-initial-' + suffix)
+      assert.equal(replay.taskId, initial.taskId, 'same identity recovers original task')
+      assert.equal(replay.decision, 'EXISTING')
+      assert.equal(simulatedDispatchCount, countBeforeReplay, 'same identity cannot create another provider task')
+      assert.equal((await claim(f, kind + '-blocked-' + suffix)).decision, 'DENIED')
+      await db.tryOnTask.update({
+        where: { id: initial.taskId! },
+        data: {
+          metadata: {
+            serviceType: kind, dispatchOutcome: 'ACCEPTED',
+            providerSubmissionStatus: 'ACCEPTED',
+            externalTaskId: 'mock-provider-terminal-' + kind,
+          },
+        },
+      })
+      assert.equal(await releaseMerchantAiRenderForTerminalFailure({
+        taskId: initial.taskId!, merchantId: f.merchantId, merchantSessionId: f.sessionId, db,
+      }), 'RELEASED', 'only an accepted task with conclusive terminal failure releases')
+      assert.equal((await claim(f, kind + '-after-confirmed-' + suffix)).decision, 'RESERVED')
+    }
+
+    // A RESERVED task from the expired period still belongs to that original
+    // period when it eventually completes, and must not consume new capacity.
+    const late = await claim(lateSettlement, 'late-old-' + suffix)
+    assert.equal(late.decision, 'RESERVED')
+    assert.ok(late.taskId)
+    const lateNewEnd = new Date(periodEnd.getTime() + 30 * 86400_000)
+    await db.merchant.update({
+      where: { id: lateSettlement.merchantId },
+      data: { entitlementEffectiveFrom: periodEnd, billingPeriodEnd: lateNewEnd },
+    })
+    const lateNew = await claim(lateSettlement, 'late-new-' + suffix, new Date(periodEnd.getTime() + 1000))
+    assert.equal(lateNew.decision, 'RESERVED')
+    await db.tryOnTask.update({
+      where: { id: late.taskId! },
+      data: { status: 'COMPLETED', resultImageUrl: 'mock://late-period-success' },
+    })
+    assert.equal((await settleStoreTryOnUsage({
+      taskId: late.taskId!, merchantId: lateSettlement.merchantId,
+      merchantSessionId: lateSettlement.sessionId,
+      usagePolicy: { kind: 'merchant_allowance', merchantId: lateSettlement.merchantId },
+      usage: {} as unknown as Parameters<typeof settleStoreTryOnUsage>[0]['usage'], db,
+    })).settled, true)
+    const oldHold = await db.merchantAiRenderReservation.findUnique({
+      where: { tryOnTaskId: late.taskId! },
+    })
+    assert.equal(oldHold?.status, 'SETTLED')
+    assert.equal(oldHold?.periodEnd.toISOString(), periodEnd.toISOString())
+    assert.equal((await db.merchantAiRenderReservation.findUnique({
+      where: { tryOnTaskId: lateNew.taskId! },
+    }))?.status, 'RESERVED', 'new-period capacity is unaffected by late old-period settlement')
+
     assert.equal((await claim(v1, 'legacy-' + suffix)).decision, 'RESERVED',
       'legacy contract must continue without a v2 hold')
     assert.equal(await db.merchantAiRenderReservation.count({
@@ -278,6 +357,7 @@ async function main() {
       sameKeyConcurrentSingleTask: true,
       ambiguousRemainsReserved: true, onceOnlySuccess: true,
       noImageNoSettlement: true, shadowReadOnly: true,
+      kieAndGrsai429503Ambiguity: true, crossPeriodLateSettlement: true,
       legacyUnchanged: true,
     }))
   } finally {
