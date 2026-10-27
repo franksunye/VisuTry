@@ -83,7 +83,9 @@ async function claim(f: Fixture, key: string, at: Date = now) {
     if (!row.reusedExisting) simulatedDispatchCount += 1
     return { decision: row.reusedExisting ? 'EXISTING' : 'RESERVED', taskId: row.taskId }
   } catch (error) {
-    if ((error as { code?: string }).code === 'AI_USAGE_LIMIT_REACHED') {
+    if (['AI_USAGE_LIMIT_REACHED', 'AI_SESSION_LIMIT_REACHED'].includes(
+      (error as { code?: string }).code ?? '',
+    )) {
       return { decision: 'DENIED', taskId: null }
     }
     throw error
@@ -99,6 +101,22 @@ async function main() {
   const grsaiFailure = await fixture('grsai-failure', 1); fixtures.push(grsaiFailure)
   const kieFailure = await fixture('kie-failure', 1); fixtures.push(kieFailure)
   const lateSettlement = await fixture('late-settlement', 1); fixtures.push(lateSettlement)
+  const sessionCapped = await Promise.all(([1, 2, 4] as const).map(async limit => {
+    const row = await fixture('session-cap-' + limit, 10)
+    fixtures.push(row)
+    const experience = await db.experience.create({
+      data: {
+        merchantId: row.merchantId, type: 'STORE', slug: 'm2-test-store',
+        name: 'M2 per-session limit ' + limit,
+        status: 'ACTIVE', sessionTryOnLimit: limit,
+      },
+      select: { id: true },
+    })
+    await db.merchantSession.update({
+      where: { id: row.sessionId }, data: { experienceId: experience.id },
+    })
+    return { ...row, sessionLimit: limit }
+  }))
 
   try {
     // Distinct concurrent final-slot claims use real SERIALIZABLE PG txs.
@@ -148,6 +166,28 @@ async function main() {
     assert.equal(await db.merchantAiRenderReservation.count({
       where: { merchantId: idem.merchantId },
     }), 1)
+
+    // Verify 1 / 2 / 4 options against actual Store claim/admission
+    // using the existing merchant period advisory lock. The 10-image
+    // monthly allowance deliberately exceeds each session cap.
+    for (const f of sessionCapped) {
+      const admitted = await Promise.all(Array.from({ length: f.sessionLimit }, (_, i) =>
+        claim(f, 'session-cap-' + f.sessionLimit + '-' + i + '-' + suffix)))
+      assert.equal(admitted.filter(x => x.decision === 'RESERVED').length, f.sessionLimit)
+      assert.equal((await claim(f, 'session-overflow-' + suffix)).decision, 'DENIED',
+        'session cap must precede the monthly 10-image ceiling')
+      assert.equal(await db.merchantAiRenderReservation.count({
+        where: { merchantId: f.merchantId, status: 'RESERVED' },
+      }), f.sessionLimit)
+      const first = admitted[0]?.taskId
+      assert.ok(first)
+      await db.tryOnTask.update({ where: { id: first }, data: { status: 'FAILED' } })
+      assert.equal(await releaseMerchantAiRenderForTerminalFailure({
+        taskId: first, merchantId: f.merchantId, merchantSessionId: f.sessionId, db,
+      }), 'RELEASED')
+      assert.equal((await claim(f, 'session-after-release-' + suffix)).decision, 'RESERVED',
+        'definitive failure restores session allowance')
+    }
 
     // A COMPLETED task without a durably persisted result is NOT a
     // chargeable success. It must keep the single slot reserved until the
@@ -358,7 +398,7 @@ async function main() {
       ambiguousRemainsReserved: true, onceOnlySuccess: true,
       noImageNoSettlement: true, shadowReadOnly: true,
       kieAndGrsai429503Ambiguity: true, crossPeriodLateSettlement: true,
-      legacyUnchanged: true,
+      perExperienceSessionLimits124: true, legacyUnchanged: true,
     }))
   } finally {
     for (const f of fixtures.reverse()) {
