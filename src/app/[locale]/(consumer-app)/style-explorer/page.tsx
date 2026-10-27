@@ -1,17 +1,15 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { StyleExplorerGate } from '@/components/style-explorer/StyleExplorerGate'
+import { StyleExplorerHandoffGate } from '@/components/style-explorer/StyleExplorerHandoffGate'
 import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 interface StyleExplorerPageProps {
   params: { locale: string }
-  searchParams?: {
-    source?: string | string[]
-    taskId?: string | string[]
-  }
 }
 
-export const dynamic = 'force-dynamic'
+// Marketing must not invoke a server function for every anonymous visit.
+// URL query context is resolved after hydration in a client-only effect.
+export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: StyleExplorerPageProps): Promise<Metadata> {
   setRequestLocale(params.locale)
@@ -38,29 +36,11 @@ export async function generateMetadata({ params }: StyleExplorerPageProps): Prom
   }
 }
 
-export default function StyleExplorerPage({ params, searchParams }: StyleExplorerPageProps) {
+export default function StyleExplorerPage({ params }: StyleExplorerPageProps) {
   setRequestLocale(params.locale)
-  const source = typeof searchParams?.source === 'string' ? searchParams.source : null
-  const taskId = typeof searchParams?.taskId === 'string' ? searchParams.taskId : null
-  const faceAnalysisTaskId = source === 'face-analysis' && taskId ? taskId : null
-  const callbackParams = new URLSearchParams()
-
-  if (faceAnalysisTaskId) {
-    callbackParams.set('source', 'face-analysis')
-    callbackParams.set('taskId', faceAnalysisTaskId)
-  }
-
-  const callbackQuery = callbackParams.toString()
-  const callbackUrl = `/${params.locale}/style-explorer${callbackQuery ? `?${callbackQuery}` : ''}`
-  const signInHref = `/${params.locale}/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
-
   return (
     <RouteMessagesProvider namespaces={['marketing.styleExplorer']}>
-      <StyleExplorerGate
-        locale={params.locale}
-        signInHref={signInHref}
-        faceAnalysisTaskId={faceAnalysisTaskId}
-      />
+      <StyleExplorerHandoffGate locale={params.locale} />
     </RouteMessagesProvider>
   )
 }

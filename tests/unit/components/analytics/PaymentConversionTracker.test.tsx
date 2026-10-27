@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react'
+import { act, render, waitFor } from '@testing-library/react'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/lib/analytics'
 import { PaymentConversionTracker } from '@/components/analytics/PaymentConversionTracker'
@@ -26,6 +26,10 @@ describe('PaymentConversionTracker', () => {
     window.dataLayer = []
     window.history.pushState({}, '', '/en/dashboard?payment=success&session_id=cs_test_123')
     mockUseSession.mockReturnValue({ status: 'authenticated' })
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
   })
 
   it('tracks a server-verified completed payment once', async () => {
@@ -86,6 +90,87 @@ describe('PaymentConversionTracker', () => {
 
     expect(global.fetch).not.toHaveBeenCalled()
     expect(mockTrackPurchase).not.toHaveBeenCalled()
+  })
+
+  it('does not repeatedly query a completed payment while the analytics runtime initializes', async () => {
+    jest.useFakeTimers()
+    Object.assign(window, { dataLayer: undefined, gtag: undefined })
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        status: 'completed',
+        data: {
+          transactionId: 'cs_test_123',
+          productType: 'CREDITS_PACK',
+          value: 2.99,
+          currency: 'USD',
+          purchaseContext: 'pricing',
+        },
+      }),
+    } as Response)
+
+    render(<PaymentConversionTracker />)
+    await act(async () => { await Promise.resolve() })
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+
+    await act(async () => { await jest.advanceTimersByTimeAsync(1500) })
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+    expect(mockTrackPurchase).not.toHaveBeenCalled()
+
+    window.dataLayer = []
+    await act(async () => { await jest.advanceTimersByTimeAsync(1500) })
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+    expect(mockTrackPurchase).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not retry a permanently rejected checkout session', async () => {
+    jest.useFakeTimers()
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({ success: false, error: 'Payment not found' }),
+    } as Response)
+
+    render(<PaymentConversionTracker />)
+    await act(async () => { await Promise.resolve() })
+    await act(async () => { await jest.advanceTimersByTimeAsync(30_000) })
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+    expect(mockTrackPurchase).not.toHaveBeenCalled()
+  })
+
+  it('continues checking a pending webhook until payment is completed', async () => {
+    jest.useFakeTimers()
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 202,
+        json: async () => ({ success: true, status: 'pending' }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          status: 'completed',
+          data: {
+            transactionId: 'cs_test_123',
+            productType: 'CREDITS_PACK',
+            value: 2.99,
+            currency: 'USD',
+            purchaseContext: 'pricing',
+          },
+        }),
+      } as Response)
+
+    render(<PaymentConversionTracker />)
+    await act(async () => { await Promise.resolve() })
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+
+    await act(async () => { await jest.advanceTimersByTimeAsync(1500) })
+    expect(global.fetch).toHaveBeenCalledTimes(2)
+    expect(mockTrackPurchase).toHaveBeenCalledTimes(1)
   })
 
   it('tracks a checkout cancellation once per return', () => {
