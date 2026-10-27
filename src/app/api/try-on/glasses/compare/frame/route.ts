@@ -88,7 +88,6 @@ export async function POST(request: NextRequest) {
       batchMetadata: {
         batchId,
         source: 'frame-compare',
-        serviceType: 'grsai',
         batchSize: Number.isFinite(batchSize) ? batchSize : 1,
         submissionStaggerMs: FRAME_COMPARE_SUBMISSION_STAGGER_MS,
       },

@@ -230,6 +230,7 @@ describe('/api/face-analysis/top-picks-try-on', () => {
       expect.objectContaining({
         clientSubmissionId: 'face-top-picks-analysis-1-v1:geometric-classic:2',
         enforceIdempotency: true,
+        requireAsyncProvider: true,
         metadata: expect.objectContaining({ framePresetId: 'geometric-classic', attempt: 2 }),
       }),
     )

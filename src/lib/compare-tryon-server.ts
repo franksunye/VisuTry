@@ -62,7 +62,7 @@ export async function submitCompareFrameTask({
       prompt,
       {
         clientSubmissionId: `${batchId}:${preset.id}`,
-        forceServiceType: 'grsai',
+        requireAsyncProvider: true,
         metadata,
       },
     )
