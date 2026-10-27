@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test'
 
 const signInLink = (page: import('@playwright/test').Page) =>
-  page.locator('main a[href^="/en/auth/signin?callbackUrl="]').first()
+  // A prerendered Suspense fallback can remain in the DOM while hidden after
+  // hydration; only the visible CTA reflects the live URL handoff context.
+  page.locator('main:visible a[href^="/en/auth/signin?callbackUrl="]:visible').first()
 
 test('Style Explorer anonymous entry serves its public marketing without a request-time render', async ({ page }) => {
   const response = await page.goto('/en/style-explorer')
