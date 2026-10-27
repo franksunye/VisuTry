@@ -417,6 +417,7 @@ async function main() {
       await db.storeAbuseCounter.deleteMany({ where: { merchantId: f.merchantId } })
       await db.merchantSession.deleteMany({ where: { merchantId: f.merchantId } })
       await db.merchantFrame.deleteMany({ where: { merchantId: f.merchantId } })
+      await db.experience.deleteMany({ where: { merchantId: f.merchantId } })
       await db.merchant.delete({ where: { id: f.merchantId } })
     }
     await prisma.$disconnect()
