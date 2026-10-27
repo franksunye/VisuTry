@@ -21,6 +21,7 @@ export type HandoffDraft = { action: MerchantHandoffAction | ''; label: string; 
 export type ExperienceConfigurationDraft = {
   journeyPolicy: DecisionJourneyPolicy
   deliveryPolicy: ExperienceDeliveryPolicy
+  sessionTryOnLimit?: 1 | 2 | 4
   presentationMode: PresentationMode
   primaryHandoff: HandoffDraft
   secondaryHandoff: HandoffDraft
@@ -29,6 +30,7 @@ export type ExperienceConfigurationDraft = {
 export const DEFAULT_EXPERIENCE_CONFIGURATION: ExperienceConfigurationDraft = {
   journeyPolicy: { enabledStages: [...DECISION_JOURNEY_STAGES] },
   deliveryPolicy: { ...DEFAULT_EXPERIENCE_DELIVERY_POLICY },
+  sessionTryOnLimit: 2,
   presentationMode: 'PRODUCT_FIRST',
   primaryHandoff: { action: '', label: '', url: '' },
   secondaryHandoff: { action: '', label: '', url: '' },
@@ -85,7 +87,7 @@ export function MerchantExperienceConfiguration({
 }: {
   value: ExperienceConfigurationDraft
   onChange: (value: ExperienceConfigurationDraft) => void
-  capabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled?: boolean }
+  capabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled?: boolean; sessionTryOnLimitsEnabled?: boolean }
   experienceType: 'STORE' | 'CAMPAIGN'
   disabled?: boolean
   active?: boolean
@@ -157,6 +159,18 @@ export function MerchantExperienceConfiguration({
       </div>
       <p className="mt-3 text-xs leading-5 text-slate-500">Selected steps describe this Experience. Your current plan and usage remain the final limit for Try-On and Compare.</p>
     </fieldset>
+
+    {capabilities.sessionTryOnLimitsEnabled ? <fieldset disabled={disabled} className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
+      <legend className="px-1 text-sm font-semibold text-slate-950">AI Try-On session limit</legend>
+      <p className="mt-1 text-xs leading-5 text-slate-600">Set how many new images one shopper session can generate. A failed generation does not use an allowance; an in-progress one temporarily holds it. Your plan's monthly limit still applies.</p>
+      <label className="mt-3 block max-w-sm text-sm font-medium text-slate-800">Generations per session
+        <select aria-label="Try-Ons per shopper session" className={inputClass()} value={value.sessionTryOnLimit ?? 2} onChange={(event) => onChange({ ...value, sessionTryOnLimit: Number(event.target.value) as 1 | 2 | 4 })}>
+          <option value={1}>1 Try-On</option>
+          <option value={2}>2 Try-Ons (recommended)</option>
+          <option value={4}>4 Try-Ons</option>
+        </select>
+      </label>
+    </fieldset> : null}
 
     <fieldset disabled={disabled} className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
       <legend className="px-1 text-sm font-semibold text-slate-950">Presentation and delivery</legend>

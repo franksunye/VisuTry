@@ -34,6 +34,7 @@ type DetailDraft = {
   presentationMode: PresentationMode
   journeyPolicy: Campaign['journeyPolicy']
   deliveryPolicy: Campaign['deliveryPolicy']
+  sessionTryOnLimit: 1 | 2 | 4
   startAt: string
   endAt: string
   primaryCtaType: string
@@ -69,6 +70,7 @@ function initialDraft(campaign: Campaign): DetailDraft {
     secondaryCtaUrl: campaign.secondaryCtaUrl ?? '',
     journeyPolicy: campaign.journeyPolicy,
     deliveryPolicy: campaign.deliveryPolicy,
+    sessionTryOnLimit: campaign.sessionTryOnLimit,
   }
 }
 
@@ -126,7 +128,7 @@ export function MerchantCampaignDetailWorkspace({
   const presentation = resolveMerchantCampaignPresentation(campaign)
   const readOnly = campaign.status === 'ARCHIVED'
   const detailsDirty = JSON.stringify(draft) !== JSON.stringify(savedDraft)
-  const experienceConfigurationDirty = (['journeyPolicy', 'deliveryPolicy', 'presentationMode', 'primaryCtaType', 'primaryCtaLabel', 'primaryCtaUrl', 'secondaryCtaType', 'secondaryCtaLabel', 'secondaryCtaUrl'] as const)
+  const experienceConfigurationDirty = (['journeyPolicy', 'deliveryPolicy', 'sessionTryOnLimit', 'presentationMode', 'primaryCtaType', 'primaryCtaLabel', 'primaryCtaUrl', 'secondaryCtaType', 'secondaryCtaLabel', 'secondaryCtaUrl'] as const)
     .some((key) => JSON.stringify(draft[key]) !== JSON.stringify(savedDraft[key]))
   const productsDirty = JSON.stringify(selectedIds) !== JSON.stringify(savedSelectedIds)
   const dirty = detailsDirty || productsDirty
@@ -141,6 +143,7 @@ export function MerchantCampaignDetailWorkspace({
   const experienceConfiguration: ExperienceConfigurationDraft = {
     journeyPolicy: draft.journeyPolicy,
     deliveryPolicy: draft.deliveryPolicy,
+    sessionTryOnLimit: draft.sessionTryOnLimit,
     presentationMode: draft.presentationMode,
     primaryHandoff: {
       action: draft.primaryCtaType as ExperienceConfigurationDraft['primaryHandoff']['action'],
@@ -184,6 +187,7 @@ export function MerchantCampaignDetailWorkspace({
       ...current,
       journeyPolicy: next.journeyPolicy,
       deliveryPolicy: next.deliveryPolicy,
+      sessionTryOnLimit: next.sessionTryOnLimit ?? 2,
       presentationMode: next.presentationMode,
       primaryCtaType: next.primaryHandoff.action,
       primaryCtaLabel: next.primaryHandoff.label,
@@ -216,6 +220,7 @@ export function MerchantCampaignDetailWorkspace({
         presentationMode: draft.presentationMode,
         journeyPolicy: draft.journeyPolicy,
         deliveryPolicy: draft.deliveryPolicy,
+        ...(campaign.journeyCapabilities.sessionTryOnLimitsEnabled ? { sessionTryOnLimit: draft.sessionTryOnLimit } : {}),
         startAt: isoOrNull(draft.startAt),
         endAt: isoOrNull(draft.endAt),
         // "No action" must never resurrect a legacy label/URL as CUSTOM_LINK.

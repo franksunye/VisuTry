@@ -63,6 +63,7 @@ export type MerchantStoreWorkspace = {
     journeyPolicy: DecisionJourneyPolicy
     effectiveJourneyPolicy: DecisionJourneyPolicy
     deliveryPolicy: ExperienceDeliveryPolicy
+    sessionTryOnLimit: 1 | 2 | 4
     presentationMode: PresentationMode
     primaryCtaType: string | null
     primaryCtaLabel: string | null

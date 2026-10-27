@@ -448,13 +448,16 @@ export async function claimStoreTryOnSlot(input: {
                 now: input.now,
               })
               if (admission.decision === 'DENIED') {
+                const sessionLimitReached = admission.reason === 'SESSION_LIMIT_REACHED'
                 const exhausted = admission.reason === 'LIMIT_REACHED'
                 throw new StoreDomainError(
-                  exhausted ? 'AI_USAGE_LIMIT_REACHED' : 'COMMERCIAL_PERIOD_EXPIRED',
-                  exhausted
-                    ? 'This Store has used its included AI Try-On generations.'
-                    : 'Virtual Try-On is temporarily unavailable for this Store.',
-                  exhausted ? 429 : 409,
+                  sessionLimitReached ? 'AI_SESSION_LIMIT_REACHED' : exhausted ? 'AI_USAGE_LIMIT_REACHED' : 'COMMERCIAL_PERIOD_EXPIRED',
+                  sessionLimitReached
+                    ? 'You have reached the Try-On limit for this shopping session. Your results and recommendations are still available.'
+                    : exhausted
+                      ? 'This Store has used its included AI Try-On generations.'
+                      : 'Virtual Try-On is temporarily unavailable for this Store.',
+                  sessionLimitReached || exhausted ? 429 : 409,
                 )
               }
               if (admission.decision === 'EXISTING') {

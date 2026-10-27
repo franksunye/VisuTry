@@ -32,6 +32,7 @@ function mapExperience(row: ExperienceWithFrames): ExperienceRecord {
     campaignObjective: row.campaignObjective,
     campaignGate: row.campaignGate,
     presentationMode: row.presentationMode,
+    sessionTryOnLimit: row.sessionTryOnLimit,
     referenceData: row.referenceData,
     defaultSource: row.defaultSource,
     defaultCampaign: row.defaultCampaign,
@@ -72,6 +73,7 @@ const publicExperienceSelect = {
   campaignObjective: true,
   campaignGate: true,
   presentationMode: true,
+  sessionTryOnLimit: true,
   journeyPolicy: true,
   deliveryPolicy: true,
   updatedAt: true,
@@ -102,6 +104,7 @@ type PublicExperienceRow = {
   campaignObjective: Experience['campaignObjective']
   campaignGate: Experience['campaignGate']
   presentationMode: Experience['presentationMode']
+  sessionTryOnLimit: number | null
   journeyPolicy: unknown
   deliveryPolicy: unknown
   updatedAt: Date
@@ -133,6 +136,7 @@ function mapPublicExperience(row: PublicExperienceRow): ExperienceRecord {
     campaignObjective: row.campaignObjective,
     campaignGate: row.campaignGate,
     presentationMode: row.presentationMode,
+    sessionTryOnLimit: row.sessionTryOnLimit,
     referenceData: row.referenceData,
     defaultSource: null,
     defaultCampaign: null,

@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { resolveSessionTryOnLimit } from '@/modules/store/domain/session-tryon-limit'
 
 /**
  * M1a: OFF-by-default foundation. Not called from Store/Campaign or Billing.
@@ -11,7 +12,7 @@ import { prisma } from '@/lib/prisma'
 export type MerchantAiPeriodAdmission =
   | { decision: 'RESERVED'; reservationId: string; usedIncludingReservations: number; limit: number }
   | { decision: 'EXISTING'; reservationId: string; status: 'RESERVED' | 'SETTLED' | 'RELEASED' }
-  | { decision: 'DENIED'; reason: 'NOT_ENROLLED' | 'PERIOD_INACTIVE' | 'LIMIT_REACHED' | 'SESSION_NOT_FOUND'; usedIncludingReservations?: number; limit?: number }
+  | { decision: 'DENIED'; reason: 'NOT_ENROLLED' | 'PERIOD_INACTIVE' | 'LIMIT_REACHED' | 'SESSION_LIMIT_REACHED' | 'SESSION_NOT_FOUND'; usedIncludingReservations?: number; limit?: number }
 
 type ReservationInput = {
   merchantId: string
@@ -106,7 +107,10 @@ export async function reserveMerchantAiPeriodRenderInTransaction(
 
   const session = await tx.merchantSession.findFirst({
     where: { id: input.merchantSessionId, merchantId: input.merchantId },
-    select: { id: true },
+    select: {
+      id: true,
+      experience: { select: { type: true, sessionTryOnLimit: true } },
+    },
   })
   if (!session) return { decision: 'DENIED', reason: 'SESSION_NOT_FOUND' }
 
@@ -134,6 +138,21 @@ export async function reserveMerchantAiPeriodRenderInTransaction(
   })
   if (used >= included) {
     return { decision: 'DENIED', reason: 'LIMIT_REACHED', usedIncludingReservations: used, limit: included }
+  }
+  // Locked per merchant-period: the same lock also serializes concurrent
+  // requests inside one Session, including distinct idempotency keys.
+  if (session.experience && ['STORE', 'CAMPAIGN'].includes(session.experience.type)) {
+    const perSession = resolveSessionTryOnLimit(session.experience.sessionTryOnLimit)
+    const occupied = await tx.merchantAiRenderReservation.count({
+      where: {
+        merchantId: input.merchantId,
+        merchantSessionId: input.merchantSessionId,
+        status: { in: ['RESERVED', 'SETTLED'] },
+      },
+    })
+    if (occupied >= perSession) {
+      return { decision: 'DENIED', reason: 'SESSION_LIMIT_REACHED', usedIncludingReservations: occupied, limit: perSession }
+    }
   }
   const reserved = await tx.merchantAiRenderReservation.create({
     data: {

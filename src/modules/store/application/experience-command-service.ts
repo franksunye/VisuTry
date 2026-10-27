@@ -1,3 +1,4 @@
+import { isSessionTryOnLimit } from '../domain/session-tryon-limit'
 import { assertDecisionJourneyPolicy } from '../domain/decision-journey'
 import { assertExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { isCampaignGate, isCampaignObjective, isPresentationMode } from '../domain/campaign-policy'
@@ -31,7 +32,7 @@ export type ExperienceCommandRepository<TTransaction = unknown> = {
 
 const SHARED_FIELDS = new Set([
   'name', 'headline', 'description', 'heroAssetUrl', 'status',
-  'journeyPolicy', 'deliveryPolicy', 'presentationMode',
+  'journeyPolicy', 'deliveryPolicy', 'presentationMode', 'sessionTryOnLimit',
   'primaryCtaType', 'primaryCtaLabel', 'primaryCtaUrl',
   'secondaryCtaType', 'secondaryCtaLabel', 'secondaryCtaUrl',
   'offerLabel', 'offerCode',
@@ -64,6 +65,9 @@ function normalizePatch(patch: Record<string, unknown>, allowCampaignFields: boo
   }
   if ('deliveryPolicy' in normalized && normalized.deliveryPolicy !== null) {
     assertExperienceDeliveryPolicy(normalized.deliveryPolicy)
+  }
+  if ('sessionTryOnLimit' in normalized && !isSessionTryOnLimit(normalized.sessionTryOnLimit)) {
+    throw new ExperienceCommandError('sessionTryOnLimit must be 1, 2, or 4')
   }
   if ('presentationMode' in normalized && !isPresentationMode(normalized.presentationMode)) {
     throw new ExperienceCommandError('presentationMode must use a supported value')

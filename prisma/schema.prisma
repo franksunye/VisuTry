@@ -1118,6 +1118,8 @@ model Experience {
   campaignObjective CampaignObjective?
   campaignGate      CampaignGate?
   presentationMode  PresentationMode?
+  /// v2 Store/Campaign per-session successful + reserved Try-On budget.
+  sessionTryOnLimit Int?
   referenceData     Boolean          @default(false)
   defaultSource     String?
   defaultCampaign   String?

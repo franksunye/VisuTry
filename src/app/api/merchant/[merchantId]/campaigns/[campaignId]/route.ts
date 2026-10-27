@@ -18,6 +18,7 @@ const details = z.object({
   objective: z.enum(CAMPAIGN_OBJECTIVES).optional(),
   gate: z.enum(CAMPAIGN_GATES).optional(),
   presentationMode: z.enum(PRESENTATION_MODES).optional(),
+  sessionTryOnLimit: z.union([z.literal(1), z.literal(2), z.literal(4)]).optional(),
   journeyPolicy: z.object({ enabledStages: z.array(z.enum(DECISION_JOURNEY_STAGES)).min(2).max(DECISION_JOURNEY_STAGES.length) }).strict().optional(),
   deliveryPolicy: z.object({
     kioskEnabled: z.boolean(),
