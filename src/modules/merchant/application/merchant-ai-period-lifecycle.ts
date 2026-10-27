@@ -1,6 +1,14 @@
 import { Prisma, TaskStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
+/** Roll back commercial settlement if a v2 result has not been persisted. */
+export class MerchantAiResultNotPersistedError extends Error {
+  constructor() {
+    super('Merchant AI result is not yet persisted')
+    this.name = 'MerchantAiResultNotPersistedError'
+  }
+}
+
 /**
  * M1b Merchant v2 lifecycle. The billing-period reservation is not the
  * historical rolling 24-hour MerchantSponsoredUsage first-value reservation.
@@ -22,6 +30,19 @@ export async function settleMerchantAiRenderInTransaction(
     throw new Error('Merchant AI settlement tenant mismatch')
   }
   if (row.status === 'SETTLED') return 'ALREADY_SETTLED'
+  const durable = await tx.tryOnTask.findFirst({
+    where: {
+      id: input.taskId,
+      merchantId: input.merchantId,
+      merchantSessionId: input.merchantSessionId,
+      status: TaskStatus.COMPLETED,
+      resultImageUrl: { not: null },
+    },
+    select: { resultImageUrl: true },
+  })
+  if (!durable?.resultImageUrl || durable.resultImageUrl.startsWith('pending:')) {
+    throw new MerchantAiResultNotPersistedError()
+  }
   if (row.status !== 'RESERVED') {
     throw new Error('Merchant AI released reservation cannot settle as a success')
   }
