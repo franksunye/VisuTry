@@ -2,14 +2,17 @@
  * Disposable local PostgreSQL self-service Merchant commercial contract.
  * Stripe paid-event routing is exercised by merchant-billing.test.ts; this
  * test exercises the same enrollment transaction against REAL PostgreSQL and
- * immediately submits to the actual AI period admission gate. No provider
- * requests or charges are made.
+ * immediately reserves an image, creates an actual Store Try-On task and
+ * settles its completed image ledger. No provider requests or charges occur.
  */
 import assert from 'node:assert/strict'
 import { Prisma } from '@prisma/client'
 import { localPostgresPrisma as db } from './lib/local-postgres-prisma'
 import { enrollMerchantCommercialPlan } from '@/modules/merchant/application/merchant-billing-entitlements'
 import { reserveMerchantAiPeriodRenderInTransaction } from '@/modules/merchant/application/merchant-ai-period-admission'
+import { claimStoreTryOnSlot } from '@/modules/store/application/submit-store-tryon'
+import { settleStoreTryOnUsage } from '@/modules/store/application/settle-store-usage'
+import { DEFAULT_STORE_DEMO_LIMITS } from '@/modules/store/domain/usage-policy'
 
 const now = new Date()
 const start = new Date(now.getTime() - 60_000)
@@ -54,7 +57,13 @@ async function makeMerchant(label: string) {
     },
     select: { id: true },
   })
-  return { merchantId: merchant.id, sessionId: session.id }
+  const frame = await db.merchantFrame.create({
+    data: {
+      merchantId: merchant.id, sku: `${suffix}-${label}`,
+      name: 'Disposable try-on frame', shape: 'rectangle', status: 'ACTIVE',
+    }, select: { id: true },
+  })
+  return { merchantId: merchant.id, sessionId: session.id, frameId: frame.id }
 }
 
 async function enroll(merchantId: string, planCode: PaidPlan, periodStart = start, periodEnd = end, status: 'PAID_ACTIVE' | 'PILOT_ACTIVE' | 'PAST_DUE' = planCode === 'FOUNDING_PILOT' ? 'PILOT_ACTIVE' : 'PAID_ACTIVE') {
@@ -106,6 +115,47 @@ async function main() {
       if (first.decision === 'RESERVED') assert.equal(first.limit, images)
       assert.equal((await reserve(fixture.merchantId, fixture.sessionId, `${planCode}-first-paid-tryon`)).decision, 'EXISTING', 'replay never buys another image')
 
+      // Real Store task creation must share the paid-period ledger and settle
+      // one durable result. The AI supplier is intentionally NOT dispatched.
+      const claimed = await claimStoreTryOnSlot({
+        merchantId: fixture.merchantId,
+        merchantSessionId: fixture.sessionId,
+        merchantFrameId: fixture.frameId,
+        idempotencyKey: `${suffix}-${planCode}-store-task`,
+        clientSubmissionId: `${suffix}-${planCode}-store-task`,
+        now,
+        renderLimits: {
+          ...DEFAULT_STORE_DEMO_LIMITS,
+          maxSuccessfulRendersPerMerchant: Number.POSITIVE_INFINITY,
+          maxSuccessfulRendersPerSession: Number.POSITIVE_INFINITY,
+          maxAttemptsPerSession: Number.POSITIVE_INFINITY,
+        },
+        tryOnOrigin: 'STORE_PILOT',
+        batchId: `${suffix}-${planCode}-batch`, maxCompareFrames: 4,
+        usagePolicyKind: 'merchant_allowance', isTest: true, db,
+      })
+      assert.equal(claimed.reusedExisting, false)
+      await db.tryOnTask.update({
+        where: { id: claimed.taskId },
+        data: { status: 'COMPLETED', resultImageUrl: 'mock://paid-merchant-completed-tryon' },
+      })
+      const settleInput = {
+        taskId: claimed.taskId,
+        merchantId: fixture.merchantId,
+        merchantSessionId: fixture.sessionId,
+        usagePolicy: { kind: 'merchant_allowance' as const, merchantId: fixture.merchantId },
+        usage: {} as unknown as Parameters<typeof settleStoreTryOnUsage>[0]['usage'], db,
+      }
+      const settled = await settleStoreTryOnUsage(settleInput)
+      assert.equal(settled.settled, true, 'paid image is durably settled once')
+      assert.equal((await settleStoreTryOnUsage(settleInput)).alreadySettled, true, 'payment/event replay must not double-charge completed images')
+      assert.equal(await db.merchantUsageLedger.count({
+        where: { merchantId: fixture.merchantId, tryOnTaskId: claimed.taskId, kind: 'RENDER_SUCCESS' },
+      }), 1)
+      assert.equal((await db.merchantAiRenderReservation.findUnique({
+        where: { tryOnTaskId: claimed.taskId },
+      }))?.status, 'SETTLED')
+
       // Same-plan renewal/webhook repeats never discard a previously approved
       // custom positive allowance.
       await db.merchant.update({ where: { id: fixture.merchantId }, data: {
@@ -147,14 +197,18 @@ async function main() {
       result: 'PASS', realPostgres: true,
       stripeEventUnitGate: 'merchant-billing.test.ts',
       paidPlanEnrollmentToTryOn: ['LAUNCH', 'GROWTH', 'SCALE'],
-      persistedDualMeter: true, idempotentReplay: true,
+      persistedDualMeter: true, actualStoreTaskAndSettlement: true, idempotentReplay: true,
       upgradeResetsAllowance: true, pastDueDenied: true,
       pilotBonusPreserved: true, externalAiCalls: 0,
     }))
   } finally {
     for (const merchantId of created.reverse()) {
+      await db.merchantUsageLedger.deleteMany({ where: { merchantId } })
       await db.merchantAiRenderReservation.deleteMany({ where: { merchantId } })
+      await db.tryOnTask.deleteMany({ where: { merchantId } })
+      await db.storeAbuseCounter.deleteMany({ where: { merchantId } })
       await db.merchantSession.deleteMany({ where: { merchantId } })
+      await db.merchantFrame.deleteMany({ where: { merchantId } })
       await db.experience.deleteMany({ where: { merchantId } })
       await db.merchant.delete({ where: { id: merchantId } })
     }
