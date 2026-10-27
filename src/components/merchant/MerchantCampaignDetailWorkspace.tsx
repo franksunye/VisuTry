@@ -70,7 +70,7 @@ function initialDraft(campaign: Campaign): DetailDraft {
     secondaryCtaUrl: campaign.secondaryCtaUrl ?? '',
     journeyPolicy: campaign.journeyPolicy,
     deliveryPolicy: campaign.deliveryPolicy,
-    sessionTryOnLimit: campaign.sessionTryOnLimit,
+    sessionTryOnLimit: campaign.sessionTryOnLimit ?? 2,
   }
 }
 

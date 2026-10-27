@@ -39,7 +39,7 @@ export type CampaignReadModel = {
   journeyPolicy: ReturnType<typeof resolveDecisionJourneyPolicy>
   effectiveJourneyPolicy: ReturnType<typeof resolveDecisionJourneyPolicy>
   journeyCapabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled: boolean; sessionTryOnLimitsEnabled?: boolean }
-  sessionTryOnLimit: 1 | 2 | 4
+  sessionTryOnLimit?: 1 | 2 | 4
   deliveryPolicy: ReturnType<typeof resolveExperienceDeliveryPolicy>
   headline: string | null
   description: string | null

@@ -69,7 +69,7 @@ function configurationDraft(store: MerchantStoreWorkspaceData['store']): Experie
   return {
     journeyPolicy: store.journeyPolicy,
     deliveryPolicy: store.deliveryPolicy,
-    sessionTryOnLimit: store.sessionTryOnLimit,
+    sessionTryOnLimit: store.sessionTryOnLimit ?? 2,
     presentationMode: store.presentationMode,
     primaryHandoff: handoffDraft(store.primaryCtaType, store.primaryCtaLabel, store.primaryCtaUrl),
     secondaryHandoff: handoffDraft(store.secondaryCtaType, store.secondaryCtaLabel, store.secondaryCtaUrl),

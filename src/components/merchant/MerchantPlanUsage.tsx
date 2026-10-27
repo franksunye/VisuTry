@@ -64,7 +64,7 @@ export function MerchantPlanUsage({ aiUsage = null, commercial, merchantId, loca
           ? `${dateLabel(commercial.periodStart)} – ${dateLabel(commercial.periodEnd)}`
           : commercial.planCode === "FREE" ? "No billing period" : "Current period";
 
-  const aiUsage = commercial.aiCommerceSessionLimit === 0
+  const sessionUsage = commercial.aiCommerceSessionLimit === 0
     ? { value: "Not included", detail: null }
     : commercial.aiCommerceSessionLimit === null
     ? commercial.status === "LEGACY_UNMIGRATED"
@@ -101,7 +101,7 @@ export function MerchantPlanUsage({ aiUsage = null, commercial, merchantId, loca
       </header>
 
       <div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${showPilot ? "xl:grid-cols-4" : "lg:grid-cols-3"}`} aria-label="Plan usage summary">
-        <Metric icon={<BarChart3 className="h-4 w-4" aria-hidden="true" />} label="AI Commerce Sessions" value={aiUsage.value} detail={aiUsage.detail} percentage={commercial.aiCommerceSessionPercentage} threshold={commercial.threshold} />
+        <Metric icon={<BarChart3 className="h-4 w-4" aria-hidden="true" />} label="AI Commerce Sessions" value={sessionUsage.value} detail={sessionUsage.detail} percentage={commercial.aiCommerceSessionPercentage} threshold={commercial.threshold} />
         {aiUsage ? <Metric icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}
           label="AI Try-On generations"
           value={`${aiUsage.successful.toLocaleString()} / ${aiUsage.limit.toLocaleString()}`}
