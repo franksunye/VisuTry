@@ -6,7 +6,7 @@ jest.mock('@/lib/prisma', () => ({
 }))
 
 import { prisma } from '@/lib/prisma'
-import { merchantAiBudgetMode, reserveMerchantAiPeriodRender } from '@/modules/merchant/application/merchant-ai-period-admission'
+import { reserveMerchantAiPeriodRender } from '@/modules/merchant/application/merchant-ai-period-admission'
 
 const start = new Date('2026-10-01T00:00:00Z')
 const end = new Date('2026-11-01T00:00:00Z')
@@ -51,7 +51,7 @@ function reserve(key: string, overrides: Partial<{ merchantId: string; merchantS
   })
 }
 
-describe('M1b Merchant opt-in period admission and explicit rollout switch', () => {
+describe('Standard Merchant paid-period admission', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     rows = []
@@ -78,23 +78,6 @@ describe('M1b Merchant opt-in period admission and explicit rollout switch', () 
       rows.find((row) => row.idempotencyKey === where.idempotencyKey) ?? null)
   })
 
-  it('defaults OFF and ignores unknown rollout flag values', () => {
-    const original = process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE
-    try {
-      delete process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE
-      expect(merchantAiBudgetMode()).toBe('OFF')
-      process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'something-unsafe'
-      expect(merchantAiBudgetMode()).toBe('OFF')
-      process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'SHADOW'
-      expect(merchantAiBudgetMode()).toBe('SHADOW')
-      process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'ENFORCE'
-      expect(merchantAiBudgetMode()).toBe('ENFORCE')
-    } finally {
-      if (original === undefined) delete process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE
-      else process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = original
-    }
-  })
-
   it('reserves both capacity slots and denies the third; holds count before successful usage', async () => {
     expect(await reserve('one')).toMatchObject({ decision: 'RESERVED', usedIncludingReservations: 1, limit: 2 })
     expect(await reserve('two')).toMatchObject({ decision: 'RESERVED', usedIncludingReservations: 2, limit: 2 })
@@ -111,11 +94,10 @@ describe('M1b Merchant opt-in period admission and explicit rollout switch', () 
     expect(tx.merchantAiRenderReservation.create).toHaveBeenCalledTimes(1)
   })
 
-  it('rejects legacy recurring merchant, Pilot, absent/misversioned contract and no paid activity', async () => {
+  it('rejects absent paid plan, invalid allowance or inactive paid account', async () => {
     for (const merchantOverride of [
-      { entitlementVersion: 'v1' },
-      { planCode: 'FOUNDING_PILOT' },
-      { pricingVersion: 'v1' },
+      { planCode: 'FREE' },
+      { planCode: null },
       { standardRenderAllowance: null },
       { commercialStatus: 'PAST_DUE' },
     ]) {
@@ -123,6 +105,19 @@ describe('M1b Merchant opt-in period admission and explicit rollout switch', () 
       expect(await reserve('blocked')).toMatchObject({ decision: 'DENIED', reason: 'NOT_ENROLLED' })
     }
     expect(tx.merchantAiRenderReservation.create).not.toHaveBeenCalled()
+  })
+
+  it('does not use v1/v2 metadata to gate an otherwise valid paid plan', async () => {
+    tx.merchant.findUnique.mockResolvedValueOnce({
+      ...contract, entitlementVersion: null, pricingVersion: null,
+    })
+    expect(await reserve('without-version-tags')).toMatchObject({
+      decision: 'RESERVED', limit: 2,
+    })
+    tx.merchant.findUnique.mockResolvedValueOnce({ ...contract, entitlementVersion: 'v1', pricingVersion: 'v1' })
+    expect(await reserve('with-old-version-tags')).toMatchObject({
+      decision: 'RESERVED', limit: 2,
+    })
   })
 
   it('rejects boundary and wrong tenant MerchantSession before any quota claim', async () => {

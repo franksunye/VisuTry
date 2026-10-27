@@ -19,7 +19,6 @@ import type { MerchantCommercialFields } from '../domain/merchant-commercial-sta
 import { merchantHandoffConfigurationsMatch, normalizeMerchantHandoffAction, isSupportedMerchantHandoffType } from '../domain/merchant-handoff'
 import { resolveDecisionJourneyPolicy } from '../domain/decision-journey'
 import { resolvePublicDecisionJourney } from '../domain/experience-policy'
-import { merchantAiBudgetMode } from '@/modules/merchant/application/merchant-ai-period-admission'
 import { resolveSessionTryOnLimit } from '../domain/session-tryon-limit'
 import { resolveExperienceDeliveryPolicy } from '../domain/delivery-profile'
 
@@ -173,9 +172,7 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
       tryOnEnabled: capabilities.tryOnEnabled ?? true,
       compareEnabled: capabilities.compareEnabled ?? true,
       kioskDeliveryEnabled: capabilities.kioskDeliveryEnabled ?? resolveMerchantCommercialCapability(capabilities).decisions.KIOSK_DELIVERY.allowed,
-      sessionTryOnLimitsEnabled: capabilities.entitlementVersion === 'v2'
-        && capabilities.pricingVersion?.startsWith('v2-') === true
-        && merchantAiBudgetMode() === 'ENFORCE',
+      sessionTryOnLimitsEnabled: true,
     },
     sessionTryOnLimit: resolveSessionTryOnLimit(row.sessionTryOnLimit),
     deliveryPolicy: resolveExperienceDeliveryPolicy(row.deliveryPolicy),

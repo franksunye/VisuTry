@@ -10,9 +10,7 @@ import { claimStoreTryOnSlot } from '@/modules/store/application/submit-store-tr
 import { DEFAULT_STORE_DEMO_LIMITS } from '@/modules/store/domain/usage-policy'
 import { settleStoreTryOnUsage } from '@/modules/store/application/settle-store-usage'
 import { releaseMerchantAiRenderForTerminalFailure } from '@/modules/merchant/application/merchant-ai-period-lifecycle'
-import { inspectMerchantAiPeriodShadow } from '@/modules/merchant/application/merchant-ai-period-shadow'
 
-process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'ENFORCE' // disposable PG process only
 const now = new Date()
 const periodStart = new Date(now.getTime() - 24 * 3600_000)
 const periodEnd = new Date(now.getTime() + 29 * 24 * 3600_000)
@@ -105,7 +103,6 @@ async function main() {
   const idem = await fixture('same-key', 1); fixtures.push(idem)
   const v1 = await fixture('legacy', 1, 'v1'); fixtures.push(v1)
   const missingResult = await fixture('missing-result', 1); fixtures.push(missingResult)
-  const shadow = await fixture('shadow', 1); fixtures.push(shadow)
   const grsaiFailure = await fixture('grsai-failure', 1); fixtures.push(grsaiFailure)
   const kieFailure = await fixture('kie-failure', 1); fixtures.push(kieFailure)
   const lateSettlement = await fixture('late-settlement', 1); fixtures.push(lateSettlement)
@@ -236,24 +233,6 @@ async function main() {
       usage: {} as unknown as Parameters<typeof settleStoreTryOnUsage>[0]['usage'],
       db,
     })).settled, true, 'the original task can settle after result persistence')
-
-    // SHADOW must be read-only for the v2 budget even when the configured
-    // render allowance is exhausted. The existing v1-style RENDER_ATTEMPT
-    // ledger remains in use; no new reservation rows are permitted.
-    process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'SHADOW'
-    const shadowRead = await inspectMerchantAiPeriodShadow({
-      merchantId: shadow.merchantId, now, db,
-    })
-    assert.equal(shadowRead?.decision, 'AVAILABLE')
-    const shadowOne = await claim(shadow, 'shadow-1-' + suffix)
-    const shadowTwo = await claim(shadow, 'shadow-2-' + suffix)
-    assert.equal(shadowOne.decision, 'RESERVED')
-    assert.equal(shadowTwo.decision, 'RESERVED',
-      'SHADOW must not enforce the v2 render limit')
-    assert.equal(await db.merchantAiRenderReservation.count({
-      where: { merchantId: shadow.merchantId },
-    }), 0, 'SHADOW must not write billing-period reservation rows')
-    process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'ENFORCE'
 
     // Renewal must count a different period while preserving the old SETTLED.
     const newPeriodEnd = new Date(periodEnd.getTime() + 30 * 24 * 3600_000)
@@ -389,11 +368,11 @@ async function main() {
       where: { tryOnTaskId: lateNew.taskId! },
     }))?.status, 'RESERVED', 'new-period capacity is unaffected by late old-period settlement')
 
-    assert.equal((await claim(v1, 'legacy-' + suffix)).decision, 'RESERVED',
-      'legacy contract must continue without a v2 hold')
+    assert.equal((await claim(v1, 'paid-with-old-version-label-' + suffix)).decision, 'RESERVED',
+      'paid plan must use standard quota regardless of historical metadata labels')
     assert.equal(await db.merchantAiRenderReservation.count({
       where: { merchantId: v1.merchantId },
-    }), 0)
+    }), 1)
     const crossTenant = await db.$transaction(tx =>
       reserveMerchantAiPeriodRenderInTransaction(tx, {
         merchantId: b.merchantId, merchantSessionId: a.sessionId,
@@ -406,9 +385,9 @@ async function main() {
       finalSlotConcurrentWinners: winners.length,
       sameKeyConcurrentSingleTask: true,
       ambiguousRemainsReserved: true, onceOnlySuccess: true,
-      noImageNoSettlement: true, shadowReadOnly: true,
+      noImageNoSettlement: true,
       kieAndGrsai429503Ambiguity: true, crossPeriodLateSettlement: true,
-      perExperienceSessionLimits124: true, legacyUnchanged: true,
+      perExperienceSessionLimits124: true, noVersionGate: true,
     }))
   } finally {
     for (const f of fixtures.reverse()) {

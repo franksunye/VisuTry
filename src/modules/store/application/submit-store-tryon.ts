@@ -22,9 +22,8 @@ import {
 } from '../domain'
 import { resolveMerchantCommercialCapability, decideMerchantCommercialFeature } from '../domain/merchant-commercial-capability'
 import { consumeAICommerceSession } from '@/modules/merchant/application/merchant-commercial-entitlements'
-import { merchantAiBudgetMode, reserveMerchantAiPeriodRenderInTransaction } from '@/modules/merchant/application/merchant-ai-period-admission'
+import { isMeteredMerchantPlan, reserveMerchantAiPeriodRenderInTransaction } from '@/modules/merchant/application/merchant-ai-period-admission'
 import { releaseMerchantAiRenderForTerminalFailure } from '@/modules/merchant/application/merchant-ai-period-lifecycle'
-import { inspectMerchantAiPeriodShadow } from '@/modules/merchant/application/merchant-ai-period-shadow'
 import { checkUserQuota } from '@/lib/quota'
 import { calculateExpiresAt } from '@/config/retention'
 import type { AssetStore } from './ports/asset-store'
@@ -428,19 +427,15 @@ export async function claimStoreTryOnSlot(input: {
             )
           }
 
-          // Only an explicitly versioned Merchant v2 contract in an operator-
-          // enabled cohort uses billing-period credits. Legacy, Pilot, Demo
-          // and Consumer continuation remain on their existing exact path.
-          // Keep the hold in this SAME transaction as the task + attempt.
+          // Standard merchant-paid quota. Demo without a paid plan uses its
+          // explicit demo allocation; Consumer continuation remains distinct.
           let merchantAiReservationId: string | null = null
-          if (merchantAiBudgetMode() === 'ENFORCE' && input.usagePolicyKind !== 'consumer_quota') {
-            const contract = await tx.merchant.findUnique({
+          if (input.usagePolicyKind !== 'consumer_quota') {
+            const merchantPlan = await tx.merchant.findUnique({
               where: { id: input.merchantId },
-              select: { entitlementVersion: true, pricingVersion: true },
+              select: { planCode: true },
             })
-            const isV2Candidate = contract?.entitlementVersion === 'v2'
-              || contract?.pricingVersion?.startsWith('v2-')
-            if (isV2Candidate) {
+            if (isMeteredMerchantPlan(merchantPlan?.planCode)) {
               const admission = await reserveMerchantAiPeriodRenderInTransaction(tx, {
                 merchantId: input.merchantId,
                 merchantSessionId: input.merchantSessionId,
@@ -461,13 +456,7 @@ export async function claimStoreTryOnSlot(input: {
                 )
               }
               if (admission.decision === 'EXISTING') {
-                // A bound task must already have been returned by the first
-                // idempotency check. Never dispatch against an orphan hold.
-                throw new StoreDomainError(
-                  'IDEMPOTENCY_CONFLICT',
-                  'This Try-On is already being processed.',
-                  409,
-                )
+                throw new StoreDomainError('IDEMPOTENCY_CONFLICT', 'This Try-On is already being processed.', 409)
               }
               merchantAiReservationId = admission.reservationId
             }
@@ -542,30 +531,6 @@ export async function claimStoreTryOnSlot(input: {
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )
-      if (merchantAiBudgetMode() === 'SHADOW' && input.usagePolicyKind !== 'consumer_quota') {
-        // Observer runs AFTER the real claim commits. Failure to observe must
-        // never block a shopper or mutate the commercial ledger.
-        try {
-          const observed = await inspectMerchantAiPeriodShadow({
-            merchantId: input.merchantId, now: input.now, db: input.db,
-          })
-          if (observed) {
-            logger.info('merchant', 'Merchant AI period shadow assessment', {
-              merchantId: input.merchantId,
-              taskId: claimed.taskId,
-              planCode: observed.planCode,
-              resultStatus: observed.decision,
-              remaining: observed.decision === 'INELIGIBLE' ? null : observed.remaining,
-              usagePolicyKind: input.usagePolicyKind,
-            })
-          }
-        } catch (observationError) {
-          logger.warn('merchant', 'Merchant AI period shadow observation unavailable', {
-            merchantId: input.merchantId,
-            errorName: observationError instanceof Error ? observationError.name : 'UnknownError',
-          })
-        }
-      }
       return claimed
     } catch (error) {
       if (error instanceof StoreDomainError) throw error

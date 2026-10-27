@@ -6,7 +6,6 @@ const isolated = process.env.APP_ENV === 'local'
   && process.env.NODE_ENV === 'test'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
-  && process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE === 'ENFORCE'
   && process.env.VISUTRY_DATABASE_IDENTITY === 'local:127.0.0.1:5439/visutry_local_container_e2e'
   && process.env.PLAYWRIGHT_BASE_URL === 'http://127.0.0.1:3003'
 

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { resolveSessionTryOnLimit } from '@/modules/store/domain/session-tryon-limit'
 
 /**
- * M1a: OFF-by-default foundation. Not called from Store/Campaign or Billing.
+ * Standard billing-period allowance for all enrolled Merchant Store/Campaign Try-Ons.
  *
  * Exactly one Merchant v2 reservation may enter the funded billing-period
  * capacity per logical Store request. Historical MerchantSponsoredUsage rows
@@ -44,25 +44,13 @@ function reuseReservation(input: ReservationInput, hold: ExistingHold): Merchant
   return { decision: 'EXISTING', reservationId: hold.id, status: hold.status }
 }
 
-const eligibleMonthlyPlans = new Set(['LAUNCH', 'GROWTH', 'SCALE'])
-const eligibleStatuses = new Set(['PAID_ACTIVE', 'USAGE_WARNING', 'CANCEL_AT_PERIOD_END'])
+const eligibleMonthlyPlans = new Set(['FOUNDING_PILOT', 'LAUNCH', 'GROWTH', 'SCALE', 'ENTERPRISE'])
+const eligibleStatuses = new Set(['PILOT_ACTIVE', 'PAID_ACTIVE', 'USAGE_WARNING', 'CANCEL_AT_PERIOD_END'])
 
-/**
- * Admission is derived from persisted Merchant contract and MerchantSession.
- * Do not accept a caller-provided allowance or period. No path invokes this
- * in current production; future M1b must perform this BEFORE provider dispatch.
- *
- * The v2 cohort must begin with zero in-flight legacy tasks and its first
- * effective period must not be partially consumed before activation.
- */
-/**
- * The feature is OFF unless operations explicitly selects ENFORCE.
- * SHADOW never changes admission/holds, and exists for read-only rollout
- * observers. Never infer activation from a plan price or regular merchant.
- */
-export function merchantAiBudgetMode(): 'OFF' | 'SHADOW' | 'ENFORCE' {
-  const raw = process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE
-  return raw === 'ENFORCE' || raw === 'SHADOW' ? raw : 'OFF'
+/** Paid Merchant plans share one standard render meter. */
+export function isMeteredMerchantPlan(planCode: string | null | undefined): boolean {
+  return planCode === 'FOUNDING_PILOT' || planCode === 'LAUNCH'
+    || planCode === 'GROWTH' || planCode === 'SCALE' || planCode === 'ENTERPRISE'
 }
 
 /**
@@ -91,9 +79,7 @@ export async function reserveMerchantAiPeriodRenderInTransaction(
 
   const included = merchant.standardRenderAllowance
   if (
-    merchant.entitlementVersion !== 'v2'
-    || !merchant.pricingVersion?.startsWith('v2-')
-    || !eligibleMonthlyPlans.has(merchant.planCode ?? '')
+    !eligibleMonthlyPlans.has(merchant.planCode ?? '')
     || !eligibleStatuses.has(merchant.commercialStatus ?? '')
     || !Number.isInteger(included) || included === null || included <= 0
     || !merchant.entitlementEffectiveFrom || !merchant.billingPeriodEnd
@@ -139,8 +125,8 @@ export async function reserveMerchantAiPeriodRenderInTransaction(
   if (used >= included) {
     return { decision: 'DENIED', reason: 'LIMIT_REACHED', usedIncludingReservations: used, limit: included }
   }
-  // A legacy unbound Store session must not bypass the default 2-image
-  // v2 cap. The merchant lock also serializes competing Session claims.
+  // An unbound session still observes the default two-image limit.
+  // The merchant lock serializes concurrent claims for the same session.
   const perSession = resolveSessionTryOnLimit(session.experience?.sessionTryOnLimit)
   const occupied = await tx.merchantAiRenderReservation.count({
     where: {
@@ -159,8 +145,8 @@ export async function reserveMerchantAiPeriodRenderInTransaction(
       idempotencyKey: input.idempotencyKey,
       periodStart: start,
       periodEnd: end,
-      pricingVersion: merchant.pricingVersion,
-      entitlementVersion: merchant.entitlementVersion,
+      pricingVersion: merchant.pricingVersion || 'standard',
+      entitlementVersion: merchant.entitlementVersion || 'standard',
       includedRenderLimit: included,
       reservedAt: now,
     },

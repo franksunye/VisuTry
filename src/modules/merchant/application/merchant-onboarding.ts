@@ -23,7 +23,6 @@ import { recordMerchantActivationEventWithClient } from './merchant-activation'
 import { experienceCommands } from '@/modules/store/application/experience-command-service-prisma'
 import { resolveDecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
 import { resolvePublicDecisionJourney } from '@/modules/store/domain/experience-policy'
-import { merchantAiBudgetMode } from '@/modules/merchant/application/merchant-ai-period-admission'
 import { resolveSessionTryOnLimit } from '@/modules/store/domain/session-tryon-limit'
 import { resolveExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 import { getMerchantCommercialCapability } from './merchant-commercial-entitlements'
@@ -583,9 +582,7 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
     tryOnEnabled: (capabilitySource?.tryOnEnabled ?? true) && Boolean(commercialCapability?.decisions.GENERATIVE_TRY_ON.allowed),
     compareEnabled: (capabilitySource?.compareEnabled ?? true) && Boolean(commercialCapability?.decisions.COMPARE.allowed),
     kioskDeliveryEnabled: commercialCapability?.decisions.KIOSK_DELIVERY.allowed ?? false,
-    sessionTryOnLimitsEnabled: capabilitySource?.entitlementVersion === 'v2'
-      && capabilitySource.pricingVersion?.startsWith('v2-') === true
-      && merchantAiBudgetMode() === 'ENFORCE',
+    sessionTryOnLimitsEnabled: true,
   }
   return {
     store: store ? {

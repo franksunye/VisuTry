@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { merchantAiBudgetMode } from './merchant-ai-period-admission'
+import { isMeteredMerchantPlan } from './merchant-ai-period-admission'
 
 /** Read-only, tenant-scoped billing-period counters. No simulated events. */
 export type MerchantAiUsageSnapshot = {
@@ -13,17 +13,14 @@ export type MerchantAiUsageSnapshot = {
 }
 
 export async function getMerchantAiUsageSnapshot(merchantId: string): Promise<MerchantAiUsageSnapshot | null> {
-  // SHADOW/OFF has no authoritative v2 reservation ledger to report.
-  if (merchantAiBudgetMode() !== 'ENFORCE') return null
   const merchant = await prisma.merchant.findUnique({
     where: { id: merchantId },
     select: {
-      entitlementVersion: true, pricingVersion: true, standardRenderAllowance: true,
+      planCode: true, standardRenderAllowance: true,
       entitlementEffectiveFrom: true, billingPeriodEnd: true,
     },
   })
-  if (!merchant || merchant.entitlementVersion !== 'v2'
-    || !merchant.pricingVersion?.startsWith('v2-')
+  if (!merchant || !isMeteredMerchantPlan(merchant.planCode)
     || !merchant.entitlementEffectiveFrom || !merchant.billingPeriodEnd
     || !merchant.standardRenderAllowance || merchant.standardRenderAllowance <= 0) return null
   const start = merchant.entitlementEffectiveFrom

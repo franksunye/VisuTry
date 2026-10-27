@@ -7,7 +7,6 @@ const localV2 = process.env.APP_ENV === 'local'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
   && process.env.P1_M5_LOCAL_DECISION_RESULT_E2E === '1'
-  && process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE === 'ENFORCE'
   && process.env.VISUTRY_DATABASE_IDENTITY === 'local:127.0.0.1:5439/visutry_local_container_e2e'
   && /^http:\/\/127\.0\.0\.1:3003$/.test(process.env.PLAYWRIGHT_BASE_URL || '')
 

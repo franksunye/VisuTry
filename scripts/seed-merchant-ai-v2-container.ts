@@ -12,8 +12,7 @@ async function main() {
     || process.env.VERCEL || process.env.VERCEL_ENV
     || process.env.VISUTRY_DATABASE_IDENTITY !== 'local:127.0.0.1:5439/visutry_local_container_e2e'
     || !process.env.DATABASE_URL?.includes('127.0.0.1:5439/visutry_local_container_e2e')
-    || process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE !== 'ENFORCE'
-  ) throw new Error('M1b v2 fixture requires a disposable local-only ENFORCE database')
+  ) throw new Error('Merchant usage fixture requires a disposable local-only database')
 
   const merchant = await prisma.merchant.findUnique({
     where: { slug: 'ello-sunglasses' }, select: { id: true, pilotType: true, referenceData: true },
