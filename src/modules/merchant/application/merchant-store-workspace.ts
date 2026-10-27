@@ -72,6 +72,6 @@ export type MerchantStoreWorkspace = {
     secondaryCtaLabel: string | null
     secondaryCtaUrl: string | null
   } | null
-  capabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled: boolean }
+  capabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled: boolean; sessionTryOnLimitsEnabled?: boolean }
   catalog: MerchantStoreWorkspaceFrame[]
 }

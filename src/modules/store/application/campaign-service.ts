@@ -19,6 +19,7 @@ import type { MerchantCommercialFields } from '../domain/merchant-commercial-sta
 import { merchantHandoffConfigurationsMatch, normalizeMerchantHandoffAction, isSupportedMerchantHandoffType } from '../domain/merchant-handoff'
 import { resolveDecisionJourneyPolicy } from '../domain/decision-journey'
 import { resolvePublicDecisionJourney } from '../domain/experience-policy'
+import { merchantAiBudgetMode } from '@/modules/merchant/application/merchant-ai-period-admission'
 import { resolveSessionTryOnLimit } from '../domain/session-tryon-limit'
 import { resolveExperienceDeliveryPolicy } from '../domain/delivery-profile'
 
@@ -37,7 +38,7 @@ export type CampaignReadModel = {
   presentationMode: PresentationMode
   journeyPolicy: ReturnType<typeof resolveDecisionJourneyPolicy>
   effectiveJourneyPolicy: ReturnType<typeof resolveDecisionJourneyPolicy>
-  journeyCapabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled: boolean }
+  journeyCapabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled: boolean; sessionTryOnLimitsEnabled?: boolean }
   sessionTryOnLimit: 1 | 2 | 4
   deliveryPolicy: ReturnType<typeof resolveExperienceDeliveryPolicy>
   headline: string | null
@@ -172,6 +173,9 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
       tryOnEnabled: capabilities.tryOnEnabled ?? true,
       compareEnabled: capabilities.compareEnabled ?? true,
       kioskDeliveryEnabled: capabilities.kioskDeliveryEnabled ?? resolveMerchantCommercialCapability(capabilities).decisions.KIOSK_DELIVERY.allowed,
+      sessionTryOnLimitsEnabled: capabilities.entitlementVersion === 'v2'
+        && capabilities.pricingVersion?.startsWith('v2-') === true
+        && merchantAiBudgetMode() === 'ENFORCE',
     },
     sessionTryOnLimit: resolveSessionTryOnLimit(row.sessionTryOnLimit),
     deliveryPolicy: resolveExperienceDeliveryPolicy(row.deliveryPolicy),
