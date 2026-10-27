@@ -220,7 +220,17 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
   const limit = plan.aiCommerceSessions
   const standardTryOnGenerationLimit = plan.standardTryOnGenerations === null
     ? null
-    : resolveMerchantEntitlement(fields, now).standardRenderAllowance
+    : typeof fields.standardRenderAllowance === 'number' && fields.standardRenderAllowance >= 0
+      ? fields.standardRenderAllowance
+      : planCode === 'FOUNDING_PILOT'
+        ? resolveMerchantEntitlement(fields, now).standardRenderAllowance
+        : fields.standardRenderAllowance === null
+          // A loaded production Merchant row always carries the field. An
+          // explicitly missing allowance must fail closed in the UI just as
+          // the transactional Try-On reservation does; only partial preview
+          // fixtures without this field use the public plan default.
+          ? 0
+        : plan.standardTryOnGenerations
   const threshold = usageThreshold(normalizedUsage.aiCommerceSessions, limit)
   const standardTryOnGenerationsExhausted = standardTryOnGenerationLimit !== null
     && normalizedUsage.standardTryOnGenerations >= standardTryOnGenerationLimit

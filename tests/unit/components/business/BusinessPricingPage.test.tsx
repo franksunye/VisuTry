@@ -71,7 +71,7 @@ describe('BusinessPricingPage v2 product-market narrative', () => {
     }
 
     expect(Array.from(values('AI Commerce Sessions'), (cell) => cell.textContent)).toEqual(['Not applicable', '1,000', '5,000', '10,000', 'Custom'])
-    expect(Array.from(values('Standard Try-On images'), (cell) => cell.textContent)).toEqual(['Not included', 'Confirmed at activation', 'Confirmed at activation', 'Confirmed at activation', 'Custom'])
+    expect(Array.from(values('Standard Try-On images'), (cell) => cell.textContent)).toEqual(['Not included', '1,000', '3,500', '7,000', 'Custom'])
     expect(Array.from(values('Decision Result \+ mobile continuation'), (cell) => cell.textContent)).toEqual(['—', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
     expect(Array.from(values('Merchant Actions'), (cell) => cell.textContent)).toEqual(['Basic product links', '✓ Included', '✓ Included', '✓ Included', '✓ Included'])
     expect(Array.from(values('In-store Kiosk Mode'), (cell) => cell.textContent)).toEqual(['—', 'Add-on', 'Add-on', 'Included', 'Custom'])

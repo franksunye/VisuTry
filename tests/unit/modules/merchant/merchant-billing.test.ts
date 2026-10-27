@@ -52,11 +52,17 @@ const tx = {
   $queryRaw: jest.fn(),
   merchantBillingAccount: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
   merchantBillingEvent: { findUnique: jest.fn(), findFirst: jest.fn(), create: jest.fn(), update: jest.fn() },
-  merchant: { update: jest.fn() },
+  merchant: { findUnique: jest.fn(), update: jest.fn() },
 }
 
 let persistedAccount = { ...account }
-let persistedMerchant = { planCode: null as string | null, commercialStatus: null as string | null, billingPeriodEnd: null as Date | null }
+let persistedMerchant = {
+  planCode: null as string | null, commercialStatus: null as string | null,
+  billingPeriodEnd: null as Date | null,
+  standardRenderAllowance: null as number | null,
+  commerceSessionAllowance: null as number | null,
+  commercialExceptionCode: null as string | null,
+}
 const eventLedger = new Map<string, { id: string; status: string; processingReason: string | null; duplicateCount: number; [key: string]: unknown }>()
 const retrieveSubscription = jest.spyOn((stripe as any).subscriptions, 'retrieve')
 const updateSubscription = jest.spyOn((stripe as any).subscriptions, 'update')
@@ -77,7 +83,11 @@ describe('Merchant Stripe billing boundary', () => {
   beforeEach(() => {
     configurePrices(); jest.clearAllMocks()
     persistedAccount = { ...account }
-    persistedMerchant = { planCode: null, commercialStatus: null, billingPeriodEnd: null }
+    persistedMerchant = {
+      planCode: null, commercialStatus: null, billingPeriodEnd: null,
+      standardRenderAllowance: null, commerceSessionAllowance: null,
+      commercialExceptionCode: null,
+    }
     eventLedger.clear(); retrieveSubscription.mockReset()
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', slug: 'merchant-1' })
     ;(prisma.merchantBillingAccount.findUnique as jest.Mock).mockResolvedValue(account)
@@ -136,6 +146,7 @@ describe('Merchant Stripe billing boundary', () => {
       persistedAccount = { ...persistedAccount, ...input.data }
       return { ...persistedAccount }
     })
+    tx.merchant.findUnique.mockImplementation(async () => ({ ...persistedMerchant }))
     tx.merchant.update.mockImplementation(async (input: any) => {
       persistedMerchant = { ...persistedMerchant, ...input.data }
       return { id: 'merchant-1', ...persistedMerchant }
@@ -336,7 +347,11 @@ describe('Merchant Stripe billing boundary', () => {
     } as any
     const first = await processMerchantStripeEvent(event)
     expect(first).toMatchObject({ handled: true, duplicate: false, merchantId: 'merchant-1' })
-    expect(tx.merchant.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' }) }))
+    expect(tx.merchant.update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({
+      planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE',
+      standardRenderAllowance: 1000, commerceSessionAllowance: 1000,
+      entitlementVersion: 'v2',
+    }) }))
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
       target: { kind: 'merchant', merchantSlug: 'merchant-1' },
       edgeTags: expect.objectContaining({ before: ['store-tag', 'campaign-tag'] }),
@@ -351,6 +366,56 @@ describe('Merchant Stripe billing boundary', () => {
     const duplicateInvalidation = (withPublicDiscoveryInvalidation as jest.Mock).mock.calls[1][0]
     expect(duplicateInvalidation.invalidate({ handled: true, duplicate: true, stateChanged: false })).toBe(false)
     expect(tx.merchant.update).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    ['LAUNCH', 'price_merchant_launch', 1000, 1000],
+    ['GROWTH', 'price_merchant_growth', 3500, 5000],
+    ['SCALE', 'price_merchant_scale', 7000, 10000],
+  ])('automatically grants %s image and session capacity on paid subscription activation', async (planCode, priceId, images, sessions) => {
+    const event = subscriptionEvent({ id: `evt_activate_${planCode}` })
+    event.data.object.items.data[0].price.id = priceId
+
+    await processMerchantStripeEvent(event)
+
+    expect(persistedMerchant).toMatchObject({
+      planCode, commercialStatus: 'PAID_ACTIVE',
+      standardRenderAllowance: images, commerceSessionAllowance: sessions,
+    })
+    expect(persistedMerchant.billingPeriodEnd).toBeInstanceOf(Date)
+  })
+
+  it('keeps an already approved same-plan allowance on renewal and changes the period', async () => {
+    const first = subscriptionEvent({ id: 'evt_initial_enroll' })
+    await processMerchantStripeEvent(first)
+    persistedMerchant.standardRenderAllowance = 1200
+
+    const renewal = subscriptionEvent({ id: 'evt_monthly_renewal', created: first.created + 86400 })
+    renewal.data.object.current_period_start = first.data.object.current_period_end
+    renewal.data.object.current_period_end += 2592000
+    await processMerchantStripeEvent(renewal)
+
+    expect(persistedMerchant).toMatchObject({
+      planCode: 'LAUNCH', standardRenderAllowance: 1200,
+      commerceSessionAllowance: 1000,
+      commercialStatus: 'PAID_ACTIVE',
+    })
+    expect(persistedMerchant.billingPeriodEnd).toEqual(new Date(renewal.data.object.current_period_end * 1000))
+  })
+
+  it('replaces prior-plan image allowance when upgrading from Launch to Growth', async () => {
+    const launch = subscriptionEvent({ id: 'evt_upgrade_origin' })
+    await processMerchantStripeEvent(launch)
+    persistedMerchant.standardRenderAllowance = 9000
+    const growth = subscriptionEvent({ id: 'evt_upgrade_growth', created: launch.created + 1 })
+    growth.data.object.items.data[0].price.id = 'price_merchant_growth'
+
+    await processMerchantStripeEvent(growth)
+
+    expect(persistedMerchant).toMatchObject({
+      planCode: 'GROWTH', standardRenderAllowance: 3500,
+      commerceSessionAllowance: 5000,
+    })
   })
 
   it('serializes concurrent delivery of the same event and applies entitlement once', async () => {
@@ -494,7 +559,11 @@ describe('Merchant Stripe billing boundary', () => {
     const forward = billingState()
 
     persistedAccount = { ...account }
-    persistedMerchant = { planCode: null, commercialStatus: null, billingPeriodEnd: null }
+    persistedMerchant = {
+      planCode: null, commercialStatus: null, billingPeriodEnd: null,
+      standardRenderAllowance: null, commerceSessionAllowance: null,
+      commercialExceptionCode: null,
+    }
     eventLedger.clear()
     await processMerchantStripeEvent(updated)
     await processMerchantStripeEvent(deleted)
@@ -552,10 +621,24 @@ describe('Merchant Stripe billing boundary', () => {
 
     expect(firstPeriodEnd).toEqual(new Date(1_725_000_000 * 1000 + 30 * 86_400_000))
     expect(persistedAccount.currentPeriodEnd).toEqual(firstPeriodEnd)
-    expect(persistedMerchant).toMatchObject({ planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE' })
+    expect(persistedMerchant).toMatchObject({
+      planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE',
+      standardRenderAllowance: 3500, commerceSessionAllowance: 1500,
+    })
     expect(eventLedger.get(first.id)).toMatchObject({ planCode: 'FOUNDING_PILOT' })
     expect(tx.merchantBillingAccount.update).toHaveBeenCalledTimes(1)
     expect(tx.merchant.update).toHaveBeenCalledTimes(1)
+  })
+
+  it('honors the audited 5,000-image Founding Pilot exception at first payment', async () => {
+    persistedMerchant.commercialExceptionCode = 'FOUNDING_LAUNCH_BONUS'
+
+    await processMerchantStripeEvent(checkoutEvent({ id: 'evt_pilot_approved_bonus', created: 1_725_000_000 }))
+
+    expect(persistedMerchant).toMatchObject({
+      planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE',
+      standardRenderAllowance: 5000, commerceSessionAllowance: 1500,
+    })
   })
 
   it('records identity or price rejection without mutating the canonical Merchant state', async () => {

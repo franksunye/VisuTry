@@ -64,6 +64,10 @@ function PrimaryPlanCard({ locale, planCode }: { locale: string; planCode: Prima
           <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">AI Commerce Sessions</dt>
           <dd className="mt-1 text-lg font-semibold text-slate-950">{formatNumber(plan.aiCommerceSessions)}</dd>
         </div>
+        <div>
+          <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Standard Try-On images / month</dt>
+          <dd className="mt-1 text-lg font-semibold text-slate-950">{formatNumber(plan.standardTryOnGenerations)}</dd>
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Catalog items</dt>
@@ -137,7 +141,7 @@ function imageAllowanceLabel(planCode: ComparisonPlanCode) {
   const plan = getMerchantPlanDefinition(planCode)
   if (!plan.generativeTryOn) return 'Not included'
   if (plan.standardTryOnGenerations !== null) return formatNumber(plan.standardTryOnGenerations)
-  return planCode === 'ENTERPRISE' ? 'Custom' : 'Confirmed at activation'
+  return 'Custom'
 }
 
 function comparisonRows() {
@@ -150,7 +154,7 @@ function comparisonRows() {
     { group: 'Capacity', label: 'AI Commerce Sessions', tooltip: 'One shopper using Recommendation, Try-On, or Compare within the same session counts as 1 AI Commerce Session. Plain browsing does not count.', values: plans.map((plan) => plan.code === 'FREE' ? 'Not applicable' : formatNumber(plan.aiCommerceSessions)) },
     { group: 'Capacity', label: 'Standard Try-On images', values: comparisonPlanCodes.map(imageAllowanceLabel) },
     { group: 'Decision journey', label: 'AI Recommendation', values: plans.map((plan) => plan.recommendation ? plan.code === 'FREE' ? 'Basic' : '✓ Included' : '—') },
-    { group: 'Decision journey', label: 'Generative Try-On', tooltip: 'Generative Try-On requires both available AI Commerce Sessions and available contracted Try-On image capacity. When either is exhausted, your Store stays live.', values: plans.map((plan) => plan.generativeTryOn ? '✓ Included' : '—') },
+    { group: 'Decision journey', label: 'Generative Try-On', tooltip: 'Generative Try-On requires both available AI Commerce Sessions and included Try-On image capacity. When either is exhausted, your Store stays live.', values: plans.map((plan) => plan.generativeTryOn ? '✓ Included' : '—') },
     { group: 'Decision journey', label: 'Frame Compare', values: plans.map((plan) => plan.compare ? '✓ Included' : '—') },
     { group: 'Decision journey', label: 'Decision Result + mobile continuation', tooltip: 'Paid plans can carry a shopper’s decision result to their phone through a secure continuation link or QR code.', values: plans.map((plan) => plan.decisionResult ? '✓ Included' : '—') },
     { group: 'Commerce', label: 'Merchant Actions', tooltip: 'Free Stores can link to products. Paid plans can use configured actions such as store visit, appointment, inquiry, or supported merchant destinations.', values: plans.map((plan) => plan.merchantHandoff ? '✓ Included' : 'Basic product links') },
@@ -341,7 +345,7 @@ function ProductProofSection({ locale }: { locale: string }) {
 function FaqSection() {
   const faq = [
     ['What counts as an AI Commerce Session?', 'One shopper starts an AI-assisted shopping journey in one Store or Campaign. Recommendation, Try-On, Compare, and Intent in that journey count as one session. Each completed Try-On image also counts against the separate image allowance. Plain browsing does not.'],
-    ['How many Try-Ons can one shopper make?', 'You can configure 1, 2, or 4 Try-On images per shopper session for each Store or Campaign (default 2), subject to your remaining contracted image allowance.'],
+    ['How many Try-Ons can one shopper make?', 'You can configure 1, 2, or 4 Try-On images per shopper session for each Store or Campaign (default 2), subject to your remaining included monthly image allowance.'],
     ['What happens when I reach a usage limit?', 'Your Store, catalog, product browsing, product links, inquiries, and analytics remain available. Generative Try-On pauses when session or image capacity runs out; a per-shopper limit pauses further images in that session.'],
     ['Does the Founding Pilot renew automatically?', 'No. The Founding Pilot starts from $149 / 30 days. Final scope and fee are confirmed based on deployment configuration, with no automatic renewal or silent conversion to a monthly plan.'],
     ['Can I upgrade later?', 'Yes. Start with Free or the Founding Pilot, then choose Launch, Growth, or Scale based on the capacity you need.'],
