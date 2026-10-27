@@ -107,8 +107,9 @@ describe('Discover content contract', () => {
         makeExperience(merchants.get(slug)!.id, 'default', 'STORE'),
       ]),
     )
+    const findBySlug = jest.fn(async (slug: string) => merchants.get(slug as typeof DISCOVER_MERCHANT_SLUGS[number]) ?? null)
     const runtime = {
-      merchants: { findBySlug: jest.fn(async (slug: string) => merchants.get(slug as typeof DISCOVER_MERCHANT_SLUGS[number]) ?? null) },
+      merchants: { findBySlug },
       experiences: {
         findActiveCampaignByMerchantAndSlug: jest.fn(async (merchantId: string, slug: string) =>
           Array.from(experiences.values()).find((item) => item.merchantId === merchantId && item.slug === slug) ?? null),
@@ -127,11 +128,42 @@ describe('Discover content contract', () => {
     expect(content.featured.every((item) => item.href.includes('campaign=discover-featured'))).toBe(true)
     expect(content.merchants).toHaveLength(5)
     expect(content.merchants.every((item) => item.referenceData)).toBe(true)
+    // Six featured cards and five store cards share only five distinct merchants.
+    expect(findBySlug).toHaveBeenCalledTimes(DISCOVER_MERCHANT_SLUGS.length)
     expect(content.demo).toEqual({
       href: '/en/store/visutry-demo-optical?source=visutry&medium=internal&surface=discover&campaign=canonical-demo',
       name: 'VisuTry Demo Optical',
       description: expect.any(String),
     })
+  })
+
+  it('deduplicates merchant reads only within one request, preserving live status on the next request', async () => {
+    let active = true
+    const findBySlug = jest.fn(async (slug: string) => ({
+      ...makeMerchant(slug),
+      status: active ? 'ACTIVE' as const : 'SUSPENDED' as const,
+    }))
+    const runtime = {
+      merchants: { findBySlug },
+      experiences: {
+        findActiveCampaignByMerchantAndSlug: jest.fn(async (merchantId: string, slug: string) =>
+          makeExperience(merchantId, slug)),
+        findDefaultStore: jest.fn(async (merchantId: string) =>
+          makeExperience(merchantId, 'default', 'STORE')),
+      },
+      frames: { findActiveByMerchantAndExperience: jest.fn(async (merchantId: string, experience: { slug: string }) =>
+        [makeFrame(merchantId, experience.slug)]) },
+    } as never
+
+    const first = await getDiscoverContent('en', runtime)
+    expect(first.merchants).toHaveLength(5)
+    expect(findBySlug).toHaveBeenCalledTimes(5)
+
+    active = false
+    const second = await getDiscoverContent('en', runtime)
+    expect(second.merchants).toHaveLength(0)
+    expect(second.featured).toHaveLength(0)
+    expect(findBySlug).toHaveBeenCalledTimes(10)
   })
 
   it('filters an inactive or empty curated Experience without hiding other merchants', async () => {

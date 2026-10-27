@@ -75,9 +75,22 @@ export async function getDiscoverContent(
   locale: Locale,
   runtime: DiscoverRuntime,
 ): Promise<DiscoverContent> {
+  // Featured campaigns and merchant cards overlap heavily. Reuse one in-flight
+  // merchant lookup per slug within this render without caching public status
+  // between requests (a merchant can be deactivated at any time).
+  const merchantReads = new Map<string, ReturnType<typeof runtime.merchants.findBySlug>>()
+  const findMerchant = (slug: string) => {
+    let pending = merchantReads.get(slug)
+    if (!pending) {
+      pending = runtime.merchants.findBySlug(slug)
+      merchantReads.set(slug, pending)
+    }
+    return pending
+  }
+
   const [featured, merchants] = await Promise.all([
     Promise.all(DISCOVER_FEATURED_EXPERIENCES.map(async (candidate) => {
-      const merchant = await runtime.merchants.findBySlug(candidate.merchantSlug)
+      const merchant = await findMerchant(candidate.merchantSlug)
       if (!merchant) return null
 
       const experience = await runtime.experiences.findActiveCampaignByMerchantAndSlug(
@@ -112,7 +125,7 @@ export async function getDiscoverContent(
       }
     })),
     Promise.all(DISCOVER_MERCHANT_SLUGS.map(async (merchantSlug) => {
-      const merchant = await runtime.merchants.findBySlug(merchantSlug)
+      const merchant = await findMerchant(merchantSlug)
       if (!merchant || merchant.status !== 'ACTIVE') return null
 
       const store = await runtime.experiences.findDefaultStore(merchant.id)
