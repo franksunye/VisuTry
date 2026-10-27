@@ -130,7 +130,9 @@ export async function POST(request: NextRequest) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("Webhook处理失败:", error)
     logger.error('payment', 'Webhook处理失败', err, undefined, ctx)
-    const status = error instanceof MerchantBillingError ? error.httpStatus : 500
+    const status = error instanceof Stripe.errors.StripeSignatureVerificationError
+      ? 400
+      : error instanceof MerchantBillingError ? error.httpStatus : 500
     return NextResponse.json({ error: "Webhook处理失败" }, { status })
   }
 }
