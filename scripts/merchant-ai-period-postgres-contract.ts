@@ -112,16 +112,15 @@ async function main() {
   const sessionCapped = await Promise.all(([1, 2, 4] as const).map(async limit => {
     const row = await fixture('session-cap-' + limit, 10)
     fixtures.push(row)
-    const experience = await db.experience.create({
-      data: {
-        merchantId: row.merchantId, type: 'STORE', slug: 'm2-test-store',
-        name: 'M2 per-session limit ' + limit,
-        status: 'ACTIVE', sessionTryOnLimit: limit,
-      },
-      select: { id: true },
+    // fixture() already provisions this Merchant's only active Store.
+    // Change that Experience rather than violating the one-active-Store
+    // unique constraint in the canonical database schema.
+    const session = await db.merchantSession.findUniqueOrThrow({
+      where: { id: row.sessionId }, select: { experienceId: true },
     })
-    await db.merchantSession.update({
-      where: { id: row.sessionId }, data: { experienceId: experience.id },
+    if (!session.experienceId) throw new Error('M2 fixture must bind a Store Experience')
+    await db.experience.update({
+      where: { id: session.experienceId }, data: { sessionTryOnLimit: limit },
     })
     return { ...row, sessionLimit: limit }
   }))
