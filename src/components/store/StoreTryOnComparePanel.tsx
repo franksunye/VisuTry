@@ -146,6 +146,9 @@ export function StoreTryOnComparePanel({
     if (initialBatchId && !batchId) setBatchId(initialBatchId)
   }, [batchId, initialBatchId])
 
+  // A new shopper Session starts a new, independent interaction allowance.
+  useEffect(() => { setSessionLimitReached(false) }, [merchantSessionId])
+
   const merchantContinuation: MerchantContinuationContext | null = createMerchantContinuation({
     locale,
     merchantSlug,

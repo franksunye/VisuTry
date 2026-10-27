@@ -41,9 +41,17 @@ async function fixture(label: string, allowance: number, version = 'v2') {
       name: 'M1b local frame', shape: 'rectangle', status: 'ACTIVE',
     }, select: { id: true },
   })
+  // Original M1b tests exercise monthly risk independently of configurable
+  // session caps. Give each v2 fixture the highest explicit 4-image cap.
+  const baselineExperience = version === 'v2' ? await db.experience.create({
+    data: { merchantId: merchant.id, type: 'STORE', slug: 'm1b-base',
+      name: 'M1b test store', status: 'ACTIVE', sessionTryOnLimit: 4 },
+    select: { id: true },
+  }) : null
   const session = await db.merchantSession.create({
     data: {
       merchantId: merchant.id,
+      experienceId: baselineExperience?.id ?? null,
       capabilityTokenHash: 'm1b-' + label + '-' + suffix,
       status: 'ACTIVE', expiresAt: periodEnd,
     },

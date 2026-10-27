@@ -139,20 +139,18 @@ export async function reserveMerchantAiPeriodRenderInTransaction(
   if (used >= included) {
     return { decision: 'DENIED', reason: 'LIMIT_REACHED', usedIncludingReservations: used, limit: included }
   }
-  // Locked per merchant-period: the same lock also serializes concurrent
-  // requests inside one Session, including distinct idempotency keys.
-  if (session.experience && ['STORE', 'CAMPAIGN'].includes(session.experience.type)) {
-    const perSession = resolveSessionTryOnLimit(session.experience.sessionTryOnLimit)
-    const occupied = await tx.merchantAiRenderReservation.count({
-      where: {
-        merchantId: input.merchantId,
-        merchantSessionId: input.merchantSessionId,
-        status: { in: ['RESERVED', 'SETTLED'] },
-      },
-    })
-    if (occupied >= perSession) {
-      return { decision: 'DENIED', reason: 'SESSION_LIMIT_REACHED', usedIncludingReservations: occupied, limit: perSession }
-    }
+  // A legacy unbound Store session must not bypass the default 2-image
+  // v2 cap. The merchant lock also serializes competing Session claims.
+  const perSession = resolveSessionTryOnLimit(session.experience?.sessionTryOnLimit)
+  const occupied = await tx.merchantAiRenderReservation.count({
+    where: {
+      merchantId: input.merchantId,
+      merchantSessionId: input.merchantSessionId,
+      status: { in: ['RESERVED', 'SETTLED'] },
+    },
+  })
+  if (occupied >= perSession) {
+    return { decision: 'DENIED', reason: 'SESSION_LIMIT_REACHED', usedIncludingReservations: occupied, limit: perSession }
   }
   const reserved = await tx.merchantAiRenderReservation.create({
     data: {
