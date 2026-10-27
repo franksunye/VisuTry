@@ -25,7 +25,7 @@ Environment variable: VISUTRY_MERCHANT_AI_BUDGET_MODE
 | Value | Behavior |
 | --- | --- |
 | Unset / OFF / unknown | Default. Legacy path, zero v2 reservation activity. |
-| SHADOW | No enforcement, no writes. Read-only metrics implementation and QA still pending; do not claim SHADOW evidence yet. |
+| SHADOW | Existing Store tasks behave as OFF; a **read-only** assessment of explicitly versioned v2 capacity is emitted after a claim (Axiom-approved existing fields). No v2 reservation row is written and no v2 limit is enforced. Observation errors never fail a shopper request. |
 | ENFORCE | Store/Campaign merchant-paid paths atomically admit only explicitly versioned v2 Merchant contracts; legacy contracts bypass unchanged. |
 
 A qualifying v2 row must have ALL of:
@@ -69,7 +69,58 @@ after manual rollback requires reconciliation of outstanding reservations.
 - Mock-only tests; no real provider procurement, uploads, or Stripe writes.
 - Merchant Executed RC Foundation browser evidence, exact-SHA GitHub CI and
   real Store/Campaign/Compare workflow QA must all pass before merge.
-- Remaining hard gates: operator reconciliation report, SHADOW/observability
-  with sanitized Axiom data, enrollment/renewal lifecycle, approved contract
-  cohorts, consumer fallback and private result access regression.
+- M1b PostgreSQL regression explicitly checks that a COMPLETED task missing a
+  persisted result is **not** settled; an eventual result on the original task
+  can settle exactly once. SHADOW never creates v2 reservation rows or denies
+  the shopper despite v2 capacity exhaustion.
+- Remaining release gates: fully executed ENFORCE v2 Store/Campaign/Compare
+  browser path with local seeded v2 contract, supplier failure/UNKNOWN
+  reconciliation proof, approved contract cohorts, Consumer fallback and
+  private result access regression. These cannot be inferred from an ordinary
+  mocked Store UI test.
 - Do not merge or deploy Draft M1b until the Lead approves the final exact SHA.
+
+## Read-only operator reconciliation (no automatic release)
+
+Run the following **SELECT only** against an approved read-only DB connection,
+scoped by merchant ID. Never export photos or task metadata to telemetry.
+The result is an audit queue, **not** permission to re-submit a provider task.
+
+```sql
+SELECT r."merchantId", r."periodStart", r."periodEnd", r.status,
+       count(*) AS render_slots
+FROM "MerchantAiRenderReservation" r
+WHERE r."merchantId" = :merchant_id
+GROUP BY r."merchantId", r."periodStart", r."periodEnd", r.status
+ORDER BY r."periodStart" DESC, r.status;
+```
+
+For outstanding reservations, inspect **only task state and status**:
+
+```sql
+SELECT r.id AS reservation_id, r."tryOnTaskId" AS task_id,
+       r."periodStart", r."periodEnd", r."reservedAt",
+       t.status AS task_status, t."quotaSettledAt" IS NOT NULL AS usage_settled,
+       t."resultImageUrl" IS NOT NULL AS has_persisted_result
+FROM "MerchantAiRenderReservation" r
+LEFT JOIN "TryOnTask" t ON t.id = r."tryOnTaskId"
+WHERE r."merchantId" = :merchant_id AND r.status = 'RESERVED'
+ORDER BY r."reservedAt" ASC LIMIT 100;
+```
+
+Any `UNKNOWN`, unresolved accepted task, inconsistent settled ledger, or
+unbound hold is **operator HOLD**. Never infer a provider refund or final
+failure from elapsed wall-clock time. Reconcile using original task/provider ID,
+not a new image generation call. Contract renewals must retain original period
+membership, including reservations that settle after the renewal boundary.
+
+## Safe deployment order
+
+1. Apply additive migration; confirm prior plan IDs and billing remain unchanged.
+2. Deploy with `VISUTRY_MERCHANT_AI_BUDGET_MODE=OFF`.
+3. Optionally use `SHADOW` on a local approved v2-only fixture to inspect
+   sanitized `resultStatus`, `planCode`, `remaining`, `merchantId` and
+   `taskId`. Do not treat ordinary Store `RENDER_ATTEMPT` as a v2 hold.
+4. Only after explicit approval of a named future v2 cohort and an exact
+   deployment SHA consider `ENFORCE`; never enroll historical partially
+   consumed contract periods. Roll back to OFF without deleting reservations.

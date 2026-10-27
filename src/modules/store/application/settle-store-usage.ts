@@ -32,6 +32,28 @@ export async function settleStoreTryOnUsage(input: {
     try {
       const result: StoreUsageSettlementResult = await (input.db ?? prisma).$transaction(
         async (tx) => {
+          // M1b: a v2 credit must not be settled until an actual result
+          // was durably persisted. Preserve historical v1 settlement semantics.
+          const v2Hold = await tx.merchantAiRenderReservation.findUnique({
+            where: { tryOnTaskId: input.taskId },
+            select: { id: true },
+          })
+          if (v2Hold) {
+            const delivered = await tx.tryOnTask.findFirst({
+              where: {
+                id: input.taskId,
+                merchantId: input.merchantId,
+                merchantSessionId: input.merchantSessionId,
+                status: TaskStatus.COMPLETED,
+                resultImageUrl: { not: null },
+              },
+              select: { resultImageUrl: true },
+            })
+            if (!delivered?.resultImageUrl || delivered.resultImageUrl.startsWith('pending:')) {
+              return { settled: false, alreadySettled: false, source: null }
+            }
+          }
+
           const claim = await tx.tryOnTask.updateMany({
             where: {
               id: input.taskId,

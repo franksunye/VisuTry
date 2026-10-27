@@ -10,6 +10,7 @@ import { claimStoreTryOnSlot } from '@/modules/store/application/submit-store-tr
 import { DEFAULT_STORE_DEMO_LIMITS } from '@/modules/store/domain/usage-policy'
 import { settleStoreTryOnUsage } from '@/modules/store/application/settle-store-usage'
 import { releaseMerchantAiRenderForTerminalFailure } from '@/modules/merchant/application/merchant-ai-period-lifecycle'
+import { inspectMerchantAiPeriodShadow } from '@/modules/merchant/application/merchant-ai-period-shadow'
 
 process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'ENFORCE' // disposable PG process only
 const now = new Date()
@@ -93,6 +94,8 @@ async function main() {
   const b = await fixture('failure', 1); fixtures.push(b)
   const idem = await fixture('same-key', 1); fixtures.push(idem)
   const v1 = await fixture('legacy', 1, 'v1'); fixtures.push(v1)
+  const missingResult = await fixture('missing-result', 1); fixtures.push(missingResult)
+  const shadow = await fixture('shadow', 1); fixtures.push(shadow)
 
   try {
     // Distinct concurrent final-slot claims use real SERIALIZABLE PG txs.
@@ -142,6 +145,62 @@ async function main() {
     assert.equal(await db.merchantAiRenderReservation.count({
       where: { merchantId: idem.merchantId },
     }), 1)
+
+    // A COMPLETED task without a durably persisted result is NOT a
+    // chargeable success. It must keep the single slot reserved until the
+    // result is available and the RENDER_SUCCESS ledger can be written.
+    const imagePending = await claim(missingResult, 'no-image-' + suffix)
+    assert.ok(imagePending.taskId)
+    await db.tryOnTask.update({
+      where: { id: imagePending.taskId! },
+      data: { status: 'COMPLETED' },
+    })
+    const pendingSettlement = await settleStoreTryOnUsage({
+      taskId: imagePending.taskId!,
+      merchantId: missingResult.merchantId,
+      merchantSessionId: missingResult.sessionId,
+      usagePolicy: { kind: 'merchant_allowance', merchantId: missingResult.merchantId },
+      usage: {} as unknown as Parameters<typeof settleStoreTryOnUsage>[0]['usage'],
+      db,
+    })
+    assert.equal(pendingSettlement.settled, false, 'no image means no quota settlement')
+    assert.equal(await db.merchantUsageLedger.count({
+      where: { merchantId: missingResult.merchantId, kind: 'RENDER_SUCCESS' },
+    }), 0)
+    assert.equal((await db.merchantAiRenderReservation.findUnique({
+      where: { tryOnTaskId: imagePending.taskId! },
+    }))?.status, 'RESERVED', 'missing result preserves the in-flight hold')
+    assert.equal((await claim(missingResult, 'no-image-next-' + suffix)).decision, 'DENIED')
+    await db.tryOnTask.update({
+      where: { id: imagePending.taskId! },
+      data: { resultImageUrl: 'mock://persisted-recovered-result' },
+    })
+    assert.equal((await settleStoreTryOnUsage({
+      taskId: imagePending.taskId!,
+      merchantId: missingResult.merchantId,
+      merchantSessionId: missingResult.sessionId,
+      usagePolicy: { kind: 'merchant_allowance', merchantId: missingResult.merchantId },
+      usage: {} as unknown as Parameters<typeof settleStoreTryOnUsage>[0]['usage'],
+      db,
+    })).settled, true, 'the original task can settle after result persistence')
+
+    // SHADOW must be read-only for the v2 budget even when the configured
+    // render allowance is exhausted. The existing v1-style RENDER_ATTEMPT
+    // ledger remains in use; no new reservation rows are permitted.
+    process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'SHADOW'
+    const shadowRead = await inspectMerchantAiPeriodShadow({
+      merchantId: shadow.merchantId, now, db,
+    })
+    assert.equal(shadowRead?.decision, 'AVAILABLE')
+    const shadowOne = await claim(shadow, 'shadow-1-' + suffix)
+    const shadowTwo = await claim(shadow, 'shadow-2-' + suffix)
+    assert.equal(shadowOne.decision, 'RESERVED')
+    assert.equal(shadowTwo.decision, 'RESERVED',
+      'SHADOW must not enforce the v2 render limit')
+    assert.equal(await db.merchantAiRenderReservation.count({
+      where: { merchantId: shadow.merchantId },
+    }), 0, 'SHADOW must not write billing-period reservation rows')
+    process.env.VISUTRY_MERCHANT_AI_BUDGET_MODE = 'ENFORCE'
 
     // Renewal must count a different period while preserving the old SETTLED.
     const newPeriodEnd = new Date(periodEnd.getTime() + 30 * 24 * 3600_000)
@@ -218,6 +277,7 @@ async function main() {
       finalSlotConcurrentWinners: winners.length,
       sameKeyConcurrentSingleTask: true,
       ambiguousRemainsReserved: true, onceOnlySuccess: true,
+      noImageNoSettlement: true, shadowReadOnly: true,
       legacyUnchanged: true,
     }))
   } finally {

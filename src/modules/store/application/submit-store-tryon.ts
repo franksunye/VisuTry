@@ -24,6 +24,7 @@ import { resolveMerchantCommercialCapability, decideMerchantCommercialFeature } 
 import { consumeAICommerceSession } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { merchantAiBudgetMode, reserveMerchantAiPeriodRenderInTransaction } from '@/modules/merchant/application/merchant-ai-period-admission'
 import { releaseMerchantAiRenderForTerminalFailure } from '@/modules/merchant/application/merchant-ai-period-lifecycle'
+import { inspectMerchantAiPeriodShadow } from '@/modules/merchant/application/merchant-ai-period-shadow'
 import { checkUserQuota } from '@/lib/quota'
 import { calculateExpiresAt } from '@/config/retention'
 import type { AssetStore } from './ports/asset-store'
@@ -292,7 +293,7 @@ export async function claimStoreTryOnSlot(input: {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await (input.db ?? prisma).$transaction(
+      const claimed = await (input.db ?? prisma).$transaction(
         async (tx) => {
           const existing = await tx.tryOnTask.findUnique({
             where: { idempotencyKey: input.idempotencyKey },
@@ -538,6 +539,31 @@ export async function claimStoreTryOnSlot(input: {
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )
+      if (merchantAiBudgetMode() === 'SHADOW' && input.usagePolicyKind !== 'consumer_quota') {
+        // Observer runs AFTER the real claim commits. Failure to observe must
+        // never block a shopper or mutate the commercial ledger.
+        try {
+          const observed = await inspectMerchantAiPeriodShadow({
+            merchantId: input.merchantId, now: input.now, db: input.db,
+          })
+          if (observed) {
+            logger.info('merchant', 'Merchant AI period shadow assessment', {
+              merchantId: input.merchantId,
+              taskId: claimed.taskId,
+              planCode: observed.planCode,
+              resultStatus: observed.decision,
+              remaining: observed.decision === 'INELIGIBLE' ? null : observed.remaining,
+              usagePolicyKind: input.usagePolicyKind,
+            })
+          }
+        } catch (observationError) {
+          logger.warn('merchant', 'Merchant AI period shadow observation unavailable', {
+            merchantId: input.merchantId,
+            errorName: observationError instanceof Error ? observationError.name : 'UnknownError',
+          })
+        }
+      }
+      return claimed
     } catch (error) {
       if (error instanceof StoreDomainError) throw error
       const code = (error as { code?: string })?.code
