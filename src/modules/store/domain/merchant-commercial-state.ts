@@ -219,7 +219,11 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
   const period = resolveMerchantCommercialPeriod(fields, now)
   const limit = plan.aiCommerceSessions
   const standardTryOnGenerationLimit = plan.standardTryOnGenerations === null
-    ? null
+    ? planCode === 'ENTERPRISE' && fields.standardRenderAllowance === null
+      ? 0 // Custom contracts also require a persisted positive allowance.
+      : planCode === 'ENTERPRISE' && typeof fields.standardRenderAllowance === 'number' && fields.standardRenderAllowance >= 0
+        ? fields.standardRenderAllowance
+        : null
     : typeof fields.standardRenderAllowance === 'number' && fields.standardRenderAllowance >= 0
       ? fields.standardRenderAllowance
       : planCode === 'FOUNDING_PILOT'

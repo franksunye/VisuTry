@@ -212,6 +212,18 @@ describe('G4-A canonical Merchant commercial contract', () => {
     expect(state.featureAvailability.STORE).toBe(true)
   })
 
+  it('requires explicitly provisioned Enterprise image capacity rather than a missing custom contract', () => {
+    const missing = resolveMerchantCommercialState({
+      planCode: 'ENTERPRISE', commercialStatus: 'PAID_ACTIVE', standardRenderAllowance: null,
+    }, {}, now)
+    const provisioned = resolveMerchantCommercialState({
+      planCode: 'ENTERPRISE', commercialStatus: 'PAID_ACTIVE', standardRenderAllowance: 12000,
+    }, {}, now)
+    expect(missing.featureAvailability.GENERATIVE_TRY_ON).toBe(false)
+    expect(provisioned.standardTryOnGenerationLimit).toBe(12000)
+    expect(provisioned.featureAvailability.GENERATIVE_TRY_ON).toBe(true)
+  })
+
   it('preserves default and exceptional Founding Pilot render allowances in canonical decisions and runtime claims', () => {
     const baseFields = {
       planCode: 'FOUNDING_PILOT',
