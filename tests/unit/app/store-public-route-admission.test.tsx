@@ -20,6 +20,7 @@ jest.mock('@/modules/store/application/public-route-admission', () => ({
 }))
 
 jest.mock('@/modules/store/application/get-public-experience-discovery-route', () => ({
+  getPublicExperienceDiscoveryContentForRoute: jest.fn(),
   getPublicExperienceDiscoveryForRoute: jest.fn(),
 }))
 
@@ -45,7 +46,10 @@ jest.mock('@/components/store/StorePresentationDisclosure', () => ({
 }))
 
 import { notFound } from 'next/navigation'
-import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/application/get-public-experience-discovery-route'
+import {
+  getPublicExperienceDiscoveryContentForRoute,
+  getPublicExperienceDiscoveryForRoute,
+} from '@/modules/store/application/get-public-experience-discovery-route'
 import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
 import {
   isPublicCampaignRouteAdmitted,
@@ -107,6 +111,7 @@ describe('public Store/Campaign route admission boundary', () => {
     ;(isPublicStoreRouteAdmitted as jest.Mock).mockResolvedValue(false)
     ;(isPublicCampaignRouteAdmitted as jest.Mock).mockResolvedValue(false)
     ;(getPublicExperienceDiscoveryForRoute as jest.Mock).mockResolvedValue(discovery)
+    ;(getPublicExperienceDiscoveryContentForRoute as jest.Mock).mockResolvedValue(discovery)
   })
 
   it('rejects invalid Store requests before discovery in metadata and Page', async () => {
@@ -117,6 +122,7 @@ describe('public Store/Campaign route admission boundary', () => {
     await expect(storePage.default({ params })).rejects.toThrow('NEXT_NOT_FOUND')
     expect(isPublicStoreRouteAdmitted).toHaveBeenCalledTimes(2)
     expect(getPublicExperienceDiscoveryForRoute).not.toHaveBeenCalled()
+    expect(getPublicExperienceDiscoveryContentForRoute).not.toHaveBeenCalled()
   })
 
   it('rejects invalid Campaign requests before discovery in metadata and Page', async () => {
@@ -127,6 +133,7 @@ describe('public Store/Campaign route admission boundary', () => {
     await expect(campaignPage.default({ params })).rejects.toThrow('NEXT_NOT_FOUND')
     expect(isPublicCampaignRouteAdmitted).toHaveBeenCalledTimes(2)
     expect(getPublicExperienceDiscoveryForRoute).not.toHaveBeenCalled()
+    expect(getPublicExperienceDiscoveryContentForRoute).not.toHaveBeenCalled()
   })
 
   it('preserves admitted Store and Campaign discovery behavior', async () => {
@@ -141,9 +148,11 @@ describe('public Store/Campaign route admission boundary', () => {
     await campaignPage.generateMetadata({ params: campaignParams })
     await campaignPage.default({ params: campaignParams })
 
+    // SEO metadata must read ISR-cached content without executing the live
+    // quota / merchant capability overlay. Only the page needs that overlay.
+    expect(getPublicExperienceDiscoveryContentForRoute).toHaveBeenNthCalledWith(1, 'merchant-a', null, 'en')
+    expect(getPublicExperienceDiscoveryContentForRoute).toHaveBeenNthCalledWith(2, 'merchant-a', 'everyday-fit', 'en')
     expect(getPublicExperienceDiscoveryForRoute).toHaveBeenNthCalledWith(1, 'merchant-a', null, 'en')
-    expect(getPublicExperienceDiscoveryForRoute).toHaveBeenNthCalledWith(2, 'merchant-a', null, 'en')
-    expect(getPublicExperienceDiscoveryForRoute).toHaveBeenNthCalledWith(3, 'merchant-a', 'everyday-fit', 'en')
-    expect(getPublicExperienceDiscoveryForRoute).toHaveBeenNthCalledWith(4, 'merchant-a', 'everyday-fit', 'en')
+    expect(getPublicExperienceDiscoveryForRoute).toHaveBeenNthCalledWith(2, 'merchant-a', 'everyday-fit', 'en')
   })
 })

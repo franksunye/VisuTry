@@ -234,6 +234,10 @@ describe('public route admission', () => {
     expect(withinLimit?.merchant.generativeTryOnAvailable).toBe(true)
     expect(withinLimit?.experiencePolicy.tryOnEnabled).toBe(true)
     expect(withinLimit?.decisionJourney?.enabledStages).toContain('TRY_ON')
+    // One cached-content merchant read plus exactly one live commercial read.
+    // The former implementation performed a second live merchant lookup for
+    // handoff/kiosk capability resolution on every regeneration.
+    expect(runtime.merchants.findPublicBySlug).toHaveBeenCalledTimes(2)
 
     countAICommerceSessions.mockResolvedValue(1000)
     const exhausted = await getPublicExperienceDiscoveryForRoute('merchant-a')
@@ -242,6 +246,7 @@ describe('public route admission', () => {
     expect(exhausted?.decisionJourney?.enabledStages).not.toEqual(expect.arrayContaining(['TRY_ON', 'COMPARE']))
     expect(countAICommerceSessions).toHaveBeenCalledTimes(2)
     expect(countSuccessfulRenders).toHaveBeenCalledTimes(2)
+    expect(runtime.merchants.findPublicBySlug).toHaveBeenCalledTimes(3)
 
     countAICommerceSessions.mockRejectedValueOnce(new Error('usage ledger unavailable'))
     const usageUnavailable = await getPublicExperienceDiscoveryForRoute('merchant-a')
@@ -249,5 +254,6 @@ describe('public route admission', () => {
     expect(usageUnavailable?.experience.name).toBe('Campaign A')
     expect(usageUnavailable?.merchant.generativeTryOnAvailable).toBe(false)
     expect(usageUnavailable?.decisionJourney?.enabledStages).not.toEqual(expect.arrayContaining(['TRY_ON', 'COMPARE']))
+    expect(runtime.merchants.findPublicBySlug).toHaveBeenCalledTimes(4)
   })
 })

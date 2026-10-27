@@ -5,7 +5,10 @@ import { ExperienceDiscoveryContent } from '@/components/store/ExperienceDiscove
 import { InteractiveCommerceLauncher } from '@/components/store/InteractiveCommerceLauncher'
 import { StorePresentationDisclosure } from '@/components/store/StorePresentationDisclosure'
 import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
-import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/application/get-public-experience-discovery-route'
+import {
+  getPublicExperienceDiscoveryContentForRoute,
+  getPublicExperienceDiscoveryForRoute,
+} from '@/modules/store/application/get-public-experience-discovery-route'
 import { publicMerchantFromDiscovery } from '@/modules/store/application/get-public-merchant'
 import { isPublicStoreRouteAdmitted } from '@/modules/store/application/public-route-admission'
 import { buildExperienceDiscoveryMetadata, discoveryCanonicalUrl } from '@/lib/store-discovery-seo'
@@ -46,7 +49,7 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     }
   }
-  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, null, locale)
+  const discovery = await getPublicExperienceDiscoveryContentForRoute(params.merchantSlug, null, locale)
   if (!discovery) {
     return {
       title: 'Store not found | VisuTry',

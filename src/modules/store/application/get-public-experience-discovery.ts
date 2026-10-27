@@ -243,10 +243,12 @@ export async function resolvePublicGenerativeTryOnStatus(input: {
   usage: StoreUsageRepository
   slug: string
   now?: Date
+  /** Reuse the already-fetched live merchant snapshot from a public route. */
+  merchant?: MerchantRecord
 }): Promise<{ available: boolean; unavailableReason: PublicTryOnUnavailableReason | null }> {
-  const merchant = input.merchants.findPublicBySlug
+  const merchant = input.merchant ?? (input.merchants.findPublicBySlug
     ? await input.merchants.findPublicBySlug(input.slug)
-    : await input.merchants.findBySlug(input.slug)
+    : await input.merchants.findBySlug(input.slug))
   if (!merchant || merchant.status !== 'ACTIVE') {
     return { available: false, unavailableReason: 'TEMPORARILY_UNAVAILABLE' }
   }

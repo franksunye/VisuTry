@@ -17,11 +17,11 @@ import {
 import { resolveMerchantCommercialCapability } from '../domain/merchant-commercial-capability'
 
 /**
- * Persistent, slug-scoped content read model shared by generateMetadata and
- * the page. Content and frames stay ISR-cached; the quota-sensitive public
- * Try-On hint is overlaid from current commercial usage after the cache read.
+ * Persistent, slug-scoped content read model for metadata and the page.
+ * Metadata only needs these cacheable SEO facts; it must not trigger live
+ * merchant entitlement or usage queries during an ISR regeneration.
  */
-export async function getPublicExperienceDiscoveryForRoute(
+export async function getPublicExperienceDiscoveryContentForRoute(
   slug: string,
   experienceSlug?: string | null,
   locale = 'en',
@@ -52,7 +52,16 @@ export async function getPublicExperienceDiscoveryForRoute(
     },
   )
 
-  const discovery = await cachedRead()
+  return cachedRead()
+}
+
+/** The render path overlays live entitlements without polluting cached SEO content. */
+export async function getPublicExperienceDiscoveryForRoute(
+  slug: string,
+  experienceSlug?: string | null,
+  locale = 'en',
+) {
+  const discovery = await getPublicExperienceDiscoveryContentForRoute(slug, experienceSlug, locale)
   if (!discovery) return null
   const archivedCampaign = discovery.experience.type === 'CAMPAIGN'
     && discovery.experience.status === 'ARCHIVED'
@@ -65,12 +74,30 @@ export async function getPublicExperienceDiscoveryForRoute(
   let kioskDeliveryAvailable = false
   const runtime = createPublicStoreReadRuntime()
 
-  if (!archivedCampaign) {
+  // Resolve the mutable merchant state once for all commercial capabilities.
+  // Metadata exclusively uses the cached-content read above.
+  let merchant: Awaited<ReturnType<typeof runtime.merchants.findBySlug>> = null
+  try {
+    merchant = runtime.merchants.findPublicBySlug
+      ? await runtime.merchants.findPublicBySlug(slug)
+      : await runtime.merchants.findBySlug(slug)
+    if (!archivedCampaign && merchant?.status === 'ACTIVE') {
+      const capability = resolveMerchantCommercialCapability(merchant)
+      merchantHandoffAvailable = capability.decisions.MERCHANT_HANDOFF.allowed
+      kioskDeliveryAvailable = capability.decisions.KIOSK_DELIVERY.allowed
+    }
+  } catch {
+    // Preserve cached public content, but never grant a commercial capability
+    // when the live merchant lookup fails.
+  }
+
+  if (!archivedCampaign && merchant) {
     try {
       const availability = await resolvePublicGenerativeTryOnStatus({
         merchants: runtime.merchants,
         usage: runtime.usage,
         slug,
+        merchant,
       })
       generativeTryOnAvailable = availability.available
       generativeTryOnUnavailableReason = availability.unavailableReason
@@ -82,21 +109,6 @@ export async function getPublicExperienceDiscoveryForRoute(
     }
   }
 
-  try {
-    const merchant = runtime.merchants.findPublicBySlug
-      ? await runtime.merchants.findPublicBySlug(slug)
-      : await runtime.merchants.findBySlug(slug)
-    if (!archivedCampaign && merchant?.status === 'ACTIVE') {
-      const capability = resolveMerchantCommercialCapability(merchant)
-      merchantHandoffAvailable = capability.decisions.MERCHANT_HANDOFF.allowed
-      kioskDeliveryAvailable = capability.decisions.KIOSK_DELIVERY.allowed
-    }
-  } catch {
-    // Non-metered plan capabilities fail closed without coupling them to the
-    // AI usage overlay above.
-    merchantHandoffAvailable = false
-    kioskDeliveryAvailable = false
-  }
   return {
     ...discovery,
     merchant: { ...discovery.merchant, generativeTryOnAvailable, generativeTryOnUnavailableReason },
