@@ -45,7 +45,9 @@ describe('Style Explorer page handoff context', () => {
   })
 
   it('renders a static route without request-specific search params', () => {
-    expect(dynamic).toBe('force-static')
+    // `force-static` strips query context in this app-router runtime; automatic
+    // SSG plus Suspense preserves Face Analysis callback parameters.
+    expect(dynamic).toBe('auto')
     render(StyleExplorerPage({ params: { locale: 'en' } }))
     expect(screen.getByTestId('style-explorer-gate')).toHaveAttribute(
       'data-sign-in-href',

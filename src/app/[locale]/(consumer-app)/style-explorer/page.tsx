@@ -9,9 +9,9 @@ interface StyleExplorerPageProps {
   params: { locale: string }
 }
 
-// Marketing must not invoke a server function for every anonymous visit.
-// The Face Analysis handoff is resolved in a client Suspense boundary.
-export const dynamic = 'force-static'
+// Preserve URL query context for the client handoff. Let Next prerender the
+// Suspense marketing shell automatically; CI verifies all nine static outputs.
+export const dynamic = 'auto'
 
 export async function generateMetadata({ params }: StyleExplorerPageProps): Promise<Metadata> {
   setRequestLocale(params.locale)
