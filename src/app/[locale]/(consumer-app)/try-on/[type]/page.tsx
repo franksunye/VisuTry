@@ -4,8 +4,9 @@ import { generateStructuredData } from "@/lib/seo"
 import { Metadata } from 'next'
 import { TryOnType, getTryOnConfig, urlToTryOnType, getAllTryOnTypes, tryOnTypeToUrl } from "@/config/try-on-types"
 import Link from "next/link"
-import { ArrowRight, CheckCircle2, CreditCard, Image, Shield, Upload } from "lucide-react"
+import { CheckCircle2, CreditCard, Image, Shield, Upload } from "lucide-react"
 import { ModelTryOnSlides } from "@/components/marketing/ModelTryOnSlides"
+import { TryOnStartLink } from "@/components/try-on/TryOnStartLink"
 import { RouteMessagesProvider } from "@/components/i18n/RouteMessagesProvider"
 import { GrowthFunnelLink } from "@/components/analytics/GrowthFunnelLink"
 import { getTranslations, setRequestLocale } from "next-intl/server"
@@ -15,7 +16,6 @@ interface TryOnPageProps {
     locale: string
     type: string
   }
-  searchParams?: Record<string, string | string[] | undefined>
 }
 
 // Generate metadata dynamically based on try-on type
@@ -66,7 +66,7 @@ export function generateStaticParams() {
 // Cloudflare OpenNext 1.15.1 needs true to dispatch nested generated pages.
 export const dynamicParams = process.env.CLOUDFLARE_BUILD === '1'
 
-export default async function TryOnTypePage({ params, searchParams }: TryOnPageProps) {
+export default async function TryOnTypePage({ params }: TryOnPageProps) {
   const { locale, type } = params
   setRequestLocale(locale)
   
@@ -100,7 +100,6 @@ export default async function TryOnTypePage({ params, searchParams }: TryOnPageP
           locale={locale}
           type={type}
           tryOnType={tryOnType}
-          searchParams={searchParams}
         />
       }
     />
@@ -111,23 +110,14 @@ async function PublicTryOnLanding({
   locale,
   type,
   tryOnType,
-  searchParams,
 }: {
   locale: string
   type: string
   tryOnType: TryOnType
-  searchParams?: Record<string, string | string[] | undefined>
 }) {
   const t = await getTranslations({ locale, namespace: 'marketing.tryOnLanding' })
   const config = getTryOnConfig(tryOnType)
   const isGlasses = tryOnType === "GLASSES"
-  const callbackQuery = new URLSearchParams()
-  for (const key of ['source', 'faceShape', 'photoHandoff']) {
-    const value = searchParams?.[key]
-    if (typeof value === 'string' && value) callbackQuery.set(key, value)
-  }
-  const callbackPath = `/${locale}/try-on/${type}${callbackQuery.size ? `?${callbackQuery.toString()}` : ''}`
-  const startHref = `/${locale}/auth/signin?callbackUrl=${encodeURIComponent(callbackPath)}`
 
   const faqItems = isGlasses
     ? [
@@ -288,13 +278,7 @@ async function PublicTryOnLanding({
             ))}
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Link
-              href={startHref}
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
-            >
-              {t('startButton')}
-              <ArrowRight className="ms-2 h-4 w-4" />
-            </Link>
+            <TryOnStartLink locale={locale} type={type} label={t('startButton')} />
             {isGlasses && (
               <GrowthFunnelLink
                 href={`/${locale}/try-on/glasses/compare`}
