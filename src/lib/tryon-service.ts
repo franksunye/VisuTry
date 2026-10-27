@@ -604,7 +604,7 @@ export async function submitTryOnTask(
       try {
         await markGenerationAttemptSubmitted(task.id, externalTaskId, Date.now() - submitStartedAt)
       } catch (telemetryError) {
-        logger.warn('tryon-service', 'Accepted GrsAi task has pending submission telemetry', {
+        logger.warn('tryon-service', 'Accepted async provider task has pending submission telemetry', {
           taskId: task.id,
           externalTaskId,
           reason: telemetryError instanceof Error ? telemetryError.message : String(telemetryError),
@@ -663,7 +663,7 @@ export async function submitTryOnTask(
             },
           })
         }
-        logger.warn('tryon-service', 'GrsAi dispatch outcome requires reconciliation; no duplicate submit', {
+        logger.warn('tryon-service', 'Async provider dispatch outcome requires reconciliation; no duplicate submit', {
           taskId: task.id,
           hasExternalTaskId: Boolean(acceptedExternalTaskId),
           clientSubmissionId,
@@ -936,14 +936,14 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         const file = new File([blob], `result-${taskId}.${resultExtension}`, { type: blob.type || 'image/png' })
         const uploadedBlob = await put(resultPathname, file, resultBlobOptions)
         persistedUrl = uploadedBlob.url
-        logger.info('tryon-service', 'GrsAi result uploaded to blob', {
+        logger.info('tryon-service', 'Try-On result uploaded to blob', {
           taskId,
           access: resultBlobOptions.access,
           ...pollLog,
         })
       } catch (uploadError) {
         const persistError = uploadError instanceof Error ? uploadError.message : String(uploadError)
-        logger.error('tryon-service', 'Failed to persist GrsAi result to blob', uploadError as Error, {
+        logger.error('tryon-service', 'Failed to persist Try-On result to blob', uploadError as Error, {
           taskId,
           access: resultBlobOptions.access,
         })
@@ -1000,7 +1000,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
                 }
               }
             } catch (headError) {
-              logger.error('tryon-service', 'Failed to reconcile existing private GrsAi result blob', headError as Error, {
+              logger.error('tryon-service', 'Failed to reconcile existing private Try-On result blob', headError as Error, {
                 taskId,
                 pathname: resultPathname,
               })
@@ -1143,7 +1143,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       }
     } else if (pollResult.status === 'failed') {
       if (shouldTreatPollFailureAsTransient(pollResult.error, pollResult.diagnostics?.code)) {
-        logger.warn('tryon-service', 'Transient GrsAi polling failure detected, keeping task in processing', {
+        logger.warn('tryon-service', 'Transient provider polling failure detected, keeping task in processing', {
           taskId,
           externalTaskId: metadata.externalTaskId,
           error: pollResult.error,
