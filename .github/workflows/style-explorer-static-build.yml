@@ -8,6 +8,7 @@ on:
       - 'src/app/**/style-explorer/page.tsx'
       - 'src/components/style-explorer/**'
       - 'tests/unit/app/style-explorer-page.test.tsx'
+      - 'tests/e2e/style-explorer-static-handoff.spec.ts'
       - 'scripts/assert-style-explorer-static.mjs'
       - '.github/workflows/style-explorer-static-build.yml'
 
@@ -63,3 +64,22 @@ jobs:
         run: npm run build:ci
       - name: Assert Style Explorer is statically prerendered for all locales
         run: node scripts/assert-style-explorer-static.mjs
+
+      - name: Install Chromium for real static-build smoke
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify anonymous entry and Face Analysis sign-in handoff in a browser
+        shell: bash
+        run: |
+          npm run start -- --port 3001 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" || true' EXIT
+          for attempt in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:3001/en/style-explorer > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 \
+            npx playwright test tests/e2e/style-explorer-static-handoff.spec.ts \
+              --project=chromium --workers=1 --retries=0
