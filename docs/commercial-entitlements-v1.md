@@ -259,9 +259,12 @@ Merchant is mutated by the migration itself.
 Local and preview environments must use test Stripe credentials and
 `STRIPE_MERCHANT_BILLING_MODE=test`. Production requires live credentials and
 `STRIPE_MERCHANT_BILLING_MODE=live`. Missing or mismatched configuration fails
-closed. No G4-B migration is run by local verification and this feature is not
-production-ready until the additive migration, review, merge, deployment, and
-bounded smoke are completed.
+closed. Local billing-activation verification does not run a new G4-B
+migration: the original billing event schema and purchase flow are already
+deployed. The 2026-10-27 automatic
+image-entitlement closure requires its separate test-mode Checkout, PostgreSQL
+contract, CI, merge, Production READY and bounded smoke gates before its
+updated self-service promise can be declared fully live.
 
 ## G4-C commercial launch closure
 
@@ -275,8 +278,8 @@ next action. A checkout return is only a processing state until a verified
 webhook updates the canonical Merchant fields; the browser redirect never
 grants entitlement.
 
-An exhausted paid or Pilot AI Commerce Session allowance pauses paid
-Generative Try-On only. The Store remains live, normal browsing and product
+An exhausted paid or Pilot AI Commerce Session **or standard image** allowance
+pauses paid Generative Try-On only. The Store remains live, normal browsing and product
 links remain available, and the shopper receives a generic availability
 message. `NORMAL`, `NOTICE`, `WARNING`, and `LIMIT_REACHED` are shared domain
 thresholds at `<70%`, `70–89%`, `90–99%`, and `100%+`; UI code must not define a

@@ -82,6 +82,23 @@ not evidence of a new Production deployment until the release gate passes.
 
 ## Read-only operations reconciliation
 
+Before enabling paid self-service conversion, check for any pre-existing paid
+Merchant whose subscription claims activation but whose render meter cannot
+admit a single image. This must be read-only; verify each exception against
+Stripe/contract records before an audited repair, never bulk-assume entitlement:
+
+```sql
+SELECT id, "planCode", "commercialStatus", "standardRenderAllowance",
+       "commerceSessionAllowance", "entitlementEffectiveFrom", "billingPeriodEnd"
+FROM "Merchant"
+WHERE "planCode" IN ('LAUNCH', 'GROWTH', 'SCALE', 'FOUNDING_PILOT', 'ENTERPRISE')
+  AND "commercialStatus" IN ('PAID_ACTIVE', 'PILOT_ACTIVE', 'CANCEL_AT_PERIOD_END')
+  AND (
+    "standardRenderAllowance" IS NULL OR "standardRenderAllowance" <= 0
+    OR "entitlementEffectiveFrom" IS NULL OR "billingPeriodEnd" IS NULL
+  );
+```
+
 ```sql
 SELECT r."merchantId", r."periodStart", r."periodEnd", r.status,
        count(*) AS render_slots
