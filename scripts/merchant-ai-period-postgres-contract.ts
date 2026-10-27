@@ -286,7 +286,7 @@ async function main() {
       assert.equal(await releaseMerchantAiRenderForTerminalFailure({
         taskId: initial.taskId!, merchantId: f.merchantId, merchantSessionId: f.sessionId, db,
       }), 'HELD_AMBIGUOUS', 'HTTP error cannot be equated to no billable dispatch')
-      const countBeforeReplay = simulatedDispatchCount
+      const countBeforeReplay: number = simulatedDispatchCount
       const replay = await claim(f, kind + '-initial-' + suffix)
       assert.equal(replay.taskId, initial.taskId, 'same identity recovers original task')
       assert.equal(replay.decision, 'EXISTING')
