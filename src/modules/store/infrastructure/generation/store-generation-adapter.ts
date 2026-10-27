@@ -59,6 +59,13 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
           'base64',
         )
         const fixtureResult = await MockBlob.put(resultPathname, fixtureBytes, { contentType: 'image/png' })
+        // Preserve the original v2 reservation/idempotency metadata. The
+        // local output fixture must follow the same persisted task contract
+        // as production result storage instead of replacing the metadata.
+        const currentTask = await prisma.tryOnTask.findUnique({
+          where: { id: input.preClaimedTaskId },
+          select: { metadata: true },
+        })
         const completed = await prisma.tryOnTask.updateMany({
           where: {
             id: input.preClaimedTaskId,
@@ -73,6 +80,7 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
             dispatchLeaseOwner: null,
             dispatchLeaseUntil: null,
             metadata: {
+              ...((currentTask?.metadata ?? {}) as object),
               usagePolicyKind: input.usagePolicy.kind,
               telemetryOrigin: input.telemetryOrigin ?? 'STORE',
               resultPathname,

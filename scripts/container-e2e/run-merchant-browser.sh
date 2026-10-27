@@ -95,6 +95,12 @@ export DATABASE_URL=postgresql://postgres@127.0.0.1:5439/visutry_local_container
 export DATABASE_URL_UNPOOLED="$DATABASE_URL" DIRECT_URL="$DATABASE_URL"
 export VISUTRY_DATABASE_IDENTITY=local:127.0.0.1:5439/visutry_local_container_e2e
 export STRIPE_MERCHANT_BILLING_MODE=test STRIPE_SECRET_KEY=sk_test_container_placeholder
+# The local no-cost output fixture is server-guarded by all six runtime
+# conditions. It can never dispatch to an external image provider.
+export VISUTRY_LOCAL_DEMO_RUNTIME=1
+export VISUTRY_LOCAL_DEMO_PROVIDER_MODE=blocked
+export P1_M5_LOCAL_DECISION_RESULT_E2E=1
+export VISUTRY_MERCHANT_AI_BUDGET_MODE=ENFORCE
 export STORE_SEED_CONFIRM=local-test-only
 unset BLOB_READ_WRITE_TOKEN GOOGLE_API_KEY GRSAI_API_KEY RESEND_API_KEY
 unset AXIOM_TOKEN AXIOM_DATASET AXIOM_ORG_ID STRIPE_WEBHOOK_SECRET
@@ -141,3 +147,8 @@ export PLAYWRIGHT_BASE_URL=http://127.0.0.1:3003
 ./node_modules/.bin/playwright test tests/e2e/store-pilot.spec.ts \
   --project=chromium --workers=1 --retries=0 \
   --grep 'configured merchant route|campaign experience route|applies the merchant compare|keeps a real provider failure|turns Store/Campaign AUTH_REQUIRED|presentation modes remain usable at mobile width|Store and Campaign landing actions remain usable at mobile width'
+
+echo 'Running M1b v2 real Store/Campaign API, fixture Try-On and billing ledger gate'
+node --import tsx scripts/seed-merchant-ai-v2-container.ts
+./node_modules/.bin/playwright test tests/e2e/merchant-ai-v2-local.spec.ts \
+  --project=chromium --workers=1 --retries=0
