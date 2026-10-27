@@ -8,7 +8,7 @@
 import assert from 'node:assert/strict'
 import { Prisma } from '@prisma/client'
 import { localPostgresPrisma as db } from './lib/local-postgres-prisma'
-import { enrollMerchantCommercialPlan } from '@/modules/merchant/application/merchant-billing'
+import { enrollMerchantCommercialPlan } from '@/modules/merchant/application/merchant-billing-entitlements'
 import { reserveMerchantAiPeriodRenderInTransaction } from '@/modules/merchant/application/merchant-ai-period-admission'
 
 const now = new Date()
