@@ -149,10 +149,10 @@ test.describe('M2 local-only Merchant settings and real shopper limits', () => {
       }))
       return { session, choices }
     }
-    async function generate(session: string, frameId: string, key: string) {
+    async function generate(session: string, frameId: string, key: string, batchId = 'm2-batch-' + run) {
       return request.post('/api/store/sessions/try-on', {
         data: { merchantSlug: slug, merchantSessionId: session, merchantFrameId: frameId,
-          batchId: 'm2-batch-' + run, clientSubmissionId: key, locale: 'en', deviceType: 'desktop' },
+          batchId, clientSubmissionId: key, locale: 'en', deviceType: 'desktop' },
       })
     }
     async function completed(session: string, frameId: string, key: string) {
@@ -181,7 +181,7 @@ test.describe('M2 local-only Merchant settings and real shopper limits', () => {
         frameIds: [campaignShopper.choices[2]!], clientActionId: 'm2-select-next-' + run,
         locale: 'en', deviceType: 'desktop' },
     }))
-    const campaignDenied = await generate(campaignShopper.session, campaignShopper.choices[2]!, 'm2-campaign-c-' + run)
+    const campaignDenied = await generate(campaignShopper.session, campaignShopper.choices[2]!, 'm2-campaign-c-' + run, 'm2-followup-batch-' + run)
     expect(campaignDenied.status(), await campaignDenied.text()).toBe(429)
     expect((await campaignDenied.json()).code).toBe('AI_SESSION_LIMIT_REACHED')
 
