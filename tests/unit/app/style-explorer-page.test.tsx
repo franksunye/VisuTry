@@ -1,6 +1,6 @@
-import React from 'react'
 import { render, screen } from '@testing-library/react'
-import StyleExplorerPage from '@/app/[locale]/(consumer-app)/style-explorer/page'
+import StyleExplorerPage, { dynamic } from '@/app/[locale]/(consumer-app)/style-explorer/page'
+import { StyleExplorerHandoffGate } from '@/components/style-explorer/StyleExplorerHandoffGate'
 
 jest.mock('next-intl/server', () => ({
   getTranslations: jest.fn(),
@@ -9,6 +9,12 @@ jest.mock('next-intl/server', () => ({
 
 jest.mock('@/components/i18n/RouteMessagesProvider', () => ({
   RouteMessagesProvider: ({ children }: { children: React.ReactNode }) => children,
+}))
+
+jest.mock('@/components/style-explorer/StyleExplorerMarketing', () => ({
+  StyleExplorerMarketing: ({ signInHref }: { signInHref: string }) => (
+    <div data-testid="static-marketing" data-sign-in-href={signInHref} />
+  ),
 }))
 
 jest.mock('@/components/style-explorer/StyleExplorerGate', () => ({
@@ -28,11 +34,22 @@ jest.mock('@/components/style-explorer/StyleExplorerGate', () => ({
 }))
 
 describe('Style Explorer page handoff context', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/en/style-explorer')
+  })
+
+  it('renders a static route without request-specific search params', () => {
+    expect(dynamic).toBe('force-static')
+    render(StyleExplorerPage({ params: { locale: 'en' } }))
+    expect(screen.getByTestId('style-explorer-gate')).toHaveAttribute(
+      'data-sign-in-href',
+      '/en/auth/signin?callbackUrl=%2Fen%2Fstyle-explorer',
+    )
+  })
+
   it('preserves the Face Analysis source through authentication', () => {
-    render(StyleExplorerPage({
-      params: { locale: 'en' },
-      searchParams: { source: 'face-analysis', taskId: 'analysis-1' },
-    }))
+    window.history.replaceState(null, '', '/en/style-explorer?source=face-analysis&taskId=analysis-1')
+    render(<StyleExplorerHandoffGate locale="en" />)
 
     const gate = screen.getByTestId('style-explorer-gate')
     expect(gate).toHaveAttribute('data-face-analysis-task-id', 'analysis-1')
@@ -43,10 +60,8 @@ describe('Style Explorer page handoff context', () => {
   })
 
   it('does not treat an unrecognized source as a Face Analysis handoff', () => {
-    render(StyleExplorerPage({
-      params: { locale: 'en' },
-      searchParams: { source: 'other', taskId: 'analysis-1' },
-    }))
+    window.history.replaceState(null, '', '/en/style-explorer?source=other&taskId=analysis-1')
+    render(<StyleExplorerHandoffGate locale="en" />)
 
     const gate = screen.getByTestId('style-explorer-gate')
     expect(gate).toHaveAttribute('data-face-analysis-task-id', '')
@@ -54,5 +69,11 @@ describe('Style Explorer page handoff context', () => {
       'data-sign-in-href',
       '/en/auth/signin?callbackUrl=%2Fen%2Fstyle-explorer',
     )
+  })
+
+  it('does not forward ambiguous duplicate task IDs', () => {
+    window.history.replaceState(null, '', '/en/style-explorer?source=face-analysis&taskId=a&taskId=b')
+    render(<StyleExplorerHandoffGate locale="en" />)
+    expect(screen.getByTestId('style-explorer-gate')).toHaveAttribute('data-face-analysis-task-id', '')
   })
 })

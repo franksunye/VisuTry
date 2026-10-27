@@ -78,31 +78,41 @@ export function PaymentConversionTracker() {
 
     let cancelled = false
     let timeoutId: ReturnType<typeof setTimeout> | undefined
+    let verifiedPayment: CompletedPaymentResponse | null = null
 
     const verifyAndTrack = async (attempt: number) => {
       try {
-        const response = await fetch(
-          `/api/payment/conversion?session_id=${encodeURIComponent(sessionId)}`,
-          { cache: 'no-store' },
-        )
-        const payload = await response.json()
+        if (!verifiedPayment) {
+          const response = await fetch(
+            `/api/payment/conversion?session_id=${encodeURIComponent(sessionId)}`,
+            { cache: 'no-store' },
+          )
+          const payload = await response.json()
 
-        if (cancelled) return
+          if (cancelled) return
+          if (response.ok && payload.status === 'completed') {
+            verifiedPayment = payload as CompletedPaymentResponse
+          } else if ((response.ok && payload.status !== 'pending')
+            || (response.status >= 400 && response.status < 500)) {
+            // Terminal payment states and invalid/unauthorized sessions cannot
+            // turn into a purchase through repeated client-side verification.
+            return
+          }
+        }
 
-        if (response.ok && payload.status === 'completed') {
+        if (verifiedPayment) {
           if (!window.gtag && !window.dataLayer) {
             throw new Error('Analytics runtime is not ready')
           }
 
-          const completed = payload as CompletedPaymentResponse
           analytics.trackPurchase(
-            completed.data.transactionId,
-            completed.data.productType,
-            completed.data.value,
-            completed.data.attribution,
+            verifiedPayment.data.transactionId,
+            verifiedPayment.data.productType,
+            verifiedPayment.data.value,
+            verifiedPayment.data.attribution,
             {
-              purchaseContext: completed.data.purchaseContext,
-              faceAnalysisTaskId: completed.data.faceAnalysisTaskId,
+              purchaseContext: verifiedPayment.data.purchaseContext,
+              faceAnalysisTaskId: verifiedPayment.data.faceAnalysisTaskId,
             },
           )
           try {
