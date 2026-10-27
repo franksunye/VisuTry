@@ -9,9 +9,9 @@ interface StyleExplorerPageProps {
   params: { locale: string }
 }
 
-// Preserve URL query context for the client handoff. Let Next prerender the
-// Suspense marketing shell automatically; CI verifies all nine static outputs.
-export const dynamic = 'auto'
+// Marketing must not invoke a server function for every anonymous visit.
+// URL query context is resolved after hydration in a client Suspense boundary.
+export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: StyleExplorerPageProps): Promise<Metadata> {
   setRequestLocale(params.locale)
