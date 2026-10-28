@@ -15,6 +15,7 @@ import { Glasses, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { localizedPath } from '@/lib/localized-path'
 import { useQuota } from '@/hooks/useQuota'
+import { getUserType } from '@/lib/analytics'
 import type { FaceAnalysisTaskResponse } from '@/types/face-analysis'
 
 interface RecentTryOn {
@@ -129,8 +130,8 @@ export function DashboardPageClient({ locale }: DashboardPageClientProps) {
 
   const user = session.user as any
   const isPremiumActive = userBalance?.isPremiumActive ?? user.isPremiumActive
-  const subscriptionType = userBalance?.currentSubscriptionType ?? user.subscriptionType
-  const isYearlySubscription = subscriptionType === 'PREMIUM_YEARLY'
+  const subscriptionType = userBalance ? userBalance.currentSubscriptionType : user.subscriptionType
+  const isYearlySubscription = String(subscriptionType).includes('YEARLY')
   const creditsPurchased = userBalance?.creditsPurchased ?? user.creditsPurchased ?? 0
   const creditsUsed = userBalance?.creditsUsed ?? user.creditsUsed ?? 0
   const freeTrialsUsed = userBalance?.freeTrialsUsed ?? user.freeTrialsUsed ?? 0
@@ -143,11 +144,13 @@ export function DashboardPageClient({ locale }: DashboardPageClientProps) {
     isYearlySubscription,
   }
 
-  const userType = quota.userType
+  const userType = userBalance
+    ? getUserType(isPremiumActive, Math.max(0, creditsPurchased - creditsUsed), true)
+    : quota.userType
 
   return (
     <div className="container px-4 py-8 mx-auto">
-      <PaymentSuccessHandler />
+      <PaymentSuccessHandler onBalanceReady={setUserBalance} />
 
       {/* Page Header */}
       <div className="flex items-center justify-between mb-8">
@@ -200,7 +203,7 @@ export function DashboardPageClient({ locale }: DashboardPageClientProps) {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <SubscriptionCard user={userForCard} />
+          <SubscriptionCard user={userForCard} balance={userBalance} />
           <DashboardQuickActions userType={userType} remainingTrials={remainingTrials} />
           <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
             <h3 className="mb-3 text-lg font-semibold text-blue-900">💡 Tips</h3>

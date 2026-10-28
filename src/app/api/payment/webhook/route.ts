@@ -353,6 +353,9 @@ async function handleSubscriptionCreatedEvent(subscription: Stripe.Subscription,
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理订阅创建事件失败:", error)
     logger.error('payment', '处理订阅创建事件失败', err, undefined, context)
+    // Stripe must retry when the paid entitlement was not persisted.
+    // A 2xx acknowledgement here can permanently leave a paid user as Free.
+    throw err
   }
 }
 
@@ -370,7 +373,11 @@ async function handleSubscriptionUpdatedEvent(subscription: Stripe.Subscription,
       data: {
         isPremium: isPremiumActive,
         premiumExpiresAt: isPremiumActive ? subscriptionData.expiresAt : null,
-        currentSubscriptionType: isPremiumActive && productType ? productType : null,
+        // An older Stripe subscription can omit productType. Never erase an
+        // existing active plan when its update event lacks that metadata.
+        ...(isPremiumActive
+          ? productType ? { currentSubscriptionType: productType } : {}
+          : { currentSubscriptionType: null }),
       }
     })
 
@@ -383,6 +390,7 @@ async function handleSubscriptionUpdatedEvent(subscription: Stripe.Subscription,
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理订阅更新事件失败:", error)
     logger.error('payment', '处理订阅更新事件失败', err, undefined, context)
+    throw err
   }
 }
 
@@ -410,6 +418,7 @@ async function handleSubscriptionDeletedEvent(subscription: Stripe.Subscription,
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理订阅删除事件失败:", error)
     logger.error('payment', '处理订阅删除事件失败', err, undefined, context)
+    throw err
   }
 }
 

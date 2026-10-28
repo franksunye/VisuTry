@@ -98,7 +98,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         ? `${window.location.origin}${appendMerchantContinuation(`${localizedPath(locale, '/success')}?session_id={CHECKOUT_SESSION_ID}`, merchantContinuation)}`
         : reportUnlockTaskId
         ? `${window.location.origin}${localizedPath(locale, '/face-analysis')}?unlock=success&taskId=${encodeURIComponent(reportUnlockTaskId)}&session_id={CHECKOUT_SESSION_ID}`
-        : `${window.location.origin}${dashboardHref}?payment=success&session_id={CHECKOUT_SESSION_ID}`
+        : `${window.location.origin}${dashboardHref}?payment=success&checkout_product=${encodeURIComponent(plan.id)}&session_id={CHECKOUT_SESSION_ID}`
       const cancelUrl = merchantContinuation
         ? (() => {
             const url = new URL(`${window.location.origin}${merchantPricingPath(merchantContinuation)}`)

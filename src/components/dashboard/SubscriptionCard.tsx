@@ -5,9 +5,10 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
 import { analytics } from "@/lib/analytics"
-import { QUOTA_CONFIG } from "@/config/pricing"
+import { QUOTA_CONFIG, calculateRemainingQuota } from "@/config/pricing"
 import { useQuota } from "@/hooks/useQuota"
 import { localizedPath } from "@/lib/localized-path"
+import type { ConsumerBalanceSnapshot } from '@/lib/payment-entitlement'
 
 interface User {
   id: string
@@ -26,48 +27,50 @@ interface User {
 
 interface SubscriptionCardProps {
   user: User
+  balance?: ConsumerBalanceSnapshot | null
 }
 
-export function SubscriptionCard({ user }: SubscriptionCardProps) {
+export function SubscriptionCard({ user, balance }: SubscriptionCardProps) {
   const params = useParams()
   const locale = params.locale as string | undefined
   const quota = useQuota()
 
-  // Quota values from the unified hook
-  const isPremiumActive = quota.isPremiumActive
-  const isYearlySubscription = quota.isYearlySubscription
+  // The balance API is authoritative immediately after checkout, even when
+  // NextAuth's entitlement sync is throttled and the session stays stale.
+  const isPremiumActive = balance?.isPremiumActive ?? quota.isPremiumActive
+  const subscriptionType = balance ? balance.currentSubscriptionType : quota.subscriptionType
+  const isYearlySubscription = String(subscriptionType).includes('YEARLY')
+  const premiumUsageCount = balance?.premiumUsageCount ?? quota.premiumUsageCount
+  const freeTrialsUsed = balance?.freeTrialsUsed ?? quota.freeTrialsUsed
+  const creditsPurchased = balance?.creditsPurchased ?? quota.creditsPurchased
+  const creditsUsed = balance?.creditsUsed ?? quota.creditsUsed
+  const { subscriptionRemaining, creditsRemaining, totalRemaining } = calculateRemainingQuota(
+    isPremiumActive, subscriptionType, freeTrialsUsed, premiumUsageCount, creditsPurchased, creditsUsed,
+  )
 
   // Subscription quota (display values)
   let subscriptionQuota = 0
   let subscriptionUsed = 0
   let subscriptionLabel = ''
 
-  if (isPremiumActive && quota.subscriptionType) {
+  if (isPremiumActive && subscriptionType) {
     subscriptionQuota = isYearlySubscription ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
-    subscriptionUsed = quota.premiumUsageCount
+    subscriptionUsed = premiumUsageCount
     subscriptionLabel = isYearlySubscription ? 'Annual' : 'Monthly'
   } else {
     subscriptionQuota = QUOTA_CONFIG.FREE_TRIAL
-    subscriptionUsed = quota.freeTrialsUsed
+    subscriptionUsed = freeTrialsUsed
     subscriptionLabel = 'Free'
   }
-
-  // Credits quota
-  const creditsPurchased = quota.creditsPurchased
-  const creditsUsed = quota.creditsUsed
 
   // Total quota
   const totalQuota = subscriptionQuota + creditsPurchased
   const totalUsed = subscriptionUsed + creditsUsed
-  const totalRemaining = quota.totalRemaining
 
   // Progress percentage
   const usagePercentage = totalQuota > 0 ? (totalUsed / totalQuota) * 100 : 0
 
   // Detail text
-  const subscriptionRemaining = quota.subscriptionRemaining
-  const creditsRemaining = quota.creditsRemaining
-
   let detailText = ''
   if (creditsPurchased > 0) {
     detailText = `${subscriptionLabel}: ${subscriptionRemaining}/${subscriptionQuota}, Credits: ${creditsRemaining}/${creditsPurchased}`

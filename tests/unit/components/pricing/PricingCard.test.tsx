@@ -207,7 +207,7 @@ describe('PricingCard', () => {
       const body = JSON.parse(String(requestInit.body))
       expect(body).toMatchObject({
         productType: 'PREMIUM_MONTHLY',
-        successUrl: `${window.location.origin}/en/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        successUrl: `${window.location.origin}/en/dashboard?payment=success&checkout_product=PREMIUM_MONTHLY&session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/en/pricing?payment=cancelled&checkout_product=PREMIUM_MONTHLY&checkout_value=9.99`,
         locale: 'en',
       })
