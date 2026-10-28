@@ -6,6 +6,7 @@ import { createCampaignDraft, listCampaigns } from '@/modules/store/application/
 import { CAMPAIGN_GATES, CAMPAIGN_OBJECTIVES } from '@/modules/store/domain/campaign-policy'
 import { PRESENTATION_MODES } from '@/modules/store/domain/presentation-mode'
 import { campaignErrorResponse } from './campaign-http'
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,7 +31,7 @@ async function authorize(userId: string, merchantId: string) {
   return requireMerchantMembership({ userId, merchantId, roles: ['OWNER', 'ADMIN'] })
 }
 
-export async function GET(request: NextRequest, { params }: { params: { merchantId: string } }) {
+async function getHandler(request: NextRequest, { params }: { params: { merchantId: string } }) {
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: { merchant
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string } }) {
+async function postHandler(request: NextRequest, { params }: { params: { merchantId: string } }) {
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -59,3 +60,6 @@ export async function POST(request: NextRequest, { params }: { params: { merchan
     return campaignErrorResponse(error)
   }
 }
+
+export const GET = withFunctionObservation('api.merchant.campaigns.collection', 'merchant', getHandler)
+export const POST = withFunctionObservation('api.merchant.campaigns.collection', 'merchant', postHandler)

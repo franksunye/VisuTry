@@ -6,6 +6,7 @@ import {
   sendRetention24HEmail,
 } from '@/lib/resend'
 import { getUserPlanType, PLAN_DISPLAY_NAMES } from '@/config/retention'
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -17,7 +18,7 @@ export const dynamic = 'force-dynamic'
  * 
  * Runs daily at 9:00 AM UTC
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   // Verify cron secret for security
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -176,4 +177,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export const GET = withFunctionObservation('api.cron.retention_notifications', 'system', getHandler)
 

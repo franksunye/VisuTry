@@ -4,11 +4,12 @@ import { requireAuth } from '@/lib/api-auth-runtime'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { createMerchantCheckoutSession } from '@/modules/merchant/application/merchant-billing'
 import { billingErrorResponse, merchantBillingUrl } from '../billing-http'
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const dynamic = 'force-dynamic'
 const inputSchema = z.object({ planCode: z.enum(['LAUNCH', 'GROWTH', 'SCALE', 'FOUNDING_PILOT']), locale: z.string().trim().optional() }).strict()
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string } }) {
+async function postHandler(request: NextRequest, { params }: { params: { merchantId: string } }) {
   const auth = await requireAuth(); if (!auth.ok) return auth.response
   try {
     await requireMerchantMembership({ userId: auth.userId, merchantId: params.merchantId, roles: ['OWNER', 'ADMIN'] })
@@ -21,3 +22,5 @@ export async function POST(request: NextRequest, { params }: { params: { merchan
     return NextResponse.json({ success: true, data }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (error) { return billingErrorResponse(error) }
 }
+
+export const POST = withFunctionObservation('api.merchant.billing.checkout', 'merchant', postHandler)

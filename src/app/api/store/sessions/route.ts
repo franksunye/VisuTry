@@ -12,10 +12,11 @@ import {
   applyStoreVisitorCookie,
   ensureStoreVisitorIdentity,
 } from '@/modules/store/infrastructure'
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null)
     const parsed = parseCreateSessionRequest(body)
@@ -67,3 +68,5 @@ export async function POST(request: NextRequest) {
     return storeErrorResponse(error)
   }
 }
+
+export const POST = withFunctionObservation('api.consumer.store_session.create', 'consumer', postHandler)

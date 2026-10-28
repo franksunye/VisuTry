@@ -5,6 +5,7 @@ import {
   cleanupStoreOrphanBlobs,
   createStoreRuntime,
 } from '@/modules/store/application'
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -13,7 +14,7 @@ export const maxDuration = 300
 /**
  * Cron: StoreAsset + orphan Blob retention (blob-first, retryable, blocked slow-retry).
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     logger.warn('api', 'Unauthorized cron access attempt', {
@@ -47,3 +48,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export const GET = withFunctionObservation('api.cron.cleanup_store_assets', 'system', getHandler)

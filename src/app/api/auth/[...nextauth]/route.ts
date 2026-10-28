@@ -4,6 +4,7 @@ import "@/lib/proxy-setup"
 import NextAuth from "next-auth"
 import { authOptions } from "@/lib/auth-runtime"
 import { logger } from "@/lib/logger"
+import { withFunctionObservation } from '@/lib/function-observability'
 
 // CRITICAL: Force Node.js runtime (not Edge) for Prisma compatibility
 // Edge Runtime requires prisma:// protocol, but we're using direct PostgreSQL connection
@@ -38,4 +39,6 @@ async function timedHandler(req: Request, context: unknown) {
   }
 }
 
-export { timedHandler as GET, timedHandler as POST }
+const observedHandler = withFunctionObservation('api.auth.nextauth', 'shared', timedHandler)
+
+export { observedHandler as GET, observedHandler as POST }

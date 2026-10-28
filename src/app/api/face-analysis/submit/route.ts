@@ -6,11 +6,12 @@ import { checkUserQuota, deductUserQuota, getNextQuotaSource } from '@/lib/quota
 import { serializeFaceAnalysisTask, submitFaceAnalysis } from '@/lib/face-analysis-service'
 import { normalizeGeometryAnalysis } from '@/lib/face-landmark-metrics'
 import { isValidLocale } from '@/i18n'
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const ctx = getRequestContext(request)
   const languageContext = getRequestLanguageContext(request)
   try {
@@ -111,3 +112,5 @@ function safeParseJson(value: string): unknown {
     return null
   }
 }
+
+export const POST = withFunctionObservation('api.consumer.face_analysis.submit', 'consumer', postHandler)
