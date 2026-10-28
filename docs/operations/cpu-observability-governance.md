@@ -21,11 +21,14 @@ The first implementation samples high-value API families that distinguish Consum
 
 | Actor segment | Initial sample rate | Initial route families |
 |---|---:|---|
-| Consumer | 10% | Try-On submit, Face Analysis submit, Store session create and Store Try-On submit |
+| Consumer | 100% | Low-volume Try-On submit, Face Analysis submit and Store Try-On submit |
+| Consumer | 10% | Higher-frequency Store session create |
 | Merchant | 100% | Campaign collection, Store workspace and billing checkout |
 | Admin | 100% | Reserved segment; no Admin-only route is instrumented in this first slice |
 | System | 100% | The five scheduled retention, cleanup and pending-task Cron handlers |
 | Shared | 10% | NextAuth handler |
+
+Sampling is keyed by **stable route**, not actor. Rare high-value AI operations remain at 100% so a day with only a handful of requests does not disappear from the observed cohort. To avoid unbounded ingestion during a burst or bot attack, each warm Function instance permits at most **120 emitted observation records per route per UTC minute**, plus one `function_request_observation_capped` warning for that route/minute. This is a best-effort **per-instance** protection, not a global rate limit. When a cap marker occurs, sampled counts from that route/minute **must not be multiplied by `1 / sample_rate`** or reported as complete. The marker's delivery is also best-effort and must be included in the separate sink-loss acceptance.
 
 The event is sent through the existing logger to the Vercel console and the existing Axiom transport. Console output is synchronous; Axiom ingestion is asynchronous best-effort and is not awaited by the request. Indexed fields reuse the existing audited schema: `event`, `route`, `role`, `httpStatus`, `durationMs`, `contentLength`, `environment`, and `method`. The bounded JSON message carries `schema_version`, `deployment_sha`, and `sample_rate` without expanding the Axiom indexed-field allowlist. Stable route labels are source constants; no raw path is recorded. The independent acceptance must verify delivered records and quantify any sink loss.
 
@@ -38,7 +41,7 @@ Join order for analysis:
 1. Match the exact Production environment and deployment SHA.
 2. Align to the same complete UTC day (or an explicitly agreed timezone, applied to every source); retain raw timestamps and flag partial buckets.
 3. Compare Vercel Active CPU and Function invocations at the same route/deployment grain when the connected plan exposes it.
-4. Use sampled request events to estimate actor-segment and workload mix. Apply the event's sample rate; report sample counts and uncertainty, and do not treat the estimate as a platform invocation count.
+4. Use sampled request events to estimate actor-segment and workload mix. Apply each **route's** sample rate only for uncapped, complete buckets; report sample counts, uncertainty and any cap markers, and do not treat the estimate as a platform invocation count.
 5. Keep Preview, Edge/Middleware, static/cache-served responses, Cron, Consumer and Merchant separate. State which sources are missing and leave unmatched CPU as residual.
 
 Vercel Custom Metrics are intentionally not used: querying them requires Observability Plus. The plan does not authorize a paid upgrade. Existing native Vercel CPU aggregates and the current Axiom/Vercel log path are the only sources in scope.
@@ -71,7 +74,7 @@ Do not enable this telemetry or close #472 until a separate review confirms:
 
 - Disabled/default and local paths emit no CPU-observation records and do not change route responses.
 - Production and Preview records carry the expected deployment SHA and stable route/actor values.
-- The sampled count can be weighted by the recorded rate and is reported with uncertainty; Merchant/System records remain unsampled as designed.
+- The sampled count can be weighted by the recorded **route** rate and is reported with uncertainty; Merchant/System are 100% until a per-instance burst cap is reached. Capped buckets are marked incomplete and never extrapolated.
 - No PII, secrets, request bodies, user-controlled path labels or new indexed Axiom fields are emitted.
 - The source remains Vercel Active CPU for CPU totals; wall time is labeled separately.
 - Ingestion volume, sampling and query access work under existing service entitlements without a plan purchase.

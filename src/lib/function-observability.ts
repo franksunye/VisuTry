@@ -21,12 +21,75 @@ export type FunctionObservationRoute =
   | 'api.cron.sync_pending_consumer_tasks'
   | 'api.cron.sync_pending_store_tasks'
 
-const SAMPLE_RATE: Record<FunctionObservationActor, number> = {
-  consumer: 0.1,
-  merchant: 1,
-  admin: 1,
-  system: 1,
-  shared: 0.1,
+// Sample by route, not actor: low-volume AI and Merchant actions need full
+// coverage, while high-frequency session/identity traffic can be sampled.
+const SAMPLE_RATE: Readonly<Record<FunctionObservationRoute, number>> = {
+  'api.auth.nextauth': 0.1,
+  'api.consumer.try_on.submit': 1,
+  'api.consumer.face_analysis.submit': 1,
+  'api.consumer.store_session.create': 0.1,
+  'api.consumer.store_try_on.submit': 1,
+  'api.merchant.campaigns.collection': 1,
+  'api.merchant.store.workspace': 1,
+  'api.merchant.billing.checkout': 1,
+  'api.cron.retention_notifications': 1,
+  'api.cron.cleanup_expired_tasks': 1,
+  'api.cron.cleanup_store_assets': 1,
+  'api.cron.sync_pending_consumer_tasks': 1,
+  'api.cron.sync_pending_store_tasks': 1,
+}
+
+// Bound synchronous console logging and asynchronous Axiom ingestion when an
+// endpoint receives a burst of invalid requests. This is per warm Function
+// instance, not a platform-wide rate limit. Capped buckets cannot be scaled
+// by 1 / sample_rate, so emit one explicit marker for each capped route/minute.
+const MAX_OBSERVATIONS_PER_ROUTE_MINUTE = 120
+const observationBuckets = new Map<FunctionObservationRoute, {
+  minute: number
+  emitted: number
+  capReported: boolean
+}>()
+
+function reserveObservationSlot(
+  route: FunctionObservationRoute,
+  actor: FunctionObservationActor,
+  runtime: ObservationRuntime,
+  sampleRate: number,
+): boolean {
+  const minute = Math.floor(Date.now() / 60_000)
+  let bucket = observationBuckets.get(route)
+
+  if (!bucket || bucket.minute !== minute) {
+    bucket = { minute, emitted: 0, capReported: false }
+    observationBuckets.set(route, bucket)
+  }
+
+  if (bucket.emitted < MAX_OBSERVATIONS_PER_ROUTE_MINUTE) {
+    bucket.emitted += 1
+    return true
+  }
+
+  if (!bucket.capReported) {
+    bucket.capReported = true
+    const capMessage = {
+      schema_version: 1,
+      route,
+      actor,
+      environment: runtime.environment,
+      deployment_sha: runtime.deploymentSha,
+      sample_rate: sampleRate,
+      minute_utc: new Date(minute * 60_000).toISOString(),
+      per_instance_limit: MAX_OBSERVATIONS_PER_ROUTE_MINUTE,
+    }
+    logger.warn('api', `cpu_observation_capped:${JSON.stringify(capMessage)}`, {
+      event: 'function_request_observation_capped',
+      route,
+      role: actor,
+      environment: runtime.environment,
+    })
+  }
+
+  return false
 }
 
 type ObservationRuntime = {
@@ -68,10 +131,10 @@ export function withFunctionObservation<Handler extends (...args: never[]) => Pr
   return (async (...args: Parameters<Handler>) => {
     const runtime = resolveObservationRuntime()
     const request = args[0] as Request | undefined
-    const sampleRate = SAMPLE_RATE[actor]
+    const sampleRate = SAMPLE_RATE[route]
 
     // Do not time or log on the default path; pass the original args through.
-    if (!runtime || !request || Math.random() >= sampleRate) {
+    if (!runtime || !request || (sampleRate < 1 && Math.random() >= sampleRate)) {
       return handler(...args)
     }
 
@@ -83,40 +146,42 @@ export function withFunctionObservation<Handler extends (...args: never[]) => Pr
       httpStatus = response.status
       return response
     } finally {
-      const durationMs = Math.max(0, Math.round(performance.now() - startedAt))
-      const contentLength = requestContentLength(request)
-      const envelope = {
-        schema_version: 1,
-        route,
-        actor,
-        environment: runtime.environment,
-        deployment_sha: runtime.deploymentSha,
-        sample_rate: sampleRate,
-        method: request.method,
-        http_status: httpStatus,
-        handler_duration_ms: durationMs,
-        ...(contentLength === undefined ? {} : { request_bytes: contentLength }),
-      }
-
       try {
-        // Keep Axiom's indexed schema unchanged: deployment SHA and sample rate
-        // live in this bounded JSON message; indexed fields use its existing
-        // audited `event`, `route`, `role`, `httpStatus`, `durationMs`,
-        // `contentLength`, and `environment` columns.
-        logger.info(
-          'api',
-          `cpu_observation:${JSON.stringify(envelope)}`,
-          {
-            event: 'function_request_observation',
+        if (reserveObservationSlot(route, actor, runtime, sampleRate)) {
+          const durationMs = Math.max(0, Math.round(performance.now() - startedAt))
+          const contentLength = requestContentLength(request)
+          const envelope = {
+            schema_version: 1,
             route,
-            role: actor,
-            httpStatus,
-            durationMs,
-            ...(contentLength === undefined ? {} : { contentLength }),
+            actor,
             environment: runtime.environment,
-          },
-          { method: request.method },
-        )
+            deployment_sha: runtime.deploymentSha,
+            sample_rate: sampleRate,
+            method: request.method,
+            http_status: httpStatus,
+            handler_duration_ms: durationMs,
+            ...(contentLength === undefined ? {} : { request_bytes: contentLength }),
+          }
+
+          // Keep Axiom's indexed schema unchanged: deployment SHA and sample rate
+          // live in this bounded JSON message; indexed fields use its existing
+          // audited `event`, `route`, `role`, `httpStatus`, `durationMs`,
+          // `contentLength`, and `environment` columns.
+          logger.info(
+            'api',
+            `cpu_observation:${JSON.stringify(envelope)}`,
+            {
+              event: 'function_request_observation',
+              route,
+              role: actor,
+              httpStatus,
+              durationMs,
+              ...(contentLength === undefined ? {} : { contentLength }),
+              environment: runtime.environment,
+            },
+            { method: request.method },
+          )
+        }
       } catch {
         // Observability must not change the route response or error semantics.
       }
