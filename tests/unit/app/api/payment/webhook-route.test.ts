@@ -5,7 +5,7 @@ import Stripe from 'stripe'
 import { POST } from '@/app/api/payment/webhook/route'
 import { prisma } from '@/lib/prisma'
 import { clearUserCache } from '@/lib/cache'
-import { handleSuccessfulPayment, verifyWebhookSignature } from '@/lib/stripe'
+import { handleSuccessfulPayment, handleSubscriptionCreated, handleSubscriptionUpdated, verifyWebhookSignature } from '@/lib/stripe'
 import { logger } from '@/lib/logger'
 
 jest.mock('next/headers', () => ({
@@ -21,6 +21,12 @@ jest.mock('@/lib/prisma', () => ({
 }))
 
 jest.mock('@/lib/cache', () => ({ clearUserCache: jest.fn() }))
+// The Consumer subscription scenario must not pull in Merchant billing modules.
+jest.mock('@/modules/merchant/application/merchant-billing', () => ({
+  isMerchantStripeEventCandidate: () => false,
+  MerchantBillingError: class MerchantBillingError extends Error {},
+  processMerchantStripeEvent: jest.fn(),
+}))
 jest.mock('@/lib/stripe', () => ({
   verifyWebhookSignature: jest.fn(),
   handleSuccessfulPayment: jest.fn(),
@@ -43,6 +49,8 @@ jest.mock('@/config/pricing', () => ({
 
 const mockVerifyWebhookSignature = verifyWebhookSignature as jest.Mock
 const mockHandleSuccessfulPayment = handleSuccessfulPayment as jest.Mock
+const mockHandleSubscriptionCreated = handleSubscriptionCreated as jest.Mock
+const mockHandleSubscriptionUpdated = handleSubscriptionUpdated as jest.Mock
 const mockTransaction = prisma.$transaction as jest.Mock
 const mockClearUserCache = clearUserCache as jest.Mock
 const mockLogger = logger as unknown as { info: jest.Mock; error: jest.Mock }
@@ -111,6 +119,7 @@ describe('/api/payment/webhook checkout fulfillment', () => {
       attribution: undefined,
     })
     mockTransaction.mockImplementation(async (callback) => callback(tx))
+    ;(prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
     tx.payment.updateMany.mockResolvedValue({ count: 1 })
     tx.payment.findUnique.mockResolvedValue(null)
     ;(prisma.payment as any).updateMany = jest.fn().mockResolvedValue({ count: 1 })
@@ -296,5 +305,78 @@ describe('/api/payment/webhook checkout fulfillment', () => {
       stage: 'checkout_session_completed',
       retryable: true,
     }, {})
+  })
+
+  it('marks the same internal user as Premium when subscription.created is processed', async () => {
+    const expiresAt = new Date('2026-11-28T00:00:00Z')
+    mockHandleSubscriptionCreated.mockResolvedValue({
+      userId: 'user-1', productType: 'PREMIUM_MONTHLY', expiresAt,
+    })
+    mockVerifyWebhookSignature.mockReturnValue({
+      type: 'customer.subscription.created',
+      data: { object: { id: 'sub_synthetic', status: 'active' } },
+    })
+
+    const response = await POST(webhookRequest())
+    expect(response.status).toBe(200)
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { isPremium: true, premiumExpiresAt: expiresAt, currentSubscriptionType: 'PREMIUM_MONTHLY' },
+    })
+    expect(mockClearUserCache).toHaveBeenCalledWith('user-1')
+  })
+
+  it('returns 500 for subscription.created persistence failures so Stripe retries', async () => {
+    mockHandleSubscriptionCreated.mockResolvedValue({
+      userId: 'user-1', productType: 'PREMIUM_MONTHLY', expiresAt: new Date('2026-11-28T00:00:00Z'),
+    })
+    mockVerifyWebhookSignature.mockReturnValue({
+      type: 'customer.subscription.created',
+      data: { object: { id: 'sub_synthetic', status: 'active' } },
+    })
+    ;(prisma.user.update as jest.Mock).mockRejectedValueOnce(new Error('synthetic database timeout'))
+
+    const response = await POST(webhookRequest())
+    expect(response.status).toBe(500)
+    expect(mockClearUserCache).not.toHaveBeenCalled()
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      'payment', '处理订阅创建事件失败', expect.any(Error), undefined, expect.anything(),
+    )
+  })
+
+  it('preserves subscriptionType on subscription.updated if Stripe metadata omits productType', async () => {
+    const expiresAt = new Date('2026-11-28T00:00:00Z')
+    mockHandleSubscriptionUpdated.mockResolvedValue({ userId: 'user-1', expiresAt })
+    mockVerifyWebhookSignature.mockReturnValue({
+      type: 'customer.subscription.updated',
+      data: { object: { id: 'sub_synthetic', status: 'active', metadata: {} } },
+    })
+    const response = await POST(webhookRequest())
+    expect(response.status).toBe(200)
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { isPremium: true, premiumExpiresAt: expiresAt },
+    })
+  })
+
+  it('returns 500 for subscription.updated persistence failures', async () => {
+    mockHandleSubscriptionUpdated.mockResolvedValue({ userId: 'user-1', expiresAt: new Date() })
+    mockVerifyWebhookSignature.mockReturnValue({
+      type: 'customer.subscription.updated',
+      data: { object: { id: 'sub_synthetic', status: 'active', metadata: { productType: 'PREMIUM_MONTHLY' } } },
+    })
+    ;(prisma.user.update as jest.Mock).mockRejectedValueOnce(new Error('synthetic transaction outage'))
+    expect((await POST(webhookRequest())).status).toBe(500)
+  })
+
+  it('returns 500 for subscription.deleted persistence failures', async () => {
+    const { handleSubscriptionDeleted } = require('@/lib/stripe')
+    ;(handleSubscriptionDeleted as jest.Mock).mockResolvedValue({ userId: 'user-1' })
+    mockVerifyWebhookSignature.mockReturnValue({
+      type: 'customer.subscription.deleted',
+      data: { object: { id: 'sub_synthetic', status: 'canceled', metadata: { userId: 'user-1' } } },
+    })
+    ;(prisma.user.update as jest.Mock).mockRejectedValueOnce(new Error('synthetic database outage'))
+    expect((await POST(webhookRequest())).status).toBe(500)
   })
 })
