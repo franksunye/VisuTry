@@ -12,8 +12,10 @@ import { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEn
 import { readVerifiedMerchantSubscription, verifyMerchantSubscription } from './merchant-billing-provider'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { getPublicEdgeTagsForMerchant } from '@/modules/store/application/public-edge-paths-server'
+import { enrollMerchantCommercialPlan } from './merchant-billing-entitlements'
 
 export { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantFoundingPilotReceiptPriceIds, merchantStripePriceMap, merchantStripePriceForPlan, resolveMerchantStripePrice } from './merchant-billing-shared'
+export { enrollMerchantCommercialPlan } from './merchant-billing-entitlements'
 export type { MerchantStripePrice } from './merchant-billing-shared'
 
 type BillingAccountRow = {
@@ -272,11 +274,6 @@ export async function createMerchantBillingPortalSession(input: { merchantId: st
   } catch (error) {
     throw new MerchantBillingError('PROVIDER_UNAVAILABLE', 'We could not open the billing portal. No charge was made. Your current plan is unchanged.', 503, { billingState: 'PROVIDER_UNAVAILABLE', retryable: true, providerError: error instanceof Error ? error.name : 'unknown' })
   }
-}
-
-export async function enrollMerchantCommercialPlan(input: { merchantId: string; planCode: MerchantBillablePlanCode; effectiveFrom: Date; billingPeriodEnd: Date | null; commercialStatus: 'PAID_ACTIVE' | 'CANCEL_AT_PERIOD_END' | 'PAST_DUE' | 'PAYMENT_ACTION_REQUIRED' | 'EXPIRED' | 'PILOT_ACTIVE' | 'PILOT_EXPIRED'; pricingVersion?: string; entitlementVersion?: string; source: string }, txOverride?: any) {
-  const run = (tx: any) => tx.merchant.update({ where: { id: input.merchantId }, data: { planCode: input.planCode, commercialStatus: input.commercialStatus, pricingVersion: input.pricingVersion ?? COMMERCIAL_PLAN_VERSION, entitlementVersion: input.entitlementVersion ?? COMMERCIAL_PLAN_VERSION, entitlementEffectiveFrom: input.effectiveFrom, billingPeriodEnd: input.billingPeriodEnd, commercialStage: input.planCode === 'FOUNDING_PILOT' ? 'MARKET_CAPTURE' : null }, select: { id: true, planCode: true, commercialStatus: true, billingPeriodEnd: true } })
-  return txOverride ? run(txOverride) : prisma.$transaction(run)
 }
 
 type MerchantBillingDatabase = typeof prisma

@@ -9,16 +9,16 @@ and `docs/commercial-entitlements-v1.md` for current implemented behavior.
 **Base audit:** main commit 8665b8354560caa17f6338939e7a867ec5bfb2b7.
 **Owner:** Product/Lead decides commercial terms; Engineering implements and validates against exact SHA.
 
-> **2026-10-27 reconciliation:** The deployed standard path enforces one
-> merchant-period reservation ledger and configured Store/Campaign per-session
-> Try-On limits of 1 / 2 / 4 (default 2), without a `SHADOW`/opt-in rollout
-> mode. Its paid-plan period allowance must be persisted; legacy canonical
-> recurring plan definitions still have no declared numeric image quota.
-> The opt-in architecture, milestone statuses and proposed v2 image numbers
-> below describe the original proposal and **must not be presented as the
-> current runtime or an approved customer offer**. Founding Pilot 3,500 images
-> (or explicitly approved 5,000) remain contractually protected. The pricing
-> revision and partner financial proposal remain on HOLD.
+> **2026-10-27 updated decision:** The standard, non-opt-in Store/Campaign
+> reservation ledger and 1 / 2 / 4 per-shopper controls are deployed.
+> Subsequently the Lead approved the regular self-service subscription image
+> limits: Launch 1,000 / Growth 3,500 / Scale 7,000 images per month while
+> **retaining** $199/$499/$999 prices and 1,000/5,000/10,000 AI Commerce
+> Session allowances. Stripe enrollment must atomically persist these limits
+> before Try-On admission; code/release proof is tracked separately. Pilot
+> 3,500/approved 5,000 remains protected. Historical opt-in and alternative
+> session/price scenarios below are research only; partner/agency economics
+> remain **HOLD**. `docs/commercial-entitlements-v1.md` is authoritative.
 
 ## 1. Why this is required
 

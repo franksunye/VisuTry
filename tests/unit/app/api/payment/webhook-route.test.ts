@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 import { NextRequest } from 'next/server'
+import Stripe from 'stripe'
 import { POST } from '@/app/api/payment/webhook/route'
 import { prisma } from '@/lib/prisma'
 import { clearUserCache } from '@/lib/cache'
@@ -113,6 +114,18 @@ describe('/api/payment/webhook checkout fulfillment', () => {
     tx.payment.updateMany.mockResolvedValue({ count: 1 })
     tx.payment.findUnique.mockResolvedValue(null)
     ;(prisma.payment as any).updateMany = jest.fn().mockResolvedValue({ count: 1 })
+  })
+
+  it('rejects an invalid Stripe signature as a client error without processing payment', async () => {
+    mockVerifyWebhookSignature.mockImplementation(() => {
+      throw new Stripe.errors.StripeSignatureVerificationError({ type: 'invalid_request_error', message: 'invalid signature' })
+    })
+
+    const response = await POST(webhookRequest())
+
+    expect(response.status).toBe(400)
+    expect(mockTransaction).not.toHaveBeenCalled()
+    expect(mockHandleSuccessfulPayment).not.toHaveBeenCalled()
   })
 
   it('waits to fulfill a completed Checkout Session while payment is unpaid', async () => {

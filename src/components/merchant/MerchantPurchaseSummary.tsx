@@ -30,6 +30,7 @@ function planHighlights(plan: MerchantPlanDefinition) {
   ]
   return [
     `${plan.aiCommerceSessions?.toLocaleString('en-US') ?? 'Custom'} AI Commerce Sessions`,
+    `${plan.standardTryOnGenerations?.toLocaleString('en-US') ?? 'Custom'} Standard Try-On images / month`,
     `${plan.catalogItems?.toLocaleString('en-US') ?? 'Custom'} catalog items`,
     `${plan.activeCampaigns ?? 'Custom'} active Campaign${plan.activeCampaigns === 1 ? '' : 's'}`,
     'Generative Try-On included',

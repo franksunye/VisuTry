@@ -193,11 +193,13 @@ describe('public route admission', () => {
       id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE',
       logoUrl: null, websiteUrl: null, accentColor: null, referenceData: false, pilotType: 'LIVE',
       planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE',
+      standardRenderAllowance: 1000, commerceSessionAllowance: 1000,
       entitlementEffectiveFrom: new Date(now.getTime() - 24 * 60 * 60 * 1000),
       billingPeriodEnd: new Date(now.getTime() + 24 * 60 * 60 * 1000),
       createdAt: now, updatedAt: now,
     }
     const countAICommerceSessions = jest.fn().mockResolvedValue(0)
+    const countSuccessfulRenders = jest.fn().mockResolvedValue(0)
     const runtime = {
       merchants: {
         findPublicBySlug: jest.fn().mockResolvedValue(merchant),
@@ -224,7 +226,7 @@ describe('public route admission', () => {
           shape: 'round', material: null, color: null, widthClass: null, updatedAt: now,
         }))),
       },
-      usage: { countAICommerceSessions },
+      usage: { countAICommerceSessions, countSuccessfulRenders },
     }
     ;(createStoreRuntime as jest.Mock).mockReturnValue(runtime)
 
@@ -243,6 +245,7 @@ describe('public route admission', () => {
     expect(exhausted?.experiencePolicy).toEqual(expect.objectContaining({ tryOnEnabled: false, compareEnabled: false }))
     expect(exhausted?.decisionJourney?.enabledStages).not.toEqual(expect.arrayContaining(['TRY_ON', 'COMPARE']))
     expect(countAICommerceSessions).toHaveBeenCalledTimes(2)
+    expect(countSuccessfulRenders).toHaveBeenCalledTimes(2)
     expect(runtime.merchants.findPublicBySlug).toHaveBeenCalledTimes(3)
 
     countAICommerceSessions.mockRejectedValueOnce(new Error('usage ledger unavailable'))

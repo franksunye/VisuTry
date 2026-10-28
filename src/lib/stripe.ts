@@ -20,7 +20,20 @@ if (
   throw new Error("STRIPE_SECRET_KEY environment variable is required")
 }
 
-export const stripe = isMockMode
+// Local QA can keep mock authentication and AI while exercising genuine
+// Stripe Test Mode Checkout and signed webhooks. The override is unavailable
+// outside local mode and never accepts a live secret key.
+const realLocalTestStripeRequested = process.env.STRIPE_REAL_TEST_MODE === 'true'
+if (realLocalTestStripeRequested && (
+  process.env.APP_ENV !== 'local' ||
+  Boolean(process.env.VERCEL_ENV) ||
+  process.env.STRIPE_MERCHANT_BILLING_MODE !== 'test' ||
+  !process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')
+)) {
+  throw new Error('STRIPE_REAL_TEST_MODE requires local Stripe Test Mode configuration')
+}
+
+export const stripe = isMockMode && !realLocalTestStripeRequested
   ? (mockStripe as any)
   : process.env.STRIPE_SECRET_KEY
     ? new Stripe(process.env.STRIPE_SECRET_KEY, {

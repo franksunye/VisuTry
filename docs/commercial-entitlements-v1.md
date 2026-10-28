@@ -11,16 +11,17 @@ integrations must share.
 ## Current public contract and standard AI usage (2026-10-27)
 
 The Merchant standard AI period reservation and per-Experience shopper controls
-have shipped. This does **not** authorize the unapproved candidate v2
-subscription pricing or image caps in
-`docs/strategy/merchant-commercial-v2-price-gate-2026-10-26.md`.
+have shipped. The Lead approved finite standard recurring image allowances on
+2026-10-27 without changing the existing public prices or AI Commerce Session
+allowances. The plan selection, Stripe purchase, period entitlement and Store
+Try-On reservation must be one self-service commercial path.
 
 | Public offer | Price | AI Commerce Sessions | Standard Try-On image allowance |
 | --- | --- | --- | --- |
 | Free | $0 | Not applicable | No generative Try-On |
-| Launch | $199/month | 1,000/period | Contract-specific; must be explicitly provisioned at activation |
-| Growth | $499/month | 5,000/period | Contract-specific; must be explicitly provisioned at activation |
-| Scale | $999/month | 10,000/period | Contract-specific; must be explicitly provisioned at activation |
+| Launch | $199/month | 1,000/period | 1,000 completed images/period |
+| Growth | $499/month | 5,000/period | 3,500 completed images/period |
+| Scale | $999/month | 10,000/period | 7,000 completed images/period |
 | Enterprise | From $2,500/month | Custom | Custom agreement and provisioning |
 | Founding Pilot | From $149/30 days | Up to 1,500/30 days | 3,500 successful images; approved 5,000 bonus only by explicit exception |
 
@@ -35,14 +36,22 @@ AI exhaustion according to plan entitlement. There is no automatic image
 overage charge.
 
 Public wording must not say that a subscription's sessions include unlimited
-generated images, nor advertise unapproved v2 render quotas. The recurring
-plan definitions currently have `standardTryOnGenerations=null`; the live
-reservation path requires a positive, persisted `Merchant.standardRenderAllowance`
-and active period. **Commercial integration follow-up:** Stripe enrollment
-currently updates plan/status/period but does not populate that allowance; a
-new recurring subscription must not be considered Try-On-ready until the
-contract and enrollment are reconciled. This is a separately tracked billing
-implementation gap, not permission to invent a published quota.
+generated images. Both monthly limits are separately displayed. Successful
+Stripe activation provisions `Merchant.standardRenderAllowance` and
+`Merchant.commerceSessionAllowance` atomically with the plan, status and
+billing period, without manual contract setup. An enrolled Merchant can begin
+Store/Campaign Try-On immediately under the server-side reservation gate.
+The same-plan renewal preserves a previously agreed, positive persisted
+allowance; a plan change takes the new plan's standard allowances. Founding
+Pilot retains its 3,500-image legacy contract or explicitly approved 5,000
+bonus. Only Enterprise/custom integration and optional assisted add-ons have
+individually contracted scope. The system charges no automatic overages.
+
+This contract does not rewrite already-signed individual exceptions. Any
+pre-existing paid Merchant with a missing persisted image allowance must be
+reconciled from its verified Stripe subscription and signed entitlement before
+being declared production-ready; the AI admission boundary fails closed on
+missing/invalid allowances.
 
 ## Plans
 
@@ -250,9 +259,12 @@ Merchant is mutated by the migration itself.
 Local and preview environments must use test Stripe credentials and
 `STRIPE_MERCHANT_BILLING_MODE=test`. Production requires live credentials and
 `STRIPE_MERCHANT_BILLING_MODE=live`. Missing or mismatched configuration fails
-closed. No G4-B migration is run by local verification and this feature is not
-production-ready until the additive migration, review, merge, deployment, and
-bounded smoke are completed.
+closed. Local billing-activation verification does not run a new G4-B
+migration: the original billing event schema and purchase flow are already
+deployed. The 2026-10-27 automatic
+image-entitlement closure requires its separate test-mode Checkout, PostgreSQL
+contract, CI, merge, Production READY and bounded smoke gates before its
+updated self-service promise can be declared fully live.
 
 ## G4-C commercial launch closure
 
@@ -266,8 +278,8 @@ next action. A checkout return is only a processing state until a verified
 webhook updates the canonical Merchant fields; the browser redirect never
 grants entitlement.
 
-An exhausted paid or Pilot AI Commerce Session allowance pauses paid
-Generative Try-On only. The Store remains live, normal browsing and product
+An exhausted paid or Pilot AI Commerce Session **or standard image** allowance
+pauses paid Generative Try-On only. The Store remains live, normal browsing and product
 links remain available, and the shopper receives a generic availability
 message. `NORMAL`, `NOTICE`, `WARNING`, and `LIMIT_REACHED` are shared domain
 thresholds at `<70%`, `70–89%`, `90–99%`, and `100%+`; UI code must not define a

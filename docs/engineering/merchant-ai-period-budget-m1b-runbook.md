@@ -8,16 +8,16 @@ This is an upgrade of the Merchant product, **not** an opt-in feature flag or
 a shadow migration. No production paid-merchant usage distribution is inferred
 from local/mock validation.
 
-**Commercial copy boundary:** The currently published Launch/Growth/Scale
-subscription prices and AI Commerce Session capacities remain unchanged.
-Recurring `standardTryOnGenerations=null` in canonical plan definitions is
-not an unlimited-generation promise: the standard reservation path requires
-a positive merchant-specific persisted `standardRenderAllowance`. Public
-pricing must identify the image allowance as contract-specific, pending
-provisioning, while keeping the agreed Founding Pilot 3,500 / authorized
-5,000 image commitment. The billing enrollment path does not yet persist a
-recurring image allowance; verify/fix that separately before treating paid
-recurring activation as a completed usable Try-On journey.
+**Commercial activation closure (2026-10-27, pending release verification):**
+The Lead confirmed fully self-service Launch/Growth/Scale subscriptions with
+the unchanged $199/$499/$999 prices and 1,000/5,000/10,000 AI Commerce Session
+limits, plus **1,000/3,500/7,000 standard images** per monthly billing period.
+The enrollment transaction now provisions both merchant-period allowances when
+Stripe confirms subscription activation. Founding Pilot retains the agreed
+3,500 / explicitly granted 5,000 image exception. Only Enterprise and assisted
+add-on arrangements need a custom contract; do not present standard recurring
+image limits as `HOLD` or requiring manual activation. This code change is
+not evidence of a new Production deployment until the release gate passes.
 
 ## Product behavior
 
@@ -73,8 +73,31 @@ recurring activation as a completed usable Try-On journey.
    do not create fake paid accounts, send provider spend or activate real paid
    contracts just to manufacture verification evidence. Fail closed on missing
    required plan allowance, missing billing period, or inconsistent task state.
+6. Verify the full **Stripe paid event → Merchant entitlement write → live
+   PostgreSQL period reservation → Store Try-On acceptance** contract. Cover
+   replayed webhooks, same-plan renewal with contract overrides, plan upgrade,
+   Founding Pilot bonus, and failed/no-output releases. The first Stripe event
+   must populate both `standardRenderAllowance` and `commerceSessionAllowance`.
+   A successful Stripe subscription record alone is not a Try-On-ready proof.
 
 ## Read-only operations reconciliation
+
+Before enabling paid self-service conversion, check for any pre-existing paid
+Merchant whose subscription claims activation but whose render meter cannot
+admit a single image. This must be read-only; verify each exception against
+Stripe/contract records before an audited repair, never bulk-assume entitlement:
+
+```sql
+SELECT id, "planCode", "commercialStatus", "standardRenderAllowance",
+       "commerceSessionAllowance", "entitlementEffectiveFrom", "billingPeriodEnd"
+FROM "Merchant"
+WHERE "planCode" IN ('LAUNCH', 'GROWTH', 'SCALE', 'FOUNDING_PILOT', 'ENTERPRISE')
+  AND "commercialStatus" IN ('PAID_ACTIVE', 'PILOT_ACTIVE', 'CANCEL_AT_PERIOD_END')
+  AND (
+    "standardRenderAllowance" IS NULL OR "standardRenderAllowance" <= 0
+    OR "entitlementEffectiveFrom" IS NULL OR "billingPeriodEnd" IS NULL
+  );
+```
 
 ```sql
 SELECT r."merchantId", r."periodStart", r."periodEnd", r.status,

@@ -16,8 +16,8 @@ const periodStart = new Date('2026-08-01T00:00:00.000Z')
 const periodEnd = new Date('2026-09-01T00:00:00.000Z')
 const merchant = {
   id: 'merchant-a', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', commercialStage: null,
-  pricingVersion: 'v1', entitlementVersion: 'v1', commerceSessionAllowance: null,
-  standardRenderAllowance: null, campaignAllowance: null, entitlementEffectiveFrom: periodStart,
+  pricingVersion: 'v1', entitlementVersion: 'v2', commerceSessionAllowance: 1000,
+  standardRenderAllowance: 1000, campaignAllowance: null, entitlementEffectiveFrom: periodStart,
   billingPeriodEnd: periodEnd, commercialExceptionCode: null, createdAt: periodStart,
 }
 

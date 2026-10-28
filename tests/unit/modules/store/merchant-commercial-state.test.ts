@@ -199,6 +199,31 @@ describe('G4-A canonical Merchant commercial contract', () => {
     expect(canUseCommercialFeature(state, 'GENERATIVE_TRY_ON').code).toBe('AI_USAGE_LIMIT_REACHED')
   })
 
+  it('fails closed for an existing paid Merchant with an explicitly missing persisted image allowance', () => {
+    const state = resolveMerchantCommercialState({
+      planCode: 'GROWTH', commercialStatus: 'PAID_ACTIVE', standardRenderAllowance: null,
+      entitlementEffectiveFrom: new Date('2026-08-01T00:00:00.000Z'),
+      billingPeriodEnd: new Date('2026-09-01T00:00:00.000Z'),
+    }, {}, now)
+
+    expect(state.standardTryOnGenerationLimit).toBe(0)
+    expect(state.featureAvailability.GENERATIVE_TRY_ON).toBe(false)
+    expect(state.featureAvailability.RECOMMENDATION).toBe(true)
+    expect(state.featureAvailability.STORE).toBe(true)
+  })
+
+  it('requires explicitly provisioned Enterprise image capacity rather than a missing custom contract', () => {
+    const missing = resolveMerchantCommercialState({
+      planCode: 'ENTERPRISE', commercialStatus: 'PAID_ACTIVE', standardRenderAllowance: null,
+    }, {}, now)
+    const provisioned = resolveMerchantCommercialState({
+      planCode: 'ENTERPRISE', commercialStatus: 'PAID_ACTIVE', standardRenderAllowance: 12000,
+    }, {}, now)
+    expect(missing.featureAvailability.GENERATIVE_TRY_ON).toBe(false)
+    expect(provisioned.standardTryOnGenerationLimit).toBe(12000)
+    expect(provisioned.featureAvailability.GENERATIVE_TRY_ON).toBe(true)
+  })
+
   it('preserves default and exceptional Founding Pilot render allowances in canonical decisions and runtime claims', () => {
     const baseFields = {
       planCode: 'FOUNDING_PILOT',

@@ -108,6 +108,9 @@ jobs:
       - name: Verify Merchant v2 atomic billing-period render holds (mock dispatch only)
         run: npx tsx scripts/merchant-ai-period-postgres-contract.ts
 
+      - name: Verify Stripe-activated Merchant allowances immediately admit Store Try-On
+        run: npx tsx scripts/merchant-stripe-entitlement-postgres-contract.ts
+
   static-and-unit:
     name: Static + Critical Business Regression
     runs-on: ubuntu-latest
