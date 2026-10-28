@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { sendRetentionDeletedEmail } from '@/lib/resend'
 import { cleanupExpiredTryOnTasks } from '@/lib/retention'
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,7 +16,7 @@ export const dynamic = 'force-dynamic'
  * Consumer and Store batches run with isolated failure domains so a Store
  * cleanup exception cannot abort Consumer cleanup (or vice versa).
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     logger.warn('api', 'Unauthorized cron access attempt', { endpoint: 'cleanup-expired-tasks' })
@@ -142,3 +143,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export const GET = withFunctionObservation('api.cron.cleanup_expired_tasks', 'system', getHandler)

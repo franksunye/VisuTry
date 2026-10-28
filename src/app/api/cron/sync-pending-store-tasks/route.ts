@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { syncPendingStoreTryOnTasks } from '@/modules/store/infrastructure/cron/sync-pending-store-tasks'
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -9,7 +10,7 @@ export const maxDuration = 300
  * Cron: Store-only pending GrsAI sync + usage settlement (ADR-007).
  * Isolated from Consumer polling and Consumer quota settlement.
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   const startTime = Date.now()
 
   try {
@@ -40,3 +41,5 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export const GET = withFunctionObservation('api.cron.sync_pending_store_tasks', 'system', getHandler)

@@ -12,11 +12,12 @@ import {
   clientIpFromRequest,
 } from '@/modules/store/application'
 import { readStoreCapabilityToken } from '@/modules/store/infrastructure'
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null)
     const parsed = parseStoreTryOnSubmitRequest(body)
@@ -98,3 +99,5 @@ export async function POST(request: NextRequest) {
     return storeErrorResponse(error)
   }
 }
+
+export const POST = withFunctionObservation('api.consumer.store_try_on.submit', 'consumer', postHandler)

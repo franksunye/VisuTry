@@ -12,6 +12,7 @@ import {
   updateMerchantStore,
 } from '@/modules/merchant/application/merchant-onboarding'
 import { storeErrorResponse } from './store-http'
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,7 +50,7 @@ async function merchantActor(authUserId: string, merchantId: string) {
   return actorFor(authUserId, merchantId, membership.membershipId)
 }
 
-export async function GET(_request: NextRequest, { params }: { params: { merchantId: string } }) {
+async function getHandler(_request: NextRequest, { params }: { params: { merchantId: string } }) {
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -61,7 +62,7 @@ export async function GET(_request: NextRequest, { params }: { params: { merchan
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { merchantId: string } }) {
+async function postHandler(request: NextRequest, { params }: { params: { merchantId: string } }) {
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest, { params }: { params: { merchan
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { merchantId: string } }) {
+async function patchHandler(request: NextRequest, { params }: { params: { merchantId: string } }) {
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -93,7 +94,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { mercha
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { merchantId: string } }) {
+async function putHandler(request: NextRequest, { params }: { params: { merchantId: string } }) {
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   try {
@@ -108,3 +109,8 @@ export async function PUT(request: NextRequest, { params }: { params: { merchant
     return storeErrorResponse(error)
   }
 }
+
+export const GET = withFunctionObservation('api.merchant.store.workspace', 'merchant', getHandler)
+export const POST = withFunctionObservation('api.merchant.store.workspace', 'merchant', postHandler)
+export const PATCH = withFunctionObservation('api.merchant.store.workspace', 'merchant', patchHandler)
+export const PUT = withFunctionObservation('api.merchant.store.workspace', 'merchant', putHandler)

@@ -7,11 +7,12 @@ import { submitTryOnTask } from "@/lib/tryon-service"
 import { tryOnMediaPath } from '@/lib/tryon-media'
 import { TryOnType, isValidTryOnType } from "@/config/try-on-types"
 import { createHash } from "node:crypto"
+import { withFunctionObservation } from '@/lib/function-observability'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const ctx = getRequestContext(request)
   try {
     // 1. Authentication
@@ -166,3 +167,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const POST = withFunctionObservation('api.consumer.try_on.submit', 'consumer', postHandler)
