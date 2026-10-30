@@ -99,6 +99,11 @@ export function recordConsumerFunnelEvent(input: {
   entryPoint?: string
 }) {
   if (typeof window === 'undefined') return
+  // Free Face Shape Detection is entirely on-device. Its completion is already
+  // reported to browser-side GA4/dataLayer; do not invoke a Vercel Function to
+  // duplicate that signal. Keep the event in the server allowlist for older
+  // deployed clients and historical reporting compatibility.
+  if (input.eventName === 'face_shape_detection_completed') return
   if (!(CONSUMER_FUNNEL_EVENT_NAMES as readonly string[]).includes(input.eventName)) return
   if (!isTrackableShopperSurface(input.surface, input.entryPoint)) return
 

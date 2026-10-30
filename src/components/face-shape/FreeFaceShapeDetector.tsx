@@ -8,7 +8,6 @@ import { FreeFaceShapeResult } from '@/components/face-shape/FreeFaceShapeResult
 import { analyzeFaceLandmarkFile } from '@/lib/face-landmark-client'
 import { analytics } from '@/lib/analytics'
 import { compressImage } from '@/utils/image'
-import type { FaceShapeFailureReason } from '@/config/face-analysis'
 import type { FaceLandmarkDetectionResult } from '@/lib/face-landmark-client'
 import type { FaceGeometryAnalysis } from '@/types/face-analysis'
 import { getFaceShapeDetectorUiCopy } from '@/config/face-shape-detector-ui-locales'
@@ -22,60 +21,6 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024
 const DETECTOR_MAX_DIMENSION = 1280
 const DETECTOR_QUALITY = 0.88
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
-
-interface DetectionDiagnostics {
-  sourceFileType: string
-  sourceFileSize: number
-  detectorFileType: string
-  detectorFileSize: number
-  detectedFileFormat?: string
-  compressionFailed?: boolean
-  compressionErrorName?: string
-  compressionErrorMessage?: string
-  bitmapDecodeErrorName?: string
-  bitmapDecodeErrorMessage?: string
-  htmlImageDecodeErrorName?: string
-  htmlImageDecodeErrorMessage?: string
-}
-
-function normalizeImageError(error: unknown) {
-  const name = error instanceof Error && error.name ? error.name.slice(0, 64) : 'UnknownError'
-  const rawMessage = error instanceof Error ? error.message.toLowerCase() : ''
-
-  let message = 'other'
-  if (rawMessage.includes('unsupported')) message = 'unsupported_image'
-  else if (rawMessage.includes('decode')) message = 'decode_failed'
-  else if (rawMessage.includes('invalid')) message = 'invalid_image'
-  else if (rawMessage.includes('load')) message = 'image_load_failed'
-  else if (rawMessage.includes('dimension')) message = 'invalid_dimensions'
-  else if (rawMessage.includes('abort')) message = 'aborted'
-  else if (rawMessage.includes('memory')) message = 'memory_error'
-
-  return { name, message }
-}
-
-function recordDetection(
-  status: 'COMPLETED' | 'FAILED',
-  failureReason?: FaceShapeFailureReason,
-  diagnostics?: DetectionDiagnostics,
-  siteLocale?: string,
-) {
-  const payload = {
-    status,
-    ...(siteLocale ? { siteLocale } : {}),
-    ...(failureReason ? { failureReason } : {}),
-    ...(diagnostics ? { diagnostics } : {}),
-  }
-
-  void fetch('/api/face-shape-detector/usage', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-    keepalive: true,
-  }).catch(() => {
-    // Business telemetry must never interrupt the on-device detector experience.
-  })
-}
 
 export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
   const copy = getFaceShapeDetectorUiCopy(locale)
@@ -130,8 +75,6 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
       // Preserve the original file for preview/commercial handoff, while giving
       // MediaPipe a bounded working image to reduce mobile decode/GPU memory cost.
       let detectorFile = file
-      let compressionErrorName: string | undefined
-      let compressionErrorMessage: string | undefined
       try {
         detectorFile = await compressImage(
           file,
@@ -139,13 +82,10 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
           DETECTOR_QUALITY,
           { profile: 'user-photo' },
         )
-      } catch (compressionError) {
+      } catch {
         // The raw file is still a valid compatibility fallback. The decoder
         // itself has a second HTMLImageElement path for browsers where canvas
         // conversion or createImageBitmap is unavailable for this file.
-        const normalized = normalizeImageError(compressionError)
-        compressionErrorName = normalized.name
-        compressionErrorMessage = normalized.message
       }
 
       const analysis = await analyzeFaceLandmarkFile(detectorFile)
@@ -162,32 +102,16 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
           analysis.geometry.qualityScore,
           Math.round(performance.now() - startedAt),
         )
-        recordDetection('COMPLETED', undefined, undefined, locale)
       } else {
         const failureReason = analysis.geometry.failureReason ?? 'unknown'
         const message = getFaceShapeDetectorFailureCopy(locale, failureReason).message
         setError(message)
         analytics.trackFaceShapeDetectorFailed(message)
-        recordDetection('FAILED', failureReason, {
-          sourceFileType: file.type,
-          sourceFileSize: file.size,
-          detectorFileType: detectorFile.type,
-          detectorFileSize: detectorFile.size,
-          ...(compressionErrorName
-            ? {
-                compressionFailed: true,
-                compressionErrorName,
-                ...(compressionErrorMessage ? { compressionErrorMessage } : {}),
-              }
-            : {}),
-          ...(analysis.decodeDiagnostics ?? {}),
-        }, locale)
       }
     } catch {
       const message = getFaceShapeDetectorFailureCopy(locale, 'unknown').message
       setError(message)
       analytics.trackFaceShapeDetectorFailed(message)
-      recordDetection('FAILED', 'unknown', undefined, locale)
     } finally {
       setIsAnalyzing(false)
     }

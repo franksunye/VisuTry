@@ -122,6 +122,7 @@ describe('FreeFaceShapeDetector', () => {
     expect(mockAnalyzeFaceLandmarkFile).toHaveBeenCalledTimes(1)
     expect(mockCompressImage).toHaveBeenCalledWith(file, 1280, 0.88, { profile: 'user-photo' })
     expect(trackComplete).toHaveBeenCalledWith('oval', 92, expect.any(Number))
+    expect(mockFetch).not.toHaveBeenCalled()
 
     expect(screen.queryByRole('link', { name: /open virtual try-on/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /compare frames side by side/i })).not.toBeInTheDocument()
@@ -188,9 +189,10 @@ describe('FreeFaceShapeDetector', () => {
     expect(await screen.findByText('Choose a JPG, PNG, or WebP image.')).toBeInTheDocument()
     expect(trackFailed).toHaveBeenCalledWith('Choose a JPG, PNG, or WebP image.')
     expect(mockAnalyzeFaceLandmarkFile).not.toHaveBeenCalled()
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 
-  it('records FAILED with failure reason when measurement is unavailable', async () => {
+  it('shows the failure reason without invoking a server API when measurement is unavailable', async () => {
     const unavailableResult: FaceGeometryAnalysis = {
       version: 'landmark-v1',
       status: 'unavailable',
@@ -216,22 +218,7 @@ describe('FreeFaceShapeDetector', () => {
     expect(await screen.findByText('Try a well-lit, straight-on photo with your full face visible.')).toBeInTheDocument()
     expect(screen.queryByText(/face landmarks were not available/i)).not.toBeInTheDocument()
 
-    const usageCalls = mockFetch.mock.calls as unknown as Array<[string, RequestInit]>
-    const usageCall = usageCalls.find(([url]) => url === '/api/face-shape-detector/usage')
-    expect(usageCall).toBeDefined()
-    if (!usageCall) throw new Error('Usage request was not recorded')
-    const usageRequest = usageCall[1]
-    expect(JSON.parse(String(usageRequest.body))).toEqual({
-      status: 'FAILED',
-      failureReason: 'no_face',
-      siteLocale: 'en',
-      diagnostics: {
-        sourceFileType: 'image/jpeg',
-        sourceFileSize: 8,
-        detectorFileType: 'image/jpeg',
-        detectorFileSize: 8,
-      },
-    })
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 
   it.each([
@@ -275,7 +262,7 @@ describe('FreeFaceShapeDetector', () => {
     expect(mockAnalyzeFaceLandmarkFile).toHaveBeenCalledWith(file)
   })
 
-  it('records normalized compression and decoder diagnostics without image content', async () => {
+  it('shows image-decoding guidance without sending diagnostics or image content to a server', async () => {
     mockCompressImage.mockRejectedValue(new Error('Image loading failed for local blob'))
     const unavailableResult: FaceGeometryAnalysis = {
       version: 'landmark-v1',
@@ -308,31 +295,6 @@ describe('FreeFaceShapeDetector', () => {
     expect(await screen.findByText('Try another JPG, PNG, or WebP photo. Re-saving the image can also help.')).toBeInTheDocument()
     expect(screen.queryByText('Image could not be decoded.')).not.toBeInTheDocument()
 
-    const usageCalls = mockFetch.mock.calls as unknown as Array<[string, RequestInit]>
-    const usageCall = usageCalls.find(([url]) => url === '/api/face-shape-detector/usage')
-    expect(usageCall).toBeDefined()
-    if (!usageCall) throw new Error('Usage request was not recorded')
-    const payload = JSON.parse(String(usageCall[1].body))
-
-    expect(payload).toEqual({
-      status: 'FAILED',
-      failureReason: 'image_decode_failed',
-      siteLocale: 'en',
-      diagnostics: {
-        sourceFileType: 'image/jpeg',
-        sourceFileSize: 8,
-        detectorFileType: 'image/jpeg',
-        detectorFileSize: 8,
-        compressionFailed: true,
-        compressionErrorName: 'Error',
-        compressionErrorMessage: 'image_load_failed',
-        detectedFileFormat: 'heic',
-        bitmapDecodeErrorName: 'EncodingError',
-        bitmapDecodeErrorMessage: 'unsupported_image',
-        htmlImageDecodeErrorName: 'EncodingError',
-        htmlImageDecodeErrorMessage: 'decode_failed',
-      },
-    })
-    expect(JSON.stringify(payload)).not.toContain('local blob')
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 })

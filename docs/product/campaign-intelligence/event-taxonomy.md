@@ -221,6 +221,8 @@ The broader logical roles in `docs/project/observability-and-analytics-contract.
 
 The first-party `consumer_funnel_event` endpoint is a bounded production evidence stream used by the Traffic Ready / Agent Distribution contract. It carries server-derived test/production-candidate classification plus a controlled set of attribution and journey fields.
 
+**Free Face Shape Detector exception:** `face_shape_detection_completed` remains a browser-side GA4/dataLayer event, but the free on-device detector must not POST it to the first-party Consumer Funnel API or the legacy `/api/face-shape-detector/usage` endpoint. This intentionally removes new free-detector completion counts from the first-party evidence stream. Historical server-side records remain valid; older deployed clients may still use the legacy endpoint until their JavaScript is replaced. Other Consumer Funnel events continue using the first-party API.
+
 It does not replace GA4 as the general Consumer product-analytics surface and it does not create a durable join to MerchantSession.
 
 ## 8. Merchant commerce events are separate
