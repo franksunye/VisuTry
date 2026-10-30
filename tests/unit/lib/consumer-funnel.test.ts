@@ -2,6 +2,7 @@ import {
   getConsumerFunnelContext,
   recordConsumerFunnelEvent,
 } from '@/lib/consumer-funnel'
+import { trackCampaignEvent } from '@/lib/analytics-v2'
 
 describe('consumer funnel telemetry', () => {
   beforeEach(() => {
@@ -79,6 +80,34 @@ describe('consumer funnel telemetry', () => {
       payload: {},
     })
 
+    expect(window.fetch).not.toHaveBeenCalled()
+  })
+
+  it('keeps free face-shape completion in browser analytics without a first-party request', () => {
+    recordConsumerFunnelEvent({
+      eventName: 'face_shape_detection_completed',
+      surface: 'web',
+      entryPoint: 'consumer',
+      payload: { page_path: '/en/face-shape-detector' },
+    })
+
+    expect(window.fetch).not.toHaveBeenCalled()
+  })
+
+  it('still emits free detection completion to browser GA4 and dataLayer', () => {
+    const gtag = jest.fn()
+    const dataLayer: Array<Record<string, unknown>> = []
+    Object.defineProperty(window, 'gtag', { configurable: true, value: gtag })
+    Object.defineProperty(window, 'dataLayer', { configurable: true, value: dataLayer })
+
+    trackCampaignEvent('face_shape_detection_completed', {
+      page_path: '/en/face-shape-detector',
+      processing_mode: 'on_device',
+    })
+
+    expect(gtag).toHaveBeenCalledWith('event', 'face_shape_detection_completed',
+      expect.objectContaining({ processing_mode: 'on_device' }))
+    expect(dataLayer).toEqual([expect.objectContaining({ event: 'face_shape_detection_completed' })])
     expect(window.fetch).not.toHaveBeenCalled()
   })
 })
