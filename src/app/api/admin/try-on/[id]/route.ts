@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api-auth';
 import { prisma } from '@/lib/prisma';
-import { del } from '@vercel/blob';
+import { deleteTryOnBlobFirst } from '@/lib/retention/cleanup-expired-tryon-tasks';
 import { adminTryOnMediaUrls } from '@/lib/tryon-media';
 
 export const dynamic = 'force-dynamic'
@@ -104,24 +104,7 @@ export async function DELETE(
 
     console.log(`[Admin Try-On Delete] Deleting task ${taskId}...`);
 
-    const urlsToDelete: string[] = [];
-    if (task.userImageUrl) urlsToDelete.push(task.userImageUrl);
-    if ((task as any).itemImageUrl) urlsToDelete.push((task as any).itemImageUrl);
-    if (task.glassesImageUrl) urlsToDelete.push(task.glassesImageUrl);
-    if (task.resultImageUrl && !task.resultImageUrl.startsWith('data:')) urlsToDelete.push(task.resultImageUrl);
-
-    await prisma.tryOnTask.delete({
-      where: { id: taskId },
-    });
-
-    if (urlsToDelete.length > 0) {
-      try {
-        await del(urlsToDelete);
-        console.log(`[Admin Try-On Delete] Deleted ${urlsToDelete.length} files from Blob Storage`);
-      } catch (blobError) {
-        console.error('[Admin Try-On Delete] Failed to delete blob files:', blobError);
-      }
-    }
+    const deletedFiles = await deleteTryOnBlobFirst(task);
 
     console.log(`[Admin Try-On Delete] Successfully deleted task ${taskId}`);
 
@@ -129,7 +112,7 @@ export async function DELETE(
       success: true,
       data: {
         deletedTask: taskId,
-        deletedFiles: urlsToDelete.length,
+        deletedFiles,
       },
     });
   } catch (error) {

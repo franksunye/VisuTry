@@ -34,6 +34,29 @@ export type CleanupExpiredTryOnTasksInput = {
   origins?: TryOnOrigin[]
 }
 
+/** Shared by automatic retention and manual admin deletion. */
+export async function deleteTryOnBlobFirst(task: {
+  id: string
+  userImageUrl: string
+  itemImageUrl: string
+  glassesImageUrl?: string | null
+  resultImageUrl?: string | null
+  metadata?: unknown
+}): Promise<number> {
+  const targets = collectTryOnRetentionDeleteTargets({
+    userImageUrl: task.userImageUrl,
+    itemImageUrl: task.itemImageUrl,
+    glassesImageUrl: task.glassesImageUrl,
+    resultImageUrl: task.resultImageUrl,
+    metadata: (task.metadata ?? {}) as Record<string, unknown>,
+  })
+  if (!isMockMode) {
+    for (const target of targets) await deleteOwnedBlob(target, resolveTryOnBlobAccessMode())
+  }
+  await prisma.tryOnTask.delete({ where: { id: task.id } })
+  return targets.length
+}
+
 export async function cleanupExpiredTryOnTasks(
   input?: CleanupExpiredTryOnTasksInput,
 ): Promise<CleanupExpiredTryOnTasksResult> {
@@ -95,27 +118,14 @@ export async function cleanupExpiredTryOnTasks(
         },
       })
 
-      const metadata = (task.metadata ?? {}) as Record<string, unknown>
-      const targets = collectTryOnRetentionDeleteTargets({
-        userImageUrl: task.userImageUrl,
-        itemImageUrl: task.itemImageUrl,
-        glassesImageUrl: task.glassesImageUrl,
-        resultImageUrl: task.resultImageUrl,
-        metadata,
-      })
       let blobOk = true
       let lastError: string | undefined
 
-      if (!isMockMode) {
-        for (const target of targets) {
-          try {
-            await deleteOwnedBlob(target, resolveTryOnBlobAccessMode())
-          } catch (error) {
-            blobOk = false
-            lastError = retentionDeleteErrorMessage(error)
-            break
-          }
-        }
+      try {
+        await deleteTryOnBlobFirst(task)
+      } catch (error) {
+        blobOk = false
+        lastError = retentionDeleteErrorMessage(error)
       }
 
       if (!blobOk) {
@@ -141,7 +151,6 @@ export async function cleanupExpiredTryOnTasks(
         continue
       }
 
-      await prisma.tryOnTask.delete({ where: { id: task.id } })
       result.deleted += 1
       result.deletedTaskIds.push(task.id)
       if (task.userId) result.deletedUserIds.push(task.userId)
