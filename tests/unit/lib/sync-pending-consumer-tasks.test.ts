@@ -33,6 +33,47 @@ describe('syncPendingConsumerTryOnTasks', () => {
     jest.clearAllMocks()
   })
 
+  it('includes Kie PROCESSING tasks in the daily fallback selector', async () => {
+    ;(prisma.tryOnTask.findMany as jest.Mock)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+
+    await syncPendingConsumerTryOnTasks()
+
+    const where = (prisma.tryOnTask.findMany as jest.Mock).mock.calls[1][0].where
+    expect(where.origin).toBe('CONSUMER')
+    expect(where.OR).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        status: 'PROCESSING',
+        metadata: { path: ['serviceType'], equals: 'grsai' },
+      }),
+      expect.objectContaining({
+        status: 'PROCESSING',
+        metadata: { path: ['serviceType'], equals: 'kie' },
+      }),
+    ]))
+  })
+
+  it('reconciles a stale Kie PENDING task without a provider ID', async () => {
+    const createdAt = new Date(Date.now() - 10 * 60 * 1000)
+    ;(prisma.tryOnTask.findMany as jest.Mock)
+      .mockResolvedValueOnce([{
+        id: 'stale-kie',
+        createdAt,
+        updatedAt: createdAt,
+        metadata: { serviceType: 'kie', dispatchOutcome: 'NOT_SENT' },
+      }])
+      .mockResolvedValueOnce([])
+    ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+    const result = await syncPendingConsumerTryOnTasks()
+    expect(result.stalePendingFailed).toBe(1)
+    expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: 'stale-kie' }),
+      data: expect.objectContaining({ status: 'FAILED' }),
+    }))
+  })
+
   it('fails stale PENDING Consumer tasks that never saved an external ID', async () => {
     const createdAt = new Date(Date.now() - 10 * 60 * 1000)
     const updatedAt = new Date(createdAt)

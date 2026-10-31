@@ -8,6 +8,7 @@ import { del, get, put } from '@vercel/blob'
 import type { StoreAsset } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { isMockMode } from '@/lib/mocks'
+import { getTryOnBlobDeleteToken } from '@/lib/tryon-blob-access'
 import { MockBlob, mockBlobUpload, readMockBlob } from '@/lib/mocks/blob'
 import type {
   AssetStore,
@@ -79,7 +80,11 @@ async function readPrivateOrPublicBytes(
   }
 
   if (accessMode === 'PRIVATE_SIGNED') {
-    const result = await get(storageKey, { access: 'private' })
+    const result = await get(storageKey, {
+      access: 'private',
+      token: getTryOnBlobDeleteToken(),
+      useCache: false,
+    })
     if (!result?.stream) {
       throw new Error('Private store asset not found')
     }
@@ -120,6 +125,7 @@ export function createVercelBlobAssetStore(): AssetStore {
             const blob = await put(input.storageKey, input.body, {
               access: 'private',
               contentType: input.contentType,
+              token: getTryOnBlobDeleteToken(),
             })
             providerUrl = blob.url
           } catch (error) {
@@ -161,9 +167,11 @@ export function createVercelBlobAssetStore(): AssetStore {
       } catch (error) {
         if (providerUrl && !isMockMode) {
           try {
-            await del(
-              input.accessMode === 'PRIVATE_SIGNED' ? input.storageKey : providerUrl,
-            )
+            if (input.accessMode === 'PRIVATE_SIGNED') {
+              await del(input.storageKey, { token: getTryOnBlobDeleteToken() })
+            } else {
+              await del(providerUrl)
+            }
           } catch (delError) {
             const { recordStoreOrphanBlob } = await import(
               '../../application/cleanup-store-orphan-blobs'
@@ -224,7 +232,11 @@ export function createVercelBlobAssetStore(): AssetStore {
         await MockBlob.del(row.providerUrl)
       } else if (row.providerUrl) {
         try {
-          await del(row.accessMode === 'PRIVATE_SIGNED' ? row.storageKey : row.providerUrl)
+          if (row.accessMode === 'PRIVATE_SIGNED') {
+            await del(row.storageKey, { token: getTryOnBlobDeleteToken() })
+          } else {
+            await del(row.providerUrl)
+          }
         } catch (error) {
           if (!isBlobNotFoundError(error)) {
             const message =

@@ -7,6 +7,8 @@ import {
 } from '@/lib/resend'
 import { getUserPlanType, PLAN_DISPLAY_NAMES } from '@/config/retention'
 import { withFunctionObservation } from '@/lib/function-observability'
+import { isAuthorizedCronRequest } from '@/lib/cron/authorize'
+import { recordCronRun } from '@/lib/cron/record-run'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -20,13 +22,13 @@ export const dynamic = 'force-dynamic'
  */
 async function getHandler(request: NextRequest) {
   // Verify cron secret for security
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCronRequest(request)) {
     logger.warn('api', 'Unauthorized cron access attempt', { endpoint: 'retention-notifications' })
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const now = new Date()
+  const startedAt = Date.now()
+  const now = new Date(startedAt)
   const results = {
     threeDayEmails: { sent: 0, failed: 0 },
     twentyFourHourEmails: { sent: 0, failed: 0 },
@@ -166,12 +168,15 @@ async function getHandler(request: NextRequest) {
 
     logger.info('api', 'Retention notification cron completed', results)
 
+    const success = results.threeDayEmails.failed === 0 && results.twentyFourHourEmails.failed === 0
+    recordCronRun('retention-notifications', success ? 'success' : 'partial_failure', startedAt)
     return NextResponse.json({
-      success: true,
+      success,
       timestamp: now.toISOString(),
       results,
-    })
+    }, { status: success ? 200 : 500 })
   } catch (error) {
+    recordCronRun('retention-notifications', 'failed', startedAt)
     const err = error instanceof Error ? error : new Error(String(error))
     logger.error('api', 'Retention notification cron failed', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

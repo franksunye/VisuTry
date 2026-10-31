@@ -6,6 +6,8 @@ import {
   createStoreRuntime,
 } from '@/modules/store/application'
 import { withFunctionObservation } from '@/lib/function-observability'
+import { isAuthorizedCronRequest } from '@/lib/cron/authorize'
+import { recordCronRun } from '@/lib/cron/record-run'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,15 +17,15 @@ export const maxDuration = 300
  * Cron: StoreAsset + orphan Blob retention (blob-first, retryable, blocked slow-retry).
  */
 async function getHandler(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCronRequest(request)) {
     logger.warn('api', 'Unauthorized cron access attempt', {
       endpoint: 'cleanup-store-assets',
     })
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const now = new Date()
+  const startedAt = Date.now()
+  const now = new Date(startedAt)
   try {
     const runtime = createStoreRuntime()
     const assets = await cleanupExpiredStoreAssets({
@@ -36,13 +38,16 @@ async function getHandler(request: NextRequest) {
 
     const results = { assets, orphans }
     logger.info('api', 'Cleanup store assets cron completed', results)
+    const success = assets.failed === 0 && orphans.failed === 0
+    recordCronRun('cleanup-store-assets', success ? 'success' : 'partial_failure', startedAt)
 
     return NextResponse.json({
-      success: true,
+      success,
       timestamp: now.toISOString(),
       results,
-    })
+    }, { status: success ? 200 : 500 })
   } catch (error) {
+    recordCronRun('cleanup-store-assets', 'failed', startedAt)
     const err = error instanceof Error ? error : new Error(String(error))
     logger.error('api', 'Cleanup store assets cron failed', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

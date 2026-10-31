@@ -10,7 +10,7 @@ export default async function StoragePage() {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Storage Management</h2>
         <p className="text-muted-foreground">
-          Manage Vercel Blob Storage files and cleanup orphaned data
+          Inspect Public and Private Vercel Blob files. Lifecycle cleanup runs separately.
         </p>
       </div>
 

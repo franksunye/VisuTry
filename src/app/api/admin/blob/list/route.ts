@@ -1,113 +1,56 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/api-auth';
-import { list } from '@vercel/blob';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/api-auth'
+import { getBlobStoreConfigs, scanBlobStore } from '@/lib/blob/admin-inventory'
 
-// Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
+const ITEMS_PER_PAGE = 50
 
-// 列出所有 Blob 文件
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.response
+
+  const { searchParams } = new URL(request.url)
+  const scope = searchParams.get('store') || 'public'
+  const config = getBlobStoreConfigs().find(store => store.scope === scope)
+  if (!config) {
+    return NextResponse.json({ success: false, error: 'Invalid Blob store' }, { status: 400 })
+  }
+  if (!config.token) {
+    return NextResponse.json(
+      { success: false, error: config.unavailableReason },
+      { status: 503 },
+    )
+  }
+
+  const rawPage = Number(searchParams.get('page') || '1')
+  const requestedPage = Number.isSafeInteger(rawPage) && rawPage > 0 ? rawPage : 1
+  const search = (searchParams.get('search') || '').trim().toLowerCase().slice(0, 200)
   try {
-    // 验证管理员权限
-    const auth = await requireAdmin();
-    if (!auth.ok) return auth.response;
-
-    // 获取查询参数
-    const { searchParams } = new URL(request.url);
-    const prefix = searchParams.get('prefix') || undefined;
-    const showOrphaned = searchParams.get('orphaned') === 'true';
-    const search = searchParams.get('search') || '';
-    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1;
-    const itemsPerPage = 50;
-
-    console.log('[Admin Blob List] Fetching files...', { prefix, showOrphaned, search, page });
-
-    // 获取所有 Blob 文件
-    const { blobs } = await list({ prefix });
-
-    // 如果需要显示孤立文件，获取数据库中的 URL
-    let filteredBlobs = blobs;
-    if (showOrphaned) {
-      // Cap each distinct scan with `take: 1000` to avoid full-table scans on
-      // unindexed URL columns. This route needs the actual URL values to
-      // cross-reference with Blob storage for orphaned-file filtering.
-      const [userUrls, itemUrls, glassesUrls, resultUrls] = await Promise.all([
-        prisma.tryOnTask.findMany({
-          select: { userImageUrl: true },
-          distinct: ['userImageUrl'],
-          take: 1000,
-        }),
-        prisma.tryOnTask.findMany({
-          select: { itemImageUrl: true },
-          distinct: ['itemImageUrl'],
-          take: 1000,
-        }),
-        prisma.tryOnTask.findMany({
-          select: { glassesImageUrl: true },
-          distinct: ['glassesImageUrl'],
-          take: 1000,
-        }),
-        prisma.tryOnTask.findMany({
-          select: { resultImageUrl: true },
-          distinct: ['resultImageUrl'],
-          take: 1000,
-        }),
-      ]);
-
-      const dbUrls = new Set<string>();
-      userUrls.forEach(u => { if (u.userImageUrl) dbUrls.add(u.userImageUrl); });
-      itemUrls.forEach(i => { if (i.itemImageUrl) dbUrls.add(i.itemImageUrl as string); });
-      glassesUrls.forEach(g => { if (g.glassesImageUrl) dbUrls.add(g.glassesImageUrl as string); });
-      resultUrls.forEach(r => { if (r.resultImageUrl) dbUrls.add(r.resultImageUrl as string); });
-
-      filteredBlobs = blobs.filter(blob => !dbUrls.has(blob.url));
-    }
-
-    // 搜索过滤
-    if (search) {
-      filteredBlobs = filteredBlobs.filter(blob =>
-        blob.pathname.toLowerCase().includes(search.toLowerCase()) ||
-        blob.url.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    // 计算分页
-    const totalFiles = filteredBlobs.length;
-    const totalPages = Math.ceil(totalFiles / itemsPerPage);
-    const currentPage = Math.max(1, Math.min(page, totalPages || 1));
-    const offset = (currentPage - 1) * itemsPerPage;
-
-    // 获取当前页的文件
-    const paginatedBlobs = filteredBlobs.slice(offset, offset + itemsPerPage);
-
-    // 格式化文件信息
-    const files = paginatedBlobs.map(blob => ({
-      url: blob.url,
-      pathname: blob.pathname,
-      size: blob.size,
-      sizeMB: (blob.size / (1024 * 1024)).toFixed(2),
-      uploadedAt: blob.uploadedAt,
-      downloadUrl: blob.downloadUrl,
-    }));
-
-    console.log(`[Admin Blob List] Found ${totalFiles} files, showing page ${currentPage}/${totalPages}`);
-
+    const inventory = await scanBlobStore(config)
+    const filtered = inventory.blobs
+      .filter(blob => !search || blob.pathname.toLowerCase().includes(search))
+      .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())
+    const total = filtered.length
+    const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
+    const currentPage = Math.min(requestedPage, totalPages)
+    const files = filtered
+      .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+      .map(blob => ({
+        pathname: blob.pathname,
+        sizeMB: (blob.size / (1024 * 1024)).toFixed(2),
+        sizeKB: (blob.size / 1024).toFixed(1),
+        uploadedAt: blob.uploadedAt,
+        // Private objects must not be presented as public view links.
+        url: scope === 'public' ? blob.url : null,
+      }))
     return NextResponse.json({
       success: true,
-      data: {
-        files,
-        total: totalFiles,
-        currentPage,
-        totalPages,
-        itemsPerPage,
-      },
-    });
-  } catch (error) {
-    console.error('[Admin Blob List] Error:', error);
+      data: { files, total, totalPages, currentPage, complete: inventory.complete },
+    }, { headers: { 'Cache-Control': 'private, no-store' } })
+  } catch {
     return NextResponse.json(
-      { success: false, error: 'Failed to list files' },
-      { status: 500 }
-    );
+      { success: false, error: 'Unable to list Blob files' },
+      { status: 503 },
+    )
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Consumer-only pending Try-On sync (ADR-007).
+ * Consumer-only pending Try-On sync (GrsAi + Kie, ADR-007).
  * MUST NOT import Store modules — Store failure domains stay isolated.
  */
 
@@ -72,6 +72,13 @@ export async function syncPendingConsumerTryOnTasks(): Promise<SyncPendingConsum
           },
         },
         {
+          status: TaskStatus.PROCESSING,
+          metadata: {
+            path: ['serviceType'],
+            equals: 'kie',
+          },
+        },
+        {
           status: TaskStatus.COMPLETED,
           quotaSettledAt: null,
         },
@@ -89,7 +96,7 @@ export async function syncPendingConsumerTryOnTasks(): Promise<SyncPendingConsum
   })
 
   if (pendingTasks.length === 0 && stalePendingFailed === 0) {
-    logger.debug('cron', 'No pending consumer GrsAi tasks found')
+    logger.debug('cron', 'No pending consumer provider tasks found')
     return {
       scope: 'consumer',
       total: 0,
@@ -100,7 +107,7 @@ export async function syncPendingConsumerTryOnTasks(): Promise<SyncPendingConsum
     }
   }
 
-  logger.debug('cron', `Found ${pendingTasks.length} pending consumer GrsAi tasks`)
+  logger.debug('cron', `Found ${pendingTasks.length} pending consumer provider tasks`)
 
   let successCount = 0
   let errorCount = stalePendingFailed
