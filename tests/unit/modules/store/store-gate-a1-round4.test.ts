@@ -107,10 +107,10 @@ describe('Store result persist conflict helpers', () => {
 describe('TryOn retention per-field delete targets', () => {
   it('keeps URL fallbacks when only some pathnames exist', () => {
     const targets = collectTryOnRetentionDeleteTargets({
-      userImageUrl: 'https://blob.vercel-storage.com/user-old.png',
-      itemImageUrl: 'https://blob.vercel-storage.com/item-old.png',
-      glassesImageUrl: 'https://blob.vercel-storage.com/glasses.png',
-      resultImageUrl: 'https://blob.vercel-storage.com/result.png',
+      userImageUrl: 'https://old.public.blob.vercel-storage.com/tryon/user/user-old.png',
+      itemImageUrl: 'https://old.public.blob.vercel-storage.com/tryon/item/item-old.png',
+      glassesImageUrl: 'https://old.public.blob.vercel-storage.com/tryon/glasses/glasses.png',
+      resultImageUrl: 'https://old.public.blob.vercel-storage.com/tryon/result/result.png',
       metadata: {
         userPathname: 'tryon/user/a.png',
         itemPathname: 'tryon/item/b.png',
@@ -119,21 +119,21 @@ describe('TryOn retention per-field delete targets', () => {
     })
 
     expect(targets).toEqual([
-      'tryon/user/a.png',
-      'tryon/item/b.png',
-      'https://blob.vercel-storage.com/glasses.png',
-      'https://blob.vercel-storage.com/result.png',
+      'https://old.public.blob.vercel-storage.com/tryon/user/user-old.png',
+      'https://old.public.blob.vercel-storage.com/tryon/item/item-old.png',
+      'https://old.public.blob.vercel-storage.com/tryon/glasses/glasses.png',
+      'https://old.public.blob.vercel-storage.com/tryon/result/result.png',
     ])
   })
 
   it('skips pending placeholders and dedupes', () => {
     const targets = collectTryOnRetentionDeleteTargets({
       userImageUrl: 'pending://user',
-      itemImageUrl: 'https://blob.vercel-storage.com/item.png',
-      resultImageUrl: 'https://blob.vercel-storage.com/item.png',
+      itemImageUrl: 'https://old.public.blob.vercel-storage.com/tryon/item/item.png',
+      resultImageUrl: 'https://old.public.blob.vercel-storage.com/tryon/item/item.png',
       metadata: {},
     })
-    expect(targets).toEqual(['https://blob.vercel-storage.com/item.png'])
+    expect(targets).toEqual(['https://old.public.blob.vercel-storage.com/tryon/item/item.png'])
   })
 
   it('never sends external provider URLs to Vercel Blob deletion', () => {
@@ -145,6 +145,15 @@ describe('TryOn retention per-field delete targets', () => {
     })
 
     expect(targets).toEqual(['tryon/user/owned.png'])
+  })
+
+  it('never deletes a Face Analysis photo reused as a Try-On source', () => {
+    const targets = collectTryOnRetentionDeleteTargets({
+      userImageUrl: 'https://store.private.blob.vercel-storage.com/face-analysis/u/photo.jpg',
+      itemImageUrl: 'https://store.private.blob.vercel-storage.com/tryon/item/frame.jpg',
+      metadata: {},
+    })
+    expect(targets).toEqual(['https://store.private.blob.vercel-storage.com/tryon/item/frame.jpg'])
   })
 
   it('rejects malformed and unowned non-URL deletion targets', () => {

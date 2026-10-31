@@ -282,6 +282,10 @@ model FaceAnalysisTask {
   prompt          String?
   metadata        Json?
   expiresAt       DateTime?
+  retentionStatus RetentionStatus @default(ACTIVE)
+  deleteFailCount Int             @default(0)
+  lastDeleteError String?
+  lastDeleteAttemptAt DateTime?
 
   user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -292,6 +296,7 @@ model FaceAnalysisTask {
   @@index([userId, createdAt(sort: Desc)])
   @@index([status])
   @@index([expiresAt])
+  @@index([retentionStatus, expiresAt])
   @@index([externalTaskId])
 }
 

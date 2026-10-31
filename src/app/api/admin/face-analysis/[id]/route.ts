@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api-auth';
-import { del } from '@vercel/blob';
 import { prisma } from '@/lib/prisma';
 import { adminFaceAnalysisPhotoPath } from '@/lib/face-analysis-source-photo';
+import { deleteFaceAnalysisBlobFirst } from '@/lib/retention/cleanup-expired-face-analysis';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,24 +64,13 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 });
     }
 
-    await prisma.faceAnalysisTask.delete({
-      where: { id: params.id },
-    });
-
-    const urlsToDelete = task.userImageUrl ? [task.userImageUrl] : [];
-    if (urlsToDelete.length > 0) {
-      try {
-        await del(urlsToDelete);
-      } catch (blobError) {
-        console.error('[Admin Face Analysis Delete] Failed to delete blob files:', blobError);
-      }
-    }
+    const deletedFiles = await deleteFaceAnalysisBlobFirst(task);
 
     return NextResponse.json({
       success: true,
       data: {
         deletedTask: params.id,
-        deletedFiles: urlsToDelete.length,
+        deletedFiles,
       },
     });
   } catch (error) {

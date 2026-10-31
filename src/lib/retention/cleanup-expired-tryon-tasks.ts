@@ -5,27 +5,17 @@
  * Lives in shared core (ADR-007): Consumer must not depend on modules/store for retention.
  */
 
-import { del } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { isMockMode } from '@/lib/mocks'
-import { getTryOnBlobDeleteToken } from '@/lib/tryon-blob-access'
+import { resolveTryOnBlobAccessMode } from '@/lib/tryon-blob-access'
+import { deleteOwnedBlob, retentionDeleteErrorMessage } from './blob-delete'
 import {
   retentionBackoffMs,
   shouldMarkDeleteBlocked,
 } from './backoff'
 import { collectTryOnRetentionDeleteTargets } from './tryon-retention-targets'
 import type { TryOnOrigin } from '@prisma/client'
-
-function isBlobNotFoundError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
-  const name = error instanceof Error ? error.name : ''
-  return (
-    name === 'BlobNotFoundError' ||
-    message.includes('not found') ||
-    message.includes('404')
-  )
-}
 
 export type CleanupExpiredTryOnTasksResult = {
   scanned: number
@@ -42,6 +32,29 @@ export type CleanupExpiredTryOnTasksInput = {
   maxRounds?: number
   /** When set, only tasks with these origins are processed (failure-domain isolation). */
   origins?: TryOnOrigin[]
+}
+
+/** Shared by automatic retention and manual admin deletion. */
+export async function deleteTryOnBlobFirst(task: {
+  id: string
+  userImageUrl: string
+  itemImageUrl: string
+  glassesImageUrl?: string | null
+  resultImageUrl?: string | null
+  metadata?: unknown
+}): Promise<number> {
+  const targets = collectTryOnRetentionDeleteTargets({
+    userImageUrl: task.userImageUrl,
+    itemImageUrl: task.itemImageUrl,
+    glassesImageUrl: task.glassesImageUrl,
+    resultImageUrl: task.resultImageUrl,
+    metadata: (task.metadata ?? {}) as Record<string, unknown>,
+  })
+  if (!isMockMode) {
+    for (const target of targets) await deleteOwnedBlob(target, resolveTryOnBlobAccessMode())
+  }
+  await prisma.tryOnTask.delete({ where: { id: task.id } })
+  return targets.length
 }
 
 export async function cleanupExpiredTryOnTasks(
@@ -105,30 +118,14 @@ export async function cleanupExpiredTryOnTasks(
         },
       })
 
-      const metadata = (task.metadata ?? {}) as Record<string, unknown>
-      const targets = collectTryOnRetentionDeleteTargets({
-        userImageUrl: task.userImageUrl,
-        itemImageUrl: task.itemImageUrl,
-        glassesImageUrl: task.glassesImageUrl,
-        resultImageUrl: task.resultImageUrl,
-        metadata,
-      })
       let blobOk = true
       let lastError: string | undefined
 
-      if (!isMockMode) {
-        for (const target of targets) {
-          try {
-            await del(target, { token: getTryOnBlobDeleteToken() })
-          } catch (error) {
-            if (!isBlobNotFoundError(error)) {
-              blobOk = false
-              lastError =
-                error instanceof Error ? error.message.slice(0, 500) : 'blob_delete_failed'
-              break
-            }
-          }
-        }
+      try {
+        await deleteTryOnBlobFirst(task)
+      } catch (error) {
+        blobOk = false
+        lastError = retentionDeleteErrorMessage(error)
       }
 
       if (!blobOk) {
@@ -154,7 +151,6 @@ export async function cleanupExpiredTryOnTasks(
         continue
       }
 
-      await prisma.tryOnTask.delete({ where: { id: task.id } })
       result.deleted += 1
       result.deletedTaskIds.push(task.id)
       if (task.userId) result.deletedUserIds.push(task.userId)
