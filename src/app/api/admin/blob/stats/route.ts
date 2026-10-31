@@ -1,144 +1,57 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/api-auth';
-import { list } from '@vercel/blob';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/api-auth'
+import {
+  getBlobStoreConfigs,
+  scanBlobStore,
+  summarizeBlobStore,
+} from '@/lib/blob/admin-inventory'
 
-// Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
-// 获取 Blob Storage 统计信息
-export async function GET(request: NextRequest) {
-  try {
-    // 验证管理员权限
-    const auth = await requireAdmin();
-    if (!auth.ok) return auth.response;
+export async function GET() {
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.response
 
-    console.log('[Admin Blob Stats] Fetching storage statistics...');
-
-    // 获取所有 Blob 文件（处理分页，支持超过 1000 个文件）
-    const allBlobs = [];
-    let hasMore = true;
-    let cursor: string | undefined;
-
-    while (hasMore) {
-      const listResponse = await list({ cursor, limit: 1000 });
-      allBlobs.push(...listResponse.blobs);
-      hasMore = listResponse.hasMore;
-      cursor = listResponse.cursor;
-    }
-    
-    // 计算总大小
-    const totalSize = allBlobs.reduce((sum, blob) => sum + blob.size, 0);
-    const totalFiles = allBlobs.length;
-
-    // NOTE: This route needs the actual URL values (not just counts) because it
-    // builds a `dbUrls` Set used for orphaned-file detection via `dbUrls.has(blob.url)`.
-    // Replacing with `count` would break that logic, so we cap each distinct scan
-    // with `take: 1000` to avoid full-table scans on unindexed URL columns.
-    const [userUrls, itemUrls, glassesUrls, resultUrls, frameUrls, userAvatarUrls] = await Promise.all([
-      prisma.tryOnTask.findMany({
-        select: { userImageUrl: true },
-        distinct: ['userImageUrl'],
-        take: 1000,
-      }),
-      prisma.tryOnTask.findMany({
-        select: { itemImageUrl: true },
-        distinct: ['itemImageUrl'],
-        take: 1000,
-      }),
-      prisma.tryOnTask.findMany({
-        select: { glassesImageUrl: true },
-        distinct: ['glassesImageUrl'],
-        take: 1000,
-      }),
-      prisma.tryOnTask.findMany({
-        select: { resultImageUrl: true },
-        distinct: ['resultImageUrl'],
-        take: 1000,
-      }),
-      prisma.glassesFrame.findMany({
-        select: { imageUrl: true },
-        distinct: ['imageUrl'],
-        take: 1000,
-      }),
-      prisma.user.findMany({
-        select: { image: true },
-        distinct: ['image'],
-        take: 1000,
-      }),
-    ]);
-
-    const dbUrls = new Set<string>();
-    userUrls.forEach(u => { if (u.userImageUrl) dbUrls.add(u.userImageUrl); });
-    itemUrls.forEach(i => { if (i.itemImageUrl) dbUrls.add(i.itemImageUrl as string); });
-    glassesUrls.forEach(g => { if (g.glassesImageUrl) dbUrls.add(g.glassesImageUrl as string); });
-    resultUrls.forEach(r => { if (r.resultImageUrl) dbUrls.add(r.resultImageUrl as string); });
-    frameUrls.forEach(f => { if (f.imageUrl) dbUrls.add(f.imageUrl); });
-    userAvatarUrls.forEach(u => { if (u.image) dbUrls.add(u.image); });
-
-    // 找出孤立文件（在 Blob 中但不在数据库中）
-    // 安全策略：
-    // 1. 必须不在数据库记录中
-    // 2. 上传时间必须超过 24 小时（防止竞争风险）
-    const now = new Date();
-    const gracePeriodHours = 24;
-    const gracePeriodMs = gracePeriodHours * 60 * 60 * 1000;
-
-    const orphanedFiles = allBlobs.filter(blob => {
-      // 在数据库中被引用
-      if (dbUrls.has(blob.url)) return false;
-
-      // 还在 24 小时缓冲期内
-      const uploadedAt = new Date(blob.uploadedAt);
-      if (now.getTime() - uploadedAt.getTime() < gracePeriodMs) return false;
-
-      return true;
-    });
-    const orphanedSize = orphanedFiles.reduce((sum, blob) => sum + blob.size, 0);
-
-    // 按文件类型分组
-    const filesByType: Record<string, number> = {};
-    allBlobs.forEach(blob => {
-      const ext = blob.pathname.split('.').pop()?.toLowerCase() || 'unknown';
-      filesByType[ext] = (filesByType[ext] || 0) + 1;
-    });
-
-    // 按用户分组（从路径中提取用户 ID）
-    const filesByUser: Record<string, number> = {};
-    allBlobs.forEach(blob => {
-      const match = blob.pathname.match(/^try-on\/([^\/]+)\//);
-      if (match) {
-        const userId = match[1];
-        filesByUser[userId] = (filesByUser[userId] || 0) + 1;
+  const stores = await Promise.all(getBlobStoreConfigs().map(async (config) => {
+    if (!config.token) {
+      return {
+        scope: config.scope,
+        label: config.label,
+        configured: false,
+        complete: false,
+        totalFiles: 0,
+        totalSize: 0,
+        totalSizeMB: '0.00',
+        error: config.unavailableReason,
       }
-    });
+    }
+    try {
+      return summarizeBlobStore(config, await scanBlobStore(config))
+    } catch {
+      // One failing store must not hide the healthy store's inventory.
+      return {
+        scope: config.scope,
+        label: config.label,
+        configured: true,
+        complete: false,
+        totalFiles: 0,
+        totalSize: 0,
+        totalSizeMB: '0.00',
+        error: 'Unable to read this Blob store',
+      }
+    }
+  }))
+  const totalFiles = stores.reduce((sum, store) => sum + store.totalFiles, 0)
+  const totalSize = stores.reduce((sum, store) => sum + store.totalSize, 0)
+  const complete = stores.every(store => store.complete)
 
-    const stats = {
+  return NextResponse.json({
+    success: true,
+    data: {
       totalFiles,
-      totalSize,
       totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
-      orphanedFiles: orphanedFiles.length,
-      orphanedSize,
-      orphanedSizeMB: (orphanedSize / (1024 * 1024)).toFixed(2),
-      referencedFiles: dbUrls.size,
-      filesByType,
-      topUsers: Object.entries(filesByUser)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 10)
-        .map(([userId, count]) => ({ userId, count })),
-    };
-
-    console.log('[Admin Blob Stats] Statistics:', stats);
-
-    return NextResponse.json({
-      success: true,
-      data: stats,
-    });
-  } catch (error) {
-    console.error('[Admin Blob Stats] Error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch storage statistics' },
-      { status: 500 }
-    );
-  }
+      complete,
+      stores,
+    },
+  }, { headers: { 'Cache-Control': 'private, no-store' } })
 }

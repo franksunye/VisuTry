@@ -5,6 +5,7 @@
 import { del } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { isMockMode } from '@/lib/mocks'
+import { getPrivateBlobReadWriteToken } from '@/lib/tryon-blob-access'
 import {
   retentionBackoffMs,
   shouldMarkDeleteBlocked,
@@ -18,6 +19,21 @@ function isBlobNotFoundError(error: unknown): boolean {
     message.includes('not found') ||
     message.includes('404')
   )
+}
+
+function getOrphanDeleteToken(url: string): string {
+  const hostname = new URL(url).hostname.toLowerCase()
+  if (hostname.endsWith('.private.blob.vercel-storage.com')) {
+    const token = getPrivateBlobReadWriteToken()
+    if (!token) throw new Error('Private Blob token missing for orphan deletion')
+    return token
+  }
+  if (hostname.endsWith('.public.blob.vercel-storage.com')) {
+    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+    if (!token) throw new Error('Public Blob token missing for orphan deletion')
+    return token
+  }
+  throw new Error('Unrecognized Blob host; refusing orphan deletion')
 }
 
 export async function recordStoreOrphanBlob(input: {
@@ -76,7 +92,7 @@ export async function cleanupStoreOrphanBlobs(input?: {
     const attemptedAt = new Date()
     if (!isMockMode) {
       try {
-        await del(row.pathname || row.url)
+        await del(row.pathname || row.url, { token: getOrphanDeleteToken(row.url) })
       } catch (error) {
         if (!isBlobNotFoundError(error)) {
           const message =

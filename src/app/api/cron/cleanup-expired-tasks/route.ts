@@ -4,6 +4,8 @@ import { logger } from '@/lib/logger'
 import { sendRetentionDeletedEmail } from '@/lib/resend'
 import { cleanupExpiredTryOnTasks } from '@/lib/retention'
 import { withFunctionObservation } from '@/lib/function-observability'
+import { isAuthorizedCronRequest } from '@/lib/cron/authorize'
+import { recordCronRun } from '@/lib/cron/record-run'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -17,13 +19,13 @@ export const dynamic = 'force-dynamic'
  * cleanup exception cannot abort Consumer cleanup (or vice versa).
  */
 async function getHandler(request: NextRequest) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCronRequest(request)) {
     logger.warn('api', 'Unauthorized cron access attempt', { endpoint: 'cleanup-expired-tasks' })
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const now = new Date()
+  const startedAt = Date.now()
+  const now = new Date(startedAt)
   const results = {
     tasksDeleted: 0,
     tasksFailed: 0,
@@ -128,7 +130,12 @@ async function getHandler(request: NextRequest) {
 
     logger.info('api', 'Cleanup expired tasks cron completed', results)
 
-    const success = results.consumerOk || results.storeOk
+    const success =
+      results.consumerOk &&
+      results.storeOk &&
+      results.tasksFailed === 0 &&
+      results.emailsFailed === 0
+    recordCronRun('cleanup-expired-tasks', success ? 'success' : 'partial_failure', startedAt)
     return NextResponse.json(
       {
         success,
@@ -138,6 +145,7 @@ async function getHandler(request: NextRequest) {
       { status: success ? 200 : 500 },
     )
   } catch (error) {
+    recordCronRun('cleanup-expired-tasks', 'failed', startedAt)
     const err = error instanceof Error ? error : new Error(String(error))
     logger.error('api', 'Cleanup expired tasks cron failed', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

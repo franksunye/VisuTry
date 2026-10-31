@@ -28,7 +28,7 @@ export async function reconcileStaleConsumerDispatch(
     task.origin !== 'CONSUMER' ||
     task.status !== TaskStatus.PENDING ||
     task.createdAt > cutoff ||
-    metadata.serviceType !== 'grsai' ||
+    (metadata.serviceType !== 'grsai' && metadata.serviceType !== 'kie') ||
     // UNKNOWN/SUBMITTING is a durable non-idempotent dispatch outcome, never
     // evidence that the upstream provider did not accept the request.
     metadata.dispatchOutcome === 'UNKNOWN' ||

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { syncPendingConsumerTryOnTasks } from '@/lib/cron/sync-pending-consumer-tasks'
+import { isAuthorizedCronRequest } from '@/lib/cron/authorize'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
@@ -14,8 +15,7 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now()
 
   try {
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!isAuthorizedCronRequest(request)) {
       logger.warn('cron', 'Unauthorized cron request attempt')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

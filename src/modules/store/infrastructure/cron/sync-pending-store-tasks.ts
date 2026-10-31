@@ -1,5 +1,5 @@
 /**
- * Store-only pending Try-On sync (ADR-007).
+ * Store-only pending Try-On sync (GrsAi + Kie, ADR-007).
  * Isolated from Consumer polling and Consumer quota settlement.
  */
 
@@ -27,6 +27,7 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
   ensureStoreTryOnPersistRegistered()
 
   let staleClaimsMarkedFailed = 0
+  let staleClaimReconcileError: string | null = null
   try {
     const staleClaims = await reconcileStaleStoreClaims({ limit: 50 })
     staleClaimsMarkedFailed = staleClaims.markedFailed
@@ -37,6 +38,7 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
       })
     }
   } catch (error) {
+    staleClaimReconcileError = error instanceof Error ? error.message : String(error)
     logger.error(
       'cron',
       'Stale Store claim reconcile failed; continuing Store sync',
@@ -53,6 +55,13 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
           metadata: {
             path: ['serviceType'],
             equals: 'grsai',
+          },
+        },
+        {
+          status: TaskStatus.PROCESSING,
+          metadata: {
+            path: ['serviceType'],
+            equals: 'kie',
           },
         },
         {
@@ -75,7 +84,7 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
   })
 
   if (pendingTasks.length === 0) {
-    logger.debug('cron', 'No pending store GrsAi tasks found')
+    logger.debug('cron', 'No pending store provider tasks found')
     return {
       scope: 'store',
       total: 0,
@@ -83,14 +92,16 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
       errors: 0,
       duration: Date.now() - startTime,
       staleClaimsMarkedFailed,
+      errorMessages: staleClaimReconcileError ? ['Stale Store claim reconciliation failed'] : undefined,
     }
   }
 
-  logger.debug('cron', `Found ${pendingTasks.length} pending store GrsAi tasks`)
+  logger.debug('cron', `Found ${pendingTasks.length} pending store provider tasks`)
 
   let successCount = 0
   let errorCount = 0
   const errors: string[] = []
+  if (staleClaimReconcileError) errors.push('Stale Store claim reconciliation failed')
 
   const processTask = async (task: (typeof pendingTasks)[number]) => {
     try {
