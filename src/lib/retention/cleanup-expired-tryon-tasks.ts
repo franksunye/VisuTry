@@ -5,27 +5,17 @@
  * Lives in shared core (ADR-007): Consumer must not depend on modules/store for retention.
  */
 
-import { del } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { isMockMode } from '@/lib/mocks'
-import { getTryOnBlobDeleteToken } from '@/lib/tryon-blob-access'
+import { resolveTryOnBlobAccessMode } from '@/lib/tryon-blob-access'
+import { deleteOwnedBlob, retentionDeleteErrorMessage } from './blob-delete'
 import {
   retentionBackoffMs,
   shouldMarkDeleteBlocked,
 } from './backoff'
 import { collectTryOnRetentionDeleteTargets } from './tryon-retention-targets'
 import type { TryOnOrigin } from '@prisma/client'
-
-function isBlobNotFoundError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
-  const name = error instanceof Error ? error.name : ''
-  return (
-    name === 'BlobNotFoundError' ||
-    message.includes('not found') ||
-    message.includes('404')
-  )
-}
 
 export type CleanupExpiredTryOnTasksResult = {
   scanned: number
@@ -119,14 +109,11 @@ export async function cleanupExpiredTryOnTasks(
       if (!isMockMode) {
         for (const target of targets) {
           try {
-            await del(target, { token: getTryOnBlobDeleteToken() })
+            await deleteOwnedBlob(target, resolveTryOnBlobAccessMode())
           } catch (error) {
-            if (!isBlobNotFoundError(error)) {
-              blobOk = false
-              lastError =
-                error instanceof Error ? error.message.slice(0, 500) : 'blob_delete_failed'
-              break
-            }
+            blobOk = false
+            lastError = retentionDeleteErrorMessage(error)
+            break
           }
         }
       }

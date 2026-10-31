@@ -2,15 +2,17 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { GET as getAdminPhoto } from '@/app/api/admin/face-analysis/[id]/photo/route'
-import { GET as getAdminTask } from '@/app/api/admin/face-analysis/[id]/route'
+import { GET as getAdminTask, DELETE as deleteAdminTask } from '@/app/api/admin/face-analysis/[id]/route'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { serveFaceAnalysisSourcePhoto } from '@/lib/face-analysis-source-photo'
+import { del } from '@vercel/blob'
 
 jest.mock('@/lib/api-auth', () => ({ requireAdmin: jest.fn() }))
+jest.mock('@/lib/mocks', () => ({ isMockMode: false }))
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    faceAnalysisTask: { findUnique: jest.fn() },
+    faceAnalysisTask: { findUnique: jest.fn(), delete: jest.fn() },
   },
 }))
 jest.mock('@/lib/logger', () => ({
@@ -111,5 +113,43 @@ describe('GET /api/admin/face-analysis/[id]', () => {
     expect(response.status).toBe(200)
     expect(body.data.userImageUrl).toBe('/api/admin/face-analysis/analysis-1/photo')
     expect(body.data.userImageUrl).not.toContain('blob.vercel-storage.com')
+  })
+})
+
+describe('DELETE /api/admin/face-analysis/[id] Blob-first safety', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'private-test-token'
+    process.env.FACE_ANALYSIS_BLOB_ACCESS_MODE = 'private'
+    ;(requireAdmin as jest.Mock).mockResolvedValue({ ok: true, userId: 'admin-1' })
+    ;(prisma.faceAnalysisTask.findUnique as jest.Mock).mockResolvedValue({
+      id: 'analysis-1', userId: 'user-1',
+      userImageUrl: 'https://store.private.blob.vercel-storage.com/face-analysis/user/photo.jpg',
+      metadata: { blobPathname: 'face-analysis/user/photo.jpg' },
+    })
+    ;(del as jest.Mock).mockResolvedValue(undefined)
+    ;(prisma.faceAnalysisTask.delete as jest.Mock).mockResolvedValue({})
+  })
+  afterEach(() => {
+    delete process.env.RPIVATE_BLOB_READ_WRITE_TOKEN
+    delete process.env.FACE_ANALYSIS_BLOB_ACCESS_MODE
+  })
+
+  it('deletes the private Blob before the row and reports actual completion', async () => {
+    const response = await deleteAdminTask(new NextRequest('http://localhost/api/admin/face-analysis/analysis-1'),
+      { params: { id: 'analysis-1' } })
+    expect(response.status).toBe(200)
+    expect(del).toHaveBeenCalledWith(expect.stringContaining('.private.blob.vercel-storage.com'),
+      { token: 'private-test-token' })
+    expect((del as jest.Mock).mock.invocationCallOrder[0]).toBeLessThan(
+      (prisma.faceAnalysisTask.delete as jest.Mock).mock.invocationCallOrder[0])
+  })
+
+  it('returns error and leaves the DB record intact on Blob failure', async () => {
+    ;(del as jest.Mock).mockRejectedValue(new Error('Access denied'))
+    const response = await deleteAdminTask(new NextRequest('http://localhost/api/admin/face-analysis/analysis-1'),
+      { params: { id: 'analysis-1' } })
+    expect(response.status).toBe(500)
+    expect(prisma.faceAnalysisTask.delete).not.toHaveBeenCalled()
   })
 })

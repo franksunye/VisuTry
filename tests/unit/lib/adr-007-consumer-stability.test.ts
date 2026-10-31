@@ -390,16 +390,16 @@ describe('ADR-007 Consumer stability boundary', () => {
 
   it('shared retention targets collect Consumer and Store blob refs without Store imports', () => {
     const targets = collectTryOnRetentionDeleteTargets({
-      userImageUrl: 'https://blob.vercel-storage.com/tryon/user/u1/a.jpg',
-      itemImageUrl: 'https://blob.vercel-storage.com/tryon/item/u1/b.jpg',
+      userImageUrl: 'https://store.public.blob.vercel-storage.com/tryon/user/u1/a.jpg',
+      itemImageUrl: 'https://store.public.blob.vercel-storage.com/tryon/item/u1/b.jpg',
       resultImageUrl: 'https://provider.example/should-skip.png',
       metadata: {
         resultPathname: 'tryon/result/u1/task.png',
       },
     })
     expect(targets).toEqual([
-      'https://blob.vercel-storage.com/tryon/user/u1/a.jpg',
-      'https://blob.vercel-storage.com/tryon/item/u1/b.jpg',
+      'https://store.public.blob.vercel-storage.com/tryon/user/u1/a.jpg',
+      'https://store.public.blob.vercel-storage.com/tryon/item/u1/b.jpg',
       'tryon/result/u1/task.png',
     ])
   })

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { sendRetentionDeletedEmail } from '@/lib/resend'
 import { cleanupExpiredTryOnTasks } from '@/lib/retention'
+import { cleanupExpiredFaceAnalysis } from '@/lib/retention/cleanup-expired-face-analysis'
 import { withFunctionObservation } from '@/lib/function-observability'
 import { isAuthorizedCronRequest } from '@/lib/cron/authorize'
 import { recordCronRun } from '@/lib/cron/record-run'
@@ -35,13 +36,20 @@ async function getHandler(request: NextRequest) {
     emailsFailed: 0,
     consumerOk: true,
     storeOk: true,
+    faceAnalysisOk: true,
+    faceAnalysisScanned: 0,
+    faceAnalysisDeleted: 0,
+    faceAnalysisFailed: 0,
+    faceAnalysisBlockedRetried: 0,
     consumerError: null as string | null,
     storeError: null as string | null,
+    faceAnalysisError: null as string | null,
   }
 
   try {
     let consumerCleanup: Awaited<ReturnType<typeof cleanupExpiredTryOnTasks>> | null = null
     let storeCleanup: Awaited<ReturnType<typeof cleanupExpiredTryOnTasks>> | null = null
+    let faceCleanup: Awaited<ReturnType<typeof cleanupExpiredFaceAnalysis>> | null = null
 
     try {
       consumerCleanup = await cleanupExpiredTryOnTasks({
@@ -85,10 +93,24 @@ async function getHandler(request: NextRequest) {
       results.blockedRetried += cleanup.blockedRetried
     }
 
+    try {
+      faceCleanup = await cleanupExpiredFaceAnalysis({ now, limit: 100, maxRounds: 3 })
+      results.faceAnalysisScanned = faceCleanup.scanned
+      results.faceAnalysisDeleted = faceCleanup.deleted
+      results.faceAnalysisFailed = faceCleanup.failed
+      results.faceAnalysisBlockedRetried = faceCleanup.blockedRetried
+    } catch (error) {
+      results.faceAnalysisOk = false
+      results.faceAnalysisError = error instanceof Error ? error.message : String(error)
+      logger.error('api', 'Face Analysis retention cleanup failed',
+        error instanceof Error ? error : new Error(String(error)))
+    }
+
     const confirmedUserIds = Array.from(
       new Set([
         ...(consumerCleanup?.deletedUserIds ?? []),
         ...(storeCleanup?.deletedUserIds ?? []),
+        ...(faceCleanup?.deletedUserIds ?? []),
       ]),
     )
     if (confirmedUserIds.length > 0) {
@@ -133,7 +155,9 @@ async function getHandler(request: NextRequest) {
     const success =
       results.consumerOk &&
       results.storeOk &&
+      results.faceAnalysisOk &&
       results.tasksFailed === 0 &&
+      results.faceAnalysisFailed === 0 &&
       results.emailsFailed === 0
     recordCronRun('cleanup-expired-tasks', success ? 'success' : 'partial_failure', startedAt)
     return NextResponse.json(

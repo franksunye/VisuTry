@@ -125,11 +125,14 @@ if [[ "$STATUS_EXIT" -eq 0 ]] \
 elif [[ "$STATUS_EXIT" -eq 1 ]] \
   && echo "$STATUS_OUTPUT" | grep -Eqi "not yet been applied" \
   && ! echo "$STATUS_OUTPUT" | grep -Eqi "$UNSAFE_STATUS_PATTERN"; then
-  # Prisma 7.1 can report intentionally archived pre-baseline ledger names as
-  # absent from the active tree. A future delta is safe only when the common
-  # migration is exactly the adopted baseline; there is no legacy fallback.
-  if ! echo "$STATUS_OUTPUT" | grep -Eqi "^The last common migration is: ${CANONICAL_BASELINE_MIGRATION}[[:space:]]*$"; then
-    echo "❌ Pending status does not share the adopted canonical baseline as its last common migration; refusing to deploy."
+  # A future delta can share the baseline OR an already-applied post-baseline
+  # migration. Require that exact common ancestor to exist in the active
+  # migration tree, never an archived/unknown pre-baseline migration.
+  LAST_COMMON_MIGRATION="$(echo "$STATUS_OUTPUT" | sed -n 's/^The last common migration is: \([^[:space:]]*\)[[:space:]]*$/\1/p' | head -1)"
+  if [[ ! "$LAST_COMMON_MIGRATION" =~ ^[0-9]{14}_[A-Za-z0-9_]+$ ]] \
+    || [[ "$LAST_COMMON_MIGRATION" < "$CANONICAL_BASELINE_MIGRATION" ]] \
+    || [[ ! -s "$REPO_ROOT/prisma/migrations/$LAST_COMMON_MIGRATION/migration.sql" ]]; then
+    echo "❌ Pending status lacks a known post-baseline common migration; refusing to deploy."
     exit 1
   fi
   echo "→ Future migration delta detected after the adopted baseline — proceeding to migrate deploy"

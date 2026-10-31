@@ -32,6 +32,20 @@ case "$*" in
         echo "20261004120000_test_pending_migration"
         exit 1
         ;;
+      pending-after-deltas)
+        echo "Your local migration history and the migrations table from your database are different!"
+        echo "The last common migration is: 20261027120000_merchant_experience_session_tryon_limit"
+        echo "Following migration have not yet been applied:"
+        echo "20261031120000_face_analysis_retention"
+        exit 1
+        ;;
+      pending-unknown-common)
+        echo "Your local migration history and the migrations table from your database are different!"
+        echo "The last common migration is: 20261028120000_unrecognized_migration"
+        echo "Following migration have not yet been applied:"
+        echo "20261031120000_face_analysis_retention"
+        exit 1
+        ;;
       pending-interrupted)
         echo "Your local migration history and the migrations table from your database are different!"
         echo "The last common migration is: 20261003000000_canonical_schema_baseline"
@@ -121,6 +135,8 @@ run_case() {
 
 run_case "up-to-date" "up-to-date" 0 no
 run_case "pending-exit-1" "pending" 0 yes
+run_case "pending-after-deltas" "pending-after-deltas" 0 yes
+run_case "pending-unknown-common" "pending-unknown-common" 1 no
 run_case "failed-migration" "failed-migration" 1 no
 run_case "pending-like-exit-130" "pending-interrupted" 1 no
 run_case "pending-like-exit-2" "pending-unexpected" 1 no

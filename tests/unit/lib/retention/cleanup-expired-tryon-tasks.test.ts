@@ -37,6 +37,7 @@ const mockedDelete = prisma.tryOnTask.delete as jest.Mock
 const mockedWarn = logger.warn as jest.Mock
 
 const PRIVATE_BLOB_TOKEN = 'private-token-for-retention-test'
+const PUBLIC_BLOB_TOKEN = 'public-token-for-retention-test'
 
 function makeTask(overrides: Record<string, unknown> = {}) {
   return {
@@ -63,6 +64,8 @@ describe('cleanupExpiredTryOnTasks Blob credential binding', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = PRIVATE_BLOB_TOKEN
+    process.env.BLOB_READ_WRITE_TOKEN = PUBLIC_BLOB_TOKEN
+    process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     mockedUpdate.mockResolvedValue({})
     mockedDelete.mockResolvedValue({})
     mockedDel.mockResolvedValue(undefined)
@@ -70,6 +73,8 @@ describe('cleanupExpiredTryOnTasks Blob credential binding', () => {
 
   afterEach(() => {
     delete process.env.RPIVATE_BLOB_READ_WRITE_TOKEN
+    delete process.env.BLOB_READ_WRITE_TOKEN
+    delete process.env.TRY_ON_BLOB_ACCESS_MODE
   })
 
   it('deletes canonical Try-On blobs with the explicit private-store token', async () => {
@@ -82,6 +87,33 @@ describe('cleanupExpiredTryOnTasks Blob credential binding', () => {
     expect(mockedDel).toHaveBeenCalledTimes(3)
     expect(mockedDel.mock.calls.every(([, options]) => options?.token === PRIVATE_BLOB_TOKEN)).toBe(true)
     expect(mockedDelete).toHaveBeenCalledWith({ where: { id: task.id } })
+  })
+
+  it('routes historical public and private URL deletions to their own store credentials', async () => {
+    const task = makeTask({
+      userImageUrl: 'https://old.public.blob.vercel-storage.com/tryon/user/old.jpg',
+      itemImageUrl: 'https://current.private.blob.vercel-storage.com/tryon/item/new.jpg',
+      resultImageUrl: null,
+      metadata: { userPathname: 'tryon/user/old.jpg', itemPathname: 'tryon/item/new.jpg' },
+    })
+    queueTasks([task])
+
+    const result = await cleanupExpiredTryOnTasks({ maxRounds: 1 })
+
+    expect(result.deleted).toBe(1)
+    expect(mockedDel).toHaveBeenNthCalledWith(1, task.userImageUrl, { token: PUBLIC_BLOB_TOKEN })
+    expect(mockedDel).toHaveBeenNthCalledWith(2, task.itemImageUrl, { token: PRIVATE_BLOB_TOKEN })
+  })
+
+  it('keeps the DB task when a public-store token is missing', async () => {
+    delete process.env.BLOB_READ_WRITE_TOKEN
+    queueTasks([makeTask({ userImageUrl: 'https://old.public.blob.vercel-storage.com/tryon/user/old.jpg' })])
+
+    const result = await cleanupExpiredTryOnTasks({ maxRounds: 1 })
+
+    expect(result.failed).toBe(1)
+    expect(mockedDel).not.toHaveBeenCalled()
+    expect(mockedDelete).not.toHaveBeenCalled()
   })
 
   it('never logs the Blob token when deletion fails', async () => {
