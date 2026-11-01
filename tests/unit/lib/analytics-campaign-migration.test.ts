@@ -172,7 +172,7 @@ describe('campaign intelligence analytics migration', () => {
     analytics.trackFaceShapeDetectorUpload('image/jpeg', 2048)
     analytics.trackFaceShapeDetectorComplete('oval', 0.88, 900)
     analytics.trackFaceShapeDetectorFailed('no face')
-    analytics.trackFaceShapeDetectorCta('oval', 'face_analysis')
+    analytics.trackFaceShapeDetectorCta('oval', 'face_analysis', 'result_summary_mobile')
 
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
@@ -201,6 +201,7 @@ describe('campaign intelligence analytics migration', () => {
         source_journey: 'face_shape_detection',
         destination: 'face_analysis',
         face_shape: 'oval',
+        cta_location: 'result_summary_mobile',
       }),
     )
 
