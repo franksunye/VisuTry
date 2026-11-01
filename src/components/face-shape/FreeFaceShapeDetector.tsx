@@ -11,6 +11,7 @@ import { compressImage } from '@/utils/image'
 import type { FaceLandmarkDetectionResult } from '@/lib/face-landmark-client'
 import type { FaceGeometryAnalysis } from '@/types/face-analysis'
 import { getFaceShapeDetectorUiCopy } from '@/config/face-shape-detector-ui-locales'
+import { getPriorityDetectorFeedback } from '@/config/priority-detector-feedback'
 import { getFaceShapeDetectorFailureCopy } from '@/config/face-shape-detector-error-copy'
 
 interface FreeFaceShapeDetectorProps {
@@ -24,6 +25,7 @@ const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
   const copy = getFaceShapeDetectorUiCopy(locale)
+  const feedback = getPriorityDetectorFeedback(locale)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [result, setResult] = useState<FaceGeometryAnalysis | null>(null)
@@ -49,13 +51,13 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
 
     if (!ACCEPTED_TYPES.has(file.type)) {
       const message = 'Choose a JPG, PNG, or WebP image.'
-      setError(message)
+      setError(feedback.unsupportedFile)
       analytics.trackFaceShapeDetectorFailed(message)
       return
     }
     if (file.size > MAX_FILE_SIZE) {
       const message = 'Choose an image smaller than 10 MB.'
-      setError(message)
+      setError(feedback.oversizedFile)
       analytics.trackFaceShapeDetectorFailed(message)
       return
     }
@@ -219,7 +221,7 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
                 )}
                 <p className="mt-2 text-center text-[11px] leading-4 text-gray-500">{copy.fileHint}</p>
                 <div className="mt-3 rounded-lg border border-green-100 bg-green-50/60 px-3 py-2.5 text-xs leading-5 text-gray-700">
-                  <p className="font-semibold text-gray-900">For the clearest result</p>
+                  <p className="font-semibold text-gray-900">{feedback.photoTipTitle}</p>
                   <p className="mt-0.5">{copy.errorHint}</p>
                 </div>
               </div>
