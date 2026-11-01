@@ -53,6 +53,18 @@ The strongest current commercial interpretation is:
 
 The immediate GTM task is therefore not to invent more product surface area. It is to scale the number of qualified users entering this workflow and measure what they do.
 
+### Consumer recommendation boundary — decision 2026-11-01
+
+The public promise **“which glasses suit my face?”** spans two different depths of help, but it must not create two competing personalization products:
+
+1. **Free discovery and editorial guidance:** indexable face-shape/style/fit pages can explain general, shape-based frame directions and reasons. These are reusable styling heuristics, not a ranked or individualized recommendation for an uploaded face.
+2. **Free Face Shape Detector:** no-login, browser-only landmark/shape estimate. The measured result may link to the same generic face-shape guides. It does **not** generate a personalized Top Picks report or invoke a new AI/provider/server ranking path.
+3. **Face Analysis / Glasses Advisor:** the **single Consumer personalized recommendation product**; photo-derived individual assessment, ranked frame directions, reasons, avoid-first guidance and complete style report stay behind existing account/credit/report-unlock rules. An included trial credit is a limited trial of the gated product, **not** a promise that full personalized recommendations are always free.
+4. **Try-On and Compare:** separate credit-metered visual validation steps. Shoppers already holding an exact frame photo can go straight to Try-On, without a forced Advisor step. Style Explorer explores occasion/style looks; it must not be marketed as a free substitute for individualized Face Analysis.
+5. **Merchant Store:** merchant-sponsored, catalog/SKU-specific recommendation follows Merchant entitlements and is not subject to the standalone Consumer report unlock.
+
+**SEO/UX language guardrail:** say **“free face-shape detection”** or **“general frame-style guide”** for the public layer; reserve **“personalized frame recommendations / Top Picks / analysis report”** for Advisor. Avoid a standalone free photo→personalized-frame-shortlist product, duplicate recommendation pipeline, new per-use provider call, extra Detector CPU, or exposed locked report payload. Preserve the existing mobile Detector CTA 7-day experiment before considering new visible continuation copy. Evaluate success by qualified Advisor starts, unlocks, Try-On/Compare starts and verified purchase—not generic free recommendation clicks.
+
 ---
 
 ## 2. Operating baseline — 2026-08-03
