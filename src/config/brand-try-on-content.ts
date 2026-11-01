@@ -30,6 +30,20 @@ export interface BrandTryOnContent {
   styles: readonly BrandStyleDirection[]
 }
 
+// Editorial guidance shared by the nine curated, English-first brand landing pages.
+// Style cards are independent reference images; the product requires a user's
+// own frame photo/screenshot plus portrait. Never imply a branded preset is loaded.
+export const BRAND_PHOTO_TRY_ON_GUIDANCE = {
+  heroNote: 'To make a real preview, bring your portrait and a clear front-facing product photo or screenshot of the glasses. The reference cards below do not load a branded frame into the try-on automatically.',
+  sectionNote: 'These are independent silhouette references, not exact branded products. Select a direction, find a specific model with a clear front-view image, then use that image and your portrait for a visual try-on.',
+  cardCta: 'Try a similar frame using a photo',
+  steps: [
+    { label: 'Pick a direction', text: 'Compare one angular, one curved, and one lighter silhouette before choosing a real model.' },
+    { label: 'Save the frame image', text: 'Use a clear, front-facing product photo or screenshot from the brand or an authorized seller.' },
+    { label: 'Preview, then verify', text: "Upload your portrait and that frame image in VisuTry; confirm the exact model's dimensions, availability, and fit with the seller." },
+  ],
+} as const
+
 export const BRAND_TRY_ON_CONTENT: Record<CuratedBrandSlug, BrandTryOnContent> = {
   'warby-parker': {
     slug: 'warby-parker',
