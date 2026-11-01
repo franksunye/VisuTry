@@ -38,6 +38,8 @@
 
 Top GSC queries: `face shape detector` **643 clicks/28,916 impressions**, Japanese `顔の形診断 カメラ 無料` **168/1,596**, `visutry` **150/206**, `face shape detector for glasses` **116/673**, `gentle monster virtual try on` **84/192**. Query/rank/device mix is still a hypothesis; avoid blindly rewriting high-performing titles.
 
+**Query-level diagnostic refinement (same GSC comparison):** On the EN detector specifically, exact query `face shape detector` fell **1,059 → 642 clicks (−417)** and **49,682 → 28,916 impressions (−20,766)**; its average position remained roughly **7.7 → 7.9** and CTR improved **2.1% → 2.2%**. The page as a whole had stable average position **8.1 → 8.1** and CTR **2.4% → 2.9%**. This one query more than explains the page's net −404 clicks. **Do not treat the decline as proven on-page SEO deterioration:** demand/SERP visibility mix and country/device composition require investigation before changing the page. On EN AI guide, CTR **6.8% → 4.8%** and mean position **7.6 → 8.1** as impressions grew; specifically `which glasses suit my face ai free` fell **153 → 71 clicks**, with **796 → 434 impressions**, while broader `which glasses suit my face` gained impressions (**619 → 1,386**) with clicks only **17 → 20**. Prioritize query-intent and snippet/section testing rather than a broad rewrite.
+
 ### GEO and indexability
 
 GSC's **Google Search Generative AI beta** report (Oct 2–29) shows **17,036 impressions** (not clicks/sessions). EN detector **7,309**, EN AI guide **4,358**, EN face analysis **1,072**, Gentle Monster **692**, JA detector **485**. Separately GA4 AI Assistant reports 588 vs 850 sessions; do not claim these measures map one-to-one. Audit sources and downstream decisions.
