@@ -12,6 +12,8 @@ import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
 import { getTopPickPresetById, type GlassesPreset } from '@/config/glasses-presets'
 import {
   getOrdinaryGlassesDetailCopy,
+  getOrdinaryGlassesHeadingShape,
+  getEnglishOrdinaryGlassesStyleNote,
   getOrdinaryGlassesTemplateShape,
   interpolateOrdinaryGlassesCopy,
 } from '@/config/ordinary-glasses-detail-locales'
@@ -69,10 +71,11 @@ export async function generateMetadata({ params }: FaceShapePageProps): Promise<
   const detail = getOrdinaryGlassesDetailCopy(params.locale)
   const shapeName = seoCopy.shapeNames[shape]
   const templateShapeName = getOrdinaryGlassesTemplateShape(params.locale, shape, shapeName)
+  const headingShapeName = getOrdinaryGlassesHeadingShape(params.locale, shape, templateShapeName)
 
   return generateI18nSEO({
     locale: params.locale as Locale,
-    title: interpolateOrdinaryGlassesCopy(detail.metaTitle, templateShapeName),
+    title: interpolateOrdinaryGlassesCopy(detail.metaTitle, headingShapeName),
     description: interpolateOrdinaryGlassesCopy(detail.metaDescription, templateShapeName),
     pathname: `/style/${shape}-face`,
   })
@@ -87,6 +90,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
   const detail = getOrdinaryGlassesDetailCopy(locale)
   const shapeName = seoCopy.shapeNames[shape]
   const templateShapeName = getOrdinaryGlassesTemplateShape(locale, shape, shapeName)
+  const headingShapeName = getOrdinaryGlassesHeadingShape(locale, shape, templateShapeName)
   const pagePath = `/style/${shape}-face`
   const b04PagePath: B04VisualSeoPage | null = ['round', 'oval', 'square'].includes(shape)
     ? pagePath as B04VisualSeoPage
@@ -96,7 +100,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
     : null
   const pageUrl = `https://www.visutry.com/${locale}${pagePath}`
   const presets = presetIds[shape].map(getTopPickPresetById).filter(isPreset)
-  const title = interpolateOrdinaryGlassesCopy(detail.title, templateShapeName)
+  const title = interpolateOrdinaryGlassesCopy(detail.title, headingShapeName)
   const description = interpolateOrdinaryGlassesCopy(detail.description, templateShapeName)
   const faqContent = [
     {
@@ -167,7 +171,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
             <div className="mb-4 flex items-center gap-2">
               <ScanFace className="h-5 w-5 text-blue-600" />
               <h2 className="text-lg font-semibold text-gray-950">
-                {interpolateOrdinaryGlassesCopy(detail.characteristicsTitle, templateShapeName)}
+                {interpolateOrdinaryGlassesCopy(detail.characteristicsTitle, headingShapeName)}
               </h2>
             </div>
             <p className="mb-5 text-sm leading-6 text-gray-600">{detail.characteristicsText}</p>
@@ -201,7 +205,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
             <div>
               <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">{detail.recommendedEyebrow}</p>
               <h2 className="text-2xl font-bold text-gray-950">
-                {interpolateOrdinaryGlassesCopy(detail.recommendedTitle, templateShapeName)}
+                {interpolateOrdinaryGlassesCopy(detail.recommendedTitle, headingShapeName)}
               </h2>
             </div>
             <Link href={`/${locale}/try-on/glasses`} className="text-sm font-semibold text-blue-700 hover:text-blue-900">
@@ -223,7 +227,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
                 <div className="relative h-48 overflow-hidden bg-gray-100">
                   <Image
                     src={`/${preset.assetPath}`}
-                    alt={`${detail.recommendedEyebrow} ${index + 1} · ${shapeName}`}
+                    alt={locale === 'en' ? `${preset.name} frames for ${templateShapeName} faces` : `${detail.recommendedEyebrow} ${index + 1} · ${shapeName}`}
                     width={360}
                     height={240}
                     className="h-full w-full object-cover transition group-hover:scale-105"
@@ -231,9 +235,13 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
                 </div>
                 <div className="p-4">
                   <h3 className="font-semibold text-gray-950 group-hover:text-blue-700">
-                    {detail.recommendedEyebrow} {index + 1}
+                    {locale === 'en' ? `${preset.name} Frames` : `${detail.recommendedEyebrow} ${index + 1}`}
                   </h3>
-                  <p className="mt-2 text-sm leading-6 text-gray-600">{seoCopy.glasses.reasons[shape]}</p>
+                  <p className="mt-2 text-sm leading-6 text-gray-600">
+                    {locale === 'en'
+                      ? getEnglishOrdinaryGlassesStyleNote(shape, preset.id) ?? seoCopy.glasses.reasons[shape]
+                      : seoCopy.glasses.reasons[shape]}
+                  </p>
                   <p className="mt-3 text-sm font-semibold text-blue-700">{detail.tryStyle}</p>
                 </div>
               </GrowthFunnelLink>
@@ -249,7 +257,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
             <div>
               <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">{detail.workflowEyebrow}</p>
               <h2 className="text-2xl font-bold text-gray-950">
-                {interpolateOrdinaryGlassesCopy(detail.workflowTitle, templateShapeName)}
+                {interpolateOrdinaryGlassesCopy(detail.workflowTitle, headingShapeName)}
               </h2>
             </div>
             <GrowthFunnelLink prefetch={false}
@@ -278,7 +286,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
 
         <section className="mt-12">
           <h2 className="mb-5 text-2xl font-bold text-gray-950">
-            {interpolateOrdinaryGlassesCopy(detail.faqTitle, templateShapeName)}
+            {interpolateOrdinaryGlassesCopy(detail.faqTitle, headingShapeName)}
           </h2>
           <div className="grid gap-4 md:grid-cols-3">
             {faqContent.map((item) => (

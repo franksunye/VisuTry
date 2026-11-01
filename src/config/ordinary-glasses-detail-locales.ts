@@ -28,9 +28,67 @@ export type OrdinaryGlassesDetailCopy = {
   otherTitle: string
 }
 
+const englishHeadingShapes: Record<FaceShapeContentSlug, string> = {
+  oval: 'Oval',
+  round: 'Round',
+  square: 'Square',
+  heart: 'Heart-Shaped',
+  diamond: 'Diamond-Shaped',
+  oblong: 'Oblong',
+  triangle: 'Triangle-Shaped',
+}
+
+// The four recommended cards must explain the actual preset shown, not reuse
+// a face-shape slogan under numbered placeholders. English first; other locale
+// cards retain their current translated copy until individually reviewed.
+const englishStyleNotes: Record<FaceShapeContentSlug, Record<string, string>> = {
+  round: {
+    'rectangle-classic': 'Straight top and bottom edges add definition; compare the frame width with the widest part of your face.',
+    'square-classic': 'A structured square outline contrasts softer cheeks. Try gently rounded corners if the look feels too severe.',
+    'geometric-classic': 'Faceted lenses introduce angles without a heavy rim. Check that the lens height still feels proportional.',
+    'wayfarer-classic': 'A softly squared upper line gives an everyday alternative to sharply rectangular frames.',
+  },
+  square: {
+    'round-classic': 'Circular lenses contrast a defined jawline. Choose a width that still sits comfortably across the temples.',
+    'oval-classic': 'Soft oval curves ease the visual contrast around the jaw while keeping the frame understated.',
+    'rimless-light': 'A nearly invisible rim adds little visual weight. Lens size and bridge fit become especially important.',
+    'aviator-classic': 'Curved teardrop lenses offer a softer outline. Compare their depth with your natural face proportions.',
+  },
+  oval: {
+    'rectangle-classic': 'Crisp rectangular edges can give balanced proportions a more tailored, defined look.',
+    'browline-classic': 'A stronger upper rim puts emphasis near the brows. Compare where it sits relative to your eyes.',
+    'aviator-classic': 'Aviator curves add a relaxed option. Check frame width and bridge height instead of relying on shape alone.',
+    'square-classic': 'Square lenses add graphic structure. Keep the size proportional so the rims do not overpower your face.',
+  },
+  heart: {
+    'rimless-light': 'A light rim can keep the upper face from looking crowded. Check bridge fit and overall lens width.',
+    'round-classic': 'Gentle circles bring softness below a broader forehead. Compare the lens diameter with cheek width.',
+    'cat-eye-classic': 'A modest upsweep can highlight the eyes. Try restrained corners to avoid adding too much width above.',
+    'bottom-weighted-classic': 'A stronger lower edge draws some attention toward the cheeks and chin. Check the look while smiling.',
+  },
+  diamond: {
+    'oval-classic': 'Smooth oval edges soften cheekbone angles. Avoid a width that feels tight across the broadest area.',
+    'rimless-light': 'A light rim leaves the cheekbone area open. Judge lens outline and bridge fit together.',
+    'cat-eye-classic': 'A subtle upsweep shifts attention toward the brow. Compare moderate corners rather than very narrow ones.',
+    'browline-classic': 'A defined upper rim can add balance near a narrower forehead while keeping the lower edge light.',
+  },
+  oblong: {
+    'rectangle-classic': 'Look for enough lens depth to keep the frame from emphasizing vertical length.',
+    'oversized-classic': 'Generous lens height may balance longer proportions. Check that the bridge and width remain comfortable.',
+    'browline-classic': 'A clear upper edge breaks up vertical length. Assess lens depth as carefully as the brow line.',
+    'oversized-square-classic': 'Larger square lenses add presence and depth. Avoid excessive overhang beyond the cheeks.',
+  },
+  triangle: {
+    'browline-classic': 'A stronger upper rim brings attention toward the forehead. Compare its width with your jaw.',
+    'cat-eye-classic': 'Lifted outer corners draw the eye upward. Choose a subtle angle that follows your eye line.',
+    'aviator-classic': 'A broad upper bar and tapered lower lens shift visual interest upward. Recheck the frame width.',
+    'geometric-classic': 'Faceted upper corners can add definition higher on the face. Try a lighter rim for contrast.',
+  },
+}
+
 const copies: Record<Locale, OrdinaryGlassesDetailCopy> = {
   en: {
-    metaTitle: 'Best Glasses for {shape} Faces: Styles to Try First', metaDescription: 'Best glasses for a {shape} face. Compare recommended frame styles and fit checks, then try the shortlist on your photo with virtual try-on or frame compare.', title: 'Best Glasses for {shape} Faces', badge: 'Glasses guide by face shape', home: 'Home', description: 'Use your {shape} face shape to shortlist frames, then compare width, lens depth, bridge fit, color, and style on your own photo.', characteristicsTitle: '{shape} face shopping goal', characteristicsText: 'Face shape is a useful first filter. The strongest choice also fits your measurements, prescription needs, comfort, and personal style.', guidance: 'Start with the recommendations below, then use virtual try-on as the visual check.', tryFirstTitle: 'Try first', avoidFirstTitle: 'Reconsider first', whyTitle: 'Why it works', recommendedEyebrow: 'Recommended frame styles', recommendedTitle: 'Glasses to try for {shape} faces', tryAny: 'Try any glasses on your photo', tryStyle: 'Try this style', workflowEyebrow: 'AI shopping workflow', workflowTitle: 'From {shape} face guide to virtual try-on', advisorCta: 'Get personalized glasses advice', faqTitle: '{shape} face glasses FAQ', faqBest: 'What glasses are best for a {shape} face?', faqAvoid: 'Should {shape} faces avoid any glasses?', faqAi: 'Can AI help me choose glasses for my face shape?', otherTitle: 'Compare glasses for other face shapes',
+    metaTitle: 'Best Glasses for {shape} Faces: Styles to Try First', metaDescription: 'Best glasses for a {shape} face. Compare recommended frame styles and fit checks, then try the shortlist on your photo with virtual try-on or frame compare.', title: 'Best Glasses for {shape} Faces', badge: 'Glasses guide by face shape', home: 'Home', description: 'Use your {shape} face shape to shortlist frames, then compare width, lens depth, bridge fit, color, and style on your own photo.', characteristicsTitle: 'Shopping Priorities for {shape} Faces', characteristicsText: 'Face shape is a useful first filter. The strongest choice also fits your measurements, prescription needs, comfort, and personal style.', guidance: 'Start with the recommendations below, then use virtual try-on as the visual check.', tryFirstTitle: 'Try first', avoidFirstTitle: 'Reconsider first', whyTitle: 'Why it works', recommendedEyebrow: 'Recommended frame styles', recommendedTitle: 'Glasses to Try for {shape} Faces', tryAny: 'Try any glasses on your photo', tryStyle: 'Try this style', workflowEyebrow: 'AI shopping workflow', workflowTitle: 'From {shape} Face Guide to Virtual Try-On', advisorCta: 'Get personalized glasses advice', faqTitle: '{shape} Face Glasses FAQ', faqBest: 'What glasses are best for a {shape} face?', faqAvoid: 'Should {shape} faces avoid any glasses?', faqAi: 'Can AI help me choose glasses for my face shape?', otherTitle: 'Compare glasses for other face shapes',
   },
   fr: {
     metaTitle: 'Meilleures lunettes pour un visage {shape}', metaDescription: 'Trouvez les meilleures lunettes pour un visage {shape}, comparez montures et ajustement, puis essayez la sélection sur votre photo.', title: 'Meilleures lunettes pour un visage {shape}', badge: 'Guide lunettes par forme de visage', home: 'Accueil', description: 'Utilisez votre visage {shape} pour présélectionner des montures, puis comparez largeur, hauteur des verres, pont, couleur et style sur votre photo.', characteristicsTitle: 'Objectif pour un visage {shape}', characteristicsText: 'La forme du visage est un premier filtre utile. Le meilleur choix respecte aussi vos mesures, votre correction, votre confort et votre style.', guidance: 'Commencez par les conseils ci-dessous, puis utilisez l’essayage virtuel comme vérification visuelle.', tryFirstTitle: 'À essayer en premier', avoidFirstTitle: 'À reconsidérer', whyTitle: 'Pourquoi cela fonctionne', recommendedEyebrow: 'Montures recommandées', recommendedTitle: 'Lunettes à essayer pour un visage {shape}', tryAny: 'Essayer des lunettes sur votre photo', tryStyle: 'Essayer ce style', workflowEyebrow: 'Parcours d’achat avec IA', workflowTitle: 'Du guide visage {shape} à l’essayage virtuel', advisorCta: 'Recevoir un conseil personnalisé', faqTitle: 'FAQ lunettes pour visage {shape}', faqBest: 'Quelles lunettes conviennent à un visage {shape} ?', faqAvoid: 'Un visage {shape} doit-il éviter certaines lunettes ?', faqAi: 'L’IA peut-elle m’aider à choisir mes lunettes ?', otherTitle: 'Comparer les autres formes de visage',
@@ -134,6 +192,21 @@ export function getOrdinaryGlassesTemplateShape(
 ): string {
   const validLocale = isValidLocale(locale) ? locale : defaultLocale
   return templateShapeVariants[validLocale]?.[shape] ?? fallbackName.toLocaleLowerCase(validLocale)
+}
+
+export function getOrdinaryGlassesHeadingShape(
+  locale: string,
+  shape: FaceShapeContentSlug,
+  fallbackTemplateShape: string,
+): string {
+  return locale === 'en' ? englishHeadingShapes[shape] : fallbackTemplateShape
+}
+
+export function getEnglishOrdinaryGlassesStyleNote(
+  shape: FaceShapeContentSlug,
+  presetId: string,
+): string | undefined {
+  return englishStyleNotes[shape][presetId]
 }
 
 export function getOrdinaryGlassesDetailCopy(locale: string): OrdinaryGlassesDetailCopy {
