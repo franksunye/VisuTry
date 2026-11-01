@@ -100,7 +100,7 @@ export default function GlassesForFaceShapePage({ params }: Props) {
                 key={shape}
                 className="grid grid-cols-[0.9fr_1.45fr_1.2fr_1.55fr] gap-4 border-t border-gray-200 px-4 py-4 text-sm"
               >
-                <Link href={locale === 'en' ? `/${locale}/style/${shape}-face` : `/${locale}/face-shape-detector`} className="font-semibold text-blue-700 hover:text-blue-900">
+                <Link href={`/${locale}/style/${shape}-face`} className="font-semibold text-blue-700 hover:text-blue-900">
                   {copy.shapeNames[shape]}
                 </Link>
                 <span className="text-gray-700">{copy.glasses.tryFirst[shape]}</span>
