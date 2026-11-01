@@ -160,3 +160,8 @@ The Browser extension was subsequently recovered, allowing read-only authenticat
 - **Independent GA4 access corroboration:** GA4 Home was readable through the same connected local Chrome. Its default **last-7-days** cards showed about **1.7K active users (+5.9%)**, **~1.4K Organic Search sessions (+7.4%)**, **177 AI Assistant sessions (+4.1%)**, 569 key events (+2.2%), and 3 purchases (+50%). These are approximate dashboard values and a **different time window** from the exact 28-day audit; do not mix them into the 10× comparison or interpret key events as a qualified funnel.
 
 **Next measurable gate:** production HTML is now verified on 7/7 guides; next perform weekly GSC per-URL inspection for the seven EN guides, measure indexed count and comparable click/impression changes, and validate qualified downstream action rates. No Google index requests, Cloudflare purge, or bulk page publication was issued in this follow-on step.
+
+## Legacy CDN alias delivery closure — Nov 1
+
+**Legacy diamond alias CDN follow-up — 2026-11-01 12:46 UTC.** Canonical public `/style/diamond` and `/en/style/diamond` were re-requested as **bare URLs**, without cache-busting query parameters. Each returned **308** with `Location: /en/style/diamond-face`; the redirected destination returned **200**. The formerly stale `/en/style/diamond` edge response no longer served an old 404 (`CF-Cache-Status: EXPIRED/MISS` in sampled requests). Existing [#494](https://github.com/franksunye/VisuTry/pull/494) is now **delivery-verified**; no purge needed. This does **not** establish Google's current indexed status or clear its lagging exclusion snapshot. See the canonical task ledger for the remaining recrawl readback.
+
