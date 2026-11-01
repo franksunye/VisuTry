@@ -60,7 +60,7 @@ const copies: Record<Locale, OrdinaryGlassesDetailCopy> = {
     faqAvoid: 'Каких оправ стоит избегать при выборе очков для {shape} лица?',
     faqAi: 'Может ли ИИ помочь выбрать очки?',
     otherTitle: 'Сравнить другие формы лица',
-  }
+  },
   de: {
     metaTitle: 'Beste Brillen für ein {shape} Gesicht',
     metaDescription: 'Entdecken Sie Brillen für ein {shape} Gesicht, vergleichen Sie Fassungen und Passform und testen Sie die Auswahl auf Ihrem Foto.',
@@ -86,7 +86,7 @@ const copies: Record<Locale, OrdinaryGlassesDetailCopy> = {
     faqAvoid: 'Welche Brillen sind für ein {shape} Gesicht weniger geeignet?',
     faqAi: 'Kann KI bei der Brillenwahl helfen?',
     otherTitle: 'Andere Gesichtsformen vergleichen',
-  }
+  },
   pt: {
     metaTitle: 'Melhores óculos para rosto {shape}', metaDescription: 'Encontre os melhores óculos para rosto {shape}, compare armações e ajuste e experimente a seleção na sua foto.', title: 'Melhores óculos para rosto {shape}', badge: 'Guia de óculos por formato de rosto', home: 'Início', description: 'Use o formato {shape} para selecionar armações e depois compare largura, altura das lentes, ponte, cor e estilo na sua foto.', characteristicsTitle: 'Objetivo para rosto {shape}', characteristicsText: 'O formato do rosto é um bom primeiro filtro. A melhor armação também respeita medidas, receita, conforto e estilo pessoal.', guidance: 'Comece pelas recomendações abaixo e use a prova virtual como verificação visual.', tryFirstTitle: 'Experimente primeiro', avoidFirstTitle: 'Reconsidere primeiro', whyTitle: 'Por que funciona', recommendedEyebrow: 'Armações recomendadas', recommendedTitle: 'Óculos para experimentar em rosto {shape}', tryAny: 'Experimentar óculos na minha foto', tryStyle: 'Experimentar este estilo', workflowEyebrow: 'Jornada de compra com IA', workflowTitle: 'Do guia de rosto {shape} à prova virtual', advisorCta: 'Receber recomendação personalizada', faqTitle: 'Perguntas sobre óculos para rosto {shape}', faqBest: 'Quais óculos combinam com rosto {shape}?', faqAvoid: 'Rostos {shape} devem evitar algum óculos?', faqAi: 'A IA pode ajudar a escolher óculos?', otherTitle: 'Comparar outros formatos de rosto',
   },
