@@ -1,5 +1,7 @@
 import {
   getOrdinaryGlassesDetailCopy,
+  getOrdinaryGlassesHeadingShape,
+  getEnglishOrdinaryGlassesStyleNote,
   getOrdinaryGlassesTemplateShape,
   interpolateOrdinaryGlassesCopy,
 } from '@/config/ordinary-glasses-detail-locales'
@@ -91,5 +93,48 @@ describe('ordinary glasses face-shape detail locale copy', () => {
     expect(getOrdinaryGlassesTemplateShape('fr', 'oval', 'Ovale')).toBe('ovale')
     expect(getOrdinaryGlassesTemplateShape('ja', 'round', '丸型')).toBe('丸型')
     expect(getOrdinaryGlassesTemplateShape('unknown', 'round', 'Round')).toBe('round')
+  })
+
+  const expectedEnglishHeadings: Record<FaceShapeContentSlug, string> = {
+    oval: 'Oval',
+    round: 'Round',
+    square: 'Square',
+    heart: 'Heart-Shaped',
+    diamond: 'Diamond-Shaped',
+    oblong: 'Oblong',
+    triangle: 'Triangle-Shaped',
+  }
+  const expectedEnglishPresets: Record<FaceShapeContentSlug, readonly string[]> = {
+    oval: ['rectangle-classic', 'browline-classic', 'aviator-classic', 'square-classic'],
+    round: ['rectangle-classic', 'square-classic', 'geometric-classic', 'wayfarer-classic'],
+    square: ['round-classic', 'oval-classic', 'rimless-light', 'aviator-classic'],
+    heart: ['rimless-light', 'round-classic', 'cat-eye-classic', 'bottom-weighted-classic'],
+    diamond: ['oval-classic', 'rimless-light', 'cat-eye-classic', 'browline-classic'],
+    oblong: ['rectangle-classic', 'oversized-classic', 'browline-classic', 'oversized-square-classic'],
+    triangle: ['browline-classic', 'cat-eye-classic', 'aviator-classic', 'geometric-classic'],
+  }
+
+  it.each(FACE_SHAPE_SLUGS)('renders natural English headings and four distinct preset notes for %s', (shape) => {
+    const copy = getOrdinaryGlassesDetailCopy('en')
+    const heading = getOrdinaryGlassesHeadingShape('en', shape, shape)
+    const title = interpolateOrdinaryGlassesCopy(copy.title, heading)
+    const notes = expectedEnglishPresets[shape].map((id) => getEnglishOrdinaryGlassesStyleNote(shape, id))
+
+    expect(heading).toBe(expectedEnglishHeadings[shape])
+    expect(title).toBe(`Best Glasses for ${heading} Faces`)
+    expect(interpolateOrdinaryGlassesCopy(copy.metaTitle, heading)).toContain(heading)
+    expect(interpolateOrdinaryGlassesCopy(copy.characteristicsTitle, heading))
+      .toBe(`Shopping Priorities for ${heading} Faces`)
+    expect(notes).toHaveLength(4)
+    expect(notes.every((note) => typeof note === 'string' && note.length > 55)).toBe(true)
+    expect(new Set(notes).size).toBe(4)
+    expect(notes.every((note) => !note?.includes('Recommended frame styles'))).toBe(true)
+  })
+
+  it('preserves non-English grammar and does not invent unrelated preset advice', () => {
+    expect(getOrdinaryGlassesHeadingShape('ru', 'round', 'круглого')).toBe('круглого')
+    expect(getOrdinaryGlassesHeadingShape('de', 'round', 'rundes')).toBe('rundes')
+    expect(getOrdinaryGlassesHeadingShape('fr', 'round', 'rond')).toBe('rond')
+    expect(getEnglishOrdinaryGlassesStyleNote('round', 'round-classic')).toBeUndefined()
   })
 })
