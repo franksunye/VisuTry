@@ -1,14 +1,32 @@
-# VisuTry GTM v3.3：10× Qualified Traffic Execution Plan
+# VisuTry GTM v3.4：10× Qualified Traffic Execution Plan
 
 **Status:** Active source of truth for GTM execution  
-**Version:** 3.3
-**Last updated:** 2026-08-15
+**Version:** 3.4
+**Last updated:** 2026-11-01
 **Owner:** Growth / Product / Engineering / Analytics  
 **Review cadence:** Weekly  
 **Execution horizon:** 60–90 days  
 **Scope:** Consumer acquisition, SEO, AI discovery, visual discovery, external distribution, funnel conversion, growth engineering, and measurement.
 
 > This is the only active GTM execution plan for VisuTry. Historical SEO, backlink, directory, outreach, GEO, brand-page, and growth-sprint documents remain supporting references or execution history only. They do not create parallel GTM priorities.
+
+---
+
+## 0. Operating restart — 2026-11-01
+
+**Decision:** Retain the 10× qualified Consumer traffic objective and resume one weekly SEO/GEO growth loop. This is a resumption checkpoint, **not** proof that the objective has been met or a new 60–90-day forecast.
+
+**Authenticated measurement checkpoint (2026-11-01):** GA4 property `AI-2024 / visutry.com`, Oct 4–31 vs Sep 6–Oct 3: **6,889 vs 7,804 total sessions (−11.7%)**, Organic Search **5,015 vs 5,238 (−4.3%)**, AI Assistant **588 vs 850 (−30.8%)**. Relative to the 2026-08-03 ~1,824-session monthly baseline, the all-session directional multiple is **3.78×**, leaving **11,351 sessions** to the strict 18,240-session 10× arithmetic benchmark. This is not yet a *qualified Consumer* or verified revenue multiple; GA4 key events and revenue must be reconciled to the first-party funnel. GSC URL-prefix property `https://www.visutry.com/`, Oct 2–29 vs Sep 4–Oct 1: **4,761 vs 4,984 web clicks (−4.5%)**, **118,826 vs 142,252 impressions (−16.5%)**, CTR 4.0% vs 3.5%, average position 9.2 vs 8.7. GSC index report last refreshed Oct 23: **448 indexed / 831 excluded** (including 278 discovered-not-indexed, 78 crawled-not-indexed, 8 actual 404). GSC Generative AI beta: **17,036 impressions** in the latest 28d; do not equate that to AI referrals or clicks. Full provenance, query/page changes and caveats: `docs/ops/organic-growth-restart-2026-11-01.md`.
+
+**Restart gate — before page expansion or ranking claims:**
+
+1. Read the latest complete 28-day and prior 28-day GA4/GSC windows, with a separate 90-day trend. Record property, time zone, extraction time, filters and completeness.
+2. Segment Consumer Organic Search and AI Assistant by landing page, country/device, non-brand intent and subsequent Detector / Advisor / Try-On / Compare / verified purchase. Exclude identifiable TEST/INTERNAL/Reference traffic, and do not equate Merchant Agent Gate A with all Consumer AI referrals.
+3. Inspect Google indexing/crawl anomalies, canonical/hreflang/sitemap and robots rules; recheck the historical June 404 issue instead of assuming its old count is current.
+4. Select at most 1–2 evidence-backed page improvements per week, prefer refreshing existing winning query owners, then review incremental qualified traffic and revenue per 1,000 qualified sessions.
+5. Record weekly results in `docs/strategy/seo/weekly-growth-report-template.md`; perform monthly expand/modify/stop and documentation hygiene reviews. Keep only this file as the strategic GTM source of truth.
+
+**2026-11 baseline audit:** `docs/ops/organic-growth-restart-2026-11-01.md`. **Historical milestones and dated execution queues below remain point-in-time evidence**, not automatically renewed deadlines. B10–B19 Visual SEO production, new locales, 500/1,000-page programs and fixed-volume outreach are on hold until current demand and conversion data justify them.
 
 ---
 
@@ -797,6 +815,7 @@ And every weekly review ends with:
 
 | Version | Date | Change |
 | --- | --- | --- |
+| 3.4 | 2026-11-01 | Restarted weekly SEO/GEO operations, fenced stale GA/GSC snapshots, and gated additional content/Visual SEO expansion on fresh qualified-traffic and purchase evidence. |
 | 3.3 | 2026-08-15 | Added the latest GA checkpoint: +32.43% weekly sessions, +118.82% AI Assistant sessions, current 28-day and seven-day run rates, the 3,000–5,000 milestone status, and the weekly-versus-monthly growth measurement rule. |
 | 3.2 | 2026-08-10 | Froze the consumer and merchant AI-facing message contract; added the AI traffic-quality baseline and claim boundaries; closed the current Checkout optimization round with a server-side lifecycle observation protocol and evidence-based reopening conditions. |
 | 3.1 | 2026-08-03 | Split the 10× qualified-traffic plan into Engineering, Growth, and Product / Analytics execution backlogs. |
