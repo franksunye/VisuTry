@@ -3,6 +3,7 @@ import Link from '@/components/layout/PublicLink'
 import { notFound } from 'next/navigation'
 import { ArrowRight, Glasses, ScanFace, SlidersHorizontal } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
+import { FrameWidthBuyingGuide } from '@/components/seo/FrameWidthBuyingGuide'
 import {
   CombinationVisualSeoHero,
   CombinationVisualSeoSections,
@@ -127,6 +128,10 @@ export default function CombinationSearchPage({ params }: Props) {
           <p className="text-sm leading-6 text-gray-700">{page.watchFor}</p>
         </article>
       </section>
+
+      {locale === 'en' && page.slug === 'how-wide-should-glasses-be-for-my-face'
+        ? <FrameWidthBuyingGuide />
+        : null}
 
       {hasVisualSeoAssets ? <CombinationVisualSeoSections locale={locale} page={page} /> : null}
 
