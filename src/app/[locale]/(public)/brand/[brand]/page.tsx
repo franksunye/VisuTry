@@ -6,6 +6,7 @@ import { ArrowRight, CheckCircle2, Glasses, ScanFace } from 'lucide-react'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 import {
   BRAND_TRY_ON_CONTENT,
+  BRAND_PHOTO_TRY_ON_GUIDANCE,
   CURATED_BRAND_SLUGS,
   getCuratedBrandContent,
 } from '@/config/brand-try-on-content'
@@ -145,6 +146,7 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
                 Find my face shape <ScanFace className="h-4 w-4" />
               </GrowthFunnelLink>
             </div>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">{BRAND_PHOTO_TRY_ON_GUIDANCE.heroNote}</p>
           </div>
           <div className="relative min-h-72 overflow-hidden rounded-xl bg-white/10">
             <Image src={content.styles[0].image} alt={`${content.name} virtual try-on style direction`} fill priority className="object-cover" sizes="(min-width: 1024px) 40vw, 100vw" />
@@ -154,7 +156,7 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
         <section className="mt-12">
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">Compare before you buy</p>
           <h2 className="mt-2 text-2xl font-bold text-gray-950 md:text-3xl">Four {content.name} style directions to test</h2>
-          <p className="mt-3 max-w-3xl leading-7 text-gray-600">These are visual starting points, not exact branded products. Testing distinct silhouettes is more useful than comparing several nearly identical frames.</p>
+          <p className="mt-3 max-w-3xl leading-7 text-gray-600">{BRAND_PHOTO_TRY_ON_GUIDANCE.sectionNote}</p>
           <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {content.styles.map((style, index) => (
               <GrowthFunnelLink prefetch={false}
@@ -175,7 +177,7 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
                   <h3 className="font-semibold text-gray-950 group-hover:text-blue-700">{style.name}</h3>
                   <p className="mt-2 text-sm leading-6 text-gray-600">{style.description}</p>
                   <p className="mt-3 text-sm leading-6 text-gray-700">{style.faceShapeTip}</p>
-                  <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">Try this direction <ArrowRight className="h-4 w-4" /></p>
+                  <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">{BRAND_PHOTO_TRY_ON_GUIDANCE.cardCta} <ArrowRight className="h-4 w-4" /></p>
                 </div>
               </GrowthFunnelLink>
             ))}
@@ -186,9 +188,12 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
           <article className="rounded-xl border border-gray-200 bg-white p-6">
             <div className="flex items-center gap-2"><Glasses className="h-5 w-5 text-blue-700" /><h2 className="text-xl font-bold text-gray-950">A faster comparison workflow</h2></div>
             <ol className="mt-5 space-y-4 text-sm leading-6 text-gray-700">
-              <li className="flex gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" /><span><strong>Start broad:</strong> test one angular, one curved, and one lighter frame.</span></li>
-              <li className="flex gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" /><span><strong>Choose the silhouette:</strong> compare brow line, width, lens height, and visual weight.</span></li>
-              <li className="flex gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" /><span><strong>Confirm the product:</strong> match exact dimensions and availability with the brand or an authorized retailer.</span></li>
+              {BRAND_PHOTO_TRY_ON_GUIDANCE.steps.map((step) => (
+                <li key={step.label} className="flex gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                  <span><strong>{step.label}:</strong> {step.text}</span>
+                </li>
+              ))}
             </ol>
           </article>
           <article className="rounded-xl bg-blue-50 p-6">
