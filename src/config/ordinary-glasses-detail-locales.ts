@@ -1,4 +1,5 @@
 import { defaultLocale, isValidLocale, type Locale } from '@/i18n'
+import type { FaceShapeContentSlug } from '@/config/face-shape-content'
 
 export type OrdinaryGlassesDetailCopy = {
   metaTitle: string
@@ -35,10 +36,56 @@ const copies: Record<Locale, OrdinaryGlassesDetailCopy> = {
     metaTitle: 'Meilleures lunettes pour un visage {shape}', metaDescription: 'Trouvez les meilleures lunettes pour un visage {shape}, comparez montures et ajustement, puis essayez la sélection sur votre photo.', title: 'Meilleures lunettes pour un visage {shape}', badge: 'Guide lunettes par forme de visage', home: 'Accueil', description: 'Utilisez votre visage {shape} pour présélectionner des montures, puis comparez largeur, hauteur des verres, pont, couleur et style sur votre photo.', characteristicsTitle: 'Objectif pour un visage {shape}', characteristicsText: 'La forme du visage est un premier filtre utile. Le meilleur choix respecte aussi vos mesures, votre correction, votre confort et votre style.', guidance: 'Commencez par les conseils ci-dessous, puis utilisez l’essayage virtuel comme vérification visuelle.', tryFirstTitle: 'À essayer en premier', avoidFirstTitle: 'À reconsidérer', whyTitle: 'Pourquoi cela fonctionne', recommendedEyebrow: 'Montures recommandées', recommendedTitle: 'Lunettes à essayer pour un visage {shape}', tryAny: 'Essayer des lunettes sur votre photo', tryStyle: 'Essayer ce style', workflowEyebrow: 'Parcours d’achat avec IA', workflowTitle: 'Du guide visage {shape} à l’essayage virtuel', advisorCta: 'Recevoir un conseil personnalisé', faqTitle: 'FAQ lunettes pour visage {shape}', faqBest: 'Quelles lunettes conviennent à un visage {shape} ?', faqAvoid: 'Un visage {shape} doit-il éviter certaines lunettes ?', faqAi: 'L’IA peut-elle m’aider à choisir mes lunettes ?', otherTitle: 'Comparer les autres formes de visage',
   },
   ru: {
-    metaTitle: 'Лучшие очки для формы лица {shape}', metaDescription: 'Подберите очки для формы лица {shape}, сравните оправы и посадку, затем примерьте выбранные модели на своей фотографии.', title: 'Лучшие очки для формы лица {shape}', badge: 'Гид по очкам и форме лица', home: 'Главная', description: 'Используйте форму лица {shape} для первого отбора оправ, затем сравните ширину, высоту линз, мост, цвет и стиль на своём фото.', characteristicsTitle: 'Цель выбора для формы {shape}', characteristicsText: 'Форма лица — полезный первый фильтр. Лучшая оправа также учитывает размеры, рецепт, комфорт и личный стиль.', guidance: 'Начните с рекомендаций ниже, а затем проверьте результат виртуальной примеркой.', tryFirstTitle: 'Попробуйте сначала', avoidFirstTitle: 'Сначала пересмотрите', whyTitle: 'Почему это работает', recommendedEyebrow: 'Рекомендуемые оправы', recommendedTitle: 'Очки для формы лица {shape}', tryAny: 'Примерить очки на своём фото', tryStyle: 'Примерить этот стиль', workflowEyebrow: 'Путь выбора с ИИ', workflowTitle: 'От гида для формы {shape} к виртуальной примерке', advisorCta: 'Получить персональный совет', faqTitle: 'Вопросы об очках для формы {shape}', faqBest: 'Какие очки подходят форме лица {shape}?', faqAvoid: 'Каких очков стоит избегать при форме {shape}?', faqAi: 'Может ли ИИ помочь выбрать очки?', otherTitle: 'Сравнить другие формы лица',
+    metaTitle: 'Лучшие очки для {shape} лица',
+    metaDescription: 'Узнайте, какие очки подходят для {shape} лица: сравните оправы и посадку, затем примерьте понравившиеся модели на своём фото.',
+    title: 'Лучшие очки для {shape} лица',
+    badge: 'Гид по очкам и форме лица',
+    home: 'Главная',
+    description: 'Для {shape} лица начните с подбора подходящих оправ, а затем сравните ширину, высоту линз, переносицу, цвет и стиль на своём фото.',
+    characteristicsTitle: 'Как выбрать очки для {shape} лица',
+    characteristicsText: 'Форма лица — полезный первый фильтр. Лучшая оправа также учитывает размеры, рецепт, комфорт и личный стиль.',
+    guidance: 'Начните с рекомендаций ниже, а затем проверьте результат виртуальной примеркой.',
+    tryFirstTitle: 'Попробуйте сначала',
+    avoidFirstTitle: 'Сначала пересмотрите',
+    whyTitle: 'Почему это работает',
+    recommendedEyebrow: 'Рекомендуемые оправы',
+    recommendedTitle: 'Оправы для {shape} лица',
+    tryAny: 'Примерить очки на своём фото',
+    tryStyle: 'Примерить этот стиль',
+    workflowEyebrow: 'Путь выбора с ИИ',
+    workflowTitle: 'От гида по очкам для {shape} лица к виртуальной примерке',
+    advisorCta: 'Получить персональный совет',
+    faqTitle: 'Вопросы об очках для {shape} лица',
+    faqBest: 'Какие очки подходят для {shape} лица?',
+    faqAvoid: 'Каких оправ стоит избегать при выборе очков для {shape} лица?',
+    faqAi: 'Может ли ИИ помочь выбрать очки?',
+    otherTitle: 'Сравнить другие формы лица',
   },
   de: {
-    metaTitle: 'Beste Brillen für eine {shape} Gesichtsform', metaDescription: 'Finden Sie Brillen für eine {shape} Gesichtsform, vergleichen Sie Fassungen und Passform und testen Sie die Auswahl auf Ihrem Foto.', title: 'Beste Brillen für eine {shape} Gesichtsform', badge: 'Brillenratgeber nach Gesichtsform', home: 'Startseite', description: 'Nutzen Sie Ihre {shape} Gesichtsform für die Vorauswahl und prüfen Sie Breite, Glashöhe, Steg, Farbe und Stil auf Ihrem Foto.', characteristicsTitle: 'Auswahlziel für die Gesichtsform {shape}', characteristicsText: 'Die Gesichtsform ist ein hilfreicher erster Filter. Die beste Fassung berücksichtigt auch Maße, Sehstärke, Komfort und persönlichen Stil.', guidance: 'Beginnen Sie mit den Empfehlungen und prüfen Sie das Ergebnis anschließend mit der virtuellen Anprobe.', tryFirstTitle: 'Zuerst probieren', avoidFirstTitle: 'Zuerst überdenken', whyTitle: 'Warum es funktioniert', recommendedEyebrow: 'Empfohlene Fassungen', recommendedTitle: 'Brillen für die Gesichtsform {shape}', tryAny: 'Brillen auf meinem Foto testen', tryStyle: 'Diesen Stil testen', workflowEyebrow: 'KI-gestützter Auswahlweg', workflowTitle: 'Vom {shape}-Ratgeber zur virtuellen Anprobe', advisorCta: 'Persönliche Brillenberatung erhalten', faqTitle: 'Brillen-FAQ für {shape} Gesichter', faqBest: 'Welche Brillen passen zu einer {shape} Gesichtsform?', faqAvoid: 'Sollten {shape} Gesichter bestimmte Brillen vermeiden?', faqAi: 'Kann KI bei der Brillenwahl helfen?', otherTitle: 'Andere Gesichtsformen vergleichen',
+    metaTitle: 'Beste Brillen für ein {shape} Gesicht',
+    metaDescription: 'Entdecken Sie Brillen für ein {shape} Gesicht, vergleichen Sie Fassungen und Passform und testen Sie die Auswahl auf Ihrem Foto.',
+    title: 'Beste Brillen für ein {shape} Gesicht',
+    badge: 'Brillenratgeber nach Gesichtsform',
+    home: 'Startseite',
+    description: 'Wenn Sie ein {shape} Gesicht haben, vergleichen Sie Fassungsbreite, Glashöhe, Steg, Farbe und Stil auf Ihrem Foto.',
+    characteristicsTitle: 'Auswahlkriterien für ein {shape} Gesicht',
+    characteristicsText: 'Die Gesichtsform ist ein hilfreicher erster Filter. Die beste Fassung berücksichtigt auch Maße, Sehstärke, Komfort und persönlichen Stil.',
+    guidance: 'Beginnen Sie mit den Empfehlungen und prüfen Sie das Ergebnis anschließend mit der virtuellen Anprobe.',
+    tryFirstTitle: 'Zuerst probieren',
+    avoidFirstTitle: 'Zuerst überdenken',
+    whyTitle: 'Warum es funktioniert',
+    recommendedEyebrow: 'Empfohlene Fassungen',
+    recommendedTitle: 'Brillen für ein {shape} Gesicht',
+    tryAny: 'Brillen auf meinem Foto testen',
+    tryStyle: 'Diesen Stil testen',
+    workflowEyebrow: 'KI-gestützter Auswahlweg',
+    workflowTitle: 'Vom Ratgeber für ein {shape} Gesicht zur virtuellen Anprobe',
+    advisorCta: 'Persönliche Brillenberatung erhalten',
+    faqTitle: 'Häufige Fragen: Brillen für ein {shape} Gesicht',
+    faqBest: 'Welche Brillen eignen sich für ein {shape} Gesicht?',
+    faqAvoid: 'Welche Brillen sind für ein {shape} Gesicht weniger geeignet?',
+    faqAi: 'Kann KI bei der Brillenwahl helfen?',
+    otherTitle: 'Andere Gesichtsformen vergleichen',
   },
   pt: {
     metaTitle: 'Melhores óculos para rosto {shape}', metaDescription: 'Encontre os melhores óculos para rosto {shape}, compare armações e ajuste e experimente a seleção na sua foto.', title: 'Melhores óculos para rosto {shape}', badge: 'Guia de óculos por formato de rosto', home: 'Início', description: 'Use o formato {shape} para selecionar armações e depois compare largura, altura das lentes, ponte, cor e estilo na sua foto.', characteristicsTitle: 'Objetivo para rosto {shape}', characteristicsText: 'O formato do rosto é um bom primeiro filtro. A melhor armação também respeita medidas, receita, conforto e estilo pessoal.', guidance: 'Comece pelas recomendações abaixo e use a prova virtual como verificação visual.', tryFirstTitle: 'Experimente primeiro', avoidFirstTitle: 'Reconsidere primeiro', whyTitle: 'Por que funciona', recommendedEyebrow: 'Armações recomendadas', recommendedTitle: 'Óculos para experimentar em rosto {shape}', tryAny: 'Experimentar óculos na minha foto', tryStyle: 'Experimentar este estilo', workflowEyebrow: 'Jornada de compra com IA', workflowTitle: 'Do guia de rosto {shape} à prova virtual', advisorCta: 'Receber recomendação personalizada', faqTitle: 'Perguntas sobre óculos para rosto {shape}', faqBest: 'Quais óculos combinam com rosto {shape}?', faqAvoid: 'Rostos {shape} devem evitar algum óculos?', faqAi: 'A IA pode ajudar a escolher óculos?', otherTitle: 'Comparar outros formatos de rosto',
@@ -55,6 +102,38 @@ const copies: Record<Locale, OrdinaryGlassesDetailCopy> = {
   ar: {
     metaTitle: 'أفضل النظارات للوجه {shape}', metaDescription: 'اكتشف أفضل النظارات للوجه {shape}، وقارن الإطارات والملاءمة، ثم جرّب الخيارات على صورتك.', title: 'أفضل النظارات للوجه {shape}', badge: 'دليل النظارات حسب شكل الوجه', home: 'الرئيسية', description: 'استخدم شكل الوجه {shape} لاختيار الإطارات أوليًا، ثم قارن العرض وارتفاع العدسة والجسر واللون والأسلوب على صورتك.', characteristicsTitle: 'هدف الاختيار للوجه {shape}', characteristicsText: 'شكل الوجه مرشح أولي مفيد. الإطار الأفضل يراعي أيضًا المقاسات والوصفة والراحة والأسلوب الشخصي.', guidance: 'ابدأ بالتوصيات أدناه ثم استخدم التجربة الافتراضية للتحقق من المظهر.', tryFirstTitle: 'جرّب أولًا', avoidFirstTitle: 'أعد النظر أولًا', whyTitle: 'لماذا يناسب', recommendedEyebrow: 'إطارات مقترحة', recommendedTitle: 'نظارات لتجربتها للوجه {shape}', tryAny: 'جرّب النظارات على صورتي', tryStyle: 'جرّب هذا النمط', workflowEyebrow: 'مسار تسوق بالذكاء الاصطناعي', workflowTitle: 'من دليل الوجه {shape} إلى التجربة الافتراضية', advisorCta: 'احصل على نصيحة مخصصة', faqTitle: 'أسئلة النظارات للوجه {shape}', faqBest: 'ما النظارات المناسبة للوجه {shape}؟', faqAvoid: 'هل ينبغي للوجه {shape} تجنب بعض النظارات؟', faqAi: 'هل يساعد الذكاء الاصطناعي في اختيار النظارات؟', otherTitle: 'قارن أشكال الوجه الأخرى',
   },
+}
+
+// Breadcrumb labels use nominative face-shape names; text templates need the
+// inflected forms required by their specific Russian and German constructions.
+const templateShapeVariants: Partial<Record<Locale, Record<FaceShapeContentSlug, string>>> = {
+  ru: {
+    oval: 'овального',
+    round: 'круглого',
+    square: 'квадратного',
+    heart: 'сердцевидного',
+    diamond: 'ромбовидного',
+    oblong: 'удлинённого',
+    triangle: 'треугольного',
+  },
+  de: {
+    oval: 'ovales',
+    round: 'rundes',
+    square: 'eckiges',
+    heart: 'herzförmiges',
+    diamond: 'diamantförmiges',
+    oblong: 'längliches',
+    triangle: 'dreieckiges',
+  },
+}
+
+export function getOrdinaryGlassesTemplateShape(
+  locale: string,
+  shape: FaceShapeContentSlug,
+  fallbackName: string,
+): string {
+  const validLocale = isValidLocale(locale) ? locale : defaultLocale
+  return templateShapeVariants[validLocale]?.[shape] ?? fallbackName.toLocaleLowerCase(validLocale)
 }
 
 export function getOrdinaryGlassesDetailCopy(locale: string): OrdinaryGlassesDetailCopy {

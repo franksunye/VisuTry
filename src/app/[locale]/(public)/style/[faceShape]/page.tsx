@@ -12,6 +12,7 @@ import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
 import { getTopPickPresetById, type GlassesPreset } from '@/config/glasses-presets'
 import {
   getOrdinaryGlassesDetailCopy,
+  getOrdinaryGlassesTemplateShape,
   interpolateOrdinaryGlassesCopy,
 } from '@/config/ordinary-glasses-detail-locales'
 import type { Locale } from '@/i18n'
@@ -67,7 +68,7 @@ export async function generateMetadata({ params }: FaceShapePageProps): Promise<
   const seoCopy = getFaceShapeSeoCopy(params.locale)
   const detail = getOrdinaryGlassesDetailCopy(params.locale)
   const shapeName = seoCopy.shapeNames[shape]
-  const templateShapeName = shapeName.toLocaleLowerCase(params.locale)
+  const templateShapeName = getOrdinaryGlassesTemplateShape(params.locale, shape, shapeName)
 
   return generateI18nSEO({
     locale: params.locale as Locale,
@@ -85,7 +86,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
   const seoCopy = getFaceShapeSeoCopy(locale)
   const detail = getOrdinaryGlassesDetailCopy(locale)
   const shapeName = seoCopy.shapeNames[shape]
-  const templateShapeName = shapeName.toLocaleLowerCase(locale)
+  const templateShapeName = getOrdinaryGlassesTemplateShape(locale, shape, shapeName)
   const pagePath = `/style/${shape}-face`
   const b04PagePath: B04VisualSeoPage | null = ['round', 'oval', 'square'].includes(shape)
     ? pagePath as B04VisualSeoPage
