@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Camera, Glasses, Grid2X2 } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
+import { SearchIntentPathways } from '@/components/seo/SearchIntentPathways'
 import { B02VisualSeoSections } from '@/components/seo/B02VisualSeoSections'
 import { B03VisualSeoSections } from '@/components/seo/B03VisualSeoSections'
 import { getSearchToToolRouteCopy } from '@/config/search-to-tool-route-copy'
@@ -53,6 +54,7 @@ export default function TryGlassesOnPhotoPage({ params }: Props) {
       title={copy.title}
       intro={copy.intro}
       schemas={schemas}
+      afterCtas={locale === 'en' ? <SearchIntentPathways intent='frame-ready' /> : undefined}
       steps={[
         { ...copy.steps[0], icon: Camera },
         { ...copy.steps[1], icon: Glasses },
