@@ -3,6 +3,38 @@ import { logger } from '@/lib/logger'
 // Resend API configuration
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const RESEND_API_URL = 'https://api.resend.com/emails'
+// Retention crons can send hundreds of sequential emails. Even sequential requests
+// can exceed Resend's team-wide 10 requests/second limit when responses are fast.
+// Leave headroom for welcome emails and other deployments sharing the same key.
+const RESEND_REQUEST_INTERVAL_MS = 250
+const RESEND_RATE_LIMIT_RETRIES = 2
+const RESEND_MAX_RETRY_AFTER_MS = 10_000
+let nextResendRequestAt = 0
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function waitForResendSlot(): Promise<void> {
+  const now = Date.now()
+  const startAt = Math.max(now, nextResendRequestAt)
+  // Reserve the slot synchronously so concurrent callers cannot take it twice.
+  nextResendRequestAt = startAt + RESEND_REQUEST_INTERVAL_MS
+  if (startAt > now) await delay(startAt - now)
+}
+
+function retryAfterMs(value: string | null, retry: number): number {
+  if (value) {
+    const seconds = Number(value)
+    const ms = Number.isFinite(seconds) && seconds >= 0
+      ? seconds * 1000
+      : Date.parse(value) - Date.now()
+    if (Number.isFinite(ms) && ms >= 0) {
+      return ms
+    }
+  }
+  return 500 * 2 ** retry
+}
 
 // Template IDs/aliases
 const TEMPLATES = {
@@ -25,34 +57,49 @@ async function sendEmailWithTemplate(params: {
     return { success: false, error: 'Resend API key not configured' }
   }
 
-  try {
-    const response = await fetch(RESEND_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: params.from,
-        to: params.to,
-        template: {
-          id: params.templateId,
-          variables: params.variables,
+  const body = JSON.stringify({
+    from: params.from,
+    to: params.to,
+    template: {
+      id: params.templateId,
+      variables: params.variables,
+    },
+  })
+
+  for (let attempt = 0; attempt <= RESEND_RATE_LIMIT_RETRIES; attempt++) {
+    await waitForResendSlot()
+    try {
+      const response = await fetch(RESEND_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
         },
-      }),
-    })
+        body,
+      })
 
-    const data = await response.json()
-
-    if (!response.ok) {
-      return { success: false, error: data.message || JSON.stringify(data) }
+      const data = await response.json().catch(() => ({})) as { id?: string; message?: string }
+      if (response.status === 429 && attempt < RESEND_RATE_LIMIT_RETRIES) {
+        // A 429 rejects the request before admission; do not retry ambiguous
+        // network/5xx failures, which could have already accepted an email.
+        const waitMs = retryAfterMs(response.headers.get('retry-after'), attempt)
+        if (waitMs > RESEND_MAX_RETRY_AFTER_MS) {
+          return { success: false, error: `Resend rate limit retry-after exceeds ${RESEND_MAX_RETRY_AFTER_MS}ms budget` }
+        }
+        await delay(waitMs)
+        continue
+      }
+      if (!response.ok) {
+        return { success: false, error: data.message || `Resend HTTP ${response.status}` }
+      }
+      return { success: true, emailId: data.id }
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err))
+      return { success: false, error: error.message }
     }
-
-    return { success: true, emailId: data.id }
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err))
-    return { success: false, error: error.message }
   }
+
+  return { success: false, error: 'Resend rate limit retry budget exhausted' }
 }
 
 /**
