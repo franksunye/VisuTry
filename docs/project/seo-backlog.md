@@ -10,6 +10,21 @@
 
 ## Active restart queue — 2026-11-01
 
+### Three focused acquisition experiments — November 1
+
+These are **production-code changes, not traffic wins**. Preserve the Aug 3 ~1,824 sessions baseline and Oct 4–31 6,889 all-channel sessions/5,015 organic sessions as distinct GA4 measures; neither is automatically qualified traffic. Newer GA4/GSC and user-joined payment evidence are required before updating goal attainment.
+
+| Workstream | Change / exact scope | CI / main | Follow-up evidence |
+| --- | --- | --- | --- |
+| EN Detector query breadth | [#503](https://github.com/franksunye/VisuTry/pull/503), 7 existing guide links and short shape-specific frame starters below B01 section | 3/3 GitHub gates PASS; main `1b40ab69` | Canonical www HTML freshness; per-page GSC query × country × device, especially India mobile; 7/28d qualified downstream activity |
+| Selection vs specific-frame intent | [#504](https://github.com/franksunye/VisuTry/pull/504), explicit two-path navigation on existing three EN Search→Tool pages | 3/3 GitHub gates PASS; main `39c8c27b` | Exact-URL GSC query×page overlap, qualified Detector/Advisor/Try-On/Compare behavior; **no consolidation/canonical decision without evidence** |
+| JA/ES localized acquisition quality | [#505](https://github.com/franksunye/VisuTry/pull/505), 7 distinct frame recommendations/risks/reasons per locale, useful Detector tips/FAQ, translated mobile feedback | 3/3 GitHub gates PASS; main `a00fc614` | 14 localized rows, JA/ES canonical www delivery and mobile smoke; locale-specific index/clicks, product continuation and paid quality |
+
+**Release gate:** Vercel production deployment of last merged code and all changed bare www URLs must be independently verified; Cloudflare may serve old HTML after Vercel READY. Do not record a production PASS solely from CI or origin. Never execute a sitewide cache purge.
+
+**Measurement gate:** first 7 complete post-release days for UX/path usage (compare with equivalent historical period); first 28 complete days for per-URL GSC clicks/impressions/CTR, country/device/search query mix and qualified organic product actions. Google recrawl and data latency may delay a valid causal conclusion. Do not infer causality from unjoined global GA4 event counts or from higher indexed-page counts alone. Keep current AI, payment, and CPU guardrails unchanged.
+
+
 **P0 | Current evidence before shipping more pages**
 
 - [x] Read authenticated GA4 (Oct 4–31 vs Sep 6–Oct 3) and GSC Web (Oct 2–29 vs Sep 4–Oct 1) through the connected browser; record exact property, 28-day comparison and GSC 3-month snapshot. GA4 **6,889 sessions (3.78× original total-session baseline), down 11.7%**; GSC **4,761 clicks, down 4.5%**. **Partial:** GA4 property time zone, internal/test filtering, 90d GA4, first-party and Stripe reconciliation remain open. See dated audit.
