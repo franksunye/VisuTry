@@ -6,6 +6,7 @@ import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
 import { B01VisualSeoSections } from '@/components/seo/B01VisualSeoSections'
+import { DetectorShapeGuideLinks } from '@/components/seo/DetectorShapeGuideLinks'
 
 interface FaceShapeDetectorPageProps {
   params: { locale: string }
@@ -128,6 +129,7 @@ export default function FaceShapeDetectorPage({ params }: FaceShapeDetectorPageP
           </section>
 
           <B01VisualSeoSections locale={locale} pagePath="/face-shape-detector" />
+          {locale === 'en' ? <DetectorShapeGuideLinks /> : null}
 
           <section className="mt-12">
             <h2 className="mb-5 text-2xl font-bold text-gray-950">{copy.detector.faqTitle}</h2>
