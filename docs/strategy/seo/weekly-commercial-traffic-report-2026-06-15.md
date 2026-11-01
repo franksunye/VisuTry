@@ -1,5 +1,11 @@
 # Weekly Commercial Traffic Report
 
+**Status:** Archived historical weekly traffic report  
+**Owner:** Growth / Analytics  
+**Last reviewed:** 2026-11-01
+
+> **2026-11-01 governance:** HISTORICAL research or execution snapshot, not current GTM/keyword allocation, rankings, conversion or channel performance. For live priorities use `docs/strategy/analytics/gtm.md` → `docs/project/seo-backlog.md`; for search-intent ownership use `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md`. Keep original evidence below for provenance.
+
 Week: 2026-06-15
 Owner: Codex
 

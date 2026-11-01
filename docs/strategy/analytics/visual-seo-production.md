@@ -1,7 +1,7 @@
 # VisuTry Visual SEO Production v1.5
 
-**Status:** Active execution specification  
-**Last updated:** 2026-08-25  
+**Status:** Active QA/specification; B10–B19 new production paused for growth rebaseline  
+**Last reviewed:** 2026-11-01  
 **Owner:** Growth / Product / Engineering  
 **Parent strategy:** `docs/strategy/analytics/gtm.md` → Engine 2 — Visual Discovery  
 **Scope:** Google Images, Search→Tool page visuals, image SEO, Pinterest-ready source assets, and Codex-assisted production/integration.
@@ -37,12 +37,11 @@ Primary distribution surfaces:
 
 ### Current state
 
-- **54 / 182 ACCEPTED** — B01 through B06 are fully integrated and QA-complete.
-- **30 SOURCE_READY** — B07 through B09 (`VSEO-055`–`VSEO-084`) have accepted source PNG masters but still require WebP, registry, page rendering, image sitemap, tests, responsive QA, and build verification.
-- **98 PLANNED** — B10 through B19 (`VSEO-085`–`VSEO-182`) have not yet completed source production.
-- Source production currently reaches **VSEO-084**.
-- The next source-production asset is **VSEO-085**.
-- The next integration range is **VSEO-055–084**.
+- **54 / 182 ACCEPTED** — B01 through B06 have the documented full QA and integration acceptance.
+- **30 INTEGRATED (PNG route implementation; acceptance not fully reconciled)** — B07 through B09 (`VSEO-055`–`VSEO-084`) were integrated into eight existing `/glasses-guide/[slug]` routes by merged PRs [#134](https://github.com/franksunye/VisuTry/pull/134) and [#135](https://github.com/franksunye/VisuTry/pull/135). The implementation uses statically imported PNGs intentionally, not the older WebP-only workflow; live English guide pages expose those images. Do not call this range fully ACCEPTED without refreshing its SEO/image-sitemap and QA evidence.
+- **98 PLANNED / PAUSED** — B10 through B19 (`VSEO-085`–`VSEO-182`) require current GSC/GA4 demand and continuation evidence before new production.
+- Source production currently reaches **VSEO-084**. Next source asset **VSEO-085** is **not automatically authorized**.
+- Next work: reconcile B07–B09 QA/image discovery and compare existing Visual SEO page performance before extending the asset program.
 
 ### Canonical lifecycle terminology
 
@@ -502,12 +501,12 @@ Image source production and web integration are now tracked separately.
 Current state:
 
 ```text
-Next source-production batch: B10
-Next source-production asset: VSEO-085
-Next integration range: VSEO-055–084 (B07–B09)
+Next source-production batch: B10 — PAUSED pending current demand/continuation data
+Next source-production asset: VSEO-085 — NOT YET AUTHORIZED
+Next QA/measurement range: VSEO-055–084 (B07–B09, already integrated on pages)
 ```
 
-Do not restart B07 source generation merely because B07–B09 are not yet integrated.
+Do not regenerate or re-integrate B07–B09; reconcile their shipped PNG implementation and acceptance evidence first.
 
 ### Step B — Generate one image
 
@@ -860,37 +859,29 @@ If Codex detects a discrepancy between this document and the current route regis
 | B04 | VSEO-025–033 | ✅ ACCEPTED | Nine Face Style owner assets integrated into round, oval, and square English owner pages; staged editorial layout, WebP, source archive, image sitemap, and build verification complete |
 | B05 | VSEO-034–042 | ✅ ACCEPTED | Nine Face Style owner assets integrated into heart, diamond, and oblong English owner pages; shared Face Owner module, staged editorial layout, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, `build:ci` verification, and successful Vercel deployment complete |
 | B06 | VSEO-043–054 | ✅ ACCEPTED | Twelve Face Shape explainer assets integrated into the six English face-shape pages; characteristics and identification stages, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, `build:ci` verification, and post-integration preload correction complete |
-| B07 | VSEO-055–064 | 🟡 SOURCE_READY | Round: Rectangle complete, Square complete, Browline start; source PNGs ready, integration pending |
-| B08 | VSEO-065–074 | 🟡 SOURCE_READY | Round: Browline completion, Cat-Eye complete, Geometric complete; source PNGs ready, integration pending |
-| B09 | VSEO-075–084 | 🟡 SOURCE_READY | Oval: Cat-Eye complete, Aviator complete, Browline start; source PNGs ready, integration pending |
-| B10 | VSEO-085–094 | ⏳ PLANNED | Browline × Oval completion; Oversized × Oval; Round × Square |
-| B11 | VSEO-095–106 | ⏳ PLANNED | Aviator × Square; Rimless × Square; Rounded × Heart |
-| B12 | VSEO-107–118 | ⏳ PLANNED | Cat-Eye × Heart; Browline × Diamond; Oversized × Oblong |
-| B13 | VSEO-119–128 | ⏳ PLANNED | Round women; Round men; Oval women start |
-| B14 | VSEO-129–138 | ⏳ PLANNED | Oval women completion; Oval men; Square women |
-| B15 | VSEO-139–150 | ⏳ PLANNED | Square men; Heart women; Diamond women |
-| B16 | VSEO-151–158 | ⏳ PLANNED | Round-glasses-on-round suitability; Aviator-on-oval suitability |
-| B17 | VSEO-159–166 | ⏳ PLANNED | Cat-Eye-on-round suitability; eyebrow alignment |
-| B18 | VSEO-167–174 | ⏳ PLANNED | Frame width; overall glasses fit |
-| B19 | VSEO-175–182 | ⏳ PLANNED | Face-shape hub + glasses-guide hub + canonical decision workflow |
+| B07 | VSEO-055–064 | 🟡 INTEGRATED / QA REVIEW | Route integration merged in #134/#135 using static PNGs; reconcile sitemap/discovery and acceptance evidence |
+| B08 | VSEO-065–074 | 🟡 INTEGRATED / QA REVIEW | Route integration merged in #134/#135 using static PNGs; reconcile sitemap/discovery and acceptance evidence |
+| B09 | VSEO-075–084 | 🟡 INTEGRATED / QA REVIEW | Route integration merged in #134/#135 using static PNGs; reconcile sitemap/discovery and acceptance evidence |
+| B10 | VSEO-085–094 | ⏸ PLANNED / PAUSED | Browline × Oval completion; Oversized × Oval; Round × Square |
+| B11 | VSEO-095–106 | ⏸ PLANNED / PAUSED | Aviator × Square; Rimless × Square; Rounded × Heart |
+| B12 | VSEO-107–118 | ⏸ PLANNED / PAUSED | Cat-Eye × Heart; Browline × Diamond; Oversized × Oblong |
+| B13 | VSEO-119–128 | ⏸ PLANNED / PAUSED | Round women; Round men; Oval women start |
+| B14 | VSEO-129–138 | ⏸ PLANNED / PAUSED | Oval women completion; Oval men; Square women |
+| B15 | VSEO-139–150 | ⏸ PLANNED / PAUSED | Square men; Heart women; Diamond women |
+| B16 | VSEO-151–158 | ⏸ PLANNED / PAUSED | Round-glasses-on-round suitability; Aviator-on-oval suitability |
+| B17 | VSEO-159–166 | ⏸ PLANNED / PAUSED | Cat-Eye-on-round suitability; eyebrow alignment |
+| B18 | VSEO-167–174 | ⏸ PLANNED / PAUSED | Frame width; overall glasses fit |
+| B19 | VSEO-175–182 | ⏸ PLANNED / PAUSED | Face-shape hub + glasses-guide hub + canonical decision workflow |
 
-### Current next actions
+### Current next actions — 2026-11-01 review
 
-> **Source production:** continue with B10 (`VSEO-085`–`VSEO-094`), starting at `VSEO-085__best-browline-glasses-for-oval-face-03-watch-for.png`.
->
-> **Integration:** B07–B09 (`VSEO-055`–`VSEO-084`) are source-ready but not accepted. Integrate by canonical `pagePath` and stage sequence, not by batch. Browline × Round spans B07/B08; Browline × Oval spans B09/B10 and must not be falsely treated as a complete four-stage page until VSEO-085/086 exist.
+1. Compare B07–B09's shipped eight English guides with their current GSC page/image impressions and GA4 product continuation; verify effective URLs, rendered image content, canonical, image discovery and mobile experience.
+2. Close the acceptance ledger for VSEO-055–084 only after test and production evidence. PNG-based integration is intentional; a WebP-only rule is not a reason to rewrite already shipped routes without measured benefit.
+3. Leave B10–B19 paused. Reopen specific assets only where a distinct query family, user decision and conversion path have measured demand.
 
-Summary baseline:
+Summary: **54 ACCEPTED; 30 INTEGRATED / QA REVIEW; 98 PLANNED / PAUSED**. The 182-asset figure is a candidate ceiling, **not** an output target to pursue regardless of search demand.
 
-```text
-182 total
-54 ACCEPTED
-30 SOURCE_READY
-98 PLANNED
-```
-
-Track Neon migration connectivity separately as an infrastructure issue; it is not a Visual SEO batch acceptance blocker. Do not generate any batch overview image.
-
+Track infrastructure migrations separately. Do not generate batch overview images.
 ---
 
 ## 18. Relation to the 10× GTM plan

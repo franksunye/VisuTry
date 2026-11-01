@@ -1,5 +1,7 @@
 # VisuTry Growth Volume Catch-Up
 
+> **Archived 2026-11-01 — historical execution/evidence only.** Its original campaign window is closed. Do not resume quotas, outbound communication, or old traffic targets from this file. Current Consumer acquisition decisions live in `docs/strategy/analytics/gtm.md` and `docs/project/seo-backlog.md`.
+
 Date: 2026-06-24
 Owner: Frank + Codex
 Status: Superseded; remaining catch-up tasks are stopped

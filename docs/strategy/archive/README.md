@@ -2,9 +2,11 @@
 
 **Status:** Active archive index
 **Owner:** Product / Strategy
-**Last updated:** 2026-08-26
+**Last updated:** 2026-11-01
 
 This folder is reserved for strategy documents that are historical, superseded, or no longer first-priority execution guidance.
+
+The current **Consumer GTM execution** authority is `docs/strategy/analytics/gtm.md` (with `docs/project/seo-backlog.md` as task ledger). It does not replace the top-level commercial strategy.
 
 The current top-level commercial source of truth is:
 
@@ -32,6 +34,7 @@ The following documents should be archived or marked as superseded during the fi
 | Earlier page-count-first SEO documentation bundle | Current strategy prioritizes commercial workflow and high-intent product continuation over raw page count. The old plan, README, quickstart, implementation/monitoring guides, and delivery summary belong to one historical phase. | `docs/strategy/archive/seo/` |
 | Q4 2025 content and 500-page programmatic SEO execution bundle | Time window expired; implementation guides, checklists, summaries, and page templates describe the same historical delivery phase. | `docs/strategy/archive/content/` |
 | Old GA tracking implementation and upgrade bundle | Superseded by the Campaign Intelligence event contract and GA4 configuration path. | `docs/strategy/archive/analytics/` |
+| June/July 2026 outbound sprint, recovery, Reddit/X and 60-referring-domains campaign plans (6 files) | Windows ended and quota-based work stopped; unique experiment receipts retained. Reusable copy/research stays in the original `docs/strategy/growth/` area. | `docs/strategy/archive/growth/` |
 
 ## Rule of thumb
 

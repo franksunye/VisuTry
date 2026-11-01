@@ -1,11 +1,11 @@
 # VisuTry Visual SEO Prompt Manifest v1.0
 
-**Status:** Active execution manifest  
-**Last updated:** 2026-08-03  
+**Status:** Canonical generation registry; new B10–B19 production PAUSED pending GSC/GA4 decision  
+**Last reviewed:** 2026-11-01  
 **Parent:** `docs/strategy/analytics/visual-seo-production.md`  
 **Scope:** Canonical filenames, model identity system, page mapping, and generation instructions for all 182 Visual SEO master assets.
 
-> This file is the authoritative **generation registry** for the 182-image program. The parent production document remains the workflow / QA specification. Because production progress was reset to zero for Desktop Codex, the IDs and filenames in this manifest are the canonical clean-start sequence from `VSEO-001` through `VSEO-182`.
+> This file preserves the canonical **generation registry** and prompts for up to 182 images; it is not authority to complete the remaining 98 by quota. B01–B06 are accepted; B07–B09 have been integrated on existing guide pages via PRs #134/#135 and await acceptance reconciliation; B10–B19 are paused pending measured search demand and Consumer continuation. The older clean-start instructions below are historical process context. Live priority and activation remain governed by `docs/strategy/analytics/gtm.md` and the parent production specification.
 
 ---
 

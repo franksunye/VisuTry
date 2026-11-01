@@ -1,9 +1,11 @@
 # GSC Query Coverage Matrix — 2026-07-27
 
-Status: active SEO allocation baseline
+Status: HISTORICAL 2026-07-27 evidence — not the current allocation baseline
 Property: `https://www.visutry.com/`
 Source: Google Search Console web search export, downloaded 2026-07-27
 Latest complete GSC date: 2026-07-24
+
+> **2026-11-01 governance:** Preserve this untouched measurement window and raw ZIP/CSV as historical evidence. Its indexability, CTR and query-owner findings are hypotheses for rechecking, not current facts. Current priorities require a new authenticated 28-day and 90-day GSC export and GA4 Consumer continuation data; see `docs/ops/organic-growth-restart-2026-11-01.md`.
 
 ## Executive decision
 

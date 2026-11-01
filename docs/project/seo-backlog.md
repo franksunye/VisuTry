@@ -1,10 +1,36 @@
 # SEO Backlog
 
-Last updated: 2026-07-27
-Current sprint: Qualified Traffic → Detector → Try-On → Paid
-Owner: Codex
+**Status:** Active task ledger; the restart queue only is current  
+**Owner:** Growth / Product / Engineering  
+**Last reviewed:** 2026-11-01
+
+> Older checked items are preserved as historical execution evidence (2026-06 to 2026-08). Only the restart queue below is active.
 
 > This file is a task ledger, not a parallel GTM plan. Task priority and activation are governed by `docs/strategy/analytics/gtm.md`.
+
+## Active restart queue — 2026-11-01
+
+**P0 | Current evidence before shipping more pages**
+
+- [x] Read authenticated GA4 (Oct 4–31 vs Sep 6–Oct 3) and GSC Web (Oct 2–29 vs Sep 4–Oct 1) through the connected browser; record exact property, 28-day comparison and GSC 3-month snapshot. GA4 **6,889 sessions (3.78× original total-session baseline), down 11.7%**; GSC **4,761 clicks, down 4.5%**. **Partial:** GA4 property time zone, internal/test filtering, 90d GA4, first-party and Stripe reconciliation remain open. See dated audit.
+- [ ] Join (at aggregate reporting level, without inventing identity joins) landing/search intent → Detector/Advisor/Try-On/Compare → verified paid results; review revenue per 1,000 qualified sessions.
+- [x] Recheck GSC indexing: **8 current 404s** (June's 683 was historical), **448 indexed, 831 excluded**. Eight examples: 1 old hashed CSS asset, 3 legacy tag slugs, 2 expired share links, `/5`, `/style/diamond`; none proven core landing failures. Four redirect errors: `/id/business`, `/es/business`, `/ja/business`, `/en/try-on`. Verify live response and business intent before redirects; details in dated audit.
+- [ ] Sample the **278 discovered** (examples: Arabic blog/guide locale pages) and **78 crawled** (examples: RU/ID/ES/JA localized guides and query-based Compare) by intent/value; inspect canonical/hreflang/sitemap/image discovery and crawler-specific robots groups. Do not ask for bulk validation before fixes.
+- [ ] **Priority 1: EN detector broad-query exposure decline.** Page GSC 1,540 vs 1,944 clicks and 53,844 vs 79,992 impressions, GA4 landing 1,721 vs 2,058. Exact query `face shape detector` fell **1,059→642 clicks** and **49,682→28,916 impressions** while rank stayed ~**7.7→7.9** and CTR 2.1→2.2%; page rank stayed 8.1. Check demand/country/device/SERP mix first; do **not** assume title/content decay or rewrite untested. Measure detector-to-paid continuation.
+- [ ] **Priority 2: EN AI guide CTR/continuation.** GSC impressions increased 20,243 vs 16,443 while clicks fell 975 vs 1,112; **CTR 6.8→4.8%**, mean position 7.6→8.1. Exact query `which glasses suit my face ai free` fell **153→71 clicks**; broad `which glasses suit my face` impressions rose **619→1,386**. Isolate query mix, test snippet/intent and internal link to Detector / Advisor / Try-On.
+- [ ] **Protect localized winners:** JA detector clicks 350 vs 60 and ES detector 194 vs 61. Review actual post-entry engagement and monetization before scaling locale/page count.
+
+**P1 | Distribution and content learning**
+
+- [x] Open GSC Generative AI beta report: 17,036 impressions in Oct 2–29; EN detector 7,309, EN AI guide 4,358, EN face analysis 1,072.
+- [ ] Join this visibility signal to independently measured GA4 AI Assistant (588 vs 850 sessions) and downstream actions; do **not** equate impressions to referrals.
+- [ ] Review real AI Assistant referral → decision-action quality. Merchant Store/Campaign Gate A and standalone Consumer AI referrals must remain separate.
+- [ ] Review Visual SEO B07–B09 image integration and image discovery. Defer B10–B19 asset production and page-count expansion pending measured incremental opportunity.
+- [ ] Record weekly scale / modify / stop decisions in the canonical weekly scorecard; reconcile completed/stale tasks monthly.
+
+**Historical sections below** preserve 2026-06/07 checkboxes and their original acceptance windows. They are not present-day open work orders. Reopen only by a fresh measurement and owner decision. See `docs/ops/organic-growth-restart-2026-11-01.md`.
+
+---
 
 ## Current GTM Experiment: Revenue Attribution and High-Intent Continuation
 
@@ -121,7 +147,7 @@ Acceptance:
 
 Reference:
 
-- [External Growth Sprint](../strategy/growth/2026-06-18-external-growth-sprint.md)
+- [External Growth Sprint](../strategy/archive/growth/2026-06-18-external-growth-sprint.md)
 - [External Distribution Kit](../strategy/growth/2026-06-18-distribution-kit.md)
 
 ## Critical

@@ -2,7 +2,7 @@
 
 **Status:** Active documentation entry point
 **Created:** 2026-07-08
-**Last updated:** 2026-10-17
+**Last updated:** 2026-11-01
 **Owner:** Product / Engineering
 **Review cadence:** Monthly, or whenever product direction / production architecture materially changes.
 
@@ -27,7 +27,7 @@ This is the entry point for current VisuTry documentation. It distinguishes acti
 | Hosting/runtime ownership | ADR-011 + `docs/operations/hosting-strategy-vercel-cloudflare.md` |
 | Technical operations | `docs/operations/README.md` + dated evidence under `docs/ops/` |
 | GTM execution | `docs/strategy/analytics/gtm.md` (Consumer); Merchant controlled Pilot execution via Issue #353 |
-| SEO/GEO execution | `docs/project/seo-backlog.md` + current SEO strategy docs |
+| SEO/GEO execution | `docs/strategy/analytics/gtm.md` (priority/measurement) + `docs/project/seo-backlog.md` (task ledger); `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` owns product/query-route boundaries |
 | Documentation governance | `docs/document-inventory.md` + ADR-012 |
 
 ### Current Merchant gate (2026-10-17)
@@ -117,6 +117,16 @@ The canonical Demo is a maintained product capability. Reuse it for sales, rehea
 7. `docs/guides/development-guide.md`
 8. current implementation/configuration
 
+### Consumer SEO / GEO / growth (2026-11-01 restart)
+
+1. `docs/strategy/analytics/gtm.md` — the **only active Consumer acquisition/GTM execution plan** and 10× qualified-traffic objective.
+2. `docs/project/seo-backlog.md` — current prioritized work only in its **Active restart queue**, not the historical checkboxes below.
+3. `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` — stable search-intent and product-route boundaries, **not** a second volume/quota plan.
+4. `docs/strategy/seo/weekly-growth-report-template.md` — repeatable weekly scorecard; latest audited baseline: `docs/ops/organic-growth-restart-2026-11-01.md`.
+5. `docs/strategy/commercial-strategy.md` — long-term Consumer + Merchant business direction, not a substitute for the Consumer weekly execution queue.
+
+**Lifecycle:** June/July external sprints, 60 referring domains, quota-driven outreach and early GSC/keyword/CTR snapshots are archived or marked historical. Reusable outreach packets, visual SEO QA/asset manifests, and community runbooks **do not authorize** a live campaign; activation requires measured opportunity and an explicit current GTM experiment. Do not infer that an old community daily schedule or a project file is a live automation. Merchant founder-led Pilot execution remains separate under Issue #353.
+
 ### Observability / analytics
 
 1. `docs/project/observability-and-analytics-contract.md`
@@ -197,3 +207,5 @@ See `docs/document-inventory.md` for lifecycle and cleanup governance.
 | 2026-09-23 | Reconciled documentation after P1-M2 Production acceptance; added the Merchant Operating Experience authority and separated activation-ledger semantics from runtime Operating eligibility. |
 | 2026-10-01 | Registered the productized Demo capability as a current authority and added the Demo/sales-enablement reading path across product, operations, Local QA, and sales docs. |
 | 2026-10-17 | Linked final scoped Merchant G4/Commercial-Ready evidence, controlled Pilot GTM gate and official Demo access register; preserved Consumer/GA boundaries. |
+
+| 2026-11-01 | Consolidated Consumer growth reading path and archived superseded June/July distribution sprints; separated reusable assets from live campaigns without altering commercial/product authorities. |
