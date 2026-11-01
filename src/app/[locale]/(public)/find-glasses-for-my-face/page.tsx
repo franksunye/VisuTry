@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Camera, Glasses, ScanFace } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
+import { SearchIntentPathways } from '@/components/seo/SearchIntentPathways'
 import { getSearchToToolRouteCopy } from '@/config/search-to-tool-route-copy'
 import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
@@ -50,6 +51,7 @@ export default function FindGlassesForMyFacePage({ params }: Props) {
       title={copy.title}
       intro={copy.intro}
       schemas={schemas}
+      afterCtas={locale === 'en' ? <SearchIntentPathways intent='selection' /> : undefined}
       steps={[
         { ...copy.steps[0], icon: ScanFace },
         { ...copy.steps[1], icon: Glasses },
