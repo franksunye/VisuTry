@@ -51,11 +51,15 @@ export function FreeFaceShapeResult({
   const matchLabel = getGeometryMatchLabel(geometry.measuredConfidence)
   const closestAlternative = geometry.alternativeShapes?.[0]
 
-  async function continueTo(destination: 'face_analysis' | 'virtual_try_on', path: string) {
+  async function continueTo(
+    destination: 'face_analysis' | 'virtual_try_on',
+    path: string,
+    ctaLocation: 'result_summary_mobile' | 'result_next_step',
+  ) {
     if (isContinuing) return
 
     setIsContinuing(true)
-    analytics.trackFaceShapeDetectorCta(continuationFaceShape, destination)
+    analytics.trackFaceShapeDetectorCta(continuationFaceShape, destination, ctaLocation)
 
     const query = new URLSearchParams({
       source: 'free-face-shape-detector',
@@ -78,34 +82,16 @@ export function FreeFaceShapeResult({
     router.push(`/${locale}/${path}?${query.toString()}`)
   }
 
-  const continueToFaceAnalysis = () => continueTo('face_analysis', 'face-analysis')
-  const continueToTryOn = () => continueTo('virtual_try_on', 'try-on/glasses')
+  const continueToFaceAnalysis = () => continueTo('face_analysis', 'face-analysis', 'result_next_step')
+  const continueToTryOn = () => continueTo('virtual_try_on', 'try-on/glasses', 'result_next_step')
+  const continueToFaceAnalysisMobile = () => continueTo('face_analysis', 'face-analysis', 'result_summary_mobile')
+  const continueToTryOnMobile = () => continueTo('virtual_try_on', 'try-on/glasses', 'result_summary_mobile')
 
   return (
     <div className="flex flex-col gap-y-5" aria-live="polite">
+      {/* Put the result and next action before the full-height photo on narrow screens. */}
       <div className="grid gap-4 lg:grid-cols-[minmax(260px,0.78fr)_minmax(0,1.22fr)]">
-        <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="relative mx-auto aspect-[4/5] w-full max-w-[360px] overflow-hidden rounded-lg bg-gray-100">
-            <Image
-              src={imageUrl}
-              alt="Photo measured for the free face-shape result"
-              fill
-              unoptimized
-              sizes="(max-width: 1024px) 100vw, 360px"
-              className="object-cover"
-            />
-            <FaceLandmarkMeshOverlay
-              imageUrl={imageUrl}
-              detection={detection}
-              className="pointer-events-none absolute inset-0 h-full w-full"
-            />
-          </div>
-          <p className="mt-2 text-center text-xs text-gray-500">
-            Live landmark mesh · processed on your device
-          </p>
-        </section>
-
-        <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+        <section data-testid="face-shape-result-summary" className="order-1 rounded-lg border border-gray-200 bg-white p-5 shadow-sm sm:p-6 lg:order-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Your likely face shape</p>
           <div className="mt-3 flex items-center gap-4">
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
@@ -130,6 +116,29 @@ export function FreeFaceShapeResult({
           </div>
           <p className="mt-5 text-sm leading-6 text-gray-600">{guide.shortDefinition}</p>
 
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row lg:hidden" aria-label="Continue with your result">
+            <button
+              type="button"
+              onClick={continueToFaceAnalysisMobile}
+              disabled={isContinuing}
+              aria-busy={isContinuing}
+              className="inline-flex flex-1 items-center justify-center rounded-lg bg-violet-600 px-4 py-3 text-sm font-semibold text-white hover:bg-violet-700 disabled:cursor-wait disabled:opacity-75"
+            >
+              {isContinuing ? 'Preparing your photo…' : 'See frames that suit my face'}
+              {!isContinuing && <ArrowRight className="ms-2 h-4 w-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={continueToTryOnMobile}
+              disabled={isContinuing}
+              aria-busy={isContinuing}
+              className="inline-flex flex-1 items-center justify-center rounded-lg border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-800 hover:bg-violet-50 disabled:cursor-wait disabled:opacity-75"
+            >
+              Try on frames now
+              <ArrowRight className="ms-2 h-4 w-4" />
+            </button>
+          </div>
+
           <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-gray-100 pt-5">
             {summaryMetrics.map((metric) => (
               <div key={metric.id}>
@@ -151,9 +160,7 @@ export function FreeFaceShapeResult({
             </ul>
           </div>
         </section>
-      </div>
-
-      <section className="overflow-hidden rounded-lg border border-violet-200 bg-gradient-to-r from-violet-50 via-blue-50 to-white p-5 shadow-sm sm:p-6">
+      <section data-testid="face-shape-result-next-step" className="order-2 overflow-hidden rounded-lg border border-violet-200 bg-gradient-to-r from-violet-50 via-blue-50 to-white p-5 shadow-sm sm:p-6 lg:order-3 lg:col-span-2">
         <div className="sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold text-violet-800">
@@ -208,13 +215,35 @@ export function FreeFaceShapeResult({
         <div className="mt-4 border-t border-violet-100 pt-4 text-sm">
           <Link
             href={`/${locale}/face-shapes/${guide.slug}`}
-            onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'face_shape_guide')}
+            onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'face_shape_guide', 'result_face_shape_guide')}
             className="font-semibold text-blue-700 hover:text-blue-900"
           >
             Read the {guide.name.toLowerCase()} face guide <ArrowRight className="ms-1 inline h-3.5 w-3.5" />
           </Link>
         </div>
       </section>
+
+        <section data-testid="face-shape-result-photo" className="order-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm lg:order-1">
+          <div className="relative mx-auto aspect-[4/5] w-full max-w-[360px] overflow-hidden rounded-lg bg-gray-100">
+            <Image
+              src={imageUrl}
+              alt="Photo measured for the free face-shape result"
+              fill
+              unoptimized
+              sizes="(max-width: 1024px) 100vw, 360px"
+              className="object-cover"
+            />
+            <FaceLandmarkMeshOverlay
+              imageUrl={imageUrl}
+              detection={detection}
+              className="pointer-events-none absolute inset-0 h-full w-full"
+            />
+          </div>
+          <p className="mt-2 text-center text-xs text-gray-500">
+            Live landmark mesh · processed on your device
+          </p>
+        </section>
+      </div>
 
       <DeferredMeasurementDetails metrics={metrics} detection={detection} warnings={geometry.warnings} />
 

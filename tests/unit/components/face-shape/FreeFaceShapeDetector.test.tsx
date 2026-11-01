@@ -136,7 +136,7 @@ describe('FreeFaceShapeDetector', () => {
     })
     expect(mockCompressImage).toHaveBeenCalledWith(file, undefined, undefined, { profile: 'user-photo' })
     expect(mockSavePhotoHandoff).toHaveBeenCalledWith(file)
-    expect(trackCta).toHaveBeenCalledWith('oval', 'face_analysis')
+    expect(trackCta).toHaveBeenCalledWith('oval', 'face_analysis', 'result_next_step')
   })
 
   it('continues to Face Analysis when local photo handoff is unavailable', async () => {
@@ -174,7 +174,56 @@ describe('FreeFaceShapeDetector', () => {
       )
     })
     expect(mockSavePhotoHandoff).toHaveBeenCalledWith(file)
-    expect(trackCta).toHaveBeenCalledWith('oval', 'virtual_try_on')
+    expect(trackCta).toHaveBeenCalledWith('oval', 'virtual_try_on', 'result_next_step')
+  })
+
+  it('puts the actionable summary before the large photo on mobile and tracks the early CTA', async () => {
+    const trackCta = jest.spyOn(analytics, 'trackFaceShapeDetectorCta')
+    render(<FreeFaceShapeDetector locale="en" />)
+
+    const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
+    fireEvent.change(getPhotoLibraryInput(), { target: { files: [file] } })
+    await screen.findByRole('heading', { name: 'Oval' })
+
+    const summary = screen.getByTestId('face-shape-result-summary')
+    const nextStep = screen.getByTestId('face-shape-result-next-step')
+    const photo = screen.getByTestId('face-shape-result-photo')
+
+    expect(summary).toHaveClass('order-1', 'lg:order-2')
+    expect(nextStep).toHaveClass('order-2', 'lg:order-3', 'lg:col-span-2')
+    expect(photo).toHaveClass('order-3', 'lg:order-1')
+    expect(summary.compareDocumentPosition(nextStep) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(nextStep.compareDocumentPosition(photo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+    const earlyAction = screen.getByRole('button', { name: /see frames that suit my face/i })
+    expect(earlyAction.parentElement).toHaveClass('lg:hidden')
+    fireEvent.click(earlyAction)
+
+    await waitFor(() => {
+      expect(mockRouterPush).toHaveBeenCalledWith(
+        '/en/face-analysis?source=free-face-shape-detector&faceShape=oval&photoHandoff=handoff-1',
+      )
+    })
+    expect(trackCta).toHaveBeenCalledWith('oval', 'face_analysis', 'result_summary_mobile')
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  it('preserves direct virtual try-on from the early mobile action', async () => {
+    const trackCta = jest.spyOn(analytics, 'trackFaceShapeDetectorCta')
+    render(<FreeFaceShapeDetector locale="en" />)
+
+    const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
+    fireEvent.change(getPhotoLibraryInput(), { target: { files: [file] } })
+    await screen.findByRole('heading', { name: 'Oval' })
+    fireEvent.click(screen.getByRole('button', { name: /try on frames now/i }))
+
+    await waitFor(() => {
+      expect(mockRouterPush).toHaveBeenCalledWith(
+        '/en/try-on/glasses?source=free-face-shape-detector&faceShape=oval&photoHandoff=handoff-1',
+      )
+    })
+    expect(trackCta).toHaveBeenCalledWith('oval', 'virtual_try_on', 'result_summary_mobile')
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 
   it('tracks invalid input without starting analysis', async () => {
