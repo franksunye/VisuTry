@@ -1,5 +1,9 @@
 # VisuTry 转化优化方案
 
+**Status:** Archived historical conversion audit  
+**Owner:** Growth / Product  
+**Last reviewed:** 2026-11-01
+
 > **2026-11-01 governance:** HISTORICAL research or execution snapshot, not current GTM/keyword allocation, rankings, conversion or channel performance. For live priorities use `docs/strategy/analytics/gtm.md` → `docs/project/seo-backlog.md`; for search-intent ownership use `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md`. Keep original evidence below for provenance.
 
 **日期**: 2026-06-04
@@ -190,7 +194,7 @@ PaymentSuccessHandler 或下一个页面加载逻辑:
 
 ## 6. 相关文档
 
-- [`2026-05-25-paid-customer-seo-geo-relaunch-plan.md`](/Users/yesun/Code/visutry/docs/strategy/2026-05-25-paid-customer-seo-geo-relaunch-plan.md) — 付费用户画像和 SEO/GEO 重启计划
-- [`2026-05-25-b2b-commerce-commercialization-roadmap.md`](/Users/yesun/Code/visutry/docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md) — B2B 商业化路线图
-- Pricing 配置: [`src/config/pricing.ts`](/Users/yesun/Code/visutry/src/config/pricing.ts)
-- 试戴主组件: [`src/components/try-on/TryOnInterface.tsx`](/Users/yesun/Code/visutry/src/components/try-on/TryOnInterface.tsx)
+- [`2026-05-25-paid-customer-seo-geo-relaunch-plan.md`](./2026-05-25-paid-customer-seo-geo-relaunch-plan.md) — 付费用户画像和 SEO/GEO 重启计划
+- [`2026-05-25-b2b-commerce-commercialization-roadmap.md`](./2026-05-25-b2b-commerce-commercialization-roadmap.md) — B2B 商业化路线图
+- Pricing 配置: [`src/config/pricing.ts`](../../src/config/pricing.ts)
+- 试戴主组件: [`src/components/try-on/TryOnInterface.tsx`](../../src/components/try-on/TryOnInterface.tsx)

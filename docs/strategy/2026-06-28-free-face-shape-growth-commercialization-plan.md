@@ -1,5 +1,9 @@
 # VisuTry 免费脸型检测、流量增长与商业化升级计划
 
+**Status:** Living supporting reference; GTM execution superseded  
+**Owner:** Growth / Product  
+**Last reviewed:** 2026-11-01
+
 **日期**：2026-06-28<br>
 **状态**：持续支持性参考；执行优先级由 `docs/strategy/analytics/gtm.md` 管理<br>
 **范围**：脸型检测、眼镜推荐、虚拟试戴、SEO 获客、广告与后续商业化<br>

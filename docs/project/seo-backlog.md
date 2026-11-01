@@ -1,8 +1,10 @@
 # SEO Backlog
 
-Last reviewed: 2026-11-01
-Current status: Historical execution ledger (2026-06 to 2026-08); live priorities below
-Owner: Growth / Product / Engineering
+**Status:** Active task ledger; the restart queue only is current  
+**Owner:** Growth / Product / Engineering  
+**Last reviewed:** 2026-11-01
+
+> Older checked items are preserved as historical execution evidence (2026-06 to 2026-08). Only the restart queue below is active.
 
 > This file is a task ledger, not a parallel GTM plan. Task priority and activation are governed by `docs/strategy/analytics/gtm.md`.
 

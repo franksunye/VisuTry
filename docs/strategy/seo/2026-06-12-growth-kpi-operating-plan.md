@@ -1,5 +1,9 @@
 # VisuTry Commercial Traffic KPI Operating Plan
 
+**Status:** Superseded historical KPI plan  
+**Owner:** Growth / Analytics  
+**Last reviewed:** 2026-11-01
+
 Date: 2026-06-12
 Revised: 2026-06-30
 Owner: Codex
