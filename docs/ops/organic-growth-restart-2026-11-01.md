@@ -1,8 +1,8 @@
 # Organic Growth Restart — 2026-11-01 Read-only Evidence
 
-**Status:** RESTART APPROVED; **AUTHENTICATED GA4/GSC 28-DAY READBACK COMPLETE; QUALIFIED FUNNEL PARTIAL**  
+**Status:** RESTART APPROVED; **THREE WORK-PACK DIAGNOSTICS COMPLETED; QUALIFIED FUNNEL / STRIPE RECONCILIATION PARTIAL**
 **Repository baseline:** `franksunye/VisuTry` `main` `f90ad9caeef71b9adc999b8585a5f008534eee35`  
-**Scope:** Consumer qualified organic acquisition (SEO + GEO/AI discovery + Visual), no paid growth, no production writes, no outreach.  
+**Scope:** Consumer qualified organic acquisition (SEO + GEO/AI discovery + Visual), no paid growth, no website deployment or outreach. Three narrowly scoped GA4 custom dimensions were added on Nov 1; no event/conversion definitions were altered.
 **Authority:** Supporting dated audit only. The GTM source of truth is `docs/strategy/analytics/gtm.md`; weekly scorecard template is `docs/strategy/seo/weekly-growth-report-template.md`.
 
 ## Current authenticated GA4 and GSC readback — 2026-11-01
@@ -24,6 +24,63 @@
 **10× arithmetic:** The Aug 3 ~1,824-session monthly baseline implies an 18,240-session 10× number. GA4 current 6,889 sessions/28d is **3.78×**, 11,351 sessions short; it would need **2.65×** further growth. This is *directional all-session arithmetic*, not proof of a matched-period **qualified Consumer** multiple. Exclude identifiable internal/test activity and measure activated journeys/verified payment before representing it as the north-star.
 
 **GSC 3-month context (Jul 30–Oct 29):** 13,652 clicks, 364,621 impressions, 3.7% CTR, average position 9.5. This window cannot be directly compared to the old 28-day July export.
+
+## Three work packages — Nov 1 execution and decisions
+
+These deeper GSC cuts use **Oct 3–30 vs Sep 5–Oct 2**, one day later than the first audit tables (**Oct 2–29 vs Sep 4–Oct 1**). Do not mix these numbers in a single delta or present them as the same export. All are GSC Web, URL-prefix property `https://www.visutry.com/`, with the **exact page** filter before adding country/device/query cuts.
+
+### WP1 — EN Detector exposure loss: diagnosis completed, exact external cause unproven
+
+| GSC slice, exact `/en/face-shape-detector` URL | Recent 28d | Prior 28d | Readout |
+| --- | ---: | ---: | --- |
+| All-country page clicks | 1,558 | 1,901 | **−343**, impressions 54,546 vs 78,527; avg position **8.0 vs 8.1**, CTR **2.9% vs 2.4%** |
+| India clicks | **252** | **521** | **−269 (78% of global net loss)**; impressions **11,782 vs 30,776** |
+| India mobile clicks | **224** | **485** | **−261 (97% of India's loss)**; impressions **10,513 vs 28,562** |
+| India desktop clicks | 21 | 20 | +1; impressions 1,041 vs 1,611 |
+| India tablet clicks | 7 | 16 | −9; impressions 228 vs 603 |
+| India query `face shape detector` clicks | **102** | **330** | **−228**; impressions **7,155 vs 21,989** |
+| India query `face shape detector for glasses` | 49 | 38 | +11 clicks; 325 vs 393 impressions |
+| India query `face shape finder` | 5 | 20 | −15 clicks; 277 vs 1,307 impressions |
+
+India page rank **improved 8.6→8.2** and CTR **improved 1.7%→2.1%** despite the exposure loss. The data are **not evidence of a generalized on-page ranking failure**. A country/mobile-specific demand or SERP visibility/mix change is plausible, but Google Trends/SERP composition and daily breakpoints were not independently verified; do not assert the cause as fact. **Decision: HOLD detector title/content rewrite and technical remediation** until evidence of a URL defect, rankings deterioration, or recoverable query intent appears. Monitor the India mobile exact-query cohort weekly, with US (328 vs 330 clicks) as a relative comparison. Preserve client-side MediaPipe: free detection must not create per-use Vercel Function calls.
+
+### WP2 — Consumer funnel: actual GA4 events verified; transaction-level reconciliation blocked
+
+GA4 `AI-2024 / visutry.com`, **Oct 4–31 2026**, Events report uses **100% of available data**. These are **whole-property event counts** including repeat actions and potentially test/internal activity; **not one ordered user cohort**. GA4 total reported revenue is **$41.86**.
+
+| Actual GA4 event | Events | Users (GA4 report) |
+| --- | ---: | ---: |
+| `face_shape_detection_started` | 6,568 | 3,419 |
+| `face_shape_photo_uploaded` | 6,567 | 3,418 |
+| `face_shape_detection_completed` | 5,419 | 3,221 |
+| `face_shape_detection_failed` | 1,158 | 576 |
+| `journey_continued` | 3,407 | 1,992 |
+| `face_shape_detector_photo_handoff` | 2,130 | 1,645 |
+| `seo_funnel_click` | 1,433 | 1,020 |
+| `face_analysis_started` / `face_analysis_completed` | 641 / 330 | 364 / 317 |
+| `tryon_started` / `tryon_completed` | 119 / 56 | 78 / 50 |
+| `begin_checkout` / `purchase` | **32 / 14** | **31 / 14** |
+| `checkout_return_verified` | 14 | 14 |
+
+**Instrumentation verified in source:** `src/lib/analytics.ts` emits canonical detector names shown above, not legacy `face_shape_detector_start`; `src/components/face-shape/FreeFaceShapeResult.tsx` fires `journey_continued` on Detector result CTA and reports photo handoff; `src/components/analytics/PaymentConversionTracker.tsx` emits `purchase` only after an authenticated `/api/payment/conversion` response reports a completed Payment, deduplicating by Checkout Session ID. The free on-device completion intentionally **does not** call `/api/analytics/consumer-funnel` on each detection (`src/lib/consumer-funnel.ts`); the latter is not a complete Detector telemetry source. Do not alter this cost/privacy boundary.
+
+**GA4 destination config, confirmed Nov 1:** Prior to this work the property had six registered event custom dimensions (`cta_location`, `destination`, `source_page`, `purchase_context`, `continuation_action`, `face_shape`). Created and verified three additional **event-scoped** definitions: **Consumer product path → `product_path`**, **Consumer query cluster → `query_cluster`**, **Consumer landing locale → `landing_locale`** (nine total). These are for *future reported events*, not retroactive reclassification of the Oct data. Deliberately did not add high-cardinality `landing_page` URLs or arbitrary referrer host names to the custom-definition quota; use standard GA4 landing-page/channel dimensions when possible. No GA4 key-event toggles, purchase values, code, cookies, or server event forwarding were changed.
+
+**Decision/gate:** Mark *aggregate event readback* DONE but **qualified session→stage→purchase attribution PARTIAL**: the raw counts cannot establish who proceeded or revenue per 1,000 *qualified organic* sessions. The landing report showed EN Detector **1,721 sessions and 0 GA4 purchases attributed to that landing page**, EN guide **1,001 sessions and 4 purchases ($11.96)**, EN Advisor **454 sessions and 5 purchases ($14.95)**. These are GA4 landing-page attribution observations, **not proof** that Detector entrants never pay after navigating. Complete session/cohort analysis after custom dimensions populate, validate internal/test exclusions, and reconcile the 14 GA4 purchase IDs/$41.86 to authorized live Stripe/Payment rows before claiming verified revenue. Direct Stripe access was **not available in this readback**, so no fake reconciliation or identity joins were made. Do not use all-key-events rate as a cross-page funnel quality metric; detector events are not configured identically to Advisor key events.
+
+### WP3 — EN AI guide: query mix diagnosis completed, snippet/content rewrite held
+
+Filtered `/en/blog/ai-face-analysis-for-glasses-guide` in the same one-day-later GSC comparison: **967 vs 1,118 clicks**, **20,374 vs 16,596 impressions**, **4.7% vs 6.7% CTR**, **8.1 vs 7.6 mean position**.
+
+| Query | Clicks recent vs prior | Impressions recent vs prior | Interpretation |
+| --- | ---: | ---: | --- |
+| `which glasses suit my face ai free` | **65 vs 155** | **440 vs 763** | **−90 clicks** and reduced high-intent exposure |
+| `which glasses suit my face` | **22 vs 18** | **1,430 vs 647** | **+783 generic impressions**, only 1.5% recent CTR |
+| `what glasses suit my face` | **9 vs 5** | **871 vs 405** | **+466 generic impressions**, only 1.0% recent CTR |
+| `what glasses suit my face upload photo online free` | **101 vs 96** | **991 vs 750** | Photo-upload intent still wins clicks |
+| `what glasses suit my face upload photo` | **99 vs 94** | **1,238 vs 1,250** | Stable high-intent demand/clicks |
+
+**Source audit:** The existing English metadata says “Which Glasses Suit My Face? Free AI Face Shape Detector”, describes free photo upload then optional AI advice/try-on; the page has substantial answer content plus hero, midpoint, path-grid and closing CTAs. This is **not an absent CTA or missing keyword defect**. Broader low-CTR query expansion plus one high-intent query collapse explain important parts of the aggregate CTR change; precise SERP/snippet causation remains unverified. **Decision: HOLD immediate title rewrite, duplicated article, new locale rollout and CTA reordering.** Those changes could risk healthy photo-upload queries and the guide's 4 attributed GA4 purchases. First compare query-level weekly cohorts and actual `seo_funnel_click` by registered `source_page` / `destination` / `cta_location`; ship one isolated snippet or above-fold experiment only if a specific mismatch persists and the qualified continuation guardrail is measurable. No website code, page metadata or production URLs changed in this package.
 
 ### Page and query movement
 
