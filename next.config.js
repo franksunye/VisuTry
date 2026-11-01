@@ -155,6 +155,9 @@ const nextConfig = {
       { source: '/c/:merchantSlug/:experienceSlug', destination: '/en/c/:merchantSlug/:experienceSlug', permanent: true },
       { source: '/brand/:brand', destination: '/en/brand/:brand', permanent: true },
       { source: '/category/:category', destination: '/en/category/:category', permanent: true },
+      // GSC-observed old diamond guide path; send crawlers to the live canonical in one hop.
+      { source: '/style/diamond', destination: '/en/style/diamond-face', permanent: true },
+      { source: '/en/style/diamond', destination: '/en/style/diamond-face', permanent: true },
       { source: '/style/:faceShape', destination: '/en/style/:faceShape', permanent: true },
       { source: '/try/:slug', destination: '/en/try/:slug', permanent: true },
       { source: '/sunglasses-for/:faceShape', destination: '/en/sunglasses-for/:faceShape', permanent: true },

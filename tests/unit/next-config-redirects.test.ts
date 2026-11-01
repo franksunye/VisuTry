@@ -107,6 +107,9 @@ describe('locale-less marketing redirects', () => {
     })),
     { path: '/face-shapes', expected: '/en/face-shapes', note: 'locale-less SEO hub' },
     { path: '/en/face-shapes', expected: null, note: 'localized SEO hub' },
+    { path: '/style/diamond', expected: '/en/style/diamond-face', note: 'GSC-observed old diamond guide bypasses missing localized route' },
+    { path: '/en/style/diamond', expected: '/en/style/diamond-face', note: 'localized old diamond guide bypasses missing route' },
+    { path: '/en/style/diamond-face', expected: null, note: 'canonical diamond guide does not redirect' },
     { path: '/brand/warby-parker', expected: '/en/brand/warby-parker', note: 'locale-less brand' },
     { path: '/en/brand/warby-parker', expected: null, note: 'localized brand' },
     { path: '/store', expected: '/en/store', note: 'locale-less store hub' },
@@ -133,6 +136,20 @@ describe('locale-less marketing redirects', () => {
     const actual = hops.length === 1 ? null : hops[hops.length - 1]
     expect(actual).toBe(expected)
     expect(hops.length).toBeLessThanOrEqual(2)
+  })
+
+  it('resolves both legacy diamond 404 URLs with a permanent, single-hop redirect', () => {
+    for (const source of ['/style/diamond', '/en/style/diamond']) {
+      const rule = redirects.find((candidate) => candidate.source === source)
+      expect(rule).toMatchObject({
+        destination: '/en/style/diamond-face',
+        permanent: true,
+      })
+      expect(followRedirects(source, redirects)).toEqual([source, '/en/style/diamond-face'])
+    }
+    // Existing non-legacy face-shape paths retain their current routing.
+    expect(followRedirects('/style/round-face', redirects))
+      .toEqual(['/style/round-face', '/en/style/round-face'])
   })
 
   it('does not create a second hop after a locale-less marketing redirect', () => {
