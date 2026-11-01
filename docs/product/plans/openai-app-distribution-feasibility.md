@@ -4,6 +4,7 @@
 
 **Status:** FEASIBILITY / DECISION RECORD<br>
 **Reviewed:** 2026-08-14<br>
+**Owner:** Product / Agent Distribution<br>
 **Repository:** `main` at `9214005413ba54f8b0219ef238704b450bfc3a62`<br>
 **Code changes:** No production feature code, schema, or credential changes were made.
 
@@ -73,7 +74,7 @@ An ordinary eyewear Merchant without VisuTry internal permissions and outside Vi
 
 ### Already implemented
 
-- `POST /api/mcp` exists at [`src/app/api/mcp/route.ts`](/Users/yesun/Code/visutry/src/app/api/mcp/route.ts).
+- `POST /api/mcp` exists at [`src/app/api/mcp/route.ts`](../../../src/app/api/mcp/route.ts).
 - The route uses `WebStandardStreamableHTTPServerTransport` with no server session ID and JSON responses.
 - The route authenticates `Authorization: Bearer <vt_live_...>` with `MerchantAgentCredential`, consumes a merchant/credential rate limit, creates a tenant-bound MCP server, and returns `Cache-Control: no-store`.
 - `MerchantMembership` is explicit and unique per `(userId, merchantId)`, with `OWNER` and `ADMIN` roles.
@@ -81,8 +82,8 @@ An ordinary eyewear Merchant without VisuTry internal permissions and outside Vi
 - `MerchantActorContext` carries `actorType`, `actorId`, `merchantId`, and scopes. Domain services consistently receive the actor or merchant ID and reject cross-tenant resource access.
 - Agent operations are written to `MerchantOperationAudit`; MCP requests are rate-limited per merchant and credential.
 - The MCP server exposes 22 Store, Campaign, and aggregate Analytics tools.
-- The public Merchant Skill is available at `/skills/merchant` and combines Merchant Onboarding, Campaign Creation, and Commerce Analyst workflow guidance in one connection-neutral document: [`src/lib/merchant-skill.ts`](/Users/yesun/Code/visutry/src/lib/merchant-skill.ts).
-- Merchant Control Center provides Merchant selection, the simplified Agent setup, endpoint copy, the single Skill URL, and explicit publish language in [`src/components/merchant/MerchantControlCenter.tsx`](/Users/yesun/Code/visutry/src/components/merchant/MerchantControlCenter.tsx).
+- The public Merchant Skill is available at `/skills/merchant` and combines Merchant Onboarding, Campaign Creation, and Commerce Analyst workflow guidance in one connection-neutral document: [`src/lib/merchant-skill.ts`](../../../src/lib/merchant-skill.ts).
+- Merchant Control Center provides Merchant selection, the simplified Agent setup, endpoint copy, the single Skill URL, and explicit publish language in [`src/components/merchant/MerchantControlCenter.tsx`](../../../src/components/merchant/MerchantControlCenter.tsx).
 - Public privacy and terms routes exist, and support/legal email addresses are present in the site.
 
 ### Required specifically for OpenAI public distribution
@@ -118,7 +119,7 @@ An ordinary eyewear Merchant without VisuTry internal permissions and outside Vi
 | Error/auth challenge | Current route returns JSON 401 for missing/invalid Agent Key; it does not return the OAuth `WWW-Authenticate`/MCP auth challenge. | PARTIAL |
 | Session behavior | Stateless transport is compatible with a bearer-token resource server. | YES, pending auth adapter |
 
-The current automated evidence is [`tests/unit/app/api/mcp-route.test.ts`](/Users/yesun/Code/visutry/tests/unit/app/api/mcp-route.test.ts). It passed 5/5 tests on this run. The test proves the VisuTry route contract, not a ChatGPT host connection.
+The current automated evidence is [`tests/unit/app/api/mcp-route.test.ts`](../../../tests/unit/app/api/mcp-route.test.ts). It passed 5/5 tests on this run. The test proves the VisuTry route contract, not a ChatGPT host connection.
 
 ## 6. Tool review and write safety
 

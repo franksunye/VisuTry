@@ -2,7 +2,8 @@
 
 **Week ending:** 2026-08-25  
 **Observation window:** 2026-08-11T02:47Z → 2026-08-25T02:47Z (rolling 14 days)
-**Status:** Historical 2026-08-25 snapshot — NOT the current weekly scorecard. No synthetic traffic was counted.
+**Status:** Historical 2026-08-25 snapshot — NOT the current weekly scorecard. No synthetic traffic was counted.  
+**Owner:** Growth / Analytics
 
 > **2026-11-01 governance note:** The 14-day numbers below are tied to the 2026-08-25 window and must not be used to claim current Consumer/Agent referral volumes. Later Traffic Ready T0 and Discovery Canary evidence are in `docs/ops/traffic-ready-t0-2026-09-03.md` and `docs/ops/discovery-canary-2026-09-03.md`. The live Consumer traffic pipeline includes `visutry-traffic-pro`; see `docs/project/observability-and-analytics-contract.md`. Current rolling results require a fresh credentialed report. For Consumer organic growth, use the weekly template governed by `docs/strategy/analytics/gtm.md`.
 
