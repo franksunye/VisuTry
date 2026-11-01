@@ -19,7 +19,7 @@ The operating strategy now runs three acquisition tracks in parallel:
 2. External distribution through useful demonstrations, community answers, and product directories.
 3. Partner and publisher outreach for qualified referral traffic and links.
 
-The revised sprint plan is documented in [External Growth Sprint](../growth/2026-06-18-external-growth-sprint.md).
+The revised sprint plan is documented in [External Growth Sprint](../archive/growth/2026-06-18-external-growth-sprint.md).
 
 ### 30-Day Stretch Targets
 

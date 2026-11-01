@@ -1,5 +1,7 @@
 # VisuTry GSC and GA Organic Check
 
+> **2026-11-01 governance:** HISTORICAL research or execution snapshot, not current GTM/keyword allocation, rankings, conversion or channel performance. For live priorities use `docs/strategy/analytics/gtm.md` → `docs/project/seo-backlog.md`; for search-intent ownership use `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md`. Keep original evidence below for provenance.
+
 Date checked: 2026-06-24 13:43 CST
 Data sources: Google Search Console and Google Analytics via logged-in Chrome
 Property: `https://www.visutry.com/` in GSC, `AI-2024 / visutry.com` in GA

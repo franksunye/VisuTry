@@ -1,5 +1,7 @@
 # VisuTry 60 Referring Domains GTM Plan
 
+> **Archived 2026-11-01 — historical execution/evidence only.** Its original campaign window is closed. Do not resume quotas, outbound communication, or old traffic targets from this file. Current Consumer acquisition decisions live in `docs/strategy/analytics/gtm.md` and `docs/project/seo-backlog.md`.
+
 Date: 2026-07-02
 Status: Superseded on 2026-07-27
 Owner: Codex, with founder support where login, 2FA, or outbound approval is required
@@ -291,4 +293,4 @@ No backlink-purchase budget is required for the initial campaign. Any paid spons
 - Reusable distribution copy: `docs/strategy/growth/2026-06-18-distribution-kit.md`
 - Directory fields and prior queue: `docs/strategy/growth/2026-06-19-directory-submission-packet.md`
 - Previous outreach targets: `docs/strategy/growth/2026-06-18-outreach-targets-batch-1.md`
-- Prior outreach execution: `docs/strategy/growth/2026-06-24-reddit-warmup-and-outreach-execution.md`
+- Prior outreach execution: `docs/strategy/archive/growth/2026-06-24-reddit-warmup-and-outreach-execution.md`

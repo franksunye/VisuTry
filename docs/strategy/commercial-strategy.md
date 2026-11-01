@@ -618,7 +618,7 @@ This section defines the role of existing documents so the strategy system does 
 | `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | Public product path, SEO/GEO page contracts, keyword ownership. | Active source of truth for SEO/GEO and public page architecture. |
 | `docs/strategy/analytics/gtm.md` | Qualified-traffic acquisition, conversion, and measurement operating strategy. | Active source of truth for GTM execution. |
 | `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Earlier commercial traffic KPI baseline and operating plan. | Superseded historical reference. |
-| `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | Earlier short-term external traffic sprint. | Superseded time-boxed plan. |
+| `docs/strategy/archive/growth/2026-06-18-external-growth-sprint.md` | Earlier short-term external traffic sprint. | Superseded time-boxed plan. |
 | `docs/strategy/reseller-technical-roadmap.md` | Reseller/co-branding technical considerations. | Supporting technical roadmap. |
 | `docs/strategy/archive/seo/programmatic-seo-execution-plan.md` | Earlier large-scale programmatic SEO plan. | Archived historical reference; not current first-priority strategy. |
 | `docs/project/seo-backlog.md` | SEO implementation backlog. | Active task backlog. |

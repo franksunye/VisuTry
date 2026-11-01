@@ -1,5 +1,7 @@
 # VisuTry 转化优化方案
 
+> **2026-11-01 governance:** HISTORICAL research or execution snapshot, not current GTM/keyword allocation, rankings, conversion or channel performance. For live priorities use `docs/strategy/analytics/gtm.md` → `docs/project/seo-backlog.md`; for search-intent ownership use `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md`. Keep original evidence below for provenance.
+
 **日期**: 2026-06-04
 
 **背景**: 基于 Chrome 浏览器逐页审查 visutry.com 关键页面（首页、Pricing、试戴流程、支付回跳），结合代码分析和用户行为证据（3 个真实付费用户均购买 $2.99 Credits Pack），提出从流量到付费转化的端到端改进方案。

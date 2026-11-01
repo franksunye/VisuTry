@@ -1,11 +1,13 @@
 # VisuTry Reddit + YouTube Community Growth Runbook
 
-Status: active, conservative Week 1 rollout
+Status: historical community operating runbook; live schedule and authorizations NOT REVERIFIED on 2026-11-01
 Owner: Growth / Community Ops
 Operational branch: `growth/community-ops`
 Timezone: project/operator local timezone, currently `Asia/Shanghai`
 Daily schedule: every day at 10:00 local time
 Scheduler evidence: the Codex automation is verified separately from this repository documentation. Persist the real task ID and status in `growth/community/state/community-state.json`; use `NOT_EXPOSED` for unavailable next-run or run-ID fields.
+
+**Governance checkpoint (2026-11-01):** The August Week 1 cadence, branch and references below are historical descriptions, not authorization to restart promotion, outreach or comments. Check actual scheduler/branch/log state before treating community work as live; do not disable a real external automation based solely on this documentation note. Current Consumer growth priorities and outbound approval are governed by `docs/strategy/analytics/gtm.md`.
 
 ## Purpose
 

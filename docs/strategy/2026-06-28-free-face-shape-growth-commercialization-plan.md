@@ -47,7 +47,7 @@
 
 相关内部资料：
 
-- `docs/strategy/growth/2026-06-24-growth-recovery-operating-plan.md`
+- `docs/strategy/archive/growth/2026-06-24-growth-recovery-operating-plan.md`
 - `docs/strategy/2026-05-25-paid-customer-seo-geo-relaunch-plan.md`
 - `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md`
 

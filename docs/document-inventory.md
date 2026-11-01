@@ -2,7 +2,7 @@
 
 **Status:** Active documentation governance registry
 **Created:** 2026-07-08
-**Last updated:** 2026-10-17
+**Last updated:** 2026-11-01
 **Owner:** Product / Engineering
 **Review cadence:** Monthly, and at every major milestone close
 **Scope:** Authoritative documents, directory lifecycle, exceptions, and cleanup debt. This is intentionally not a file-by-file catalog.
@@ -26,6 +26,7 @@ An unlisted document does not become authoritative merely because it is newer or
 | Merchant activation milestone semantics | `docs/merchant-activation-v1.md` | Merchant Product / Engineering | Activation event, cohort, milestone, or First Value semantics change |
 | Commercial direction | `docs/strategy/commercial-strategy.md` | Product / Strategy | Commercial thesis changes |
 | GTM execution | `docs/strategy/analytics/gtm.md` | Growth / Product / Analytics | Experiment or acquisition model changes |
+| Consumer SEO/GEO operations | `docs/strategy/analytics/gtm.md` (priorities) → `docs/project/seo-backlog.md` (queue) → `docs/strategy/seo/weekly-growth-report-template.md` (recurring scorecard); product/query route support in `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | Growth / Product / Analytics | Weekly metrics and monthly archive/stop review |
 | Observability / analytics / attribution / data-plane ownership | `docs/project/observability-and-analytics-contract.md` | Product / Engineering / Growth | Data-plane, schema, attribution, exclusion, dataset/property, or reporting-authority changes |
 | Bounded web event semantics | `docs/product/campaign-intelligence/event-taxonomy.md` + `src/lib/analytics-events.ts` | Product / Engineering / Growth | Product event semantics change |
 | GA4 operator configuration | `docs/product/campaign-intelligence/ga4-console-checklist.md` | Growth / Analytics | GA4 configuration or reporting-view changes |
@@ -133,6 +134,15 @@ Use the audit during monthly review and before merging broad documentation-gover
 | P2 | Review large Markdown files over 30 KB for extraction/consolidation | Open |
 | P2 | Convert operations archive-by-status into physical archive folders only when links/forensic workflows remain clear | Deferred |
 
+### 2026-11-01 Consumer GTM/SEO/GEO closeout
+
+- **Active (one execution authority):** `docs/strategy/analytics/gtm.md`; current queue `docs/project/seo-backlog.md`; recurring `docs/strategy/seo/weekly-growth-report-template.md`.
+- **Stable supporting architecture / commercial direction:** `docs/strategy/commercial-strategy.md` (Consumer and Merchant remain independent product faces) and `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` (search-intent page architecture). Do not compress the 13-chapter commercial strategy.
+- **Reusable but not automatically active:** distribution kit, directory submission packet, outreach target research, visual SEO production/manifest and community interaction safety docs. Re-evaluate evidence and campaign authority first.
+- **Archive-only:** six ended June/July outbound sprint/recovery/Reddit/X/referring-domain plans moved to `docs/strategy/archive/growth/`. Historical KPI, GSC/keyword and conversion reports prominently labeled historical; their figures may not be reused as the current GA4/GSC baseline.
+- **Closed evidence:** 2026-08-03 Search→Tool Batch 1 and localization ship notes remain at current paths with explicit Completed status; raw July GSC exports, referring-domain CSVs and dated operational evidence remain preserved.
+- **Deferred deletion:** no irreversible deletion of unique traffic, payment, outreach, or SEO evidence. Future pruning requires link/unique-evidence scan and passing `npm run docs:audit:strict` in CI or a full checkout.
+
 ## 9. Deletion policy
 
 Delete when a document is:
@@ -173,3 +183,5 @@ At milestone close or monthly review:
 | 2026-09-23 | Registered Merchant Operating Experience and Activation semantics as explicit authorities; reconciled post-P1-M2 active docs and marked completed phase plans as historical/superseded where appropriate. |
 | 2026-10-01 | Registered the Productized Demo capability and its Product/Engineering/Growth/Sales ownership, release-impact rule, and Local/Production operating authorities. |
 | 2026-10-17 | Closed the scoped Merchant G4/commercial document-governance milestone, registered Demo Owner access, and separated Pilot GTM execution from GA and Enterprise Factory. |
+
+| 2026-11-01 | Consolidated Consumer growth authority/queue/scorecard routing; archived six time-expired outbound plans while preserving unique historical evidence and 2B boundaries. |

@@ -28,7 +28,7 @@ Working rule:
 | `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector and growth commercialization research | Living supporting reference | Keep the evidence; current execution priority lives in `analytics/gtm.md`. |
 | `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | SEO/GEO product architecture | Active source of truth for SEO/GEO page architecture | Keep active. Align product pages to this unless product strategy changes. |
 | `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Earlier commercial traffic KPI plan | Superseded historical reference | Preserve its baseline; use `analytics/gtm.md` for current metrics and cadence. |
-| `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | External acquisition sprint | Time-boxed operating plan | Keep until sprint closes. Then mark completed or archive. |
+| `docs/strategy/archive/growth/2026-06-18-external-growth-sprint.md` | External acquisition sprint | Archived historical record (moved 2026-11-01) | Keep unique evidence, no current execution quota. |
 | `docs/strategy/analytics/gtm.md` | Qualified-traffic GTM operating strategy | Active source of truth for GTM execution | Keep as the only current GTM execution strategy. |
 | `docs/strategy/reseller-technical-roadmap.md` | Reseller/co-branding technical roadmap | Supporting technical roadmap | Keep as supporting reference. Not current priority unless pulled forward by demand. |
 | `docs/strategy/2026-05-25-paid-customer-seo-geo-relaunch-plan.md` | Paid customer and SEO relaunch evidence | Historical commercial evidence | Keep or archive after evidence is fully reflected in strategy and benchmarks. |

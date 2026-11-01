@@ -145,7 +145,7 @@ Acceptance:
 
 Reference:
 
-- [External Growth Sprint](../strategy/growth/2026-06-18-external-growth-sprint.md)
+- [External Growth Sprint](../strategy/archive/growth/2026-06-18-external-growth-sprint.md)
 - [External Distribution Kit](../strategy/growth/2026-06-18-distribution-kit.md)
 
 ## Critical
