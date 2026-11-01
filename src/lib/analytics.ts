@@ -721,6 +721,7 @@ export const analytics = {
       JourneyDestination,
       'face_analysis' | 'glasses_advisor' | 'virtual_try_on' | 'frame_compare' | 'face_shape_guide'
     >,
+    ctaLocation?: 'result_summary_mobile' | 'result_next_step' | 'result_face_shape_guide',
   ) {
     const productPath = destination === 'face_shape_guide' ? undefined : destination
 
@@ -733,6 +734,7 @@ export const analytics = {
       from_stage: 'face_shape_detection',
       destination,
       face_shape: faceShape,
+      ...(ctaLocation ? { cta_location: ctaLocation } : {}),
       ...(productPath ? { product_path: productPath } : {}),
     })
   },
