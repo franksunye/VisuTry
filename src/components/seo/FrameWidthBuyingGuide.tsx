@@ -66,7 +66,7 @@ export function FrameWidthBuyingGuide() {
         <p className="mt-2">
           For this example, <strong>2 × 52 + 18 = 122 mm</strong> gives a rough lens-and-bridge span,
           not an exact outer width. Rims and end pieces change the full front measurement.
-          Look for the retailer's <strong>overall frame width</strong>, or measure a well-fitting frame from outermost edge to outermost edge, including rims and end pieces.
+          Look for the retailer&apos;s <strong>overall frame width</strong>, or measure a well-fitting frame from outermost edge to outermost edge, including rims and end pieces.
         </p>
       </div>
 
