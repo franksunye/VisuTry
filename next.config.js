@@ -162,7 +162,15 @@ const nextConfig = {
       { source: '/face-shapes/:faceShape', destination: '/en/face-shapes/:faceShape', permanent: true },
       { source: '/face-shapes/compare/:comparison', destination: '/en/face-shapes/compare/:comparison', permanent: true },
       { source: '/hairstyles-for/:faceShape', destination: '/en/hairstyles-for/:faceShape', permanent: true },
-      { source: '/try-on', destination: '/en/try-on', permanent: true },
+      { source: '/try-on', destination: '/en/try-on/glasses', permanent: true },
+      // App-rendered legacy redirects were observed as 307 without Location in
+      // Production. Resolve these at the routing layer with canonical 308 targets.
+      { source: '/en/try-on', destination: '/en/try-on/glasses', permanent: true },
+      ...['ar', 'de', 'es', 'fr', 'id', 'ja', 'pt', 'ru'].map((locale) => ({
+        source: `/${locale}/business`,
+        destination: '/en/business',
+        permanent: true,
+      })),
       { source: '/try-on/:type', destination: '/en/try-on/:type', permanent: true },
       { source: '/:locale/oval-face-shape', destination: '/:locale/face-shapes/oval', permanent: true },
       { source: '/:locale/round-face-shape', destination: '/:locale/face-shapes/round', permanent: true },
