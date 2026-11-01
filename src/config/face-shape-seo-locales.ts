@@ -1,5 +1,6 @@
 import { defaultLocale, isValidLocale, type Locale } from '@/i18n'
 import type { FaceShapeContentSlug } from '@/config/face-shape-content'
+import { priorityLocaleCopy } from '@/config/face-shape-winner-locales'
 
 type FaqItem = { question: string; answer: string }
 
@@ -266,6 +267,15 @@ for (const locale of Object.keys(compactLocaleData) as Locale[]) {
 for (const locale of ['fr', 'ru'] as const) {
   const value = localized[locale]
   if (value) copies[locale] = { shapeNames: shapeNames[locale], ...value }
+}
+
+for (const locale of ['ja', 'es'] as const) {
+  const value = priorityLocaleCopy[locale]
+  copies[locale] = {
+    ...copies[locale],
+    detector: { ...copies[locale].detector, ...value.detector },
+    glasses: { ...copies[locale].glasses, ...value.glasses },
+  }
 }
 
 export function getFaceShapeSeoCopy(locale: string): FaceShapeSeoCopy {
