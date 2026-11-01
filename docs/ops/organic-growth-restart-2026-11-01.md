@@ -46,6 +46,8 @@ GSC's **Google Search Generative AI beta** report (Oct 2–29) shows **17,036 im
 
 GSC indexing (last updated Oct 23): **448 indexed; 831 not indexed**. This is not 831 confirmed defects. Breakdown: **278 discovered/not indexed** (sample Arabic blogs/guides, no crawl dates), **78 crawled/not indexed** (sample RU/ID/ES/JA localized guides and parameterized Compare), **262 noindex**, **118 alternate canonical**, **44 redirect pages**, **27 Google-selected different canonical**, **11 duplicate without specified canonical**, **8 actual 404**, **4 redirect errors**, **1 soft 404**. Investigate the **356 discovered/crawled** by language and value, plus the 8+4+1 status anomalies. Check that noindex/alternate/redirect is intentional before seeking indexing. The older 683-404 snapshot is not a current count.
 
+**GSC 404/redirect-error samples (Oct 23 coverage):** The 8 `404` examples are one old hashed `/_next/static/css/...css?dpl=...` asset, 3 `/blog/tag/` legacy slugs with spaces (`Eyewear Tips`, `Style Inspiration`, `Fashion Tips`), 2 short-lived `/share/` links (root and `/fr/share/`), `/5`, and `/style/diamond`. They are **not 8 confirmed high-value Consumer landing pages**. The 4 redirect-error examples are `/id/business`, `/es/business`, `/ja/business`, `/en/try-on` (last crawled Aug–Sep). Check current response/redirect destinations and demand before shipping redirects; never indiscriminately redirect expired private share tokens.
+
 ## Verified historical funnel and search facts
 
 | Evidence date/window | Fact | Interpretation |
