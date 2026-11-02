@@ -1,5 +1,7 @@
 # VisuTry Consumer — 10× Growth Discovery 深度研究 V2
 
+> **最新产品边界更正（2026-11-02）：** VisuTry **不提供、销售、存储或预置 Gentle Monster 官方商品/SKU**。Gentle Monster 只是独立品牌搜索指南入口，真实 Try-On 由用户自行准备肖像与镜框图片。此前本研究提出的“缺乏品牌 SKU / 未自动加载商品”不得定义为现有产品缺陷或功能交付缺口；P0-2 应验证 **品牌搜索 → 自带镜框图的独立 Try-On / Advisor → 真实完成与付费**，不以是否试戴 Gentle Monster 官方商品作为验收条件。以下旧节保留历史证据，但如有策略解读冲突，以本更正和§14为准。
+
 **研究时间：2026-11-02｜性质：市场与产品双向研究、反证与实验预注册｜状态：RESEARCH EXTENDED / NO 10× WINNER VALIDATED**  
 **约束：** 不将已发布功能当作增长结果；不把 GSC 展示当作关键词市场搜索量；不凭零散 Reddit 帖子代表整体市场；不以 GA4 全站事件总数拼接个人漏斗；不改变免费 Detector 的端侧/隐私/CPU 边界；不释放付费 Face Analysis 个性化 Top Picks；不扰动 2026-11-01 已上线的 CTA 与品牌页面观察窗口。  
 **归属：** 本文件是日期明确的 supporting research，不取代 GitHub `docs/strategy/analytics/gtm.md` 这个唯一的活动 GTM 策略，也不重启旧 1,000 页/批量外联计划。
@@ -268,7 +270,7 @@ GSC Web exact page，2026-10-03 至 10-30：
 | Oakley 品牌页 | 37 | 1,206 | 3.1% | 品牌 SERP 和用户意图不同，不是 GM 的随机对照 |
 | Ray-Ban 指南（不是同型品牌页） | 26 | 4,128 | 0.6% | 不能将低 CTR 直接认定无市场需求 |
 
-GitHub #499（2026-11-01 merged，https://github.com/franksunye/VisuTry/pull/499）证实：9 个 curated 品牌页展示的是独立风格图片，不是可自动预载的品牌商品；CTA 到 generic /en/try-on/glasses，用户仍必须自己获取具体镜框照片/截图，再上传自己的肖像。#499 改良了说明和 3 步指导，**没有取消双图输入门槛**。因此“搜索特定品牌直接试戴”与当前实际交付存在可查证的任务-产品缺口；这是 UX/代码事实，**不是已测量的流失比例**。公开页面抓取仍可能有旧文案缓存；不能仅凭抓取断言生产 CDN 版本。
+GitHub #499（2026-11-01 merged，https://github.com/franksunye/VisuTry/pull/499）证实：9 个 curated 品牌页展示的是独立风格图片，不是可自动预载的品牌商品；CTA 到 generic /en/try-on/glasses，用户仍必须自己获取具体镜框照片/截图，再上传自己的肖像。#499 改良了说明和 3 步指导，**没有取消双图输入门槛**。因此当前是真实存在的**自带镜框图（BYO-frame）操作路径**，不是需要 VisuTry 供应官方商品的缺陷；只可测试这个自助入口的产品完成率及商业价值，**不是已测量的流失比例**。公开页面抓取仍可能有旧文案缓存；不能仅凭抓取断言生产 CDN 版本。
 
 同一 GA4 28d 整站记录 tryon_started 119、tryon_completed 56 个事件，但既非同一品牌 cohort，也不是品牌 GSC 点击者；**禁止直接相除推导品牌成功率**。目前没有 GM/Oakley/Ray-Ban 的去重 organic landing→CTA→实际生成完成→Verified Payment 漏斗，品牌商业成果仍未验证。
 
@@ -368,7 +370,7 @@ SQL 使用 payment.checkout_id 去重付款、task.id 去重任务；Try-On 仅�
 
 **P0-1 Decision：** `PAID DEMAND = VERIFIED`、`PAID BUYER PRODUCT USE = VERIFIED`、`10x REPLICABILITY = INCONCLUSIVE`。可针对已经带来 Advisor 付款的 Guide/Detector/Advisor 自然入口做小范围转换实验，保留付费个性化产品边界。
 
-**P0-2 Decision：** Gentle Monster 的2笔来源付费均 attached Advisor；2笔付款后共关联12个 Consumer Try-On、其中9个完成，且2笔均对应付款用户后续有成功 Try-On。`BRAND-LANDING → PAYMENT → USER-LEVEL TRY-ON = VERIFIED`，但没有逐次 task 的实际镜框品牌/商品 ID 或可审计同会话品牌来源，**`ACTUAL GENTLE MONSTER SKU TRY-ON = UNVERIFIED`**；不能扩张9→90品牌，也不能声称品牌试戴已实现10×。
+**P0-2 Decision：** Gentle Monster 的2笔来源付费均 attached Advisor；2笔付款后共关联12个 Consumer Try-On、其中9个完成，且2笔均对应付款用户后续有成功 Try-On。`BRAND-LANDING → PAYMENT → USER-LEVEL TRY-ON = VERIFIED`，没有可审计同会话 BYO-frame Try-On 来源证据，**`BRAND-LANDING → INDEPENDENT USER-SUPPLIED TRY-ON COMPLETION = UNVERIFIED`**；VisuTry 不供应品牌 SKU，**不将官方商品试戴作为目标或产品缺陷**。不能扩张9→90品牌，也不能声称这一入口已经实现10×。
 
 ### 13.3 失败 Checkout 与账务差额
 
@@ -377,3 +379,37 @@ SQL 使用 payment.checkout_id 去重付款、task.id 去重任务；Try-On 仅�
 第二轮 Q3：COMPLETED Payment 21 CREDITS_PACK/$62.79 + 1 PREMIUM_MONTHLY/$8.99，均 `stripe_webhook_paid`，且 createdAt 全在同期窗口内。**Stripe 用户提供的对账为20 Credits Pack/$59.80 +2月订阅/$17.98，共22笔/$77.78；Neon 总金额差$6、类型各差1，仍不可称逐单 reconcile PASS。** 当前代码 `invoice.payment_succeeded` 重置订阅配额但不记独立 Payment 收入行，可能解释部分续费漏记；必须核对 Stripe Checkout Session/Invoice/PaymentIntent ID 和具体事件时间后才能 RCA。
 
 **行动门槛：** (1) Stripe/Neon 一笔笔对账消除$6差额或确认其原因；(2) 完整成熟7天的 paid-buyer task 窗口重新核算去重用户及避免交叉 cohort；(3) Axiom/GA4 的品牌页面→具体试戴同会话链路或合法品牌SKU来源证据。现阶段停止无依据的批量品牌内容扩张。
+
+
+---
+
+## 14. Brand BYO boundary correction & 两个 P0 的下一验证工作包（2026-11-02）
+
+### 14.1 产品事实 / 不建设假 SKU
+
+2026-11-02 用户明确：**VisuTry 没有提供 Gentle Monster 商品**。GitHub main 再次复核 `src/config/brand-try-on-content.ts`、`src/app/[locale]/(public)/brand/[brand]/page.tsx`、`src/components/analytics/GrowthFunnelLink.tsx`：
+
+- 当前九个 curated brand 页面展示的是 **independent style references / editorial frame directions**，不是品牌官方产品、不在本站销售、不预设库存或预装镜框；页面明确非品牌授权/关联。
+- 真实 Try-On 是用户自行上传人像和实际镜框图片/截图。通过 `GrowthFunnelLink` 到通用 `/en/try-on/glasses`，已经设置 `source_page`、`destination=glasses-try-on`、`cta_location`、`query_cluster` 等事件上下文。**不需要创建 GM SKU 目录，也不必去抓取品牌图或承诺品牌官方试戴**。
+- **研究问题改为**：多少来自该品牌搜索入口的独立 Consumer 访客，理解并接受 BYO-frame 图像要求，完成自己选择的镜框试戴、继续 Advisor、并产生可核实的收入？此“品牌入口转为独立工具使用”的效果可以增长，即使实际上传的是其它品牌或无品牌镜框。
+- 历史「两位 Gentle Monster landing 付款者在付款后 7d 内有12次 Consumer Try-On，其中9次成功」是 **payer-user-level correlation**，不是品牌产品级完成，也不是同一 session 内由页面 CTA 引导的完成；**不应该再用“没有 GM 官方商品”解释流失或提出 SKU 供给工程**。
+
+### 14.2 证据与优先级
+
+- **P0-1 Advisor**：生产 Neon 2026-10-04～31 完成 22 笔 Payment / $71.78，其中 16 笔 $47.84 在 Checkout 明确 attached `unlockTaskId`；Google Organic EN glasses guide 6 笔、其中 6 笔 Advisor attached。**Paid demand VERIFIED**，而非“Advisor 付费不确定”。未核实扩大获客后的边际转换率/10×可复制性。
+- **P0-2 Brand BYO**：GSC 同期 GM 页面 532 点击/1610 展示（同口径早期623点击）；Neon GM first-landing + google organic 2 笔/$5.98，均 attached Advisor；该付款用户付款后7日任务12 / 完成9（但不是独立会话归因）。**Entry→paid Advisor association VERIFIED**，**brand entry→BYO actual task completion at same session UNVERIFIED**。
+- **Stripe vs Neon reconciliation**：Stripe 用户核验 22笔/$77.78 (20 Credits, 2 Monthly)，Neon 22笔/$71.78 (21 Credits, 1 Monthly)；$6.00 差额及类型错配独立保持 OPEN。生产 webhook `invoice.payment_succeeded` 更新额度但不插入新的 `Payment` 收入记录，属于可审计潜在续费账务盲点，**不能在未匹配 Invoice/Checkout session 前断言其为本次 RCA**。
+- **测量边界**：上轮付款后7天任务的用户级关联不能去重跨付款 cohort；10月底的新付款未完整经过7天；Free Detector 的核心使用不产生 per-use server log；不能强迫图片或私人内容加入 analytics。
+
+### 14.3 P0 work gates（下一轮 1–2 个实质性改进，不是新增页目标）
+
+| Gate | 立即可做的证据/实施 | 验收/否定条件 |
+| --- | --- | --- |
+| **A1 付费转化** | 以 EN guide / Advisor / Detector 的 eligible organic landing sessions（GA4）为分母；Neon verified `unlockTaskId` 和匿名事件为结果，先统一时区、内部流量和成功支付口径；对 2026-11-01 #484 移动 CTA 做 7 日后观察 | 观察是否提升真实支付及报告完成，而非仅点击；单个窗口样本低不能强行作统计显著结论 |
+| **B1 品牌 BYO 漏斗** | 对九个品牌页（优先 GM）已有 `source_page` + `cta_location` 的 `seo_funnel_click` 和 `tryon_started/completed` 按匿名 `consumer_funnel_id` **同浏览器会话**结合；需确认当前 server-side Axiom 是否保留来源，若存在 join 缺口仅补最低限度、隐私安全事件 | **看有多少人真的提交自带镜框图片且生成成功**；不要求任何品牌商品 ID，不读取原照片内容，不构建 GM 库；绝不从两位付款用户反推整体品牌转化 |
+| **C1 账务对账** | Stripe 2026-10-04～31 UTC `Checkout Session/PaymentIntent/Invoice` 与 Neon `Payment.stripeSessionId` 逐单核对，审视第二笔月订阅是首次购买还是续费；分别报告正反遗漏及时间边界 | 解释并分类 $6.00 差额、21/20 Credits 与 1/2 Monthly 错配；不得擅自将退款、过期 checkout、收入记账修成生产状态 |
+| **D1 成熟 Cohort** | 在 2026-11-08 后重算所有 Oct31 付款可完整观察的7日 user-level Try-On；以用户第一笔真实付款为 anchor，避免交叉窗口重复，注明已清理任务造成右/左删失 | 复现启动率、成功率、合格付费；不将用户级同窗关联称为品牌/同会话因果归因 |
+
+**执行顺序**：先 C1/A1 的真实商业收入/来源，再 B1 的 BYO 动作归因；不追加品牌商品工程、不批量新增页面、不干扰 Nov1 已部署 CTA 的观察窗口。任何新版本 UX 必须是小范围独立实验、完整 CI 与真实上线验收之后才能声称 lift。
+
+**总体决策**：P0-1 `PAID DEMAND VERIFIED / SCALE UNPROVEN`；P0-2 `BRAND SEARCH → INDEPENDENT ADVISOR PAID VERIFIED / BYO TOOL SESSION COMPLETION UNPROVEN`；**没有任何 10× 增长赢家被证明**。
