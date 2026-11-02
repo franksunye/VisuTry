@@ -31,6 +31,16 @@ describe('AI glasses advisor article locale copy', () => {
     },
   )
 
+  it('states clearly that free local detection differs from credit-based personalized Advisor', () => {
+    const guide = getAiGlassesAdvisorArticleCopy('en')
+    expect(guide.metaTitle).toContain('Upload a Photo')
+    expect(guide.metaDescription).toContain('free in your browser')
+    expect(guide.intro).toContain('credit-based')
+    expect(guide.heroBody).toContain('credit-based')
+    expect(guide.overview[1]).toContain('retailer screenshot')
+    expect(guide.pathAdvisor).toBeTruthy()
+  })
+
   it('falls back to English for an unsupported locale', () => {
     expect(getAiGlassesAdvisorArticleCopy('unsupported')).toEqual(
       getAiGlassesAdvisorArticleCopy('en'),
