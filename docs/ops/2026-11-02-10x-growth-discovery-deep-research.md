@@ -429,3 +429,39 @@ SQL 使用 payment.checkout_id 去重付款、task.id 去重任务；Try-On 仅�
 **工程裁决：NO NEW INSTRUMENTATION YET。** 现在应先只读查询 `visutry-traffic-pro` 的 event_name + source_page + landing_page + consumer_funnel_id + traffic_class 与 `tryon_started/completed`。只有真实生产事件确认源页/任务结果丢失（不是数据读取权限不足）时，再提交精确的最低成本改动及测试计划。browser sessionStorage 生命周期、用户新开标签、登录跳转及 GA4 AdBlock 造成的缺失必须作为归因覆盖率单独记录，不应虚构为零转化。
 
 **账务 RCA 唯一 Issue：** https://github.com/franksunye/VisuTry/issues/508 。配套私密 Neon Query 单语句本地文件 `visutry-p0-byo-finance-matured-cohorts-2026-11-02.sql`；尚未执行 Neon，不宣称产生新数据。
+
+
+---
+
+## 15. 第三轮 Neon 执行结果：22 笔 Checkout 精确列出，首付用户 7d 去重（2026-11-02）
+
+**来源：** 用户粘贴 `Pasted text(4).txt`，Neon Production 单条只读 SQL 已实际执行产生 `CHECKOUT_SESSION_AUDIT` ×22、`PAYMENT_DAY_LEDGER` ×16、`MATURED_FIRST_PAYMENT_BUYER_7D` ×5，总计 **43 行**。对用户上传的 CSV 使用结构化解析，对三部分独立求和/去重核验：**22 个互不重复的 Checkout ID 尾段，21 笔 $2.99 Credits、1 笔 $8.99 月订阅，合计 $71.78；16 笔附着 Advisor unlock；按日小计与逐订单汇总完全一致。** 仅发布聚合结果，不将 Checkout / PaymentIntent 后12位发到 GitHub。
+
+### 15.1 成熟首购用户 cohort（严禁混淆付款记录）
+
+**SQL 口径**：全历史 Payment 查找每人最早 `COMPLETED`，anchor 必须在 2026-10-04（含）到 2026-10-26（不含），再取其付款后7天创建的 `CONSUMER` TryOnTask。新近10/26–10/31购买因为尚未完成7天观察而不进入。分组按用户**首次付款记录的 landing_page**，并不是某次试戴的同会话页面来源。任务已保留且落在7天窗口，不能重建已删任务；不同用户不重复，但只有当前保留样本。
+
+| 首次付费来源（不限制 acquisition source） | 首购用户 | 首购附着 Advisor | 保留7d Try-On | 完成 Try-On | 至少完成一次的首购用户 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| EN Detector | 5 | 4 | 56 | 56 | 5 |
+| EN AI guide | 5 | 5 | 22 | 21 | 4 |
+| EN Face Analysis | 2 | 1 | 6 | 3 | 1 |
+| Gentle Monster（BYO 独立品牌指南入口） | 1 | 1 | 8 | 5 | 1 |
+| Other landing | 4 | 1 | 28 | 16 | 2 |
+| **Total** | **17** | **12** | **120** | **101** | **13** |
+
+**合法描述：** 13/17（76.5%）成熟首购用户在其付款后7d内有至少1次**保留的成功** Try-On；101/120（84.2%）为**该样本保留任务**的成功比例，非全站生成质量指标、非同会话有机来源转化率。单用户可能多任务，故不将 task 数除以访客数作为转化。免费 Detector 设备端行为仍非 first-party telemetry 的完整免费分母。
+
+**Gentle Monster：** 十月该入口共有2笔 $2.99 已付 Advisor-attached Checkout；但成熟首购组只有**1 位**，其付款后8次保留 Consumer TryOn，其中5次完成。另1笔发生10/28、没有达到这次 SQL 的 maturity cutoff，**其未入组绝不能解读为未试戴**。不要要求/假设 VisuTry 拥有任何 Gentle Monster SKU/产品；成功定义是用户自行准备人像与镜框图完成通用试戴。
+
+### 15.2 付款对账：单一数据库口径 PASS，跨系统仍 FAIL
+
+22个 Checkout ID 的 **12位尾段全部唯一**，每条都有 `paid_at_utc`，且每笔 `CHECKOUT_SESSION_AUDIT` 金额/类型汇总与 `PAYMENT_DAY_LEDGER` 逐日小计完全一致；Neon 内部汇总的一致性 `PASS`。其中唯一月订阅 Checkout 在 **2026-10-27 02:17 UTC**；生产库的本次窗口无第二笔月订阅 Checkout。**Stripe 人工对账仍是20 Credits +2 Monthly=$77.78**，Neon 是21 Credits +1 Monthly=$71.78，差 $6。外部 Stripe 逐项 ID 数据尚未提供到当前报告，**Stripe↔Neon ID-level reconciliation = OPEN**。不能仅凭日维度或 ID 尾段判定哪笔错记；也不能把已成功付款的 `Payment` 任意更改成其它商品类别。
+
+**Webhook code hypothesis retained, not RCA**：`invoice.payment_succeeded` 对续费只更新 `premiumUsageCount`，不写新 `Payment` 账务事件，是一个明确实现差异；是否解释实际第二笔 $8.99 月订阅还需查 Stripe Invoice/Checkout 事件，并从 Stripe 端核验额外 Credits 算在哪个统计窗口/产品中。Issue https://github.com/franksunye/VisuTry/issues/508 保持 OPEN。
+
+### 15.3 工作优先级的更新
+
+1. **P0-1 = PAID DEMAND VERIFIED / POST-PAYMENT USE OBSERVED / 10× INCONCLUSIVE**。十月16笔 direct Advisor Checkout 已证实；成熟首购 12/17 付款时绑定 Advisor，13/17 后续有成功 Try-On（这些并非同一个交集人数，不要错误拼接漏斗）。
+2. **P0-2 = BRAND-ENTRY PAID ADVISOR VERIFIED / BYO FRAME USAGE BY BUYER OBSERVED / SAME-SESSION BRANDED LANDING FUNNEL INCONCLUSIVE**；无需 GM SKU，也不应把未来“是否使用 GM 品牌镜框”当作 P0 验收标准。
+3. 下一步最小跨源证据：**Stripe 完整成功交易 Checkout Session/Invoice ID 或脱敏尾段+UTC时间+金额+类型**（须确认 Stripe 页面统计的是 Payments 还是 Invoices），与本轮22笔 Checkout 明细逐项比对。若能获得 Axiom 匿名 `consumer_funnel_id` 的 source_page→tryon_completed 同会话结果，再为 P0-2 评估是否进入 MODIFY/SCALE；若没有结果，记 UNAVAILABLE 而非 0%。
