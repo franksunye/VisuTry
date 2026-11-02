@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MerchantCatalogSelfService } from '@/components/merchant/MerchantCatalogSelfService'
+import { recordMerchantActivationClientEvent } from '@/lib/merchant-activation-client'
 
 jest.mock('@/lib/analytics', () => ({ analytics: { trackCustomEvent: jest.fn() } }))
 jest.mock('@/lib/merchant-activation-client', () => ({
@@ -77,6 +78,8 @@ describe('Merchant First Value source choice and recovery', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
     const alert = await screen.findByRole('alert')
     expect(within(alert).getByText('This website could not be inspected.')).toBeInTheDocument()
+    expect(recordMerchantActivationClientEvent).toHaveBeenCalledWith(expect.objectContaining({ eventType: 'merchant_catalog_inspection_attempted', resourceId: 'url' }))
+    expect(recordMerchantActivationClientEvent).toHaveBeenCalledWith(expect.objectContaining({ eventType: 'merchant_catalog_inspection_failed', resourceId: 'url' }))
     fireEvent.click(within(alert).getByRole('button', { name: 'Add one product manually' }))
     expect(screen.getByRole('tab', { name: 'Add manually' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByLabelText('Product name for product 1')).toBeInTheDocument()
@@ -90,6 +93,7 @@ describe('Merchant First Value source choice and recovery', () => {
       initialWebsiteUrl="https://shop.example.test" showResourceList={false} />)
     fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
     expect(await screen.findByText(/No importable products were found/)).toBeInTheDocument()
+    expect(recordMerchantActivationClientEvent).toHaveBeenCalledWith(expect.objectContaining({ eventType: 'merchant_catalog_inspection_empty', resourceId: 'url' }))
     expect(screen.queryByRole('button', { name: 'Approve and import 0' })).not.toBeInTheDocument()
     expect(screen.queryByText('Review before import')).not.toBeInTheDocument()
     expect(screen.getByText('No products are ready to add')).toBeInTheDocument()
@@ -113,6 +117,8 @@ describe('Merchant First Value source choice and recovery', () => {
       initialWebsiteUrl="https://shop.example.test/products/blocked" showResourceList={false} />)
     fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
     expect(await screen.findByText('Website inspection was blocked')).toBeInTheDocument()
+    expect(recordMerchantActivationClientEvent).toHaveBeenCalledWith(expect.objectContaining({ eventType: 'merchant_catalog_inspection_failed', resourceId: 'url' }))
+    expect(recordMerchantActivationClientEvent).not.toHaveBeenCalledWith(expect.objectContaining({ eventType: 'merchant_catalog_inspection_empty' }))
     const alert = screen.getByRole('alert')
     expect(within(alert).getByText('This website did not allow automated inspection.')).toBeInTheDocument()
     expect(within(alert).getByText(message)).toBeInTheDocument()
@@ -130,6 +136,7 @@ describe('Merchant First Value source choice and recovery', () => {
       initialWebsiteUrl="https://shop.example.test/old" showResourceList={false} />)
     fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
     expect(await screen.findByRole('button', { name: 'Approve and import 1' })).toBeEnabled()
+    expect(recordMerchantActivationClientEvent).toHaveBeenCalledWith(expect.objectContaining({ eventType: 'merchant_catalog_inspection_ready', resourceId: 'url' }))
 
     fireEvent.change(screen.getByLabelText('Store or product URL'), { target: { value: 'https://shop.example.test/new' } })
     expect(screen.queryByRole('button', { name: 'Approve and import 1' })).not.toBeInTheDocument()
