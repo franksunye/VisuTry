@@ -182,3 +182,56 @@
 - [r/glassesadvice 多副 VTO 求反馈](https://www.reddit.com/r/glassesadvice/comments/1wjxibg/please_help_me_pick_a_new_pair_of_glasses_virtual/)
 - [r/GenZ 害怕 VTO 尺寸失真](https://www.reddit.com/r/GenZ/comments/1xfzk7p/how_do_you_guys_select_glasses_when_buying_online/)
 - [r/glasses VTO size accuracy](https://www.reddit.com/r/glasses/comments/1sokvi2/virtual_try_on_accuracy/)
+
+---
+
+## 9. 增量证据与持续研究终局决策协议（2026-11-02）
+
+**定位：** 本附录承接 [V2 深度研究](https://github.com/franksunye/VisuTry/blob/main/docs/ops/2026-11-02-10x-growth-discovery-deep-research.md)，不另立 GTM 战略。**状态：RESEARCH ACTIVE / NO SCALE DECISION**。
+
+### A. 本轮新增独立证据及边界
+
+1. **线上用户确实经常购买多副眼镜。** The Vision Council 于 2026-10-27 发布的 Q3 2026 美国代表性成人调查（N=12,099，2026-07-29～09-12）报告：53% 的线上眼镜买家购买多副，相对线下买家 36%。这说明“多副选择”的任务真实且常见，**不能**由此推断他们需要 VisuTry 的付费 AI Compare，或愿意公开分享照片。来源：https://thevisioncouncil.org/blog/new-research-vision-council-explores-consumer-behavior-q3-2026
+2. **输入照片是独立 VTO 的重要行为摩擦。** Genlook 2026 Q3 自有商户端数据：890 个使用其 VTO 的商店、28.2万余次 Try-On；在约33万次打开 widget 的会话中，41.9% 添加照片，38.4% 获得试戴结果；92% 的 Try-On 在手机上完成。**只可作为产品研究的外部参照，不等于 VisuTry Consumer 登录/上传/二图生成的同口径转化率。** Genlook 自身为供应商，有客户自选择、cookie 同意、主要是服饰且非随机对照限制。来源：https://genlook.app/reports/state-of-virtual-try-on-2026-q3
+3. **重复比较与购买同向相关，但非因果证据。** Genlook 同一报告：3次以上 try-on 的 shopper 有21%下单，一次 try-on 的为10%；自选的高购买意图同样可能导致更频繁试戴。眼镜类“试戴特定商品后30天内购买该商品”的比例报告为4.1%，比平台整体6.7%低。**不能把这个下单率用于预测 VisuTry 的消费者付费 credits**；两种转化事件、场景和人群不同。
+4. **分享不能默认构成 10× 传播机制。** Genlook 报告中 5.8% 的试戴 shopper 点击 share，其中64%完成分享，但未提供由分享带来的新用户激活率；因此无法据此推导病毒系数。VisuTry 需先量真实分享→打开→完成动作→回流，且保持隐私和过期链接边界。
+5. **独立学术证据支持“交互对体验有影响”，不直接证明长期成交。** 2025 发表的 265 人三组 eyewear VTO 实验比较无 AR、照片型 VTO 与实时高交互 AR，报告高交互增强 engagement 和 product enticement。实验研究的是心理指标，不是 VisuTry 生成式图片付费转换。来源：https://doi.org/10.1016/j.chbr.2025.100772
+6. **Google 不要求 AI 专属 SEO 文件。** Google Search Central 明确 AI Overview/AI Mode 与常规搜索同样依赖可抓取、已索引、真实可信内容；不应把 `llms.txt` 等当作能够带来额外曝光的必要工程。来源：https://developers.google.com/search/docs/appearance/ai-features
+
+**证据综合：** 相比“新增功能清单”，更值得研究 VisuTry 的 **真实商品图取得/双图输入 → 高质量完成一次试戴 → 多副比较 → 有效付费** 是否连续成立。此优先级是“证据驱动的研究排序”，不是已验证增长成功。
+
+### B. 唯一可判断的 10× 定义
+
+- **核心目标：** 在规定完整 28d 口径下，可重复出现的 **合格 Consumer sessions**；至少完成 Detector 后有效进入眼镜决策、完成 Advisor、完成 Try-On、Compare 或经核实支付中的某一适当定义动作。定义须排除 B2B Merchant 和已识别测试/内部访问，且不要将事件总数直接当作会话数。
+- **经营护栏：** 每 1,000 合格 Consumer sessions 的 verified revenue、实际支付笔数、退款、每次有效生成成本及失败率；需要真实 Stripe/Payment 和可关联的采样边界。
+- **历史参照而非已验收目标：** 2026-08-03 约1,824 total sessions/月，10× 算术值18,240；2026-10-04～10-31 total sessions 6,889（并非相同 qualified 定义）。必须先建立一个完整、去重且可重现的 qualified baseline，才能正式判定 10×。未取得该基线时报告 `METRIC BASELINE NOT VERIFIED`，不强行作达成率。
+
+### C. 五个工作包：每次都要双向质询，并优先得出结论
+
+| 包 | 市场→产品问题 | 产品→市场问题 | 关键数据 | 可否定条件 |
+|---|---|---|---|---|
+| E1 Branded exact frame | 搜索指定品牌/型号的人，究竟是找官网试戴还是愿用独立站？ | 目前 style reference + 需自带镜框图是否满足任务？ | GM/RB/OK exact query×page GSC；GA4 landing/CTA；Axiom Try-On completion；Payment landing 来源 | 有搜索点击但完成率低；主要是官方导航需求；误解为官方商品 |
+| E2 Photo→Advisor | 免费识别与个性化购买建议对应哪些不同付费意愿？ | 现有 Guide→Advisor/直接 Try-On 路径是否留住高意图？ | Guide/Advisor/Detector 对照；去重完成；Verified payment；登录/Unlock dropoff | “free”带来非商业流量或实际解锁/付费无增长 |
+| E3 Fit Confidence | 尺寸/桥宽/PD 的搜索需求有多大，消费者愿意信任哪种解释？ | 现有 width guide 能提供可靠非毫米级购买指导吗？ | 现有 URL exact GSC；CTA；用户问题；安全声明 | 市场需要真尺寸测量而非生成式预览；新增功能无法诚实交付 |
+| E4 Compare/Share | 决策者会向朋友确认吗，接收者会成为独立用户吗？ | 现有 Compare/Share 完成后回流是否有可测量链路？ | comparison_created/completed；share→open→new qualified action 的合法聚合 | 分享率低，回访无独立激活或隐私风险高 |
+| E5 New distribution | 在 SEO 以外，谁会不断产生新的眼镜决策需求流量？ | VisuTry 是否有可重复引用而不需要新大功能的资产？ | ChatGPT/Google AI/第三方可验证引用、真实 referral sessions 和下游质量 | 只增长曝光而没有有价值点击；外联无有效来源；获取成本过高 |
+
+**禁止事项：** 不能预先选择一个方向后只找支持材料。每一包必须至少列一条可信反证和一个与已有产品契约的冲突；不释放免费照片个性化 Top Picks；不承诺真尺寸 fit；不批量新增薄 SEO 页面；不在 11/1 CTA 观察期重写页面。
+
+### D. 研究的实质性终止标准
+
+一个方向在以下任一结果出现时必须形成决策，不再无限扩大关键词池：
+
+- **SCALE（可复制增长）**：至少两次完整可比观察窗或独立 cohort 复现正向增量，真实合格产品完成增长且付费/成本护栏不恶化；将潜在可扩规模估算与距 10× 的缺口对照。只凭 GM 一页点击增长不得 SCALE。
+- **MODIFY（用户任务存在但产品摩擦显著）**：GSC/外部证据支持需求，但实际投入 Advisor/Try-On 或完成明显流失；优先针对识别出的唯一摩擦做小实验，不改变价格/免费边界。
+- **STOP（不值得投入）**：需求不足、只能吸引泛娱乐流量、无法合法准确交付、付费质量不成立，或获得流量的边际成本显著不经济。
+- **INCONCLUSIVE（证据不足）**：无法剔除测试、未取得授权支付核验、数据无会话关联、样本不足/窗口未完整；必须清楚列出唯一关键阻断和进一步最小数据取得方式。不得用“还要继续调研”代替结论格式。
+- **NO 10× WINNER（允许的全局结论）**：若所有包完成初验证仍不能证明可复制的 10× 增长机制，明确否决近期大规模产品开发/内容生产，并改为“守住现有 SEO + 修补已证实的转化摩擦 + 探索新分发”的资源配置，而不是继续凑增长故事。
+
+**主要节点：** 2026-11-08/09 既有 #484/#499 7 日初读；11-15/16 检查 GA4 新自定义维度和一方匿名 cohort；11-29 后读取 GSC 28 日完备窗、Payment/Stripe 对账与真正的跨期变化。观察时刻须以真实 Cloudflare canonical HTML 生效/Google GSC 延迟为准；无完整窗口不作因果判断。研究没有固定“保证找到赢法”的截止日，但每个节点必须形成 SCALE/MODIFY/STOP/INCONCLUSIVE 决策。
+
+### E. 自动持续研究与数据权限边界
+
+- 每周进行两次专门的 **10× 机制研究**，聚焦 H1/H2/H3/H4/H5 的用户任务→完成→付费→可复制性，不替代现有每周一的通用 SEO/GEO 周报。仅当有实质进展、阻断或研究终局时向用户发送通知。
+- 研究档案必须保留来源、窗口、样本、能否关联、反证、下一决策，不再重复写新的并行 GTM 战略。需要的生产变更仍遵循分支/CI/审批/上线质量门槛。
+- 不凭现有代码路径宣称已获得数据库/Stripe 真实读取；取不到就是 UNAVAILABLE。凡涉及个人照片、PII、具体账户和内部测试标记，分析优先使用安全的聚合数据。
