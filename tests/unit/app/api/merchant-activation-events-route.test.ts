@@ -56,6 +56,20 @@ describe('Merchant activation event route', () => {
     }))
   })
 
+  it('accepts a source-typed inspection outcome without a merchant URL or CSV payload', async () => {
+    const response = await POST(request({
+      eventType: 'merchant_catalog_inspection_empty',
+      sessionId: 'session-12345678',
+      resourceId: 'url',
+    }), { params: { merchantId: 'merchant-a' } })
+    expect(response.status).toBe(200)
+    expect(record).toHaveBeenCalledWith(expect.objectContaining({
+      eventType: 'merchant_catalog_inspection_empty',
+      source: 'CLIENT',
+      resourceId: 'url',
+    }))
+  })
+
   it('rejects arbitrary event names and metadata before authorization or storage', async () => {
     const response = await POST(request({
       eventType: 'merchant_delete_everything',
