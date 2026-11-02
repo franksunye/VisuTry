@@ -10,6 +10,20 @@
 
 ## Active restart queue — 2026-11-02
 
+### E1: English Detector SERP-fit controlled experiment — 2026-11-02
+
+**Implementation:** [Draft PR #509](https://github.com/franksunye/VisuTry/pull/509) (not merged or live). English `/en/face-shape-detector` title/meta/H1/intro aligned to broad free photo-based face-shape detection, preserving private on-device operation and the downstream glasses Advisor. Two files only: locale copy and existing unit guard. Keep DRAFT until the Nov 1 Detector mobile CTA 7-day observation has matured.
+
+**Pre-registered GSC 28-day baseline, 2026-10-03–30 Web:**
+- Main query `face shape detector` on EN detector: **645 clicks / 29,566 impressions, CTR 2.18%, position 7.79**.
+- Exact EN detector page: **1,558 clicks / 54,546 impressions, CTR 2.86%, position 8.04**.
+- High-intent guardrail `face shape detector for glasses`: **118 clicks / 647 impressions, CTR 18.24%, position 3.66**.
+- Positive conversion evidence from EN Guide is separate; no claim that general shape detector visitors convert at the same rate.
+
+**Gates:** [ ] PR CI exact SHA; [ ] hold Nov 1 mobile CTA 7d readout; [ ] merge only when cleared; [ ] production canonical www HTML metadata/H1/hreflang/no extra Function CPU verified; [ ] compare first complete 28d after recrawl against exact-page/query baseline and qualified downstream outcomes, keep change only if broader qualified organic acquisition increases without high-intent paid-funnel damage. Ranking/CTR not guaranteed and Google snippets may rewrite.
+
+
+
 ### P0 validated commerce & independent BYO-frame gates — 2026-11-02
 
 **Authority:** `docs/strategy/analytics/gtm.md` and dated evidence `docs/ops/2026-11-02-10x-growth-discovery-deep-research.md` §13–14. **Correction:** VisuTry does **not** provide Gentle Monster (or other curated brands') official products, SKUs, or frames. Brand guides are independent acquisition/education pages; actual Try-On uses **user-supplied portrait and frame image**. Do not treat absent brand inventory as backlog feature debt.
