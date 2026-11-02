@@ -34,15 +34,15 @@ export type AiGlassesAdvisorArticleCopy = {
 
 const copies: Record<Locale, AiGlassesAdvisorArticleCopy> = {
   en: {
-    metaTitle: 'Which Glasses Suit My Face? Free AI Face Shape Detector',
-    metaDescription: 'Upload a photo to find your face shape free, see which glasses may suit your face, and continue to personalized AI frame advice or virtual try-on.',
+    metaTitle: 'What Glasses Suit My Face? Upload a Photo | VisuTry',
+    metaDescription: 'Wondering which glasses suit your face? Check face shape from a photo free in your browser. Explore frame styles or unlock personalized AI advice.',
     eyebrow: 'Free face shape detector · No login · Photo stays in your browser',
-    title: 'Which Glasses Suit My Face? Start With a Free AI Face Shape Detector',
-    intro: 'Upload one photo to find your likely face shape free, then turn the result into a practical glasses shortlist. Continue to personalized AI advice or validate the styles with virtual try-on.',
+    title: 'Which Glasses Suit My Face? Use a Photo to Find Out',
+    intro: 'Start by checking your likely face shape for free with one photo processed in your browser. Then compare frame shapes, width and visual balance. A personalized AI Glasses Advisor report is a separate, credit-based step; virtual try-on helps you preview a frame you choose.',
     articleLabel: 'AI glasses and face-shape guide', publishedLabel: 'Published Jun 8, 2026 · Updated Jul 27, 2026', readTime: '6 min read',
-    heroTitle: 'Find which glasses suit your face', heroBody: 'Start with the free private detector. If you want a personalized frame shortlist, continue to the AI Glasses Advisor.',
+    heroTitle: 'Find which glasses suit your face', heroBody: 'Use the free private face-shape detector first. For an individual photo-based report and Top Picks, continue to the credit-based AI Glasses Advisor.',
     overviewTitle: 'Use face shape as the first filter, not the final rule',
-    overview: ['Face shape can narrow a large catalog into frame directions worth trying. It is most useful when you combine it with frame width, lens depth, bridge fit, color, and personal style.', 'The free detector gives you a private starting point. The AI Glasses Advisor adds personalized reasoning, and virtual try-on lets you judge the shortlist on your own photo.'],
+    overview: ['A photo can help estimate your face shape, but it cannot measure frame fit. Start with likely proportions, then consider frame width, lens depth, bridge fit, color and your style before buying.', 'The no-login detector runs locally in your browser and gives general face-shape guidance. Personalized photo-based recommendations and Top Picks belong to the credit-based AI Glasses Advisor. With a frame image or retailer screenshot, you can separately preview an exact pair using Try-On.'],
     workflowTitle: 'A practical path from one photo to a shortlist', guideTitle: 'Glasses to try first by face shape', guideIntro: 'Use these recommendations as a shortlist, then verify scale and fit with virtual try-on.',
     decisionTitle: 'How to make the final decision', decisionIntro: 'A useful result should reduce uncertainty without pretending that one face-shape rule decides everything.',
     decisionSteps: ['Run the free detector with a clear, front-facing photo.', 'Choose two or three recommended frame directions.', 'Compare several frames on your own photo.', 'Check real measurements, prescription needs, comfort, and return policy before buying.'],
