@@ -33,6 +33,19 @@ describe('priority Japanese and Spanish search quality', () => {
     expect(copy.faq.find((faq) => faq.question.includes('uploaded'))?.answer).toContain('browser memory')
   })
 
+  it('matches existing JA camera and ES photo search demand without changing paid report boundaries', () => {
+    const ja = getFaceShapeSeoCopy('ja').detector
+    const es = getFaceShapeSeoCopy('es').detector
+    expect(ja.metaTitle).toContain('顔の形診断')
+    expect(ja.metaTitle).toContain('カメラ')
+    expect(ja.intro).toContain('サーバーに送信せず')
+    expect(es.metaTitle).toContain('forma')
+    expect(es.metaDescription).toContain('sin registro')
+    expect(es.intro).toContain('navegador')
+    expect(ja.faq.some(({ answer }) => answer.includes('クレジット'))).toBe(true)
+    expect(es.faq.some(({ answer }) => answer.includes('gratuito'))).toBe(true)
+  })
+
   it('preserves canonical route-level locale metadata', () => {
     const es = getFaceShapeSeoCopy('es')
     const ja = getFaceShapeSeoCopy('ja')
