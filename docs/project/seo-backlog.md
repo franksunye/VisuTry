@@ -2,13 +2,31 @@
 
 **Status:** Active task ledger; the restart queue only is current  
 **Owner:** Growth / Product / Engineering  
-**Last reviewed:** 2026-11-01
+**Last reviewed:** 2026-11-02
 
 > Older checked items are preserved as historical execution evidence (2026-06 to 2026-08). Only the restart queue below is active.
 
 > This file is a task ledger, not a parallel GTM plan. Task priority and activation are governed by `docs/strategy/analytics/gtm.md`.
 
-## Active restart queue — 2026-11-01
+## Active restart queue — 2026-11-02
+
+### P0 validated commerce & independent BYO-frame gates — 2026-11-02
+
+**Authority:** `docs/strategy/analytics/gtm.md` and dated evidence `docs/ops/2026-11-02-10x-growth-discovery-deep-research.md` §13–14. **Correction:** VisuTry does **not** provide Gentle Monster (or other curated brands') official products, SKUs, or frames. Brand guides are independent acquisition/education pages; actual Try-On uses **user-supplied portrait and frame image**. Do not treat absent brand inventory as backlog feature debt.
+
+**Verified 2026-10-04–31 UTC (Neon SQL, user-executed):** 22 completed Payment/$71.78; **16 attached Advisor report Checkouts/$47.84**; EN AI guide Google Organic 6 attached Advisor payments/$17.94; Gentle Monster Google Organic 2 attached Advisor payments/$5.98; two GM-landing paying users' post-payment 7d Consumer Try-On records 12 tasks / 9 completed, **not brand-product/same-session attribution**. Stripe independently shows 22 payments/$77.78 (20 Credits, 2 Monthly), vs Neon (21 Credits, 1 Monthly), difference $6.00. All 14 FAILED Checkout rows in created-date cohort marked `checkout_session_expired`, not card declines.
+
+- [x] **P0-1 prove paid Advisor intent:** transactional `Payment.unlockTaskId` proved 16 direct checkout-linked reports; do not use generic GA4 purchase as substitute.
+- [x] **P0-2 prove some real brand-entry revenue:** GM Google-organic landing contributed 2 completed purchases; **only** confirms paid Advisor association; no official GM SKU requirement.
+- [ ] **P0 finance-quality:** reconcile Stripe Checkout Session / Subscription Invoice vs Neon Payment individual records and explain $6 gross and 20/21 Credits + 2/1 monthly misclassification/coverage. No database writes or retroactive fixes without RCA and tests.
+- [ ] **P0-1 first 7 complete days post Nov 1 CTA:** compare Advisor actual completed/unlocked and verified report-attached Checkout by eligible Consumer organic landing sessions; run device/country guardrail and known-test exclusions. Do not infer uplift from raw CTA counts.
+- [ ] **P0-2 BYO-frame session evidence:** on current brand page measure `seo_funnel_click` by `source_page` + `cta_location`; establish same-browser-session starts/completions in Axiom/GA4 with privacy-safe `consumer_funnel_id`. If missing, propose only minimal event-continuity change with tests. Never classify pictures by brand or collect user photos in analytics.
+- [ ] **Matured payer cohort:** after Nov 8, recompute unique first-payment buyers with complete 7-day observation and retention caveats. The current 160 Try-On/141 completed counts are payment-cohort totals and may overlap users and task windows; not sitewide completion rate.
+- [ ] **Growth intervention gate:** choose exactly one isolated Guide/Advisor/Detector conversion improvement only after the Nov 1 CTA observation and transaction-quality gate. Do not restart bulk brand/locale or Visual SEO expansion.
+
+---
+
+## Active restart queue — 2026-11-01 (historical checkpoint)
 
 ### Three focused acquisition experiments — November 1
 
