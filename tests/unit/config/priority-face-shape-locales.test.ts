@@ -22,6 +22,17 @@ describe('priority Japanese and Spanish search quality', () => {
     expect(getPriorityDetectorFeedback('en').photoTipTitle).toBe('For the clearest result')
   })
 
+  it('keeps the English free Detector search promise consistent with the real product', () => {
+    const copy = getFaceShapeSeoCopy('en').detector
+    expect(copy.metaTitle).toContain('Face Shape Detector Online')
+    expect(copy.title).toContain('Face Shape Detector Online')
+    expect(copy.metaDescription).toContain('free in your browser')
+    expect(copy.metaDescription).toContain('No sign-up')
+    expect(copy.intro).toContain('glasses styles')
+    expect(copy.faq.find((faq) => faq.question.includes('free'))?.answer).toContain('no account or credits')
+    expect(copy.faq.find((faq) => faq.question.includes('uploaded'))?.answer).toContain('browser memory')
+  })
+
   it('preserves canonical route-level locale metadata', () => {
     const es = getFaceShapeSeoCopy('es')
     const ja = getFaceShapeSeoCopy('ja')
