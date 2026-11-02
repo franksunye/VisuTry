@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for GTM execution  
 **Version:** 3.4
-**Last updated:** 2026-11-01
+**Last updated:** 2026-11-02
 **Owner:** Growth / Product / Engineering / Analytics  
 **Review cadence:** Weekly  
 **Execution horizon:** 60–90 days  
@@ -64,6 +64,21 @@ The public promise **“which glasses suit my face?”** spans two different dep
 5. **Merchant Store:** merchant-sponsored, catalog/SKU-specific recommendation follows Merchant entitlements and is not subject to the standalone Consumer report unlock.
 
 **SEO/UX language guardrail:** say **“free face-shape detection”** or **“general frame-style guide”** for the public layer; reserve **“personalized frame recommendations / Top Picks / analysis report”** for Advisor. Avoid a standalone free photo→personalized-frame-shortlist product, duplicate recommendation pipeline, new per-use provider call, extra Detector CPU, or exposed locked report payload. Preserve the existing mobile Detector CTA 7-day experiment before considering new visible continuation copy. Evaluate success by qualified Advisor starts, unlocks, Try-On/Compare starts and verified purchase—not generic free recommendation clicks.
+
+
+### Evidence-based P0 allocation — 2026-11-02
+
+**Consumer research baseline (source: production Neon read-only SQL; supporting detail `docs/ops/2026-11-02-10x-growth-discovery-deep-research.md` §13–14):** For 2026-10-04–31 UTC, 22 completed app Payment rows ($71.78), including **16 $2.99 Credits Pack Checkouts / $47.84 deliberately attaching a paid Face Analysis report via `unlockTaskId`**. Six `google.com / organic` first landings on the EN AI glasses guide led to six attached-Advisor payments. This is **observed paid demand**, *not* validated 10× scalability or pricing power.
+
+**Merchant-vs-Consumer and branded discovery contract:** Brand guide pages (e.g. Gentle Monster) are **independent editorial search landings, not official catalog/SKU, and VisuTry does not supply/sell/preload that brand's frames**. Shoppers bring their **own portrait + chosen frame image** to the generic Consumer Try-On. Do not propose brand inventory, scrape brand images, label user photos as official products, or describe missing official SKUs as a defect. The commercial test is **brand search → user-supplied-frame Try-On and/or paid Advisor**, traced by actual session-level event continuity. Gentle Monster landing in the same Payment cohort contributed 2 `google.com/organic` paid Advisor-attached Checkouts ($5.98); its two paying users subsequently generated 9 completed Try-On tasks within 7 days, *user-level correlation only*, **not proof of a same-session brand-page-to-Try-On funnel or use of a brand SKU**.
+
+**Priority and spending gates:**
+1. **P0-1 Advisor Conversion:** prioritize existing Guide/Advisor/Detector referral paths; preserve the free on-device Detector vs paid photo-personalized Top Picks boundary. Compare qualified organic landing cohorts to real `Payment.status=COMPLETED` and `unlockTaskId`/report completion, excluding known TEST/INTERNAL. The 2026-11-01 Detector CTA release must first complete its seven-day observation before a new front-end experiment. Start with one low-risk hypothesis; do not multiply SEO pages to chase raw impressions.
+2. **P0-2 Independent Brand BYO Conversion:** prioritize Gentle Monster's existing source page, then Oakley/Ray-Ban as negative/limited comparators; validate `source_page/cta_location → user uploaded both images → actual tryon_completed` within a legitimate anonymous first-party browser session, *without* adding provider calls to free discovery. Preserve current independent-brand copy; no official frame ownership required.
+3. **Finance-quality gate:** Stripe 22 successful transactions/$77.78 (20 Credits, 2 Monthly) vs Neon 22 completed Payment rows/$71.78 (21 Credits, 1 Monthly) differ **$6.00 and one item in each product category**. Compare exact Checkout Session / Invoice IDs and time-zone/renewal handling; treat them as **unreconciled** until matched. The 14 expired `FAILED` Checkouts/$41.86 in Neon are **abandoned sessions**, not card declines, revenue or an inferred GA4 purchase identity.
+4. **10× SCALE gate:** independently reproducible qualified Consumer sessions, completed decision outcomes and net verified payments in two comparable windows, with cost/refund protection. Paid interest with 16 report-linked Checkouts is meaningful evidence for `CONTINUE SMALL EXPERIMENT`, **not** a growth-mechanism winner. Keep no-bulk-brand-page and no-bulk-visual-asset hold.
+
+**Near-term readout:** Nov 8/9 check the first 7 complete days for existing CTA/brand guidance changes (observational only), followed by mature 28d GSC and an actual Stripe/Neon transaction reconciliation. Deduplicate per user or session as applicable; post-payment overlapping seven-day windows and retained-task deletions must not inflate completion metrics.
 
 ---
 
