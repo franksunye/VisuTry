@@ -311,3 +311,29 @@ GitHub #499（2026-11-01 merged，https://github.com/franksunye/VisuTry/pull/499
 **新证据裁决：** P0-1 的 Guide 下降与 Advisor 上升方向不同，无法凭排名/流量判定付费产品验证通过；P0-2 GM 仍有显著点击但近期未增长，其它两个对照弱。`SEARCH INTENT = VERIFIED`，`PAID ADVISOR / BRANDED TRY-ON BUSINESS OUTCOME = UNAVAILABLE / INCONCLUSIVE`。
 
 **本轮数据访问边界：** 当前 Chat 工具仅能读取已经打开的浏览器标签；已打开 Axiom Stream 页面展示实时运行日志，不是可筛选的 28 日 consumer funnel 聚合。Stripe 和 GA4 登录态本身不足以授权当前工具打开新标签/操作控制台；此次浏览器标签列表里没有 Stripe 或 GA4 页面。Windsor 当前账号只连接了 Search Console，未连接 GA4 或 Stripe。要执行真实订单对账，需在具有浏览器导航/交互权限的 Work 模式访问原有已登录控制台，或显式连接可读取 GA4/Stripe 的数据源。避免误报“已访问并完成对账”。
+
+
+---
+## 12. Stripe–Neon 付款上下文与 Advisor 的双路径归因（2026-11-02）
+
+**已获得 Stripe 付款人工对账（用户在当前对话提供；不是本轮自主查询）**：2026-10-04～10-31 UTC，20×$2.99 Credits Pack + 2×$8.99 Standard 月订阅，共 22 笔成功、$77.78，另 1 笔 $2.99 失败，退款 0。**GA4 旧报表 14 个 purchase/$41.86 与 Stripe 22 笔不能直接逐一映射**：UTC vs GA4 属性时区、客户端成功跳转/事件与 Stripe 已确认账务的差异都要逐单校正。
+
+### 代码已确认的事实（GitHub main 的实际实现）
+
+- prisma/schema.prisma: Payment 有 status/productType/stripeSessionId（unique）/amount/currency/completedAt/attribution（JSON）/unlockTaskId；FaceAnalysisTask 有 reportUnlocked/status/userId/createdAt；TryOnTask、GenerationRequest 可审计服务完成动作。
+- src/app/api/payment/create-session/route.ts 153–191, 222–246：如果调用时提供 unlockTaskId，先验证同一用户已完成且未解锁的 FaceAnalysisTask，再在创建 Checkout 前将 unlockTaskId 与完整 attribution 保存到 Payment PENDING。未提供则作为一般 Credits/订阅付款。
+- src/lib/stripe.ts 147–229：userId、productType、unlockTaskId、压缩 attribution 写入 **Stripe Checkout Session metadata**；不保证这些字段能在 PaymentIntent 的付款详情 metadata 直接看到。仅订阅上下文另写 subscription_data.metadata，不含 unlockTaskId。
+- src/app/api/payment/webhook/route.ts 155–251：签名确认付款后，Payment 完成、Credits 发放（如有）、对指定 task reportUnlocked=true 同属一次 Prisma transaction；若 checkout 元信息压缩，优先合并原有完整 Payment.attribution。必须剔除失败/重复/退款并与 Stripe session ID 一一比对。
+- src/app/api/payment/conversion/route.ts 55–68：purchaseContext 是响应时根据 Payment.unlockTaskId 推导的 face_analysis_report/pricing 标签，**不是 Prisma 表上的独立持久字段**。
+- src/app/api/face-analysis/submit/route.ts 69–83：用户带 credit/subscription quota 成功提交新的 Face Analysis 时，调用 reportUnlocked: quotaSource !== 'free_trial'；这类 Advisor 使用即使 Payment.unlockTaskId 为空也能解锁，不属于用户在 Checkout 时绑定旧报告的 direct unlock。当前 FaceAnalysisTask 未单独持久化每次解锁的 credit 来源，历史确切资金消耗来源可能需要 quota 日志证实。
+
+### 本轮实际连接状态
+
+- 已登录 Vercel Neon Data Editor，直接看到 public.Payment 及上述列，页面显示共 123 行历史付款数据；当前只读浏览器工具不能在 Query 编辑器里输入/执行 SQL，且表格当前视口未显示用于审计的 attribution/unlockTaskId 列值。因此 **23 笔 Stripe 记录尚未与实际 Payment 行实现逐行对账**；不能填写未经执行的 Advisor direct unlock 数值。
+- 必须在相同 UTC 窗口执行纯 SELECT 聚合；匹配字符串 stripeSessionId 与 Stripe Checkout Session，而非仅按金额/日期推断。
+- 需要分成两个口径：A. Payment.unlockTaskId 非空且完成付款的 direct report checkout；B. FaceAnalysisTask.status=COMPLETED & reportUnlocked=true、无 direct linked checkout 的已解锁报告（可能来自之前购买的 credits/订阅，不等同新收入）。A+B 不等于该周期全部 Stripe 收入，也不应按用户和日期粗略 join 制造精确付款链路。
+- 需要考虑历史 Task retention 清理：Payment 指向已清理任务时 join 不到 FaceAnalysisTask，并不意味着付款或解锁失败；未关联旧 task 的实际值由 Stripe/Webhook 审计与历史日志共同验证。
+
+**最新裁决：** Stripe 实际 Consumer 收入规模 $77.78/22 payments 已确认（用户提供）；direct Advisor report checkout **INCONCLUSIVE，缺 Production Payment.unlockTaskId 聚合结果**；先买 Credits 后使用 Advisor **INCONCLUSIVE，缺已解锁 FaceAnalysisTask/服务端 quotaSource 去重结果**。不得把 $77.78 归为 Advisor 收入，也不能把 0 个 Stripe 专门 Advisor 商品当成零 Advisor 付费使用。
+
+**只读 SQL 查询工具：** 见 /mnt/data/visutry-p0-advisor-payment-readonly.sql（本地会话工件，不代表已在 Neon 执行）。
