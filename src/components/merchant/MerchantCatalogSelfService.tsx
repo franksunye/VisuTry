@@ -272,16 +272,26 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
     setError(null);
     setProposal(null);
     analytics.trackCustomEvent(AnalyticsEvent.MerchantCatalogImportStarted, { merchant_id: merchantId, source_type: sourceType });
+    let inspectionAttempted = false;
+    const recordInspection = (eventType: 'merchant_catalog_inspection_attempted' | 'merchant_catalog_inspection_ready' | 'merchant_catalog_inspection_empty' | 'merchant_catalog_inspection_failed') => {
+      // Record actual inspection actions, not mere Catalog page views. Never
+      // send a merchant's source URL or CSV contents into the activation ledger.
+      void recordMerchantActivationClientEvent({ merchantId, eventType, resourceId: sourceType }).catch(() => {
+        // Reporting must never block the import workflow.
+      });
+    };
     try {
+      if (sourceType === "csv" && !file) throw new Error("Choose a CSV file first.");
+      if (sourceType === "url" && !url.trim()) throw new Error("Paste your store or product URL first.");
+      inspectionAttempted = true;
+      recordInspection('merchant_catalog_inspection_attempted');
       let response: Response;
       if (sourceType === "csv") {
-        if (!file) throw new Error("Choose a CSV file first.");
         const form = new FormData();
         form.set("sourceType", "csv");
-        form.set("file", file);
+        form.set("file", file!);
         response = await fetch(`${apiBase}/inspect`, { method: "POST", body: form });
       } else if (sourceType === "url") {
-        if (!url.trim()) throw new Error("Paste your store or product URL first.");
         response = await fetch(`${apiBase}/inspect`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sourceType: "url", sourceUrls: [url.trim()] }) });
       } else {
         const products = manualRows.map((row) => ({
@@ -295,12 +305,22 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
       if (version !== inspectionVersion.current) return;
       if (!response.ok || !body.success || !body.data) throw new Error(body.message || "Unable to inspect this source.");
       setProposal(body.data);
+      const sourceBlocked = body.data.sourceSummary.sourceIssues.some((issue) =>
+        issue.code === 'SOURCE_ACCESS_DENIED' || issue.code === 'SOURCE_RATE_LIMITED');
+      recordInspection(body.data.importReady.length > 0
+        ? 'merchant_catalog_inspection_ready'
+        : sourceBlocked
+          ? 'merchant_catalog_inspection_failed'
+          : 'merchant_catalog_inspection_empty');
       analytics.trackCustomEvent(AnalyticsEvent.MerchantCatalogSourceInspected, {
         merchant_id: merchantId, source_type: sourceType, found_count: body.data.sourceSummary.foundCount,
         ready_count: body.data.sourceSummary.readyToImport, needs_review_count: body.data.sourceSummary.needsReview,
       });
     } catch (requestError) {
-      if (version === inspectionVersion.current) setError(requestError instanceof Error ? requestError.message : "Unable to inspect this source.");
+      if (version === inspectionVersion.current) {
+        setError(requestError instanceof Error ? requestError.message : "Unable to inspect this source.");
+        if (inspectionAttempted) recordInspection('merchant_catalog_inspection_failed');
+      }
     } finally {
       setBusy(false);
     }
