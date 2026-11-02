@@ -68,6 +68,24 @@ export default function TryGlassesOnPhotoPage({ params }: Props) {
       faqEyebrow={copy.faqEyebrow}
       faqTitle={copy.faqTitle}
     >
+      {locale === 'en' ? (
+        <section className="mx-auto my-10 max-w-4xl rounded-xl border border-slate-200 bg-white p-6 md:p-8" aria-labelledby="frame-photo-tips">
+          <h2 id="frame-photo-tips" className="text-2xl font-bold text-slate-900">
+            How to try on glasses from an online store screenshot
+          </h2>
+          <ol className="mt-5 list-decimal space-y-3 pl-5 text-base leading-7 text-slate-700">
+            <li>Save or crop the product image so the complete frame and both temples are visible, without covering labels or stickers.</li>
+            <li>Choose a straight-on portrait with your face centered and evenly lit.</li>
+            <li>Upload both images in Try-On and inspect the result for shape, color and apparent frame scale.</li>
+            <li>When two pairs look close, generate both previews and compare them before deciding.</li>
+          </ol>
+          <p className="mt-5 text-sm leading-6 text-slate-600">
+            This is an independent visual preview using the frame image you provide. VisuTry does not
+            offer a retailer or brand inventory, and an AI preview cannot verify measurements, optical
+            fit or comfort. Confirm those details with the seller.
+          </p>
+        </section>
+      ) : null}
       <B02VisualSeoSections locale={locale} pagePath="/try-glasses-on-photo" />
       <B03VisualSeoSections locale={locale} pagePath="/try-glasses-on-photo" />
     </SearchToToolLanding>
