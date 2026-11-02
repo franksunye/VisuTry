@@ -315,6 +315,13 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
             ['Store published', activationReport.counts.storePublished, activationReport.rates.storePublishedRate],
           ].map(([label, value, rate]) => <div key={String(label)} className="rounded-xl bg-white p-4 ring-1 ring-blue-100"><p className="text-xs text-slate-500">{label}</p><p className="mt-2 text-xl font-semibold tabular-nums text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{rate == null ? '—' : `${rate}% of candidates`}</p></div>)}
         </div>
+        <div className="mt-4 rounded-xl bg-white px-4 py-3 ring-1 ring-blue-100">
+          <p className="text-xs font-semibold text-slate-700">Actual Catalog inspection actions <span className="font-normal text-slate-500">· recorded only after this instrumentation release</span></p>
+          <p className="mt-2 text-xs text-slate-600">
+            {activationReport.counts.catalogInspectionAttempted} workspaces attempted · {activationReport.counts.catalogInspectionReady} found importable items · {activationReport.counts.catalogInspectionEmpty} found none · {activationReport.counts.catalogInspectionFailed} encountered an inspection error.
+          </p>
+          <p className="mt-1 text-[11px] text-slate-500">Distinct workspaces per outcome; one workspace can appear in multiple outcomes. Earlier activity is unknown, not a confirmed zero.</p>
+        </div>
         <p className="mt-4 text-xs text-slate-500">Preview path: {activationReport.counts.storePreviewed} previewed · {activationReport.counts.commercialIntent} commercial intent · {activationReport.counts.checkoutStarted} checkout started · average time to first product {activationReport.averageTimeToFirstItemMs == null ? '—' : `${Math.round(activationReport.averageTimeToFirstItemMs / 60000)} min`}.</p>
       </section>
 
