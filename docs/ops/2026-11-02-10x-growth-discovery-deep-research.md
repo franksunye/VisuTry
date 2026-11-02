@@ -413,3 +413,19 @@ SQL 使用 payment.checkout_id 去重付款、task.id 去重任务；Try-On 仅�
 **执行顺序**：先 C1/A1 的真实商业收入/来源，再 B1 的 BYO 动作归因；不追加品牌商品工程、不批量新增页面、不干扰 Nov1 已部署 CTA 的观察窗口。任何新版本 UX 必须是小范围独立实验、完整 CI 与真实上线验收之后才能声称 lift。
 
 **总体决策**：P0-1 `PAID DEMAND VERIFIED / SCALE UNPROVEN`；P0-2 `BRAND SEARCH → INDEPENDENT ADVISOR PAID VERIFIED / BYO TOOL SESSION COMPLETION UNPROVEN`；**没有任何 10× 增长赢家被证明**。
+
+
+
+### 14.4 现有事件链路审计（main 代码可证实；生产事件未验证）
+
+无需先开发新的品牌商品或新的服务器归因能力。已逐文件核验：
+
+1. `src/app/[locale]/(public)/brand/[brand]/page.tsx` 用 `GrowthFunnelLink` 发送 `seo_funnel_click`，字段含 `source_page=/[locale]/brand/gentle-monster`、`destination=glasses-try-on`、`cta_location=hero-primary/style-card-1…4`。
+2. `GrowthFunnelLink.tsx` 调用 `setGrowthContext`，将源页/意图写入会话的 `sessionStorage`；`analytics.ts` 的 `getSessionAttribution` 会同时保留首次 landing_page + 当前增长源页，`sendEvent` 传播到后续 `tryon_started/completed`。
+3. `analytics-v2.ts` 给这些事件添加匿名 `consumer_funnel_id`，向 GA4/dataLayer 发送，同时通过 `recordConsumerFunnelEvent` 的受限白名单上报 first-party。
+4. `/api/analytics/consumer-funnel` 的安全白名单允许 `landing_page/source_page/destination`，并以客户端不能伪造的服务器规则标记已知 TEST。该链路不会上传照片、SKU、用户 ID 或任意文字。
+5. 免费 Detector 完成事件刻意**不上报服务器**，不要因为研究 P0-2 而新增对免费检测的每次 Vercel Function 调用。
+
+**工程裁决：NO NEW INSTRUMENTATION YET。** 现在应先只读查询 `visutry-traffic-pro` 的 event_name + source_page + landing_page + consumer_funnel_id + traffic_class 与 `tryon_started/completed`。只有真实生产事件确认源页/任务结果丢失（不是数据读取权限不足）时，再提交精确的最低成本改动及测试计划。browser sessionStorage 生命周期、用户新开标签、登录跳转及 GA4 AdBlock 造成的缺失必须作为归因覆盖率单独记录，不应虚构为零转化。
+
+**账务 RCA 唯一 Issue：** https://github.com/franksunye/VisuTry/issues/508 。配套私密 Neon Query 单语句本地文件 `visutry-p0-byo-finance-matured-cohorts-2026-11-02.sql`；尚未执行 Neon，不宣称产生新数据。
