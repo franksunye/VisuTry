@@ -10,18 +10,27 @@
 
 ## Active restart queue — 2026-11-02
 
-### E1: English Detector SERP-fit controlled experiment — 2026-11-02
+### SEO Growth Wave 1: four-entry release scorecard — Nov 2, 2026
 
-**Implementation:** [Draft PR #509](https://github.com/franksunye/VisuTry/pull/509) (not merged or live). English `/en/face-shape-detector` title/meta/H1/intro aligned to broad free photo-based face-shape detection, preserving private on-device operation and the downstream glasses Advisor. Two files only: locale copy and existing unit guard. Keep DRAFT until the Nov 1 Detector mobile CTA 7-day observation has matured.
+**Release:** [PR #509](https://github.com/franksunye/VisuTry/pull/509) **MERGED**, main SHA `0277e6f2e496d97649fd3cf4f2a6d71158f71000`, Vercel Production `READY` on `www.visutry.com`. Public Cloudflare HTML freshness for five routes **not independently confirmed** at time of release. Start *visibility* clock on proven current bare-URL HTML; start *SEO effect* observation only after Google re-crawl/processing. All four changed together in one non-randomized release, so before–after association ≠ causal A/B proof.
 
-**Pre-registered GSC 28-day baseline, 2026-10-03–30 Web:**
-- Main query `face shape detector` on EN detector: **645 clicks / 29,566 impressions, CTR 2.18%, position 7.79**.
-- Exact EN detector page: **1,558 clicks / 54,546 impressions, CTR 2.86%, position 8.04**.
-- High-intent guardrail `face shape detector for glasses`: **118 clicks / 647 impressions, CTR 18.24%, position 3.66**.
-- Positive conversion evidence from EN Guide is separate; no claim that general shape detector visitors convert at the same rate.
+**GSC baseline:** Google Web, **2026-10-03–30 inclusive**, exact canonical URL and query where identified. **2026-11-02 evaluation targets are *proposed experimental thresholds*, NOT model predictions or prior historical commitments.**
 
-**Gates:** [ ] PR CI exact SHA; [ ] hold Nov 1 mobile CTA 7d readout; [ ] merge only when cleared; [ ] production canonical www HTML metadata/H1/hreflang/no extra Function CPU verified; [ ] compare first complete 28d after recrawl against exact-page/query baseline and qualified downstream outcomes, keep change only if broader qualified organic acquisition increases without high-intent paid-funnel damage. Ranking/CTR not guaranteed and Google snippets may rewrite.
+| Work pack | Measured baseline (28d) | User problem/lever | First 28d-after-recrawl directional target | Guardrails / expected value |
+| --- | --- | --- | --- | --- |
+| **P0 EN Detector** `/en/face-shape-detector` | Full URL **1,558 clicks / 54,546 impressions**; exact `face shape detector`: **645 / 29,566**, CTR **2.18%**, avg position **7.79** | Match general free photo-based face shape detection query with title/description/H1/intro, while retaining private on-device and glasses journey | Exact-query CTR **≥2.7%**, with comparable position/impression/device mix; page total **≥1,800 clicks** is an additional directional objective | Exact `face shape detector for glasses` historically **118/647**, CTR18.24% rank3.66; avoid loss of high-intent segment and continuing Advisor quality |
+| **P0 EN Guide** `/en/blog/ai-face-analysis-for-glasses-guide` | **967 clicks / 20,374 impressions**; `what glasses suit my face upload photo` **99/1,238** rank3.97; `which glasses suit my face` **22/1,430** rank8.74 | Reframe as photo-first answer to actual “which/what glasses suit my face” question; clarify free Detector vs credit-based personalized Advisor report | Full URL **≥1,150 clicks**, maintain top-performing photo-query positions, improve broader nonbrand query coverage | Historical Google Organic *first landing* **6 Advisor-attached paid Checkout / $17.94**; track real report unlock and paid quality rather than raw CTA clicks; protect `which` despite new `what` title |
+| **P1 JA/ES Detector** `/ja/face-shape-detector`, `/es/face-shape-detector` | JA **360 / 3,660** clicks/impressions, `顔の形診断 カメラ 無料` **176/1,625** rank6.76; ES **194/2,465** | Native-language search terms and helpful, truthful browser-photo wording | JA **≥430 clicks**, ES **≥235 clicks** | Country/device/local intent, no false live-camera promise, unchanged on-device privacy, no paid Advisor entitlement change |
+| **P1 BYO screenshot** `/en/try-glasses-on-photo` | **327 impressions, 4 clicks**, *all four clicks VisuTry brand searches*, **0 observed nonbrand clicks** | Specific task: upload user's portrait and a glasses product image/retailer screenshot; helpful preparation steps; no owned brand inventory | **≥10 relevant nonbrand clicks** and observable qualified Try-On starts; exploratory discovery rather than proven CTR improvement | Keep distinct from `/virtual-glasses-try-on`; no fake catalog, no claim that submitted frames are any official brand; compare source-page→task completion only when joinable |
 
+**How to judge (no automatic success from release):**
+1. **Technical/visibility:** production SHA correct; five bare canonical URLs render new HTML title/H1/meta, self-canonical/hreflang, indexable, 200; Cloudflare old-cache traffic noted separately. All tests/production merge already passed.
+2. **First complete 7 days of published visibility:** search impressions/clicks by page×query, country/device, top-ranking queries, and GA4 eligible landing sessions; identify obvious regressions, *not* claim 7d SEO statistically conclusive.
+3. **First complete 28d after Google recrawl** vs 2026-10-03–30 baseline, with an immediately prior equivalent calendar window and device/country/query mix as sensitivity check. Distinguish Google clicks from GA4 sessions; do not count published page total as new eligible visitors.
+4. **Business outcome**: verified Detector→Advisor/Try-On starts and completed jobs and report-attached payments where attribution actually exists; protect 3 free uses, privacy and paid Advisor; user-approved CPU manually observed, not a traffic release blocker.
+5. **SCALE** if multiple P0 pages sustain target qualified nonbrand click increases with no meaningful quality/paid degradation and P1 shows genuinely new source usage. **MODIFY** if visibility/impressions improve but qualified click intent or conversion does not. **STOP/REVERT** if existing high-value query owners or paid journey materially deteriorate. **INCONCLUSIVE** if crawl lag, seasonality or thin cohorts prevent attribution; especially for P1 screenshot.
+
+**Magnitude:** Four page initiatives share a ~**3,079 Google click /28d** baseline across P0+JA/ES, plus BYO 4 branded clicks; even +15–25% would be only ~460–770 incremental Google clicks/28d, **not yet a 10× growth engine**. Goal of Wave 1 is proof of repeatable search demand expansion, not manufacturing more pages.
 
 
 ### P0 validated commerce & independent BYO-frame gates — 2026-11-02
