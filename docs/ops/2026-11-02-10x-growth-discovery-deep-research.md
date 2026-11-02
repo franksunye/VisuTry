@@ -337,3 +337,43 @@ GitHub #499（2026-11-01 merged，https://github.com/franksunye/VisuTry/pull/499
 **最新裁决：** Stripe 实际 Consumer 收入规模 $77.78/22 payments 已确认（用户提供）；direct Advisor report checkout **INCONCLUSIVE，缺 Production Payment.unlockTaskId 聚合结果**；先买 Credits 后使用 Advisor **INCONCLUSIVE，缺已解锁 FaceAnalysisTask/服务端 quotaSource 去重结果**。不得把 $77.78 归为 Advisor 收入，也不能把 0 个 Stripe 专门 Advisor 商品当成零 Advisor 付费使用。
 
 **只读 SQL 查询工具：** 见 /mnt/data/visutry-p0-advisor-payment-readonly.sql（本地会话工件，不代表已在 Neon 执行）。
+
+
+---
+
+## 13. Production Neon 实证裁决：Advisor 付款及付费后 Try-On（2026-11-02）
+
+**证据属性：** 用户直接提供已在 Neon Production 执行的两轮 SQL 汇总结果。查询按 Payment.completedAt 2026-10-04 00:00 UTC 至 2026-11-01 00:00 UTC（左闭右开）；第二轮 SQL 源文件 `visutry-p0-remaining-evidence-readonly-v2.sql` 已核对。以下不把不同日期窗口/系统口径拼接成用户漏斗，也不披露个人身份。
+
+### 13.1 付款时明确绑定 Advisor 报告
+
+第一轮 Q1：Payment.COMPLETED 22 笔，总额 $71.78。16 笔 CREDITS_PACK / $47.84 有 unlockTaskId，属于 **direct Advisor report-attached Checkout**；另5笔 CREDITS_PACK / $14.95 和1笔 PREMIUM_MONTHLY / $8.99 没有 attached report。12个历史 attached task 当前不在 FaceAnalysisTask 保留表；不能因任务缺失推断未解锁，仍保留的4个均 reportUnlocked=true。
+
+第一轮 Q3：同期创建的 FaceAnalysisTask，当前保留134条、完成101条，其中24个 completed reportUnlocked，分布13个用户；4个与 attached Checkout 关联，20个无直接 attached Checkout 但该用户存在先前成功支付。**20个不是额外20笔付款，也不能只凭历史付款记录证实逐任务花费来源**。
+
+第一轮 Q2：Google Organic + landing EN AI guide 有6笔/$17.94，全部 attached Advisor；EN Face Analysis 有2笔/$5.98，2笔 attached；EN Detector 有2笔/$5.98，2笔 attached；Gentle Monster 品牌页有2笔/$5.98，2笔 attached。以上是 Payment attribution 中的首次 landing 与来源，不等于某次 Try-On 的精确来源。
+
+### 13.2 付款用户 Try-On（第二轮已执行 SQL）
+
+| First landing cohort（不限制来源） | Completed payments | Gross USD | Attached Advisor | Consumer Try-On 7d post | Completed Try-On 7d post | Payment records with >=1 completed Try-On post |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| EN AI guide | 6 | 17.94 | 6 | 26 | 25 | 5 |
+| EN Face Analysis | 4 | 11.96 | 3 | 38 | 35 | 3 |
+| EN Detector | 6 | 23.94 | 4 | 56 | 56 | 5 |
+| Gentle Monster | 2 | 5.98 | 2 | 12 | 9 | 2 |
+| Other landing | 4 | 11.96 | 1 | 28 | 16 | 2 |
+| **Total（付款 cohort 的聚合，不是去重用户总数）** | **22** | **71.78** | **16** | **160** | **141** | **17** |
+
+SQL 使用 payment.checkout_id 去重付款、task.id 去重任务；Try-On 仅限定 t.userId=Payment.userId、t.origin=CONSUMER、createdAt 在付款前/后7日。**141/160=88.1% 只是这批付费用户的付款后任务完成比例，不是全站 Try-On 完成率；17/22=77.3% 是付款记录有后续成功任务的覆盖比例，不是唯一付费用户率或因果转化率。** 一名用户可能多笔付款且多个窗口交叉；同一 Try-On 可在不同付款 cohort 计入多次，故总和可能重复，不能当全局去重任务。且2026-11-02查询时10月末付款的后7天观察**尚未成熟**，并且历史任务可能因留存策略被删除，付款前仅4次观察不代表没有先前使用。需固定成熟 cohort 后复核。
+
+**P0-1 Decision：** `PAID DEMAND = VERIFIED`、`PAID BUYER PRODUCT USE = VERIFIED`、`10x REPLICABILITY = INCONCLUSIVE`。可针对已经带来 Advisor 付款的 Guide/Detector/Advisor 自然入口做小范围转换实验，保留付费个性化产品边界。
+
+**P0-2 Decision：** Gentle Monster 的2笔来源付费均 attached Advisor；2笔付款后共关联12个 Consumer Try-On、其中9个完成，且2笔均对应付款用户后续有成功 Try-On。`BRAND-LANDING → PAYMENT → USER-LEVEL TRY-ON = VERIFIED`，但没有逐次 task 的实际镜框品牌/商品 ID 或可审计同会话品牌来源，**`ACTUAL GENTLE MONSTER SKU TRY-ON = UNVERIFIED`**；不能扩张9→90品牌，也不能声称品牌试戴已实现10×。
+
+### 13.3 失败 Checkout 与账务差额
+
+第二轮 Q2：**14条 FAILED Payment，合计标价 $41.86，全部 statusReason=checkout_session_expired**，即结账会话过期/未完成，不是14次支付方式拒绝，也不是收入。GA4恰好14 purchase/$41.86属数值巧合，未经 stripeSessionId 关联不能推断为同一批交易。
+
+第二轮 Q3：COMPLETED Payment 21 CREDITS_PACK/$62.79 + 1 PREMIUM_MONTHLY/$8.99，均 `stripe_webhook_paid`，且 createdAt 全在同期窗口内。**Stripe 用户提供的对账为20 Credits Pack/$59.80 +2月订阅/$17.98，共22笔/$77.78；Neon 总金额差$6、类型各差1，仍不可称逐单 reconcile PASS。** 当前代码 `invoice.payment_succeeded` 重置订阅配额但不记独立 Payment 收入行，可能解释部分续费漏记；必须核对 Stripe Checkout Session/Invoice/PaymentIntent ID 和具体事件时间后才能 RCA。
+
+**行动门槛：** (1) Stripe/Neon 一笔笔对账消除$6差额或确认其原因；(2) 完整成熟7天的 paid-buyer task 窗口重新核算去重用户及避免交叉 cohort；(3) Axiom/GA4 的品牌页面→具体试戴同会话链路或合法品牌SKU来源证据。现阶段停止无依据的批量品牌内容扩张。
