@@ -67,7 +67,15 @@ export function getMerchantActivationAttribution(commercialIntent?: string | nul
 
 export async function recordMerchantActivationClientEvent(input: {
   merchantId: string
-  eventType: Extract<MerchantActivationEventType, 'merchant_workspace_entered' | 'merchant_catalog_started' | 'merchant_store_previewed' | 'merchant_commercial_intent'>
+  eventType: Extract<MerchantActivationEventType,
+    | 'merchant_workspace_entered'
+    | 'merchant_catalog_started'
+    | 'merchant_catalog_inspection_attempted'
+    | 'merchant_catalog_inspection_ready'
+    | 'merchant_catalog_inspection_empty'
+    | 'merchant_catalog_inspection_failed'
+    | 'merchant_store_previewed'
+    | 'merchant_commercial_intent'>
   resourceId?: string | null
   commercialIntent?: string | null
 }): Promise<boolean> {

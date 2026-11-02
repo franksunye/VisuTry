@@ -10,6 +10,10 @@ export const MERCHANT_ACTIVATION_EVENT = {
   WORKSPACE_ENTERED: 'merchant_workspace_entered',
   PROFILE_UPDATED: 'merchant_profile_updated',
   CATALOG_STARTED: 'merchant_catalog_started',
+  CATALOG_INSPECTION_ATTEMPTED: 'merchant_catalog_inspection_attempted',
+  CATALOG_INSPECTION_READY: 'merchant_catalog_inspection_ready',
+  CATALOG_INSPECTION_EMPTY: 'merchant_catalog_inspection_empty',
+  CATALOG_INSPECTION_FAILED: 'merchant_catalog_inspection_failed',
   FIRST_ITEM_ADDED: 'merchant_first_item_added',
   CATALOG_READY: 'merchant_catalog_ready',
   STORE_CONFIGURED: 'merchant_store_configured',
@@ -26,6 +30,10 @@ export type MerchantActivationEventSource = 'SERVER' | 'CLIENT'
 export const MERCHANT_ACTIVATION_CLIENT_EVENTS = [
   MERCHANT_ACTIVATION_EVENT.WORKSPACE_ENTERED,
   MERCHANT_ACTIVATION_EVENT.CATALOG_STARTED,
+  MERCHANT_ACTIVATION_EVENT.CATALOG_INSPECTION_ATTEMPTED,
+  MERCHANT_ACTIVATION_EVENT.CATALOG_INSPECTION_READY,
+  MERCHANT_ACTIVATION_EVENT.CATALOG_INSPECTION_EMPTY,
+  MERCHANT_ACTIVATION_EVENT.CATALOG_INSPECTION_FAILED,
   MERCHANT_ACTIVATION_EVENT.STORE_PREVIEWED,
   MERCHANT_ACTIVATION_EVENT.COMMERCIAL_INTENT,
 ] as const satisfies readonly MerchantActivationEventType[]
