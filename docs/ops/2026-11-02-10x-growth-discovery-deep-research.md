@@ -287,3 +287,27 @@ GitHub #499（2026-11-01 merged，https://github.com/franksunye/VisuTry/pull/499
 **研究终局标准：** 在两个完整可比窗口显示新增合格完成，且经核实付款和单位成本护栏不恶化，才从 PROMISING 提交 SCALE 评审；有需求但完成低则 MODIFY 已确认摩擦；商业质量不足则 STOP；身份与支付数据不足则 INCONCLUSIVE。现有 2026-11-01 的 #484 / #499 更新尚未满七日，不能作因果宣称。2026-11-08/09 首轮读取；随后 28 天复核。研究优先级 **E2 > E1**，两者均无已验证的 10× 成功机制。
 
 **可追溯资料：** GitHub docs/ops/organic-growth-restart-2026-11-01.md、PR #484 / #499、docs/strategy/analytics/gtm.md；当前公开路径 https://www.visutry.com/en/brand/gentle-monster 、https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide 、https://www.visutry.com/en/face-analysis 、https://www.visutry.com/en/try-on/glasses 。
+
+
+---
+
+## 11. P0 新一轮独立 GSC API 复核（2026-11-02）
+
+**来源：** 已连接 Windsor.ai `searchconsole` 的 `https://www.visutry.com/`，按 exact `page` 读取 `clicks`, `impressions`, `ctr`, `position`。不是此前浏览器截图的重新引用。本轮查询 2026-10-03–10-30 vs 2026-09-05–10-02，均 28 日，Web 口径；同一时间窗的 Google API 细分数据可能因匿名查询和聚合方式与原始页面总计不一致。未获得此次 GA4/Stripe/Axiom 历史去重交易报表。
+
+| URL owner | 先前 clicks | 最近 clicks | Δ clicks | 最近 impressions / CTR / position |
+|---|---:|---:|---:|---|
+| `/en/blog/ai-face-analysis-for-glasses-guide` | 1,118 | 967 | −13.5% | 20,374 / 4.75% / 8.10 |
+| `/en/face-analysis` | 236 | 263 | +11.4% | 4,454 / 5.90% / 8.62 |
+| `/en/face-shape-detector` | 1,901 | 1,558 | −18.0% | 54,546 / 2.86% / 8.04 |
+| `/en/brand/gentle-monster` | 623 | 532 | −14.6% | 1,610 / 33.04% / 3.33 |
+| `/en/brand/oakley` | 43 | 37 | −14.0% | 1,206 / 3.07% / 7.64 |
+| `/en/blog/rayban-glasses-virtual-tryon-guide` | 34 | 26 | −23.5% | 4,128 / 0.63% / 8.01 |
+
+**关键查询层复核（本窗口）：** Gentle Monster exact owner `gentle monster virtual try on` 85 clicks / 196 impressions；`gentle monster try on virtual` 52/92；`gentle monster try on` 41/75。Guide exact owner `what glasses suit my face upload photo online free` 101/991，`what glasses suit my face upload photo` 99/1,238，`which glasses suit my face ai free` 65/440，`which glasses suit my face ai` 63/701。Oakley owner `oakley virtual try on` 0/143，`oakley try on` 2/107。可见品牌间 CTR 差异显著，但没有随机控制国家/品牌官网竞争；不可据此推因果。
+
+**重要取数质量警示：** 带 `country`/`device` 维度的 GSC 结果，在 GM owner 上返回的设备分行 click 合计为 233，少于无维度 exact owner 的 532；按国家分行也明显不足。**不要拿细分行除以 532 宣称地理/设备流量占比**。实际站点数据需要在原生 GSC 页面验证完整性，保留维度和过滤条件后使用。
+
+**新证据裁决：** P0-1 的 Guide 下降与 Advisor 上升方向不同，无法凭排名/流量判定付费产品验证通过；P0-2 GM 仍有显著点击但近期未增长，其它两个对照弱。`SEARCH INTENT = VERIFIED`，`PAID ADVISOR / BRANDED TRY-ON BUSINESS OUTCOME = UNAVAILABLE / INCONCLUSIVE`。
+
+**本轮数据访问边界：** 当前 Chat 工具仅能读取已经打开的浏览器标签；已打开 Axiom Stream 页面展示实时运行日志，不是可筛选的 28 日 consumer funnel 聚合。Stripe 和 GA4 登录态本身不足以授权当前工具打开新标签/操作控制台；此次浏览器标签列表里没有 Stripe 或 GA4 页面。Windsor 当前账号只连接了 Search Console，未连接 GA4 或 Stripe。要执行真实订单对账，需在具有浏览器导航/交互权限的 Work 模式访问原有已登录控制台，或显式连接可读取 GA4/Stripe 的数据源。避免误报“已访问并完成对账”。
