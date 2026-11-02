@@ -87,6 +87,17 @@ describe('Search→Tool Phase A i18n', () => {
     }
   })
 
+  test('the exact-frame photo route owns screenshot intent without duplicating the generic try-on page', () => {
+    const photo = getSearchToToolRouteCopy('en', 'try-glasses-on-photo')
+    const general = getSearchToToolRouteCopy('en', 'virtual-glasses-try-on')
+    expect(photo.metaTitle).toContain('Store Screenshot')
+    expect(photo.intro).toContain('screenshot')
+    expect(photo.intro).toContain('does not supply store inventory')
+    expect(photo.title).not.toEqual(general.title)
+    expect(photo.metaTitle).not.toEqual(general.metaTitle)
+    expect(photo.ctaLabels.tryOn).toBeTruthy()
+  })
+
   test('shared shell defaults are localized for every non-English locale', () => {
     const en = getSearchToToolShellCopy('en')
     for (const locale of locales) {

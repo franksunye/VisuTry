@@ -5,6 +5,10 @@ type Faq = readonly { question: string; answer: string }[]
 
 type PriorityLocaleCopy = {
   detector: {
+    metaTitle: string
+    metaDescription: string
+    title: string
+    intro: string
     trust: readonly { title: string; text: string }[]
     tipsTitle: string
     tips: readonly string[]
@@ -30,6 +34,10 @@ type PriorityLocaleCopy = {
 export const priorityLocaleCopy = {
   ja: {
     detector: {
+      metaTitle: '顔の形診断 カメラ・写真で無料チェック | VisuTry',
+      metaDescription: '顔の形診断を写真1枚で無料チェック。ログイン不要、画像はブラウザ内で処理。卵型・丸型など7種類の傾向を知り、似合うメガネ探しへ。',
+      title: '顔の形診断｜写真で無料チェック',
+      intro: '顔の形が気になる方へ。正面写真を選ぶと、ブラウザ内で7種類の顔型の傾向を推定します。無料・ログイン不要。画像はサーバーに送信せず、診断結果をメガネ選びの目安にできます。',
       trust: [
         { title: '写真は端末内で処理', text: '無料診断では写真をサーバーに送信せず、ブラウザ内で解析します。' },
         { title: '顔の比率を推定', text: '輪郭や顔の測定点から、7種類の顔型の傾向を推定します。' },
@@ -92,6 +100,10 @@ export const priorityLocaleCopy = {
   },
   es: {
     detector: {
+      metaTitle: '¿Qué forma tiene mi rostro? Detector gratis | VisuTry',
+      metaDescription: 'Descubre tu tipo de rostro con una foto gratis y sin registro. El análisis se hace en tu navegador; después puedes explorar monturas para tu cara.',
+      title: 'Descubre tu forma de rostro gratis con una foto',
+      intro: 'Elige una foto frontal para estimar si tu rostro es ovalado, redondo, cuadrado, corazón, diamante, alargado o triangular. La imagen se procesa en tu navegador, sin subirla al servidor. Usa el resultado como orientación para elegir gafas.',
       trust: [
         { title: 'Tu foto permanece en el dispositivo', text: 'El detector gratuito procesa la imagen en tu navegador, sin enviarla al servidor.' },
         { title: 'Estimación basada en proporciones', text: 'Los puntos faciales ayudan a estimar una de siete formas de rostro.' },
