@@ -16,6 +16,10 @@ export type MerchantActivationReport = {
   }
   counts: {
     workspacesReturned: number
+    catalogInspectionAttempted: number
+    catalogInspectionReady: number
+    catalogInspectionEmpty: number
+    catalogInspectionFailed: number
     firstItem: number
     catalogReady: number
     storeConfigured: number
@@ -77,7 +81,7 @@ export async function getMerchantActivationReport(input: ReportInput = {}): Prom
   if (merchantIds.length === 0) {
     return {
       cohort: { from: input.from?.toISOString() ?? null, to: input.to?.toISOString() ?? null, candidateWorkspacesCreated: 0, confirmedRealWorkspacesCreated: 0, possibleExternalCandidates: 0 },
-      counts: { workspacesReturned: 0, firstItem: 0, catalogReady: 0, storeConfigured: 0, storePreviewed: 0, storePublished: 0, firstShopperSession: 0, commercialIntent: 0, checkoutStarted: 0 },
+      counts: { workspacesReturned: 0, catalogInspectionAttempted: 0, catalogInspectionReady: 0, catalogInspectionEmpty: 0, catalogInspectionFailed: 0, firstItem: 0, catalogReady: 0, storeConfigured: 0, storePreviewed: 0, storePublished: 0, firstShopperSession: 0, commercialIntent: 0, checkoutStarted: 0 },
       rates: { workspaceReturnRate: null, firstItemActivationRate: null, catalogReadyRate: null, storePublishedRate: null },
       averageTimeToFirstItemMs: null,
     }
@@ -107,8 +111,13 @@ export async function getMerchantActivationReport(input: ReportInput = {}): Prom
 
   const summaries = merchantIds.map((merchantId) => summarizeMerchantActivationEvents(byMerchant.get(merchantId) ?? []))
   const count = (predicate: (summary: ReturnType<typeof summarizeMerchantActivationEvents>) => boolean) => summaries.filter(predicate).length
+  const countMerchantsWithEvent = (eventType: string) => merchantIds.filter((id) => byMerchant.get(id)?.some((event) => event.eventType === eventType)).length
   const times = summaries.map((summary) => summary.timeToFirstItemMs).filter((value): value is number => value != null)
   const workspacesReturned = count((summary) => summary.returnSessionCount > 0)
+  const catalogInspectionAttempted = countMerchantsWithEvent(MERCHANT_ACTIVATION_EVENT.CATALOG_INSPECTION_ATTEMPTED)
+  const catalogInspectionReady = countMerchantsWithEvent(MERCHANT_ACTIVATION_EVENT.CATALOG_INSPECTION_READY)
+  const catalogInspectionEmpty = countMerchantsWithEvent(MERCHANT_ACTIVATION_EVENT.CATALOG_INSPECTION_EMPTY)
+  const catalogInspectionFailed = countMerchantsWithEvent(MERCHANT_ACTIVATION_EVENT.CATALOG_INSPECTION_FAILED)
   const firstItem = count((summary) => summary.firstItemAt != null)
   const catalogReady = count((summary) => summary.catalogReadyAt != null)
   const storeConfigured = count((summary) => summary.storeConfiguredAt != null)
@@ -123,7 +132,7 @@ export async function getMerchantActivationReport(input: ReportInput = {}): Prom
 
   return {
     cohort: { from: input.from?.toISOString() ?? null, to: input.to?.toISOString() ?? null, candidateWorkspacesCreated, confirmedRealWorkspacesCreated, possibleExternalCandidates },
-    counts: { workspacesReturned, firstItem, catalogReady, storeConfigured, storePreviewed, storePublished, firstShopperSession, commercialIntent, checkoutStarted },
+    counts: { workspacesReturned, catalogInspectionAttempted, catalogInspectionReady, catalogInspectionEmpty, catalogInspectionFailed, firstItem, catalogReady, storeConfigured, storePreviewed, storePublished, firstShopperSession, commercialIntent, checkoutStarted },
     rates: {
       workspaceReturnRate: percentage(workspacesReturned, candidateWorkspacesCreated),
       firstItemActivationRate: percentage(firstItem, candidateWorkspacesCreated),
