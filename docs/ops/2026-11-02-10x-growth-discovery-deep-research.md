@@ -235,3 +235,55 @@
 - 每周进行两次专门的 **10× 机制研究**，聚焦 H1/H2/H3/H4/H5 的用户任务→完成→付费→可复制性，不替代现有每周一的通用 SEO/GEO 周报。仅当有实质进展、阻断或研究终局时向用户发送通知。
 - 研究档案必须保留来源、窗口、样本、能否关联、反证、下一决策，不再重复写新的并行 GTM 战略。需要的生产变更仍遵循分支/CI/审批/上线质量门槛。
 - 不凭现有代码路径宣称已获得数据库/Stripe 真实读取；取不到就是 UNAVAILABLE。凡涉及个人照片、PII、具体账户和内部测试标记，分析优先使用安全的聚合数据。
+
+---
+
+## 10. 两个 P0 的实证裁决（2026-11-02）
+
+**研究性质：** 将此前已登录 GA4/GSC 2026-11-01 导出的真实指标（不同渠道、窗口严格注明）与 GitHub #484/#499 的产品代码事实、当前可公开读取的页面对照。**本轮未获得新的 GA4 同会话探索结果、生产 Payment/Stripe 明细或 Axiom 28d 去重查询**，因此将已证实的发现与尚未证实的转换分开，禁止以历史流量代替新转化。
+
+### P0-1：照片选镜 → 付费 Advisor
+
+GA4 2026-10-04 至 10-31，Landing Page 归因：
+
+| 入口 | Landing sessions | GA4 purchase 事件 | 事件数 / sessions（非已核实付款转化率） | 95% Wilson 描述性区间 |
+|---|---:|---:|---:|---|
+| EN AI glasses guide | 1,001 | 4 | 0.40% | 0.16%–1.02% |
+| EN Face Analysis / Advisor | 454 | 5 | 1.10% | 0.47%–2.55% |
+| EN free Detector（对照） | 1,721 | 0 | 0% | 0%–0.22% |
+
+前两者有 1,455 个 landing sessions（占全属性 6,889 的 21.1%），关联 9/14（64.3%）的全属性 GA4 purchase 事件。**仅能说明当前落地归因集中，不证明产品产生增量收入**：未验证 Stripe Payment、渠道/国家/测试过滤和交易类型；5 次 Advisor landing-attributed purchase 可能买的是 Credits Pack、不是报告解锁。Advisor 1.10% 与指南 0.40% 都属于极小样本，区间重叠，不能称 Advisor 显著更优。
+
+GSC 的对应需求真实存在：2026-10-03 至 10-30，照片词 “what glasses suit my face upload photo” 99 点击/1,313 展示、“...upload photo online free” 102/1,001、“which glasses suit my face ai” 75/834；宽泛 “which glasses suit my face” 22/1,449、“what glasses suit my face” 9/949。**GSC 点击并非购买同一批人，GSC impressions 并非市场搜索总量。** 当前 EN guide 明确导向免费 Detector、个人化 Advisor 或直接 Try-On，产品链路与意图大体匹配。反证是 “free” 意图可能仅接受免费检测，以及需要登录/解锁的进一步摩擦。
+
+**阶段裁决：** 需求 VERIFIED；GA4 购买关联 VERIFIED-BUT-UNRECONCILED；“用户为个性化 Advisor 报告买单” INCONCLUSIVE；10× SCALE NOT APPROVED。**P0 顺位更高，但不开发免费的个人化 Top Picks，不在现有移动 CTA 七日观察期重写 Guide。**
+
+### P0-2：品牌搜索 → 实际镜框 Try-On
+
+GSC Web exact page，2026-10-03 至 10-30：
+
+| 内容 owner | 点击 | 展示 | CTR | 重要对照 |
+|---|---:|---:|---:|---|
+| Gentle Monster 品牌页 | 535 | 1,604 | 33.4% | 同口径前28天 625/1,591，点击 -14.4%，CTR 39.3%→33.4%，没有稳定增长 |
+| Oakley 品牌页 | 37 | 1,206 | 3.1% | 品牌 SERP 和用户意图不同，不是 GM 的随机对照 |
+| Ray-Ban 指南（不是同型品牌页） | 26 | 4,128 | 0.6% | 不能将低 CTR 直接认定无市场需求 |
+
+GitHub #499（2026-11-01 merged，https://github.com/franksunye/VisuTry/pull/499）证实：9 个 curated 品牌页展示的是独立风格图片，不是可自动预载的品牌商品；CTA 到 generic /en/try-on/glasses，用户仍必须自己获取具体镜框照片/截图，再上传自己的肖像。#499 改良了说明和 3 步指导，**没有取消双图输入门槛**。因此“搜索特定品牌直接试戴”与当前实际交付存在可查证的任务-产品缺口；这是 UX/代码事实，**不是已测量的流失比例**。公开页面抓取仍可能有旧文案缓存；不能仅凭抓取断言生产 CDN 版本。
+
+同一 GA4 28d 整站记录 tryon_started 119、tryon_completed 56 个事件，但既非同一品牌 cohort，也不是品牌 GSC 点击者；**禁止直接相除推导品牌成功率**。目前没有 GM/Oakley/Ray-Ban 的去重 organic landing→CTA→实际生成完成→Verified Payment 漏斗，品牌商业成果仍未验证。
+
+**阶段裁决：** 品牌搜索入口 VERIFIED-BUT-UNEVEN；实际商品试戴的产品任务匹配需要 MODIFY；品牌来源的真实完成/付费 INCONCLUSIVE；10× SCALE NOT APPROVED。**停止批量增加品牌页；优先复核现有三页在 #499 后的真实动作与支付，不因高 CTR 立即投资更多品牌或新模型功能。**
+
+### 缺的不是更多关键词，而是一份可重现的真实商业 cohort 表
+
+严格使用三个同周期但不同粒度的来源，不做伪造身份 join：
+
+1. **GSC**：三个品牌与 Guide/Advisor/Detector owner 的 exact page × 真实查询 × 国家/设备点击、展示、CTR。查询为聚合而非交易身份。
+2. **GA4 + Consumer Axiom**：organic landing sessions 为分母；同会话去重的 CTA、Advisor start/complete、Try-On start/complete；按 source_page / destination / cta_location / landing_page / source_class 分组。排除有证据的 TEST/INTERNAL/Reference，未知另列；免费 Detector 的完成事件故意不上报服务端，不能以 Axiom 作为所有 Detector 的总分母。2026-11-01 才注册的 GA4 自定义维度不可追溯历史。
+3. **Production Payment + Stripe（只读授权）**：completedAt、status、amount、currency、productType、unlockTaskId、attribution、refundedAt，按唯一 stripeSessionId 去重及审核；**仅以 Advisor landing 路径不能判定交易属于 Advisor unlock，必须用 unlockTaskId / purchaseContext 及真实款项核验。** 客户端的 consumer_funnel_id 没有直接存在 Payment，不能把独立 Axiom 会话与交易近似时间强行配对。
+
+六个固定 cohort：E2 Guide / E2 Advisor / E2 Detector（免费对照）；E1 Gentle Monster / E1 Oakley / E1 Ray-Ban guide。对每个输出 eligible organic landing sessions、实际去重 starts/completions、Payment completed USD、report unlock vs credits、退款、来源缺失率，以及对照窗口。一项缺失须保持 UNAVAILABLE，不能填零。
+
+**研究终局标准：** 在两个完整可比窗口显示新增合格完成，且经核实付款和单位成本护栏不恶化，才从 PROMISING 提交 SCALE 评审；有需求但完成低则 MODIFY 已确认摩擦；商业质量不足则 STOP；身份与支付数据不足则 INCONCLUSIVE。现有 2026-11-01 的 #484 / #499 更新尚未满七日，不能作因果宣称。2026-11-08/09 首轮读取；随后 28 天复核。研究优先级 **E2 > E1**，两者均无已验证的 10× 成功机制。
+
+**可追溯资料：** GitHub docs/ops/organic-growth-restart-2026-11-01.md、PR #484 / #499、docs/strategy/analytics/gtm.md；当前公开路径 https://www.visutry.com/en/brand/gentle-monster 、https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide 、https://www.visutry.com/en/face-analysis 、https://www.visutry.com/en/try-on/glasses 。
