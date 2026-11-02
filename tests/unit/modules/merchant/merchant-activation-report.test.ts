@@ -58,4 +58,36 @@ describe('Merchant activation report cohort boundary', () => {
     expect(report.rates.firstItemActivationRate).toBe(0)
     expect(prisma.merchantActivationEvent.findMany).toHaveBeenCalledTimes(2)
   })
+
+  it('separates actual inspection attempts and outcomes, counting distinct workspaces', async () => {
+    const occurredAt = new Date('2026-10-10T00:00:00.000Z')
+    const event = (merchantId: string, eventType: string, id: string) => ({
+      id, merchantId, eventType, occurredAt, source: 'CLIENT',
+      correlationId: null, sessionId: 'session-12345678', dedupeKey: id, metadata: null,
+    })
+    jest.mocked(prisma.merchantActivationEvent.findMany)
+      .mockResolvedValueOnce([
+        { merchantId: 'merchant-a', occurredAt, merchant: { classification: 'POSSIBLE_EXTERNAL' } },
+        { merchantId: 'merchant-b', occurredAt, merchant: { classification: 'POSSIBLE_EXTERNAL' } },
+      ] as never)
+      .mockResolvedValueOnce([
+        event('merchant-a', 'merchant_catalog_started', 'page-view'),
+        event('merchant-a', 'merchant_catalog_inspection_attempted', 'attempt-1'),
+        event('merchant-a', 'merchant_catalog_inspection_attempted', 'attempt-2'),
+        event('merchant-a', 'merchant_catalog_inspection_empty', 'empty'),
+        event('merchant-b', 'merchant_catalog_inspection_attempted', 'attempt-3'),
+        event('merchant-b', 'merchant_catalog_inspection_failed', 'failed'),
+        event('merchant-b', 'merchant_catalog_inspection_ready', 'ready'),
+      ] as never)
+
+    const report = await getMerchantActivationReport()
+
+    expect(report.counts).toMatchObject({
+      catalogInspectionAttempted: 2,
+      catalogInspectionReady: 1,
+      catalogInspectionEmpty: 1,
+      catalogInspectionFailed: 1,
+      firstItem: 0,
+    })
+  })
 })
