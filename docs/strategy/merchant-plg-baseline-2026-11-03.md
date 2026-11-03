@@ -300,7 +300,7 @@ Primary competitive SERP spot check: vendor-owned official product/plan pages su
 - Business Home/Store buyer-facing metadata, H1, merchant setup steps and visible feature limits, without fabricated customer proof.
 - Business primary CTA → existing `/en/merchant?commercialIntent=FREE` across pages/header/closing/footer; Pilot retained as optional path. This is an acquisition-entry change **not** proof that unaided A0→A6 has passed.
 - Existing GA4 B2B event `b2b_sales_intent_clicked` gains a distinct `intent_type=self_service_start`; pilot retains `pilot_request`. No new database schema or billing behavior.
-- Unit and Playwright expectations updated for copy, canonical Store link, feature truth, free CTA, and separate pilot event. Build/unit tests and real preview E2E pending CI evidence.
+- Unit and Playwright expectations updated for copy, canonical Store link, feature truth, free CTA, and separate Pilot event. At exact code HEAD `d6c213837a6e99562840a35a3a860f73bfaea075`, GitHub Quality Gate (3 jobs) and Business SEO Browser Gate (15 Chromium cases) passed; preview and production verification remain pending.
 
 ### A-04/A-05 — Acceptance and observation
 
@@ -310,3 +310,16 @@ Primary competitive SERP spot check: vendor-owned official product/plan pages su
 4. **+14 days:** update long-tail query evidence and detect self-brand/nonbrand coverage, pagination/canonical/indexing regressions.
 5. **+28 days after recrawl:** compare complete matched 28-day GSC windows by page×query×country/device; report ranking/impressions/clicks separately from source-qualified Merchant starts. Zero historical clicks means a 10x ratio is meaningless: report absolute qualified volume instead.
 6. **Decision:** A engineering closure is possible after technical gates; external search growth/AI citation impact remains **OBSERVATION**, never claimed at code-release time. C stays HOLD until A closure is reviewed.
+
+### A engineering verification checkpoint — 2026-11-03
+
+| Gate | Actual evidence | Status |
+| --- | --- | --- |
+| Code / exact commit | [PR #512](https://github.com/franksunye/VisuTry/pull/512), head `d6c213837a6e99562840a35a3a860f73bfaea075` | DRAFT / NOT MERGED |
+| Repository Quality Gate | [run 41644882622](https://github.com/franksunye/VisuTry/actions/runs/41644882622): Static+Critical Business Regression, Sponsored PostgreSQL Contract, Revenue Critical Browser Gate; 3/3 success | PASS |
+| Focused Business Browser Gate | [run 41644882661](https://github.com/franksunye/VisuTry/actions/runs/41644882661): 15/15 Chromium E2E (Business content/mobile, Store plan boundaries, anonymous Start Free→sign-in callback, Business Resources core sitemap, EN-only redirects, pricing) | PASS (LOCAL/Mock) |
+| Production preview / canonical | Real deployment URL, public HTML and crawl-visible metadata, CDN revalidation and performance | PENDING |
+| GA4 acquisition measurement | `b2b_sales_intent_clicked` with new `intent_type=self_service_start` is implemented. Confirm consent-aware delivery, parameter reporting/custom-dimension availability and Bot/Internal exclusions on live property; no fake conversion events | PENDING |
+| Postrelease GSC/GEO | Re-inspect nine EN URLs; 7/14/28d page×query trends and independently qualified merchant entry, fixed-prompt AI citation sampling where reproducible | OBSERVING AFTER RELEASE |
+
+The browser gate is explicitly **isolated**: `APP_ENV=local`, blocked AI provider and a loopback-only PostgreSQL placeholder. It validates anonymous routing, not authenticated fresh-Merchant activation and not live Postgres connectivity. A remains ACTIVE until deployment evidence and source-qualified acquisition measurement are reviewed. C and B remain HOLD.
