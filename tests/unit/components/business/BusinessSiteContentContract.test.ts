@@ -4,7 +4,7 @@ const coreKeys = ['overview', 'platform', 'store', 'campaigns', 'intelligence'] 
 
 describe('Business public content contract', () => {
   it('anchors one canonical Merchant journey on Business Home', () => {
-    expect(businessPages.overview.title).toBe('Be discovered. Help shoppers decide. Turn intent into action.')
+    expect(businessPages.overview.title).toBe('AI eyewear shopping experiences for your store.')
     expect(businessPages.overview.sections[0]?.eyebrow).toBe('Discovery → Decision → Merchant Action')
   })
 
@@ -12,7 +12,7 @@ describe('Business public content contract', () => {
     expect(businessPages.platform.title).toMatch(/system behind every VisuTry decision experience/i)
     expect(businessPages.platform.sections.some((section) => section.eyebrow === 'Platform architecture')).toBe(true)
 
-    expect(businessPages.store.title).toMatch(/always-on decision experience/i)
+    expect(businessPages.store.title).toMatch(/hosted eyewear Store built around your frames/i)
     expect(businessPages.store.sections.some((section) => section.eyebrow === 'When to use Store')).toBe(true)
 
     expect(businessPages.campaigns.title).toMatch(/Focused decision experiences for campaign traffic/i)
@@ -41,7 +41,7 @@ describe('Business public content contract', () => {
     const campaignCopy = JSON.stringify(businessPages.campaigns)
     const intelligenceCopy = JSON.stringify(businessPages.intelligence)
 
-    expect(storeCopy).toMatch(/open-ended/i)
+    expect(storeCopy).toMatch(/hosted eyewear/i)
     expect(storeCopy).not.toMatch(/paid & social/i)
 
     expect(campaignCopy).toMatch(/arrival context/i)
@@ -67,14 +67,14 @@ describe('Business public content contract', () => {
     expect(publicCopy).toMatch(/Commerce Intelligence/)
   })
 
-  it('standardizes the public Pilot CTA while keeping Resources task-specific', () => {
+  it('makes self-service the canonical merchant entry while retaining an explicit Pilot offer', () => {
     for (const [key, page] of Object.entries(businessPages)) {
       if (key === 'pilot') {
         expect(page.primaryCta.label).toBe('Request Pilot Review')
       } else if (key === 'resources') {
         expect(page.primaryCta.label).toBe('Watch Product Demo')
       } else {
-        expect(page.primaryCta.label).toBe('Start 30-Day Pilot')
+        expect(page.primaryCta).toEqual({ label: 'Start Free', href: '/merchant?commercialIntent=FREE' })
       }
     }
   })
@@ -87,7 +87,7 @@ describe('Business public content contract', () => {
   })
 
   it('presents the Founding Pilot as one configurable offer from $149', () => {
-    expect(businessPages.pricing.metaDescription).toMatch(/Founding Pilot from \$149 \/ 30 days/i)
+    expect(businessPages.pricing.metaDescription).toMatch(/free Store setup and basic recommendations/i)
     expect(businessPages.pilot.metaDescription).toMatch(/from \$149 \/ 30 days/i)
     expect(businessPages.pilot.description).toMatch(/Final scope and pilot fee are confirmed based on your deployment configuration/i)
 
@@ -96,6 +96,19 @@ describe('Business public content contract', () => {
     expect(pilotScope?.body).toMatch(/8–50 real frames/i)
     expect(pilotScope?.body).toMatch(/may vary in scope and pricing/i)
     expect(pilotScope?.body).not.toMatch(/1,500|3,500/)
+  })
+
+  it('answers merchant setup and plan questions without claiming native Shopify or free Try-On', () => {
+    const store = businessPages.store
+    const setup = store.sections.find((section) => section.eyebrow === 'Getting started')
+    const questions = store.sections.find((section) => section.eyebrow === 'Common questions')
+
+    expect(store.metaTitle).toMatch(/eyewear storefront/i)
+    expect(setup?.steps).toHaveLength(4)
+    expect(setup?.note).toMatch(/Free includes basic recommendations, not generative Virtual Try-On/i)
+    expect(questions?.cards?.some((card) => /native Shopify app/i.test(card.title))).toBe(true)
+    expect(questions?.cards?.some((card) => /real-time AR/i.test(card.title))).toBe(true)
+    expect(businessPages.overview.microcopy).toMatch(/requires an eligible paid plan/i)
   })
 
   it('keeps Commerce Intelligence inside its evidence boundary', () => {

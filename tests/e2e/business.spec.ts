@@ -6,23 +6,25 @@ test.describe('@critical Business market-facing narrative', () => {
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
-    await expect(page).toHaveTitle(/AI Commerce for Eyewear Brands & Agencies \| VisuTry/);
-    await expect(page.getByRole('heading', { name: /Be discovered\. Help shoppers decide\. Turn intent into action\./i })).toBeVisible();
+    await expect(page).toHaveTitle(/AI Eyewear Shopping & Virtual Try-On for Retailers \| VisuTry/);
+    await expect(page.getByRole('heading', { name: /AI eyewear shopping experiences for your store\./i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Store for continuity\. Campaigns for focus/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /One workspace to operate the experiences around your catalog/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Start with your frames and a private Store preview/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Know whether the journey is creating meaningful intent/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot');
+    await expect(page.getByRole('link', { name: 'Start Free' }).first()).toHaveAttribute('href', '/en/merchant?commercialIntent=FREE');
     await expect(page.getByRole('link', { name: 'Merchant Sign In' }).first()).toHaveAttribute('href', '/en/merchant');
     await expect(page.getByRole('link', { name: 'Explore Store' }).first()).toHaveAttribute('href', '/en/business/store');
     await expect(page.locator('a[href="/admin/store"]')).toHaveCount(0);
-    await expect(page.getByAltText(/VisuTry Commerce Intelligence visual with shopper engagement and intent signals/i)).toBeVisible();
+    const merchantIntelligenceVisual = page.locator('[data-business-visual="B2B-VIS-06"] img');
+    await expect(merchantIntelligenceVisual).toBeVisible();
+    await expect(merchantIntelligenceVisual).toHaveAttribute('alt', /intent signals using Local reference data/i);
     await expect(page.locator('body')).not.toContainText(/trusted by|our customers|our partners|ROAS|sales lift/i);
   });
 
   test('core Business pages have distinct information roles under the same Merchant narrative', async ({ page }) => {
     const expectations = [
       ['/en/business/platform', /The system behind every VisuTry decision experience/i, /Platform architecture/i],
-      ['/en/business/store', /An always-on decision experience for your eyewear catalog/i, /When to use Store/i],
+      ['/en/business/store', /A hosted eyewear Store built around your frames/i, /When to use Store/i],
       ['/en/business/campaigns', /Focused decision experiences for campaign traffic/i, /When to use Campaigns/i],
       ['/en/business/commerce-intelligence', /See where the decision journey gains — or loses — momentum/i, /Questions it answers/i],
     ] as const
@@ -33,7 +35,7 @@ test.describe('@critical Business market-facing narrative', () => {
       expect(response!.status()).toBeLessThan(400)
       await expect(page.getByRole('heading', { name: hero })).toBeVisible()
       await expect(page.getByText(section)).toBeVisible()
-      await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot')
+      await expect(page.getByRole('link', { name: 'Start Free' }).first()).toHaveAttribute('href', '/en/merchant?commercialIntent=FREE')
     }
   })
 
@@ -57,6 +59,34 @@ test.describe('@critical Business market-facing narrative', () => {
     }
   })
 
+  test('merchant search landing states hosted setup, limits, and live self-service destination', async ({ page }) => {
+    const response = await page.goto('/en/business/store', { waitUntil: 'domcontentloaded' });
+    expect(response?.status()).toBe(200);
+    await expect(page).toHaveTitle(/AI Eyewear Storefront & Virtual Try-On/);
+    await expect(page.getByRole('heading', { name: 'How to set up a hosted eyewear Store.' })).toBeVisible();
+    await expect(page.getByText(/Free includes basic recommendations, not generative Virtual Try-On/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Is there a native Shopify app?' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Start Free' }).first()).toHaveAttribute('href', '/en/merchant?commercialIntent=FREE');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://www.visutry.com/en/business/store');
+  });
+
+  test('merchant search landing Start Free preserves FREE intent through sign-in', async ({ page }) => {
+    await page.goto('/en/business/store', { waitUntil: 'domcontentloaded' });
+    await page.getByRole('link', { name: 'Start Free' }).first().click();
+    await expect(page).toHaveURL((url) => url.pathname === '/en/auth/signin');
+    expect(new URL(page.url()).searchParams.get('callbackUrl')).toBe('/en/merchant?commercialIntent=FREE');
+  });
+
+  test('merchant search landing Resources is in core sitemap without locale duplicates', async ({ page }) => {
+    const response = await page.request.get('/sitemaps/core.xml');
+    expect(response.status()).toBe(200);
+    const xml = await response.text();
+    for (const url of ['/en/business', '/en/business/store', '/en/business/pricing', '/en/business/resources']) {
+      expect(xml).toContain(`https://www.visutry.com${url}`);
+    }
+    expect(xml).not.toContain('https://www.visutry.com/de/business');
+  });
+
   test('public Merchant CTA preserves the anonymous authentication continuation', async ({ page }) => {
     await page.goto('/en/business', { waitUntil: 'domcontentloaded' });
     await page.getByRole('link', { name: 'Merchant Sign In' }).first().click();
@@ -73,9 +103,9 @@ test.describe('@critical Business market-facing narrative', () => {
       expect(response).not.toBeNull();
       expect(response!.status()).toBeLessThan(400);
       await expect(page).toHaveURL('/en/business');
-      await expect(page).toHaveTitle(/AI Commerce for Eyewear Brands & Agencies \| VisuTry/);
-      await expect(page.getByRole('heading', { name: /Be discovered\. Help shoppers decide\. Turn intent into action\./i })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot');
+      await expect(page).toHaveTitle(/AI Eyewear Shopping & Virtual Try-On for Retailers \| VisuTry/);
+      await expect(page.getByRole('heading', { name: /AI eyewear shopping experiences for your store\./i })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Start Free' }).first()).toHaveAttribute('href', '/en/merchant?commercialIntent=FREE');
       await expect(page.locator('a[href="/admin/store"]')).toHaveCount(0);
     });
   }
@@ -110,7 +140,7 @@ test.describe('@critical Business market-facing narrative', () => {
       'href',
       'https://media.visutry.com/business/whitepapers/visutry-ai-eyewear-decision-experience-instore-retail-v1.3.pdf',
     );
-    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' })).toHaveAttribute('href', '/en/business/pilot');
+    await expect(page.getByRole('link', { name: '30-Day Pilot', exact: true })).toHaveAttribute('href', '/en/business/pilot');
     await expect(page.locator('form')).toHaveCount(0);
   });
 
@@ -124,9 +154,9 @@ test.describe('@critical Business market-facing narrative', () => {
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
-    await expect(page).toHaveTitle(/VisuTry Eyewear AI Commerce Pricing/);
+    await expect(page).toHaveTitle(/AI Eyewear Storefront Pricing/);
     await expect(page.getByRole('heading', { name: /Simple pricing for the full eyewear decision journey/i })).toBeVisible();
-    await expect(page.getByText(/Try-On images are tracked separately, with a configurable per-shopper limit/i)).toBeVisible();
+    await expect(page.getByText(/Start free with basic recommendations and Store setup/i)).toBeVisible();
     await expect(page.getByText('No surprise usage billing.')).toBeVisible();
     await expect(page.locator('[data-primary-plan="true"]')).toHaveCount(3);
     await expect(page.locator('[data-plan-code="LAUNCH"][data-primary-plan="true"]')).toContainText('$199/month');

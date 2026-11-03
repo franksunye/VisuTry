@@ -61,14 +61,14 @@ describe('BusinessMarketingPage visual hierarchy', () => {
     expect(intelligence?.querySelector('[data-business-visual="B2B-VIS-06"]')).toBeTruthy()
   })
 
-  it('measures hero and closing Pilot CTA clicks as distinct Business-site placements', () => {
+  it('measures hero and closing self-service clicks as distinct acquisition placements', () => {
     const { getAllByRole } = render(<BusinessMarketingPage locale="en" pageKey="overview" />)
-    const pilotLinks = getAllByRole('link', { name: /Start 30-Day Pilot/ })
+    const freeLinks = getAllByRole('link', { name: 'Start Free' })
 
-    fireEvent.click(pilotLinks[0])
-    fireEvent.click(pilotLinks[1])
+    fireEvent.click(freeLinks[0])
+    fireEvent.click(freeLinks[1])
 
-    expect(analytics.trackBusinessCtaClicked).toHaveBeenNthCalledWith(1, { locale: 'en', ctaLocation: 'hero_primary', intentType: 'pilot_request' })
-    expect(analytics.trackBusinessCtaClicked).toHaveBeenNthCalledWith(2, { locale: 'en', ctaLocation: 'business_closing_cta', intentType: 'pilot_request' })
+    expect(analytics.trackBusinessCtaClicked).toHaveBeenNthCalledWith(1, { locale: 'en', ctaLocation: 'hero_primary', intentType: 'self_service_start' })
+    expect(analytics.trackBusinessCtaClicked).toHaveBeenNthCalledWith(2, { locale: 'en', ctaLocation: 'business_closing_cta', intentType: 'self_service_start' })
   })
 })

@@ -66,12 +66,12 @@ export function BusinessHeader() {
               Merchant Sign In
             </Link>
             <Link
-              href={businessHref(locale, '/business/pilot')}
+              href={businessHref(locale, '/merchant?commercialIntent=FREE')}
               prefetch={false}
-              onClick={() => analytics.trackBusinessCtaClicked({ locale, ctaLocation: 'business_header_desktop', intentType: 'pilot_request' })}
+              onClick={() => analytics.trackBusinessCtaClicked({ locale, ctaLocation: 'business_header_desktop', intentType: 'self_service_start' })}
               className="hidden items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 sm:inline-flex"
             >
-              Start 30-Day Pilot
+              Start Free
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <button
@@ -110,8 +110,8 @@ export function BusinessHeader() {
             <Link href={`/${locale}/merchant`} prefetch={false} data-merchant-entry="header" onClick={() => { trackMerchantEntry(); setOpen(false) }} className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
               Merchant Sign In
             </Link>
-            <Link href={businessHref(locale, '/business/pilot')} prefetch={false} onClick={() => { analytics.trackBusinessCtaClicked({ locale, ctaLocation: 'business_header_mobile', intentType: 'pilot_request' }); setOpen(false) }} className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">
-              Start 30-Day Pilot
+            <Link href={businessHref(locale, '/merchant?commercialIntent=FREE')} prefetch={false} onClick={() => { analytics.trackBusinessCtaClicked({ locale, ctaLocation: 'business_header_mobile', intentType: 'self_service_start' }); setOpen(false) }} className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">
+              Start Free
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link href={`/${locale}`} prefetch={false} onClick={() => setOpen(false)} className="px-3 py-2.5 text-sm font-medium text-slate-500">

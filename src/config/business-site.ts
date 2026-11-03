@@ -59,19 +59,19 @@ const pilotHref = '/business/pilot'
 export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   overview: {
     slug: '/business',
-    metaTitle: 'AI Commerce for Eyewear Brands & Agencies | VisuTry',
-    metaDescription: 'Turn eyewear catalogs and traffic into guided AI decision experiences that move shoppers from discovery to decision to merchant action, with observable intent signals along the way.',
-    eyebrow: 'AI Commerce for Eyewear',
-    title: 'Be discovered. Help shoppers decide. Turn intent into action.',
-    description: 'VisuTry helps eyewear merchants become more discoverable across search and AI, then gives shoppers a clearer path from product discovery to confident decisions and merchant action.',
-    primaryCta: { label: 'Start 30-Day Pilot', href: pilotHref },
+    metaTitle: 'AI Eyewear Shopping & Virtual Try-On for Retailers | VisuTry',
+    metaDescription: 'Build a hosted eyewear shopping experience with your frames, AI recommendations, comparison and plan-eligible photo virtual try-on. Start with a free merchant workspace.',
+    eyebrow: 'AI Eyewear Commerce for Retailers',
+    title: 'AI eyewear shopping experiences for your store.',
+    description: 'Give shoppers a guided way to discover, compare and choose frames from your catalog. Start with a hosted, merchant-branded Store; add photo-based Virtual Try-On where your plan includes it, and send shoppers back to your product pages.',
+    primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'Explore Store', href: '/business/store' },
-    microcopy: 'Hosted first. Keep your current ecommerce site and product pages.',
+    microcopy: 'Start free with basic recommendations and a private Store preview. Generative Virtual Try-On requires an eligible paid plan; your existing checkout stays yours.',
     sections: [
       {
         eyebrow: 'Discovery → Decision → Merchant Action',
-        title: 'Eyewear discovery is abundant. Decision confidence is scarce.',
-        body: 'VisuTry adds a decision layer between product discovery and merchant commerce so shoppers can narrow choices, evaluate frames, keep a useful result, and continue when they are ready.',
+        title: 'Help shoppers choose eyewear, not just browse more frames.',
+        body: 'For independent eyewear stores, optical retailers, and brand commerce teams, VisuTry turns an existing frame catalog into a guided selection journey. Recommendations and comparisons help shoppers narrow choices; photo Try-On is available on eligible paid plans.',
         cards: [
           { title: 'Discover', description: 'Help shoppers move from a broad catalog toward a relevant set of frames.' },
           { title: 'Decide', description: 'Support evaluation with Recommendation, Virtual Try-On, and Frame Compare.' },
@@ -89,8 +89,8 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       },
       {
         eyebrow: 'Merchant operating model',
-        title: 'One workspace to operate the experiences around your catalog.',
-        body: 'Keep merchant setup, Store, Campaigns, and operating status in one workspace rather than managing separate point solutions for each shopper experience.',
+        title: 'Start with your frames and a private Store preview.',
+        body: 'Create a merchant workspace, add frame details and product links, and review your branded Store before sharing it. You can start without replacing your ecommerce platform; paid capabilities and publishing depend on your plan.',
       },
       {
         eyebrow: 'Commerce Intelligence',
@@ -109,7 +109,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     eyebrow: 'VisuTry Platform',
     title: 'The system behind every VisuTry decision experience.',
     description: 'VisuTry connects merchant product truth, shopper-facing Experiences, a shared decision runtime, merchant operations, and Commerce Intelligence without replacing the merchant’s core commerce stack.',
-    primaryCta: { label: 'Start 30-Day Pilot', href: pilotHref },
+    primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'Explore Store', href: '/business/store' },
     sections: [
       {
@@ -148,18 +148,18 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   },
   store: {
     slug: '/business/store',
-    metaTitle: 'AI Storefront for Eyewear Brands & Retailers | VisuTry',
-    metaDescription: 'Create an always-on merchant-branded AI storefront for broader eyewear discovery, guided evaluation, Decision Result, and Merchant Actions.',
-    eyebrow: 'AI Storefront',
-    title: 'An always-on decision experience for your eyewear catalog.',
-    description: 'Use Store when shoppers need room to explore a broader assortment in a persistent merchant-branded experience rather than enter through one campaign proposition.',
-    primaryCta: { label: 'Start 30-Day Pilot', href: pilotHref },
+    metaTitle: 'AI Eyewear Storefront & Virtual Try-On | VisuTry',
+    metaDescription: 'Create a hosted eyewear storefront from your frame catalog with guided recommendations, side-by-side comparison and paid-plan photo Try-On. No Shopify app required for the hosted route.',
+    eyebrow: 'Hosted Eyewear Storefront',
+    title: 'A hosted eyewear Store built around your frames.',
+    description: 'Use your existing frame catalog to offer a branded shopping journey with recommendations, comparison and optional photo virtual try-on. Shoppers can return to your own product pages when ready.',
+    primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'See Product Examples', href: '/business/examples' },
     sections: [
       {
         eyebrow: 'When to use Store',
-        title: 'Use Store when discovery should stay open-ended.',
-        body: 'Store is the persistent shopper-facing surface for broader catalog discovery: a destination that can remain useful across homepage traffic, direct visits, pre-shop research, and repeat exploration.',
+        title: 'Give shoppers a dedicated place to discover eyewear.',
+        body: 'Share a hosted Store link from your website, email, social profile or QR code. Shoppers can explore your frames and narrow choices without needing a native ecommerce plugin or a separate app download.',
         cards: [
           { title: 'Always-on entry', description: 'Give shoppers a stable decision destination that is not tied to a single media flight or promotion.' },
           { title: 'Broader assortment', description: 'Let shoppers explore more of the reviewed merchant catalog than a focused Campaign typically needs.' },
@@ -168,8 +168,25 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       },
       {
         eyebrow: 'Shopper experience',
-        title: 'Guide exploration without forcing a campaign narrative.',
+        title: 'Guide frame selection from discovery to your product page.',
         steps: ['Enter Store', 'Explore the catalog', 'Narrow a shortlist', 'Try & compare', 'Keep the Decision Result', 'Continue to Merchant Actions'],
+      },
+      {
+        eyebrow: 'Getting started',
+        title: 'How to set up a hosted eyewear Store.',
+        body: 'Begin with the products you can review accurately; your existing site remains the source of truth for product details and checkout.',
+        steps: ['Create your free merchant workspace', 'Add frames, photos, and product links', 'Review the private Store preview', 'Configure supported shopper actions and publish when eligible'],
+        note: 'Free includes basic recommendations, not generative Virtual Try-On. Photo Try-On requires an eligible paid plan; native Shopify catalog sync and storefront installation are not part of the hosted setup.',
+      },
+      {
+        eyebrow: 'Common questions',
+        title: 'What eyewear retailers need to know before launching.',
+        cards: [
+          { title: 'Do I need to replace my shop?', description: 'No. VisuTry hosts a separate branded Store and can link shoppers to your existing product pages or other configured merchant destinations.' },
+          { title: 'Does the free plan include virtual try-on?', description: 'No. Start free to set up a catalog and basic recommendation experience. Generative photo Try-On is available only with an eligible paid entitlement.' },
+          { title: 'Is this a real-time AR fitting tool?', description: 'No. VisuTry uses AI-assisted photo-based Try-On where enabled. It does not provide a physical-fit or prescription measurement guarantee.' },
+          { title: 'Is there a native Shopify app?', description: 'Not in the current hosted Store offer. Shopify merchants can link back to their product pages; native app installation and automated catalog sync are separate future integration work.' },
+        ],
       },
       {
         eyebrow: 'Decision continuity',
@@ -190,7 +207,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     eyebrow: 'Campaign Experiences',
     title: 'Focused decision experiences for campaign traffic.',
     description: 'Use Campaigns when the reason a shopper arrived should shape the product edit, message, journey, and next merchant action.',
-    primaryCta: { label: 'Start 30-Day Pilot', href: pilotHref },
+    primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'See a Campaign Example', href: '/c/akila/statement-frames' },
     sections: [
       {
@@ -233,7 +250,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     eyebrow: 'Commerce Intelligence',
     title: 'See where the decision journey gains — or loses — momentum.',
     description: 'Commerce Intelligence helps merchants interpret observable shopper behavior across products, Experiences, Merchant Actions, and available source context. It is an evidence layer, not a revenue attribution shortcut.',
-    primaryCta: { label: 'Start 30-Day Pilot', href: pilotHref },
+    primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'Explore the Platform', href: '/business/platform' },
     sections: [
       {
@@ -261,13 +278,13 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   },
   pricing: {
     slug: '/business/pricing',
-    metaTitle: 'VisuTry Eyewear AI Commerce Pricing | Free, Pilot & Merchant Plans',
-    metaDescription: 'Simple pricing for the full eyewear decision journey. Compare Free, the Founding Pilot from $149 / 30 days, Launch, Growth, Scale, and Enterprise by AI Commerce Sessions, Campaigns, analytics, and delivery capabilities.',
+    metaTitle: 'AI Eyewear Storefront Pricing | VisuTry Merchant Plans',
+    metaDescription: 'Compare VisuTry merchant plans: free Store setup and basic recommendations, paid AI Commerce Sessions and generative photo Try-On, and a separately scoped founding pilot.',
     eyebrow: 'Pricing',
     title: 'Simple pricing for the full eyewear decision journey.',
-    description: 'One AI Commerce Session covers an eligible shopper decision journey. Try-On images are tracked separately, with a configurable per-shopper limit and your agreed image allowance.',
-    primaryCta: { label: 'Start 30-Day Pilot', href: pilotHref },
-    secondaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
+    description: 'Start free with basic recommendations and Store setup. Paid plans add eligible AI Commerce Sessions and photo Try-On image allowances; usage limits vary by plan.',
+    primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
+    secondaryCta: { label: 'View 30-Day Pilot', href: pilotHref },
     sections: [],
   },
   examples: {
@@ -277,7 +294,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     eyebrow: 'Product Proof',
     title: 'See the same commerce workflow across different eyewear problems.',
     description: 'Use product previews and clearly labeled Reference Experiences to evaluate the shopper journey, not to infer customer relationships or performance claims.',
-    primaryCta: { label: 'Start 30-Day Pilot', href: pilotHref },
+    primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'Explore Store', href: '/business/store' },
     sections: [
       {
@@ -319,7 +336,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     eyebrow: 'Integrations & Deployment',
     title: 'Start hosted-first. Keep your existing commerce stack.',
     description: 'VisuTry adds a guided decision layer around existing merchant commerce rather than requiring a platform replacement.',
-    primaryCta: { label: 'Start 30-Day Pilot', href: pilotHref },
+    primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'Explore the Platform', href: '/business/platform' },
     sections: [
       {

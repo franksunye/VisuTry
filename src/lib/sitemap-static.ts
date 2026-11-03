@@ -58,6 +58,7 @@ export function buildCoreSitemapEntries(baseUrl: string): SitemapEntry[] {
     { path: '/business/examples', priority: 0.75, changeFrequency: 'weekly' },
     { path: '/business/integrations', priority: 0.65, changeFrequency: 'monthly' },
     { path: '/business/pilot', priority: 0.8, changeFrequency: 'weekly' },
+    { path: '/business/resources', priority: 0.65, changeFrequency: 'monthly' },
     ...VISUTRY_DEMO_FRAME_ROUTES.map(({ slug }) => ({ path: `/demo/frames/${slug}`, priority: 0.65, changeFrequency: 'monthly' as const })),
   ]
   const localizedSunglassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/sunglasses-for/${slug}-face`)
