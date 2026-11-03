@@ -206,6 +206,29 @@ known historical state and newly measurable journeys. Existing catalog/store
 state can still be shown as current state, but it is not rewritten as a
 historical Activation event.
 
+### Seven-day First Value measurement (C workstream, 2026-11-03)
+
+The Admin Merchant portfolio shows a **read-only 7-day A0 → A6** score
+from persisted Merchant activation events; it does not backfill, create,
+reclassify or repair workspaces:
+
+- Denominator: distinct `SELF_SERVICE_SIGNUP`, non-reference `REAL` and
+  `POSSIBLE_EXTERNAL` A0 workspaces whose entire 7 × 24-hour window has
+  elapsed at report time. More recent workspaces are **pending**, not failures.
+- Numerator: those mature workspaces with an observed A6 `merchant_store_previewed`
+  event at or after their first A0 and within seven days (inclusive); later or
+  pre-A0 events do not count.
+- Display the combined **candidate** rate and separate confirmed REAL vs
+  unverified POSSIBLE_EXTERNAL counts/rates. `0/0` shows **N/A**, not 0%.
+- Median and nearest-rank p90 durations use only qualifying mature A0→A6
+  journeys, measured from first A0. Missing times show **N/A**.
+- A6 remains **client-observed telemetry** after the private preview API
+  responds. It is not server-verified publication, paid status, successful
+  storefront usage, or proof that no human intervened.
+- The First Value window is a product measurement target, not an SLA.
+  Human-intervention tagging and independent end-to-end signup→A6 remain
+  separately unverified.
+
 ## 10. Three-environment QA contract
 
 Activation QA follows the long-lived
