@@ -43,8 +43,9 @@ function CtaLink({ locale, href, label, primary = false, inverse = false, ctaLoc
 
   if (external) return <a href={target} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
   const isPilotCta = href.startsWith('/business/pilot') || href === '#pilot-request'
-  if (isPilotCta && ctaLocation) {
-    return <BusinessTrackedCtaLink href={target} locale={locale} ctaLocation={ctaLocation} intentType="pilot_request" className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></BusinessTrackedCtaLink>
+  const isSelfServiceCta = href.startsWith('/merchant?commercialIntent=FREE')
+  if ((isPilotCta || isSelfServiceCta) && ctaLocation) {
+    return <BusinessTrackedCtaLink href={target} locale={locale} ctaLocation={ctaLocation} intentType={isSelfServiceCta ? 'self_service_start' : 'pilot_request'} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></BusinessTrackedCtaLink>
   }
   return <Link href={target} prefetch={false} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
 }
@@ -236,18 +237,18 @@ function SectionBlock({ pageKey, section, index, locale }: { pageKey: BusinessPa
   )
 }
 
-function PilotCta({ locale }: { locale: string }) {
+function MerchantClosingCta({ locale }: { locale: string }) {
   return (
     <section className="border-t border-slate-800 bg-slate-950 text-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-7 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Founding Merchant Pilot</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">Start with a focused 30-day test.</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-300">Use your real frames, one hosted Experience, and observable shopper intent before making a larger commitment.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Start with your catalog</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">Build your private eyewear Store preview.</h2>
+          <p className="mt-3 text-sm leading-6 text-slate-300">Start free with basic recommendations and your own frame details. Generative photo Try-On requires an eligible paid plan.</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <BusinessTrackedCtaLink href={businessHref(locale, '/business/pilot')} locale={locale} ctaLocation="business_closing_cta" intentType="pilot_request" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">Start 30-Day Pilot<ArrowRight className="h-4 w-4" aria-hidden="true" /></BusinessTrackedCtaLink>
-          <Link href={businessHref(locale, '/business/pricing')} prefetch={false} className="inline-flex items-center justify-center rounded-xl border border-white/20 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">View Pricing</Link>
+          <BusinessTrackedCtaLink href={businessHref(locale, '/merchant?commercialIntent=FREE')} locale={locale} ctaLocation="business_closing_cta" intentType="self_service_start" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">Start Free<ArrowRight className="h-4 w-4" aria-hidden="true" /></BusinessTrackedCtaLink>
+          <Link href={businessHref(locale, '/business/pilot')} prefetch={false} className="inline-flex items-center justify-center rounded-xl border border-white/20 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">Explore 30-Day Pilot</Link>
         </div>
       </div>
     </section>
@@ -278,7 +279,7 @@ export function BusinessMarketingPage({ locale, pageKey, pilotIntent = 'pilot_re
   }
 
   const sections = page.sections
-  const showPilotCta = pageKey !== 'pilot'
+  const showClosingCta = pageKey !== 'pilot'
 
   return (
     <main className="bg-[#f8fafc] text-slate-950">
@@ -301,7 +302,7 @@ export function BusinessMarketingPage({ locale, pageKey, pilotIntent = 'pilot_re
       {pageKey === 'platform' ? <BusinessResourceStrip locale={locale} placement="platform" mode="whitepaper" /> : null}
       {pageKey === 'store' ? <BusinessResourceStrip locale={locale} placement="store" mode="video" /> : null}
 
-      {showPilotCta ? <PilotCta locale={locale} /> : null}
+      {showClosingCta ? <MerchantClosingCta locale={locale} /> : null}
     </main>
   )
 }
