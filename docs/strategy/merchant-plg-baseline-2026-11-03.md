@@ -228,6 +228,20 @@ Stage 2 candidates, not approved for shipping: manual first-item visibility, saf
 - All changed UX covered by desktop/mobile or relevant app browser E2E and tenant isolation tests.
 - Human support tickets and assisted sessions become measurable before claiming “self-service at scale”.
 
+> **PO sequencing update, 2026-11-03:** The initial A/B/C rows below are a historical Stage 1 *discovery inventory*, **not an instruction to execute them in parallel**. From now on **A Merchant SEO/GEO = ACTIVE**, **C self-service = HOLD until A engineering/evidence exit gate**, **B Shopify = HOLD until C validation**. Canonical gate: [Merchant PLG strategy](merchant-plg-growth-v1.md#po-execution-priority--sequential-depth-2026-11-03).
+
+### A-only active checklist (single-threaded focus)
+
+| ID | Target artifact | Readiness condition |
+| --- | --- | --- |
+| A-01 | Nine-page Business GSC inspection matrix and crawl/render diagnosis | 9/9 classified by evidence; sitemap/canonical/robots/crawl log inconsistencies prioritized |
+| A-02 | Real merchant query, country/device, competitors and SERP map | Two or three distinct query intents backed by search and honest current product value |
+| A-03 | Business landing / Store proof / self-service CTA changes | Mobile+desktop UX, accurate plan/feature claims, links, CI, no Consumer regression |
+| A-04 | Source-qualified acquisition measurement | Business entrance → signup intent, dedup/internal exclusion, clear GA4 vs durable-event boundary |
+| A-05 | Release and observation report | Exact SHA, reproducible checks, 7/14/28-day scorecard; technical closure distinct from traffic validation |
+
+**No blocking need to begin fresh Merchant creation or Shopify installation during A.** Publishing, billing, payment and shopper data behavior remain unchanged unless separately scoped and tested.
+
 ## Stage 1 next decision package
 
 | Priority | Next deliverable | Gate |
