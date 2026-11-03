@@ -73,7 +73,7 @@ test.describe('@critical Business market-facing narrative', () => {
   test('merchant search landing Start Free preserves FREE intent through sign-in', async ({ page }) => {
     await page.goto('/en/business/store', { waitUntil: 'domcontentloaded' });
     await page.getByRole('link', { name: 'Start Free' }).first().click();
-    await expect(page).toHaveURL(/\\/en\\/auth\\/signin/);
+    await expect(page).toHaveURL((url) => url.pathname === '/en/auth/signin');
     expect(new URL(page.url()).searchParams.get('callbackUrl')).toBe('/en/merchant?commercialIntent=FREE');
   });
 
