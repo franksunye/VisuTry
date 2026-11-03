@@ -271,3 +271,42 @@ Do **not** advance to Stage 2 from documents alone. Stage 1 completes only when 
 - [Shopify Dev — Theme App Extensions](https://shopify.dev/docs/apps/build/online-store/theme-app-extensions)
 - [Shopify Dev — App Store review](https://shopify.dev/docs/apps/launch/app-store-review)
 - [Shopify Dev — Billing](https://shopify.dev/docs/apps/launch/billing)
+
+
+## Merchant SEO/GEO Wave 1 — 2026-11-03 implementation record
+
+**Scope:** A-only first bounded release candidate; code [PR #512](https://github.com/franksunye/VisuTry/pull/512) is **DRAFT, not merged or deployed**. Strategy [PR #511](https://github.com/franksunye/VisuTry/pull/511) is separately DRAFT. Do not label any A exit gate PASS before exact-HEAD CI, preview E2E and production validation.
+
+### A-01 — Technical hypothesis separation
+
+- All nine EN Business URLs were inspected individually via GSC. Core-sitemap presence is verified for 9/9; three indexed, four discovered-but-not-indexed, two Google-unknown.
+- The implementation `src/lib/sitemap-static.ts` intentionally emits English-only Business URLs, while `BusinessMarketingPage` redirects other locale variants to `/en`. Therefore no supported claim of nine-locale duplicate Business pages.
+- `businessPageMetadata` supplies per-page self-canonical and OpenGraph data; sampled live URLs are indexable. **Neither missing sitemap nor robots/noindex explains the nine-page pattern.**
+- Actual Googlebot access/crawl demand and quality/index selection remain partially unknown; no user-agent access logs or GSC Crawl Stats route breakdown were available in this pass.
+- Found a bounded omission: the **Business Resources** page links to a real ungated demo/white paper but is absent from the core sitemap. PR #512 adds just this EN URL, without fake lastmod or claiming this fixes the other nine.
+
+### A-02 — Three buyer-intent hypotheses (qualitative SERP, not search volume)
+
+| Intent | Current destination | Specific answer and evidence | Boundary |
+| --- | --- | --- | --- |
+| AI eyewear shopping / guided product discovery for optical retailers | `/en/business` | What an eyewear brand/store gains from catalog-based recommendations, comparisons and a hosted decision journey. Product-specific H1/meta and action path in #512. | Not a claim of SEO/GEO referral traffic delivered to a merchant or guaranteed conversion lift. |
+| Virtual try-on for eyewear stores / hosted eyewear storefront | `/en/business/store` | What shopper experience can be hosted; how to bring own frames, preview and continue to merchant product pages; practical common questions added in #512. | **Not** real-time AR, PD/physical-fit accuracy, native Shopify app, automatic catalog sync or free generative photo Try-On. |
+| Eyewear virtual try-on pricing / compare merchant plans | `/en/business/pricing` | Clear Free vs paid entitlement and pilot options; #512 updates metadata/intro while leaving Stripe/prices unchanged. | Distinct consumer credits pricing; $0 does **not** include generative Try-On. |
+
+Primary competitive SERP spot check: vendor-owned official product/plan pages such as [Banuba](https://www.banuba.com/glasses-virtual-try-on), [Perfect Corp AI Glasses Picker](https://www.perfectcorp.com/business/products/ai-glasses-picker), and [Fittingbox](https://fittingbox.com/en/glasses-virtual-try-on/standard-instore) confirm merchant buyer language emphasizes website integration, product catalog, VTO and recommendation. These observations **do not establish query volume or rank difficulty**. No keyword-volume provider data was available; re-evaluate in GSC when genuine Business queries appear.
+
+### A-03 — Code candidate #512 (review required)
+
+- Business Home/Store buyer-facing metadata, H1, merchant setup steps and visible feature limits, without fabricated customer proof.
+- Business primary CTA → existing `/en/merchant?commercialIntent=FREE` across pages/header/closing/footer; Pilot retained as optional path. This is an acquisition-entry change **not** proof that unaided A0→A6 has passed.
+- Existing GA4 B2B event `b2b_sales_intent_clicked` gains a distinct `intent_type=self_service_start`; pilot retains `pilot_request`. No new database schema or billing behavior.
+- Unit and Playwright expectations updated for copy, canonical Store link, feature truth, free CTA, and separate pilot event. Build/unit tests and real preview E2E pending CI evidence.
+
+### A-04/A-05 — Acceptance and observation
+
+1. **Before merge:** CI on exact PR HEAD; click anonymous Start Free and confirm signin continuation and separate Pilot; verify 390px mobile and desktop; verify generated title/description/H1, canonical, indexable 200 on representative Home/Store/Pricing/Resources; no Consumer or paid-plan mutation.
+2. **After deploy:** record production SHA/deploy ID, check CDN HTML freshness vs code; inspect Business Resources in sitemap; independently verify Analytics consent and self_service_start event delivery without sending fake production conversions.
+3. **+7 days** after observed crawl/visibility: Business page/query impressions, indexed count (9-page matrix), first organic Merchant landing and CTA intent split, with GA4 sampling/attribution caveats.
+4. **+14 days:** update long-tail query evidence and detect self-brand/nonbrand coverage, pagination/canonical/indexing regressions.
+5. **+28 days after recrawl:** compare complete matched 28-day GSC windows by page×query×country/device; report ranking/impressions/clicks separately from source-qualified Merchant starts. Zero historical clicks means a 10x ratio is meaningless: report absolute qualified volume instead.
+6. **Decision:** A engineering closure is possible after technical gates; external search growth/AI citation impact remains **OBSERVATION**, never claimed at code-release time. C stays HOLD until A closure is reviewed.
