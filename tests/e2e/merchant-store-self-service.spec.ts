@@ -227,26 +227,26 @@ test.describe('Human Merchant Store G3', () => {
     expect(createRetry.data).toMatchObject({ created: false, id: 'store-g3' })
     expect(createCalls).toBe(2)
 
-    await page.getByLabel('Store name').fill('G3 Preview Collection')
-    await page.getByLabel('Store headline').fill('Frames selected for your next look')
-    await page.getByLabel('Store description').fill('A private G3 Store draft for the selected eyewear collection.')
-    await page.getByRole('button', { name: /save details/i }).click()
+    await page.locator('#store').getByLabel('Store name', { exact: true }).fill('G3 Preview Collection')
+    await page.locator('#store').getByLabel('Store headline', { exact: true }).fill('Frames selected for your next look')
+    await page.locator('#store').getByLabel('Store description', { exact: true }).fill('A private G3 Store draft for the selected eyewear collection.')
+    await page.locator('#store').getByRole('button', { name: /save details/i }).click()
     await expect(page.getByText('Store details saved.')).toBeVisible()
 
     const checkboxes = page.locator('#store input[type="checkbox"]')
     await checkboxes.nth(0).check()
     await checkboxes.nth(1).check()
-    await page.getByRole('button', { name: /save products/i }).click()
+    await page.locator('#store').getByRole('button', { name: /save products/i }).click()
     await expect(page.getByText('Store products saved.')).toBeVisible()
     // An HTTP 200 diagnostic preview must not create A6 or hide first-run guidance.
-    await page.getByRole('button', { name: /preview your store/i }).click()
+    await page.locator('#store').getByRole('button', { name: /preview your store/i }).click()
     await expect(page.getByText('A few products need attention')).toBeVisible()
     await expect(page.getByTestId('merchant-activation-checklist')).toBeVisible()
     expect(firstValueEventCalls).toBe(0)
 
     const [previewResponse] = await Promise.all([
       page.waitForResponse((response) => response.url().includes('/store/preview')),
-      page.getByRole('button', { name: /preview your store/i }).click(),
+      page.locator('#store').getByRole('button', { name: /preview your store/i }).click(),
     ])
     expect(previewResponse.ok()).toBeTruthy()
     await expect.poll(() => firstValueEventCalls).toBe(1)
@@ -264,12 +264,12 @@ test.describe('Human Merchant Store G3', () => {
     await checkboxes.nth(2).check()
     await checkboxes.nth(3).check()
     await expect(page.getByText('Save your changes before previewing.')).toBeVisible()
-    await expect(page.getByRole('button', { name: /preview your store/i })).toBeDisabled()
+    await expect(page.locator('#store').getByRole('button', { name: /preview your store/i })).toBeDisabled()
     await expect(page.getByTestId('store-draft-preview')).not.toBeVisible()
 
-    await page.getByRole('button', { name: /save products/i }).click()
+    await page.locator('#store').getByRole('button', { name: /save products/i }).click()
     await expect(page.getByText('Store products saved.')).toBeVisible()
-    await page.getByRole('button', { name: /preview your store/i }).click()
+    await page.locator('#store').getByRole('button', { name: /preview your store/i }).click()
     await expect(page.getByTestId('store-draft-preview')).toContainText('G3 Local Frame C')
     await expect(page.getByTestId('store-draft-preview')).toContainText('G3 Local Frame D')
     await expect(page.getByTestId('store-draft-preview')).not.toContainText('G3 Shape-Pending Frame')
@@ -277,8 +277,8 @@ test.describe('Human Merchant Store G3', () => {
     expect((lastPreviewPayload as unknown as { frames: typeof frames }).frames.map((frame) => frame.id)).toEqual(['frame-g3-c', 'frame-g3-d'])
     expect(publishCalls).toBe(0)
 
-    await page.getByLabel(/i confirm this store is ready to publish publicly/i).check()
-    await page.getByRole('button', { name: /publish store/i }).click()
+    await page.locator('#store').getByLabel(/i confirm this store is ready to publish publicly/i).check()
+    await page.locator('#store').getByRole('button', { name: /publish store/i }).click()
     await expect(page.getByText('Your Store is live', { exact: true })).toBeVisible()
     await expect(page.getByRole('link', { name: /view store/i })).toHaveAttribute('href', '/en/store/g3-local')
     await expect(page.getByRole('button', { name: /copy store link/i })).toBeVisible()
