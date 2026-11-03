@@ -70,6 +70,23 @@ test.describe('@critical Business market-facing narrative', () => {
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://www.visutry.com/en/business/store');
   });
 
+  test('merchant search landing Start Free preserves FREE intent through sign-in', async ({ page }) => {
+    await page.goto('/en/business/store', { waitUntil: 'domcontentloaded' });
+    await page.getByRole('link', { name: 'Start Free' }).first().click();
+    await expect(page).toHaveURL(/\\/en\\/auth\\/signin/);
+    expect(new URL(page.url()).searchParams.get('callbackUrl')).toBe('/en/merchant?commercialIntent=FREE');
+  });
+
+  test('merchant search landing Resources is in core sitemap without locale duplicates', async ({ page }) => {
+    const response = await page.request.get('/sitemaps/core.xml');
+    expect(response.status()).toBe(200);
+    const xml = await response.text();
+    for (const url of ['/en/business', '/en/business/store', '/en/business/pricing', '/en/business/resources']) {
+      expect(xml).toContain(`https://www.visutry.com${url}`);
+    }
+    expect(xml).not.toContain('https://www.visutry.com/de/business');
+  });
+
   test('public Merchant CTA preserves the anonymous authentication continuation', async ({ page }) => {
     await page.goto('/en/business', { waitUntil: 'domcontentloaded' });
     await page.getByRole('link', { name: 'Merchant Sign In' }).first().click();
