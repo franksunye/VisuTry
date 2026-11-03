@@ -12,7 +12,7 @@ import { requireAuth } from '@/lib/api-auth-runtime'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { POST } from '@/app/api/merchant/[merchantId]/catalog/media/route'
 import {
-  catalogProductMediaDailyPrefix, parseCatalogProductMediaUrl, requireOwnedCatalogProductMediaUrl, PRODUCT_IMAGE_MAX_DAILY_UPLOADS,
+  parseCatalogProductMediaUrl, requireOwnedCatalogProductMediaUrl, PRODUCT_IMAGE_MAX_DAILY_UPLOADS,
 } from '@/modules/merchant/domain/merchant-catalog-media'
 
 const merchantId = 'merchant-a'
@@ -52,7 +52,7 @@ describe('Merchant Catalog product photo staging', () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({ success: true, data: { url: storedUrl, width: 640, height: 480 } })
     expect(requireMerchantMembership).toHaveBeenCalledWith(expect.objectContaining({ merchantId, roles: ['OWNER', 'ADMIN'] }))
-    expect(list).toHaveBeenCalledWith({ prefix: catalogProductMediaDailyPrefix(merchantId, expect.any(Date)), limit: PRODUCT_IMAGE_MAX_DAILY_UPLOADS })
+    expect(list).toHaveBeenCalledWith({ prefix: 'merchant-catalog/merchant-a/product/' + day + '/', limit: PRODUCT_IMAGE_MAX_DAILY_UPLOADS })
     expect(put).toHaveBeenCalledWith(expect.stringMatching(/^merchant-catalog\/merchant-a\/product\/\d{4}-\d{2}-\d{2}\/[a-f0-9]{32}\.png$/), expect.any(Buffer), {
       access: 'public', contentType: 'image/png', addRandomSuffix: false,
     })
