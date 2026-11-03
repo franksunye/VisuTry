@@ -15,7 +15,9 @@ test.describe('@critical Business market-facing narrative', () => {
     await expect(page.getByRole('link', { name: 'Merchant Sign In' }).first()).toHaveAttribute('href', '/en/merchant');
     await expect(page.getByRole('link', { name: 'Explore Store' }).first()).toHaveAttribute('href', '/en/business/store');
     await expect(page.locator('a[href="/admin/store"]')).toHaveCount(0);
-    await expect(page.getByAltText(/VisuTry Commerce Intelligence visual with shopper engagement and intent signals/i)).toBeVisible();
+    const merchantIntelligenceVisual = page.locator('[data-business-visual="B2B-VIS-06"] img');
+    await expect(merchantIntelligenceVisual).toBeVisible();
+    await expect(merchantIntelligenceVisual).toHaveAttribute('alt', /intent signals using Local reference data/i);
     await expect(page.locator('body')).not.toContainText(/trusted by|our customers|our partners|ROAS|sales lift/i);
   });
 
@@ -121,7 +123,7 @@ test.describe('@critical Business market-facing narrative', () => {
       'href',
       'https://media.visutry.com/business/whitepapers/visutry-ai-eyewear-decision-experience-instore-retail-v1.3.pdf',
     );
-    await expect(page.getByRole('link', { name: '30-Day Pilot' })).toHaveAttribute('href', '/en/business/pilot');
+    await expect(page.getByRole('link', { name: '30-Day Pilot', exact: true })).toHaveAttribute('href', '/en/business/pilot');
     await expect(page.locator('form')).toHaveCount(0);
   });
 
