@@ -275,7 +275,7 @@ Do **not** advance to Stage 2 from documents alone. Stage 1 completes only when 
 
 ## Merchant SEO/GEO Wave 1 — 2026-11-03 implementation record
 
-**Scope:** A-only first bounded release candidate; code [PR #512](https://github.com/franksunye/VisuTry/pull/512) is **DRAFT, not merged or deployed**. Strategy [PR #511](https://github.com/franksunye/VisuTry/pull/511) is separately DRAFT. Do not label any A exit gate PASS before exact-HEAD CI, preview E2E and production validation.
+**Scope:** A-only bounded Wave 1 release. Strategy [PR #511](https://github.com/franksunye/VisuTry/pull/511) and code [PR #512](https://github.com/franksunye/VisuTry/pull/512) were merged on 2026-11-03; production verification is recorded below. Technical deployment PASS does **not** mean Google indexing, acquisition demand, or Merchant activation validated.
 
 ### A-01 — Technical hypothesis separation
 
@@ -315,11 +315,23 @@ Primary competitive SERP spot check: vendor-owned official product/plan pages su
 
 | Gate | Actual evidence | Status |
 | --- | --- | --- |
-| Code / exact commit | [PR #512](https://github.com/franksunye/VisuTry/pull/512), head `d6c213837a6e99562840a35a3a860f73bfaea075` | DRAFT / NOT MERGED |
+| Code / exact commit | PR #511 squash `63366e87de0a6ce94cff72d0f3bf043a611b84f4`, PR #512 squash `ee0944b77f9fcbefc99ca02c7ccbd988995b8c87` on `main` | MERGED / PASS |
 | Repository Quality Gate | [run 41644882622](https://github.com/franksunye/VisuTry/actions/runs/41644882622): Static+Critical Business Regression, Sponsored PostgreSQL Contract, Revenue Critical Browser Gate; 3/3 success | PASS |
 | Focused Business Browser Gate | [run 41644882661](https://github.com/franksunye/VisuTry/actions/runs/41644882661): 15/15 Chromium E2E (Business content/mobile, Store plan boundaries, anonymous Start Free→sign-in callback, Business Resources core sitemap, EN-only redirects, pricing) | PASS (LOCAL/Mock) |
-| Production preview / canonical | Vercel PR-head deployment `dpl_FMHZFH88xGsUBFBV3LmPATefiMZK` for `d6c2138` was `CANCELED` intentionally by `scripts/vercel-ignore-build.sh` (all non-production builds skip). No usable Preview exists; live HTML/CDN/CPU and deployment smoke remain unverified. | HOLD — requires deliberate release path |
+| Production deployment / canonical | PR-head Preview was intentionally skipped. Vercel Production `dpl_DCYDbkaxsehNimQsQAyr3a95gQX7` is READY, aliases `www.visutry.com`, and matches `main` `ee0944b7`. Direct live browser QA confirms correct title/H1, self-canonical, index/follow and Start Free on Home, Store, Pricing and Resources; core sitemap includes each exactly once. | PASS — production technical release |
 | GA4 acquisition measurement | `b2b_sales_intent_clicked` with new `intent_type=self_service_start` is implemented. Confirm consent-aware delivery, parameter reporting/custom-dimension availability and Bot/Internal exclusions on live property; no fake conversion events | PENDING |
 | Postrelease GSC/GEO | Re-inspect nine EN URLs; 7/14/28d page×query trends and independently qualified merchant entry, fixed-prompt AI citation sampling where reproducible | OBSERVING AFTER RELEASE |
 
-The browser gate is explicitly **isolated**: `APP_ENV=local`, blocked AI provider and a loopback-only PostgreSQL placeholder. It validates anonymous routing, not authenticated fresh-Merchant activation and not live Postgres connectivity. A remains ACTIVE until deployment evidence and source-qualified acquisition measurement are reviewed. C and B remain HOLD.
+The browser gate is explicitly **isolated**: `APP_ENV=local`, blocked AI provider and a loopback-only PostgreSQL placeholder. It validates anonymous routing, not authenticated fresh-Merchant activation and not live Postgres connectivity. Production technical release is now verified; A remains ACTIVE for source-qualified acquisition measurement, nine-URL indexing recrawl, and 7/14/28-day observation. C and B remain HOLD.
+
+
+### Wave 1 production release & read-only acceptance — 2026-11-03
+
+- **Change control:** Docs PR #511 merged as `63366e87de0a6ce94cff72d0f3bf043a611b84f4`; code PR #512 merged as `ee0944b77f9fcbefc99ca02c7ccbd988995b8c87`. Both target `main`. No DB migration or AI/Stripe/Consumer changes.
+- **Vercel deployment:** `dpl_DCYDbkaxsehNimQsQAyr3a95gQX7` READY; commit `ee0944b7`; production domain `www.visutry.com` aliased. [Deployment inspector](https://vercel.com/sunye/visutry/DCYDbkaxsehNimQsQAyr3a95gQX7).
+- **GitHub release gates:** [main Quality Gate 41646541090](https://github.com/franksunye/VisuTry/actions/runs/41646541090) completed SUCCESS; [Production Smoke 41646541046](https://github.com/franksunye/VisuTry/actions/runs/41646541046) SUCCESS. Production Smoke may have begun before the latest alias became READY; direct browser tests below separately verify live HTML.
+- **Live browser read-only QA:** Home, Store, Pricing and Resources all display their expected descriptive title/H1, exact self-canonical, `robots=index, follow`, and `/en/merchant?commercialIntent=FREE` links. Store distinguishes basic Free recommendations from paid generative VTO and explicitly answers native Shopify availability. No real merchant signup, paid action, or synthetic GA4 intent was triggered.
+- **Live sitemap:** `https://www.visutry.com/sitemaps/core.xml` parsed as XML (`urlset`, 684 URL entries at time of check). Each of Home, Store, Pricing and Resources English Business URLs occurs **exactly once**; no tested `/de/business`, `/zh/business`, or `/fr/business` path entry.
+- **Runtime error spot-check:** No `error`/`fatal` logs returned for the exact deployment in the sampled 30-minute production window. This is not a CPU, crawling-volume, or full-period uptime proof.
+- **Still PENDING:** GA4 consent-aware `self_service_start` delivery/reporting and bot/internal exclusions (verify using real traffic, no fake conversions); GSC nine-URL indexed/not-indexed matrix after recrawl; source-qualified Business entrances and CTA starts; GEO citation/referral evidence. The prior 28/90-day baseline is not rewritten as a postrelease result.
+- **Observation gate:** +7 days (2026-11-10), +14 days (2026-11-17), +28 days (2026-12-01) as initial review checkpoints; adjust matched GSC windows to actual crawl/recrawl dates. Separate **technical release PASS** from **acquisition validation OPEN**. Do not infer a 10× multiple from a zero-click baseline.
