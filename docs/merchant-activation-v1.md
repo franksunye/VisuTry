@@ -229,6 +229,20 @@ reclassify or repair workspaces:
   Human-intervention tagging and independent end-to-end signup→A6 remain
   separately unverified.
 
+### Merchant product-photo staging boundary (C, 2026-11-03)
+
+- A merchant photo upload creates a **public Vercel Blob** before explicit
+  Catalog import approval; the photo is not a Catalog record by itself. User-facing
+  disclosure remains required, and removing an unused upload still requires
+  bounded support handling. **Automatic orphan deletion is not implemented.**
+- New uploads use `merchant-catalog/{merchantId}/product/YYYY-MM-DD/<id>.<ext>`
+  in UTC, making the 100-upload best-effort calendar-day check independent of
+  the total historical Blob count. The Blob list API orders by pathname, not
+  upload time; unpartitioned legacy URLs remain accepted for product read/edit.
+- Owner/admin authorization, exact merchant URL ownership validation, byte and
+  image-type limits, and explicit Catalog approval remain unchanged. The cap is
+  not concurrency-atomic; no existing image or merchant data is migrated/deleted.
+
 ## 10. Three-environment QA contract
 
 Activation QA follows the long-lived
