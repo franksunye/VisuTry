@@ -55,7 +55,7 @@ Source samples (open each listing again when pricing or reviews influence a deci
 
 - [Shopify App Store](https://apps.shopify.com/)
 - [GlassOn](https://apps.shopify.com/glasson)
-- [Specfit](https://apps.shopify.com/specfit)
+- [Specfit](https://apps.shopify.com/specfit-eyewear-live-try-on)
 - [Shopify App Store listing requirements](https://shopify.dev/docs/apps/launch/app-store-review)
 
 Record exact present-day plan limits, visible reviews, positioning, surface (AR/live 3D vs AI image try-on), onboarding steps and evidence in a follow-up competitor matrix; do not rely on unverified search-result price snippets as canonical.
