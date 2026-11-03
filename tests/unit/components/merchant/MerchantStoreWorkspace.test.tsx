@@ -1,11 +1,13 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { analytics } from '@/lib/analytics'
+import { recordMerchantActivationClientEvent } from '@/lib/merchant-activation-client'
 import { MerchantStoreWorkspace } from '@/components/merchant/MerchantStoreWorkspace'
 import type { MerchantStoreWorkspace as WorkspaceData, MerchantStoreWorkspaceFrame } from '@/modules/merchant/application/merchant-store-workspace'
 import { DEFAULT_DECISION_JOURNEY_POLICY } from '@/modules/store/domain/decision-journey'
 import { DEFAULT_EXPERIENCE_DELIVERY_POLICY } from '@/modules/store/domain/delivery-profile'
 
 jest.mock('@/lib/analytics', () => ({ analytics: { trackCustomEvent: jest.fn() } }))
+jest.mock('@/lib/merchant-activation-client', () => ({ recordMerchantActivationClientEvent: jest.fn().mockResolvedValue(true) }))
 
 jest.mock('next/image', () => ({
   __esModule: true,
@@ -131,7 +133,23 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
     expect(approval).not.toBeChecked()
     expect(screen.getByRole('button', { name: 'Publish Store' })).toBeDisabled()
     expect(global.fetch).toHaveBeenCalledWith('/api/merchant/merchant-a/store/preview', expect.objectContaining({ method: 'POST' }))
+    expect(recordMerchantActivationClientEvent).toHaveBeenCalledWith({ merchantId: 'merchant-a', eventType: 'merchant_store_previewed', resourceId: 'store-a' })
     expect(global.fetch).not.toHaveBeenCalledWith('/api/merchant/merchant-a/store/publish', expect.anything())
+  })
+
+  it('does not count a diagnostic non-ready preview as A6', async () => {
+    global.fetch = jest.fn().mockImplementation(async (input: string) => {
+      if (input.endsWith('/preview')) return ok({
+        ...storePreview(),
+        readiness: { ready: false, readyFrameCount: 0, blockingIssues: [{ frameId: 'frame-a', issues: ['IMAGE_NOT_READY'] }] },
+      })
+      return ok(workspace())
+    }) as jest.Mock
+
+    render(<MerchantStoreWorkspace merchantId="merchant-a" locale="en" />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Preview Store' }))
+    expect(await screen.findByTestId('store-draft-preview')).toBeInTheDocument()
+    expect(recordMerchantActivationClientEvent).not.toHaveBeenCalled()
   })
 
   it('tracks both B2B publish events only after an approved Draft becomes Live', async () => {
@@ -179,6 +197,7 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
     expect(await screen.findByText('LIVE')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'View live Store' })).toHaveAttribute('href', '/en/store/north-star')
     expect(await screen.findByTestId('store-saved-preview')).toHaveTextContent('LIVE · saved state')
+    expect(recordMerchantActivationClientEvent).not.toHaveBeenCalled()
     expect(screen.queryByRole('button', { name: 'Publish Store' })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Store details'))
