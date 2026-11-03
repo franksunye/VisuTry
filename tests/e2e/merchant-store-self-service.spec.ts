@@ -94,6 +94,7 @@ test.describe('Human Merchant Store G3', () => {
           success: true,
           data: {
             proposal: true, writePerformed: false, requiresApproval: true,
+            catalogCapacity: { limit: null, current: 0, remaining: null, proposedNew: 4, overLimit: 0 },
             sourceSummary: { sourceUrls: ['https://shop.example.test'], sourceHostnames: ['shop.example.test'], platforms: ['SHOPIFY'], fetchedPageCount: 1, foundCount: 4, readyToImport: 4, importReady: 4, recommendationReady: 3, needsReview: 1, invalid: 0, reasonDistribution: { MISSING_SHAPE: 1 }, sourceIssues: [] },
             candidates: frames.map((item) => ({
               ...item,
@@ -194,6 +195,9 @@ test.describe('Human Merchant Store G3', () => {
     await expect(page.getByRole('heading', { name: 'Add your eyewear catalog', exact: true })).toBeVisible()
     await page.waitForLoadState('networkidle')
 
+    // Fresh workspaces default to the dependable manual path; select the
+    // optional URL inspection path explicitly for this controlled fixture.
+    await page.getByRole('tab', { name: 'Store URL' }).click()
     await page.getByLabel(/store or product url/i).fill('https://shop.example.test')
     await expect(page.getByLabel(/store or product url/i)).toHaveValue('https://shop.example.test')
     const [inspectResponse] = await Promise.all([
