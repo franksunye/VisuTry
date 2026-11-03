@@ -1,9 +1,12 @@
 # Merchant Commercial-Ready & First Pilot Scorecard — 2026-10-13
 
-**Status:** Source-contract baseline prepared; **NOT** an observed commercial baseline, launch certificate, or external outreach approval  
+**Status:** Historical pre-PLG Pilot readiness baseline; **NOT** an observed commercial baseline, launch certificate, or external outreach approval  
 **Owner:** Merchant Lead / Product / Growth  
 **Parent:** [#356](https://github.com/franksunye/VisuTry/issues/356) Commercial-Ready, [#414](https://github.com/franksunye/VisuTry/issues/414) integrated RC, [#353](https://github.com/franksunye/VisuTry/issues/353) acquisition-to-Pilot  
 **Current scope:** SMB self-service first. Enterprise-assisted Factory [#406/#407](https://github.com/franksunye/VisuTry/issues/406) is a separate P1 certification. The independent Consumer funnel must not be merged into these Merchant totals.
+
+
+> **2026-11-03 strategy update:** This document preserves the October Pilot/Commercial-Ready evidence and does **not** define the current SMB growth funnel. Merchant SMB P0 is now two research-gated channels (first-party Merchant SEO/GEO, Shopify marketplace) and a no-human-default activation path. Use [Merchant PLG Strategy](merchant-plg-growth-v1.md) and [PLG Stage 1 evidence](merchant-plg-baseline-2026-11-03.md) for active channel and activation decisions. Do not reinterpret Pilot lead/contact counts as self-service acquisition.
 
 ## 1. Decision boundaries
 

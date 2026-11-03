@@ -2,7 +2,16 @@
 
 **Status:** Current canonical Business website content contract  
 **Owner:** Product / Growth / Sales  
-**Last reconciled:** 2026-09-30
+**Last reconciled:** 2026-11-03 (PLG strategy note; public copy not yet released)
+
+
+## 2026-11-03 Merchant SMB PLG Amendment — proposed copy direction, not deployed
+
+The active [Merchant PLG strategy](../strategy/merchant-plg-growth-v1.md) changes the **primary SMB acquisition intent** of the Business website to self-service: qualified search/AI referrals → evaluate truthful real-product proof → sign up → first usable Catalog product → private Store preview. This supersedes any implication in older copy that an assisted 30-day Pilot or a sales review is the default prerequisite to try the Merchant product. Pilot/Enterprise paths may stay visibly secondary when genuinely available.
+
+Existing `Start 30-Day Pilot` / `Request Pilot Review` strings documented below are a **historical inventory**, not a description of future primary SMB acquisition. [Wave 1 code PR #512](https://github.com/franksunye/VisuTry/pull/512) proposes `Start Free` as the Business primary CTA, reaching the pre-existing `/merchant?commercialIntent=FREE` route and separating `self_service_start` from `pilot_request` analytics. That code PR is **DRAFT / unmerged / not live** until exact-HEAD CI, browser continuation and release gates pass. Pilot remains secondary. Native Shopify app claims remain prohibited; Shopify research is HOLD. Consumer site remains independent.
+
+Primary experiment candidates (not launch copy): `Start Free`, `Set Up Your Store`, `Preview Your Store`, with exact wording to follow real product availability and any applicable payment terms.
 
 ## 1. Purpose
 
@@ -168,7 +177,7 @@ The public Founding Pilot pricing policy is:
 
 The public CTA convention is:
 
-- **Start 30-Day Pilot** on Business marketing pages;
+- **Historical pre-Wave-1:** Start 30-Day Pilot on Business marketing pages (live until code deployment); **proposed Wave 1:** Start Free for SMB pages with Pilot secondary;
 - **Request Pilot Review** on the Pilot page itself and in the Pricing-page Pilot block;
 - **Start Free** where the Free commercial path is relevant.
 
