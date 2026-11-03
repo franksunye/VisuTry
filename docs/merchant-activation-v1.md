@@ -216,7 +216,7 @@ reclassify or repair workspaces:
   `POSSIBLE_EXTERNAL` A0 workspaces whose entire 7 × 24-hour window has
   elapsed at report time. More recent workspaces are **pending**, not failures.
 - Numerator: those mature workspaces with an observed A6 `merchant_store_previewed`
-  event at or after their first A0 and within seven days (inclusive); later or
+  event at or after their first A0 and within seven days (inclusive). The current UI emits A6 only for a successful, ready, nonempty private preview; later or
   pre-A0 events do not count.
 - Display the combined **candidate** rate and separate confirmed REAL vs
   unverified POSSIBLE_EXTERNAL counts/rates. `0/0` shows **N/A**, not 0%.
