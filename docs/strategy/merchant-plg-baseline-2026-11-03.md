@@ -69,23 +69,29 @@ Next read-only technical checks: verify `/en/business`, `/en/business/store`, `/
 
 **First proposed landing experiment:** validate the actual manual First Item → Preview path; then make a truthful self-service CTA prominent on Business Home while keeping assisted Pilot secondary. Explicitly test on mobile and desktop; do not change live copy in this docs PR.
 
-### A5a. Live GSC URL Inspection and crawl — 2026-11-03 (CONFIRMED_SOURCE)
+### A5a. Full English Business URL Inspection — 2026-11-03 (CONFIRMED_SOURCE)
 
-Source: signed-in GSC property `https://www.visutry.com/`, existing index **URL Inspection**, public DOM and sitemap. No indexing request or Live Test.
+**Source:** signed-in GSC property `https://www.visutry.com/`, URL Inspection *indexed data*, plus direct public DOM and XML sitemap. No indexing requests or Live URL Tests.
 
-| English Business URL | GSC index status | Technical observations |
+| English Business URL | GSC indexed-data status | Last crawl / source detail |
 | --- | --- | --- |
-| `/en/business` | **Indexed**; successful Smartphone Googlebot crawl 2026-11-02 01:49:54 | Self canonical, `robots=index, follow`, sitemap listed |
-| `/en/business/pricing` | **Indexed** | Sitemap listed |
-| `/en/business/store` | **Discovered – currently not indexed**; no crawl time | Self canonical, `robots=index, follow`, sitemap listed |
-| `/en/business/integrations` | **Discovered – currently not indexed**; no crawl time | Self canonical, `robots=index, follow`, sitemap listed |
-| `/en/business/campaigns` | **Discovered – currently not indexed**; no crawl time | Sitemap listed |
+| `/en/business` | **INDEXED** | Googlebot Smartphone successful crawl 2026-11-02 01:49:54; user and Google canonical = inspected URL |
+| `/en/business/platform` | **INDEXED** | Crawl details not separately expanded |
+| `/en/business/pricing` | **INDEXED** | Crawl details not separately expanded |
+| `/en/business/store` | **DISCOVERED_NOT_INDEXED** | No crawl date; GSC lists `/sitemap.xml` |
+| `/en/business/campaigns` | **DISCOVERED_NOT_INDEXED** | No crawl date; GSC lists `/sitemap.xml` |
+| `/en/business/examples` | **DISCOVERED_NOT_INDEXED** | No crawl date; GSC lists `/sitemap.xml` |
+| `/en/business/integrations` | **DISCOVERED_NOT_INDEXED** | No crawl date; GSC lists `/sitemap.xml` |
+| `/en/business/commerce-intelligence` | **UNKNOWN_TO_GOOGLE** | GSC reports no referring sitemap and no crawl date |
+| `/en/business/pilot` | **UNKNOWN_TO_GOOGLE** | GSC reports no referring sitemap and no crawl date |
 
-All **nine** English Business URLs appear in `/sitemaps/core.xml` (683 `loc` entries sampled). Business Home contains ordinary crawlable `<a href>` links to Store/Campaigns/Integrations/Pricing. No `hreflang` was observed in three sampled page heads; consider a multilingual review but this is **not** a proven indexing blocker. Other Business URL Inspection statuses remain unknown.
+**Count: 3 indexed / 4 discovered-not-indexed / 2 unknown, 9/9 checked.** Important nuance: all nine URLs **do currently appear** in public `/sitemaps/core.xml` (683 `loc` entries when read). The current XML's nine Business entries **do not include `lastmod`**; this is an optional update signal, not proof of why two are unknown. GSC's submitted `/sitemap.xml` index shows **Success**, submitted 2026-07-27, last read 2026-10-30, **749 pages discovered** in the Google report. A successful sitemap index is not proof every nested URL has been consumed or selected for crawling. GSC discovery is asynchronous; do not claim those two have necessarily been blocked by the site.
 
-**Diagnosis:** sampled pages disprove a blanket missing-sitemap/noindex cause. Three core product pages are discovered but **not yet crawled/indexed**, while two indexed URLs still generate essentially no qualified impressions. Separate **crawl/index priority and page quality** investigation from **Merchant search intent/relevance and proposition** research. Do not assume a CPU/crawl-budget root cause without Crawl Stats/log evidence. Google references: [Page Indexing](https://support.google.com/webmasters/answer/10264824), [crawl troubleshooting](https://developers.google.com/search/docs/crawling-indexing/troubleshoot-crawling-errors).
+Public DOM sampled `/en/business`, Store and Integrations with self canonical and `robots=index, follow`. Business Home contains ordinary crawlable `<a href>` links to key pages. The three sampled heads lacked `hreflang`; review multilingual setup as possible hygiene, **not** root cause.
 
-**Proposed bounded work:** promote truthful `Start Free` (Pilot secondary) and relevant internal Store/Pricing links on Business Home; improve `/en/business/store` with real distinctive merchant proof plus crawl/index monitoring; audit integrations copy before Shopify SEO claims.
+**Technical diagnosis:** no evidence of a blanket Business `noindex` or sitemap omission. However, five of the six pages that are *not indexed* are important Merchant solution pages; four are discovered-but-not-crawled and two are not yet in Google's known-URL inspection data. Separately, already-indexed Home/Pricing/Platform have very low Merchant impressions. Investigate **(1) discoverability/crawl prioritization, site reliability, content distinctness, server responses, render and Googlebot logs** and **(2) merchant query-intent fit/relevance/authority** as distinct hypotheses. Prior CPU/crawl-budget concerns remain **unproven** until logs/Crawl Stats evidence. Official references: [Page Indexing](https://support.google.com/webmasters/answer/10264824), [crawl troubleshooting](https://developers.google.com/search/docs/crawling-indexing/troubleshoot-crawling-errors).
+
+**Bounded next changes:** Business Home honest self-service CTA and merchant-intent content; strongest Store/Platform proof with meaningful internal links; technical review of 6 unindexed URLs including existence and unique value before any index requests. No premature generic `Shopify integration available` page or guaranteed GEO placement claims.
 
 ### A5. Remaining baseline checklist (UNKNOWN until independently measured)
 
