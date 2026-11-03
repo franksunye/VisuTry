@@ -234,9 +234,9 @@ Stage 2 candidates, not approved for shipping: manual first-item visibility, saf
 - All changed UX covered by desktop/mobile or relevant app browser E2E and tenant isolation tests.
 - Human support tickets and assisted sessions become measurable before claiming “self-service at scale”.
 
-> **PO sequencing update, 2026-11-03:** The initial A/B/C rows below are a historical Stage 1 *discovery inventory*, **not an instruction to execute them in parallel**. From now on **A Merchant SEO/GEO = ACTIVE**, **C self-service = HOLD until A engineering/evidence exit gate**, **B Shopify = HOLD until C validation**. Canonical gate: [Merchant PLG strategy](merchant-plg-growth-v1.md#po-execution-priority--sequential-depth-2026-11-03).
+> **PO sequencing, updated 2026-11-03:** The initial A/B/C rows below are historical Stage 1 *discovery inventory*, **not parallel execution instructions**. A Merchant SEO/GEO engineering is **CLOSED / OBSERVING** (7/14/28-day impact still pending); C self-service activation is **ACTIVE / VALIDATING** under Draft [PR #516](https://github.com/franksunye/VisuTry/pull/516); B Shopify remains **HOLD** until C acceptance. Current authority: [Merchant PLG strategy](merchant-plg-growth-v1.md#po-execution-priority--sequential-depth-2026-11-03).
 
-### A-only active checklist (single-threaded focus)
+### A Wave 1 engineering checklist (historical; now closed)
 
 | ID | Target artifact | Readiness condition |
 | --- | --- | --- |
