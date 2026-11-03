@@ -465,3 +465,23 @@ SQL 使用 payment.checkout_id 去重付款、task.id 去重任务；Try-On 仅�
 1. **P0-1 = PAID DEMAND VERIFIED / POST-PAYMENT USE OBSERVED / 10× INCONCLUSIVE**。十月16笔 direct Advisor Checkout 已证实；成熟首购 12/17 付款时绑定 Advisor，13/17 后续有成功 Try-On（这些并非同一个交集人数，不要错误拼接漏斗）。
 2. **P0-2 = BRAND-ENTRY PAID ADVISOR VERIFIED / BYO FRAME USAGE BY BUYER OBSERVED / SAME-SESSION BRANDED LANDING FUNNEL INCONCLUSIVE**；无需 GM SKU，也不应把未来“是否使用 GM 品牌镜框”当作 P0 验收标准。
 3. 下一步最小跨源证据：**Stripe 完整成功交易 Checkout Session/Invoice ID 或脱敏尾段+UTC时间+金额+类型**（须确认 Stripe 页面统计的是 Payments 还是 Invoices），与本轮22笔 Checkout 明细逐项比对。若能获得 Axiom 匿名 `consumer_funnel_id` 的 source_page→tryon_completed 同会话结果，再为 P0-2 评估是否进入 MODIFY/SCALE；若没有结果，记 UNAVAILABLE 而非 0%。
+
+
+### 2026-11-03 — Independent GSC weekly cross-check (pre-release only; no 10× decision change)
+
+**Source:** live connected Search Console URL-prefix `https://www.visutry.com/`, Web, exact canonical page aggregation; retrieved 2026-11-03. Compared two non-overlapping complete 7-day periods **Oct 18–24 vs Oct 25–31** (both BEFORE Nov 1 UX/Nov 2 SEO releases). Do not treat these as intervention outcomes.
+
+| Canonical URL cohort | Oct 18–24 clicks / impressions | Oct 25–31 clicks / impressions | Readout |
+| --- | ---: | ---: | --- |
+| EN Detector | 399 / 14,090 | 395 / 15,623 | clicks −1.0%, impressions +10.9%; CTR 2.83%→2.53% (mix/ranking confounded) |
+| EN AI glasses guide | 251 / 5,235 | 239 / 5,400 | clicks −4.8%, impressions +3.2%; CTR 4.79%→4.43% |
+| EN Advisor landing | 60 / 1,145 | 81 / 1,395 | clicks +35.0%, impressions +21.8%; *not* proof of payment gain |
+| EN Gentle Monster | 130 / 376 | 119 / 456 | clicks −8.5%, impressions +21.3%; CTR 34.6%→26.1%, may be query mix |
+| EN Oakley | 13 / 296 | 8 / 340 | low-volume; no BYO completion conclusion |
+| JA Detector | 109 / 1,016 | 122 / 967 | clicks +11.9% |
+| ES Detector | 55 / 642 | 38 / 707 | clicks −30.9%; needs query/country decomposition |
+| EN BYO photo | 1 / 105 | 3 / 144 | extremely small; no proven nonbrand demand from these page aggregates |
+
+**Proof / contradiction / decision:** Demand exists for E2 Guide/Advisor and E1 GM; Advisor landing clicks grew while Guide clicks fell, contradicting a claim that all qualified search surfaces move together. The apparent GM CTR fall is not a post-#499 regression because both weeks precede that release. No production session-linked GA4/Axiom/Payment read in this run; Windsor connected accounts list has Search Console only (GA4 and Stripe **UNAVAILABLE via this connector**), and no Axiom session-linked data access established. Consequently **E2: INCONCLUSIVE (commercially promising from previously verified 6 attached Google Organic Guide payments)**; **E1: INCONCLUSIVE (two historically attached GM payments do not establish same-session BYO Try-On)**; **E3: HOLD research-only**, **E4: HOLD without share→open→independent completion evidence**, **E5: HOLD without repeatable attributable qualified referrals**. **Overall: NO SCALE / 10× unvalidated.**
+
+**Next gated read:** Nov 8/9 first full post-Nov-1 7-day UX cohort, using actual same-session organic landings→starts→completed jobs and verified attached payments (or mark each unavailable); do not introduce a second UX experiment while observing. On/after Nov 29 evaluate complete post-release 28d GSC by exact URL/query and country/device. This entry adds a fresh *pre-intervention control* only; no code, entitlement, production or experiment change.
