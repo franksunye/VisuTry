@@ -306,7 +306,7 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
           </div>
           <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 ring-1 ring-blue-200">{activationReport.cohort.candidateWorkspacesCreated} candidates</span>
         </div>
-        <p className="mt-3 text-xs font-medium text-slate-600">{activationReport.cohort.confirmedRealWorkspacesCreated} confirmed REAL · {activationReport.cohort.possibleExternalCandidates} POSSIBLE_EXTERNAL (unverified). Rates below use the combined candidate cohort.</p>
+        <p className="mt-3 text-xs font-medium text-slate-600">{activationReport.cohort.confirmedRealWorkspacesCreated} confirmed REAL · {activationReport.cohort.possibleExternalCandidates} POSSIBLE_EXTERNAL (unverified). The stage cards use all candidates; the 7-day First Value card uses mature candidates only.</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             ['Returned', activationReport.counts.workspacesReturned, activationReport.rates.workspaceReturnRate],
@@ -314,6 +314,27 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
             ['Catalog ready', activationReport.counts.catalogReady, activationReport.rates.catalogReadyRate],
             ['Store published', activationReport.counts.storePublished, activationReport.rates.storePublishedRate],
           ].map(([label, value, rate]) => <div key={String(label)} className="rounded-xl bg-white p-4 ring-1 ring-blue-100"><p className="text-xs text-slate-500">{label}</p><p className="mt-2 text-xl font-semibold tabular-nums text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{rate == null ? '—' : `${rate}% of candidates`}</p></div>)}
+        </div>
+        <div className="mt-4 rounded-xl bg-white px-4 py-3 ring-1 ring-blue-100">
+          <p className="text-xs font-semibold text-slate-700">7-day First Value · A0 → A6 (private preview)</p>
+          <p className="mt-2 text-xl font-semibold tabular-nums text-slate-950">
+            {activationReport.firstValue7Day.rate == null ? 'N/A' : `${activationReport.firstValue7Day.rate}%`}
+            <span className="ml-2 text-sm font-normal text-slate-600">
+              ({activationReport.firstValue7Day.achievedWithin7Days}/{activationReport.firstValue7Day.maturedWorkspaces} mature candidates)
+            </span>
+          </p>
+          <p className="mt-1 text-xs text-slate-600">
+            {activationReport.firstValue7Day.pendingWorkspaces} recent workspaces excluded until their 7-day window closes.
+            {' '}Median A0→A6 {activationReport.firstValue7Day.medianTimeToPreviewMs == null ? 'N/A' : `${Math.round(activationReport.firstValue7Day.medianTimeToPreviewMs / 60000)} min`};
+            {' '}p90 {activationReport.firstValue7Day.p90TimeToPreviewMs == null ? 'N/A' : `${Math.round(activationReport.firstValue7Day.p90TimeToPreviewMs / 60000)} min`}.
+          </p>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Confirmed REAL: {activationReport.firstValue7Day.confirmedReal.achievedWithin7Days}/{activationReport.firstValue7Day.confirmedReal.maturedWorkspaces}
+            {' '}({activationReport.firstValue7Day.confirmedReal.rate == null ? 'N/A' : `${activationReport.firstValue7Day.confirmedReal.rate}%`}) ·
+            {' '}POSSIBLE_EXTERNAL (unverified): {activationReport.firstValue7Day.possibleExternal.achievedWithin7Days}/{activationReport.firstValue7Day.possibleExternal.maturedWorkspaces}
+            {' '}({activationReport.firstValue7Day.possibleExternal.rate == null ? 'N/A' : `${activationReport.firstValue7Day.possibleExternal.rate}%`}).
+            {' '}A6 is a client-observed preview event, not independent proof of public Store readiness or unassisted setup.
+          </p>
         </div>
         <div className="mt-4 rounded-xl bg-white px-4 py-3 ring-1 ring-blue-100">
           <p className="text-xs font-semibold text-slate-700">Actual Catalog inspection actions <span className="font-normal text-slate-500">· recorded only after this instrumentation release</span></p>
