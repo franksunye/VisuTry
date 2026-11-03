@@ -23,7 +23,32 @@ No new production traffic, revenue, merchant conversion rates, keyword volumes, 
 - Consumer GSC/SEO material in `docs/project/seo-backlog.md` measures Consumer demand, not qualified Merchant search. Do not use Consumer clicks as the B2B acquisition denominator.
 - The distinction matters: (a) VisuTry Business SEO drives *new merchant signups*; (b) Merchant Store/Campaign SEO/GEO drives *shoppers to merchants*. Do not mix attribution or count the latter as B2B acquisition.
 
-### A2. Initial query-intent map — research candidates, no verified volumes (HYPOTHESIS)
+### A2. First-party GSC baseline — measured 2026-11-03 (CONFIRMED_SOURCE)
+
+Source: connected **Google Search Console**, property `https://www.visutry.com/`, Search Analytics, `page contains /business`; aggregated by page. Google can suppress anonymized query rows; query-detail aggregates need not sum to page totals.
+
+| GSC Web window | Observed /business URLs with impressions | Impressions | Clicks | Interpretation |
+| --- | ---: | ---: | ---: | --- |
+| 2026-10-03 to 2026-10-30 (28d) | 3 | **4** | **0** | Practically no first-party Merchant organic entrance yet |
+| 2026-08-02 to 2026-10-30 (90d) | 5 | **52** | **0** | Not evidence of sufficient qualified Merchant demand |
+
+90d page breakdown:
+
+| Page | Impressions | Clicks |
+| --- | ---: | ---: |
+| `/en/business/pricing` | 17 | 0 |
+| `/en/business/platform` | 12 | 0 |
+| `/ru/business` | 20 | 0 |
+| `/ar/business` | 2 | 0 |
+| `/pt/business` | 1 | 0 |
+
+Query-level follow-up on the same page filter returned mostly **brand / ambiguous terms** (`visutry`, `visu commerce`, `launchgrowth`), not verified high-intent eyewear-SMB software searches. GSC query `contains shopify` across this site returned **zero rows** for 90d; this describes *current VisuTry impressions*, not total Shopify keyword demand. Standalone `virtual try on software` had 1 impression, `virtual try on software glasses` had 9, **both zero clicks** across the whole site; these are directional terms, not proven Merchant traffic.
+
+**Decision implication:** investigate Merchant IA/index coverage and keyword-intent fit **before** content scale. Missing GSC rows do **not** prove non-indexation: use URL Inspection/sitemap/canonical checks separately. Do not convert Consumer keyword performance into Merchant market estimates.
+
+Next read-only technical checks: verify `/en/business`, `/en/business/store`, `/en/business/integrations`, `/en/business/pricing` canonical, robots/noindex, sitemap inclusion and crawl/render; then map query → page → self-service CTA with accurate pricing/product proof.
+
+### A3. Initial query-intent map — research candidates, no verified volumes (HYPOTHESIS)
 
 | Cluster | Example English query | Intent | Candidate Business destination | Validation |
 | --- | --- | --- | --- | --- |
@@ -35,9 +60,9 @@ No new production traffic, revenue, merchant conversion rates, keyword volumes, 
 
 **Content rule:** Two genuinely different intents merit two genuinely different helpful pages; keyword permutations alone do not. Google says AI-search discoverability uses existing people-first SEO practices, not a special GEO markup scheme.
 
-### A3. Baseline capture checklist (UNKNOWN until independently measured)
+### A4. Remaining baseline checklist (UNKNOWN until independently measured)
 
-- GSC property: last 28/90d `/business` page + query + country + device performance; nonbrand Merchant intent vs Consumer pages; indexing and cannibalization.
+- GSC 28/90d page and initial query baseline **captured above**; remaining: country/device segmentation, query coverage, verified indexing/canonical status, competitor SERP and cannibalization.
 - GA4: Business landing → self-service signup start → workspace created attribution; paid/employee/bot exclusions; landing-to-A0 join coverage. GA4 cannot substitute for durable A0.
 - Inspect indexed competitor pages and true backlinks/citations; validate each proposed topic against actual Merchant search results.
 - Public CTA inventory and event baseline: current Pilot clicks vs direct signup; do not invent event histories.
