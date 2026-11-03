@@ -71,7 +71,19 @@ test.describe('Human Merchant Store G3', () => {
     let selectedFrameIds: string[] = []
     let createCalls = 0
     let publishCalls = 0
+    let nextPreviewUnready = true
+    let firstValueEventCalls = 0
     let lastPreviewPayload: { frames: typeof frames; checks: Array<{ frameId: string; storeEligible: boolean; recommendationReady: boolean }> } | null = null
+    // Count client A6 emission independently of the mocked Store response.
+    await page.route('**/api/merchant/*/activation-events', async (route) => {
+      const body = route.request().postDataJSON() as { eventType?: string }
+      if (body.eventType === 'merchant_store_previewed') {
+        firstValueEventCalls += 1
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) })
+        return
+      }
+      await route.continue()
+    })
     await page.route('**/api/merchant/*/catalog**', async (route) => {
       const url = new URL(route.request().url())
       if (url.pathname.endsWith('/inspect')) {
@@ -118,6 +130,8 @@ test.describe('Human Merchant Store G3', () => {
       const method = route.request().method()
       if (pathname.endsWith('/preview')) {
         const previewFrames = selectedFrameIds.map((id) => frames.find((item) => item.id === id)).filter((item): item is typeof frames[number] => Boolean(item))
+        const ready = previewFrames.length > 0 && !nextPreviewUnready
+        nextPreviewUnready = false
         lastPreviewPayload = {
           frames: previewFrames,
           checks: previewFrames.map((item) => ({ frameId: item.id, storeEligible: item.storeReadiness.storeEligible, recommendationReady: item.validation.recommendationReady })),
@@ -126,7 +140,7 @@ test.describe('Human Merchant Store G3', () => {
           store: { id: store?.id ?? 'store-g3', name: store?.name ?? 'G3 Local Human Store', status: store?.status ?? 'DRAFT', headline: store?.headline ?? null, description: store?.description ?? null, publicPath: `/en/store/g3-local` },
           frameCount: previewFrames.length,
           frames: previewFrames.map((item) => ({ id: item.id, name: item.name, imageUrl: item.imageUrl, shape: item.shape, color: null, productBrand: item.brand })),
-          readiness: { ready: previewFrames.length > 0, readyFrameCount: previewFrames.length, blockingIssues: [], checks: lastPreviewPayload.checks },
+          readiness: { ready, readyFrameCount: ready ? previewFrames.length : 0, blockingIssues: ready ? [] : [{ frameId: 'frame-g3-a', issues: ['IMAGE_NOT_READY'] }], checks: lastPreviewPayload.checks },
           preview: { sideEffectFree: true, publicPath: '/en/store/g3-local' },
         } }) })
         return
@@ -213,11 +227,18 @@ test.describe('Human Merchant Store G3', () => {
     await checkboxes.nth(1).check()
     await page.getByRole('button', { name: /save products/i }).click()
     await expect(page.getByText('Store products saved.')).toBeVisible()
+    // An HTTP 200 diagnostic preview must not create A6 or hide first-run guidance.
+    await page.getByRole('button', { name: /preview your store/i }).click()
+    await expect(page.getByText('A few products need attention')).toBeVisible()
+    await expect(page.getByTestId('merchant-activation-checklist')).toBeVisible()
+    expect(firstValueEventCalls).toBe(0)
+
     const [previewResponse] = await Promise.all([
       page.waitForResponse((response) => response.url().includes('/store/preview')),
       page.getByRole('button', { name: /preview your store/i }).click(),
     ])
     expect(previewResponse.ok()).toBeTruthy()
+    await expect.poll(() => firstValueEventCalls).toBe(1)
     await expect(page.getByTestId('store-draft-preview')).toContainText('G3 Preview Collection')
     await expect(page.getByTestId('store-draft-preview')).toContainText('Frames selected for your next look')
     await expect(page.getByTestId('store-draft-preview')).toContainText('G3 Shape-Pending Frame')
