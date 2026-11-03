@@ -25,6 +25,10 @@ async function loginWithMock(request: APIRequestContext, context: BrowserContext
 test.describe('Human Merchant Store G3', () => {
   test('creates, saves, previews, and explicitly publishes a Store without requiring shape', async ({ page, request, context }) => {
     test.skip(!isLocalMockRun, 'Run with NODE_ENV=test ENABLE_MOCKS=true TEST_MODE=true G3_MERCHANT_STORE_E2E=1 against a local-only test server.')
+    // Isolated Next dev + freshly migrated PostgreSQL can cold-compile this
+    // complete human journey; keep the bound local to G3 and disable retries.
+    test.setTimeout(180_000)
+    page.setDefaultNavigationTimeout(45_000)
 
     await loginWithMock(request, context)
     await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
