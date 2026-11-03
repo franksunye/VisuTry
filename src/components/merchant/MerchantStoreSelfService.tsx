@@ -219,14 +219,18 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
       const next = await readResponse<MerchantStorePreview>(await fetch(`${apiBase}/preview`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ storeId: workspace.store.id }) }));
       setPreview(next);
       setPublishApproved(false);
-      void recordMerchantActivationClientEvent({
-        merchantId,
-        eventType: "merchant_store_previewed",
-        resourceId: workspace.store.id,
-      }).catch(() => {
-        // Activation telemetry must never block a private Store preview.
-      });
-      onFirstValueAchieved?.();
+      // A private preview can render diagnostic state before the selected
+      // products are usable. Only a ready, nonempty preview is First Value.
+      if (next.readiness.ready && next.frames.length > 0) {
+        void recordMerchantActivationClientEvent({
+          merchantId,
+          eventType: "merchant_store_previewed",
+          resourceId: workspace.store.id,
+        }).catch(() => {
+          // Activation telemetry must never block a private Store preview.
+        });
+        onFirstValueAchieved?.();
+      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to preview your Store.");
     } finally { setBusy(false); }
