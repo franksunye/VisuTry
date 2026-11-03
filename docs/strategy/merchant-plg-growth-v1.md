@@ -72,6 +72,28 @@ The 7-day window is an **experimental target**, not a currently measured SLA. Th
 
 No numerical improvement promise is adopted until these baselines and attribution coverage are verified. All `TEST/INTERNAL/REFERENCE/AUTOMATION/SUSPICIOUS/UNKNOWN` cohorts remain excluded.
 
+## PO execution priority — sequential depth, 2026-11-03
+
+The earlier Stage 1 research sampled **all three tracks** to find high-level risks. **From now on, stop parallel expansion.** Complete and review one workstream before concentrating engineering/research on the next:
+
+| Order | Workstream | Scope | Handoff rule |
+| --- | --- | --- | --- |
+| **1 — ACTIVE** | **A. Merchant-acquisition SEO/GEO** | VisuTry Business pages and search/AI discovery → qualified Merchant entry; **not** shopper traffic to customer Store/Campaign and **not** Consumer SEO | Technical + intent + content/CTA + measurement work accepted; postrelease observation continues |
+| **2 — HOLD** | **C. Self-service activation** | First signup/A0 → approved catalog → private A6 preview, zero-human recovery, attribution, safety and UX | Start after A's deliverables are reviewed; test direct path to A6 with controlled fixtures |
+| **3 — HOLD** | **B. Shopify marketplace** | Qualified Shopify demand, embedded integration, app economics, merchant-driven theme activation, compliance | Start only after direct self-service is validated; separate approval for dev-store implementation/public listing |
+
+### A. Merchant SEO/GEO deep-closure contract
+
+1. **Indexing and crawling:** inspect **all nine** English Business URLs individually in GSC; reconcile sitemap, canonical, robots, crawl response, internal links, render and Googlebot crawl evidence. For each critical URL classify indexed / discovered / crawled but not indexed / excluded; diagnose cause without confusing URL Inspection state with page intent. Avoid making production CPU worse.
+2. **Full Merchant query opportunity:** use GSC 28/90d first-party baseline, country/device and top query/page evidence; independently study high-intent search results and competing B2B merchant solutions. Produce an evidence-ranked **two or three topic/page** shortlist; distinguish Merchant-acquisition SEO from merchant storefront SEO and from Consumer traffic. No invented keyword volumes.
+3. **Accurate conversion experience:** review/upgrade `/en/business` and relevant pages with real catalog/Store/decision proof, meaningful internal links and **honest self-service entry**. The 30-day assisted Pilot becomes secondary. Do not claim Free includes generative Try-On or that Shopify is available. Do not change billing.
+4. **Instrumentation and actual release:** establish a trustworthy business page → self-service intent/signup-start denominator with bot/internal/reference exclusions; implement bounded page/technical changes with browser/mobile checks and normal CI. Reconcile with durable Merchant A0 only where identifiers are already valid; full A0→A6 remains C scope.
+5. **Acceptance and monitoring:** PO receives per-URL status table, keyword-intent map, changed-page evidence, shipped SHA/CI/deploy proof, GSC/GA4 scorecard and **7/14/28-day follow-up**. SEO implementation may be declared **engineering-complete** while search performance remains **OBSERVING / INCONCLUSIVE**. Never promise guaranteed indexing, AI citation or ranking. Open technical blockers stay explicit, not silently called PASS.
+
+**A exit gate:** the above evidence, targeted fixes and measurement loop are reproducible and reviewed; remaining third-party index/rank latency is documented with scheduled observation. Then begin C; **do not wait indefinitely for a Google ranking outcome**, but do not call the acquisition channel validated without actual qualified visits.
+
+Google's [SEO guidance](https://developers.google.com/search/docs/fundamentals/seo-starter-guide) and [AI-search guidance](https://developers.google.com/search/docs/appearance/ai-features) both prioritize helpful, distinct content and sound crawling/index foundations rather than keyword permutation pages or special GEO markup.
+
 ## Three execution stages
 
 ### Stage 1 — Evidence and baseline (P0, start now)
