@@ -37,7 +37,7 @@ import { setCampaignAnalyticsContext, trackCampaignEvent } from '@/lib/analytics
 import { isValidLocale } from '@/i18n'
 
 export type BusinessPilotGoal = 'store' | 'campaign' | 'demo' | 'partnership' | 'not-sure' | 'enterprise'
-export type BusinessCtaIntentType = 'pilot_request' | 'enterprise_inquiry'
+export type BusinessCtaIntentType = 'pilot_request' | 'enterprise_inquiry' | 'self_service_start'
 export type BusinessCtaLocation =
   | 'hero_primary'
   | 'business_header_desktop'
@@ -839,7 +839,7 @@ export const analytics = {
     })
   },
 
-  /** Business-site Pilot funnel. Store /store events deliberately retain their own source. */
+  /** Business-site acquisition funnel. Self-service and Pilot are separate intents. */
   trackBusinessCtaClicked(params: { locale: string; ctaLocation: BusinessCtaLocation; intentType: BusinessCtaIntentType }) {
     const sourcePage = typeof window !== 'undefined' ? window.location.pathname : undefined
     sendEvent(AnalyticsEvent.B2bSalesIntentClicked, {
