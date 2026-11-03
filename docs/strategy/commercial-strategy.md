@@ -2,9 +2,16 @@
 
 **Status:** Active source of truth
 **Created:** 2026-07-08
-**Last updated:** 2026-09-23
+**Last updated:** 2026-11-03
 **Owner:** Product / Strategy
 **Scope:** Commercial direction, product packaging, target customer layers, and the relationship between VisuTry's consumer, prosumer, and B2B strategies.
+
+
+## 2026-11-03 Merchant SMB Growth Decision
+
+The Merchant **SMB growth model** is now **product-led self-service**. Two candidate scalable acquisition channels are (1) Merchant-intent SEO/GEO to VisuTry Business pages and (2) Shopify App Store / marketplace discovery. Both should converge on the same low-support activation journey: eligible Merchant signup/install → first usable Catalog item → **private Store preview (A6)** → explicit publish → real shopper decisions → paid retention. Founder-led outreach, assisted Pilot, and manual technical onboarding are **not the P0 SMB growth model**. They remain separate enterprise/exception paths.
+
+The active execution authority is [Merchant Self-Service Growth Strategy — PLG v1](merchant-plg-growth-v1.md); its [dated baseline and research](merchant-plg-baseline-2026-11-03.md) is an evidence ledger, not a market validation. No Shopify integration or public listing is claimed shipped, and no Merchant price or Consumer product contract changes are authorized by this decision.
 
 ---
 
