@@ -112,7 +112,7 @@ Source samples (open each listing again when pricing or reviews influence a deci
 
 Record exact present-day plan limits, visible reviews, positioning, surface (AR/live 3D vs AI image try-on), onboarding steps and evidence in a follow-up competitor matrix; do not rely on unverified search-result price snippets as canonical.
 
-### B2. Four-app competitive snapshot — Shopify App Store, checked 2026-11-03 (MARKET_OBSERVATION)
+### B2. Five-app competitive snapshot — Shopify App Store, checked 2026-11-03 (MARKET_OBSERVATION)
 
 These are **public listing claims and displayed prices**, not independently verified merchant outcomes. Review counts are not app installations or a market-size estimate. Pricing and reviews can change.
 
@@ -122,8 +122,11 @@ These are **public listing claims and displayed prices**, not independently veri
 | [Specfit — Eyewear Live Try-On](https://apps.shopify.com/specfit-eyewear-live-try-on) | Free up to 5 products; Launch **$19/mo**, 50 products; Growth $49/mo | 3 | Selfie collection-level multi-frame comparison + live 3D PDP | Direct overlap with VisuTry **Compare**; important low-end price anchor |
 | [Fittingbox Virtual Try-On](https://apps.shopify.com/glasses-virtual-try-on-by-fittingbox) | Bronze **$59/mo** / 10 active products / 500 monthly unique users; Silver $99/mo | 13 | Real-time face tracking, 3D asset library/sync | Hardware-accurate real-time fit benchmark, different economics |
 | [Touchtry EyeFit](https://apps.shopify.com/eye-fit) | Production Starter **$199/mo** / 300 AR SKUs; development stores free | 0 | AR try-on embedded on product pages, no-code merchandising | Higher price tier possible, but not evidence that SMBs buy at this price |
+| [TryOn Virtual: AR & AI Try-On](https://apps.shopify.com/virtualtryon) | Free **25 monthly sessions**; Essentials **$15/mo** / 150 sessions; Growth $49/mo / 500 sessions (extra session fee) | 8 | Product-page AI photo try-on and real-time eyewear AR; four-step installed-app onboarding, product select/sync, theme block; vendor docs state Photo Try-on can cover eyewear | **Direct image-try-on substitute and low-end pricing anchor**; a standalone AI photo feature is not defensible differentiation |
 
-**Competitive interpretation:** A generic “we have virtual try-on” Shopify listing is unlikely to be distinctive. VisuTry should test **the full decision journey** — import → recommendation / try-on / compare → merchant action and observable intent — and verify that its asynchronous AI-image UX can meet a Shopify product-page shopper's latency expectations. A 3D real-time AR competitor and VisuTry's AI-generated photographic try-on are **not directly identical services**. Do not infer achievable paid price or retention from listing prices.
+**Competitive interpretation:** The fifth competitor, TryOn Virtual, contradicts the simpler hypothesis that photo-based AI try-on is an empty Shopify niche. Its public [App Store listing](https://apps.shopify.com/virtualtryon) claims free 25-session entry, $15/mo plan and a photo/AR product; its [own onboarding docs](https://docs.tryonvirtual.com/shopify/install/) specify guided install → mode → products → theme block plus product-update webhooks. These are vendor claims, **not** verified result quality or independent outcomes. Prioritize competitor's real first-product UX and use as an adverse case in unit economics.
+
+**Competitive interpretation (revised):** A generic “we have virtual try-on” Shopify listing is unlikely to be distinctive. VisuTry should test **the full decision journey** — import → recommendation / try-on / compare → merchant action and observable intent — and verify that its asynchronous AI-image UX can meet a Shopify product-page shopper's latency expectations. A 3D real-time AR competitor and VisuTry's AI-generated photographic try-on are **not directly identical services**. Do not infer achievable paid price or retention from listing prices.
 
 ### B3. Required integration design — feasibility hypothesis, not implemented
 
@@ -154,7 +157,7 @@ Result: technical architecture pattern identified; **no Shopify app implementati
 | Risk / question | Current evidence | Gate |
 | --- | --- | --- |
 | Does App Store organic discovery bring eyewear SMBs? | Competing apps exist; no verified category search volume or qualified install rate | Competing app review/query analysis + listing acquisition assumptions |
-| Is asynchronous AI image try-on the right Shopify shopper UX vs real-time AR? | VisuTry image-generation product proven only in its own surfaces; direct Shopify rivals offer AR/3D | Demo customer journey: delay, UX, fit expectations, first use |
+| Is asynchronous AI image try-on the right Shopify shopper UX vs photo/AR rivals? | TryOn Virtual publicly offers photo try-on plus eyewear AR and a guided sync/theme flow; VisuTry image generation remains untested on Shopify PDP | Side-by-side product page response, decision outcome, cost, permission and privacy UX |
 | Can 1–10 product import be effortless? | Shared Catalog/First Item exists; authorized Shopify adapter not verified | Dev-store OAuth → import/preview test, no prod writes |
 | Can app run economically? | AI image cost hypothesis exists; merchant usage distribution and support cost are unknown | Base/high usage contribution with fees, support and abuse limits |
 | Is public app policy/compliance achievable? | Shopify platform docs provide review, Theme App Extensions, billing requirements | Explicit policy/design checklist and secure uninstall/privacy plan |
