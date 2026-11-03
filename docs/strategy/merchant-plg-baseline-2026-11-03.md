@@ -85,7 +85,20 @@ Source samples (open each listing again when pricing or reviews influence a deci
 
 Record exact present-day plan limits, visible reviews, positioning, surface (AR/live 3D vs AI image try-on), onboarding steps and evidence in a follow-up competitor matrix; do not rely on unverified search-result price snippets as canonical.
 
-### B2. Required integration design — feasibility hypothesis, not implemented
+### B2. Four-app competitive snapshot — Shopify App Store, checked 2026-11-03 (MARKET_OBSERVATION)
+
+These are **public listing claims and displayed prices**, not independently verified merchant outcomes. Review counts are not app installations or a market-size estimate. Pricing and reviews can change.
+
+| Native listing | Displayed entry and sample paid tier | Visible review count | Primary shopper/merchant pitch | Our implication |
+| --- | --- | ---: | --- | --- |
+| [GlassOn](https://apps.shopify.com/glasson) | Free-to-install limited Starter; Growth **$49/mo**, up to 50 models | 3 | Real-time VTO, 360° view, facial measurement, *no-code* | Simpler immediate shopper experience; model setup includes human adjustment option |
+| [Specfit — Eyewear Live Try-On](https://apps.shopify.com/specfit-eyewear-live-try-on) | Free up to 5 products; Launch **$19/mo**, 50 products; Growth $49/mo | 3 | Selfie collection-level multi-frame comparison + live 3D PDP | Direct overlap with VisuTry **Compare**; important low-end price anchor |
+| [Fittingbox Virtual Try-On](https://apps.shopify.com/glasses-virtual-try-on-by-fittingbox) | Bronze **$59/mo** / 10 active products / 500 monthly unique users; Silver $99/mo | 13 | Real-time face tracking, 3D asset library/sync | Hardware-accurate real-time fit benchmark, different economics |
+| [Touchtry EyeFit](https://apps.shopify.com/eye-fit) | Production Starter **$199/mo** / 300 AR SKUs; development stores free | 0 | AR try-on embedded on product pages, no-code merchandising | Higher price tier possible, but not evidence that SMBs buy at this price |
+
+**Competitive interpretation:** A generic “we have virtual try-on” Shopify listing is unlikely to be distinctive. VisuTry should test **the full decision journey** — import → recommendation / try-on / compare → merchant action and observable intent — and verify that its asynchronous AI-image UX can meet a Shopify product-page shopper's latency expectations. A 3D real-time AR competitor and VisuTry's AI-generated photographic try-on are **not directly identical services**. Do not infer achievable paid price or retention from listing prices.
+
+### B3. Required integration design — feasibility hypothesis, not implemented
 
 1. Discovery → listing → approved Shopify install, OAuth, minimal **read_products** permission.
 2. Authorized product selection/import → existing VisuTry catalog and readiness contract; no bulk import or editing without merchant choice.
@@ -98,7 +111,7 @@ Record exact present-day plan limits, visible reviews, positioning, surface (AR/
 
 Official technical anchors: [Theme App Extensions](https://shopify.dev/docs/apps/build/online-store/theme-app-extensions), [Admin GraphQL products](https://shopify.dev/docs/api/admin-graphql/latest/queries/products), [Shopify Billing](https://shopify.dev/docs/apps/launch/billing), [App Store Review](https://shopify.dev/docs/apps/launch/app-store-review).
 
-### B3. Unresolved risks and Go/No-Go
+### B4. Unresolved risks and Go/No-Go
 
 | Risk / question | Current evidence | Gate |
 | --- | --- | --- |
