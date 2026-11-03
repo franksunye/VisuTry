@@ -279,9 +279,9 @@ test.describe('Human Merchant Store G3', () => {
 
     await page.locator('#store').getByLabel(/i confirm this store is ready to publish publicly/i).check()
     await page.locator('#store').getByRole('button', { name: /publish store/i }).click()
-    await expect(page.getByText('Your Store is live', { exact: true })).toBeVisible()
-    await expect(page.getByRole('link', { name: /view store/i })).toHaveAttribute('href', '/en/store/g3-local')
-    await expect(page.getByRole('button', { name: /copy store link/i })).toBeVisible()
+    await expect(page.locator('#store').getByText('Your Store is live', { exact: true })).toBeVisible()
+    await expect(page.locator('#store').getByRole('link', { name: /view store/i })).toHaveAttribute('href', '/en/store/g3-local')
+    await expect(page.locator('#store').getByRole('button', { name: /copy store link/i })).toBeVisible()
     expect(publishCalls).toBe(1)
 
     const publishRetry = await page.evaluate(async () => {
