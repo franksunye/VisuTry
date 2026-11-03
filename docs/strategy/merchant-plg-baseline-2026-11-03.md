@@ -1,6 +1,6 @@
 # Merchant PLG Baseline & Three Work Packages — 2026-11-03
 
-**Status:** Stage 1 in progress — first research and code-contract review only; **not a market validation or live E2E pass**
+**Status:** Stage 1 in progress — first-party GSC URL Inspection, read-only live Demo UX, and Shopify policy audited; **not market validation or new-merchant E2E pass**
 **Owner:** Product / Growth / Merchant Engineering
 **Strategy:** [Merchant Self-Service Growth v1](merchant-plg-growth-v1.md)
 **Evidence classes:** `CONFIRMED_SOURCE` (current repo or official platform), `MARKET_OBSERVATION` (external listings), `HYPOTHESIS`, `UNKNOWN`.
@@ -69,9 +69,27 @@ Next read-only technical checks: verify `/en/business`, `/en/business/store`, `/
 
 **First proposed landing experiment:** validate the actual manual First Item → Preview path; then make a truthful self-service CTA prominent on Business Home while keeping assisted Pilot secondary. Explicitly test on mobile and desktop; do not change live copy in this docs PR.
 
+### A5a. Live GSC URL Inspection and crawl — 2026-11-03 (CONFIRMED_SOURCE)
+
+Source: signed-in GSC property `https://www.visutry.com/`, existing index **URL Inspection**, public DOM and sitemap. No indexing request or Live Test.
+
+| English Business URL | GSC index status | Technical observations |
+| --- | --- | --- |
+| `/en/business` | **Indexed**; successful Smartphone Googlebot crawl 2026-11-02 01:49:54 | Self canonical, `robots=index, follow`, sitemap listed |
+| `/en/business/pricing` | **Indexed** | Sitemap listed |
+| `/en/business/store` | **Discovered – currently not indexed**; no crawl time | Self canonical, `robots=index, follow`, sitemap listed |
+| `/en/business/integrations` | **Discovered – currently not indexed**; no crawl time | Self canonical, `robots=index, follow`, sitemap listed |
+| `/en/business/campaigns` | **Discovered – currently not indexed**; no crawl time | Sitemap listed |
+
+All **nine** English Business URLs appear in `/sitemaps/core.xml` (683 `loc` entries sampled). Business Home contains ordinary crawlable `<a href>` links to Store/Campaigns/Integrations/Pricing. No `hreflang` was observed in three sampled page heads; consider a multilingual review but this is **not** a proven indexing blocker. Other Business URL Inspection statuses remain unknown.
+
+**Diagnosis:** sampled pages disprove a blanket missing-sitemap/noindex cause. Three core product pages are discovered but **not yet crawled/indexed**, while two indexed URLs still generate essentially no qualified impressions. Separate **crawl/index priority and page quality** investigation from **Merchant search intent/relevance and proposition** research. Do not assume a CPU/crawl-budget root cause without Crawl Stats/log evidence. Google references: [Page Indexing](https://support.google.com/webmasters/answer/10264824), [crawl troubleshooting](https://developers.google.com/search/docs/crawling-indexing/troubleshoot-crawling-errors).
+
+**Proposed bounded work:** promote truthful `Start Free` (Pilot secondary) and relevant internal Store/Pricing links on Business Home; improve `/en/business/store` with real distinctive merchant proof plus crawl/index monitoring; audit integrations copy before Shopify SEO claims.
+
 ### A5. Remaining baseline checklist (UNKNOWN until independently measured)
 
-- GSC 28/90d page and initial query baseline **captured above**; remaining: country/device segmentation, query coverage, verified indexing/canonical status, competitor SERP and cannibalization.
+- GSC 28/90d page and initial query baseline **captured above**; remaining: country/device segmentation, remaining URL Inspection cases, crawl stats, keyword/competitor SERP and cannibalization.
 - GA4: Business landing → self-service signup start → workspace created attribution; paid/employee/bot exclusions; landing-to-A0 join coverage. GA4 cannot substitute for durable A0.
 - Inspect indexed competitor pages and true backlinks/citations; validate each proposed topic against actual Merchant search results.
 - Public CTA inventory and event baseline: current Pilot clicks vs direct signup; do not invent event histories.
@@ -109,7 +127,7 @@ These are **public listing claims and displayed prices**, not independently veri
 
 ### B3. Required integration design — feasibility hypothesis, not implemented
 
-1. Discovery → listing → approved Shopify install, OAuth, minimal **read_products** permission.
+1. Discovery → listing → Shopify managed install and token exchange if embedded (or auth-code grant for standalone), minimal **read_products** permission.
 2. Authorized product selection/import → existing VisuTry catalog and readiness contract; no bulk import or editing without merchant choice.
 3. **Private Store preview** (same A6 definition as direct signup). Merchant identity must remain tenant-scoped and deduplicated across re-install and direct accounts.
 4. Merchant-controlled **Theme App Extension**: app block or app embed enabled in theme editor; preview/status must explain an unactivated block rather than silently altering storefront themes.
@@ -119,6 +137,17 @@ These are **public listing claims and displayed prices**, not independently veri
 8. Webhook product update/delete, app/uninstall lifecycle, data retention/privacy, consent handling, safe sync retry and rate-limit reconciliation.
 
 Official technical anchors: [Theme App Extensions](https://shopify.dev/docs/apps/build/online-store/theme-app-extensions), [Admin GraphQL products](https://shopify.dev/docs/api/admin-graphql/latest/queries/products), [Shopify Billing](https://shopify.dev/docs/apps/launch/billing), [App Store Review](https://shopify.dev/docs/apps/launch/app-store-review).
+
+### B3a. Shopify platform gates — official docs, 2026-11-03 (CONFIRMED_SOURCE)
+
+- Live Catalog `Store URL` tries public Shopify/ecommerce URL extraction; **not** merchant-authorized Shopify Admin integration/sync/App Store install.
+- [Authentication](https://shopify.dev/docs/apps/build/authentication-authorization): Shopify CLI **embedded** app normally uses managed installation + **token exchange**; standalone app may use authorization-code grant. Least-privilege product scopes, appropriate offline access and tenant/store binding are mandatory.
+- [Theme App Extensions](https://shopify.dev/docs/apps/build/online-store) are required for a new App Store app integrating with storefront themes. Merchant must explicitly enable/save blocks or embeds in theme editor; deep links reduce friction but do not remove consent.
+- [Shopify App Pricing](https://shopify.dev/docs/apps/launch/billing) is default for new public apps; keep channel billing separate from current direct Stripe, with shared entitlements and metering.
+- [Privacy compliance webhooks](https://shopify.dev/docs/apps/build/compliance/privacy-law-compliance): `customers/data_request`, `customers/redact`, `shop/redact`, plus uninstall/product reconciliation and consent/retention plan.
+- **Open product gate:** asynchronous AI-photo generation delay and quotas versus real-time 3D/AR competitors on Shopify PDP.
+
+Result: technical architecture pattern identified; **no Shopify app implementation, dev-store authorization, production billing or public listing performed**. Research GO, build HOLD.
 
 ### B4. Unresolved risks and Go/No-Go
 
@@ -155,6 +184,16 @@ Current historical baseline in `docs/merchant-activation-v1.md` §9: **41 confir
 The live public `Start Free` route displays an **agent-key-first** explanation; the implementation contract simultaneously specifies an in-product manual first-product path. This may be intentional Agent-first positioning, but SMB onboarding should not *require* understanding external AI Agent key/skill operations to achieve A6. Audit both entry paths and decide whether the human-readable, no-agent fallback is sufficiently prominent.
 
 The paid Merchant Launch plan currently starts at **$199/mo** while publicly listed Shopify eyewear apps include lower entry tiers ($19 Specfit, $49 GlassOn, $59 Fittingbox). These are non-equivalent plans and **not grounds for immediate repricing**, but they create an activation→upgrade proof burden: our free plan excludes generative Try-On while the differentiated value proposition includes it. Stage 1 must evaluate a bounded product-proof/try-on evaluation path, entitlement safety, and contribution economics before a pricing or trial change.
+
+### C2a. Live owned Demo Merchant UX — read-only 2026-11-03 (CONFIRMED_SOURCE)
+
+- In already signed-in `VisuTry Demo`, Business Pricing `Start Free` goes to its **existing** Merchant Home. Six ready products and active Store are Demo/reference assets, **not** a fresh signup → A6 outcome.
+- `Catalog → Add products` offers **Store URL** (default), **Upload CSV**, **Add manually**. The URL flow mentions Shopify, structured ecommerce data, sitemap, product pages and rendering; it promises no imported product write before approval. This is **not** Shopify OAuth integration.
+- Manual item needs **name + usable image + SKU or product URL**. The Review button is gated until valid. A GUI fallback exists but fresh-user prominence and full Private Preview were **not tested**.
+- **P0 friction / media lifecycle:** live UI warns, “Uploading creates a public image before you save the product. Remove unneeded images through merchant support.” Pre-save publicly stored images and support-only deletion undermine no-human self-service; review orphan retention, ownership, safe delete and security before changing behavior. **No image uploaded or data written**.
+- Existing Store visible; A0→A6 new merchant, intervention-free first value and event joins still **UNKNOWN** until controlled nonproduction fixture and ledger trace.
+
+Stage 2 candidates, not approved for shipping: manual first-item visibility, safe image cleanup UX, and durable 7d A0→A6 + median/p90 + intervention measurement.
 
 ### C3. Priority audit steps (no production writes)
 
