@@ -2,7 +2,16 @@
 
 **Status:** Current canonical Business website content contract  
 **Owner:** Product / Growth / Sales  
-**Last reconciled:** 2026-09-30
+**Last reconciled:** 2026-11-03 (PLG strategy note; public copy not yet released)
+
+
+## 2026-11-03 Merchant SMB PLG Amendment — proposed copy direction, not deployed
+
+The active [Merchant PLG strategy](../strategy/merchant-plg-growth-v1.md) changes the **primary SMB acquisition intent** of the Business website to self-service: qualified search/AI referrals → evaluate truthful real-product proof → sign up → first usable Catalog product → private Store preview. This supersedes any implication in older copy that an assisted 30-day Pilot or a sales review is the default prerequisite to try the Merchant product. Pilot/Enterprise paths may stay visibly secondary when genuinely available.
+
+Existing `Start 30-Day Pilot` / `Request Pilot Review` strings documented below are an **inventory of the existing contract**, **not approved new self-service copy**. A separate verified website UX implementation must replace/reprioritize them only after reviewing actual signup availability, plan semantics, legal/pricing truth, traffic measurement and link destinations. Do not publish an unsupported `Shopify app available` claim; Shopify remains research-gated. Consumer site and traffic are independent.
+
+Primary experiment candidates (not launch copy): `Start Free`, `Set Up Your Store`, `Preview Your Store`, with exact wording to follow real product availability and any applicable payment terms.
 
 ## 1. Purpose
 
