@@ -1,0 +1,57 @@
+name: Business SEO Browser Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/business-seo-browser.yml'
+      - 'src/config/business-site.ts'
+      - 'src/lib/business-metadata.ts'
+      - 'src/components/business/**'
+      - 'src/lib/sitemap-static.ts'
+      - 'tests/e2e/business.spec.ts'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: business-seo-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  public-business-browser:
+    name: Business Landing SEO + Mobile (LOCAL/Mock)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CI: 'true'
+      APP_ENV: local
+      NODE_ENV: test
+      ENABLE_MOCKS: 'true'
+      TEST_MODE: 'true'
+      SKIP_ENV_VALIDATION: '1'
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXTAUTH_URL: http://127.0.0.1:3001
+      NEXTAUTH_SECRET: ci-only-ephemeral-business-seo
+      NEXT_PUBLIC_SITE_URL: https://www.visutry.com
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      VISUTRY_LOCAL_DEMO_PROVIDER_MODE: blocked
+    steps:
+      - name: Checkout exact PR revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Execute Business landing pages without real DB or provider access
+        run: >-
+          npx playwright test tests/e2e/business.spec.ts
+          --project=chromium --workers=1 --retries=0
+          --grep 'business route explains|core Business pages have distinct|core Business pages preserve|merchant search landing|business route canonicalizes|Business Resources publishes|Merchant pricing page|Merchant pricing comparison'
