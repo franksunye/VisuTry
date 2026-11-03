@@ -6,7 +6,7 @@ const baseUrl = process.env.PLAYWRIGHT_BASE_URL
 const isLocalMockRun = process.env.NODE_ENV === 'test'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
-  && process.env.G3_MERCHANT_STORE_E2E === 'true'
+  && process.env.G3_MERCHANT_STORE_E2E === '1'
   && (!baseUrl || /^http:\/\/(?:127\.0\.0\.1|localhost):(?:3001|3003)\/?$/.test(baseUrl))
 
 async function loginWithMock(request: APIRequestContext, context: BrowserContext) {
@@ -24,7 +24,7 @@ async function loginWithMock(request: APIRequestContext, context: BrowserContext
 
 test.describe('Human Merchant Store G3', () => {
   test('creates, saves, previews, and explicitly publishes a Store without requiring shape', async ({ page, request, context }) => {
-    test.skip(!isLocalMockRun, 'Run with NODE_ENV=test ENABLE_MOCKS=true TEST_MODE=true G3_MERCHANT_STORE_E2E=true against a local-only test server.')
+    test.skip(!isLocalMockRun, 'Run with NODE_ENV=test ENABLE_MOCKS=true TEST_MODE=true G3_MERCHANT_STORE_E2E=1 against a local-only test server.')
 
     await loginWithMock(request, context)
     await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
