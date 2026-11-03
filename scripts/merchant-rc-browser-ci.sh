@@ -111,16 +111,7 @@ for (const suite of report.suites || []) walk(suite)
 console.log(JSON.stringify({ reporterSuiteCount: report.suites?.length ?? 0, testSelectors: selected }))
 NODE
 }
-run_scenario "First Value" P0_L1_LOCAL_MERCHANT_E2E tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts first.json
-reset_own_disposable_db_for_next_scenario
-run_scenario "Campaign + archived historical read-only lifecycle" P1_M2_5_LOCAL_CAMPAIGN_E2E tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts campaign.json "$OUT/archive-campaign"
-reset_own_disposable_db_for_next_scenario
-run_scenario "Native Photo + Real Catalog" G1F_CATALOG_NATIVE_PHOTO_E2E tests/e2e/merchant-catalog-native-photo-local.spec.ts photo.json
-reset_own_disposable_db_for_next_scenario
-run_scenario "Unsafe URL -> CSV Real Catalog" G1F_REAL_CATALOG_CSV_E2E tests/e2e/merchant-catalog-csv-recovery-local.spec.ts csv.json
-reset_own_disposable_db_for_next_scenario
-run_scenario "Archived Campaign Kiosk privacy reset" ARCHIVED_CAMPAIGN_KIOSK_PRIVACY_E2E tests/e2e/archived-campaign-kiosk-privacy-local.spec.ts archived-kiosk.json "$OUT/archive-kiosk" ARCHIVED_CAMPAIGN_KIOSK_EVIDENCE_DIR true
-reset_own_disposable_db_for_next_scenario
+# Fail fast on the new G3 contract before re-running mature RC suites.
 run_scenario "G3 private Store preview (unready then ready)" G3_MERCHANT_STORE_E2E tests/e2e/merchant-store-self-service.spec.ts g3.json "" ARCHIVED_CAMPAIGN_EVIDENCE_DIR true
 # Playwright can return exit 0 for a skipped test: require an actual passing
 # browser attempt, not just test discovery or an empty report.
@@ -142,6 +133,17 @@ if (!executedPass) {
 }
 console.log('G3 browser gate PASS: one actual Chromium test, ready/unready First Value assertions')
 NODE
+reset_own_disposable_db_for_next_scenario
+run_scenario "First Value" P0_L1_LOCAL_MERCHANT_E2E tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts first.json
+reset_own_disposable_db_for_next_scenario
+run_scenario "Campaign + archived historical read-only lifecycle" P1_M2_5_LOCAL_CAMPAIGN_E2E tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts campaign.json "$OUT/archive-campaign"
+reset_own_disposable_db_for_next_scenario
+run_scenario "Native Photo + Real Catalog" G1F_CATALOG_NATIVE_PHOTO_E2E tests/e2e/merchant-catalog-native-photo-local.spec.ts photo.json
+reset_own_disposable_db_for_next_scenario
+run_scenario "Unsafe URL -> CSV Real Catalog" G1F_REAL_CATALOG_CSV_E2E tests/e2e/merchant-catalog-csv-recovery-local.spec.ts csv.json
+reset_own_disposable_db_for_next_scenario
+run_scenario "Archived Campaign Kiosk privacy reset" ARCHIVED_CAMPAIGN_KIOSK_PRIVACY_E2E tests/e2e/archived-campaign-kiosk-privacy-local.spec.ts archived-kiosk.json "$OUT/archive-kiosk" ARCHIVED_CAMPAIGN_KIOSK_EVIDENCE_DIR true
+
 assert_marker
 set +e
 node scripts/merchant-release-scenario-ledger.mjs \
