@@ -60,7 +60,16 @@ Next read-only technical checks: verify `/en/business`, `/en/business/store`, `/
 
 **Content rule:** Two genuinely different intents merit two genuinely different helpful pages; keyword permutations alone do not. Google says AI-search discoverability uses existing people-first SEO practices, not a special GEO markup scheme.
 
-### A4. Remaining baseline checklist (UNKNOWN until independently measured)
+### A4. Current public landing-path check — observed 2026-11-03 (CONFIRMED_SOURCE)
+
+- [Business Home](https://www.visutry.com/en/business) publicly leads with `Start 30-Day Pilot` (header, hero and footer), with product proof focused on Merchant Store/Commerce and the 30-day Pilot.
+- [Business Pricing](https://www.visutry.com/en/business/pricing) has a real `Start Free` CTA in addition to Pilot, with the current **Free $0** offering and **Launch $199/mo** paid offering. The Free column lists one Store/50 products/Basic Recommendation but **no generative Try-On**. This does **not** validate the eventual paid decision product before payment; packaging and demo proof must be assessed.
+- `Start Free` lands on [Merchant signup/sign-in](https://www.visutry.com/en/auth/signin?callbackUrl=/en/merchant?commercialIntent%3DFREE), whose visible guidance emphasizes creating an Agent Key and pasting Key + Skill into ChatGPT/Claude. We have **not verified whether the GUI manual-add journey is obvious from signup**, so mark as a first-use UX risk, not a proven onboarding failure.
+- `Start 30-Day Pilot` lands on [Pilot application](https://www.visutry.com/en/business/pilot), asking for contact/business/catalog information and manual review. It is a **separate assisted funnel**, not self-serve.
+
+**First proposed landing experiment:** validate the actual manual First Item → Preview path; then make a truthful self-service CTA prominent on Business Home while keeping assisted Pilot secondary. Explicitly test on mobile and desktop; do not change live copy in this docs PR.
+
+### A5. Remaining baseline checklist (UNKNOWN until independently measured)
 
 - GSC 28/90d page and initial query baseline **captured above**; remaining: country/device segmentation, query coverage, verified indexing/canonical status, competitor SERP and cannibalization.
 - GA4: Business landing → self-service signup start → workspace created attribution; paid/employee/bot exclusions; landing-to-A0 join coverage. GA4 cannot substitute for durable A0.
@@ -141,7 +150,13 @@ Official technical anchors: [Theme App Extensions](https://shopify.dev/docs/apps
 
 Current historical baseline in `docs/merchant-activation-v1.md` §9: **41 confirmed historical self-service Merchants, 2 reached Catalog/Store (2/41=4.9% first-item baseline)**. This is **pre-instrumentation and not A6 activation**, not a current channel conversion rate.
 
-### C2. Priority audit steps (no production writes)
+### C2. Public onboarding entry risk — observed, not yet E2E verified
+
+The live public `Start Free` route displays an **agent-key-first** explanation; the implementation contract simultaneously specifies an in-product manual first-product path. This may be intentional Agent-first positioning, but SMB onboarding should not *require* understanding external AI Agent key/skill operations to achieve A6. Audit both entry paths and decide whether the human-readable, no-agent fallback is sufficiently prominent.
+
+The paid Merchant Launch plan currently starts at **$199/mo** while publicly listed Shopify eyewear apps include lower entry tiers ($19 Specfit, $49 GlassOn, $59 Fittingbox). These are non-equivalent plans and **not grounds for immediate repricing**, but they create an activation→upgrade proof burden: our free plan excludes generative Try-On while the differentiated value proposition includes it. Stage 1 must evaluate a bounded product-proof/try-on evaluation path, entitlement safety, and contribution economics before a pricing or trial change.
+
+### C3. Priority audit steps (no production writes)
 
 1. Review live Business CTAs and real direct-signup route; test one bounded local/Preview merchant using approved existing TEST fixtures: start → A0 → A3/A4 → A6 and capture friction/screenshots.
 2. Reconcile GA4 landing source → signup correlation → Postgres `MerchantActivationEvent`, without raw PII and without using GA4 as durable source.
@@ -150,7 +165,7 @@ Current historical baseline in `docs/merchant-activation-v1.md` §9: **41 confir
 5. Select **top two measured blockers** in onboarding/import/preview/error recovery; fix via separate bounded PR with local browser E2E and no billing or publish semantics changes.
 6. Test multi-entry consistency: directly signed-up merchant versus Shopify-authorized install should converge on same A6 and product state, while preserving safe merchant identity isolation.
 
-### C3. Proposed acceptance criteria (targets, not observed outcomes)
+### C4. Proposed acceptance criteria (targets, not observed outcomes)
 
 - A0→A6 source events are joinable by merchant, timestamp, and channel, with test/reference exclusions; 0 denominators display `N/A` rather than 0%.
 - Merchant can reach private Preview without contacting staff in the controlled local/Preview path.
