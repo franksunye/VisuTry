@@ -179,7 +179,7 @@ function emptyInput(item: CatalogItem): ManualRow {
   };
 }
 
-export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWebsiteUrl, onCatalogChanged, showResourceList = true }: { merchantId: string; initialTotal: number; initialWebsiteUrl?: string | null; onCatalogChanged?: (state: { hasAny: boolean; hasReady: boolean }) => void; showResourceList?: boolean }) {
+export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWebsiteUrl, onCatalogChanged, storeNextHref = "#store", showResourceList = true }: { merchantId: string; initialTotal: number; initialWebsiteUrl?: string | null; onCatalogChanged?: (state: { hasAny: boolean; hasReady: boolean }) => void; storeNextHref?: string; showResourceList?: boolean }) {
   // A signup website is a suggestion for explicit inspection, NOT imported data.
   // Without a saved URL, keep the existing short manual first-product path.
   const suggestedWebsiteUrl = initialWebsiteUrl?.trim() ?? "";
@@ -416,7 +416,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
         ))}
       </div>
 
-      {successNotice ? <div role="status" className="mt-4 flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 sm:flex-row sm:items-center sm:justify-between"><span>{successNotice}</span>{firstProductAdded ? <a href="#store" className="inline-flex items-center gap-1 font-semibold text-emerald-900 underline underline-offset-4">Create your Store <ArrowRight className="h-4 w-4" aria-hidden="true" /></a> : null}</div> : null}
+      {successNotice ? <div role="status" className="mt-4 flex flex-col gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 sm:flex-row sm:items-center sm:justify-between"><span>{successNotice}</span>{firstProductAdded ? <a href={storeNextHref} className="inline-flex items-center gap-1 font-semibold text-emerald-900 underline underline-offset-4">Create your Store <ArrowRight className="h-4 w-4" aria-hidden="true" /></a> : null}</div> : null}
 
       <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4">
         {sourceType === "url" ? <>
