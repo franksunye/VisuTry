@@ -35,7 +35,7 @@ Company positioning remains:
 | Funnel stage | Direct SEO/GEO | Shopify ecosystem | Shared authority |
 | --- | --- | --- | --- |
 | Discovery | Merchant query → Business/solution content | Shopify App Store search/category/listing | Channel-specific acquisition evidence (GSC/GA4 or App Store/Shopify) |
-| Qualified entry | Merchant signup | Merchant-authorized app install/OAuth | Channel attribution; merchant identity |
+| Qualified entry | Merchant signup | Merchant-approved managed install / scoped authorization | Channel attribution; merchant identity |
 | First item | Manual add; optionally approved import | Authorized Shopify product selection/import | Canonical catalog/readiness contract |
 | **First Value (A6)** | Private Store preview | Private Store preview | Durable Merchant activation evidence |
 | Launch | Explicit Store publish | Explicit theme app-block/embed enable + Store activation | No unauthorized automatic publication |
@@ -93,7 +93,7 @@ Acceptance: production-safe rollout, controlled E2E (including guest and merchan
 ### Stage 3 — Channel launch and scale (separate approval gates)
 
 - Expand evidence-backed SEO/GEO topics only when qualified traffic and activation improve.
-- If Shopify proves viable: Partner/App requirements, OAuth, product sync/webhooks, theme extension, billing, support/uninstall, compliance, App Store review and listing analytics; owner approves launch.
+- If Shopify proves viable: Partner/App requirements, managed install/token exchange for embedded app (or auth-code grant for standalone), product sync/webhooks, theme extension, billing, support/uninstall, compliance, App Store review and listing analytics; owner approves launch.
 - Optimize fully unassisted onboarding, recovery, pricing clarity and renewal from **real merchants and economics**, not only signups.
 
 ## Explicit non-goals for this cycle
