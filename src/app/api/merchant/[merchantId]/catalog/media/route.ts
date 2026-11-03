@@ -6,7 +6,7 @@ import { requireMerchantMembership } from '@/modules/merchant/application/mercha
 import { inspectBrandImage, BrandKitError } from '@/modules/merchant/domain/merchant-brand-kit'
 import {
   MerchantCatalogMediaError, PRODUCT_IMAGE_MAX_BYTES, PRODUCT_IMAGE_MAX_DAILY_UPLOADS,
-  catalogProductMediaPrefix, requireOwnedCatalogProductMediaUrl,
+  catalogProductMediaDailyPrefix, requireOwnedCatalogProductMediaUrl,
 } from '@/modules/merchant/domain/merchant-catalog-media'
 import { merchantAgentErrorResponse } from '@/modules/merchant/application/merchant-agent-http'
 
@@ -51,7 +51,6 @@ export async function POST(request: NextRequest, { params }: { params: { merchan
     if (site && site !== 'same-origin' && site !== 'none') {
       return NextResponse.json({ success: false, error: 'FORBIDDEN_ORIGIN' }, { status: 403 })
     }
-    const prefix = catalogProductMediaPrefix(params.merchantId)
     const form = await boundedMultipart(request)
     const file = form.get('file')
     if (!(file instanceof File) || file.size < 30 || file.size > PRODUCT_IMAGE_MAX_BYTES) {
@@ -64,10 +63,12 @@ export async function POST(request: NextRequest, { params }: { params: { merchan
       if (error instanceof BrandKitError) throw new MerchantCatalogMediaError('INVALID_PRODUCT_IMAGE', error.message)
       throw error
     }
-    // Best-effort daily Blob cost bound, without claiming atomic concurrency enforcement.
-    const blobs = await list({ prefix, limit: 1000 })
-    if (blobs.hasMore || blobs.blobs.filter((blob) =>
-      new Date(blob.uploadedAt).getTime() >= Date.now() - 86400000).length >= PRODUCT_IMAGE_MAX_DAILY_UPLOADS) {
+    // UTC day partitions prevent historical uploads from eventually saturating
+    // the 1,000-object list window. This is a calendar-day best-effort cap;
+    // concurrent uploads can still race, so never claim it is atomic.
+    const prefix = catalogProductMediaDailyPrefix(params.merchantId, new Date())
+    const blobs = await list({ prefix, limit: PRODUCT_IMAGE_MAX_DAILY_UPLOADS })
+    if (blobs.hasMore || blobs.blobs.length >= PRODUCT_IMAGE_MAX_DAILY_UPLOADS) {
       throw new MerchantCatalogMediaError('PRODUCT_MEDIA_LIMIT', 'Daily product-image upload limit reached. Try tomorrow.', 429)
     }
     const ext = image.mime === 'image/png' ? 'png' : image.mime === 'image/jpeg' ? 'jpg' : 'webp'
