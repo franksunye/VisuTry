@@ -251,7 +251,7 @@ export function MerchantCatalogWorkspace({ merchantId, locale, initialFrameId }:
 
     {intakeOpen ? <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-slate-950">Add products</p><p className="mt-1 text-xs text-slate-600">Inspect first. Nothing is written until you approve the import.</p></div><button type="button" onClick={() => setIntakeOpen(false)} aria-label="Close add products" className="rounded-lg p-2 text-slate-500 hover:bg-white"><X className="h-4 w-4" aria-hidden="true" /></button></div>
-      {workspace ? <MerchantCatalogSelfService merchantId={merchantId} initialTotal={summary.total} showResourceList={false} onCatalogChanged={() => void load({ query: appliedSearch, readiness: filter })} /> : null}
+      {workspace ? <MerchantCatalogSelfService merchantId={merchantId} initialTotal={summary.total} showResourceList={false} storeNextHref={`/${locale}/merchant/store?merchantId=${encodeURIComponent(merchantId)}`} onCatalogChanged={() => void load({ query: appliedSearch, readiness: filter })} /> : null}
     </div> : null}
 
     <form onSubmit={updateSearch} className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-2.5 sm:grid-cols-[minmax(0,1fr)_180px_auto] sm:items-center sm:p-3">
