@@ -71,6 +71,28 @@ describe('Merchant First Value source choice and recovery', () => {
     expect(screen.getByLabelText('Product name for product 1')).toBeInTheDocument()
   })
 
+
+  it.each([
+    ['standalone Catalog', '/en/merchant/store?merchantId=merchant-first', '/en/merchant/store?merchantId=merchant-first'],
+    ['embedded onboarding', undefined, '#store'],
+  ])('routes the first approved product CTA correctly in %s', async (_surface, storeNextHref, expectedHref) => {
+    const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).endsWith('/catalog/inspect') && init?.method === 'POST') return response(importableProposal)
+      if (String(input).endsWith('/catalog') && init?.method === 'POST') return response({ imported: 1, created: 1, updated: 0 })
+      return response({ items: [], nextCursor: null })
+    })
+    global.fetch = fetchMock as typeof fetch
+    render(<MerchantCatalogSelfService merchantId="merchant-first" initialTotal={0}
+      initialWebsiteUrl="https://shop.example.test" storeNextHref={storeNextHref} showResourceList={false} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Inspect and preview' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Approve and import 1' }))
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Create your Store' })).toHaveAttribute('href', expectedHref))
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/merchant/merchant-first/catalog',
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
   it('offers non-destructive CSV/manual recovery after URL inspection fails', async () => {
     const fetchMock = mockCatalogAndInspect(null, false)
     render(<MerchantCatalogSelfService merchantId="merchant-c" initialTotal={0}
