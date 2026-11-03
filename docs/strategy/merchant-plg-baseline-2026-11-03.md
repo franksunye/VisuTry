@@ -318,7 +318,7 @@ Primary competitive SERP spot check: vendor-owned official product/plan pages su
 | Code / exact commit | [PR #512](https://github.com/franksunye/VisuTry/pull/512), head `d6c213837a6e99562840a35a3a860f73bfaea075` | DRAFT / NOT MERGED |
 | Repository Quality Gate | [run 41644882622](https://github.com/franksunye/VisuTry/actions/runs/41644882622): Static+Critical Business Regression, Sponsored PostgreSQL Contract, Revenue Critical Browser Gate; 3/3 success | PASS |
 | Focused Business Browser Gate | [run 41644882661](https://github.com/franksunye/VisuTry/actions/runs/41644882661): 15/15 Chromium E2E (Business content/mobile, Store plan boundaries, anonymous Start Free→sign-in callback, Business Resources core sitemap, EN-only redirects, pricing) | PASS (LOCAL/Mock) |
-| Production preview / canonical | Real deployment URL, public HTML and crawl-visible metadata, CDN revalidation and performance | PENDING |
+| Production preview / canonical | Vercel PR-head deployment `dpl_FMHZFH88xGsUBFBV3LmPATefiMZK` for `d6c2138` was `CANCELED` intentionally by `scripts/vercel-ignore-build.sh` (all non-production builds skip). No usable Preview exists; live HTML/CDN/CPU and deployment smoke remain unverified. | HOLD — requires deliberate release path |
 | GA4 acquisition measurement | `b2b_sales_intent_clicked` with new `intent_type=self_service_start` is implemented. Confirm consent-aware delivery, parameter reporting/custom-dimension availability and Bot/Internal exclusions on live property; no fake conversion events | PENDING |
 | Postrelease GSC/GEO | Re-inspect nine EN URLs; 7/14/28d page×query trends and independently qualified merchant entry, fixed-prompt AI citation sampling where reproducible | OBSERVING AFTER RELEASE |
 
