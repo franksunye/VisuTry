@@ -152,6 +152,19 @@ Official technical anchors: [Theme App Extensions](https://shopify.dev/docs/apps
 
 Result: technical architecture pattern identified; **no Shopify app implementation, dev-store authorization, production billing or public listing performed**. Research GO, build HOLD.
 
+### B3b. Simple margin stress test — assumptions, NOT observed Merchant economics
+
+A competing public tier of **$15/month for up to 150 sessions** and **$49/month for up to 500 sessions** makes usage-to-image cost critical. Apply VisuTry's current **$0.03 per generated image** planning assumption *only as a sensitivity test*, assuming each permitted session generates the stated average images and 100% of sessions are used:
+
+| Hypothetical revenue ceiling | Average AI images/session | Model cost at full allowance | Remaining before platform fee, infra, support, refunds |
+| --- | ---: | ---: | ---: |
+| $15 for 150 sessions | 1 | $4.50 | $10.50 (70%) |
+| $15 for 150 sessions | 3 | $13.50 | $1.50 (10%) |
+| $49 for 500 sessions | 1 | $15.00 | $34.00 (69.4%) |
+| $49 for 500 sessions | 3 | $45.00 | $4.00 (8.2%) |
+
+**Not a price recommendation:** these are not VisuTry's existing plans, session usage or realized KIE invoices. Shopify competitors use different models, metering and marginal costs; Shopify platform fees and app support still need verification. The point is structural: **do not copy a competitor's low session price without enforcing an image-generation budget and observable trial-to-paid behavior**. Model image/session p50/p95 and active store distribution, not just an average.
+
 ### B4. Unresolved risks and Go/No-Go
 
 | Risk / question | Current evidence | Gate |
