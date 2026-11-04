@@ -2,14 +2,14 @@
 
 | | |
 | --- | --- |
-| Status | Preliminary feasibility signal; C3 engineering acceptance NOT VERIFIED |
+| Status | D1 implementation locally verified; full real-browser acceptance NOT VERIFIED |
 | Date | 2026-11-04 |
-| Scope | Read-only public HTTPS probes and local candidate-mapper dry run; no catalog writes |
+| Scope | Original read-only public HTTPS probes plus local D1 implementation and unit checks; no live Catalog writes |
 | Related design | [Merchant Self-Service C URL Intake v2](https://github.com/franksunye/VisuTry/blob/codex/merchant-plg-c-first-value-7d-20261103/docs/product/merchant-self-service-c-ux-url-intake-v2.md) |
 
 ## Result
 
-A narrow Shopify per-product path is technically feasible without raising VisuTry's 512 KiB source-response cap. The live MOSCOT product page was too large for the current HTML fetch budget, but its same-origin public Shopify Ajax product endpoint returned usable product data and its selected image decoded successfully. The current importer does not call that endpoint, and adapting it safely requires resolving the issues below. This probe did not inspect through the application UI, write or approve a Catalog item, or create a private Store preview; it does not pass C3.
+A narrow Shopify per-product path is technically feasible without raising VisuTry's 512 KiB source-response cap. The live MOSCOT product page was too large for the current HTML fetch budget, but its same-origin public Shopify Ajax product endpoint returned usable product data and its selected image decoded successfully. At the time of that probe, the importer did not call the endpoint. This branch now implements the product-scoped path and locally passes its focused checks, but the probe itself did not inspect through the application UI, write or approve a Catalog item, or create a private Store preview; it does not pass C3.
 
 ## Live requests
 
@@ -35,14 +35,20 @@ The real Ajax payload was passed through the existing Shopify mapper and proposa
 - Shopify Ajax returns the variant price as an integer in minor units. The existing `priceInMinorUnits` helper treats numeric values as major units and multiplies by 100; the live value `34000` becomes `3400000`. The Ajax adapter must preserve minor units or normalize them before using the existing mapper.
 - The proposal normalizer still sets `writePerformed: false` and `requiresApproval: true`, as required.
 
-## C3 implementation implications
+## D1 single-product implementation
 
-1. Add a product-only Shopify Ajax adapter for a verified Shopify product page and its same-origin `/{locale?}/products/{handle}.js` endpoint. Do not use this flow for a collection or homepage and do not rely on public `/products.json` enumeration for the “paste one product” promise.
-2. Preserve the existing 3-second, 512 KiB, and two-redirect request bounds. Carry only the minimum response metadata needed to recognize Shopify on an oversized HTTP 200 response; do not return a truncated page as an accepted product document.
-3. Respect an explicit `?variant=` selection; otherwise choose one available default variant and show that choice for merchant review. Correct price units and leave unavailable currency/shape facts editable rather than guessing.
-4. Treat 401/403 and 429 as terminal, with adjacent CSV/Manual fallback. Do not invoke Browser Rendering after explicit denial or throttling.
-5. C3 still needs an isolated browser journey on a genuinely external product URL: inspect → review/edit → explicit approval → persisted readback → decodable image in private preview, plus 403/429 fallback and tenant-isolation checks.
+The independent C3 branch now contains a product-scoped Shopify adapter:
+
+1. A Shopify URL matching `/products/{handle}` uses only the same-origin `/products/{handle}.js` endpoint. It produces one product candidate, retains the original product URL, and does not fetch the store-wide product or image lists for that candidate.
+2. The 3-second, 512 KiB, and two-redirect request bounds remain. The source response carries only a Shopify platform hint when the HTML body exceeds its cap; the truncated HTML is never treated as product data.
+3. The merchant must choose one available variant. Only that variant's selected image is rendered; the other Shopify image URLs are not fetched by the importer. Approval waits for image load and confirmation, currency selection, price confirmation, and a frame shape. Shopify integer prices remain unchanged in minor units; currencies with two minor digits are available for explicit confirmation.
+4. Product names and generic tags do not supply a guessed shape on this path. A structured Shopify shape option can be used; when absent, the merchant must enter one.
+5. 401/403, 429, HTTP 404, Shopify soft-404 pages, and malformed or incomplete Ajax data return explicit Manual/CSV recovery. Denial and throttling are terminal and do not invoke browser rendering.
+
+Unit coverage exercises a 111-variant payload as one candidate, the review gates and currency reset behavior, preserved price units and URL, image selection, soft-404 handling, 403/429 fallback, and existing Catalog membership enforcement.
+
+The required D1 acceptance remains open until an isolated real-browser journey verifies MOSCOT URL → merchant review → explicit approval → Catalog persistence/readback → private Store Preview, including a decoded image. The negative 403/429, soft-404, malformed/wrong-price, and cross-tenant checks must also run in that environment.
 
 ## Limits
 
-This was a feasibility probe only. It did not verify app-side outbound networking, Catalog writes, approval, reloading the saved record, tenant denial, or Store preview. The managed execution environment routes HTTP through its configured proxy; the current application fetcher opens pinned IP sockets directly, so the app-side live request was not attempted here. No repository application code was changed, and no C3 engineering acceptance is claimed.
+The initial evidence above remains a feasibility probe, not a D1 pass. In this execution environment the configured HTTP proxy could not be reached from the shell (`EPERM` on its TCP connection), no local PostgreSQL service or `DATABASE_URL` was available, and the Docker socket denied access to the non-root task user. Therefore the app-side MOSCOT request and persistence/private-preview browser journey have not run here. No C3 engineering acceptance is claimed; C3 remains HOLD until the complete real-browser acceptance is recorded.

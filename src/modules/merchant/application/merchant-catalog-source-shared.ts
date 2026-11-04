@@ -12,11 +12,49 @@ export type CatalogCandidateStatus = 'READY' | 'NEEDS_REVIEW' | 'INVALID'
 export type CatalogCandidateDedupeStatus = 'NEW' | 'ALREADY_EXISTS' | 'POSSIBLE_DUPLICATE'
 export type CatalogReadiness = 'IMPORT_READY' | 'RECOMMENDATION_READY' | 'NEEDS_REVIEW' | 'INVALID'
 export type CatalogIdentityType = 'MERCHANT_SKU' | 'EXTERNAL_ID' | 'PRODUCT_URL'
-export type ShapeEnrichmentSource = 'STRUCTURED_FIELD' | 'SHOPIFY_OPTION_OR_TAG' | 'PRODUCT_METADATA' | 'AI_VISION' | 'NONE'
+export type ShapeEnrichmentSource = 'STRUCTURED_FIELD' | 'SHOPIFY_OPTION_OR_TAG' | 'PRODUCT_METADATA' | 'AI_VISION' | 'MERCHANT_CONFIRMED' | 'NONE'
 
 export type CatalogIdentity = {
   type: CatalogIdentityType
   value: string
+}
+
+const COMMON_SHOPIFY_CURRENCY_CODES = ['USD', 'CAD', 'EUR', 'GBP', 'AUD', 'NZD', 'CHF', 'SGD', 'CNY', 'HKD']
+const intlWithCurrencyList = Intl as typeof Intl & { supportedValuesOf?: (key: 'currency') => string[] }
+const intlCurrencyCodes = intlWithCurrencyList.supportedValuesOf?.('currency')
+const twoDecimalCurrencyCodes = intlCurrencyCodes?.filter((code) => {
+  if (code === 'XXX' || code === 'XTS') return false
+  try {
+    return new Intl.NumberFormat('en', { style: 'currency', currency: code }).resolvedOptions().maximumFractionDigits === 2
+  } catch {
+    return false
+  }
+})
+export const SHOPIFY_CATALOG_CURRENCY_CODES: readonly string[] = twoDecimalCurrencyCodes?.length
+  ? [...COMMON_SHOPIFY_CURRENCY_CODES.filter((code) => twoDecimalCurrencyCodes.includes(code)), ...twoDecimalCurrencyCodes.filter((code) => !COMMON_SHOPIFY_CURRENCY_CODES.includes(code))]
+  : COMMON_SHOPIFY_CURRENCY_CODES
+
+export type ShopifyVariantOption = {
+  id: string
+  label: string
+  available: boolean
+  sku: string | null
+  imageUrl: string | null
+  priceMinor: number | null
+  color: string | null
+  size: string | null
+  material: string | null
+  shape: string | null
+}
+
+export type ShopifyProductReview = {
+  productId: string
+  variantOptions: ShopifyVariantOption[]
+  selectedVariantId: string | null
+  imageDecoded: boolean
+  imageConfirmed: boolean
+  priceConfirmed: boolean
+  currencyCode: string | null
 }
 
 export type CatalogImportCandidate = {
@@ -47,6 +85,7 @@ export type CatalogImportCandidate = {
   dedupeStatus: CatalogCandidateDedupeStatus
   issues: string[]
   sourceLabel?: string
+  shopifyReview?: ShopifyProductReview
 }
 
 export type ExtractedProduct = {
@@ -73,12 +112,15 @@ export type ExtractedProduct = {
   sourceUrl: string
   sourceLabel?: string
   sourceIssues?: string[]
+  shopifyReview?: ShopifyProductReview
 }
 
 export type CatalogSourceDocument = {
   url: string
   body: string
   contentType: string
+  status?: number
+  platformHint?: 'SHOPIFY'
 }
 
 export type CatalogSourceExistingFrame = {
@@ -92,12 +134,14 @@ export type CatalogSourceExistingFrame = {
 export class MerchantSourceIntakeError extends Error {
   readonly code: string
   readonly httpStatus: number
+  readonly platformHint?: 'SHOPIFY'
 
-  constructor(code: string, message: string, httpStatus = 400) {
+  constructor(code: string, message: string, httpStatus = 400, platformHint?: 'SHOPIFY') {
     super(message)
     this.name = 'MerchantSourceIntakeError'
     this.code = code
     this.httpStatus = httpStatus
+    this.platformHint = platformHint
   }
 }
 
@@ -434,8 +478,129 @@ export function extractCatalogProductsFromShopifyJson(value: unknown, sourceUrl:
   return products
 }
 
+function normalizeShopifyImageUrl(value: unknown, sourceUrl: string): string | null {
+  const raw = shopifyImage(value)
+  if (!raw) return null
+  try {
+    const url = new URL(raw, sourceUrl)
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null
+    url.hash = ''
+    return url.toString()
+  } catch {
+    return null
+  }
+}
+
+function optionIndex(options: unknown, names: string[]): number {
+  if (!Array.isArray(options)) return -1
+  return options.findIndex((option) => {
+    if (!option) return false
+    const name = (typeof option === 'string' ? option : asString((option as { name?: unknown }).name))?.toLowerCase()
+    return Boolean(name && names.includes(name))
+  })
+}
+
+function variantOptionValue(variant: Record<string, unknown>, index: number): string | null {
+  if (index < 0 || index > 2) return null
+  const values = Array.isArray(variant.options)
+    ? variant.options
+    : [variant.option1, variant.option2, variant.option3]
+  return asString(values[index])
+}
+
+function asShopifyId(value: unknown): string | null {
+  if (typeof value === 'string' && value.trim()) return value.trim()
+  if (typeof value === 'number' && Number.isSafeInteger(value) && value > 0) return String(value)
+  return null
+}
+
+export function extractShopifyAjaxProduct(value: unknown, sourceUrl: string): ExtractedProduct {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new MerchantSourceIntakeError('SHOPIFY_PRODUCT_DATA_INCOMPLETE', 'The Shopify product response was incomplete. Add the product manually or upload a CSV.')
+  }
+  const product = value as Record<string, unknown>
+  const productId = asShopifyId(product.id)
+  const title = asString(product.title)
+  const handle = asString(product.handle)
+  let sourceHandle: string | null = null
+  try {
+    const sourceSegments = new URL(sourceUrl).pathname.split('/').filter(Boolean)
+    const productsIndex = sourceSegments.lastIndexOf('products')
+    if (productsIndex >= 0 && productsIndex === sourceSegments.length - 2) sourceHandle = sourceSegments[productsIndex + 1]
+  } catch {
+    // Invalid source URLs are rejected by the bounded fetcher; do not let a
+    // malformed URL turn an incomplete product payload into an importable one.
+  }
+  const rawVariants = product.variants
+  if (!productId || !title || !handle || !sourceHandle || handle.toLowerCase() !== sourceHandle.toLowerCase() || !Array.isArray(rawVariants) || rawVariants.length === 0 || rawVariants.length > 250) {
+    throw new MerchantSourceIntakeError('SHOPIFY_PRODUCT_DATA_INCOMPLETE', 'This product did not provide a complete, bounded variant list. Add it manually or upload a CSV.')
+  }
+
+  const productOptions = Array.isArray(product.options) ? product.options : []
+  const colorIndex = optionIndex(productOptions, ['color', 'colour'])
+  const sizeIndex = optionIndex(productOptions, ['size', 'fit'])
+  const materialIndex = optionIndex(productOptions, ['material'])
+  const shapeIndex = optionIndex(productOptions, ['shape', 'frame shape'])
+  const productImage = normalizeShopifyImageUrl(product.featured_image ?? product.image, sourceUrl)
+  const variantOptions: ShopifyVariantOption[] = rawVariants.map((rawVariant) => {
+    const variant = rawVariant && typeof rawVariant === 'object' ? rawVariant as Record<string, unknown> : {}
+    const id = asShopifyId(variant.id)
+    const label = asString(variant.title) ?? ''
+    const rawPrice = variant.price
+    const priceMinor = typeof rawPrice === 'number' && Number.isSafeInteger(rawPrice) && rawPrice >= 0 ? rawPrice : null
+    const variantImage = normalizeShopifyImageUrl(variant.featured_image, sourceUrl) ?? productImage
+    return {
+      id: id ?? '',
+      label,
+      available: variant.available === true,
+      sku: asString(variant.sku),
+      imageUrl: variantImage,
+      priceMinor,
+      color: variantOptionValue(variant, colorIndex),
+      size: variantOptionValue(variant, sizeIndex),
+      material: variantOptionValue(variant, materialIndex),
+      shape: variantOptionValue(variant, shapeIndex),
+    }
+  })
+  if (variantOptions.some((variant) => !variant.id || !variant.label) || !variantOptions.some((variant) => variant.available)) {
+    throw new MerchantSourceIntakeError('SHOPIFY_PRODUCT_DATA_INCOMPLETE', 'This product did not provide usable available variants. Add it manually or upload a CSV.')
+  }
+
+  return {
+    name: title,
+    brand: asString(product.vendor),
+    productUrl: sourceUrl,
+    source: 'EXTERNAL',
+    externalId: productId,
+    sourceUrl,
+    sourceLabel: 'SHOPIFY_PRODUCT',
+    shape: null,
+    shopifyReview: {
+      productId,
+      variantOptions,
+      selectedVariantId: null,
+      imageDecoded: false,
+      imageConfirmed: false,
+      priceConfirmed: false,
+      currencyCode: null,
+    },
+  }
+}
+
+export function isSupportedShopifyCurrency(value: string | null | undefined): value is string {
+  const code = (value ?? '').trim().toUpperCase()
+  if (!/^[A-Z]{3}$/u.test(code) || !SHOPIFY_CATALOG_CURRENCY_CODES.includes(code)) return false
+  try {
+    return new Intl.NumberFormat('en', { style: 'currency', currency: code }).resolvedOptions().maximumFractionDigits === 2
+  } catch {
+    return false
+  }
+}
+
 function normalizeCandidate(product: ExtractedProduct): CatalogImportCandidate {
-  const enriched = enrichCatalogProduct(product)
+  // Shopify's single-product adapter requires the merchant to select and
+  // confirm a real variant. Do not infer eyewear shape from an untrusted title.
+  const enriched = product.shopifyReview ? product : enrichCatalogProduct(product)
   const sku = clean(enriched.sku)
   const name = clean(enriched.name)
   const imageUrl = clean(enriched.imageUrl)
@@ -455,9 +620,23 @@ function normalizeCandidate(product: ExtractedProduct): CatalogImportCandidate {
   const recommendationIssues: string[] = []
   if (!shape) recommendationIssues.push('MISSING_SHAPE')
   else if ((enriched.shapeConfidence ?? 0) < 0.8) recommendationIssues.push('LOW_CONFIDENCE_SHAPE')
-  const importReady = issues.length === 0
+  const shopifyReview = enriched.shopifyReview
+  if (shopifyReview) {
+    const selectedVariant = shopifyReview.variantOptions.find((variant) => variant.id === shopifyReview.selectedVariantId)
+    if (!selectedVariant) issues.push('SHOPIFY_VARIANT_REQUIRED')
+    else {
+      if (!selectedVariant.available) issues.push('SHOPIFY_VARIANT_UNAVAILABLE')
+      if (selectedVariant.priceMinor == null || enriched.price == null) issues.push('SHOPIFY_PRICE_UNAVAILABLE')
+      if (!isSupportedShopifyCurrency(shopifyReview.currencyCode)) issues.push('SHOPIFY_CURRENCY_REQUIRED')
+      if (!shopifyReview.priceConfirmed) issues.push('SHOPIFY_PRICE_CONFIRMATION_REQUIRED')
+      if (!shopifyReview.imageDecoded || !shopifyReview.imageConfirmed) issues.push('SHOPIFY_IMAGE_CONFIRMATION_REQUIRED')
+      if (!shape) issues.push('MISSING_SHAPE')
+    }
+  }
+  const uniqueIssues = [...new Set(issues)]
+  const importReady = uniqueIssues.length === 0
   const recommendationReady = importReady && recommendationIssues.length === 0
-  const fatal = issues.some((issue) => issue === 'INVALID_IMAGE_URL' || issue === 'INVALID_PRODUCT_URL')
+  const fatal = uniqueIssues.some((issue) => issue === 'INVALID_IMAGE_URL' || issue === 'INVALID_PRODUCT_URL')
   const status: CatalogCandidateStatus = fatal ? 'INVALID' : importReady ? 'READY' : 'NEEDS_REVIEW'
   const identity = sku
     ? { type: 'MERCHANT_SKU' as const, value: sku }
@@ -493,8 +672,67 @@ function normalizeCandidate(product: ExtractedProduct): CatalogImportCandidate {
     readiness,
     status,
     dedupeStatus: 'NEW',
-    issues,
+    issues: uniqueIssues,
     ...(enriched.sourceLabel ? { sourceLabel: enriched.sourceLabel } : {}),
+    ...(shopifyReview ? { shopifyReview } : {}),
+  }
+}
+
+export type ShopifyCandidateReviewPatch = {
+  selectedVariantId?: string | null
+  imageDecoded?: boolean
+  imageConfirmed?: boolean
+  priceConfirmed?: boolean
+  currencyCode?: string | null
+  shape?: string | null
+}
+
+export function reviewShopifyCandidate(candidate: CatalogImportCandidate, patch: ShopifyCandidateReviewPatch): CatalogImportCandidate {
+  const currentReview = candidate.shopifyReview
+  if (!currentReview) return candidate
+  const variantChanged = patch.selectedVariantId !== undefined && patch.selectedVariantId !== currentReview.selectedVariantId
+  const requestedCurrency = patch.currencyCode === undefined ? currentReview.currencyCode : patch.currencyCode
+  const currencyChanged = (requestedCurrency ?? '').trim().toUpperCase() !== (currentReview.currencyCode ?? '').trim().toUpperCase()
+  const shopifyReview: ShopifyProductReview = {
+    ...currentReview,
+    ...patch,
+    imageDecoded: variantChanged ? false : patch.imageDecoded ?? currentReview.imageDecoded,
+    imageConfirmed: variantChanged ? false : patch.imageConfirmed ?? currentReview.imageConfirmed,
+    priceConfirmed: variantChanged || currencyChanged ? false : patch.priceConfirmed ?? currentReview.priceConfirmed,
+    currencyCode: isSupportedShopifyCurrency(patch.currencyCode ?? currentReview.currencyCode)
+      ? (patch.currencyCode ?? currentReview.currencyCode)!.toUpperCase()
+      : null,
+  }
+  const selectedVariant = shopifyReview.variantOptions.find((variant) => variant.id === shopifyReview.selectedVariantId)
+  const shape = normalizeShape(clean(patch.shape !== undefined ? patch.shape : variantChanged ? selectedVariant?.shape ?? null : selectedVariant?.shape ?? candidate.shape))
+  const reviewed = normalizeCandidate({
+    ...candidate,
+    sourceUrl: candidate.productUrl ?? '',
+    source: 'EXTERNAL',
+    sourceLabel: 'SHOPIFY_PRODUCT',
+    sku: selectedVariant?.sku ?? null,
+    variant: selectedVariant?.label ?? null,
+    imageUrl: selectedVariant?.imageUrl ?? null,
+    price: selectedVariant?.priceMinor ?? null,
+    currency: shopifyReview.currencyCode?.toLowerCase() ?? null,
+    shape,
+    shapeSource: shape ? patch.shape !== undefined ? 'MERCHANT_CONFIRMED' : selectedVariant?.shape ? 'STRUCTURED_FIELD' : candidate.shapeSource : 'NONE',
+    shapeConfidence: shape ? 0.99 : null,
+    color: selectedVariant?.color ?? null,
+    material: selectedVariant?.material ?? null,
+    externalId: selectedVariant ? `${shopifyReview.productId}:${selectedVariant.id}` : shopifyReview.productId,
+    shopifyReview,
+  })
+  // Reviewing a candidate must not erase the duplicate decision made against
+  // this merchant's existing Catalog. A selected variant changes identity,
+  // but the original product URL remains the stable duplicate key as well.
+  if (candidate.dedupeStatus === 'NEW') return reviewed
+  return {
+    ...reviewed,
+    dedupeStatus: candidate.dedupeStatus,
+    status: reviewed.status === 'INVALID' ? 'INVALID' : 'NEEDS_REVIEW',
+    readiness: reviewed.status === 'INVALID' ? 'INVALID' : 'NEEDS_REVIEW',
+    issues: [...new Set([...reviewed.issues, candidate.dedupeStatus])],
   }
 }
 
@@ -522,7 +760,7 @@ function sourceError(error: unknown, fallback: MerchantSourceIntakeError) {
   return { code: fallback.code, message: fallback.message }
 }
 
-function candidateToImportFrame(candidate: CatalogImportCandidate): CatalogFrameInput | null {
+export function catalogCandidateToImportFrame(candidate: CatalogImportCandidate): CatalogFrameInput | null {
   if (!candidate.importReady || candidate.dedupeStatus !== 'NEW' || !candidate.name || !candidate.identity) return null
   return {
     sku: candidate.sku,
@@ -638,7 +876,7 @@ export async function buildCatalogInspectionProposal(input: {
   const seenUrls = new Set<string>()
   const seenExternalIds = new Set<string>()
   const enrichedExtracted = await Promise.all(extracted.slice(0, maxProducts).map(async (product) => {
-    const deterministic = enrichCatalogProduct(product)
+    const deterministic = product.shopifyReview ? product : enrichCatalogProduct(product)
     if (deterministic.shape || !input.enrichShapeWithVision || !deterministic.imageUrl) return deterministic
     try {
       const vision = await input.enrichShapeWithVision(deterministic)
@@ -672,7 +910,7 @@ export async function buildCatalogInspectionProposal(input: {
           : 'IMPORT_READY'
     return { ...candidate, readiness }
   })
-  const importable = finalizedCandidates.map(candidateToImportFrame).filter((candidate): candidate is CatalogFrameInput => Boolean(candidate))
+  const importable = finalizedCandidates.map(catalogCandidateToImportFrame).filter((candidate): candidate is CatalogFrameInput => Boolean(candidate))
   const sourceHostnames = [...new Set(sourceUrls.map((sourceUrl) => {
     try { return new URL(sourceUrl).hostname } catch { return null }
   }).filter((value): value is string => Boolean(value)))]
