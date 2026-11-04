@@ -27,6 +27,8 @@ describe('MerchantWorkspaceOnboarding', () => {
 
   it('submits the workspace form and redirects to the created merchant', async () => {
     render(<MerchantWorkspaceOnboarding locale="en" />)
+    expect(screen.getByText('Step 1 of 3 · Workspace')).toBeInTheDocument()
+    expect(screen.getByText(/Next, add one eyewear product and preview your Store privately/i)).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText(/business, brand, or store name/i), { target: { value: 'Golden Path Test' } })
     fireEvent.change(screen.getByLabelText(/website/i), { target: { value: 'https://example.test' } })
     fireEvent.click(screen.getByRole('button', { name: /create merchant workspace/i }))

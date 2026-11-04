@@ -130,7 +130,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
 
     await expect(page).toHaveURL(/\/en\/merchant(?:\?|$)/)
-    await expect(page.getByRole('heading', { name: /set up visutry for your business/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /create your merchant workspace/i })).toBeVisible()
     const nameField = page.getByLabel(/business, brand, or store name/i)
     await expect(nameField).toHaveAttribute('required', '')
     logPhaseStart('merchant activation / first value')

@@ -35,7 +35,7 @@ export function MerchantActivationChecklist({ control, firstValueAchieved = fals
 
   const steps: Step[] = [
     {
-      number: "1",
+      number: "2",
       title: "Add your first product",
       body: hasCatalog
         ? "Your catalog has a usable product."
@@ -45,7 +45,7 @@ export function MerchantActivationChecklist({ control, firstValueAchieved = fals
       complete: hasCatalog,
     },
     {
-      number: "2",
+      number: "3",
       title: "Preview your Store",
       body: hasPreviewableStore
         ? "Review the Store presentation before it is public."

@@ -44,7 +44,7 @@ test.describe('Human Merchant Onboarding G1', () => {
     // identity again to prove the existing-workspace path is idempotent.
     await loginWithMock(request, context, 'premium')
     await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByRole('heading', { name: /set up visutry for your business/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /create your merchant workspace/i })).toBeVisible()
     const nameField = page.getByLabel(/business, brand, or store name/i)
     const websiteField = page.getByLabel(/website/i)
     await expect(nameField).toBeVisible()
