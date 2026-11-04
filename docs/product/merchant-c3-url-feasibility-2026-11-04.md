@@ -47,7 +47,9 @@ The independent C3 branch now contains a product-scoped Shopify adapter:
 
 Unit coverage exercises a 111-variant payload as one candidate, the review gates and currency reset behavior, preserved price units and URL, image selection, soft-404 handling, 403/429 fallback, and existing Catalog membership enforcement.
 
-The required D1 acceptance remains open until an isolated real-browser journey verifies MOSCOT URL → merchant review → explicit approval → Catalog persistence/readback → private Store Preview, including a decoded image. The negative 403/429, soft-404, malformed/wrong-price, and cross-tenant checks must also run in that environment.
+The Merchant RC GitHub Actions workflow now has a manual `run_live_moscot_d1` input, defaulting to false. Pull request runs keep their normal local scenarios and do not contact MOSCOT. A manually selected run reuses the isolated PostgreSQL + Chromium setup, runs the 403/429, soft-404, malformed-price, and cross-tenant regression suites, then executes the MOSCOT URL → merchant review → explicit approval → Catalog persistence/readback → private Store Preview journey. It captures review and preview screenshots as short-retention workflow artifacts.
+
+The required D1 acceptance remains open until that manual workflow completes successfully, including a decoded selected image. The existing live endpoint probe is feasibility evidence; it is not a substitute for the new app-side browser run.
 
 ## Limits
 
