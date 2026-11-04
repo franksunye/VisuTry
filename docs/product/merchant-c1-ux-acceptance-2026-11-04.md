@@ -60,6 +60,10 @@ The N route used a seeded clean Local Mock identity, not a newly registered Auth
 - Merchant workspace and activation-checklist Jest tests — 10/10 pass.
 - Chromium `p0-m1-merchant-auth-boundary.spec.ts` — 4/4 pass.
 - Chromium `p0-l1-local-merchant-growth-lab.spec.ts` First Value RC — 1/1 pass; desktop/mobile route checks passed.
+- Chromium `p1-m2-5-local-campaign-workspace.spec.ts` — 1/1 pass after correcting its stale workspace-heading expectation; this was test drift, not an application failure.
 - N/E/R Chromium journeys on the app commit above — pass; private preview stayed non-public and A6 was deduplicated once per merchant.
+- [Merchant Executed RC workflow](https://github.com/franksunye/VisuTry/actions/runs/41791807541) at PR head `beac9e07bcbf1d8ae1673980efefa4a38ef30cfb` — pass. Its sanitized Local/Mock ledger reports 4/4 required scenarios passed (First Value private preview, Campaign lifecycle, native-photo Catalog, CSV recovery); 0 failed, skipped, or ambiguous.
+- [Quality Gate workflow](https://github.com/franksunye/VisuTry/actions/runs/41791807434) — Static + Critical Business Regression, Revenue Critical Browser Gate, and Sponsored PostgreSQL Contract all pass.
+- The Vercel check was canceled by its Ignored Build Step; no preview or production deployment was performed.
 
 **Decision:** Keep PR #516 in Draft and C1 at **HOLD** until the mobile first-value view is simplified and Auth0 registration is independently observed. No merge or production deployment was performed. C3 remains out of scope.
