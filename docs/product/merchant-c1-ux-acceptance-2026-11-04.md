@@ -1,5 +1,7 @@
 # C1 Merchant First Value independent UX acceptance
 
+> **Historical C1.0 result — superseded by [C1.1 acceptance](./merchant-c1-1-ux-acceptance-2026-11-04.md).** The HOLD below recorded the original mobile task-hierarchy issue. C1.1 passed the focused task-first UX review. Real Auth0 registration and callback remain a separate launch gate.
+
 **Disposition: HOLD**
 
 **App/tested commit:** `39262a9ab8d0b36273e62cd340420ba1dd59927a`
@@ -66,4 +68,4 @@ The N route used a seeded clean Local Mock identity, not a newly registered Auth
 - [Quality Gate workflow](https://github.com/franksunye/VisuTry/actions/runs/41791807434) — Static + Critical Business Regression, Revenue Critical Browser Gate, and Sponsored PostgreSQL Contract all pass.
 - The Vercel check was canceled by its Ignored Build Step; no preview or production deployment was performed.
 
-**Decision:** Keep PR #516 in Draft and C1 at **HOLD** until the mobile first-value view is simplified and Auth0 registration is independently observed. No merge or production deployment was performed. C3 remains out of scope.
+**Historical decision at C1.0:** Keep PR #516 in Draft and C1 at **HOLD** until the mobile first-value view is simplified and Auth0 registration is independently observed. C1.1 resolved the UX item; Auth0 is now treated as a separate launch gate. See the current [C1.1 acceptance report](./merchant-c1-1-ux-acceptance-2026-11-04.md). No merge or production deployment was performed. C3 remains out of scope.
