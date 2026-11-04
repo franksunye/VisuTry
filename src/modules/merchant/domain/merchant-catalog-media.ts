@@ -17,12 +17,18 @@ export function catalogProductMediaPrefix(merchantId: string): string {
   return 'merchant-catalog/' + merchantId + '/product/'
 }
 
+/** New uploads are day-partitioned so an all-time Blob history cannot exhaust a daily limit. */
+export function catalogProductMediaDailyPrefix(merchantId: string, day: Date): string {
+  if (!Number.isFinite(day.getTime())) throw new MerchantCatalogMediaError('INVALID_PRODUCT_IMAGE', 'Invalid upload date.')
+  return catalogProductMediaPrefix(merchantId) + day.toISOString().slice(0, 10) + '/'
+}
+
 /** Only an immutable tenant-bound Vercel Blob URL passes. */
 export function parseCatalogProductMediaUrl(value: unknown): { merchantId: string; url: string } | null {
   if (typeof value !== 'string' || value.length > 2048 || value.trim() !== value) return null
   try {
     const url = new URL(value)
-    const match = /^\/merchant-catalog\/([a-zA-Z0-9_-]{1,120})\/product\/[a-f0-9]{32}\.(png|jpg|webp)$/.exec(url.pathname)
+    const match = /^\/merchant-catalog\/([a-zA-Z0-9_-]{1,120})\/product\/(?:\d{4}-\d{2}-\d{2}\/)?[a-f0-9]{32}\.(png|jpg|webp)$/.exec(url.pathname)
     if (url.protocol !== 'https:' || url.port || url.search || url.hash || url.username || url.password
       || !/^[a-z0-9-]+\.public\.blob\.vercel-storage\.com$/.test(url.hostname) || !match) return null
     return { merchantId: match[1], url: url.toString() }

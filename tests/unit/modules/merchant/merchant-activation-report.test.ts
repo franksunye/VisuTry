@@ -90,4 +90,71 @@ describe('Merchant activation report cohort boundary', () => {
       firstItem: 0,
     })
   })
+
+  it('computes the 7-day A0→A6 rate only for fully observed, classified cohorts', async () => {
+    const day = 24 * 60 * 60 * 1000
+    const now = Date.now()
+    const at = (dayOffset: number) => new Date(now + dayOffset * day)
+    const candidates = [
+      { merchantId: 'real-early', offset: -20, classification: 'REAL' },
+      { merchantId: 'real-second', offset: -17, classification: 'REAL' },
+      { merchantId: 'possible-on-edge', offset: -15, classification: 'POSSIBLE_EXTERNAL' },
+      { merchantId: 'possible-too-late', offset: -12, classification: 'POSSIBLE_EXTERNAL' },
+      { merchantId: 'possible-pending', offset: -2, classification: 'POSSIBLE_EXTERNAL' },
+    ] as const
+    const preview = (merchantId: string, offset: number, id: string) => ({
+      id, merchantId, eventType: 'merchant_store_previewed', occurredAt: at(offset),
+      source: 'CLIENT', correlationId: null, sessionId: 'session-12345678', dedupeKey: id, metadata: null,
+    })
+    jest.mocked(prisma.merchantActivationEvent.findMany)
+      .mockResolvedValueOnce(candidates.map((candidate) => ({
+        merchantId: candidate.merchantId, occurredAt: at(candidate.offset),
+        merchant: { classification: candidate.classification },
+      })) as never)
+      .mockResolvedValueOnce([
+        preview('real-early', -19, 'preview-1d'),
+        preview('real-second', -14, 'preview-3d'),
+        preview('possible-on-edge', -8, 'preview-7d-inclusive'),
+        preview('possible-too-late', -13, 'preview-before-a0-invalid'),
+        preview('possible-too-late', -4, 'preview-8d-too-late'),
+        preview('possible-pending', -1, 'preview-before-window-matures'),
+      ] as never)
+
+    const report = await getMerchantActivationReport()
+
+    expect(report.firstValue7Day).toMatchObject({
+      windowDays: 7,
+      maturedWorkspaces: 4,
+      pendingWorkspaces: 1,
+      achievedWithin7Days: 3,
+      rate: 75,
+      medianTimeToPreviewMs: 3 * day,
+      p90TimeToPreviewMs: 7 * day,
+      confirmedReal: { maturedWorkspaces: 2, achievedWithin7Days: 2, rate: 100 },
+      possibleExternal: { maturedWorkspaces: 2, achievedWithin7Days: 1, rate: 50 },
+    })
+    expect(report.counts.storePreviewed).toBe(5) // Existing all-time count remains unchanged.
+  })
+
+  it('reports N/A, rather than a false 0% failure, for an immature cohort', async () => {
+    const now = new Date()
+    jest.mocked(prisma.merchantActivationEvent.findMany)
+      .mockResolvedValueOnce([
+        { merchantId: 'new-merchant', occurredAt: now, merchant: { classification: 'REAL' } },
+      ] as never)
+      .mockResolvedValueOnce([])
+
+    const report = await getMerchantActivationReport()
+
+    expect(report.firstValue7Day).toMatchObject({
+      maturedWorkspaces: 0,
+      pendingWorkspaces: 1,
+      achievedWithin7Days: 0,
+      rate: null,
+      medianTimeToPreviewMs: null,
+      p90TimeToPreviewMs: null,
+      confirmedReal: { maturedWorkspaces: 0, achievedWithin7Days: 0, rate: null },
+    })
+  })
+
 })

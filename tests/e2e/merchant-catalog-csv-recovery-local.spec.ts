@@ -31,7 +31,7 @@ test('rejects unsafe local URL, recovers to CSV, and imports only after approval
   await context.addCookies((await request.storageState()).cookies)
 
   await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
-  await expect(page.getByRole('heading', { name: /set up visutry for your business/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /create your merchant workspace/i })).toBeVisible()
   await page.waitForLoadState('networkidle')
   await page.getByLabel(/business, brand, or store name/i).fill('Local CSV Recovery QA Merchant')
   const createPromise = page.waitForResponse((response) =>

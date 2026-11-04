@@ -30,6 +30,11 @@ test.describe('P0-M1 Merchant acquisition/auth boundary', () => {
     await openSignIn(page, '/en/merchant')
     await expect(page.locator('[data-auth-surface="merchant-admin"]')).toBeVisible()
     await expect(page.getByRole('button', { name: /create merchant account/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Create your first private Store preview.' })).toBeVisible()
+    await expect(page.getByText('Create or choose your merchant workspace, add and review one eyewear product, then preview your Store privately. Connect an AI agent later if you want.')).toBeVisible()
+    await expect(page.getByText('Review a private Store preview before publishing')).toBeVisible()
+    await expect(page.locator('body')).not.toContainText('Key + Skill setup')
+    await expect(page.getByText('Your Store stays private unless you publish it.')).toBeVisible()
 
     // Synthetic callback path: this test verifies route-family auth selection,
     // not a dependency on the historical Discovery Canary Campaign.

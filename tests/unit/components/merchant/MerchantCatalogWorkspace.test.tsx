@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MerchantCatalogWorkspace } from '@/components/merchant/MerchantCatalogWorkspace'
 
 jest.mock('@/components/merchant/MerchantCatalogSelfService', () => ({
-  MerchantCatalogSelfService: () => <div>catalog intake</div>,
+  MerchantCatalogSelfService: ({ storeNextHref }: { storeNextHref?: string }) => <div data-store-next-href={storeNextHref}>catalog intake</div>,
 }))
 
 const item = {
@@ -52,7 +52,7 @@ describe('MerchantCatalogWorkspace', () => {
     const addProducts = await screen.findByRole('button', { name: 'Add products' })
     fireEvent.click(addProducts)
     expect(addProducts).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByText('catalog intake')).toBeInTheDocument()
+    expect(screen.getByText('catalog intake')).toHaveAttribute('data-store-next-href', '/en/merchant/store?merchantId=merchant-a')
 
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
     expect(await screen.findByRole('textbox', { name: 'Product name' })).toHaveValue(item.name)

@@ -56,7 +56,7 @@ test('chooses local photo, simulates Blob staging, then inspects and approves in
   expect(login.ok()).toBeTruthy()
   await context.addCookies((await request.storageState()).cookies)
   await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
-  await expect(page.getByRole('heading', { name: /set up visutry for your business/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /create your merchant workspace/i })).toBeVisible()
   // Next dev hydration timing varies after two prior local browser journeys.
   await page.waitForLoadState('networkidle')
   await page.getByLabel(/business, brand, or store name/i).fill('Local Native Photo QA Merchant')

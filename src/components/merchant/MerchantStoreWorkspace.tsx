@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Check, Copy, ExternalLink, Eye, Loader2, Save, Search, Store } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
+import { recordMerchantActivationClientEvent } from "@/lib/merchant-activation-client";
 import { MerchantStorePrivatePreview } from "@/components/merchant/MerchantStorePrivatePreview";
 import { MerchantExperienceHeroSettings } from "@/components/merchant/MerchantExperienceHeroSettings";
 import { DEFAULT_EXPERIENCE_CONFIGURATION, MerchantExperienceConfiguration, type ExperienceConfigurationDraft } from "@/components/merchant/MerchantExperienceConfiguration";
@@ -265,6 +266,17 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
       setPreview(next);
       setLivePreviewError(null);
       setPublishApproved(false);
+      // Only an explicit, usable private preview is A6 First Value.
+      // Passive reads of a live Store must never count as activation.
+      if (next.readiness.ready && next.frames.length > 0) {
+        void recordMerchantActivationClientEvent({
+          merchantId,
+          eventType: "merchant_store_previewed",
+          resourceId: store.id,
+        }).catch(() => {
+          // Analytics failure must not block a valid Store preview.
+        });
+      }
     } catch (previewError) {
       setError(previewError instanceof Error ? previewError.message : "Unable to preview your Store.");
     } finally { setBusy(false); }

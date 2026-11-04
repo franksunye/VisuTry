@@ -20,6 +20,10 @@ describe('MerchantActivationChecklist', () => {
     render(<MerchantActivationChecklist control={control()} />)
 
     expect(screen.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInTheDocument()
+    expect(screen.getByText('Workspace')).toBeInTheDocument()
+    expect(screen.getByText('Merchant A is ready.')).toBeInTheDocument()
+    expect(screen.getByText('2')).toBeInTheDocument()
+    expect(screen.getByText('3')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /add your first product/i })).toHaveAttribute('href', '#catalog')
     expect(screen.getByText('Start with one eyewear product to see the activation path.')).toBeInTheDocument()
     expect(screen.queryByText('Publish when ready')).not.toBeInTheDocument()

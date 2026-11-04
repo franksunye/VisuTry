@@ -98,6 +98,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
         route: `${location.pathname}${location.search}`,
         viewportWidth: window.innerWidth,
         documentWidth: document.documentElement.scrollWidth,
+        pageHeight: document.documentElement.scrollHeight,
       }))
       expect(metrics.documentWidth, `${surface} must fit its ${metrics.viewportWidth}px viewport`).toBeLessThanOrEqual(metrics.viewportWidth)
       console.log(JSON.stringify({ responsiveSurface: surface, ...metrics, horizontalOverflow: false }))
@@ -130,7 +131,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
 
     await expect(page).toHaveURL(/\/en\/merchant(?:\?|$)/)
-    await expect(page.getByRole('heading', { name: /set up visutry for your business/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /create your merchant workspace/i })).toBeVisible()
     const nameField = page.getByLabel(/business, brand, or store name/i)
     await expect(nameField).toHaveAttribute('required', '')
     logPhaseStart('merchant activation / first value')
@@ -139,13 +140,41 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.getByRole('button', { name: /create merchant workspace/i }).click()
     await expect(page.locator('[data-onboarding-state="created"]')).toContainText('Workspace created')
     await expect(page.getByRole('link', { name: 'Add your first product' })).toBeVisible()
+    const merchantId = await page.getByLabel('Active merchant').inputValue()
+    const taskMode = page.getByTestId('merchant-first-value-task-mode')
+    await expect(taskMode).toBeVisible()
+    await expect(taskMode.locator('[data-activation-step="1"]')).toContainText('Workspace')
+    await expect(taskMode.locator('[data-activation-step="1"]')).toContainText('Local Growth Lab Eyewear is ready.')
+    await expect(taskMode.locator('[data-activation-step="2"]')).toContainText('Add your first product')
+    await expect(taskMode.locator('[data-activation-step="3"]')).toContainText('Preview your Store')
+    await expect(page.getByRole('link', { name: 'Workspace', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Add product', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Private preview', exact: true })).toBeVisible()
+    const secondaryTools = page.getByTestId('merchant-secondary-workspace-tools')
+    await expect(secondaryTools).not.toHaveAttribute('open')
+    await expect(secondaryTools.getByText('Plan, insights, Agent setup, and workspace status')).toBeVisible()
+    await secondaryTools.locator('summary').first().click()
+    await expect(page.getByRole('heading', { name: 'Bring your eyewear catalog to life.' })).toBeVisible()
+    await expect(page.getByText('Workspace status', { exact: true })).toBeVisible()
+    await secondaryTools.locator('summary').first().click()
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInViewport()
+    await page.screenshot({ path: `${responsiveEvidenceDir}/c1-1-N-first-screen-desktop.png` })
+    await page.screenshot({ path: `${responsiveEvidenceDir}/c1-1-N-workspace-desktop.png`, fullPage: true })
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInViewport()
+    await page.screenshot({ path: `${responsiveEvidenceDir}/c1-1-N-first-screen-mobile.png` })
+    await page.screenshot({ path: `${responsiveEvidenceDir}/c1-1-N-workspace-mobile.png`, fullPage: true })
+    await assertNoHorizontalOverflow('First Value task view / N mobile')
+    await page.setViewportSize({ width: 1440, height: 900 })
 
     await page.getByRole('tab', { name: 'Add manually' }).click()
     await page.getByLabel('Product name for product 1').fill('Local Growth Round Frame')
     await page.getByLabel('Product image URL for product 1').fill(`${process.env.PLAYWRIGHT_BASE_URL}/assets/glasses-presets/large-round-classic.jpg`)
     await page.getByLabel('Merchant SKU for product 1').fill('LOCAL-FRAME-001')
     await expect(page.getByRole('button', { name: 'Review product' })).toBeEnabled()
-    const merchantId = await page.getByLabel('Active merchant').inputValue()
     const inspectResponsePromise = page.waitForResponse((response) => (
       response.url().includes(`/api/merchant/${encodeURIComponent(merchantId)}/catalog/inspect`)
       && response.request().method() === 'POST'
@@ -166,6 +195,46 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByRole('heading', { name: 'Set up your Store' })).toBeVisible()
     await expect(page.getByText('Your Store draft is ready with your first product selected.', { exact: true })).toBeVisible()
     await expect(page.locator('#store').getByRole('button', { name: 'Preview your Store' }).first()).toBeEnabled()
+
+    // Returning after a real product and Store draft resumes the same
+    // merchant, Catalog entry, and next incomplete Preview action.
+    await page.evaluate(async () => {
+      const csrfToken = await fetch('/api/auth/csrf').then((response) => response.json()).then((body: { csrfToken: string }) => body.csrfToken)
+      await fetch('/api/auth/signout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ csrfToken, callbackUrl: '/en/business' }),
+      })
+    })
+    await context.clearCookies()
+    const returningCsrf = await request.get('/api/auth/csrf')
+    const { csrfToken: returningCsrfToken } = await returningCsrf.json() as { csrfToken: string }
+    const returningLogin = await request.post('/api/auth/callback/mock-credentials', {
+      form: { email: 'clean@local.test', qaIdentity: 'clean', type: 'premium', csrfToken: returningCsrfToken, callbackUrl: '/en/merchant', json: 'true' },
+    })
+    expect(returningLogin.ok(), 'Returning Local Mock identity can sign in again').toBeTruthy()
+    await context.addCookies(await request.storageState().then((state) => state.cookies))
+    await page.goto(`/en/merchant?merchantId=${encodeURIComponent(merchantId)}`, { waitUntil: 'networkidle' })
+    const returningTaskMode = page.getByTestId('merchant-first-value-task-mode')
+    await expect(returningTaskMode).toBeVisible()
+    await expect(page.getByLabel('Active merchant')).toHaveValue(merchantId)
+    await expect(returningTaskMode.locator('[data-activation-step="1"]')).toContainText('Local Growth Lab Eyewear is ready.')
+    await expect(returningTaskMode.locator('[data-activation-step="2"]')).toHaveAttribute('data-complete', 'true')
+    await expect(returningTaskMode.locator('[data-activation-step="2"]')).toContainText('Your catalog has a usable product.')
+    await expect(page.locator('#catalog').getByText('Local Growth Round Frame', { exact: true })).toHaveCount(1)
+    await expect(page.getByRole('heading', { name: 'Your Store is ready to preview' })).toBeVisible()
+    await expect(page.locator('#store').getByRole('button', { name: 'Preview your Store' }).first()).toBeEnabled()
+    await expect(page.getByTestId('merchant-secondary-workspace-tools')).not.toHaveAttribute('open')
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInViewport()
+    await page.screenshot({ path: `${responsiveEvidenceDir}/c1-1-R-returning-incomplete-desktop.png`, fullPage: true })
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInViewport()
+    await page.screenshot({ path: `${responsiveEvidenceDir}/c1-1-R-first-screen-mobile.png` })
+    await page.screenshot({ path: `${responsiveEvidenceDir}/c1-1-R-returning-incomplete-mobile.png`, fullPage: true })
+    await assertNoHorizontalOverflow('Returning incomplete task view / R mobile')
+    await page.setViewportSize({ width: 1440, height: 900 })
 
     // Exercise the pre-first-value Merchant control center, including its
     // experience rows, at desktop and phone widths before the preview event
@@ -193,6 +262,31 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByText('Private draft preview', { exact: true })).toBeVisible()
     await expect(page.getByText('DRAFT · not public')).toBeVisible()
     await expect(page.getByRole('checkbox', { name: /confirm this store is ready/i })).not.toBeChecked()
+    await expect(page.getByTestId('merchant-first-value-task-mode')).not.toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeVisible()
+    await expect(page.getByTestId('merchant-secondary-workspace-tools')).toHaveAttribute('open')
+    await expect(page.getByTestId('merchant-secondary-workspace-tools').locator('summary').first()).toBeHidden()
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeInViewport()
+    await page.screenshot({ path: `${responsiveEvidenceDir}/c1-1-N-after-private-preview-desktop.png`, fullPage: true })
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeInViewport()
+    await page.screenshot({ path: `${responsiveEvidenceDir}/c1-1-N-after-private-preview-mobile.png`, fullPage: true })
+    await assertNoHorizontalOverflow('First Value completed / N mobile')
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.reload({ waitUntil: 'networkidle' })
+    await expect(page.getByTestId('merchant-first-value-task-mode')).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Business status' })).toBeVisible()
+    const completedPrimaryNavigation = page.getByRole('navigation', { name: 'Merchant primary navigation' })
+    await expect(completedPrimaryNavigation.getByRole('link', { name: 'Catalog' })).toBeVisible()
+    await expect(completedPrimaryNavigation.getByRole('link', { name: 'Store' })).toBeVisible()
+    await expect(completedPrimaryNavigation.getByRole('link', { name: 'Analytics' })).toBeVisible()
+    const completedUtilityNavigation = page.getByRole('navigation', { name: 'Merchant utility navigation' })
+    await expect(completedUtilityNavigation.getByRole('link', { name: 'Integrations' })).toBeVisible()
+    await expect(completedUtilityNavigation.getByRole('link', { name: 'Plan & Usage' })).toBeVisible()
+    await page.screenshot({ path: `${responsiveEvidenceDir}/c1-1-N-existing-merchant-home-desktop.png`, fullPage: true })
     const activationPageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
     logPhaseStart('operating workspace checks')
 
@@ -420,5 +514,120 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
       '',
     ].join('\n'))
     logJourneyComplete()
+  })
+
+  test('onboards an existing Consumer through the focused mobile task view to private preview', async ({ page, request, context }) => {
+    test.skip(!isLocalLabRun, 'Run npm run merchant:local:e2e with the Local server already running.')
+    test.setTimeout(180_000)
+    const evidenceDir = '/tmp/visutry-purchase-billing-responsive'
+    mkdirSync(evidenceDir, { recursive: true })
+    const assertNoHorizontalOverflow = async (surface: string) => {
+      const metrics = await page.evaluate(() => ({ width: window.innerWidth, documentWidth: document.documentElement.scrollWidth, pageHeight: document.documentElement.scrollHeight }))
+      expect(metrics.documentWidth, `${surface} fits its viewport`).toBeLessThanOrEqual(metrics.width)
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/en/business', { waitUntil: 'domcontentloaded' })
+    await page.locator('main').getByRole('link', { name: 'Start Free', exact: true }).first().click()
+    await expect(page).toHaveURL(/\/en\/auth\/signin/)
+    const csrfResponse = await request.get('/api/auth/csrf')
+    const { csrfToken } = await csrfResponse.json() as { csrfToken: string }
+    const loginResponse = await request.post('/api/auth/callback/mock-credentials', {
+      form: {
+        email: 'local-consumer@local.test',
+        qaIdentity: 'consumer',
+        type: 'free',
+        csrfToken,
+        callbackUrl: '/en/merchant',
+        json: 'true',
+      },
+    })
+    expect(loginResponse.ok(), 'Existing Local Consumer can authenticate').toBeTruthy()
+    await context.addCookies(await request.storageState().then((state) => state.cookies))
+    await page.goto('/en/merchant', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: /create your merchant workspace/i })).toBeVisible()
+    await page.getByLabel(/business, brand, or store name/i).fill('Local C1 Consumer Optics')
+    await page.getByRole('button', { name: /create merchant workspace/i }).click()
+    await expect(page).toHaveURL(/\/en\/merchant\?merchantId=[^&]+&onboarding=created/)
+    const merchantId = await page.getByLabel('Active merchant').inputValue()
+    const taskMode = page.getByTestId('merchant-first-value-task-mode')
+    await expect(taskMode).toBeVisible()
+    await expect(taskMode.locator('[data-activation-step="1"]')).toContainText('Workspace')
+    await expect(taskMode.locator('[data-activation-step="1"]')).toContainText('Local C1 Consumer Optics is ready.')
+    await expect(taskMode.locator('[data-activation-step="2"]')).toContainText('Add your first product')
+    await expect(taskMode.locator('[data-activation-step="3"]')).toContainText('Preview your Store')
+    await expect(page.getByRole('link', { name: 'Workspace', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Add product', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Private preview', exact: true })).toBeVisible()
+    await expect(taskMode.getByRole('link', { name: 'Add your first product' })).toBeVisible()
+    await expect(page.getByTestId('merchant-secondary-workspace-tools')).not.toHaveAttribute('open')
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInViewport()
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInViewport()
+    await page.screenshot({ path: `${evidenceDir}/c1-1-E-first-screen-desktop.png` })
+    await page.screenshot({ path: `${evidenceDir}/c1-1-E-workspace-desktop.png`, fullPage: true })
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInViewport()
+    await page.screenshot({ path: `${evidenceDir}/c1-1-E-first-screen-mobile.png` })
+    await page.screenshot({ path: `${evidenceDir}/c1-1-E-workspace-mobile.png`, fullPage: true })
+    await assertNoHorizontalOverflow('Existing Consumer task view / E mobile')
+
+    const secondaryTools = page.getByTestId('merchant-secondary-workspace-tools')
+    await secondaryTools.locator('summary').first().click()
+    await expect(page.getByRole('heading', { name: 'Bring your eyewear catalog to life.' })).toBeVisible()
+    await secondaryTools.locator('summary').first().click()
+
+    await page.getByRole('tab', { name: 'Add manually' }).click()
+    await page.getByLabel('Product name for product 1').fill('C1 Consumer Round Frame')
+    await page.getByLabel('Product image URL for product 1').fill(`${process.env.PLAYWRIGHT_BASE_URL}/assets/glasses-presets/large-round-classic.jpg`)
+    await page.getByLabel('Merchant SKU for product 1').fill('C1-CONSUMER-001')
+    const inspectionPromise = page.waitForResponse((response) => response.url().includes(`/api/merchant/${encodeURIComponent(merchantId)}/catalog/inspect`) && response.request().method() === 'POST')
+    await page.getByRole('button', { name: 'Review product' }).click()
+    const inspection = await inspectionPromise
+    expect(inspection.status()).toBe(200)
+    await page.getByRole('button', { name: /approve and import 1/i }).click()
+    await expect(page.getByText('Your first product is in the Catalog.', { exact: true })).toBeVisible()
+    await page.locator('#store').getByRole('button', { name: 'Create your Store' }).click()
+    await expect(page.getByRole('heading', { name: 'Set up your Store' })).toBeVisible()
+    await expect(page.getByText('Your Store draft is ready with your first product selected.', { exact: true })).toBeVisible()
+
+    const previewPromise = page.waitForResponse((response) => response.url().includes('/store/preview') && response.request().method() === 'POST')
+    await page.locator('#store').getByRole('button', { name: 'Preview your Store' }).first().click()
+    const preview = await previewPromise
+    expect(preview.status()).toBe(200)
+    await expect(page.getByText('Private draft preview', { exact: true })).toBeVisible()
+    await expect(page.getByText('DRAFT · not public', { exact: true })).toBeVisible()
+    await expect(taskMode).not.toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeVisible()
+    await expect(page.getByTestId('merchant-secondary-workspace-tools')).toHaveAttribute('open')
+    await expect(page.getByTestId('merchant-secondary-workspace-tools').locator('summary').first()).toBeHidden()
+    await expect(page.locator('#insights')).toBeVisible()
+    await expect(page.locator('#agent-access')).toBeVisible()
+    await expect(page.locator('#experiences')).toBeVisible()
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeInViewport()
+    await page.screenshot({ path: `${evidenceDir}/c1-1-E-private-preview-mobile.png`, fullPage: true })
+    await assertNoHorizontalOverflow('First Value completed / E mobile')
+
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await expect(page.getByRole('heading', { name: 'Workspace overview' })).toBeInViewport()
+    await page.screenshot({ path: `${evidenceDir}/c1-1-E-private-preview-desktop.png`, fullPage: true })
+    await assertNoHorizontalOverflow('First Value completed / E desktop')
+    await page.reload({ waitUntil: 'networkidle' })
+    await expect(page.getByTestId('merchant-first-value-task-mode')).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Business status' })).toBeVisible()
+    const completedPrimaryNavigation = page.getByRole('navigation', { name: 'Merchant primary navigation' })
+    await expect(completedPrimaryNavigation.getByRole('link', { name: 'Catalog' })).toBeVisible()
+    await expect(completedPrimaryNavigation.getByRole('link', { name: 'Store' })).toBeVisible()
+    await expect(completedPrimaryNavigation.getByRole('link', { name: 'Analytics' })).toBeVisible()
+    const completedUtilityNavigation = page.getByRole('navigation', { name: 'Merchant utility navigation' })
+    await expect(completedUtilityNavigation.getByRole('link', { name: 'Integrations' })).toBeVisible()
+    await expect(completedUtilityNavigation.getByRole('link', { name: 'Plan & Usage' })).toBeVisible()
+    await page.screenshot({ path: `${evidenceDir}/c1-1-E-existing-merchant-home-desktop.png`, fullPage: true })
   })
 })

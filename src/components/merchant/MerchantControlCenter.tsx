@@ -1433,11 +1433,106 @@ function MerchantControlCenterView({
     setAgentReady(
       nextCredentials.some((credential) => credential.status === "ACTIVE"),
     );
+  const firstValueTaskMode = !firstValueAchieved && control.store?.status !== "ACTIVE";
+  const workspaceSections = [
+    {
+      key: "activation-checklist",
+      setupOrder: 1,
+      operatingOrder: 8,
+      content: <MerchantActivationChecklist control={control} firstValueAchieved={firstValueAchieved} catalogState={catalogState} />,
+    },
+    {
+      key: "catalog",
+      setupOrder: 2,
+      operatingOrder: 7,
+      content: <MerchantCatalogSelfService
+        merchantId={control.merchant.id}
+        initialTotal={control.catalog.total}
+        initialWebsiteUrl={control.merchant.websiteUrl}
+        onCatalogChanged={(state) => {
+          setCatalogState(state);
+          router.refresh();
+        }}
+      />,
+    },
+    {
+      key: "store",
+      setupOrder: 3,
+      operatingOrder: 8,
+      content: <MerchantStoreSelfService
+        merchantId={control.merchant.id}
+        initialCatalogCount={control.catalog.total}
+        catalogAvailable={catalogState.hasAny}
+        onFirstValueAchieved={() => setFirstValueAchieved(true)}
+        onStoreChanged={() => router.refresh()}
+      />,
+    },
+    {
+      key: "overview",
+      setupOrder: 4,
+      operatingOrder: 1,
+      content: <Overview
+        control={control}
+        agentReady={agentReady}
+        firstValueAchieved={firstValueAchieved}
+        onAgentAccess={() => document.getElementById("agent-access")?.scrollIntoView({ behavior: "smooth" })}
+        onCatalog={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })}
+        onStore={() => document.getElementById("store")?.scrollIntoView({ behavior: "smooth" })}
+      />,
+    },
+    {
+      key: "workspace-details",
+      setupOrder: 5,
+      operatingOrder: 2,
+      content: <WorkspaceDetails
+        merchantId={control.merchant.id}
+        initialName={control.merchant.name}
+        initialWebsiteUrl={control.merchant.websiteUrl}
+      />,
+    },
+    {
+      key: "plan-usage",
+      setupOrder: 6,
+      operatingOrder: 3,
+      content: control.commercial
+        ? <MerchantPlanUsage commercial={control.commercial} merchantId={control.merchant.id} locale={locale} storeStatus={control.store?.status ?? null} />
+        : null,
+    },
+    {
+      key: "commerce-intelligence",
+      setupOrder: 7,
+      operatingOrder: 4,
+      content: <CommerceIntelligence insights={control.commerceIntelligence} />,
+    },
+    {
+      key: "agent-access",
+      setupOrder: 8,
+      operatingOrder: 5,
+      content: <AgentAccess
+        merchantId={control.merchant.id}
+        endpoint={endpoint}
+        skills={skills}
+        initialCredentials={credentials}
+        onCredentialsChanged={handleCredentialsChanged}
+      />,
+    },
+    {
+      key: "experiences",
+      setupOrder: 9,
+      operatingOrder: 6,
+      content: <Experiences
+        experiences={control.experiences}
+        catalog={control.catalog}
+        onAgentAccess={() => document.getElementById("agent-access")?.scrollIntoView({ behavior: "smooth" })}
+      />,
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-[#f7f8fb] text-slate-950">
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 sm:flex-nowrap sm:justify-between sm:gap-4 sm:px-6 sm:py-3.5 lg:px-8">
-          <a href="#overview" className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none sm:gap-3">
+          <a href={firstValueTaskMode ? "#activation-checklist" : "#overview"} className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none sm:gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white sm:h-10 sm:w-10 sm:rounded-2xl">
               <Sparkles className="h-5 w-5" aria-hidden="true" />
             </span>
@@ -1481,59 +1576,29 @@ function MerchantControlCenterView({
               className="order-3 flex min-w-0 w-full gap-0.5 overflow-x-auto whitespace-nowrap text-sm font-semibold text-slate-600 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:order-none sm:w-auto sm:gap-1 sm:overflow-visible"
               aria-label="Merchant workspace"
             >
-              <a
-                className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                href="#overview"
-              >
-                Overview
-              </a>
-              {firstValueAchieved ? (
+              {firstValueTaskMode ? (
                 <>
-                  <a
-                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                    href="#insights"
-                  >
-                    Insights
-                  </a>
-                  <a
-                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                    href="#agent-access"
-                  >
-                    Setup
-                  </a>
-                  <a
-                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                    href="#experiences"
-                  >
-                    Status
-                  </a>
-                  <a
-                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                    href="#catalog"
-                  >
-                    Catalog
-                  </a>
-                  <a
-                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                    href="#store"
-                  >
-                    Store
-                  </a>
+                  <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#activation-checklist">Workspace</a>
+                  <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#catalog">Add product</a>
+                  <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#store">Private preview</a>
                 </>
               ) : (
                 <>
-                  <a
-                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                    href="#catalog"
-                  >
-                    Catalog
-                  </a>
-                  <a
-                    className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
-                    href="#store"
-                  >
-                    Store
-                  </a>
+                  <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#overview">Overview</a>
+                  {firstValueAchieved ? (
+                    <>
+                      <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#insights">Insights</a>
+                      <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#agent-access">Setup</a>
+                      <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#experiences">Status</a>
+                      <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#catalog">Catalog</a>
+                      <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#store">Store</a>
+                    </>
+                  ) : (
+                    <>
+                      <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#catalog">Catalog</a>
+                      <a className="rounded-lg px-2.5 py-2 hover:bg-slate-100" href="#store">Store</a>
+                    </>
+                  )}
                 </>
               )}
             </nav>
@@ -1567,85 +1632,36 @@ function MerchantControlCenterView({
             </a>
           </section>
         ) : null}
-        <div className="flex flex-col gap-4">
-          <div className={firstValueAchieved ? "order-8" : "order-1"}>
-            <MerchantActivationChecklist control={control} firstValueAchieved={firstValueAchieved} catalogState={catalogState} />
-          </div>
-          <div className={firstValueAchieved ? "order-7" : "order-2"}>
-            <MerchantCatalogSelfService
-              merchantId={control.merchant.id}
-              initialTotal={control.catalog.total}
-              initialWebsiteUrl={control.merchant.websiteUrl}
-              onCatalogChanged={(state) => {
-                setCatalogState(state)
-                router.refresh()
-              }}
-            />
-          </div>
-          <div className={firstValueAchieved ? "order-8" : "order-3"}>
-            <MerchantStoreSelfService
-              merchantId={control.merchant.id}
-              initialCatalogCount={control.catalog.total}
-              catalogAvailable={catalogState.hasAny}
-              onFirstValueAchieved={() => setFirstValueAchieved(true)}
-              onStoreChanged={() => router.refresh()}
-            />
-          </div>
-          <div className={firstValueAchieved ? "order-1" : "order-4"}>
-            <Overview
-              control={control}
-              agentReady={agentReady}
-              firstValueAchieved={firstValueAchieved}
-              onAgentAccess={() =>
-                document
-                  .getElementById("agent-access")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-              onCatalog={() =>
-                document
-                  .getElementById("catalog")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-              onStore={() =>
-                document
-                  .getElementById("store")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-            />
-          </div>
-          <div className={firstValueAchieved ? "order-2" : "order-5"}>
-            <WorkspaceDetails
-              merchantId={control.merchant.id}
-              initialName={control.merchant.name}
-              initialWebsiteUrl={control.merchant.websiteUrl}
-            />
-          </div>
-          <div className={firstValueAchieved ? "order-3" : "order-6"}>
-            {control.commercial ? <MerchantPlanUsage commercial={control.commercial} merchantId={control.merchant.id} locale={locale} storeStatus={control.store?.status ?? null} /> : null}
-          </div>
-          <div className={firstValueAchieved ? "order-4" : "order-7"}>
-            <CommerceIntelligence insights={control.commerceIntelligence} />
-          </div>
-          <div className={firstValueAchieved ? "order-5" : "order-8"}>
-            <AgentAccess
-              merchantId={control.merchant.id}
-              endpoint={endpoint}
-              skills={skills}
-              initialCredentials={credentials}
-              onCredentialsChanged={handleCredentialsChanged}
-            />
-          </div>
-          <div className={firstValueAchieved ? "order-6" : "order-9"}>
-            <Experiences
-              experiences={control.experiences}
-              catalog={control.catalog}
-              onAgentAccess={() =>
-                document
-                  .getElementById("agent-access")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-            />
-          </div>
+        <div
+          data-testid={firstValueTaskMode ? "merchant-first-value-task-mode" : undefined}
+          className="flex flex-col gap-4"
+        >
+          {workspaceSections.slice(0, 3).map((section) => (
+            <div key={section.key} style={{ order: firstValueTaskMode ? section.setupOrder : section.operatingOrder }}>
+              {section.content}
+            </div>
+          ))}
+          <details
+            data-testid="merchant-secondary-workspace-tools"
+            open={firstValueTaskMode ? undefined : true}
+            style={{ order: firstValueTaskMode ? 4 : 1 }}
+            className={firstValueTaskMode ? "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" : ""}
+          >
+            <summary className={firstValueTaskMode ? "flex cursor-pointer list-none items-center justify-between gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden" : "hidden"}>
+              <span>
+                <span className="block text-base font-semibold text-slate-950">More workspace tools</span>
+                <span className="mt-1 block text-sm text-slate-500">Plan, insights, Agent setup, and workspace status</span>
+              </span>
+              <ChevronDown className="h-5 w-5 shrink-0 text-slate-500" aria-hidden="true" />
+            </summary>
+            <div className={`flex flex-col gap-4 ${firstValueTaskMode ? "mt-4" : ""}`}>
+              {workspaceSections.slice(3).map((section) => section.content ? (
+                <div key={section.key} style={{ order: firstValueTaskMode ? section.setupOrder : section.operatingOrder }}>
+                  {section.content}
+                </div>
+              ) : null)}
+            </div>
+          </details>
         </div>
       </div>
     </main>

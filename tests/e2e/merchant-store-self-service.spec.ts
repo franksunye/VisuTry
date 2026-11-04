@@ -1,10 +1,13 @@
 import { expect, test, type APIRequestContext, type BrowserContext } from '@playwright/test'
 
+// An explicit localhost CI base URL is as isolated as Playwright's own local
+// webServer. Never allow G3 to execute against Preview or Production.
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL
 const isLocalMockRun = process.env.NODE_ENV === 'test'
   && process.env.ENABLE_MOCKS === 'true'
   && process.env.TEST_MODE === 'true'
-  && process.env.G3_MERCHANT_STORE_E2E === 'true'
-  && !process.env.PLAYWRIGHT_BASE_URL
+  && process.env.G3_MERCHANT_STORE_E2E === '1'
+  && (!baseUrl || /^http:\/\/(?:127\.0\.0\.1|localhost):(?:3001|3003)\/?$/.test(baseUrl))
 
 async function loginWithMock(request: APIRequestContext, context: BrowserContext) {
   const csrfResponse = await request.get('/api/auth/csrf')
@@ -21,7 +24,11 @@ async function loginWithMock(request: APIRequestContext, context: BrowserContext
 
 test.describe('Human Merchant Store G3', () => {
   test('creates, saves, previews, and explicitly publishes a Store without requiring shape', async ({ page, request, context }) => {
-    test.skip(!isLocalMockRun, 'Run with NODE_ENV=test ENABLE_MOCKS=true TEST_MODE=true G3_MERCHANT_STORE_E2E=true against the local test server.')
+    test.skip(!isLocalMockRun, 'Run with NODE_ENV=test ENABLE_MOCKS=true TEST_MODE=true G3_MERCHANT_STORE_E2E=1 against a local-only test server.')
+    // Isolated Next dev + freshly migrated PostgreSQL can cold-compile this
+    // complete human journey; keep the bound local to G3 and disable retries.
+    test.setTimeout(180_000)
+    page.setDefaultNavigationTimeout(45_000)
 
     await loginWithMock(request, context)
     await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
@@ -71,7 +78,19 @@ test.describe('Human Merchant Store G3', () => {
     let selectedFrameIds: string[] = []
     let createCalls = 0
     let publishCalls = 0
+    let nextPreviewUnready = true
+    let firstValueEventCalls = 0
     let lastPreviewPayload: { frames: typeof frames; checks: Array<{ frameId: string; storeEligible: boolean; recommendationReady: boolean }> } | null = null
+    // Count client A6 emission independently of the mocked Store response.
+    await page.route('**/api/merchant/*/activation-events', async (route) => {
+      const body = route.request().postDataJSON() as { eventType?: string }
+      if (body.eventType === 'merchant_store_previewed') {
+        firstValueEventCalls += 1
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) })
+        return
+      }
+      await route.continue()
+    })
     await page.route('**/api/merchant/*/catalog**', async (route) => {
       const url = new URL(route.request().url())
       if (url.pathname.endsWith('/inspect')) {
@@ -79,6 +98,7 @@ test.describe('Human Merchant Store G3', () => {
           success: true,
           data: {
             proposal: true, writePerformed: false, requiresApproval: true,
+            catalogCapacity: { limit: null, current: 0, remaining: null, proposedNew: 4, overLimit: 0 },
             sourceSummary: { sourceUrls: ['https://shop.example.test'], sourceHostnames: ['shop.example.test'], platforms: ['SHOPIFY'], fetchedPageCount: 1, foundCount: 4, readyToImport: 4, importReady: 4, recommendationReady: 3, needsReview: 1, invalid: 0, reasonDistribution: { MISSING_SHAPE: 1 }, sourceIssues: [] },
             candidates: frames.map((item) => ({
               ...item,
@@ -118,6 +138,8 @@ test.describe('Human Merchant Store G3', () => {
       const method = route.request().method()
       if (pathname.endsWith('/preview')) {
         const previewFrames = selectedFrameIds.map((id) => frames.find((item) => item.id === id)).filter((item): item is typeof frames[number] => Boolean(item))
+        const ready = previewFrames.length > 0 && !nextPreviewUnready
+        nextPreviewUnready = false
         lastPreviewPayload = {
           frames: previewFrames,
           checks: previewFrames.map((item) => ({ frameId: item.id, storeEligible: item.storeReadiness.storeEligible, recommendationReady: item.validation.recommendationReady })),
@@ -126,7 +148,7 @@ test.describe('Human Merchant Store G3', () => {
           store: { id: store?.id ?? 'store-g3', name: store?.name ?? 'G3 Local Human Store', status: store?.status ?? 'DRAFT', headline: store?.headline ?? null, description: store?.description ?? null, publicPath: `/en/store/g3-local` },
           frameCount: previewFrames.length,
           frames: previewFrames.map((item) => ({ id: item.id, name: item.name, imageUrl: item.imageUrl, shape: item.shape, color: null, productBrand: item.brand })),
-          readiness: { ready: previewFrames.length > 0, readyFrameCount: previewFrames.length, blockingIssues: [], checks: lastPreviewPayload.checks },
+          readiness: { ready, readyFrameCount: ready ? previewFrames.length : 0, blockingIssues: ready ? [] : [{ frameId: 'frame-g3-a', issues: ['IMAGE_NOT_READY'] }], checks: lastPreviewPayload.checks },
           preview: { sideEffectFree: true, publicPath: '/en/store/g3-local' },
         } }) })
         return
@@ -177,6 +199,9 @@ test.describe('Human Merchant Store G3', () => {
     await expect(page.getByRole('heading', { name: 'Add your eyewear catalog', exact: true })).toBeVisible()
     await page.waitForLoadState('networkidle')
 
+    // Fresh workspaces default to the dependable manual path; select the
+    // optional URL inspection path explicitly for this controlled fixture.
+    await page.getByRole('tab', { name: 'Store URL' }).click()
     await page.getByLabel(/store or product url/i).fill('https://shop.example.test')
     await expect(page.getByLabel(/store or product url/i)).toHaveValue('https://shop.example.test')
     const [inspectResponse] = await Promise.all([
@@ -187,10 +212,10 @@ test.describe('Human Merchant Store G3', () => {
     await expect(page.getByText('Review before import', { exact: true })).toBeVisible()
     await expect(page.getByRole('heading', { name: '4 products are ready to add' })).toBeVisible()
     await page.getByRole('button', { name: /approve and import 4/i }).click()
-    await expect(page.getByText('G3 Shape-Pending Frame')).toBeVisible()
+    await expect(page.getByText('G3 Shape-Pending Frame').first()).toBeVisible()
 
-    await expect(page.getByRole('heading', { name: /create your store/i })).toBeVisible()
-    await page.getByRole('button', { name: /^create store draft$/i }).click()
+    await expect(page.locator('#store').getByRole('heading', { name: 'Create your Store', exact: true })).toBeVisible()
+    await page.locator('#store').getByRole('button', { name: 'Create your Store', exact: true }).click()
     await expect(page.getByRole('heading', { name: /set up your store/i })).toBeVisible()
     await expect(page.getByText('Available in Store · Recommendation enrichment pending')).toBeVisible()
     expect(createCalls).toBe(1)
@@ -202,22 +227,29 @@ test.describe('Human Merchant Store G3', () => {
     expect(createRetry.data).toMatchObject({ created: false, id: 'store-g3' })
     expect(createCalls).toBe(2)
 
-    await page.getByLabel('Store name').fill('G3 Preview Collection')
-    await page.getByLabel('Store headline').fill('Frames selected for your next look')
-    await page.getByLabel('Store description').fill('A private G3 Store draft for the selected eyewear collection.')
-    await page.getByRole('button', { name: /save details/i }).click()
+    await page.locator('#store').getByLabel('Store name', { exact: true }).fill('G3 Preview Collection')
+    await page.locator('#store').getByLabel('Store headline', { exact: true }).fill('Frames selected for your next look')
+    await page.locator('#store').getByLabel('Store description', { exact: true }).fill('A private G3 Store draft for the selected eyewear collection.')
+    await page.locator('#store').getByRole('button', { name: /save details/i }).click()
     await expect(page.getByText('Store details saved.')).toBeVisible()
 
     const checkboxes = page.locator('#store input[type="checkbox"]')
     await checkboxes.nth(0).check()
     await checkboxes.nth(1).check()
-    await page.getByRole('button', { name: /save products/i }).click()
+    await page.locator('#store').getByRole('button', { name: /save products/i }).click()
     await expect(page.getByText('Store products saved.')).toBeVisible()
+    // An HTTP 200 diagnostic preview must not create A6 or hide first-run guidance.
+    await page.locator('#store').getByRole('button', { name: /preview your store/i }).click()
+    await expect(page.getByText('A few products need attention')).toBeVisible()
+    await expect(page.getByTestId('merchant-activation-checklist')).toBeVisible()
+    expect(firstValueEventCalls).toBe(0)
+
     const [previewResponse] = await Promise.all([
       page.waitForResponse((response) => response.url().includes('/store/preview')),
-      page.getByRole('button', { name: /preview your store/i }).click(),
+      page.locator('#store').getByRole('button', { name: /preview your store/i }).click(),
     ])
     expect(previewResponse.ok()).toBeTruthy()
+    await expect.poll(() => firstValueEventCalls).toBe(1)
     await expect(page.getByTestId('store-draft-preview')).toContainText('G3 Preview Collection')
     await expect(page.getByTestId('store-draft-preview')).toContainText('Frames selected for your next look')
     await expect(page.getByTestId('store-draft-preview')).toContainText('G3 Shape-Pending Frame')
@@ -232,12 +264,12 @@ test.describe('Human Merchant Store G3', () => {
     await checkboxes.nth(2).check()
     await checkboxes.nth(3).check()
     await expect(page.getByText('Save your changes before previewing.')).toBeVisible()
-    await expect(page.getByRole('button', { name: /preview store/i })).toBeDisabled()
+    await expect(page.locator('#store').getByRole('button', { name: /preview your store/i })).toBeDisabled()
     await expect(page.getByTestId('store-draft-preview')).not.toBeVisible()
 
-    await page.getByRole('button', { name: /save products/i }).click()
+    await page.locator('#store').getByRole('button', { name: /save products/i }).click()
     await expect(page.getByText('Store products saved.')).toBeVisible()
-    await page.getByRole('button', { name: /preview store/i }).click()
+    await page.locator('#store').getByRole('button', { name: /preview your store/i }).click()
     await expect(page.getByTestId('store-draft-preview')).toContainText('G3 Local Frame C')
     await expect(page.getByTestId('store-draft-preview')).toContainText('G3 Local Frame D')
     await expect(page.getByTestId('store-draft-preview')).not.toContainText('G3 Shape-Pending Frame')
@@ -245,11 +277,11 @@ test.describe('Human Merchant Store G3', () => {
     expect((lastPreviewPayload as unknown as { frames: typeof frames }).frames.map((frame) => frame.id)).toEqual(['frame-g3-c', 'frame-g3-d'])
     expect(publishCalls).toBe(0)
 
-    await page.getByLabel(/i confirm this store is ready to publish publicly/i).check()
-    await page.getByRole('button', { name: /publish store/i }).click()
-    await expect(page.getByText('Your Store is live', { exact: true })).toBeVisible()
-    await expect(page.getByRole('link', { name: /view store/i })).toHaveAttribute('href', '/en/store/g3-local')
-    await expect(page.getByRole('button', { name: /copy store link/i })).toBeVisible()
+    await page.locator('#store').getByLabel(/i confirm this store is ready to publish publicly/i).check()
+    await page.locator('#store').getByRole('button', { name: /publish store/i }).click()
+    await expect(page.locator('#store').getByText('Your Store is live', { exact: true })).toBeVisible()
+    await expect(page.locator('#store').getByRole('link', { name: /view store/i })).toHaveAttribute('href', '/en/store/g3-local')
+    await expect(page.locator('#store').getByRole('button', { name: /copy store link/i })).toBeVisible()
     expect(publishCalls).toBe(1)
 
     const publishRetry = await page.evaluate(async () => {

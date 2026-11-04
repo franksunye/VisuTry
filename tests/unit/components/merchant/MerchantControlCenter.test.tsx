@@ -24,11 +24,22 @@ describe('MerchantControlCenter', () => {
     }) as jest.Mock
   })
 
-  it('renders the three-step connection surface and mobile-safe stacked sections', () => {
+  function openWorkspaceTools() {
+    fireEvent.click(screen.getByText('More workspace tools'))
+  }
+
+  it('prioritizes First Value tasks and keeps operations tools accessible but collapsed', () => {
     render(<MerchantControlCenter {...baseProps} />)
+    expect(screen.getByTestId('merchant-first-value-task-mode')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Workspace' })).toHaveAttribute('href', '#activation-checklist')
+    expect(screen.getByRole('link', { name: 'Add product' })).toHaveAttribute('href', '#catalog')
+    expect(screen.getByRole('link', { name: 'Private preview' })).toHaveAttribute('href', '#store')
+    expect(screen.getByTestId('merchant-secondary-workspace-tools')).not.toHaveAttribute('open')
+
+    openWorkspaceTools()
+    expect(screen.getByRole('heading', { name: 'Bring your eyewear catalog to life.' })).toBeVisible()
     expect(screen.getByText('https://www.visutry.com/api/mcp')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Add your first product' })).toBeInTheDocument()
-    expect(screen.getByText('Connect your Agent')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Connect your Agent' })).toBeVisible()
     expect(screen.getByText('Copy the Agent prompt')).toBeInTheDocument()
     expect(screen.getByText('Talk to your Agent')).toBeInTheDocument()
     expect(screen.getByText('About the VisuTry Merchant Skill')).toBeInTheDocument()
@@ -54,6 +65,8 @@ describe('MerchantControlCenter', () => {
     render(<MerchantControlCenter {...baseProps} control={{ ...baseProps.control, catalog: { total: 1, active: 1, valid: 1, invalid: 0, sourceCounts: [] }, activation: { storePreviewedAt: '2026-09-21T00:00:00.000Z' } }} />)
     expect(screen.getByRole('heading', { name: 'Workspace overview' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Bring your eyewear catalog to life.' })).not.toBeInTheDocument()
+    expect(screen.getByTestId('merchant-secondary-workspace-tools')).toHaveAttribute('open')
+    expect(screen.getByTestId('merchant-secondary-workspace-tools').querySelector('summary')).toHaveClass('hidden')
     expect(screen.getByText('Store · Not created')).toBeInTheDocument()
     expect(screen.getByText('Catalog · 1')).toBeInTheDocument()
     expect(screen.getByText('Campaigns · 0')).toBeInTheDocument()
@@ -75,8 +88,8 @@ describe('MerchantControlCenter', () => {
 
     expect(screen.getByRole('link', { name: 'Insights' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Reach your first Store preview' })).not.toBeInTheDocument()
-    expect(document.querySelector('#overview')?.parentElement).toHaveClass('order-1')
-    expect(document.querySelector('#catalog')?.parentElement).toHaveClass('order-7')
+    expect(document.querySelector('#overview')?.parentElement).toHaveStyle({ order: 1 })
+    expect(document.querySelector('#catalog')?.parentElement).toHaveStyle({ order: 7 })
 
     rerender(
       <MerchantControlCenter
@@ -93,9 +106,11 @@ describe('MerchantControlCenter', () => {
 
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Reach your first Store preview' })).toBeInTheDocument())
     expect(screen.queryByRole('link', { name: 'Insights' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Add your first product' })).toBeInTheDocument()
-    expect(document.querySelector('#overview')?.parentElement).toHaveClass('order-4')
-    expect(document.querySelector('#catalog')?.parentElement).toHaveClass('order-2')
+    expect(screen.getByRole('link', { name: 'Add your first product' })).toBeInTheDocument()
+    expect(document.querySelector('#catalog')?.parentElement).toHaveStyle({ order: 2 })
+    expect(document.querySelector('#overview')?.closest('[data-testid="merchant-secondary-workspace-tools"]')).not.toBeNull()
+    openWorkspaceTools()
+    expect(screen.getByRole('heading', { name: 'Bring your eyewear catalog to life.' })).toBeVisible()
   })
 
   it('renders merchant-readable Commerce Intelligence when controlled activity exists', () => {
@@ -120,6 +135,7 @@ describe('MerchantControlCenter', () => {
       },
       experiences: [{ id: 'experience-a', type: 'STORE', name: 'Reference Store', status: 'ACTIVE', referenceData: true, visitors: 12, engagedShoppers: 8, recommendationActivity: 7, tryOnCompletions: 5, compareActivity: 3, productClicks: 2, highIntentShoppers: 2 }],
     } }} />)
+    openWorkspaceTools()
     expect(screen.getByRole('heading', { name: 'Understand shopper intent' })).toBeInTheDocument()
     expect(screen.getByText('Data window (UTC)')).toBeInTheDocument()
     expect(screen.getAllByText(/Aug 1, 2026/)).toHaveLength(3)
@@ -148,6 +164,7 @@ describe('MerchantControlCenter', () => {
       acquisitionSources: [],
       experiences: [],
     } }} />)
+    openWorkspaceTools()
     expect(screen.getByRole('heading', { name: 'Understand shopper intent' })).toBeInTheDocument()
     expect(screen.getByText(/Data window \(UTC\)/)).toBeInTheDocument()
     expect(screen.getByText('No shopper activity yet')).toBeInTheDocument()
@@ -162,6 +179,7 @@ describe('MerchantControlCenter', () => {
       { id: 'store-a', type: 'STORE', name: 'Reference Store', slug: 'alpha', status: 'ACTIVE', frameCount: 1, referenceData: true, publicPath: '/en/store/alpha', headline: null, description: null, primaryCtaLabel: null, startAt: null, endAt: null, selectedFrames: [{ id: 'frame-a', sku: 'A-1', name: 'Frame A', brand: 'Alpha', imageUrl: 'https://example.com/a.jpg', source: 'SEED', status: 'ACTIVE', enrichmentStatus: 'APPROVED', validation: { valid: true, importReady: true, recommendationReady: true, enrichmentStatus: 'APPROVED', importIssues: [], recommendationIssues: [], issues: [], warnings: [] } }], readiness: { status: 'VALID', validCount: 1, invalidCount: 0, issues: [] }, lastOperation: { label: 'Published', actor: 'Agent', at: '2026-08-20T00:00:00.000Z' }, policy: { objective: null, gate: null, presentation: 'PRODUCT_FIRST' }, updatedAt: '2026-08-20T00:00:00.000Z' },
       { id: 'campaign-a', type: 'CAMPAIGN', name: 'Everyday Fit', slug: 'everyday-fit', status: 'DRAFT', frameCount: 0, referenceData: false, publicPath: '/en/c/alpha/everyday-fit', headline: 'Find your everyday frame', description: 'A focused campaign for daily wear.', primaryCtaLabel: 'Explore frames', startAt: null, endAt: null, selectedFrames: [], readiness: { status: 'INCOMPLETE', validCount: 0, invalidCount: 0, issues: ['NO_SELECTED_FRAMES'] }, lastOperation: { label: 'Created', actor: 'Agent', at: '2026-08-19T00:00:00.000Z' }, policy: { objective: 'INTENT', gate: 'NONE', presentation: 'EDITORIAL_FIRST' }, updatedAt: '2026-08-19T00:00:00.000Z' },
     ] }} />)
+    openWorkspaceTools()
     expect(screen.getByText('2 products · 2 active · 2 valid')).toBeInTheDocument()
     expect(screen.getByText('Catalog ready')).toBeInTheDocument()
     expect(screen.getByText('Frame A')).toBeInTheDocument()
@@ -179,6 +197,7 @@ describe('MerchantControlCenter', () => {
       return { ok: true, json: async () => ({ data: { credentials: [{ id: 'credential-a', name: 'Agent', masked: 'vt_live_••••••••', scopes: ['analytics:read'], status: 'ACTIVE', createdAt: '2026-08-01T00:00:00.000Z', lastUsedAt: null, revokedAt: null }] } }) }
     })
     render(<MerchantControlCenter {...baseProps} />)
+    openWorkspaceTools()
     fireEvent.click(screen.getByRole('button', { name: 'Create key' }))
     await waitFor(() => expect(screen.getByText(/vt_live_one_time_secret/)).toBeInTheDocument())
     expect(screen.getByText('Ready')).toBeInTheDocument()

@@ -78,8 +78,8 @@ The earlier Stage 1 research sampled **all three tracks** to find high-level ris
 
 | Order | Workstream | Scope | Handoff rule |
 | --- | --- | --- | --- |
-| **1 — ACTIVE** | **A. Merchant-acquisition SEO/GEO** | VisuTry Business pages and search/AI discovery → qualified Merchant entry; **not** shopper traffic to customer Store/Campaign and **not** Consumer SEO | Technical + intent + content/CTA + measurement work accepted; postrelease observation continues |
-| **2 — HOLD** | **C. Self-service activation** | First signup/A0 → approved catalog → private A6 preview, zero-human recovery, attribution, safety and UX | Start after A's deliverables are reviewed; test direct path to A6 with controlled fixtures |
+| **1 — ENGINEERING CLOSED / OBSERVING** | **A. Merchant-acquisition SEO/GEO** | VisuTry Business pages and search/AI discovery → qualified Merchant entry; **not** shopper traffic to customer Store/Campaign and **not** Consumer SEO | A technical work closed 2026-11-03; GSC/GA4 7/14/28-day observations continue without ranking claims |
+| **2 — ACTIVE / VALIDATING** | **C. Self-service activation** | First signup/A0 → approved Catalog → private A6 preview, zero-human recovery, attribution, safety and UX | Draft [PR #516](https://github.com/franksunye/VisuTry/pull/516) implements 7-day measurement, preview truth guards and route repair; isolated G3 browser gate and independent human/media acceptance are still required |
 | **3 — HOLD** | **B. Shopify marketplace** | Qualified Shopify demand, embedded integration, app economics, merchant-driven theme activation, compliance | Start only after direct self-service is validated; separate approval for dev-store implementation/public listing |
 
 ### A. Merchant SEO/GEO deep-closure contract

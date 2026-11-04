@@ -106,10 +106,10 @@ export function MerchantWorkspaceOnboarding({ locale, commercialIntent }: Props)
         </div>
         <div className="mt-6 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-700">
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white"><Check className="h-3 w-3" aria-hidden="true" /></span>
-          Merchant setup · 1 of 1
+          Step 1 of 3 · Workspace
         </div>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">Set up VisuTry for your business</h1>
-        <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">Create a business workspace for your catalog, Store, and commerce experience.</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">Create your merchant workspace</h1>
+        <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">Start with your business name. Next, add one eyewear product and preview your Store privately before you decide whether to publish.</p>
 
         <form className="mt-8 space-y-5" onSubmit={submit}>
           <div className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:grid-cols-2">

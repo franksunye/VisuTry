@@ -36,6 +36,12 @@ export function MerchantActivationChecklist({ control, firstValueAchieved = fals
   const steps: Step[] = [
     {
       number: "1",
+      title: "Workspace",
+      body: `${control.merchant.name} is ready.`,
+      complete: true,
+    },
+    {
+      number: "2",
       title: "Add your first product",
       body: hasCatalog
         ? "Your catalog has a usable product."
@@ -45,7 +51,7 @@ export function MerchantActivationChecklist({ control, firstValueAchieved = fals
       complete: hasCatalog,
     },
     {
-      number: "2",
+      number: "3",
       title: "Preview your Store",
       body: hasPreviewableStore
         ? "Review the Store presentation before it is public."
@@ -90,9 +96,9 @@ export function MerchantActivationChecklist({ control, firstValueAchieved = fals
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </a>
       </div>
-      <ol className="mt-4 grid gap-2 md:grid-cols-2">
+      <ol className="mt-4 grid gap-2 md:grid-cols-3">
         {steps.map((step) => (
-          <li key={step.number} className="rounded-xl border border-slate-200 bg-white/85 p-3">
+          <li key={step.number} data-activation-step={step.number} data-complete={step.complete} className="rounded-xl border border-slate-200 bg-white/85 p-3">
             <div className="flex items-start gap-3">
               <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step.complete ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
                 {step.complete ? <Check className="h-4 w-4" aria-hidden="true" /> : step.number}

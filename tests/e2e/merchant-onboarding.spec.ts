@@ -43,8 +43,8 @@ test.describe('Human Merchant Onboarding G1', () => {
     // Use mock-user-2 as the clean new-workspace identity, then use the same
     // identity again to prove the existing-workspace path is idempotent.
     await loginWithMock(request, context, 'premium')
-    await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByRole('heading', { name: /set up visutry for your business/i })).toBeVisible()
+    await page.goto('/en/merchant', { waitUntil: 'networkidle' })
+    await expect(page.getByRole('heading', { name: /create your merchant workspace/i })).toBeVisible()
     const nameField = page.getByLabel(/business, brand, or store name/i)
     const websiteField = page.getByLabel(/website/i)
     await expect(nameField).toBeVisible()
@@ -55,7 +55,7 @@ test.describe('Human Merchant Onboarding G1', () => {
     await page.getByRole('button', { name: /create merchant workspace/i }).click()
 
     await expect(page).toHaveURL(/\/en\/merchant\?merchantId=[^&]+&onboarding=created/)
-    await expect(page.getByRole('status')).toContainText('Merchant workspace created successfully')
+    await expect(page.getByRole('status')).toContainText('Workspace created')
     await expect(page.getByRole('link', { name: /next: add your eyewear catalog/i })).toHaveAttribute('href', '#catalog')
     const merchantId = new URL(page.url()).searchParams.get('merchantId')
     expect(merchantId).toBeTruthy()
@@ -86,7 +86,9 @@ test.describe('Human Merchant Onboarding G1', () => {
 
     await loginWithMock(request, context, 'premium')
     await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByRole('heading', { name: /bring your eyewear catalog to life/i })).toBeVisible()
+    await expect(page.getByTestId('merchant-first-value-task-mode')).toBeVisible()
+    await expect(page.locator('[data-activation-step="1"]')).toContainText('G1 Local Human Merchant is ready.')
+    await expect(page.getByTestId('merchant-secondary-workspace-tools')).not.toHaveAttribute('open')
     await expect(page.locator('body')).toContainText('G1 Local Human Merchant')
     await expect(page.getByText(/create your merchant workspace/i)).not.toBeVisible()
 

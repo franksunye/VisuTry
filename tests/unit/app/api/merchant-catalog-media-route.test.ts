@@ -12,14 +12,16 @@ import { requireAuth } from '@/lib/api-auth-runtime'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { POST } from '@/app/api/merchant/[merchantId]/catalog/media/route'
 import {
-  parseCatalogProductMediaUrl, requireOwnedCatalogProductMediaUrl,
+  parseCatalogProductMediaUrl, requireOwnedCatalogProductMediaUrl, PRODUCT_IMAGE_MAX_DAILY_UPLOADS,
 } from '@/modules/merchant/domain/merchant-catalog-media'
 
 const merchantId = 'merchant-a'
 const blobRoot = 'https://abc123.public.blob.vercel-storage.com'
 const key = '0123456789abcdef0123456789abcdef'
-const blobPath = 'merchant-catalog/merchant-a/product/' + key + '.png'
+const day = new Date().toISOString().slice(0, 10)
+const blobPath = 'merchant-catalog/merchant-a/product/' + day + '/' + key + '.png'
 const storedUrl = blobRoot + '/' + blobPath
+const legacyUrl = blobRoot + '/merchant-catalog/merchant-a/product/' + key + '.png'
 
 function png(w = 640, h = 480): Uint8Array {
   const out = new Uint8Array(64)
@@ -50,7 +52,8 @@ describe('Merchant Catalog product photo staging', () => {
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({ success: true, data: { url: storedUrl, width: 640, height: 480 } })
     expect(requireMerchantMembership).toHaveBeenCalledWith(expect.objectContaining({ merchantId, roles: ['OWNER', 'ADMIN'] }))
-    expect(put).toHaveBeenCalledWith(expect.stringMatching(/^merchant-catalog\/merchant-a\/product\/[a-f0-9]{32}\.png$/), expect.any(Buffer), {
+    expect(list).toHaveBeenCalledWith({ prefix: 'merchant-catalog/merchant-a/product/' + day + '/', limit: PRODUCT_IMAGE_MAX_DAILY_UPLOADS })
+    expect(put).toHaveBeenCalledWith(expect.stringMatching(/^merchant-catalog\/merchant-a\/product\/\d{4}-\d{2}-\d{2}\/[a-f0-9]{32}\.png$/), expect.any(Buffer), {
       access: 'public', contentType: 'image/png', addRandomSuffix: false,
     })
   })
@@ -111,6 +114,8 @@ describe('Merchant Catalog product photo staging', () => {
   it('does not treat foreign, query-bearing or non-product URLs as tenant-owned', () => {
     expect(requireOwnedCatalogProductMediaUrl(storedUrl, merchantId)).toBe(storedUrl)
     expect(parseCatalogProductMediaUrl(storedUrl)?.merchantId).toBe(merchantId)
+    expect(requireOwnedCatalogProductMediaUrl(legacyUrl, merchantId)).toBe(legacyUrl)
+    expect(parseCatalogProductMediaUrl(legacyUrl)?.merchantId).toBe(merchantId)
     expect(() => requireOwnedCatalogProductMediaUrl(storedUrl, 'merchant-b')).toThrow()
     expect(parseCatalogProductMediaUrl('https://evil.test/' + blobPath)).toBeNull()
     expect(parseCatalogProductMediaUrl(storedUrl + '?src=x')).toBeNull()

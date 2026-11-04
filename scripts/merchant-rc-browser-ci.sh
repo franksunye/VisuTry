@@ -111,6 +111,29 @@ for (const suite of report.suites || []) walk(suite)
 console.log(JSON.stringify({ reporterSuiteCount: report.suites?.length ?? 0, testSelectors: selected }))
 NODE
 }
+# Fail fast on the new G3 contract before re-running mature RC suites.
+run_scenario "G3 private Store preview (unready then ready)" G3_MERCHANT_STORE_E2E tests/e2e/merchant-store-self-service.spec.ts g3.json "" ARCHIVED_CAMPAIGN_EVIDENCE_DIR true
+# Playwright can return exit 0 for a skipped test: require an actual passing
+# browser attempt, not just test discovery or an empty report.
+node - "$OUT/g3.json" <<'NODE'
+const fs = require('node:fs')
+const report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
+const tests = []
+function collect(suite) {
+  for (const spec of suite.specs || []) for (const test of spec.tests || []) tests.push(test)
+  for (const child of suite.suites || []) collect(child)
+}
+for (const suite of report.suites || []) collect(suite)
+const executedPass = tests.length === 1
+  && tests[0].results?.some((result) => result.status === 'passed')
+  && !tests[0].results?.some((result) => result.status === 'failed' || result.status === 'timedOut')
+if (!executedPass) {
+  console.error('G3 browser gate BLOCKED: expected one actually executed passing test')
+  process.exit(1)
+}
+console.log('G3 browser gate PASS: one actual Chromium test, ready/unready First Value assertions')
+NODE
+reset_own_disposable_db_for_next_scenario
 run_scenario "First Value" P0_L1_LOCAL_MERCHANT_E2E tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts first.json
 reset_own_disposable_db_for_next_scenario
 run_scenario "Campaign + archived historical read-only lifecycle" P1_M2_5_LOCAL_CAMPAIGN_E2E tests/e2e/p1-m2-5-local-campaign-workspace.spec.ts campaign.json "$OUT/archive-campaign"
@@ -120,6 +143,7 @@ reset_own_disposable_db_for_next_scenario
 run_scenario "Unsafe URL -> CSV Real Catalog" G1F_REAL_CATALOG_CSV_E2E tests/e2e/merchant-catalog-csv-recovery-local.spec.ts csv.json
 reset_own_disposable_db_for_next_scenario
 run_scenario "Archived Campaign Kiosk privacy reset" ARCHIVED_CAMPAIGN_KIOSK_PRIVACY_E2E tests/e2e/archived-campaign-kiosk-privacy-local.spec.ts archived-kiosk.json "$OUT/archive-kiosk" ARCHIVED_CAMPAIGN_KIOSK_EVIDENCE_DIR true
+
 assert_marker
 set +e
 node scripts/merchant-release-scenario-ledger.mjs \
@@ -133,11 +157,12 @@ duration="$(($(date +%s)-started))"
 echo "Executed subset wall time: ${duration}s, ledger exit: $status"
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
   {
-    echo "### G1-F: four foundation scenarios plus archived Kiosk privacy regression (NOT G2)"
+    echo "### G1-F: four foundation scenarios plus archived Kiosk privacy and G3 private Store preview (NOT G2)"
     echo "Verified exact SHA: $(git rev-parse HEAD)"
     echo "Verified database marker: $EXPECTED"
     echo "Browser wall time: ${duration}s, mode MOCK, no production credentials"
     echo "Provider count/cost: reported zero only, NOT independently measured"
+    echo "G3: one executed Chromium test PASS (unready then ready A6; no production writes)"
     echo "Ledger: $([[ $status -eq 0 ]] && echo PASS || echo BLOCKED)"
     echo "Unexecuted: successful external URL intake, actual Blob, full Brand validation and complete G2 matrix; Kiosk/Result coverage above is a scoped Local mock-media privacy regression"
   } >> "$GITHUB_STEP_SUMMARY"

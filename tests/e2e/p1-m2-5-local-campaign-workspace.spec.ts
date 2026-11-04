@@ -156,7 +156,7 @@ test.describe('P1-M2.5 Local Campaign workspace', () => {
     await page.getByRole('link', { name: 'Merchant Sign In' }).first().click()
     await expect(page.getByRole('region', { name: 'Local QA' })).toBeVisible()
     await signIn('clean@local.test', 'clean')
-    await expect(page.getByRole('heading', { name: 'Set up VisuTry for your business' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Create your merchant workspace' })).toBeVisible()
     const localMerchantName = `M2.5 Local QA ${runId}`
     await page.getByLabel(/business, brand, or store name/i).fill(localMerchantName)
     await page.getByRole('button', { name: /create merchant workspace/i }).click()
