@@ -1,45 +1,49 @@
 # Merchant Self-Service C — First Value UX Review and URL Intake v2 Design
 
-**Status:** PROPOSED — design/review only; not implemented or live acceptance  
-**Date:** 2026-11-04  
-**Owner:** Product / Merchant Engineering  
-**Workstream:** C, direct self-service activation. A SEO/GEO remains observing; B Shopify marketplace remains HOLD.  
-**Authority:** [Merchant PLG Strategy](../strategy/merchant-plg-growth-v1.md), [Activation Event Contract](../merchant-activation-v1.md), [First Value Issue #359](https://github.com/franksunye/VisuTry/issues/359), [Draft PR #516](https://github.com/franksunye/VisuTry/pull/516).
+| | |
+| --- | --- |
+| Status | C1 functional and UX acceptance PASS/CLOSED; C3 design proposed, not implemented or live acceptance |
+| Date | 2026-11-04 |
+| Owner | Product / Merchant Engineering |
+| Workstream | C1 CLOSED; C3 ACTIVE. A SEO/GEO remains observing; B Shopify marketplace remains HOLD. |
+| Authority | [Merchant PLG Strategy](../strategy/merchant-plg-growth-v1.md), [Activation Event Contract](../merchant-activation-v1.md), [First Value Issue #359](https://github.com/franksunye/VisuTry/issues/359), [Draft PR #516](https://github.com/franksunye/VisuTry/pull/516) |
 
 ## 1. Revised C acceptance boundary
 
-Only two independent work items are active:
+The C workstream is split into two independently accepted work items:
 
-- **C1 — First Value UX:** Verify and improve the *experience* for a genuinely new merchant account, an existing VisuTry consumer account opening its first merchant workspace, and a returning merchant with an unfinished workspace. Function correctness has extensive accepted local PostgreSQL/Chromium evidence; reuse it rather than rebuilding the product.
-- **C3 — External URL product intake:** Resolve the feature promise and adapter design. A public URL is an optional, permission-bounded intake aid, **not** guaranteed arbitrary-store crawling.
+- **C1 — First Value function and UX: PASS / CLOSED.** C1.1 completed the task-first workspace for new merchants, existing Consumers opening their first workspace, and returning merchants with unfinished setup. The [acceptance report](merchant-c1-1-ux-acceptance-2026-11-04.md) records N/E/R Local Mock Chromium evidence, desktop/mobile screenshots, and the tested app SHA. No further C1/C1.2 work is planned.
+- **C3 — External URL product intake: ACTIVE / NOT ACCEPTED.** This document remains a proposed product and technical design. The PR does not implement a new C3 importer, and no genuinely third-party product URL has passed the required positive-path verification. A public URL is an optional, permission-bounded intake aid, **not** guaranteed arbitrary-store crawling.
 
 **Deferred, not a C launch gate:** orphan/unreferenced public catalog-photo cleanup. Preserve existing quota/security controls; do not delete blobs, promise cleanup automation, or block this UX/design review on it.
 
-First Value remains: authenticated and authorized workspace → approved usable first Catalog item → private Store preview with a ready, nonempty frame set → A6. Publishing is a later explicit action. A local mock merchant is a product UX specimen, not a confirmed real merchant conversion.
+First Value remains: authenticated and authorized workspace → approved usable first Catalog item → private Store preview with a ready, nonempty frame set → A6. Publishing is a later explicit action. A local mock merchant is a product UX specimen, not a confirmed real merchant conversion. Real Auth0 registration and callback remain an independent launch gate before public merchant self-service is opened; C1 Mock acceptance does not satisfy that gate or authorize production release.
 
 ## 2. C1 — Three independently scored journeys
 
 | Journey | Starting state | Primary experience | Completion proof |
 | --- | --- | --- | --- |
-| N — New merchant | Unregistered identity from Business/Start Free | Merchant-specific signup → workspace name and optional website → first product → draft Store → private preview | Auth callback returns to Merchant; one owned workspace and Catalog item persist; decoded private preview; A6 once |
+| N — New merchant | Clean Local Mock identity, post-auth | Merchant workspace → optional website → first product → draft Store → private preview | One owned workspace and Catalog item persist; ready private preview; A6 once. Real Auth0 registration/callback is a separate launch gate and was not exercised by this Mock journey. |
 | E — Existing VisuTry account | Signed-in consumer with **no** merchant membership | Same Merchant destination without forcing a second identity → workspace setup → first product → private preview | Consumer account and entitlements remain intact; creates merchant workspace with owner authorization |
 | R — Returning merchant | Existing incomplete Merchant workspace, 0 A6 | Resume last valid Catalog / Store state; checklist identifies next incomplete action; reload and recovery | No duplicate workspace/product, stable merchant ID; actionable continuation; private preview A6 once |
 
 Also retain negative gates: unauthenticated redirect/callback, cross-tenant 404/denial, double submit/idempotency, empty/invalid input, reload, failed source fallback, unready preview **does not** emit A6, and private preview never silently publishes.
 
-### Source-code observations (not an executed novice UX study)
+### Source-code observations (historical design audit and disposition)
 
-1. **P1 — Auth promise contradicts the direct UI flow.** `auth/signin/page.tsx` tells Merchants to create an Agent Key and paste the Key + Skill into ChatGPT/Claude as the next step. For the direct SMB funnel, the actual next step is GUI Workspace → Catalog → private preview. **Proposed copy:** “Create your store workspace, add one eyewear product, and preview your Store privately. Connect an AI agent later if you want.” Keep Agent Key under Integrations/advanced.
-2. **P1 — Step count is misleading.** `MerchantWorkspaceOnboarding.tsx` says “Merchant setup · 1 of 1,” although First Value needs product and Store steps. **Proposed:** “Step 1 of 3 · Your workspace”; subsequent steps are “Add one product” and “Private preview.” This is a lightweight progress indicator, not a second checklist model.
-3. **P1 — First product page is information-dense.** `MerchantCatalogSelfService.tsx` leads with technical details and displays five catalog-capacity metrics at the review stage, even for a single first product. **Proposed:** first-product mode shows one primary task, product photo upload alongside URL, review details collapsed by default, and one next action to Store. Keep current rich Catalog controls for subsequent catalog management. Do not delete readiness, approval, or quota enforcement.
-4. **P2 — URL defaults can mislead.** A saved website preselects URL inspection even though external import is not reliably supported. Make “Try a public product link (beta)” explicit; allow one-click “Add one product manually” without losing the suggested URL.
-5. **P2 — Success continuation should be singular.** Preserve the existing “Create your Store” CTA and ensure it lands on the correct combined `#store` or standalone scoped route; avoid presenting publishing as First Value.
+These observations informed the C1/C1.1 and C3 boundaries. The current C1 disposition is the accepted N/E/R report above; remaining URL-intake decisions belong to C3 and do not reopen C1.
+
+1. **RESOLVED in C1:** Merchant sign-in now leads with the GUI path to the private preview; Agent setup is optional and later.
+2. **RESOLVED in C1:** workspace progress is three steps: Workspace, first product, and private preview.
+3. **C1.1 disposition:** the first-use workspace now foregrounds the task sequence and keeps daily operating tools secondary. The remaining detailed Catalog controls are accessible; further Catalog layout redesign is not an open C1/C1.1 gate.
+4. **C3 design item:** a saved website can still suggest URL inspection. C3 must make beta/support boundaries and the manual fallback clear; third-party compatibility is unverified.
+5. **RESOLVED in C1:** the first-product continuation targets the combined Store section or the standalone Store route as appropriate. Publishing remains separate from First Value.
 
 ### Evidence protocol
 
 Use isolated Local PostgreSQL, existing mock identities and Playwright, not production creation. Screenshots at **1440px desktop and 390px mobile** (and a compact mobile pass if feasible). Record the user-visible sequence and action count for N/E/R, first actionable CTA, number of required fields, failed URL recovery, preview visibility, reload result, route/authorization/response status. Have an independent reviewer walk the UI without reading implementation docs.
 
-The existing local evidence in #359/#414 supports functional correctness. The current Draft #516 G3 executes the private-preview gate in Chromium, **but not** a real Auth0 registration or a fresh independent human usability walkthrough. Do not label that as UX-optimal. A proposed target of ≤5 minutes for a novice from post-login workspace to private preview is an experiment hypothesis, **not** a measured baseline or release claim.
+The accepted C1.1 Local Mock evidence is recorded in the [C1.1 acceptance report](merchant-c1-1-ux-acceptance-2026-11-04.md). It establishes the scoped First Value function and UX acceptance, not a real Auth0 signup/callback result or a confirmed-real-merchant conversion. The proposed target of ≤5 minutes for a novice from post-login workspace to private preview remains an experiment hypothesis, **not** a measured baseline or release claim.
 
 ## 3. C3 — External URL intake: problem classification
 
@@ -107,8 +111,8 @@ Do not expose raw HTTP/technical codes in the primary UI; keep them in diagnosti
 
 ## 6. Acceptance and stop rules
 
-**C1 experience PASS:** N/E/R run on an exact code SHA using clean, isolated identities; screenshots and click/recovery observations reviewed; no confusing Agent Key dependency, misleading step count or dead navigation; no unearned A6/auto-publish; function and privacy contracts remain green. **Current state: design audit completed; fresh comparative browser UX review pending.**
+**C1 function and C1.1 experience PASS / CLOSED:** N/E/R Local Mock journeys, desktop/mobile screenshots, recovery behavior, First Value completion and private-not-public preview were accepted on the tested app SHA recorded in the [C1.1 report](merchant-c1-1-ux-acceptance-2026-11-04.md). Real Auth0 registration/callback is a separate launch gate.
 
-**C3 design PASS:** PO agrees on bounded product-URL beta/Manual default and failure taxonomy; security authority unchanged. **C3 engineering PASS additionally requires** an approved external domain, actual inspect → canonical approval/readback → decodable private Store preview plus negative 403/429 fallback and no cross-tenant writes. A 403/429 denial is a legitimate stop; it does not authorize access-control evasion.
+**C3 design: PROPOSED; C3 engineering: NOT VERIFIED.** C3 engineering acceptance requires an approved, genuinely third-party public HTTPS product URL, actual inspect → canonical approval/readback → decodable private Store preview, plus negative 403/429 fallback and no cross-tenant writes. No such external positive-path verification is complete. A 403/429 denial is a legitimate stop; it does not authorize access-control evasion.
 
-**Current disposition:** C remains PARTIAL for independent experience review and URL design/positive compatibility. Orphan-photo cleanup is **DEFERRED, not an immediate C blocking gate**. PR #516 stays Draft; no production release or data writes without a separate Lead decision.
+**Current disposition:** C1 is CLOSED. C3 remains ACTIVE for design and genuine third-party URL verification. Orphan-photo cleanup is **DEFERRED, not a C3 acceptance gate**. PR #516 is entering formal review; this status does not authorize merging or deploying. Before any merge that could trigger a Production deployment, confirm the deployment path and explicitly settle the Auth0 launch gate and merchant self-service opening policy.
