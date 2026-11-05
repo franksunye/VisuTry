@@ -83,7 +83,8 @@ if [[ "${D1_SHOPIFY_LIVE_E2E:-}" == "1" ]]; then
     D1_SHOPIFY_EVIDENCE_DIR="$OUT/d1-shopify" \
     PLAYWRIGHT_JSON_OUTPUT_FILE="$OUT/d1-shopify/report.json" \
     ./node_modules/.bin/playwright test tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts \
-      --project=chromium --workers=1 --retries=0 --reporter=json --grep 'runs the real local acquisition-to-private-preview journey'; then
+      --project=chromium --workers=1 --retries=0 --reporter=json --output="$OUT/d1-shopify/playwright-output" \
+      --grep 'runs the real local acquisition-to-private-preview journey'; then
     echo 'D1 live MOSCOT browser journey completed.'
   else
     status=$?

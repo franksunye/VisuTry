@@ -181,7 +181,12 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
       const inspection = await inspectResponse.json() as {
         success?: boolean
         data?: {
-          sourceSummary?: { platforms?: string[]; foundCount?: number }
+          sourceSummary?: {
+            platforms?: string[]
+            foundCount?: number
+            fetchedPageCount?: number
+            sourceIssues?: Array<{ code?: string; message?: string }>
+          }
           candidates?: Array<{
             name: string
             productUrl: string
@@ -192,7 +197,14 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
         }
       }
       expect(inspection.success).toBe(true)
-      expect(inspection.data?.sourceSummary?.platforms).toContain('SHOPIFY')
+      const sourceSummary = inspection.data?.sourceSummary
+      const sourceDiagnostics = {
+        platforms: sourceSummary?.platforms ?? [],
+        foundCount: sourceSummary?.foundCount ?? 0,
+        fetchedPageCount: sourceSummary?.fetchedPageCount ?? 0,
+        sourceIssues: (sourceSummary?.sourceIssues ?? []).map(({ code }) => code ?? 'UNKNOWN'),
+      }
+      expect(sourceSummary?.platforms, `MOSCOT source inspection diagnostics: ${JSON.stringify(sourceDiagnostics)}`).toContain('SHOPIFY')
       expect(inspection.data?.sourceSummary?.foundCount).toBe(1)
       expect(inspection.data?.candidates).toHaveLength(1)
       const shopifyCandidate = inspection.data?.candidates?.[0]
