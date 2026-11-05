@@ -1,15 +1,17 @@
 # C3 live product URL feasibility probe
 
+**Status:** C3 HOLD — D1/D2 live app-to-Preview path not accepted
+**Owner:** Merchant Engineering
+**Last updated:** 2026-11-05
+
 | | |
 | --- | --- |
-| Status | D1 implementation locally verified; full real-browser acceptance NOT VERIFIED |
-| Date | 2026-11-04 |
-| Scope | Original read-only public HTTPS probes plus local D1 implementation and unit checks; no live Catalog writes |
+| Scope | Read-only public Shopify probes plus isolated GitHub Actions/PostgreSQL/Playwright acceptance attempts; no production writes |
 | Related design | [Merchant Self-Service C URL Intake v2](https://github.com/franksunye/VisuTry/blob/codex/merchant-plg-c-first-value-7d-20261103/docs/product/merchant-self-service-c-ux-url-intake-v2.md) |
 
 ## Result
 
-A narrow Shopify per-product path is technically feasible without raising VisuTry's 512 KiB source-response cap. The live MOSCOT product page was too large for the current HTML fetch budget, but its same-origin public Shopify Ajax product endpoint returned usable product data and its selected image decoded successfully. At the time of that probe, the importer did not call the endpoint. This branch now implements the product-scoped path and locally passes its focused checks, but the probe itself did not inspect through the application UI, write or approve a Catalog item, or create a private Store preview; it does not pass C3.
+A narrow Shopify per-product path is technically feasible without raising VisuTry's 512 KiB source-response cap. Public product pages and their same-origin Shopify Ajax endpoints are readable through the configured cloud proxy, and this branch implements the product-scoped path. The actual application request from GitHub Actions, however, received `SOURCE_ACCESS_DENIED` for MOSCOT and three separate D2 products before it reached `.js`. No candidate was approved, persisted, read back, or shown in Private Preview. Proxy probes and unit tests do not pass C3; C3 remains HOLD.
 
 ## Live requests
 
@@ -19,20 +21,33 @@ Requests were anonymous, read-only HTTPS GETs through the environment's configur
 | --- | --- | --- |
 | `https://www.warbyparker.com/eyeglasses/hatcher` | HTTP 200, 175,010-byte HTML; page title and Open Graph title say `404 \| Warby Parker`; no Product JSON-LD | Soft 404. The HTTP status alone is not product evidence. |
 | `https://www.warbyparker.com/eyeglasses/wilkie/black-matte-eclipse` | HTTP 200 HTML, response exceeded the 512 KiB cap | A current product page exists, but it cannot be consumed under the current direct-fetch size limit. It was not a denial. |
-| `https://moscot.com/products/lemtosh` | HTTP 200 HTML, response exceeded the 512 KiB cap; response headers include `Powered-By: Shopify` and the captured prefix contains Shopify asset markers | Shopify can be identified from response metadata before accepting the oversized body. The current fetcher discards headers on its over-limit error, so the progressive importer cannot currently use this signal. |
+| `https://moscot.com/products/lemtosh` | HTTP 200 HTML, response exceeded the 512 KiB cap; response headers include `Powered-By: Shopify` and the captured prefix contains Shopify asset markers | This initial probe exposed a fetcher gap. The D1 implementation now carries the Shopify header hint through the size-limit error and can then request the product-scoped endpoint; the GitHub runner still denied the source page, so this is not app-side acceptance evidence. |
 | `https://moscot.com/products/lemtosh.js` | HTTP 200, `text/javascript`, 202,877 bytes; valid JSON with `LEMTOSH`, vendor `MOSCOT`, product type `OPTICAL`, 111 variants, and 97 images | The documented, same-origin Shopify Ajax product endpoint is a viable bounded source for this specific product. It is a product endpoint, not a bulk product feed. |
 | First image URL returned by that endpoint (`cdn.shopify.com`) | HTTP 200, `image/jpeg`, 99,562 bytes; verified as a decodable 2295 × 1725 JPEG | The source image is usable as an image asset. Private-preview rendering was not tested. |
 
-The earlier Warby Parker candidate was a stale path; the current listing URL was discovered from that merchant's public eyeglasses page. No access-denied or rate-limit response occurred in these probes, so this report makes no new claim about a live 403/429 target.
+The rows above are read-only probes through the Codex Cloud HTTP proxy; they do not represent the GitHub runner's application request. The earlier Warby Parker candidate was a stale path; the current listing URL was discovered from that merchant's public eyeglasses page. No access-denied or rate-limit response occurred in those initial cloud-proxy probes.
 
-## Mapper findings
+## D1 and D2 application-run evidence
+
+The one-off GitHub Actions runs used the actual Merchant application, Chromium, and disposable PostgreSQL. A separate proxy preflight showed that the listed public product endpoints were readable from the Codex Cloud environment; that response was never passed into the app or written to Catalog. In each actual app journey, the original product-page fetch returned `SOURCE_ACCESS_DENIED`; the app stopped before requesting `.js`, building a candidate, or importing data.
+
+| Case | Public proxy preflight | Actual GitHub Actions app journey |
+| --- | --- | --- |
+| MOSCOT `https://moscot.com/products/lemtosh` | Earlier D1 probe read the page metadata and public `.js`; no app-side pass was established. | [Run #41950223075](https://github.com/franksunye/VisuTry/actions/runs/41950223075): `SOURCE_ACCESS_DENIED`; no Catalog write or Preview. The Playwright UI offered Manual/CSV recovery. This remains the retained denied-access case; do not probe it again. |
+| Tifosi `https://tifosioptics.com/products/moab-lite` | Page returned 200 with `Powered-By: Shopify`; its public `.js` returned one product with 8 variants. | [Run #41958919511](https://github.com/franksunye/VisuTry/actions/runs/41958919511): `SOURCE_ACCESS_DENIED` before `.js`. No product write or Preview. |
+| Knockaround `https://knockaround.com/products/premiums` | Page returned 200 with the Shopify header; `.js` returned one product with 34 variants, 27 available. | [Run #41959574394](https://github.com/franksunye/VisuTry/actions/runs/41959574394): `SOURCE_ACCESS_DENIED` before `.js`. No product write or Preview. |
+| goodr `https://goodr.com/products/hooked-on-onyx` | Page returned 200 with the Shopify header; `.js` returned one product with 2 variants, 1 available. One selected variant image returned 200 and showed rectangular sunglasses. | [Run #41960317661](https://github.com/franksunye/VisuTry/actions/runs/41960317661): `SOURCE_ACCESS_DENIED` before `.js`. No product write or Preview. |
+
+All three D2 attempts passed the focused negative/unit suite (4 suites, 49 tests). The live browser assertion failed at the source-summary check with `platforms=[]`, `foundCount=0`, `fetchedPageCount=0`, `sourceIssues=["SOURCE_ACCESS_DENIED"]`. The test harness now performs the raw `.js` price comparison only after the app has produced a candidate, so a blocked source does not trigger a test-side retry. The final goodr run's report, screenshot, and error context are in its short-retention [evidence artifact](https://github.com/franksunye/VisuTry/actions/runs/41960317661).
+
+## Initial mapper findings (addressed by D1)
 
 The real Ajax payload was passed through the existing Shopify mapper and proposal normalizer locally, without an application request or database write:
 
 - The Ajax endpoint returns one product object, while `extractCatalogProductsFromShopifyJson` expects an object containing a `products` array. Wrapping the live payload for a dry run produced 111 candidates, one for each color/size variant.
 - All 111 candidates share the same canonical product URL. The proposal therefore marks one candidate import-ready and the other 110 as possible duplicates. A specific product URL must produce one reviewable product candidate, with a selected variant, instead of a store-sized variant list.
 - The first available variant has a SKU, image, color and price, but no deterministic frame shape. It is import-ready after field review, not recommendation-ready; the merchant needs a clear way to complete missing frame facts.
-- Shopify Ajax returns the variant price as an integer in minor units. The existing `priceInMinorUnits` helper treats numeric values as major units and multiplies by 100; the live value `34000` becomes `3400000`. The Ajax adapter must preserve minor units or normalize them before using the existing mapper.
+- Shopify Ajax returns the variant price as an integer in minor units. Before D1, the generic `priceInMinorUnits` helper treated numeric values as major units and multiplied by 100; the live value `34000` became `3400000`. The D1 adapter now preserves those minor units, with regression coverage.
 - The proposal normalizer still sets `writePerformed: false` and `requiresApproval: true`, as required.
 
 ## D1 single-product implementation
@@ -47,10 +62,10 @@ The independent C3 branch now contains a product-scoped Shopify adapter:
 
 Unit coverage exercises a 111-variant payload as one candidate, the review gates and currency reset behavior, preserved price units and URL, image selection, soft-404 handling, 403/429 fallback, and existing Catalog membership enforcement.
 
-The Merchant RC GitHub Actions workflow now has a manual `run_live_moscot_d1` input, defaulting to false. Pull request runs keep their normal local scenarios and do not contact MOSCOT. A manually selected run reuses the isolated PostgreSQL + Chromium setup, runs the 403/429, soft-404, malformed-price, and cross-tenant regression suites, then executes the MOSCOT URL → merchant review → explicit approval → Catalog persistence/readback → private Store Preview journey. It captures review and preview screenshots as short-retention workflow artifacts.
+The Merchant RC GitHub Actions workflow has a manual `run_live_shopify_d2` input, defaulting to false and pinned to the single goodr URL above. Pull-request runs retain their local scenarios and make no third-party requests. The manual run reuses isolated PostgreSQL + Chromium, runs the 403/429, soft-404, malformed-price, and cross-tenant regression suites, then exercises the real app journey. The raw `.js` comparison happens only after the app produces a candidate; a blocked source does not trigger a test-harness retry. Screenshots, report, and error context are uploaded as a short-retention artifact.
 
-The required D1 acceptance remains open until that manual workflow completes successfully, including a decoded selected image. The existing live endpoint probe is feasibility evidence; it is not a substitute for the new app-side browser run.
+The D2 acceptance remains open until a manual run completes successfully, including variant review, decoded selected image, approval, Catalog persistence/readback, tenant rejection, and private Store Preview. A public endpoint probe is feasibility evidence only.
 
 ## Limits
 
-The initial evidence above remains a feasibility probe, not a D1 pass. In this execution environment the configured HTTP proxy could not be reached from the shell (`EPERM` on its TCP connection), no local PostgreSQL service or `DATABASE_URL` was available, and the Docker socket denied access to the non-root task user. Therefore the app-side MOSCOT request and persistence/private-preview browser journey have not run here. No C3 engineering acceptance is claimed; C3 remains HOLD until the complete real-browser acceptance is recorded.
+The GitHub runner did not complete the real-app source-fetch stage for MOSCOT, Tifosi, Knockaround, or goodr; each actual app response was `SOURCE_ACCESS_DENIED`. On those runs no product candidate reached merchant review, nothing was written to Catalog, and no Store draft or preview was created. The current goodr workflow and its diagnostics are committed to the independent C3 Draft PR, but C3 remains HOLD until a real application journey reaches and completes the required acceptance path. Do not retry MOSCOT or attempt a different proxy, user-agent disguise, browser-render fallback, or direct `.js` request after an app-side denial. Merchant-authorized Shopify integration remains a separate future P1 effort; it is outside D2.
