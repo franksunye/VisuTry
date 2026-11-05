@@ -7,7 +7,7 @@ const isLocalLabRun = process.env.NODE_ENV === 'test'
   && process.env.TEST_MODE === 'true'
   && process.env.P0_L1_LOCAL_MERCHANT_E2E === '1'
   && isLoopbackLocalPort(process.env.PLAYWRIGHT_BASE_URL || '')
-const d2ShopifyProductUrl = 'https://tifosioptics.com/products/moab-lite'
+const d2ShopifyProductUrl = 'https://knockaround.com/products/premiums'
 const isLiveShopifyProductRun = isLocalLabRun
   && process.env.SHOPIFY_LIVE_PRODUCT_E2E === '1'
   && process.env.SHOPIFY_LIVE_PRODUCT_URL === d2ShopifyProductUrl
@@ -147,7 +147,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     const merchantId = await page.getByLabel('Active merchant').inputValue()
     let importedProductName = 'Local Growth Round Frame'
     let expectedShopifyVariant: { label: string; priceMinor: number; imageUrl: string } | null = null
-    const expectedFrameShape = 'shield'
+    const expectedFrameShape = 'square'
     if (isLiveShopifyProductRun) {
       const sourceUrl = process.env.SHOPIFY_LIVE_PRODUCT_URL as string
       const ajaxUrl = new URL(sourceUrl)
@@ -184,6 +184,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
           }
           candidates?: Array<{
             name: string
+            brand: string | null
             productUrl: string
             shopifyReview?: {
               variantOptions: Array<{ id: string; label: string; available: boolean; imageUrl: string | null; priceMinor: number | null }>
@@ -220,9 +221,13 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
       const rawProduct = await rawResponse.json() as {
         id: number | string
         handle: string
+        title: string
+        vendor: string
         variants: Array<{ id: number | string; price: number }>
       }
       expect(rawProduct.handle).toBe(productHandle)
+      expect(shopifyCandidate?.name).toBe(rawProduct.title)
+      expect(shopifyCandidate?.brand).toBe(rawProduct.vendor)
       expectedShopifyVariant = {
         label: selectedVariant.label,
         priceMinor: selectedVariant.priceMinor as number,
