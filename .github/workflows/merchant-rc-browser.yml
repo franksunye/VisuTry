@@ -2,6 +2,11 @@ name: Merchant Executed RC Foundation
 on:
   workflow_dispatch:
     inputs:
+      run_source_d3:
+        description: Run one bounded HTTP transport comparison only
+        required: false
+        default: false
+        type: boolean
       run_live_shopify_d2:
         description: Run the public goodr Shopify D2 browser journey once
         required: false
@@ -33,7 +38,26 @@ concurrency:
   group: merchant-rc-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  source-d3:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_source_d3
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/merchant-source-d3-diagnostic.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: c3-d3-transport
+          path: c3-d3-diagnostics.json
+          retention-days: 7
   executed-first-value-campaign:
+    if: ${{ !inputs.run_source_d3 }}
     name: Executed First Value + Campaign + Catalog + CSV + Archived Kiosk reset (LOCAL/Mock)
     runs-on: ubuntu-latest
     timeout-minutes: 28
