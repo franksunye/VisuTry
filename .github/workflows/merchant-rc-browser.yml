@@ -2,8 +2,8 @@ name: Merchant Executed RC Foundation
 on:
   workflow_dispatch:
     inputs:
-      run_live_moscot_d1:
-        description: Run the public MOSCOT Shopify D1 browser journey once
+      run_live_shopify_d2:
+        description: Run the public Tifosi Shopify D2 browser journey once
         required: false
         default: false
         type: boolean
@@ -69,8 +69,8 @@ jobs:
       STRIPE_MERCHANT_BILLING_MODE: test
       STRIPE_SECRET_KEY: sk_test_ci_placeholder
       VISUTRY_LOCAL_DEMO_PROVIDER_MODE: blocked
-      D1_SHOPIFY_LIVE_E2E: ${{ github.event_name == 'workflow_dispatch' && inputs.run_live_moscot_d1 && '1' || '' }}
-      D1_SHOPIFY_PRODUCT_URL: https://moscot.com/products/lemtosh
+      SHOPIFY_LIVE_PRODUCT_E2E: ${{ github.event_name == 'workflow_dispatch' && inputs.run_live_shopify_d2 && '1' || '' }}
+      SHOPIFY_LIVE_PRODUCT_URL: https://tifosioptics.com/products/moab-lite
     steps:
       - name: Checkout exact revision
         uses: actions/checkout@v4
@@ -99,6 +99,6 @@ jobs:
             .local/merchant-rc/evidence/archive-campaign/README.md
             .local/merchant-rc/evidence/archived-kiosk.json
             .local/merchant-rc/evidence/archive-kiosk/*.png
-            .local/merchant-rc/evidence/d1-shopify/**
+            .local/merchant-rc/evidence/shopify-live/**
           if-no-files-found: ignore
           retention-days: 3

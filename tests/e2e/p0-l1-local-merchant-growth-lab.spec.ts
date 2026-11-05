@@ -7,9 +7,10 @@ const isLocalLabRun = process.env.NODE_ENV === 'test'
   && process.env.TEST_MODE === 'true'
   && process.env.P0_L1_LOCAL_MERCHANT_E2E === '1'
   && isLoopbackLocalPort(process.env.PLAYWRIGHT_BASE_URL || '')
-const isLiveShopifyD1Run = isLocalLabRun
-  && process.env.D1_SHOPIFY_LIVE_E2E === '1'
-  && process.env.D1_SHOPIFY_PRODUCT_URL === 'https://moscot.com/products/lemtosh'
+const d2ShopifyProductUrl = 'https://tifosioptics.com/products/moab-lite'
+const isLiveShopifyProductRun = isLocalLabRun
+  && process.env.SHOPIFY_LIVE_PRODUCT_E2E === '1'
+  && process.env.SHOPIFY_LIVE_PRODUCT_URL === d2ShopifyProductUrl
 
 function isLoopbackLocalPort(value: string) {
   try {
@@ -145,21 +146,15 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
 
     const merchantId = await page.getByLabel('Active merchant').inputValue()
     let importedProductName = 'Local Growth Round Frame'
-    let expectedD1Variant: { label: string; priceMinor: number; imageUrl: string } | null = null
-    if (isLiveShopifyD1Run) {
-      const sourceUrl = process.env.D1_SHOPIFY_PRODUCT_URL as string
+    let expectedShopifyVariant: { label: string; priceMinor: number; imageUrl: string } | null = null
+    const expectedFrameShape = 'shield'
+    if (isLiveShopifyProductRun) {
+      const sourceUrl = process.env.SHOPIFY_LIVE_PRODUCT_URL as string
       const ajaxUrl = new URL(sourceUrl)
       ajaxUrl.pathname = `${ajaxUrl.pathname.replace(/\/+$/u, '')}.js`
       ajaxUrl.search = ''
       ajaxUrl.hash = ''
-      const rawResponse = await request.get(ajaxUrl.toString(), { timeout: 30_000 })
-      expect(rawResponse.status(), 'The public MOSCOT Shopify Ajax endpoint responds').toBe(200)
-      const rawProduct = await rawResponse.json() as {
-        id: number | string
-        handle: string
-        variants: Array<{ id: number | string; price: number }>
-      }
-      expect(rawProduct.handle).toBe('lemtosh')
+      const productHandle = new URL(sourceUrl).pathname.split('/').filter(Boolean).at(-1)
 
       const requestedShopifyImages = new Set<string>()
       page.on('request', (requestEvent) => {
@@ -177,7 +172,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
       ), { timeout: 45_000 })
       await page.getByRole('button', { name: 'Inspect and preview' }).click()
       const inspectResponse = await inspectResponsePromise
-      expect(inspectResponse.status(), 'The real app inspects the MOSCOT URL').toBe(200)
+      expect(inspectResponse.status(), 'The real app inspects the selected Shopify product URL').toBe(200)
       const inspection = await inspectResponse.json() as {
         success?: boolean
         data?: {
@@ -204,7 +199,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
         fetchedPageCount: sourceSummary?.fetchedPageCount ?? 0,
         sourceIssues: (sourceSummary?.sourceIssues ?? []).map(({ code }) => code ?? 'UNKNOWN'),
       }
-      expect(sourceSummary?.platforms, `MOSCOT source inspection diagnostics: ${JSON.stringify(sourceDiagnostics)}`).toContain('SHOPIFY')
+      expect(sourceSummary?.platforms, `Shopify source inspection diagnostics: ${JSON.stringify(sourceDiagnostics)}`).toContain('SHOPIFY')
       expect(inspection.data?.sourceSummary?.foundCount).toBe(1)
       expect(inspection.data?.candidates).toHaveLength(1)
       const shopifyCandidate = inspection.data?.candidates?.[0]
@@ -215,8 +210,20 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
       expect(variants.length, 'Variants remain options on one product candidate').toBeGreaterThan(1)
       const selectedVariant = variants.find((variant) => variant.available && variant.imageUrl && variant.priceMinor != null)
       expect(selectedVariant, 'The source exposes an available variant with an image and price').toBeTruthy()
-      if (!selectedVariant) throw new Error('The MOSCOT payload has no available, priced variant with an image.')
-      expectedD1Variant = {
+      if (!selectedVariant) throw new Error('The Shopify payload has no available, priced variant with an image.')
+
+      // Only compare with the public Ajax response after the app has itself
+      // reached a candidate. A blocked source page must stop without a test
+      // harness retry to the .js endpoint.
+      const rawResponse = await request.get(ajaxUrl.toString(), { timeout: 30_000 })
+      expect(rawResponse.status(), 'The public Shopify Ajax endpoint responds after app inspection').toBe(200)
+      const rawProduct = await rawResponse.json() as {
+        id: number | string
+        handle: string
+        variants: Array<{ id: number | string; price: number }>
+      }
+      expect(rawProduct.handle).toBe(productHandle)
+      expectedShopifyVariant = {
         label: selectedVariant.label,
         priceMinor: selectedVariant.priceMinor as number,
         imageUrl: selectedVariant.imageUrl as string,
@@ -231,7 +238,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
       await expect.poll(() => selectedImage.evaluate((image) => {
         const candidateImage = image as HTMLImageElement
         return candidateImage.complete && candidateImage.naturalWidth > 0
-      }), { timeout: 30_000, message: 'The selected MOSCOT variant image decodes in Chromium' }).toBe(true)
+      }), { timeout: 30_000, message: 'The selected Shopify variant image decodes in Chromium' }).toBe(true)
       const imageConfirm = page.getByRole('checkbox', { name: /I confirm this is the image for the selected variant/i })
       await imageConfirm.check()
 
@@ -239,13 +246,13 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
       const priceConfirm = page.getByRole('checkbox', { name: /I confirm this variant is priced at USD /i })
       await expect(priceConfirm).toBeEnabled()
       await priceConfirm.check()
-      await page.getByLabel('Frame shape').fill('round')
+      await page.getByLabel('Frame shape').fill(expectedFrameShape)
       expect(requestedShopifyImages.size, 'The browser loads only the selected Shopify CDN image').toBe(1)
       await expect(page.getByRole('button', { name: 'Approve and import 1' })).toBeEnabled()
-      const d1EvidenceDir = process.env.D1_SHOPIFY_EVIDENCE_DIR
-      if (d1EvidenceDir) {
-        mkdirSync(d1EvidenceDir, { recursive: true })
-        await page.screenshot({ path: `${d1EvidenceDir}/product-review.png`, fullPage: true })
+      const shopifyEvidenceDir = process.env.SHOPIFY_LIVE_EVIDENCE_DIR
+      if (shopifyEvidenceDir) {
+        mkdirSync(shopifyEvidenceDir, { recursive: true })
+        await page.screenshot({ path: `${shopifyEvidenceDir}/product-review.png`, fullPage: true })
       }
     } else {
       await page.getByRole('tab', { name: 'Add manually' }).click()
@@ -266,24 +273,24 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await page.getByRole('button', { name: /Approve and import 1/ }).click()
     await expect(page.getByText('Your first product is in the Catalog.', { exact: true })).toBeVisible()
 
-    if (isLiveShopifyD1Run) {
+    if (isLiveShopifyProductRun) {
       const catalogResponse = await request.get(`/api/merchant/${encodeURIComponent(merchantId)}/catalog?limit=50`)
       expect(catalogResponse.status(), 'Catalog readback succeeds after approval').toBe(200)
       const catalog = await catalogResponse.json() as {
         success?: boolean
         data?: { items?: Array<{ name: string; productUrl: string; price: number; currency: string; shape: string; variant: string; imageUrl: string }> }
       }
-      const savedProduct = catalog.data?.items?.find((item) => item.productUrl === process.env.D1_SHOPIFY_PRODUCT_URL)
+      const savedProduct = catalog.data?.items?.find((item) => item.productUrl === process.env.SHOPIFY_LIVE_PRODUCT_URL)
       expect(catalog.success).toBe(true)
       expect(savedProduct).toMatchObject({
         name: importedProductName,
-        productUrl: process.env.D1_SHOPIFY_PRODUCT_URL,
+        productUrl: process.env.SHOPIFY_LIVE_PRODUCT_URL,
         currency: 'usd',
-        shape: 'round',
-        variant: expectedD1Variant?.label,
-        imageUrl: expectedD1Variant?.imageUrl,
+        shape: expectedFrameShape,
+        variant: expectedShopifyVariant?.label,
+        imageUrl: expectedShopifyVariant?.imageUrl,
       })
-      expect(savedProduct?.price).toBe(expectedD1Variant?.priceMinor)
+      expect(savedProduct?.price).toBe(expectedShopifyVariant?.priceMinor)
 
       const foreignContext = await browser.newContext()
       try {
@@ -347,11 +354,11 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     await expect(page.getByText('Private draft preview', { exact: true })).toBeVisible()
     await expect(page.getByText('DRAFT · not public')).toBeVisible()
     await expect(page.getByRole('checkbox', { name: /confirm this store is ready/i })).not.toBeChecked()
-    if (isLiveShopifyD1Run) {
+    if (isLiveShopifyProductRun) {
       const privatePreview = page.getByTestId('store-draft-preview')
       await expect(privatePreview.getByText(importedProductName, { exact: false })).toBeVisible()
-      const d1EvidenceDir = process.env.D1_SHOPIFY_EVIDENCE_DIR
-      if (d1EvidenceDir) await page.screenshot({ path: `${d1EvidenceDir}/private-store-preview.png`, fullPage: true })
+      const shopifyEvidenceDir = process.env.SHOPIFY_LIVE_EVIDENCE_DIR
+      if (shopifyEvidenceDir) await page.screenshot({ path: `${shopifyEvidenceDir}/private-store-preview.png`, fullPage: true })
     }
     const activationPageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
     logPhaseStart('operating workspace checks')

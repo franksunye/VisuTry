@@ -63,32 +63,32 @@ start_server() {
   [[ "$ready" == true ]] || { echo "Merchant RC app not ready" >&2; exit 1; }
 }
 start_server
-if [[ "${D1_SHOPIFY_LIVE_E2E:-}" == "1" ]]; then
-  [[ "${D1_SHOPIFY_PRODUCT_URL:-}" == "https://moscot.com/products/lemtosh" ]] || {
-    echo 'The manual D1 run is pinned to the approved MOSCOT product URL.' >&2
+if [[ "${SHOPIFY_LIVE_PRODUCT_E2E:-}" == "1" ]]; then
+  [[ "${SHOPIFY_LIVE_PRODUCT_URL:-}" == "https://tifosioptics.com/products/moab-lite" ]] || {
+    echo 'The manual D2 run is pinned to the selected public Tifosi product URL.' >&2
     exit 1
   }
-  echo "Running manually requested D1 live Shopify browser journey at exact SHA $(git rev-parse HEAD)"
-  echo "Only the existing Merchant RC local PostgreSQL database and the approved public product URL are used."
+  echo "Running manually requested D2 live Shopify browser journey at exact SHA $(git rev-parse HEAD)"
+  echo "Only the existing Merchant RC local PostgreSQL database and the selected public product URL are used."
   npx jest --runInBand \
     tests/unit/modules/merchant/merchant-catalog-source-progressive.test.ts \
     tests/unit/modules/merchant/merchant-source-network.test.ts \
     tests/unit/modules/merchant/merchant-catalog-source-cloudflare-shopify.test.ts \
     tests/unit/app/api/merchant-catalog-route.test.ts
-  mkdir -p "$OUT/d1-shopify"
+  mkdir -p "$OUT/shopify-live"
   if env \
     P0_L1_LOCAL_MERCHANT_E2E=1 \
-    D1_SHOPIFY_LIVE_E2E=1 \
-    D1_SHOPIFY_PRODUCT_URL="$D1_SHOPIFY_PRODUCT_URL" \
-    D1_SHOPIFY_EVIDENCE_DIR="$OUT/d1-shopify" \
-    PLAYWRIGHT_JSON_OUTPUT_FILE="$OUT/d1-shopify/report.json" \
+    SHOPIFY_LIVE_PRODUCT_E2E=1 \
+    SHOPIFY_LIVE_PRODUCT_URL="$SHOPIFY_LIVE_PRODUCT_URL" \
+    SHOPIFY_LIVE_EVIDENCE_DIR="$OUT/shopify-live" \
+    PLAYWRIGHT_JSON_OUTPUT_FILE="$OUT/shopify-live/report.json" \
     ./node_modules/.bin/playwright test tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts \
-      --project=chromium --workers=1 --retries=0 --reporter=json --output="$OUT/d1-shopify/playwright-output" \
+      --project=chromium --workers=1 --retries=0 --reporter=json --output="$OUT/shopify-live/playwright-output" \
       --grep 'runs the real local acquisition-to-private-preview journey'; then
-    echo 'D1 live MOSCOT browser journey completed.'
+    echo 'D2 live Shopify browser journey completed.'
   else
     status=$?
-    echo "D1 live MOSCOT browser journey failed with exit $status." >&2
+    echo "D2 live Shopify browser journey failed with exit $status." >&2
     exit "$status"
   fi
   exit 0
