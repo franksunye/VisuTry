@@ -46,6 +46,9 @@ const importableProposal = {
 }
 
 describe('Merchant First Value source choice and recovery', () => {
+  const originalFlag = process.env.NEXT_PUBLIC_MERCHANT_PUBLIC_URL_IMPORT_ENABLED
+  beforeEach(() => { process.env.NEXT_PUBLIC_MERCHANT_PUBLIC_URL_IMPORT_ENABLED = 'true' })
+  afterEach(() => { if (originalFlag === undefined) delete process.env.NEXT_PUBLIC_MERCHANT_PUBLIC_URL_IMPORT_ENABLED; else process.env.NEXT_PUBLIC_MERCHANT_PUBLIC_URL_IMPORT_ENABLED = originalFlag })
   it('prefills a saved signup website for inspection, without automatically importing it', async () => {
     const fetchMock = mockCatalogAndInspect(emptyProposal)
     render(<MerchantCatalogSelfService merchantId="merchant-a" initialTotal={0}
@@ -235,4 +238,22 @@ describe('Merchant First Value source choice and recovery', () => {
       String(url) === '/api/merchant/merchant-g/catalog' && init?.method === 'POST')).toHaveLength(0)
   })
 
+})
+
+
+describe('Public URL import paused by default', () => {
+  const originalFlag = process.env.NEXT_PUBLIC_MERCHANT_PUBLIC_URL_IMPORT_ENABLED
+  afterEach(() => { if (originalFlag === undefined) delete process.env.NEXT_PUBLIC_MERCHANT_PUBLIC_URL_IMPORT_ENABLED; else process.env.NEXT_PUBLIC_MERCHANT_PUBLIC_URL_IMPORT_ENABLED = originalFlag })
+  it.each([0, 3])('hides URL inspection with %i existing products, even with a signup URL', async (initialTotal) => {
+    delete process.env.NEXT_PUBLIC_MERCHANT_PUBLIC_URL_IMPORT_ENABLED
+    const fetchMock = mockCatalogAndInspect()
+    render(<MerchantCatalogSelfService merchantId="merchant-a" initialTotal={initialTotal} initialWebsiteUrl="https://shop.example.test" />)
+    expect(screen.queryByRole('tab', { name: 'Store URL' })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Store or product URL')).not.toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Upload CSV' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Add manually' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: initialTotal === 0 ? 'Add manually' : 'Upload CSV' })).toHaveAttribute('aria-selected', 'true')
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('/inspect'))).toHaveLength(0)
+  })
 })

@@ -117,7 +117,7 @@ run_scenario "Campaign + archived historical read-only lifecycle" P1_M2_5_LOCAL_
 reset_own_disposable_db_for_next_scenario
 run_scenario "Native Photo + Real Catalog" G1F_CATALOG_NATIVE_PHOTO_E2E tests/e2e/merchant-catalog-native-photo-local.spec.ts photo.json
 reset_own_disposable_db_for_next_scenario
-run_scenario "Unsafe URL -> CSV Real Catalog" G1F_REAL_CATALOG_CSV_E2E tests/e2e/merchant-catalog-csv-recovery-local.spec.ts csv.json
+run_scenario "Paused URL -> CSV Real Catalog" G1F_REAL_CATALOG_CSV_E2E tests/e2e/merchant-catalog-csv-recovery-local.spec.ts csv.json
 reset_own_disposable_db_for_next_scenario
 run_scenario "Archived Campaign Kiosk privacy reset" ARCHIVED_CAMPAIGN_KIOSK_PRIVACY_E2E tests/e2e/archived-campaign-kiosk-privacy-local.spec.ts archived-kiosk.json "$OUT/archive-kiosk" ARCHIVED_CAMPAIGN_KIOSK_EVIDENCE_DIR true
 assert_marker

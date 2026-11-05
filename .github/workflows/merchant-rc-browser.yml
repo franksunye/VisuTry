@@ -86,6 +86,7 @@ jobs:
         with:
           name: merchant-rc-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
+            .local/merchant-rc/evidence/catalog-url-pause/*.png
             .local/merchant-rc/evidence/ledger.json
             .local/merchant-rc/evidence/archive-campaign/*.png
             .local/merchant-rc/evidence/archive-campaign/README.md

@@ -270,7 +270,7 @@ function Overview({
             Bring your eyewear catalog to life.
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-            Start with your store URL, a CSV, or a few products manually. Review
+            Upload a CSV or add a few products manually. Review
             what VisuTry found, approve the valid rows, and keep your catalog in
             your own merchant workspace.
           </p>
