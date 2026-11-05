@@ -64,8 +64,8 @@ start_server() {
 }
 start_server
 if [[ "${SHOPIFY_LIVE_PRODUCT_E2E:-}" == "1" ]]; then
-  [[ "${SHOPIFY_LIVE_PRODUCT_URL:-}" == "https://knockaround.com/products/premiums" ]] || {
-    echo 'The manual D2 run is pinned to the selected public Knockaround product URL.' >&2
+  [[ "${SHOPIFY_LIVE_PRODUCT_URL:-}" == "https://goodr.com/products/hooked-on-onyx" ]] || {
+    echo 'The manual D2 run is pinned to the selected public goodr product URL.' >&2
     exit 1
   }
   echo "Running manually requested D2 live Shopify browser journey at exact SHA $(git rev-parse HEAD)"

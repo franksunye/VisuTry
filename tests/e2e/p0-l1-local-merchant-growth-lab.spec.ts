@@ -7,7 +7,7 @@ const isLocalLabRun = process.env.NODE_ENV === 'test'
   && process.env.TEST_MODE === 'true'
   && process.env.P0_L1_LOCAL_MERCHANT_E2E === '1'
   && isLoopbackLocalPort(process.env.PLAYWRIGHT_BASE_URL || '')
-const d2ShopifyProductUrl = 'https://knockaround.com/products/premiums'
+const d2ShopifyProductUrl = 'https://goodr.com/products/hooked-on-onyx'
 const isLiveShopifyProductRun = isLocalLabRun
   && process.env.SHOPIFY_LIVE_PRODUCT_E2E === '1'
   && process.env.SHOPIFY_LIVE_PRODUCT_URL === d2ShopifyProductUrl
@@ -147,7 +147,7 @@ test.describe('P0-L1 / P1-M1 Local Merchant First Value', () => {
     const merchantId = await page.getByLabel('Active merchant').inputValue()
     let importedProductName = 'Local Growth Round Frame'
     let expectedShopifyVariant: { label: string; priceMinor: number; imageUrl: string } | null = null
-    const expectedFrameShape = 'square'
+    const expectedFrameShape = 'rectangular'
     if (isLiveShopifyProductRun) {
       const sourceUrl = process.env.SHOPIFY_LIVE_PRODUCT_URL as string
       const ajaxUrl = new URL(sourceUrl)
