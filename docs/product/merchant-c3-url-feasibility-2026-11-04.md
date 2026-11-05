@@ -69,3 +69,24 @@ The D2 acceptance remains open until a manual run completes successfully, includ
 ## Limits
 
 The GitHub runner did not complete the real-app source-fetch stage for MOSCOT, Tifosi, Knockaround, or goodr; each actual app response was `SOURCE_ACCESS_DENIED`. On those runs no product candidate reached merchant review, nothing was written to Catalog, and no Store draft or preview was created. The current goodr workflow and its diagnostics are committed to the independent C3 Draft PR, but C3 remains HOLD until a real application journey reaches and completes the required acceptance path. Do not retry MOSCOT or attempt a different proxy, user-agent disguise, browser-render fallback, or direct `.js` request after an app-side denial. Merchant-authorized Shopify integration remains a separate future P1 effort; it is outside D2.
+
+## D3 bounded common-cause investigation and product decision
+
+The single [manual D3 run 41969202570](https://github.com/franksunye/VisuTry/actions/runs/41969202570) tested the existing goodr product only, with two requests: ordinary hostname resolution versus the application's pinned-IP transport. Headers, original product path, Host, SNI, TLS verification, and request bounds were unchanged. There were no retries, redirects, alternative user agents, `.js` requests, or additional brands. [Permanent diagnostic evidence](evidence/c3-d3-transport-2026-11-05.json) was captured at code revision `f93967a5f3e43207477d3bd4699cc258f642ee4b`.
+
+| Observation | Hostname connection | Current pinned-IP connection |
+| --- | --- | --- |
+| Remote IPv4 | `172.67.143.153` | `104.21.27.219` |
+| HTTP status | 403 | 403 |
+| Server | Cloudflare | Cloudflare |
+| TLS | TLS 1.3, certificate verified | TLS 1.3, certificate verified |
+| Response | HTML, 6,924 bytes | HTML, 6,924 bytes |
+| Proxy configured on runner | No | No |
+
+Both addresses were public DNS answers. The responses included distinct Cloudflare Ray IDs ending in SJC. This establishes an HTTP denial from the site-facing edge on this runner route, rather than a DNS failure, TLS certificate failure, or request timeout. It does not establish the precise WAF rule or whether source IP reputation, request fingerprint, or another policy caused it. Both connection forms failed, so changing IP pinning is not a demonstrated fix. The SSRF DNS checks, Host, SNI, certificate validation and same-origin redirect safeguards must remain.
+
+The earlier successful preflights used the Codex Cloud HTTP proxy; they were not browser preflights from the same runner. Comparing those results with direct runner requests confounds network exit and client behavior. This investigation deliberately does not change either to evade the observed denial. It does not establish that all four merchants categorically prohibit imports, nor that every runtime will fail.
+
+Code review found no demonstrated causal transport defect: `node:https` explicitly sets Host/SNI and verifies certificates; `agent: false` does not automatically honor HTTP proxy variables. The runner has no such proxy configured. The 3-second socket timeout is an inactivity timeout rather than an absolute request deadline; response size is bounded and redirects are restricted. These constraints did not cause the observed complete HTTP 403 responses. Error classification currently folds 401/403 into `SOURCE_ACCESS_DENIED` and drops HTTP headers, so that code alone was insufficient attribution evidence. Diagnostic output now preserves a small allowlist of non-secret headers without cookies, credentials, or page bodies.
+
+**D3 decision:** stop rotating brands and stop live probes for this round. Treat Public URL intake as a best-effort shortcut with terminal denial/rate-limit handling and Manual/CSV recovery. Manual/CSV remain the reliable baseline. Merchant-authorized Shopify integration is the next formal ingestion architecture to design separately (P1), with explicit scopes, consent, tenant binding, token storage, revocation and synchronization rules; no OAuth integration is implemented here. C3's positive URL-to-Catalog-to-Private-Preview gate remains HOLD. No successful E2E is claimed and no causal transport repair is justified by this evidence. PR #517 remains Draft; C1/C1.1 are unaffected.
