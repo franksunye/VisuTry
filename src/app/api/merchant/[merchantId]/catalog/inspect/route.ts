@@ -1,3 +1,4 @@
+import { isMerchantPublicUrlImportEnabled } from '@/lib/merchant-public-url-import'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: { merchan
     if (!isRecord(body) || typeof body.sourceType !== 'string') return NextResponse.json({ success: false, error: 'INVALID_REQUEST' }, { status: 400 })
     const actor = actorFor(auth.userId, params.merchantId, membership.membershipId)
     if (body.sourceType === 'url') {
+      if (!isMerchantPublicUrlImportEnabled()) return NextResponse.json({ success: false, error: 'PUBLIC_URL_IMPORT_DISABLED', message: 'Store URL import is temporarily unavailable. Upload a CSV or add products manually.' }, { status: 403 })
       const sourceUrls = Array.isArray(body.sourceUrls) ? body.sourceUrls : typeof body.url === 'string' ? [body.url] : null
       if (!sourceUrls || sourceUrls.length === 0 || sourceUrls.length > MAX_SOURCE_URLS || sourceUrls.some((url) => typeof url !== 'string' || url.length > 2000)) return NextResponse.json({ success: false, error: 'INVALID_SOURCE_URL' }, { status: 400 })
       const result = await inspectHumanMerchantCatalogSource({ actor, sourceUrls })

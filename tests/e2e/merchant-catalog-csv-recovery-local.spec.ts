@@ -1,3 +1,4 @@
+import { mkdirSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 
 const enabled = process.env.APP_ENV === 'local'
@@ -7,7 +8,7 @@ const enabled = process.env.APP_ENV === 'local'
   && process.env.G1F_REAL_CATALOG_CSV_E2E === '1'
   && process.env.PLAYWRIGHT_BASE_URL === 'http://127.0.0.1:3003'
 
-test('rejects unsafe local URL, recovers to CSV, and imports only after approval through real Catalog APIs', async ({ page, request, context }) => {
+test('blocks paused URL import, keeps CSV available, and imports only after approval through real Catalog APIs', async ({ page, request, context }) => {
   test.skip(!enabled, 'Requires the marked ephemeral LOCAL PostgreSQL CI environment.')
   test.setTimeout(180_000)
 
@@ -58,29 +59,20 @@ test('rejects unsafe local URL, recovers to CSV, and imports only after approval
   }
   expect(await readCatalog()).toHaveLength(0)
 
-  // This must be refused by the production SSRF guard, not fetched from 127.0.0.1.
-  await page.getByRole('tab', { name: 'Store URL' }).click()
-  await page.getByLabel('Store or product URL').fill('http://127.0.0.1:3003/en/business')
-  const unsafePromise = page.waitForResponse((response) =>
-    response.url().endsWith(catalogUrl + '/inspect')
-    && response.request().method() === 'POST', { timeout: 45_000 })
-  await page.getByRole('button', { name: 'Inspect and preview' }).click()
-  const unsafeResponse = await unsafePromise
-  expect(unsafeResponse.status()).toBe(200)
-  const unsafe = await unsafeResponse.json() as {
-    success: boolean;
-    data: {
-      importReady: unknown[];
-      sourceSummary: { sourceIssues: Array<{ code: string }> }
-    }
-  }
-  expect(unsafe.success).toBe(true)
-  expect(unsafe.data.importReady).toHaveLength(0)
-  expect(unsafe.data.sourceSummary.sourceIssues.map((issue) => issue.code)).toContain('UNSAFE_SOURCE_URL')
-  await expect(page.getByRole('heading', { name: 'No products are ready to add' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Approve and import 0' })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Upload CSV' }).last()).toBeVisible()
+  // The paused capability is hidden and direct requests fail before fetching.
+  await expect(page.getByRole('tab', { name: 'Store URL' })).toHaveCount(0)
+  const disabled = await page.request.post(catalogUrl + '/inspect', {
+    data: { sourceType: 'url', sourceUrls: ['https://example.com/products/frame'] },
+  })
+  expect(disabled.status()).toBe(403)
+  expect(await disabled.json()).toMatchObject({ success: false, error: 'PUBLIC_URL_IMPORT_DISABLED' })
   expect(await readCatalog()).toHaveLength(0)
+
+  mkdirSync('.local/merchant-rc/evidence/catalog-url-pause', { recursive: true })
+  for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport)
+    await page.locator('#catalog').screenshot({ path: `.local/merchant-rc/evidence/catalog-url-pause/catalog-${viewport.width}.png` })
+  }
 
   // Recovery goes through the actual multipart CSV inspection endpoint and DB.
   await page.getByRole('tab', { name: 'Upload CSV' }).click()
@@ -134,7 +126,7 @@ test('rejects unsafe local URL, recovers to CSV, and imports only after approval
   expect(browserErrors).toEqual([])
   expect(serverErrors).toEqual([])
   console.log(JSON.stringify({ catalogCsvE2e: {
-    urlSource: 'REAL_LOCAL_SSRF_REJECTION',
+    urlSource: 'PUBLIC_URL_IMPORT_DISABLED',
     csvInspect: 'REAL_LOCAL_MULTIPART',
     catalogApprovalAndReadback: 'REAL_LOCAL_POSTGRES',
     beforeExplicitApproval: 0, afterApproval: rows.length,
