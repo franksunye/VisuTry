@@ -270,8 +270,11 @@ export function FaceAnalysisInterface() {
 
       setIsRestoringTask(true)
       refreshTask(taskId, { syncSession: true })
-        .then(() => {
-          analytics.trackFaceAnalysisUnlockSuccess(taskId)
+        .then(({ success, data }) => {
+          // The checkout return can arrive before the webhook unlocks the report.
+          if (success === true && data?.id === taskId && data.status === 'completed' && data.reportUnlocked === true) {
+            analytics.trackFaceAnalysisUnlockSuccess(taskId)
+          }
         })
         .finally(() => setIsRestoringTask(false))
       return
