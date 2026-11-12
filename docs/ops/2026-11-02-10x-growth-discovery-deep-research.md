@@ -547,3 +547,23 @@ SQL 使用 payment.checkout_id 去重付款、task.id 去重任务；Try-On 仅�
 | **E5** GEO/offsite | Public content useful/indexable in part | No fresh verified third-party referral→qualified completion; no scalable proof | **HOLD scale** |
 
 **Operating rule:** Until **one valid 7-day read-only session cohort** joins (a) source/landing and `consumer_funnel_id`, (b) real `tryon_started/completed` or Advisor report-completed, (c) report-linked `Payment.status=COMPLETED`/refund and AI/CPU cost, preserve **P0 E2 first, E1 second** and classify both **INCONCLUSIVE**, rather than reopening trivial ledger SQL or declaring 10×. The first available late-Nov 28-day search window must be interpreted **after a verified Google recrawl/processing date**, with preperiod and country/device/query composition checks. If two comparable 28-day commercial windows never show additional qualified completions with acceptable positive contribution margin, **NO GO for scaling that entry**; if the data feed itself is unavailable, state **INCONCLUSIVE, not zero**. No production/entitlement/pricing changes in this run.
+
+### 2026-11-12 — 英文选镜 Guide 的首个双周商业验收
+
+**E2 裁决：保留为首要自然入口，增量效果 INCONCLUSIVE。** 后窗有两笔 Guide Google 自然来源、结账时已绑定报告的实付订单，其中一份仍能直接验证已完成且解锁。GA4 中自然落地会话持平，启动和完成会话均减少。后一周多一笔订单不足以判断改版增量或贡献毛利。
+
+| 英文 Guide，同名日历周 | 10 月 25–31 日 | 11 月 2–8 日 |
+| --- | ---: | ---: |
+| GSC Web，页面点击 / 展示 | 239 / 5,400 | 253 / 6,073 |
+| GA4，Google 自然落地会话 | 238 | 240 |
+| GA4，有 Advisor 启动事件的会话 | 19 | 14 |
+| GA4，有 Advisor 完成事件的会话 | 18 | 14 |
+| GA4，完成会话 / 同源自然落地会话 | 7.56% | 5.83% |
+| Axiom，观察到 Advisor 完成的独立匿名浏览器会话 | 8 | 9 |
+| Neon 已绑定报告且逐笔匹配 Stripe 成功付款 | 1 笔 / $2.99 | 2 笔 / $5.98 |
+| 上行订单中，保留任务可确认完成且已解锁 / 当前无同一用户对应任务 | 0 / 1 | 1 / 1 |
+| 上述订单截至 11 月 12 日的退款标记 / Stripe 已退款交易 | 0 / 0 | 0 / 0 |
+
+- **流量和行为口径。** GSC 为 `www.visutry.com` 的英文 Guide 精确 URL。GA4 为 `visutry.com` 的着陆页报告，报告时区已核对为 China Time（UTC+8）。筛选 `Session source / medium = google / organic`、精确着陆路径 `/en/blog/ai-face-analysis-for-glasses-guide`，分别读取 Sessions，以及增加 `eventName = face_analysis_started` 或 `face_analysis_completed` 后的 Sessions。每一行按会话去重；事件分组未验证同一会话内的步骤顺序。Axiom 为生产 `visutry-traffic-pro`，按 UTC 半开区间、相同落地路径、Google 自然来源和 `traffic_class=production_candidate` 过滤 `face_analysis_completed`，按周及非空 `consumer_funnel_id` 分组后计数。两系统在会话标识、时区、来源判定与采集覆盖上有差异，完成数走势相反；不跨系统计算转化率。
+- **交易和权益口径。** 生产 Neon 的 Payment 以 UTC `completedAt` 归窗，成功支付或随后退款的 Checkout 按唯一 `stripeSessionId` 计数；来源为 Payment 首次落地、Google 和 organic。指南的 3 笔均有 `unlockTaskId`，均按 PaymentIntent ID 匹配同窗 Stripe 成功交易，无普通未绑定订单。按任务 ID 及同一用户核对 `FaceAnalysisTask.status=COMPLETED` 与 `reportUnlocked=true`。当前未匹配的两份不能判为解锁失败，也不能算作已交付。相同 Google 归因口径下，直接落地英文 Advisor 的绑定订单 1→0，英文 Detector 0→0。同期 Stripe 全站成功付款为 6 笔/$23.94→5 笔/$20.95。10 月历史 6 笔基线包含本次前窗，不能累加。无 Guide 队列可核实的 AI 实付成本或 Vercel CPU 分摊，贡献毛利未定。
+- **改动归因与后续。** [#484](https://github.com/franksunye/VisuTry/pull/484) 调整移动端 Detector 结果页，[#509](https://github.com/franksunye/VisuTry/pull/509) 更新指南搜索文案。Guide 直接进入 Advisor 与经 Detector 进入的路径都可贡献观察结果，不能把两周差额归给任何一个 CTA。[#519](https://github.com/franksunye/VisuTry/pull/519) 在原代码复现四种客户端解锁成功误报，草稿修复及关键交易测试通过；本表依据服务端权益与实付。仅准备一项英文文末对照实例 [#520](https://github.com/franksunye/VisuTry/pull/520)，沿用已批准的编辑素材，草稿未上线。11 月 29 日后核对完整 28 天和抓取状态，既定获客目标为 1,150 点击；只有可比窗口重复增加合格完成及实付、且可核实增量贡献为正才评 SCALE。点击增加、完成持续下降时判 MODIFY；样本或成本仍不足保持 INCONCLUSIVE。
