@@ -1,6 +1,7 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { FaceAnalysisInterface } from '@/components/face-analysis/FaceAnalysisInterface'
+import { analytics } from '@/lib/analytics'
 
 const mockUpdate = jest.fn()
 const mockConsumePhotoHandoff = jest.fn()
@@ -116,7 +117,8 @@ describe('FaceAnalysisInterface continuation recovery', () => {
   it('consumes unlock=success before refreshing and does not refresh again after remount', async () => {
     const firstRender = render(<FaceAnalysisInterface />)
 
-    await waitFor(() => expect(mockUpdate).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(analytics.trackFaceAnalysisUnlockSuccess).toHaveBeenCalledWith('task-1'))
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
     expect(window.location.search).toBe('?taskId=task-1')
 
     firstRender.unmount()
@@ -125,6 +127,24 @@ describe('FaceAnalysisInterface continuation recovery', () => {
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2))
     expect(mockUpdate).toHaveBeenCalledTimes(1)
+    expect(analytics.trackFaceAnalysisUnlockSuccess).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    ['failed lookup', { success: false, error: 'Task not found' }],
+    ['locked report', { success: true, data: { ...completedTask, reportUnlocked: false } }],
+    ['unfinished report', { success: true, data: { ...completedTask, status: 'processing' } }],
+    ['different report', { success: true, data: { ...completedTask, id: 'task-2' } }],
+  ])('suppresses the unlock event for this response: %s', async (_label, body) => {
+    global.fetch = jest.fn().mockResolvedValue({ json: async () => body })
+
+    await act(async () => {
+      render(<FaceAnalysisInterface />)
+    })
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/face-analysis/task-1')
+    expect(analytics.trackFaceAnalysisUnlockSuccess).not.toHaveBeenCalled()
+    expect(window.location.search).toBe('?taskId=task-1')
   })
 
   it('restores a one-time detector photo and removes the handoff token from the URL', async () => {
