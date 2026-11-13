@@ -4,6 +4,7 @@ import Link from '@/components/layout/PublicLink'
 import { ArrowRight, CheckCircle2, Eye, Glasses, ScanFace, Sparkles } from 'lucide-react'
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { StaticContentImage } from '@/components/seo/StaticContentImage'
 import { getAiGlassesAdvisorArticleCopy } from '@/config/ai-glasses-advisor-article-locales'
 import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
@@ -242,24 +243,44 @@ export default function BlogPostPage({ params }: PageProps) {
                 </ul>
               </div>
 
-              <div className="not-prose rounded-xl bg-gray-950 p-7 text-white">
-                <h2 className="text-2xl font-bold text-white">{article.finalTitle}</h2>
-                <p className="mt-3 leading-7 text-gray-300">{article.finalBody}</p>
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                  <Link
-                    href={`${localePrefix}/face-shape-detector`}
-                    className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-gray-950"
-                  >
-                    {article.pathDetector}<ArrowRight className="ms-2 h-4 w-4" />
-                  </Link>
-                  <Link
-                    href={`${localePrefix}/try-on/glasses`}
-                    className="inline-flex items-center justify-center rounded-lg border border-gray-600 px-5 py-3 text-sm font-semibold text-white"
-                  >
-                    {article.pathTryOn}<Eye className="ms-2 h-4 w-4" />
-                  </Link>
+              {locale === 'en' ? (
+                <section aria-labelledby="frame-comparison">
+                  <h2 id="frame-comparison">How two frames change the look of the same face</h2>
+                  <figure className="mx-auto max-w-xl">
+                    <StaticContentImage
+                      src="/images/seo/core/glasses-frame-a-vs-b.webp"
+                      alt="Side-by-side portraits of the same woman wearing dark, angular frames on the left and pale, rounded frames on the right."
+                      width={1448}
+                      height={1086}
+                      className="h-auto w-full"
+                    />
+                    <figcaption className="space-y-2 text-base leading-6 text-slate-700">
+                      <p><strong>Frame A (left).</strong> The dark upper rim follows the brow line. The corners give the eyes a sharper outline.</p>
+                      <p><strong>Frame B (right).</strong> The pale, rounded rims draw less attention to the frame and leave the eyes more prominent.</p>
+                    </figcaption>
+                  </figure>
+                  <p>Both frames appear about as wide as the face in this illustration. To check physical fit, compare the frame’s total width with a pair that feels comfortable and try it on to check the bridge and temples.</p>
+                </section>
+              ) : (
+                <div className="not-prose rounded-xl bg-gray-950 p-7 text-white">
+                  <h2 className="text-2xl font-bold text-white">{article.finalTitle}</h2>
+                  <p className="mt-3 leading-7 text-gray-300">{article.finalBody}</p>
+                  <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                    <Link
+                      href={`${localePrefix}/face-shape-detector`}
+                      className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-gray-950"
+                    >
+                      {article.pathDetector}<ArrowRight className="ms-2 h-4 w-4" />
+                    </Link>
+                    <Link
+                      href={`${localePrefix}/try-on/glasses`}
+                      className="inline-flex items-center justify-center rounded-lg border border-gray-600 px-5 py-3 text-sm font-semibold text-white"
+                    >
+                      {article.pathTryOn}<Eye className="ms-2 h-4 w-4" />
+                    </Link>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </article>
         </main>
