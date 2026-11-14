@@ -47,12 +47,15 @@ function validateSourceUrl(raw: string): URL {
   return url
 }
 
-async function readResponseBody(response: Response): Promise<string> {
+async function readResponseBody(response: Response, platformHint?: 'SHOPIFY'): Promise<string> {
   const contentLength = Number(response.headers.get('content-length') ?? '')
-  if (Number.isFinite(contentLength) && contentLength > MAX_RESPONSE_BYTES) throw new MerchantSourceIntakeError('SOURCE_TOO_LARGE', 'The source page is too large to inspect.')
+  if (Number.isFinite(contentLength) && contentLength > MAX_RESPONSE_BYTES) {
+    await response.body?.cancel().catch(() => undefined)
+    throw new MerchantSourceIntakeError('SOURCE_TOO_LARGE', 'The source page is too large to inspect.', 413, platformHint)
+  }
   if (!response.body) {
     const text = await response.text()
-    if (new TextEncoder().encode(text).byteLength > MAX_RESPONSE_BYTES) throw new MerchantSourceIntakeError('SOURCE_TOO_LARGE', 'The source page is too large to inspect.')
+    if (new TextEncoder().encode(text).byteLength > MAX_RESPONSE_BYTES) throw new MerchantSourceIntakeError('SOURCE_TOO_LARGE', 'The source page is too large to inspect.', 413, platformHint)
     return text
   }
   const reader = response.body.getReader()
@@ -63,7 +66,10 @@ async function readResponseBody(response: Response): Promise<string> {
       const next = await reader.read()
       if (next.done) break
       total += next.value.byteLength
-      if (total > MAX_RESPONSE_BYTES) throw new MerchantSourceIntakeError('SOURCE_TOO_LARGE', 'The source page is too large to inspect.')
+      if (total > MAX_RESPONSE_BYTES) {
+        await reader.cancel().catch(() => undefined)
+        throw new MerchantSourceIntakeError('SOURCE_TOO_LARGE', 'The source page is too large to inspect.', 413, platformHint)
+      }
       chunks.push(next.value)
     }
   } finally {
@@ -85,6 +91,8 @@ async function fetchMerchantSourceDocumentCloudflare(rawUrl: string): Promise<Ca
     const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
     try {
       const response = await fetch(current, { redirect: 'manual', signal: controller.signal })
+      const poweredBy = response.headers.get('powered-by')?.trim().toLowerCase()
+      const platformHint = poweredBy === 'shopify' ? 'SHOPIFY' as const : undefined
       if (response.status >= 300 && response.status < 400) {
         const location = response.headers.get('location')
         if (!location) throw new MerchantSourceIntakeError('SOURCE_REDIRECT_REJECTED', 'The source returned an invalid redirect.')
@@ -94,19 +102,24 @@ async function fetchMerchantSourceDocumentCloudflare(rawUrl: string): Promise<Ca
         current = next
         continue
       }
-      if (!response.ok) throw new MerchantSourceIntakeError('SOURCE_UNREACHABLE', 'The source could not be inspected.')
       const contentType = response.headers.get('content-type') ?? ''
       const normalizedContentType = contentType.split(';')[0].trim().toLowerCase()
+      // Preserve the HTTP result for the shared intake policy. In particular,
+      // 403/429 must stay terminal and 404 must not fall through to rendering.
+      if ([401, 403, 404, 429].includes(response.status)) return { url: current.toString(), body: '', contentType, status: response.status, platformHint }
+      if (!response.ok) throw new MerchantSourceIntakeError('SOURCE_UNREACHABLE', 'The source could not be inspected.')
       if (normalizedContentType && ![
         'text/html',
         'application/xhtml+xml',
         'application/json',
+        'text/javascript',
+        'application/javascript',
         'application/xml',
         'text/xml',
       ].includes(normalizedContentType) && !normalizedContentType.endsWith('+json')) {
         throw new MerchantSourceIntakeError('UNSUPPORTED_SOURCE', 'The source is not a supported ecommerce document.')
       }
-      return { url: current.toString(), body: await readResponseBody(response), contentType }
+      return { url: current.toString(), body: await readResponseBody(response, platformHint), contentType, status: response.status, platformHint }
     } catch (error) {
       if (error instanceof MerchantSourceIntakeError) throw error
       throw new MerchantSourceIntakeError('SOURCE_UNREACHABLE', 'The source could not be inspected.')

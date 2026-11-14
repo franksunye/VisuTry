@@ -1,0 +1,84 @@
+{
+  "target": "https://goodr.com/products/hooked-on-onyx",
+  "timestamp": "2026-11-05T04:40:12.826Z",
+  "results": [
+    {
+      "mode": "hostname",
+      "dns": [
+        {
+          "address": "104.21.27.219",
+          "family": 4
+        },
+        {
+          "address": "172.67.143.153",
+          "family": 4
+        },
+        {
+          "address": "2606:4700:3035::ac43:8f99",
+          "family": 6
+        },
+        {
+          "address": "2606:4700:3036::6815:1bdb",
+          "family": 6
+        }
+      ],
+      "selected": {
+        "address": "104.21.27.219",
+        "family": 4
+      },
+      "proxyConfigured": false,
+      "transport": "node:https; agent:false; direct",
+      "tlsVerified": true,
+      "status": 403,
+      "headers": {
+        "server": "cloudflare",
+        "content-type": "text/html; charset=UTF-8",
+        "content-length": "6924",
+        "cf-ray": "a5592dd7e9e51601-SJC"
+      },
+      "remoteAddress": "172.67.143.153",
+      "remotePort": 443,
+      "tlsProtocol": "TLSv1.3",
+      "observedBytes": 6924
+    },
+    {
+      "mode": "pinned",
+      "dns": [
+        {
+          "address": "104.21.27.219",
+          "family": 4
+        },
+        {
+          "address": "172.67.143.153",
+          "family": 4
+        },
+        {
+          "address": "2606:4700:3035::ac43:8f99",
+          "family": 6
+        },
+        {
+          "address": "2606:4700:3036::6815:1bdb",
+          "family": 6
+        }
+      ],
+      "selected": {
+        "address": "104.21.27.219",
+        "family": 4
+      },
+      "proxyConfigured": false,
+      "transport": "node:https; agent:false; direct",
+      "tlsVerified": true,
+      "status": 403,
+      "headers": {
+        "server": "cloudflare",
+        "content-type": "text/html; charset=UTF-8",
+        "content-length": "6924",
+        "cf-ray": "a5592dd81c1415aa-SJC"
+      },
+      "remoteAddress": "104.21.27.219",
+      "remotePort": 443,
+      "tlsProtocol": "TLSv1.3",
+      "observedBytes": 6924
+    }
+  ]
+}

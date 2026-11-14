@@ -8,13 +8,17 @@ export const MERCHANT_SOURCE_FETCH_TIMEOUT_MS = 3_000
 export const MERCHANT_SOURCE_MAX_RESPONSE_BYTES = 512 * 1024
 export const MERCHANT_SOURCE_MAX_REDIRECTS = 2
 
+export type MerchantSourcePlatformHint = 'SHOPIFY'
+
 export class MerchantSourceNetworkError extends Error {
   readonly code: string
+  readonly platformHint?: MerchantSourcePlatformHint
 
-  constructor(code: string, message: string) {
+  constructor(code: string, message: string, platformHint?: MerchantSourcePlatformHint) {
     super(message)
     this.name = 'MerchantSourceNetworkError'
     this.code = code
+    this.platformHint = platformHint
   }
 }
 
@@ -33,6 +37,7 @@ export type MerchantSourceDocument = {
   status: number
   contentType: string
   body: string
+  platformHint?: MerchantSourcePlatformHint
 }
 
 function isLocalHostname(hostname: string): boolean {
@@ -100,7 +105,7 @@ function requestPinnedDocument(host: PinnedMerchantSourceUrl, options: {
     path: host.path,
     method: 'GET',
     headers: {
-      Accept: 'text/html, application/xhtml+xml;q=0.9',
+      Accept: 'text/html, application/xhtml+xml;q=0.9, application/json;q=0.8, text/javascript;q=0.8',
       Host: host.port === (host.protocol === 'https:' ? 443 : 80) ? host.hostname : `${host.hostname}:${host.port}`,
     },
     agent: false,
@@ -113,6 +118,9 @@ function requestPinnedDocument(host: PinnedMerchantSourceUrl, options: {
   return new Promise((resolve, reject) => {
     let settled = false
     const req = request(requestOptions, (response) => {
+      const platformHint = String(response.headers['powered-by'] ?? '').trim().toLowerCase() === 'shopify'
+        ? 'SHOPIFY' as const
+        : undefined
       const chunks: Buffer[] = []
       let totalBytes = 0
       response.on('data', (chunk: Buffer | string) => {
@@ -120,7 +128,7 @@ function requestPinnedDocument(host: PinnedMerchantSourceUrl, options: {
         const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
         totalBytes += buffer.byteLength
         if (totalBytes > maxBytes) {
-          const error = new MerchantSourceNetworkError('SOURCE_TOO_LARGE', 'The source response exceeds the size limit.')
+          const error = new MerchantSourceNetworkError('SOURCE_TOO_LARGE', 'The source response exceeds the size limit.', platformHint)
           settled = true
           reject(error)
           req.destroy(error)
@@ -136,6 +144,7 @@ function requestPinnedDocument(host: PinnedMerchantSourceUrl, options: {
           status: response.statusCode || 0,
           contentType: String(response.headers['content-type'] || ''),
           body: Buffer.concat(chunks).toString('utf8'),
+          platformHint,
           location: typeof response.headers.location === 'string' ? response.headers.location : undefined,
         })
       })
@@ -182,10 +191,13 @@ export async function fetchMerchantSourceDocument(rawUrl: string, options: {
       continue
     }
     if (response.status === 401 || response.status === 403) {
-      throw new MerchantSourceNetworkError('SOURCE_ACCESS_DENIED', `The website denied access (HTTP ${response.status}).`)
+      throw new MerchantSourceNetworkError('SOURCE_ACCESS_DENIED', 'The website blocked automated inspection.')
     }
     if (response.status === 429) {
-      throw new MerchantSourceNetworkError('SOURCE_RATE_LIMITED', 'The website is rate limiting automated inspection (HTTP 429).')
+      throw new MerchantSourceNetworkError('SOURCE_RATE_LIMITED', 'The website is temporarily limiting automated inspection.')
+    }
+    if (response.status === 404) {
+      throw new MerchantSourceNetworkError('SOURCE_NOT_FOUND', 'The product page could not be found.')
     }
     if (response.status < 200 || response.status >= 300) {
       throw new MerchantSourceNetworkError('SOURCE_UNREACHABLE', `The source returned HTTP ${response.status}.`)

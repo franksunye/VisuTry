@@ -1,4 +1,6 @@
 "use client";
+/* Candidate images render directly in the browser so inspection never routes them through a server-side image fetcher. */
+/* eslint-disable @next/next/no-img-element */
 
 import { isMerchantPublicUrlImportEnabled } from "@/lib/merchant-public-url-import";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -7,37 +9,18 @@ import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
 import { recordMerchantActivationClientEvent } from "@/lib/merchant-activation-client";
 import type { MerchantCatalogCapacity } from "@/modules/merchant/domain/merchant-catalog-capacity";
+import { resolveMerchantCatalogCapacity } from "@/modules/merchant/domain/merchant-catalog-capacity";
+import {
+  catalogCandidateToImportFrame,
+  reviewShopifyCandidate,
+  SHOPIFY_CATALOG_CURRENCY_CODES,
+  type CatalogImportCandidate,
+  type ShopifyCandidateReviewPatch,
+} from "@/modules/merchant/application/merchant-catalog-source-shared";
 import { MerchantCatalogImageUpload } from "@/components/merchant/MerchantCatalogImageUpload";
 
 type SourceType = "url" | "csv" | "manual";
-type Candidate = {
-  sku: string | null;
-  name: string | null;
-  brand: string | null;
-  imageUrl: string | null;
-  productUrl: string | null;
-  price: number | null;
-  currency: string | null;
-  shape: string | null;
-  material: string | null;
-  color: string | null;
-  widthClass: string | null;
-  styleTags: string[];
-  collectionTags: string[];
-  source: "MANUAL" | "CSV" | "EXTERNAL";
-  externalId: string | null;
-  identity: { type: "MERCHANT_SKU" | "EXTERNAL_ID" | "PRODUCT_URL"; value: string } | null;
-  shapeSource: "STRUCTURED_FIELD" | "SHOPIFY_OPTION_OR_TAG" | "PRODUCT_METADATA" | "AI_VISION" | "NONE";
-  shapeConfidence: number | null;
-  importReady: boolean;
-  recommendationReady: boolean;
-  recommendationIssues: string[];
-  readiness: "IMPORT_READY" | "RECOMMENDATION_READY" | "NEEDS_REVIEW" | "INVALID";
-  status: "READY" | "NEEDS_REVIEW" | "INVALID";
-  dedupeStatus: "NEW" | "ALREADY_EXISTS" | "POSSIBLE_DUPLICATE";
-  issues: string[];
-  sourceLabel?: string;
-};
+type Candidate = CatalogImportCandidate;
 type Proposal = {
   requiresApproval: boolean;
   catalogCapacity: MerchantCatalogCapacity;
@@ -143,6 +126,13 @@ function friendlyIssue(code: string) {
     POSSIBLE_DUPLICATE: "Possible duplicate in this review",
     CSV_COLUMN_MISMATCH: "CSV columns do not match the header",
     INVALID_PRICE: "Price is not a valid amount",
+    SHOPIFY_VARIANT_REQUIRED: "Choose one available product variant",
+    SHOPIFY_VARIANT_UNAVAILABLE: "Choose an available variant",
+    SHOPIFY_PRICE_UNAVAILABLE: "This variant has no valid Shopify price",
+    SHOPIFY_CURRENCY_REQUIRED: "Confirm the currency before reviewing the price",
+    SHOPIFY_PRICE_CONFIRMATION_REQUIRED: "Confirm this variant's price",
+    SHOPIFY_IMAGE_CONFIRMATION_REQUIRED: "Load and confirm this variant's image",
+    SHOPIFY_PRODUCT_DATA_INCOMPLETE: "Shopify did not provide complete product data",
   };
   return labels[code] ?? code.replace(/_/g, " ").toLowerCase();
 }
@@ -259,6 +249,44 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
   function invalidateProposal() {
     inspectionVersion.current += 1;
     setProposal(null);
+  }
+
+  function updateShopifyCandidate(index: number, patch: ShopifyCandidateReviewPatch, expectedVariantId?: string | null) {
+    setProposal((current) => {
+      if (!current) return current;
+      const candidate = current.candidates[index];
+      if (!candidate?.shopifyReview) return current;
+      if (expectedVariantId !== undefined && candidate.shopifyReview.selectedVariantId !== expectedVariantId) return current;
+      const candidates = current.candidates.map((entry, entryIndex) => entryIndex === index
+        ? reviewShopifyCandidate(entry, patch)
+        : entry);
+      const importReady = candidates.map(catalogCandidateToImportFrame).filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+      const reasonDistribution = candidates
+        .filter((entry) => entry.readiness === "NEEDS_REVIEW" || !entry.recommendationReady)
+        .reduce<Record<string, number>>((distribution, entry) => {
+          for (const reason of [...entry.issues, ...entry.recommendationIssues]) distribution[reason] = (distribution[reason] ?? 0) + 1;
+          return distribution;
+        }, {});
+      return {
+        ...current,
+        candidates,
+        importReady,
+        sourceSummary: {
+          ...current.sourceSummary,
+          readyToImport: importReady.length,
+          importReady: importReady.length,
+          recommendationReady: candidates.filter((entry) => entry.recommendationReady && entry.dedupeStatus === "NEW").length,
+          needsReview: candidates.filter((entry) => entry.readiness === "NEEDS_REVIEW").length,
+          invalid: candidates.filter((entry) => entry.readiness === "INVALID").length,
+          reasonDistribution,
+        },
+        catalogCapacity: resolveMerchantCatalogCapacity({
+          current: current.catalogCapacity.current,
+          limit: current.catalogCapacity.limit,
+          proposedNew: importReady.length,
+        }),
+      };
+    });
   }
 
   function updateManualRow(index: number, key: keyof ManualRow, value: string) {
@@ -425,7 +453,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
           <label htmlFor="merchant-catalog-url" className="text-sm font-semibold text-slate-800">Store or product URL</label>
           <input id="merchant-catalog-url" type="url" value={url} onChange={(event) => { setUrl(event.target.value); invalidateProposal(); setError(null); }} placeholder="https://your-store.example" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" />
           {suggestedWebsiteUrl && initialTotal === 0 ? <p className="mt-2 text-xs leading-5 text-blue-800">Suggested from your Workspace website. It has not been inspected or imported yet.</p> : null}
-          <p className="mt-2 text-xs leading-5 text-slate-500">We try Shopify, structured ecommerce data, sitemap links, standard product pages, and browser rendering when available. Optional SKU and shape enrichment never block a valid product from the catalog.</p>
+          <p className="mt-2 text-xs leading-5 text-slate-500">For a Shopify product link, we inspect that product only. Choose one available variant, confirm its image, currency, and price, and enter the frame shape if Shopify does not provide it. Nothing is saved until you approve. If access is blocked or data is incomplete, use Manual or CSV.</p>
         </> : null}
         {sourceType === "csv" ? <>
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -468,7 +496,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
 
       {proposal ? <div className={`mt-5 rounded-xl border p-4 sm:p-5 ${noImportableProducts ? "border-amber-200 bg-amber-50/60" : "border-emerald-200 bg-emerald-50/60"}`}>
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-          <div><p className={`text-xs font-bold uppercase tracking-[0.14em] ${noImportableProducts ? "text-amber-800" : "text-emerald-700"}`}>{noImportableProducts ? "Nothing imported" : "Review before import"}</p><h3 className={`mt-1 text-lg font-semibold ${noImportableProducts ? "text-amber-950" : "text-emerald-950"}`}>{noImportableProducts ? sourceAccessDenied ? "Website inspection was blocked" : "No products are ready to add" : capacityBlocked ? "This proposal exceeds your Catalog capacity" : proposal.sourceSummary.importReady === 1 ? "1 product is ready to add" : `${proposal.sourceSummary.importReady} products are ready to add`}</h3><p className={`mt-1 text-sm ${noImportableProducts ? "text-amber-900/80" : "text-emerald-900/80"}`}>{noImportableProducts ? "Nothing has been added to your Catalog. Choose another source or add a product manually." : `We found ${proposal.sourceSummary.foundCount} product${proposal.sourceSummary.foundCount === 1 ? "" : "s"}. ${capacityBlocked ? "Review the full proposal below; catalog imports are all-or-nothing." : "Review the details, then add the ready products to your Catalog."}`}</p><details className="mt-2 text-xs text-slate-600"><summary className="cursor-pointer font-semibold">View inspection details</summary><p className="mt-1">FOUND {proposal.sourceSummary.foundCount} · IMPORT_READY {proposal.sourceSummary.importReady} · RECOMMENDATION_READY {proposal.sourceSummary.recommendationReady} · NEEDS_REVIEW {proposal.sourceSummary.needsReview} · INVALID {proposal.sourceSummary.invalid}</p>{Object.keys(proposal.sourceSummary.reasonDistribution).length > 0 ? <p className="mt-1">Review signals: {Object.entries(proposal.sourceSummary.reasonDistribution).map(([reason, count]) => `${friendlyIssue(reason)} (${count})`).join(" · ")}</p> : null}</details></div>
+          <div><p className={`text-xs font-bold uppercase tracking-[0.14em] ${noImportableProducts ? "text-amber-800" : "text-emerald-700"}`}>{noImportableProducts ? "Nothing imported" : "Review before import"}</p><h3 className={`mt-1 text-lg font-semibold ${noImportableProducts ? "text-amber-950" : "text-emerald-950"}`}>{noImportableProducts ? sourceAccessDenied ? "Website inspection was blocked" : proposal.candidates.length > 0 ? "Review this product before adding it" : "No products are ready to add" : capacityBlocked ? "This proposal exceeds your Catalog capacity" : proposal.sourceSummary.importReady === 1 ? "1 product is ready to add" : `${proposal.sourceSummary.importReady} products are ready to add`}</h3><p className={`mt-1 text-sm ${noImportableProducts ? "text-amber-900/80" : "text-emerald-900/80"}`}>{noImportableProducts ? proposal.candidates.length > 0 ? "Nothing has been saved. Complete the product review below; you can also use Manual or CSV." : "Nothing has been added to your Catalog. Choose another source or add a product manually." : `We found ${proposal.sourceSummary.foundCount} product${proposal.sourceSummary.foundCount === 1 ? "" : "s"}. ${capacityBlocked ? "Review the full proposal below; catalog imports are all-or-nothing." : "Review the details, then add the ready products to your Catalog."}`}</p><details className="mt-2 text-xs text-slate-600"><summary className="cursor-pointer font-semibold">View inspection details</summary><p className="mt-1">FOUND {proposal.sourceSummary.foundCount} · IMPORT_READY {proposal.sourceSummary.importReady} · RECOMMENDATION_READY {proposal.sourceSummary.recommendationReady} · NEEDS_REVIEW {proposal.sourceSummary.needsReview} · INVALID {proposal.sourceSummary.invalid}</p>{Object.keys(proposal.sourceSummary.reasonDistribution).length > 0 ? <p className="mt-1">Review signals: {Object.entries(proposal.sourceSummary.reasonDistribution).map(([reason, count]) => `${friendlyIssue(reason)} (${count})`).join(" · ")}</p> : null}</details></div>
           {proposal.sourceSummary.platforms?.length ? <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-800">Detected: {proposal.sourceSummary.platforms.join(", ")}</span> : null}
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -480,10 +508,124 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, initialWe
             ["Over limit", proposal.catalogCapacity.overLimit.toLocaleString()],
           ].map(([label, value]) => <div key={label} className="rounded-lg border border-white/90 bg-white/80 px-3 py-2"><dt className="text-[11px] font-medium text-slate-500">{label}</dt><dd className={`mt-0.5 text-sm font-semibold ${label === "Over limit" && capacityBlocked ? "text-red-700" : "text-slate-950"}`}>{value}</dd></div>)}
         </dl>
-        {noImportableProducts ? <div role="alert" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="font-semibold">{sourceAccessDenied ? "This website did not allow automated inspection." : "No importable products were found. Nothing was saved."}</p><p className="mt-1 text-xs">{sourceAccessDenied ? "Some stores restrict automated access. We will not bypass the site's access controls. You can still add your first product using a CSV or manual entry." : "Try a direct public product page URL, upload a CSV, or add a product manually."}</p>{proposal.sourceSummary.sourceIssues.length > 0 ? <ul className="mt-2 list-disc space-y-1 pl-4 text-xs">{proposal.sourceSummary.sourceIssues.slice(0, 5).map((item, index) => <li key={`${item.code}-${index}`}>{item.message}</li>)}</ul> : null}<div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900`}>Upload CSV</button><button type="button" onClick={() => { setSourceType("manual"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900`}>Add manually</button></div></div> : null}
+        {noImportableProducts && proposal.candidates.length === 0 ? <div role="alert" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="font-semibold">{sourceAccessDenied ? "This website did not allow automated inspection." : "No importable products were found. Nothing was saved."}</p><p className="mt-1 text-xs">{sourceAccessDenied ? "Some stores restrict automated access. We will not bypass the site's access controls. You can still add your first product using a CSV or manual entry." : "Try a direct public product page URL, upload a CSV, or add a product manually."}</p>{proposal.sourceSummary.sourceIssues.length > 0 ? <ul className="mt-2 list-disc space-y-1 pl-4 text-xs">{proposal.sourceSummary.sourceIssues.slice(0, 5).map((item, index) => <li key={`${item.code}-${index}`}>{item.message}</li>)}</ul> : null}<div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900`}>Upload CSV</button><button type="button" onClick={() => { setSourceType("manual"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900`}>Add manually</button></div></div> : null}
         {capacityBlocked ? <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-3 text-sm text-amber-950" role="alert"><p className="font-semibold">Remove or revise at least {proposal.catalogCapacity.overLimit} new product{proposal.catalogCapacity.overLimit === 1 ? "" : "s"}, then inspect again.</p><p className="mt-1 text-xs leading-5">No products have been added. We won’t import a partial batch.</p></div> : null}
         {proposal.sourceSummary.sourceIssues.length > 0 && !noImportableProducts ? <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900"><p className="font-semibold">Some source data needs attention</p><ul className="mt-1 list-disc space-y-1 pl-5 text-xs">{proposal.sourceSummary.sourceIssues.slice(0, 5).map((item, index) => <li key={`${item.code}-${index}`}>{item.message}</li>)}</ul><p className="mt-2 text-xs font-semibold">{capacityBlocked ? "Resolve source issues and reduce the proposal, then inspect again; imports are all-or-nothing." : "You can still import the valid subset. If this is a JavaScript-heavy store, switch to one of the fallback paths:"}</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSourceType("csv"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}><FileUp className="h-4 w-4" aria-hidden="true" />Upload CSV</button><button type="button" onClick={() => { setSourceType("manual"); invalidateProposal(); setError(null); }} className={`${buttonClass} border border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}><Plus className="h-4 w-4" aria-hidden="true" />Add manually</button></div></div> : null}
-        <div className="mt-4 grid gap-2">{proposal.candidates.map((candidate, index) => <article key={`${candidate.identity?.value ?? "row"}-${index}`} className="rounded-xl border border-white bg-white p-3"><div className="flex items-start gap-3"><div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">{candidate.imageUrl ? <img src={candidate.imageUrl} alt="" className="h-full w-full object-cover" /> : null}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h4 className="truncate text-sm font-semibold text-slate-950">{candidate.name || "Unnamed product"}</h4><span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${readinessClass(candidate.readiness)}`}>{readinessLabel(candidate.readiness)}</span>{candidate.dedupeStatus !== "NEW" ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">Already in catalog</span> : null}</div><p className="mt-1 text-xs text-slate-500">{identityLabel(candidate)}{candidate.brand ? ` · ${candidate.brand}` : ""}{candidate.shape ? ` · ${candidate.shape}` : ""}{priceLabel(candidate.price, candidate.currency) ? ` · ${priceLabel(candidate.price, candidate.currency)}` : ""}</p>{candidate.issues.length > 0 ? <p className="mt-1 text-xs text-amber-800">{candidate.issues.map(friendlyIssue).join(" · ")}</p> : null}{candidate.recommendationIssues.length > 0 ? <p className="mt-1 text-xs text-slate-500">Recommendation enrichment: {candidate.recommendationIssues.map(friendlyIssue).join(" · ")}</p> : null}</div></div></article>)}</div>
+        <div className="mt-4 grid gap-2">
+          {proposal.candidates.map((candidate, index) => {
+            const shopifyReview = candidate.shopifyReview;
+            const selectedVariant = shopifyReview?.variantOptions.find((variant) => variant.id === shopifyReview.selectedVariantId);
+            const shopifyPrice = selectedVariant?.priceMinor == null
+              ? null
+              : shopifyReview?.currencyCode
+                ? `${shopifyReview.currencyCode} ${(selectedVariant.priceMinor / 100).toFixed(2)}`
+                : `${selectedVariant.priceMinor.toLocaleString()} minor units (currency not confirmed)`;
+            return (
+              <article key={`${candidate.shopifyReview?.productId ?? candidate.identity?.value ?? "row"}-${index}`} className="rounded-xl border border-white bg-white p-3">
+                <div className="flex items-start gap-3">
+                  <div className={`shrink-0 overflow-hidden rounded-lg border border-slate-200 ${shopifyReview ? "h-28 w-28 bg-white sm:h-36 sm:w-36" : "h-14 w-14 bg-slate-100"}`}>
+                    {candidate.imageUrl ? <img
+                      key={`${shopifyReview?.selectedVariantId ?? "generic"}:${candidate.imageUrl}`}
+                      src={candidate.imageUrl}
+                      alt={candidate.name ? `${candidate.name} product image` : "Product image"}
+                      className={`h-full w-full ${shopifyReview ? "object-contain" : "object-cover"}`}
+                      onLoad={(event) => {
+                        if (!shopifyReview?.selectedVariantId || event.currentTarget.naturalWidth < 1) return;
+                        const image = event.currentTarget;
+                        const decoded = typeof image.decode === "function" ? image.decode() : Promise.resolve();
+                        void decoded
+                          .then(() => updateShopifyCandidate(index, { imageDecoded: true }, shopifyReview.selectedVariantId))
+                          .catch(() => updateShopifyCandidate(index, { imageDecoded: false }, shopifyReview.selectedVariantId));
+                      }}
+                      onError={() => {
+                        if (shopifyReview?.selectedVariantId) updateShopifyCandidate(index, { imageDecoded: false }, shopifyReview.selectedVariantId);
+                      }}
+                    /> : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="truncate text-sm font-semibold text-slate-950">{candidate.name || "Unnamed product"}</h4>
+                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${readinessClass(candidate.readiness)}`}>{readinessLabel(candidate.readiness)}</span>
+                      {candidate.dedupeStatus !== "NEW" ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">Already in catalog</span> : null}
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">{identityLabel(candidate)}{candidate.brand ? ` · ${candidate.brand}` : ""}{candidate.shape ? ` · ${candidate.shape}` : ""}{shopifyReview ? shopifyPrice ? ` · ${shopifyPrice}` : "" : priceLabel(candidate.price, candidate.currency) ? ` · ${priceLabel(candidate.price, candidate.currency)}` : ""}</p>
+                    {candidate.productUrl ? <a href={candidate.productUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block break-all text-xs font-medium text-blue-700 underline underline-offset-2">Open original product page</a> : null}
+                    {candidate.issues.length > 0 ? <p className="mt-1 text-xs text-amber-800">{candidate.issues.map(friendlyIssue).join(" · ")}</p> : null}
+                    {candidate.recommendationIssues.length > 0 ? <p className="mt-1 text-xs text-slate-500">Recommendation enrichment: {candidate.recommendationIssues.map(friendlyIssue).join(" · ")}</p> : null}
+                  </div>
+                </div>
+
+                {shopifyReview ? <div className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Choose one available variant
+                    <select
+                      aria-label="Choose one available variant"
+                      value={shopifyReview.selectedVariantId ?? ""}
+                      onChange={(event) => updateShopifyCandidate(index, { selectedVariantId: event.target.value || null })}
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    >
+                      <option value="">Select a variant</option>
+                      {shopifyReview.variantOptions.map((variant) => <option key={variant.id} value={variant.id} disabled={!variant.available}>
+                        {variant.label}{variant.available ? "" : " — unavailable"}{variant.priceMinor == null ? "" : ` · ${variant.priceMinor.toLocaleString()} minor units`}
+                      </option>)}
+                    </select>
+                    <span className="mt-1 block font-normal text-slate-500">Only the selected variant will be added. {shopifyReview.variantOptions.length} variants were found.</span>
+                  </label>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Confirm price currency
+                      <select
+                        aria-label="Confirm price currency"
+                        value={shopifyReview.currencyCode ?? ""}
+                        onChange={(event) => updateShopifyCandidate(index, { currencyCode: event.target.value || null })}
+                        className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      >
+                        <option value="">Choose currency</option>
+                        {SHOPIFY_CATALOG_CURRENCY_CODES.map((code) => <option key={code} value={code}>{code}</option>)}
+                      </select>
+                    </label>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">Shopify reports prices in minor units. We preserve the source value without multiplying it; {shopifyPrice ?? "select a variant and confirm currency to review the formatted price"}.</p>
+                    <label className="mt-2 flex items-start gap-2 text-xs leading-5 text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={shopifyReview.priceConfirmed}
+                        disabled={!selectedVariant || selectedVariant.priceMinor == null || !shopifyReview.currencyCode}
+                        onChange={(event) => updateShopifyCandidate(index, { priceConfirmed: event.target.checked })}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300"
+                      />
+                      <span>I confirm this variant is priced at {shopifyPrice ?? "the displayed Shopify amount"}.</span>
+                    </label>
+                  </div>
+
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Frame shape
+                    <input
+                      aria-label="Frame shape"
+                      value={candidate.shape ?? ""}
+                      onChange={(event) => updateShopifyCandidate(index, { shape: event.target.value })}
+                      placeholder="Enter shape, for example round"
+                      maxLength={80}
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                    <span className="mt-1 block font-normal text-slate-500">We use a Shopify shape option when one is provided; otherwise, enter the shape you have confirmed. We do not infer it from the product name.</span>
+                  </label>
+
+                  <label className="flex items-start gap-2 self-start rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={shopifyReview.imageConfirmed}
+                      disabled={!shopifyReview.imageDecoded || !candidate.imageUrl}
+                      onChange={(event) => updateShopifyCandidate(index, { imageConfirmed: event.target.checked })}
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300"
+                    />
+                    <span>{shopifyReview.imageDecoded ? "I confirm this is the image for the selected variant." : candidate.imageUrl ? "Loading the selected variant image…" : "Select a variant with an image to continue."}</span>
+                  </label>
+                </div> : null}
+              </article>
+            );
+          })}
+        </div>
         {!noImportableProducts ? <div className="mt-4 flex flex-col justify-between gap-3 border-t border-emerald-200 pt-4 sm:flex-row sm:items-center"><p className="text-xs text-emerald-900/75">Nothing has been written yet. {capacityBlocked ? "Revise the source and inspect again; partial imports are not allowed." : `Approval imports only the ${proposal.importReady.length} safe, non-duplicate row${proposal.importReady.length === 1 ? "" : "s"}; recommendation enrichment can continue afterward.`}</p><button type="button" disabled={busy || proposal.importReady.length === 0 || capacityBlocked} onClick={() => void approveImport()} className={`${buttonClass} bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50`}><Check className="h-4 w-4" aria-hidden="true" />Approve and import {proposal.importReady.length}</button></div> : null}
       </div> : null}
 
