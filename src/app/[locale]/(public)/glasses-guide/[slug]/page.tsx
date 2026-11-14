@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArrowRight, Glasses, ScanFace, SlidersHorizontal } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
 import { FrameWidthBuyingGuide } from '@/components/seo/FrameWidthBuyingGuide'
+import { RoundGlassesRoundFaceGuide } from '@/components/seo/RoundGlassesRoundFaceGuide'
 import {
   CombinationVisualSeoHero,
   CombinationVisualSeoSections,
@@ -131,6 +132,10 @@ export default function CombinationSearchPage({ params }: Props) {
 
       {locale === 'en' && page.slug === 'how-wide-should-glasses-be-for-my-face'
         ? <FrameWidthBuyingGuide />
+        : null}
+
+      {locale === 'en' && page.slug === 'do-round-glasses-suit-a-round-face'
+        ? <RoundGlassesRoundFaceGuide />
         : null}
 
       {hasVisualSeoAssets ? <CombinationVisualSeoSections locale={locale} page={page} /> : null}
