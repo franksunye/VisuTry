@@ -369,6 +369,7 @@ function FaqSection() {
 }
 
 export function BusinessPricingPage({ locale }: { locale: string }) {
+  const launch = getMerchantPlanDefinition('LAUNCH')
   return (
     <>
       <FreeEntry locale={locale} />
@@ -376,8 +377,15 @@ export function BusinessPricingPage({ locale }: { locale: string }) {
       <section data-pricing-section="plans" className="bg-[#f8fafc]">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Choose a plan</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">Choose the capacity that fits your shopper volume.</h2>
-          <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">Every paid plan includes the complete AI-assisted decision journey. Plans scale by shopper volume, catalog depth, active Campaigns, analytics, and delivery capabilities.</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">What does the Launch plan cover for an optical shop?</h2>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">
+            Launch costs {launch.priceLabel} for up to {formatNumber(launch.catalogItems)} catalog items.
+            Each month it includes {formatNumber(launch.aiCommerceSessions)} AI Commerce Sessions and {formatNumber(launch.standardTryOnGenerations)} standard try-on images.
+            For example, if 100 shoppers each try two frames in a single visit, that uses 100 sessions and 200 completed images.
+          </p>
+          <Link href={businessHref(locale, '/business/store')} prefetch={false} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900">
+            See how photo try-on works with your own frames<ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
           <div className="mt-10 grid gap-5 lg:grid-cols-3">{primaryPlanCodes.map((code) => <PrimaryPlanCard key={code} locale={locale} planCode={code} />)}</div>
         </div>
       </section>

@@ -5,6 +5,7 @@ import { ArrowRight, CheckCircle2, Eye, Glasses, ScanFace, Sparkles } from 'luci
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { getAiGlassesAdvisorArticleCopy } from '@/config/ai-glasses-advisor-article-locales'
+import { eyewearFaceShapeGuide } from '@/config/business-resources'
 import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
 import type { Locale } from '@/i18n'
@@ -180,6 +181,14 @@ export default function BlogPostPage({ params }: PageProps) {
                   })}
                 </div>
               </div>
+
+              {locale === 'en' && (
+                <p>
+                  Showing your own frame collection to customers? Our{' '}
+                  <Link href={`${localePrefix}${eyewearFaceShapeGuide.path}`}>guide for eyewear brands</Link>{' '}
+                  explains how shoppers can preview the same frame on their own faces.
+                </p>
+              )}
 
               <h2>{article.decisionTitle}</h2>
               <p>{article.decisionIntro}</p>

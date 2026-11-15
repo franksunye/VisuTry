@@ -1,3 +1,5 @@
+import { getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
+
 export type BusinessPageKey =
   | 'overview'
   | 'platform'
@@ -148,22 +150,22 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   },
   store: {
     slug: '/business/store',
-    metaTitle: 'AI Eyewear Storefront & Virtual Try-On | VisuTry',
-    metaDescription: 'Create a hosted eyewear storefront from your frame catalog with guided recommendations, side-by-side comparison and paid-plan photo Try-On. No Shopify app required for the hosted route.',
+    metaTitle: 'Virtual Try-On for Eyewear Retailers Using Their Own Frames | VisuTry',
+    metaDescription: 'Put your optical store’s frame catalog online. See how shoppers can browse your frames, try them on in a photo with a paid plan, and return to your product pages.',
     eyebrow: 'Hosted Eyewear Storefront',
-    title: 'A hosted eyewear Store built around your frames.',
-    description: 'Use your existing frame catalog to offer a branded shopping journey with recommendations, comparison and optional photo virtual try-on. Shoppers can return to your own product pages when ready.',
+    title: 'Let shoppers try on frames from your own eyewear store.',
+    description: 'Build an online frame catalog with your product photos. Shoppers can browse before visiting your optical store or follow a link to buy on your website. On a paid plan, they can upload a photo to see how your frames look on them.',
     primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'See Product Examples', href: '/business/examples' },
     sections: [
       {
         eyebrow: 'When to use Store',
-        title: 'Give shoppers a dedicated place to discover eyewear.',
-        body: 'Share a hosted Store link from your website, email, social profile or QR code. Shoppers can explore your frames and narrow choices without needing a native ecommerce plugin or a separate app download.',
+        title: 'Let customers browse your frame catalog before a visit.',
+        body: 'Send your Store link in an appointment email, add it to your website or put a QR code beside your frame display. Customers can browse the collection on their phone.',
         cards: [
-          { title: 'Always-on entry', description: 'Give shoppers a stable decision destination that is not tied to a single media flight or promotion.' },
-          { title: 'Broader assortment', description: 'Let shoppers explore more of the reviewed merchant catalog than a focused Campaign typically needs.' },
-          { title: 'Merchant context', description: 'Keep brand identity and product truth consistent while shoppers narrow their choices.' },
+          { title: 'Choose the collection', description: 'Start with the frames you want customers to find, such as a few best sellers or the styles available at a particular shop.' },
+          { title: 'Show the choices', description: 'Customers can browse your collection and get basic frame recommendations. Paid plans add side-by-side comparison and photo try-on.' },
+          { title: 'Send shoppers to the right product', description: 'Include the product link for each frame so customers can check its details and complete a purchase through your existing checkout.' },
         ],
       },
       {
@@ -174,8 +176,8 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       {
         eyebrow: 'Getting started',
         title: 'How to set up a hosted eyewear Store.',
-        body: 'Begin with the products you can review accurately; your existing site remains the source of truth for product details and checkout.',
-        steps: ['Create your free merchant workspace', 'Add frames, photos, and product links', 'Review the private Store preview', 'Configure supported shopper actions and publish when eligible'],
+        body: 'To add your first frame manually, enter its name, upload a product photo or supply an image URL, and add either your SKU or the frame’s product page URL. Use a CSV when you have several frames ready.',
+        steps: ['Create your free merchant workspace', 'Review and add your frame to the catalog', 'Open your private Store preview', 'Check product links and publish when eligible'],
         note: 'Free includes basic recommendations, not generative Virtual Try-On. Photo Try-On requires an eligible paid plan; native Shopify catalog sync and storefront installation are not part of the hosted setup.',
       },
       {
@@ -183,7 +185,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         title: 'What eyewear retailers need to know before launching.',
         cards: [
           { title: 'Do I need to replace my shop?', description: 'No. VisuTry hosts a separate branded Store and can link shoppers to your existing product pages or other configured merchant destinations.' },
-          { title: 'Does the free plan include virtual try-on?', description: 'No. Start free to set up a catalog and basic recommendation experience. Generative photo Try-On is available only with an eligible paid entitlement.' },
+          { title: 'Does the free plan include virtual try-on?', description: 'The free plan includes catalog setup, a private Store preview and basic recommendations. Choose a paid plan to offer photo try-on to shoppers.', href: '/business/pricing', label: 'Compare retail plans and try-on allowances' },
           { title: 'Is this a real-time AR fitting tool?', description: 'No. VisuTry uses AI-assisted photo-based Try-On where enabled. It does not provide a physical-fit or prescription measurement guarantee.' },
           { title: 'Is there a native Shopify app?', description: 'Not in the current hosted Store offer. Shopify merchants can link back to their product pages; native app installation and automated catalog sync are separate future integration work.' },
         ],
@@ -278,11 +280,11 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   },
   pricing: {
     slug: '/business/pricing',
-    metaTitle: 'AI Eyewear Storefront Pricing | VisuTry Merchant Plans',
-    metaDescription: 'Compare VisuTry merchant plans: free Store setup and basic recommendations, paid AI Commerce Sessions and generative photo Try-On, and a separately scoped founding pilot.',
+    metaTitle: 'Virtual Try-On Pricing for Eyewear Retailers | VisuTry',
+    metaDescription: `Compare free Store setup and basic recommendations with monthly photo try-on plans for eyewear retailers. Launch costs ${getMerchantPlanDefinition('LAUNCH').priceLabel}. See catalog and image limits.`,
     eyebrow: 'Pricing',
-    title: 'Simple pricing for the full eyewear decision journey.',
-    description: 'Start free with basic recommendations and Store setup. Paid plans add eligible AI Commerce Sessions and photo Try-On image allowances; usage limits vary by plan.',
+    title: 'How much does virtual try-on cost for an eyewear store?',
+    description: `Start free with a private Store preview and basic frame recommendations. Launch, the first monthly plan with photo try-on, costs ${getMerchantPlanDefinition('LAUNCH').priceLabel}. Compare how many products, shopper sessions and try-on images each plan includes.`,
     primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'View 30-Day Pilot', href: pilotHref },
     sections: [],

@@ -37,3 +37,9 @@ export const businessResources: Readonly<Record<BusinessResourceId, BusinessReso
 
 export const inStoreRetailWhitepaper = businessResources['instore-retail-whitepaper-v1.3']
 export const inStoreRetailDemo = businessResources['instore-retail-demo-v2']
+
+export const eyewearFaceShapeGuide = {
+  path: '/business/resources/show-eyewear-on-different-face-shapes',
+  title: 'How can eyewear brands show the same frames on different face shapes?',
+  description: 'Learn how to use one catalog frame for shopper photo try-on, what to compare across faces, and when a shoot with models is a better choice.',
+} as const
