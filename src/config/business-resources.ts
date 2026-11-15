@@ -62,4 +62,31 @@ export const buyerSoftwareGuide = {
   description: 'Compare photo and live AR previews, hosted and embedded delivery, frame asset requirements, and pricing using the same two frames.',
 } as const
 
-export const businessGuides = [inventoryCatalogGuide, preVisitFrameGalleryGuide, buyerSoftwareGuide, eyewearFaceShapeGuide] as const
+export const ipadComparisonGuide = {
+  path: '/business/resources/ipad-frame-comparison-for-optical-stores',
+  title: 'How to compare eyeglass frames on an iPad in an optical store',
+  description: 'Walk through an in-store frame comparison with a shared tablet, from choosing the frames to ending the shopper’s session.',
+} as const
+
+export const takeHomeShortlistGuide = {
+  path: '/business/resources/share-eyewear-shortlist-after-store-visit',
+  title: 'How to share an eyewear shortlist after a store visit',
+  description: 'Help a shopper leave with the exact frames they liked and reopen their shortlist on their own phone.',
+} as const
+
+export const shoppableLookbookGuide = {
+  path: '/business/resources/shoppable-lookbook-for-eyewear-brands',
+  title: 'How to make a shoppable lookbook for an eyewear collection',
+  description: 'Select a collection, pair each look with its frame and color, and test the path from a lookbook to the product page.',
+} as const
+
+export const framePhotoGuide = {
+  path: '/business/resources/how-to-photograph-frames-for-virtual-try-on',
+  title: 'How to photograph eyeglass frames for photo try-on',
+  description: 'Check framing, background and colorway against visual examples before adding a product photo to your try-on catalog.',
+} as const
+
+export const businessGuides = [
+  inventoryCatalogGuide, framePhotoGuide, eyewearFaceShapeGuide, shoppableLookbookGuide,
+  preVisitFrameGalleryGuide, ipadComparisonGuide, takeHomeShortlistGuide, buyerSoftwareGuide,
+] as const

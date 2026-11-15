@@ -5,6 +5,10 @@ const retailerGuides = [
   ['turn-frame-inventory-into-online-catalog', 'How to turn an optical store’s frame inventory into an online catalog', '/downloads/merchant/frame-inventory-example.csv'],
   ['online-frame-gallery-for-optical-stores', 'How to let patients browse your optical store’s frames before a visit', '/en/store/framed-ewe'],
   ['how-to-choose-eyewear-virtual-try-on-software', 'How to choose virtual try-on software for an eyewear store', '/en/business/pricing'],
+  ['ipad-frame-comparison-for-optical-stores', 'How to compare eyeglass frames on an iPad in an optical store', '/en/business/resources#product-demo'],
+  ['share-eyewear-shortlist-after-store-visit', 'How to share an eyewear shortlist after a store visit', '/en/demo/frames/round'],
+  ['shoppable-lookbook-for-eyewear-brands', 'How to make a shoppable lookbook for an eyewear collection', '/en/c/akila/statement-frames'],
+  ['how-to-photograph-frames-for-virtual-try-on', 'How to photograph eyeglass frames for photo try-on', '/en/demo/frames/rectangle'],
 ] as const;
 
 test.describe('@critical Business market-facing narrative', () => {
@@ -115,6 +119,7 @@ test.describe('@critical Business market-facing narrative', () => {
 
   for (const [slug, heading, destination] of retailerGuides) {
     test(`merchant search landing resource opens from the hub: ${slug}`, async ({ page }) => {
+      await page.setViewportSize({ width: 430, height: 932 });
       const path = `/en/business/resources/${slug}`;
       await page.goto('/en/business/resources', { waitUntil: 'domcontentloaded' });
       await page.getByRole('link', { name: heading, exact: true }).click();
@@ -122,11 +127,29 @@ test.describe('@critical Business market-facing narrative', () => {
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://www.visutry.com${path}`);
       await expect(page.locator(`article a[href="${destination}"]`).first()).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       const redirect = await page.request.get(path.replace('/en/', '/de/'), { maxRedirects: 0 });
       expect(redirect.status()).toBe(308);
       expect(new URL(redirect.headers().location, redirect.url()).pathname).toBe(path);
     });
   }
+
+  test('merchant search landing pages answer six existing retailer questions', async ({ page }) => {
+    const pages = [
+      ['/en/business/campaigns', 'How do I use a QR code at an optical trunk show?'],
+      ['/en/business/integrations', 'Check the round trip from your website to a frame and back.'],
+      ['/en/business/examples', 'Test a frame finder with a small optical catalog.'],
+      ['/en/business/commerce-intelligence', 'Which frames get tried, compared or clicked?'],
+      ['/en/business/pilot', 'What should we measure during a 30-day eyewear pilot?'],
+      ['/en/blog/virtual-try-on-reduce-eyewear-returns', 'How do I measure style-related eyewear returns?'],
+    ] as const;
+    for (const [path, heading] of pages) {
+      const response = await page.goto(path, { waitUntil: 'domcontentloaded' });
+      expect(response?.status()).toBe(200);
+      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://www.visutry.com${path}`);
+    }
+  });
 
   test('merchant search landing links in Consumer articles lead to the relevant retailer resource', async ({ page }) => {
     for (const [article, destination] of [
