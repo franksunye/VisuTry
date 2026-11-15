@@ -37,6 +37,9 @@ describe('BusinessResources', () => {
 
     expect(screen.getByRole('heading', { name: 'VisuTry In-Store Retail Product Demo' })).toBeVisible()
     expect(screen.getByRole('heading', { name: 'AI Eyewear Decision Experience for In-Store Retail' })).toBeVisible()
+    expect(screen.getByRole('link', { name: /show the same frames on different face shapes/i })).toHaveAttribute(
+      'href', '/en/business/resources/show-eyewear-on-different-face-shapes',
+    )
 
     const video = container.querySelector('video[data-business-resource="instore-retail-demo-v2"]')
     expect(video).toHaveAttribute('preload', 'none')

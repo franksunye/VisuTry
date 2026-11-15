@@ -1,5 +1,6 @@
 import type { SitemapEntry } from '@/lib/sitemap-xml'
 import { locales } from '@/i18n'
+import { eyewearFaceShapeGuide } from '@/config/business-resources'
 import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { FACE_SHAPE_COMPARISON_SLUGS } from '@/config/face-shape-comparisons'
 import { CURATED_BRAND_SLUGS } from '@/config/brand-try-on-content'
@@ -59,6 +60,7 @@ export function buildCoreSitemapEntries(baseUrl: string): SitemapEntry[] {
     { path: '/business/integrations', priority: 0.65, changeFrequency: 'monthly' },
     { path: '/business/pilot', priority: 0.8, changeFrequency: 'weekly' },
     { path: '/business/resources', priority: 0.65, changeFrequency: 'monthly' },
+    { path: eyewearFaceShapeGuide.path, priority: 0.65, changeFrequency: 'monthly' },
     ...VISUTRY_DEMO_FRAME_ROUTES.map(({ slug }) => ({ path: `/demo/frames/${slug}`, priority: 0.65, changeFrequency: 'monthly' as const })),
   ]
   const localizedSunglassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/sunglasses-for/${slug}-face`)

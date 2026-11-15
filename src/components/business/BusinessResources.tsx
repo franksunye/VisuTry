@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRef } from 'react'
 import { ArrowRight, FileText, PlayCircle } from 'lucide-react'
 import { businessHref } from '@/config/business-site'
-import { inStoreRetailDemo, inStoreRetailWhitepaper, type BusinessResource } from '@/config/business-resources'
+import { eyewearFaceShapeGuide, inStoreRetailDemo, inStoreRetailWhitepaper, type BusinessResource } from '@/config/business-resources'
 import { analytics } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 
@@ -179,6 +179,17 @@ export function BusinessResourceStrip({
 export function BusinessResourcesPage({ locale }: { locale: string }) {
   return (
     <>
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <h2 className="max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-slate-950">
+            <Link href={businessHref(locale, eyewearFaceShapeGuide.path)} prefetch={false} className="hover:underline">
+              {eyewearFaceShapeGuide.title}
+            </Link>
+          </h2>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">{eyewearFaceShapeGuide.description}</p>
+        </div>
+      </section>
+
       <section id="product-demo" className="bg-white scroll-mt-20">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[0.72fr_1.28fr] lg:items-center lg:px-8">
           <div>

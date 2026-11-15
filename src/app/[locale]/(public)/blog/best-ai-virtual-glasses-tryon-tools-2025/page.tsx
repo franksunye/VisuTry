@@ -64,6 +64,7 @@ const criteria = [
     icon: Store,
     title: 'Catalog coverage',
     body: 'A virtual try-on tool is only as useful as the frames it can show. Small stores should prioritize custom frame upload and fast testing before investing in a large 3D catalog.',
+    merchantLink: true,
   },
   {
     icon: Shield,
@@ -175,7 +176,12 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                       <Icon className="mt-1 h-6 w-6 flex-shrink-0 text-blue-600" />
                       <div>
                         <h3 className="mb-2 text-lg font-bold text-gray-900">{item.title}</h3>
-                        <p className="text-gray-600">{item.body}</p>
+                        <p className="text-gray-600">
+                          {item.body}
+                          {item.merchantLink && params.locale === 'en' && (
+                            <>{' '}See how <Link href="/en/business/store" className="text-blue-700 underline">eyewear retailers offer try-on with their own frames</Link>.</>
+                          )}
+                        </p>
                       </div>
                     </div>
                   )
