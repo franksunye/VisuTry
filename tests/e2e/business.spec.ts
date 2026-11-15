@@ -99,7 +99,11 @@ test.describe('@critical Business market-facing narrative', () => {
     await expect(page).toHaveURL(eyewearBrandGuide);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('How can eyewear brands show the same frames on different face shapes?');
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://www.visutry.com${eyewearBrandGuide}`);
-    const localized = await page.goto(eyewearBrandGuide.replace('/en/', '/fr/'), { waitUntil: 'domcontentloaded' });
+    const frenchGuide = eyewearBrandGuide.replace('/en/', '/fr/');
+    const redirect = await page.request.get(frenchGuide, { maxRedirects: 0 });
+    expect(redirect.status()).toBe(308);
+    expect(new URL(redirect.headers().location, redirect.url()).pathname).toBe(eyewearBrandGuide);
+    const localized = await page.goto(frenchGuide, { waitUntil: 'domcontentloaded' });
     expect(localized?.status()).toBe(200);
     await expect(page).toHaveURL(eyewearBrandGuide);
   });
