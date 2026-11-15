@@ -1,3 +1,5 @@
+import { inventoryCatalogGuide, preVisitFrameGalleryGuide, buyerSoftwareGuide } from './business-resources'
+
 import { getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 
 export type BusinessPageKey =
@@ -163,8 +165,8 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         title: 'Let customers browse your frame catalog before a visit.',
         body: 'Send your Store link in an appointment email, add it to your website or put a QR code beside your frame display. Customers can browse the collection on their phone.',
         cards: [
-          { title: 'Choose the collection', description: 'Start with the frames you want customers to find, such as a few best sellers or the styles available at a particular shop.' },
-          { title: 'Show the choices', description: 'Customers can browse your collection and get basic frame recommendations. Paid plans add side-by-side comparison and photo try-on.' },
+          { title: 'Choose the collection', description: 'Start with the frames you want customers to find, such as a few best sellers or the styles available at a particular shop.', href: inventoryCatalogGuide.path, label: 'Get the frame inventory CSV and sample photos' },
+          { title: 'Show the choices', description: 'Customers can browse your collection and get basic frame recommendations. Paid plans add side-by-side comparison and photo try-on.', href: preVisitFrameGalleryGuide.path, label: 'Set up a gallery for pre-visit browsing' },
           { title: 'Send shoppers to the right product', description: 'Include the product link for each frame so customers can check its details and complete a purchase through your existing checkout.' },
         ],
       },
@@ -344,6 +346,10 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       {
         eyebrow: 'Current Pilot path',
         title: 'A practical launch with reviewed product data.',
+        body: 'Keep the product and checkout URLs on your own site. Add your frame photos and destination links to the VisuTry catalog, then check each return link in the private preview. Once the Store is published, link to it from your eyewear collection page. This hosted setup works without installing a storefront plugin.',
+        cards: [
+          { title: 'What needs to live on my website?', description: 'A link to the hosted Store is enough to send shoppers there. If the preview itself must appear inside your product page, check embedded delivery support before choosing a provider.', href: buyerSoftwareGuide.path, label: 'Compare hosted and embedded try-on' },
+        ],
         steps: ['Catalog Review', 'Configure', 'Hosted Launch', 'Merchant Actions', 'Intent Review'],
       },
       {

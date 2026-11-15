@@ -1,7 +1,9 @@
 /** @jest-environment node */
+import { readFileSync } from 'node:fs'
 import {
   buildCatalogInspectionProposal,
   parseCatalogCsv,
+  type CatalogSourceExistingFrame,
 } from '@/modules/merchant/application/merchant-catalog-source-shared'
 
 const header = 'sku,name,imageUrl,productUrl,shape,brand,price'
@@ -9,11 +11,11 @@ const complete = 'GOOD-1,Good frame,https://cdn.example.test/good.jpg,https://sh
 const shifted = 'BAD-2,Shifted frame,https://cdn.example.test/bad.jpg,https://shop.example.test/products/bad,round,Example,99.00,unexpected'
 const shortened = 'BAD-3,Short frame,https://cdn.example.test/short.jpg,https://shop.example.test/products/short,round,Example'
 
-async function review(text: string) {
+async function review(text: string, existing: CatalogSourceExistingFrame[] = []) {
   const parsed = parseCatalogCsv(text)
   const result = await buildCatalogInspectionProposal({
     manualProducts: parsed.products,
-    existing: [],
+    existing,
     fetchSource: async () => { throw new Error('CSV inspection must not fetch network resources.') },
     initialSourceIssues: parsed.issues.map((item) => ({
       sourceUrl: 'csv://merchant-upload', code: item.code,
@@ -24,6 +26,19 @@ async function review(text: string) {
 }
 
 describe('First Value CSV structural recovery', () => {
+  it('accepts both public example frames and marks a repeat upload as duplicates', async () => {
+    const text = readFileSync('public/downloads/merchant/frame-inventory-example.csv', 'utf8')
+    const { parsed, result } = await review(text)
+    expect(parsed.issues).toEqual([])
+    expect(result.importReady.map((frame) => frame.sku)).toEqual(['VT-DEMO-001', 'VT-DEMO-002'])
+    expect(result.sourceSummary.recommendationReady).toBe(2)
+
+    const existing = result.importReady.map((frame) => ({ sku: frame.sku, productUrl: frame.productUrl ?? null }))
+    const repeated = await review(text, existing)
+    expect(repeated.result.importReady).toHaveLength(0)
+    expect(repeated.result.candidates.map((frame) => frame.dedupeStatus)).toEqual(['ALREADY_EXISTS', 'ALREADY_EXISTS'])
+  })
+
   it('rejects shifted-column rows from approval while preserving valid rows for explicit review', async () => {
     const { parsed, result } = await review([header, complete, shifted].join('\n'))
     expect(parsed.issues).toEqual(expect.arrayContaining([

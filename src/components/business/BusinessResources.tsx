@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRef } from 'react'
 import { ArrowRight, FileText, PlayCircle } from 'lucide-react'
 import { businessHref } from '@/config/business-site'
-import { eyewearFaceShapeGuide, inStoreRetailDemo, inStoreRetailWhitepaper, type BusinessResource } from '@/config/business-resources'
+import { businessGuides, inStoreRetailDemo, inStoreRetailWhitepaper, type BusinessResource } from '@/config/business-resources'
 import { analytics } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 
@@ -181,12 +181,18 @@ export function BusinessResourcesPage({ locale }: { locale: string }) {
     <>
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <h2 className="max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-slate-950">
-            <Link href={businessHref(locale, eyewearFaceShapeGuide.path)} prefetch={false} className="hover:underline">
-              {eyewearFaceShapeGuide.title}
-            </Link>
-          </h2>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">{eyewearFaceShapeGuide.description}</p>
+          <ul className="grid gap-x-12 gap-y-8 md:grid-cols-2">
+            {businessGuides.map((guide) => (
+              <li key={guide.path}>
+                <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+                  <Link href={businessHref(locale, guide.path)} prefetch={false} className="hover:underline">
+                    {guide.title}
+                  </Link>
+                </h2>
+                <p className="mt-2 max-w-2xl text-base leading-7 text-slate-600">{guide.description}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

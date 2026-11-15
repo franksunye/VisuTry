@@ -1,6 +1,7 @@
 import { Fragment } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Check, ShieldCheck } from 'lucide-react'
+import { buyerSoftwareGuide } from '@/config/business-resources'
 import { businessHref } from '@/config/business-site'
 import {
   FOUNDING_PILOT_OFFER,
@@ -386,6 +387,9 @@ export function BusinessPricingPage({ locale }: { locale: string }) {
           <Link href={businessHref(locale, '/business/store')} prefetch={false} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900">
             See how photo try-on works with your own frames<ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
+          <p className="mt-3 text-sm text-slate-600">
+            Comparing offers with different billing units? <Link href={businessHref(locale, buyerSoftwareGuide.path)} prefetch={false} className="font-semibold text-blue-700 underline underline-offset-4">Use the eyewear software buying guide</Link>.
+          </p>
           <div className="mt-10 grid gap-5 lg:grid-cols-3">{primaryPlanCodes.map((code) => <PrimaryPlanCard key={code} locale={locale} planCode={code} />)}</div>
         </div>
       </section>
