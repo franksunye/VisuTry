@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 const eyewearBrandGuide = '/en/business/resources/show-eyewear-on-different-face-shapes';
+const retailerGuides = [
+  ['turn-frame-inventory-into-online-catalog', 'How to turn an optical store’s frame inventory into an online catalog', '/downloads/merchant/frame-inventory-example.csv'],
+  ['online-frame-gallery-for-optical-stores', 'How to let patients browse your optical store’s frames before a visit', '/en/store/framed-ewe'],
+  ['how-to-choose-eyewear-virtual-try-on-software', 'How to choose virtual try-on software for an eyewear store', '/en/business/pricing'],
+] as const;
 
 test.describe('@critical Business market-facing narrative', () => {
   test('business route explains the catalog-to-intelligence story without fake proof', async ({ page }) => {
@@ -87,7 +92,7 @@ test.describe('@critical Business market-facing narrative', () => {
       const sitemap = new DOMParser().parseFromString(xml, 'application/xml');
       return Array.from(sitemap.getElementsByTagName('loc'), (entry) => entry.textContent);
     }, await response.text());
-    for (const url of ['/en/business', '/en/business/store', '/en/business/pricing', '/en/business/resources', eyewearBrandGuide]) {
+    for (const url of ['/en/business', '/en/business/store', '/en/business/pricing', '/en/business/resources', eyewearBrandGuide, ...retailerGuides.map(([slug]) => `/en/business/resources/${slug}`)]) {
       expect(locations.filter((location) => location === `https://www.visutry.com${url}`)).toHaveLength(1);
     }
     expect(locations.some((location) => location?.startsWith('https://www.visutry.com/de/business'))).toBe(false);
@@ -108,10 +113,26 @@ test.describe('@critical Business market-facing narrative', () => {
     await expect(page).toHaveURL(eyewearBrandGuide);
   });
 
+  for (const [slug, heading, destination] of retailerGuides) {
+    test(`merchant search landing resource opens from the hub: ${slug}`, async ({ page }) => {
+      const path = `/en/business/resources/${slug}`;
+      await page.goto('/en/business/resources', { waitUntil: 'domcontentloaded' });
+      await page.getByRole('link', { name: heading, exact: true }).click();
+      await expect(page).toHaveURL(path);
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://www.visutry.com${path}`);
+      await expect(page.locator(`article a[href="${destination}"]`).first()).toBeVisible();
+      const redirect = await page.request.get(path.replace('/en/', '/de/'), { maxRedirects: 0 });
+      expect(redirect.status()).toBe(308);
+      expect(new URL(redirect.headers().location, redirect.url()).pathname).toBe(path);
+    });
+  }
+
   test('merchant search landing links in Consumer articles lead to the relevant retailer resource', async ({ page }) => {
     for (const [article, destination] of [
       ['/en/blog/best-ai-virtual-glasses-tryon-tools-2025', '/en/business/store'],
       ['/en/blog/ai-face-analysis-for-glasses-guide', eyewearBrandGuide],
+      ['/en/blog/virtual-try-on-reduce-eyewear-returns', '/en/business/resources/turn-frame-inventory-into-online-catalog'],
     ]) {
       const response = await page.goto(article, { waitUntil: 'domcontentloaded' });
       expect(response?.status()).toBe(200);

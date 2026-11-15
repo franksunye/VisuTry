@@ -43,3 +43,23 @@ export const eyewearFaceShapeGuide = {
   title: 'How can eyewear brands show the same frames on different face shapes?',
   description: 'Learn how to use one catalog frame for shopper photo try-on, what to compare across faces, and when a shoot with models is a better choice.',
 } as const
+
+export const inventoryCatalogGuide = {
+  path: '/business/resources/turn-frame-inventory-into-online-catalog',
+  title: 'How to turn an optical store’s frame inventory into an online catalog',
+  description: 'Turn a frame inventory spreadsheet and product photos into a shoppable catalog with a sample CSV, live product records, and a storefront you can browse.',
+} as const
+
+export const preVisitFrameGalleryGuide = {
+  path: '/business/resources/online-frame-gallery-for-optical-stores',
+  title: 'How to let patients browse your optical store’s frames before a visit',
+  description: 'Set up a pre-visit frame gallery for your optical shop, share it with patients, and use model names and product links to prepare for an in-store fitting.',
+} as const
+
+export const buyerSoftwareGuide = {
+  path: '/business/resources/how-to-choose-eyewear-virtual-try-on-software',
+  title: 'How to choose virtual try-on software for an eyewear store',
+  description: 'Compare photo and live AR previews, hosted and embedded delivery, frame asset requirements, and pricing using the same two frames.',
+} as const
+
+export const businessGuides = [inventoryCatalogGuide, preVisitFrameGalleryGuide, buyerSoftwareGuide, eyewearFaceShapeGuide] as const

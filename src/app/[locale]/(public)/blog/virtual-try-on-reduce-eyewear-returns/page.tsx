@@ -1,3 +1,4 @@
+import { inventoryCatalogGuide } from '@/config/business-resources'
 import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from '@/components/layout/PublicLink'
@@ -172,6 +173,13 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                   <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5" /> Keep expectations honest: preview style and scale, not prescription accuracy.</li>
                 </ul>
               </div>
+
+              {params.locale === 'en' && (
+                <p>
+                  To try this with your own stock, <Link href={localizedPath('en', inventoryCatalogGuide.path)} prefetch={false}>download a sample frame inventory CSV and see the catalog it creates</Link>.
+                  Check that each photo matches the exact frame and color you sell.
+                </p>
+              )}
 
               <h2>Bottom line</h2>
               <p>
