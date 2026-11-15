@@ -33,7 +33,7 @@ describe('First Value CSV structural recovery', () => {
     expect(result.importReady.map((frame) => frame.sku)).toEqual(['VT-DEMO-001', 'VT-DEMO-002'])
     expect(result.sourceSummary.recommendationReady).toBe(2)
 
-    const existing = result.importReady.map((frame) => ({ sku: frame.sku, productUrl: frame.productUrl ?? null }))
+    const existing = result.importReady.map((frame) => ({ sku: frame.sku ?? null, productUrl: frame.productUrl ?? null }))
     const repeated = await review(text, existing)
     expect(repeated.result.importReady).toHaveLength(0)
     expect(repeated.result.candidates.map((frame) => frame.dedupeStatus)).toEqual(['ALREADY_EXISTS', 'ALREADY_EXISTS'])
