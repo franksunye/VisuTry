@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { permanentRedirect } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
-import { preVisitFrameGalleryGuide } from '@/config/business-resources'
+import { ipadComparisonGuide, preVisitFrameGalleryGuide } from '@/config/business-resources'
 
 const canonicalPath = `/en${preVisitFrameGalleryGuide.path}`
 const canonical = `https://www.visutry.com${canonicalPath}`
@@ -78,7 +78,8 @@ export default function PreVisitFrameGalleryGuide({ params }: { params: { locale
           <p className="mt-4 leading-7 text-slate-700">
             At the visit, ask which detail caught the patient’s eye. A preference for a particular color or rim shape gives
             the optician a starting pair and a reason to choose a second one. Use the physical frames to check bridge comfort,
-            temple length and how the pair sits.
+            temple length and how the pair sits. If the patient is choosing between two pairs, you can
+            {' '}<Link href={`/en${ipadComparisonGuide.path}`} prefetch={false} className={linkStyle}>compare frames together on a store iPad</Link>.
           </p>
         </section>
       </article>

@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { permanentRedirect } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
-import { inventoryCatalogGuide } from '@/config/business-resources'
+import { framePhotoGuide, inventoryCatalogGuide } from '@/config/business-resources'
 
 const canonicalPath = `/en${inventoryCatalogGuide.path}`
 const canonical = `https://www.visutry.com${canonicalPath}`
@@ -76,6 +76,9 @@ export default function FrameInventoryGuide({ params }: { params: { locale: stri
             <div><dt className="font-semibold text-slate-950">Image URL and product URL</dt><dd>Put the direct photo address in <code>imageUrl</code> and the shopper-facing item page in <code>productUrl</code>. Test both in a signed-out window. For the photo, use the exact colorway, show the whole frame against a plain background and keep the rims, bridge and temples visible.</dd></div>
             <div><dt className="font-semibold text-slate-950">Shape, brand and price</dt><dd>A shape such as round or rectangle helps prepare the frame for recommendations. Include the brand and current price where you have them. Keep the CSV header row when you replace the examples with your own frames.</dd></div>
           </dl>
+          <p className="mt-4 leading-7 text-slate-700">
+            Before you upload, <Link href={`/en${framePhotoGuide.path}`} prefetch={false} className={linkStyle}>check a sample frame photo against the photography guide</Link>.
+          </p>
         </section>
 
         <section className="mt-10 max-w-3xl">

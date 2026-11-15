@@ -1,4 +1,11 @@
-import { inventoryCatalogGuide, preVisitFrameGalleryGuide, buyerSoftwareGuide } from './business-resources'
+import {
+  inventoryCatalogGuide,
+  preVisitFrameGalleryGuide,
+  buyerSoftwareGuide,
+  shoppableLookbookGuide,
+  ipadComparisonGuide,
+  takeHomeShortlistGuide,
+} from './business-resources'
 
 import { getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 
@@ -206,11 +213,11 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   },
   campaigns: {
     slug: '/business/campaigns',
-    metaTitle: 'AI Shopping Campaigns for Eyewear Brands & Agencies | VisuTry',
-    metaDescription: 'Create focused AI shopping experiences that preserve campaign context from traffic source to product edit, shopper decision, Merchant Actions, and observable intent.',
+    metaTitle: 'Eyewear Campaigns and QR Codes for Optical Trunk Shows | VisuTry',
+    metaDescription: 'Build an eyewear trunk show campaign with a selection of featured frames, a QR code for the display table, and links to the exact products shoppers saw.',
     eyebrow: 'Campaign Experiences',
     title: 'Focused decision experiences for campaign traffic.',
-    description: 'Use Campaigns when the reason a shopper arrived should shape the product edit, message, journey, and next merchant action.',
+    description: 'For an optical trunk show, give guests one link to the frames on the display table. Put it in the invitation and on a printed QR card so visitors can find the same models after the event.',
     primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'See a Campaign Example', href: '/c/akila/statement-frames' },
     sections: [
@@ -219,17 +226,20 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         title: 'Use Campaigns when arrival context should change the experience.',
         body: 'A Campaign starts from a specific reason for arrival — a collection launch, paid ad, creator story, fit problem, event, email, or QR — and turns that context into a tighter product and decision experience.',
         cards: [
-          { title: 'Collection & launch', description: 'Focus attention on a strategic edit without duplicating the merchant catalog.' },
+          { title: 'Collection & launch', description: 'Build a visual edit for the launch using only frames in the collection.', href: shoppableLookbookGuide.path, label: 'Make a shoppable eyewear lookbook' },
           { title: 'Paid & social', description: 'Keep the landing experience aligned with the proposition that earned the click.' },
           { title: 'Creator & editorial', description: 'Carry a style story into a shoppable decision path rather than a generic catalog grid.' },
           { title: 'QR & event', description: 'Give physical or event-driven traffic a focused digital continuation.' },
         ],
       },
       {
-        eyebrow: 'Campaign operating model',
-        title: 'Keep the source, product edit, and next action aligned.',
-        steps: ['Traffic source or brief', 'Focused catalog subset', 'Campaign Experience', 'Configured Merchant Actions', 'Experience + source context'],
-        body: 'Campaigns reuse the shared VisuTry decision runtime; the differentiator is the context around that runtime, not a separate feature stack.',
+        eyebrow: 'Event setup',
+        title: 'How do I use a QR code at an optical trunk show?',
+        body: 'Choose the frames the rep is bringing. In the Campaign, match each model and color to its photo and product page. Publish the selection, then encode its public URL in your printed QR card. Scan the printed proof on a signed-out phone before placing it beside the frames.',
+        cards: [
+          { title: 'Before the event', description: 'Include the same collection link in the invitation. If a sample changes, update the selection and check that the printed code still opens the right frames.' },
+          { title: 'At the display table', description: 'Put the model name next to the sample. Ask a colleague to scan the card, find that name on their phone and open its product link. Print a short, readable collection address below the code.' },
+        ],
       },
       {
         eyebrow: 'Brand & agency workflow',
@@ -238,7 +248,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       },
       {
         eyebrow: 'Reference Experience',
-        title: 'See how a collection-led Campaign can work.',
+        title: 'Open a sample collection and follow one frame.',
         body: 'AKILA · Statement Frames is a Reference Experience assembled from public catalog information. It demonstrates the focused Campaign format and does not imply a customer or partner relationship.',
         cards: [
           { title: 'AKILA · Statement Frames', description: 'Reference Pilot / Simulation for style-led campaign merchandising.', href: '/c/akila/statement-frames', label: 'Open Reference Campaign' },
@@ -249,11 +259,11 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   },
   intelligence: {
     slug: '/business/commerce-intelligence',
-    metaTitle: 'Commerce Intelligence for Eyewear Shopping | VisuTry',
-    metaDescription: 'Use observable shopper signals to understand where eyewear decision journeys gain or lose momentum across products, Experiences, actions, and available source context.',
+    metaTitle: 'Eyewear Analytics: Frame Interest, Try-Ons and Product Clicks | VisuTry',
+    metaDescription: 'See which frames enter consideration and where shoppers continue. Review recommendations, comparisons, completed photo try-ons, and clicks back to your store.',
     eyebrow: 'Commerce Intelligence',
     title: 'See where the decision journey gains — or loses — momentum.',
-    description: 'Commerce Intelligence helps merchants interpret observable shopper behavior across products, Experiences, Merchant Actions, and available source context. It is an evidence layer, not a revenue attribution shortcut.',
+    description: 'The Commerce Intelligence evidence layer shows which frames shoppers consider and where they go next. Pick a Store or Campaign to review frame interest, completed photo try-ons, comparisons and product clicks for the same period.',
     primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'Explore the Platform', href: '/business/platform' },
     sections: [
@@ -264,13 +274,17 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
           { title: 'Are shoppers reaching a shortlist?', description: 'Use Recommendation completion and related engagement to see whether discovery is narrowing into consideration.' },
           { title: 'Which frames reach deeper evaluation?', description: 'Review Virtual Try-On, Frame Compare, favorite, and related product-interest signals where enabled.' },
           { title: 'Which Experiences create stronger intent?', description: 'Compare observable behavior across Store and Campaign Experiences rather than pooling every visit together.' },
-          { title: 'Where do shoppers continue?', description: 'Review product clicks, inquiries, and other configured Merchant Actions together with available source context.' },
+          { title: 'Where do shoppers continue?', description: 'Review product clicks, inquiries, and other configured Merchant Actions together with available source context.', href: takeHomeShortlistGuide.path, label: 'See how a shopper can revisit their shortlist' },
         ],
       },
       {
         eyebrow: 'Analysis context',
-        title: 'Read signals in the context that produced them.',
-        body: 'The same event means more when it is tied back to the product, Experience, configured action, and available source context. Commerce Intelligence keeps those dimensions available for merchant review where the underlying data exists.',
+        title: 'Which frames get tried, compared or clicked?',
+        body: 'Choose one collection and date range. Start with the frames appearing in product-interest data. Compare that with completed try-ons, comparison activity and product clicks for the same experience. Keep the original units visible as one person can compare several frames or open a listing twice.',
+        cards: [
+          { title: 'Interest without a product click', description: 'If a frame attracts attention and few shoppers continue, check the action available on that frame. Open the product link on a phone and confirm it matches the exact model and color.' },
+          { title: 'Clicks without an order record', description: 'A product click records a visit to the destination. Use fulfilled orders from your own checkout for a sales figure. Report interest separately when you cannot match an order to the shopper.' },
+        ],
       },
       {
         eyebrow: 'Evidence boundary',
@@ -293,18 +307,22 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   },
   examples: {
     slug: '/business/examples',
-    metaTitle: 'VisuTry Store & Campaign Examples for Eyewear',
-    metaDescription: 'Explore VisuTry Store product previews and clearly labeled Campaign Reference Experiences across eyewear merchant archetypes.',
+    metaTitle: 'Frame Finder Examples for Eyewear Retailers | VisuTry',
+    metaDescription: 'See how to offer frame recommendations from your own inventory. Explore a working frame finder, inspect the catalog, and check where shoppers go from a shortlist.',
     eyebrow: 'Product Proof',
-    title: 'See the same commerce workflow across different eyewear problems.',
-    description: 'Use product previews and clearly labeled Reference Experiences to evaluate the shopper journey, not to infer customer relationships or performance claims.',
+    title: 'How can my eyewear store recommend frames from its own inventory?',
+    description: 'Give the frame finder a reviewed set of products you carry. Each recommendation should lead to a recognizable model, color and product page. Use the public examples below to walk through that experience as a shopper.',
     primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'Explore Store', href: '/business/store' },
     sections: [
       {
         eyebrow: 'Store product preview',
-        title: 'A persistent Store experience.',
-        body: 'Use the current Store product surface to evaluate the always-on shopper journey. Reference Experiences below demonstrate additional campaign and merchandising patterns without implying customer relationships.',
+        title: 'Test a frame finder with a small optical catalog.',
+        body: 'Start with a mix of shapes your store stocks. For each frame, check its shape, product photo, SKU or product link, and any available width or color details. In a private preview, follow a suggested frame to its product page and check the exact variant. Review the selection again when your assortment changes.',
+        cards: [
+          { title: 'Try the shopper view', description: 'Open the demo collection and find VT Rowan and VT Lane. Compare their catalog shapes and follow each product link. Then explore the guided recommendation path to see how a shopper narrows the selection.', href: '/store/visutry-demo-optical', label: 'Try the Demo Optical frame finder' },
+          { title: 'Prepare your own selection', description: 'Use a small set first so staff can check each model. The sample spreadsheet includes images, shapes and working product links for both demonstration frames.', href: inventoryCatalogGuide.path, label: 'Get the two-frame sample catalog' },
+        ],
       },
       {
         eyebrow: 'Reference Portfolio',
@@ -335,22 +353,22 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   },
   integrations: {
     slug: '/business/integrations',
-    metaTitle: 'VisuTry Business Integrations & Deployment',
-    metaDescription: 'Start hosted-first with your existing ecommerce product pages and expand integrations only as merchant needs and proven value justify them.',
+    metaTitle: 'Add Hosted Eyewear Try-On to Your Existing Store | VisuTry',
+    metaDescription: 'Connect an existing eyewear website to a hosted try-on catalog. Follow a frame back to its original product page and keep prices, orders, and checkout on your store.',
     eyebrow: 'Integrations & Deployment',
-    title: 'Start hosted-first. Keep your existing commerce stack.',
-    description: 'VisuTry adds a guided decision layer around existing merchant commerce rather than requiring a platform replacement.',
+    title: 'How do I add eyewear try-on to my existing website?',
+    description: 'Link a button on your eyewear collection page to a published VisuTry Store. Shoppers browse there and follow a frame’s product link back to your website to buy. Your commerce platform continues to handle the cart and checkout.',
     primaryCta: { label: 'Start Free', href: '/merchant?commercialIntent=FREE' },
     secondaryCta: { label: 'Explore the Platform', href: '/business/platform' },
     sections: [
       {
         eyebrow: 'Current Pilot path',
-        title: 'A practical launch with reviewed product data.',
-        body: 'Keep the product and checkout URLs on your own site. Add your frame photos and destination links to the VisuTry catalog, then check each return link in the private preview. Once the Store is published, link to it from your eyewear collection page. This hosted setup works without installing a storefront plugin.',
+        title: 'Check the round trip from your website to a frame and back.',
+        body: 'Start with one variant. Copy its product-page address into the catalog, attach the matching frame photo and open the private preview. Follow the product link and check the model and color. After the Store is published, test the complete path from your collection button on a signed-out phone.',
         cards: [
           { title: 'What needs to live on my website?', description: 'A link to the hosted Store is enough to send shoppers there. If the preview itself must appear inside your product page, check embedded delivery support before choosing a provider.', href: buyerSoftwareGuide.path, label: 'Compare hosted and embedded try-on' },
         ],
-        steps: ['Catalog Review', 'Configure', 'Hosted Launch', 'Merchant Actions', 'Intent Review'],
+        steps: ['Open your collection page', 'Follow its link to the hosted Store', 'Choose one frame', 'Return to that product on your site'],
       },
       {
         eyebrow: 'Merchant workspace proof',
@@ -359,7 +377,10 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       },
       {
         eyebrow: 'Merchant Actions',
-        title: 'Your product pages and checkout remain the source of truth.',
+        title: 'Where does the customer complete the purchase?',
+        cards: [
+          { title: 'See the product link in a real catalog', description: 'In the Lowercase NYC reference collection, open Ashe and follow View product. Check the destination domain and model. Repeat this check with one of your own products before sharing a live link.', href: '/c/lowercase-nyc/find-your-frame', label: 'Follow a reference frame to its listing' },
+        ],
         body: 'The hosted Pilot can continue shoppers to configured product, appointment, inquiry, store-visit, or other supported merchant destinations. It does not require replacing Shopify, BigCommerce, or the merchant’s existing site.',
       },
       {
@@ -372,11 +393,11 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   },
   pilot: {
     slug: '/business/pilot',
-    metaTitle: 'Start a VisuTry Founding Merchant Pilot',
-    metaDescription: 'Start a VisuTry Founding Merchant Pilot from $149 / 30 days. Final scope and pilot fee are confirmed based on deployment configuration.',
+    metaTitle: 'Start a VisuTry Founding Merchant Pilot | 30-Day Eyewear Try-On Test',
+    metaDescription: 'Run an eyewear try-on pilot with a small frame selection. Review a four-week plan for catalog checks, launch and measurement. Founding Pilot from $149 / 30 days.',
     eyebrow: 'Founding Merchant Pilot',
-    title: 'Test VisuTry with your real eyewear catalog.',
-    description: 'Start with a focused, real-world pilot using your own eyewear catalog. Final scope and pilot fee are confirmed based on your deployment configuration.',
+    title: 'How can an optical store test virtual try-on in 30 days?',
+    description: 'Choose a small collection, one place to share it and one shopper action to measure. Final scope and pilot fee are confirmed based on your deployment configuration.',
     primaryCta: { label: 'Request Pilot Review', href: '#pilot-request' },
     secondaryCta: { label: 'View Pricing', href: '/business/pricing' },
     microcopy: 'From $149 / 30 days · We review deployment configuration, catalog scope, and launch timing before confirming the Pilot and fee.',
@@ -387,7 +408,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         cards: [
           { title: 'Business', description: 'Brand or store name, website, and primary contact.' },
           { title: 'Catalog', description: 'Approximate frame count and the collection or products you want to test.' },
-          { title: 'Traffic', description: 'Where you expect to send shoppers from first: website, paid media, email, social, QR, or another source.' },
+          { title: 'Traffic', description: 'Choose one starting point such as a collection page, an email or an in-store tablet. For a shared device, check the plan and setup before inviting shoppers.', href: ipadComparisonGuide.path, label: 'Plan an in-store tablet session' },
           { title: 'Goal', description: 'The decision problem you want to improve: discovery, Recommendation, Virtual Try-On, Frame Compare, or merchant action.' },
         ],
       },
@@ -408,9 +429,15 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         body: 'A typical Founding Merchant Pilot includes 8–50 real frames, an AI-assisted shopper experience, Virtual Try-On, Frame Compare, assisted setup, and a weekly review. Hosted, Campaign, in-store, and other deployment configurations may vary in scope and pricing. Final scope and pilot fee are confirmed before billing.',
       },
       {
-        eyebrow: 'What happens next',
-        title: 'Review → configure → launch → learn.',
-        steps: ['Review your catalog', 'Choose Store or Campaign', 'Configure the Experience', 'Launch hosted route', 'Review observed intent', 'Decide how to continue'],
+        eyebrow: 'Example pilot plan',
+        title: 'What should we measure during a 30-day eyewear pilot?',
+        body: 'For example, choose eight models from one collection and one question: do shoppers reach the original product page after exploring these frames? Agree who will review results, which visits are staff tests, and the date the live link will go up.',
+        cards: [
+          { title: 'Week 1 · Prepare', description: 'Record the previous four weeks of collection traffic if available. Check eight frame photos, variants and destinations. Have a colleague walk through the private preview.' },
+          { title: 'Week 2 · Open one entrance', description: 'Share the published link from one collection page. Record the launch date and any promotion or stock change. Keep staff checks identifiable.' },
+          { title: 'Week 3 · Find friction', description: 'Check whether shoppers are arriving, completing try-on and reaching product links. Investigate a broken link or failed preview on the actual phone or browser where it occurred.' },
+          { title: 'Week 4 · Review', description: 'Report the number of visitors, completed images and product clicks separately. A pilot with too few shoppers to evaluate the journey gives you a traffic question to test next.', href: '/business/commerce-intelligence', label: 'Read the eyewear analytics guide' },
+        ],
       },
       {
         eyebrow: 'After 30 days',

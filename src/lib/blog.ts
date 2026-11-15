@@ -205,10 +205,10 @@ export const staticBlogPosts: BlogPost[] = [
   },
   {
     slug: 'virtual-try-on-reduce-eyewear-returns',
-    title: 'How Virtual Try-On Helps Online Eyewear Stores Reduce Returns',
-    description: 'A practical guide for eyewear ecommerce teams on using virtual try-on to improve buyer confidence, set better expectations, and reduce avoidable frame-fit returns.',
+    title: 'How to Test Whether Virtual Try-On Reduces Eyewear Returns',
+    description: 'Measure whether photo try-on reduces style-related frame returns. Compare delivered units, return reasons and matched products over a complete return window.',
     publishedAt: '2026-05-27T10:00:00Z',
-    modifiedAt: '2026-05-27T10:00:00Z',
+    modifiedAt: '2026-11-15T00:00:00Z',
     author: 'VisuTry Team',
     category: 'Ecommerce',
     readTime: '7 min read',
