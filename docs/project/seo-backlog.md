@@ -10,6 +10,17 @@
 
 ## Active restart queue — 2026-11-02
 
+### Consumer New Entry Discovery · November 16, 2026 (Draft)
+
+**Issue:** [#529](https://github.com/franksunye/VisuTry/issues/529). **Support research:** `docs/ops/2026-11-16-consumer-new-entry-discovery.md`. Canonical policy remains `docs/strategy/analytics/gtm.md`.
+
+- [x] GSC Web 2026-10-17–11-13 exact EN owner baseline: width guide 1/21, compare search 2/57, compare app 0/36, BYO photo 8/552, sunglasses face-shape 0/22 (clicks/impressions). Thin samples; no new 10× winner.
+- [x] Existing implementation review: EN size guide already explains the frame markings; Compare is paid/credit-controlled; legacy share link uses public task ID, requiring consent/expiry/revoke review before any vote/share growth experiment.
+- [ ] E1 **DRAFT ONLY:** client-only frame-marking comparator in current EN width guide, TypeScript/unit/mobile/desktop/CI gate; no new SEO URL or physical-fit claim. Event `frame_size_compared` must stay browser-only and must not trigger a new Vercel Function.
+- [ ] E2 Share/Compare: read real event delivery and consent/TTL/revoke design before any user-photo distribution; preserve paid comparison and private-by-default behavior.
+- [ ] E3 image style identifier and E4 sunglasses: demand/competitive validation before code, no personalized free recommendation or bulk pages.
+- [ ] Before any release obtain GA4/Axiom qualified source→action counts and independent Google keyword-demand evidence. Windsor GA4 account not configured and older GSC data unavailable under current 30d trial. Afterwards log public www/CDN proof and Google recrawl separately; 7d engaged actions, complete 28d query×page and actual paid quality.
+
 ### Consumer blog governance · November 16, 2026
 
 The editorial inventory covers 14 published articles. The 2025 slugs and existing redirects remain valid. The earlier image and canonical corrections shipped in [#527](https://github.com/franksunye/VisuTry/pull/527). The next review uses these Google Web page totals from October 17–November 13, all countries and devices.
