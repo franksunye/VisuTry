@@ -1,18 +1,24 @@
+import { blogArt } from '@/config/blog-art'
 import { Metadata } from 'next'
-import { generateStructuredData, generateI18nSEO } from '@/lib/seo'
+import { generateStructuredData, generateI18nSEO, SITE_CONFIG } from '@/lib/seo'
 import Link from '@/components/layout/PublicLink'
-import { ArrowLeft, Star, Sparkles, TrendingUp } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const dynamic = 'force-static'
 
+const cover = blogArt['celebrity-glasses-style-guide-2025']
+
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as any,
     title: 'Celebrity Glasses Style Guide 2025 - Get the Look',
     description: 'Discover how celebrities like Cindy Crawford and Joan Smalls rock their eyewear. Get inspired by iconic glasses styles and learn how to recreate celebrity looks with virtual try-on.',
+    image: cover.src,
+    imageAlt: cover.alt,
+    imageWidth: cover.width,
+    imageHeight: cover.height,
     pathname: '/blog/celebrity-glasses-style-guide-2025',
     type: 'article',
   })
@@ -24,7 +30,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt: '2025-10-21T14:00:00Z',
   modifiedAt: '2025-10-21T14:00:00Z',
   author: 'VisuTry Team',
-  image: '/Cindy Crawford.jpg',
+  image: `${SITE_CONFIG.url}${cover.src}`,
 })
 
 const articleTags = ['Celebrity Style', 'Fashion Trends', 'Style Inspiration', 'Eyewear Fashion', 'Virtual Try-On']
@@ -52,12 +58,6 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
           </div>
 
           <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="h-64 bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center">
-              <div className="text-center text-white">
-                <Star className="w-16 h-16 mx-auto mb-4" />
-                <h1 className="text-3xl font-bold">Celebrity Glasses Style Guide</h1>
-              </div>
-            </div>
 
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
@@ -79,11 +79,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
             <div className="p-8 prose prose-lg max-w-none">
               <h2>Why Celebrity Eyewear Matters</h2>
               <p>
-                Celebrities have long been trendsetters in the fashion world, and eyewear is no exception. 
-                When a celebrity is photographed wearing a particular style of glasses, it can spark a global 
-                trend overnight. According to <a href="https://www.vogue.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Vogue</a>, 
-                celebrity-endorsed eyewear styles see an average <strong>300% increase in sales</strong> within 
-                weeks of being spotted on the red carpet or in paparazzi photos.
+                When you save a red-carpet photo for inspiration, look at the outline, color and rim thickness. These are details you can compare even when the exact model is unknown.
               </p>
               <p>
                 But it&apos;s not just about following trends—it&apos;s about understanding what makes these 
@@ -98,7 +94,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                   the perfect adaptation of celebrity looks for your unique features.
                 </p>
                 <Link
-                  href="../try-on"
+                  href={`${localePrefix}/try-glasses-on-photo`}
                   className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-bold"
                 >
                   Try Celebrity Styles Virtually →
@@ -108,15 +104,17 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               <h2>Iconic Celebrity Glasses Styles</h2>
 
               <h3>1. Cindy Crawford - The Timeless Sophisticate</h3>
-              <div className="my-6">
+              <figure className="my-6">
                 <Image
-                  src="/Cindy Crawford.jpg"
-                  alt="Cindy Crawford wearing elegant eyeglasses"
-                  width={800}
-                  height={600}
-                  className="rounded-lg shadow-md"
+                  src={cover.src}
+                  alt={cover.alt}
+                  width={cover.width}
+                  height={cover.height}
+                  sizes="(max-width: 640px) 85vw, 480px"
+                  className="mx-auto h-auto max-h-72 w-full max-w-lg object-contain"
                 />
-              </div>
+                <figcaption className="mt-2 text-center text-sm text-gray-600">Style example from VisuTry. The black rim rises to a point at each outer corner.</figcaption>
+              </figure>
               <p>
                 Supermodel <strong>Cindy Crawford</strong> has been a fashion icon for decades, and her 
                 eyewear choices reflect her sophisticated, timeless style. Crawford typically favors:
@@ -134,20 +132,22 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               </p>
               <p>
                 <strong>Get the look:</strong> Look for rectangular or subtle cat-eye frames in tortoiseshell
-                or classic black. Brands like <Link href="../oliver-peoples-finley-vintage-review" className="text-blue-600 hover:text-blue-800">Oliver Peoples</Link> and
-                <Link href="../tom-ford-luxury-eyewear-guide-2025" className="text-blue-600 hover:text-blue-800">Tom Ford</Link> offer similar sophisticated styles.
+                or classic black. Brands like <Link href={`${localePrefix}/blog/oliver-peoples-finley-vintage-review`} className="text-blue-600 hover:text-blue-800">Oliver Peoples</Link> and
+                <Link href={`${localePrefix}/blog/tom-ford-luxury-eyewear-guide-2025`} className="text-blue-600 hover:text-blue-800">Tom Ford</Link> offer similar sophisticated styles.
               </p>
 
               <h3>2. Joan Smalls - The Modern Minimalist</h3>
-              <div className="my-6">
+              <figure className="my-6">
                 <Image
-                  src="/Joan Smalls.jpg"
-                  alt="Joan Smalls in modern minimalist eyewear"
-                  width={800}
-                  height={600}
-                  className="rounded-lg shadow-md"
+                  src="/assets/glasses-presets/style-explorer/optical-transparent-geometric.jpg"
+                  alt="Clear geometric optical frames with an angular rim"
+                  width={1024}
+                  height={1024}
+                  sizes="(max-width: 640px) 85vw, 480px"
+                  className="mx-auto h-auto max-h-72 w-full max-w-lg object-contain"
                 />
-              </div>
+                <figcaption className="mt-2 text-center text-sm text-gray-600">A clear frame keeps the angular outline visible while drawing less attention to the rim.</figcaption>
+              </figure>
               <p>
                 Puerto Rican supermodel <strong>Joan Smalls</strong> brings a contemporary edge to eyewear 
                 fashion. As one of the highest-paid models in the world, her style choices are closely watched 
@@ -174,19 +174,21 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               </p>
 
               <h3>3. The Retro Revival: Browline Classics</h3>
-              <div className="my-6">
+              <figure className="my-6">
                 <Image
-                  src="/Zenni Retro Browline Glasses.jpg"
-                  alt="Retro browline glasses style"
-                  width={800}
-                  height={600}
-                  className="rounded-lg shadow-md"
+                  src="/assets/glasses-presets/style-explorer/optical-slim-browline.jpg"
+                  alt="Eyeglasses with a dark brow line and light lower rim"
+                  width={1024}
+                  height={1024}
+                  sizes="(max-width: 640px) 85vw, 480px"
+                  className="mx-auto h-auto max-h-72 w-full max-w-lg object-contain"
                 />
-              </div>
+                <figcaption className="mt-2 text-center text-sm text-gray-600">The contrasting rims put more visual weight above the eyes.</figcaption>
+              </figure>
               <p>
                 Browline glasses (also known as Clubmaster style) have experienced a major resurgence thanks
                 to celebrities embracing vintage aesthetics. This style has been spotted on everyone from
-                <strong> Robert Downey Jr.</strong> to <strong>Emma Watson</strong>. For a deep dive into this iconic style, check out our <Link href="../browline-clubmaster-glasses-complete-guide" className="text-blue-600 hover:text-blue-800">complete browline/clubmaster guide</Link>.
+                <strong> Robert Downey Jr.</strong> to <strong>Emma Watson</strong>. For a deep dive into this iconic style, check out our <Link href={`${localePrefix}/blog/browline-clubmaster-glasses-complete-guide`} className="text-blue-600 hover:text-blue-800">complete browline/clubmaster guide</Link>.
               </p>
               <p>
                 <strong>Key features of the browline trend:</strong>
@@ -197,11 +199,6 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 <li><strong>Versatile styling</strong> works for both casual and formal occasions</li>
                 <li><strong>Unisex appeal</strong> suitable for all genders</li>
               </ul>
-              <p>
-                According to <a href="https://www.gq.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">GQ Magazine</a>, 
-                browline glasses sales increased by <strong>150% in 2024</strong>, making them one of the 
-                fastest-growing eyewear trends.
-              </p>
 
               <h2>Celebrity-Inspired Styles by Face Shape</h2>
 
@@ -325,7 +322,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                   match in seconds!
                 </p>
                 <Link
-                  href="../try-on"
+                  href={`${localePrefix}/try-glasses-on-photo`}
                   className="inline-block bg-white text-purple-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
                 >
                   Try Celebrity Styles Now →
@@ -355,14 +352,14 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 it your own. Use celebrity looks as a starting point, then adapt them to your:
               </p>
               <ul>
-                <li><strong>Face shape</strong> - Check our <Link href="../how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">face shape guide</Link> to choose frames that flatter your unique features</li>
+                <li><strong>Face shape</strong> - Check our <Link href={`${localePrefix}/blog/how-to-choose-glasses-for-your-face`} className="text-blue-600 hover:text-blue-800">face shape guide</Link> to choose frames that flatter your unique features</li>
                 <li><strong>Personal style</strong> - Select designs that align with your aesthetic</li>
                 <li><strong>Lifestyle needs</strong> - Ensure your glasses work for your daily activities</li>
                 <li><strong>Budget</strong> - Find quality options at your price point</li>
               </ul>
               <p>
                 With virtual try-on technology, you can experiment with countless celebrity-inspired styles
-                risk-free, finding the perfect frames that make you feel like a star. Explore our <Link href="../best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">guide to the best AI virtual try-on tools</Link> to get started.
+                risk-free, finding the perfect frames that make you feel like a star. Explore our <Link href={`${localePrefix}/blog/best-ai-virtual-glasses-tryon-tools-2025`} className="text-blue-600 hover:text-blue-800">guide to the best AI virtual try-on tools</Link> to get started.
               </p>
               <p className="font-bold text-lg mt-6">
                 Your perfect celebrity-inspired look is waiting—start your virtual try-on journey today!
@@ -373,7 +370,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <BlogTags tags={articleTags} />
                 <Link
-                  href="../try-on"
+                  href={`${localePrefix}/try-glasses-on-photo`}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Try Virtual Try-On

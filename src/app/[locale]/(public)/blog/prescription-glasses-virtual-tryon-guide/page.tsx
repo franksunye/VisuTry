@@ -1,172 +1,99 @@
-import Link from '@/components/layout/PublicLink'
+import type { Metadata } from 'next'
 import Image from 'next/image'
-import { Metadata } from 'next'
-import { generateStructuredData, generateI18nSEO } from '@/lib/seo'
+import Link from '@/components/layout/PublicLink'
+import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { blogArt } from '@/config/blog-art'
+import type { Locale } from '@/i18n'
+import { localizedPath } from '@/lib/localized-path'
+import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
-const structuredData = generateStructuredData('article', {
-  title: 'Prescription Glasses Virtual Try-On Guide - Find Your Perfect Fit Online',
-  description: 'Complete guide to using virtual try-on tools for prescription glasses. Learn how to find the perfect fit online without visiting a store.',
-  publishedAt: '2025-11-04T10:00:00Z',
-  modifiedAt: '2025-11-04T10:00:00Z',
-  author: 'VisuTry Team',
-  image: '/blog-covers/ai-virtual-tryon.jpg',
-})
+const slug = 'prescription-glasses-virtual-tryon-guide'
+const title = 'How to Try On Prescription Glasses From a Photo'
+const description = 'Compare two frame styles using your portrait and a product image, then check the measurements and lens options with the seller.'
+const publishedAt = '2025-11-04T10:00:00Z'
+const publishedLabel = 'November 4, 2025'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+const artwork = blogArt[slug]
+const pathname = `/blog/${slug}`
+const updatedAt = '2026-11-16T00:00:00Z'
+type PageProps = { params: { locale: Locale } }
+
+export function generateMetadata({ params }: PageProps): Metadata {
   return generateI18nSEO({
-    locale: params.locale as any,
-    title: 'Prescription Glasses Virtual Try-On Guide - Find Your Perfect Fit Online',
-    description: 'Complete guide to using virtual try-on tools for prescription glasses. Learn how to find the perfect fit online without visiting a store.',
-    pathname: '/blog/prescription-glasses-virtual-tryon-guide',
-    type: 'article',
+    locale: params.locale, pathname, title, description, type: 'article',
+    image: artwork.src, imageAlt: artwork.alt, imageWidth: artwork.width, imageHeight: artwork.height,
   })
 }
 
-export default function BlogPostPage({ params }: { params: { locale: string } }) {
-  const localePrefix = `/${params.locale}`
+const article = generateStructuredData('article', {
+  title, description, publishedAt, modifiedAt: updatedAt,
+  author: 'VisuTry Team', image: `${SITE_CONFIG.url}${artwork.src}`,
+})
 
+export default function BlogPostPage({ params: { locale } }: PageProps) {
   return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <main className="container mx-auto px-4 py-12">
-          <div className="mb-6">
-            <Breadcrumbs
-              items={[
-                { name: 'Blog', url: `${localePrefix}/blog` },
-                { name: 'Prescription Glasses Virtual Try-On Guide' },
-              ]}
+    <main className="bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(article) }} />
+      <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
+        <Breadcrumbs items={[{ name: 'Blog', url: localizedPath(locale, '/blog') }, { name: title }]} />
+        <article lang="en" className="mt-6">
+          <header>
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">{title}</h1>
+            <p className="mt-4 text-lg leading-8 text-slate-700">{description}</p>
+            <p className="mt-3 text-sm text-slate-600">
+              VisuTry Team · Published <time dateTime={publishedAt}>{publishedLabel}</time> · Updated <time dateTime={updatedAt}>November 16, 2026</time>
+            </p>
+          </header>
+          <figure className="my-7">
+            <Image
+              src={artwork.src} alt={artwork.alt} width={artwork.width} height={artwork.height}
+              sizes="(min-width: 768px) 704px, calc(100vw - 40px)"
+              className="h-auto w-full rounded-xl object-contain" priority
             />
+          <figcaption className="mt-2 text-sm text-slate-600">VisuTry example showing the portrait, frame photo and resulting appearance preview.</figcaption>
+          </figure>
+          <div className="space-y-4 leading-7 text-slate-800 [&_a]:font-medium [&_a]:text-blue-700 [&_a]:underline [&_a]:underline-offset-2 [&_h2]:pt-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-tight [&_ul]:list-disc [&_ul]:ps-6">
+            <h2>Start with the two photos</h2>
+            <p>
+              Have a frame in mind from an online store? Save its product link and find the front view in the
+              color you are considering. Keep both rims and hinges in the crop. A side view or a screenshot
+              of a model wearing the frame can hide the outline you want to compare.
+            </p>
+            <p>
+              Take one straight-on portrait in even light, with your face uncovered and your current glasses
+              off. In VisuTry, upload the portrait and add the product photo as a custom frame. Use the same
+              portrait for a second frame so a change in your pose does not decide the comparison.
+            </p>
+            <GrowthFunnelLink
+              href={localizedPath(locale, '/try-on/glasses')} sourcePage={localizedPath(locale, pathname)}
+              destination="glasses-try-on" ctaLocation="photo-comparison"
+              queryCluster="prescription-glasses-virtual-try-on" productPath="virtual_try_on" prefetch={false}
+            >Try a frame on your photo</GrowthFunnelLink>
+            <h2>Compare the shape, then the color</h2>
+            <p>
+              If you are choosing between a deep square frame and a narrow oval, look first at how much of
+              your cheeks each outline covers and how the top edge follows your brows. When comparing two
+              colors of the same model, keep the shape and size fixed. Check the seller’s photos under
+              different lighting before choosing a finish.
+            </p>
+            <h2>Check the physical frame before ordering</h2>
+            <p>
+              A photo preview can help you shortlist a look. It cannot measure bridge pressure, temple
+              length or lens position. Find the exact model and size on the seller’s listing, compare the
+              measurements with a comfortable pair, and ask the seller or your optician about your
+              prescription and lens options. If two sizes share the same product image, the preview alone
+              gives you no way to choose between them.
+            </p>
+            <p>
+              For the next step, use the <Link href={localizedPath(locale, '/blog/prescription-glasses-online-shopping-guide-2025')}>prescription glasses order checklist</Link> or
+              check <Link href={localizedPath(locale, '/glasses-guide/how-wide-should-glasses-be-for-my-face')}>how to compare frame widths</Link>.
+            </p>
           </div>
-
-          <article className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            {/* Cover Image */}
-            <div className="relative h-96 w-full overflow-hidden">
-              <Image
-                src="/blog-covers/ai-virtual-tryon.jpg"
-                alt="Prescription Glasses Virtual Try-On Guide"
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8">
-              <h1 className="text-4xl font-bold mb-4">
-                Prescription Glasses Virtual Try-On Guide
-              </h1>
-              <p className="text-xl text-blue-100 mb-6">
-                Find Your Perfect Fit Online Without Visiting a Store
-              </p>
-              <div className="flex items-center justify-between text-sm text-blue-100">
-                <span>By VisuTry Team</span>
-                <span>6 min read</span>
-              </div>
-            </div>
-
-            <div className="p-8 prose prose-lg max-w-none">
-              <p>
-                Buying prescription glasses online has become easier than ever, thanks to virtual try-on technology. 
-                But many people still worry: <strong>Will they fit my face? Will I like how they look?</strong>
-              </p>
-
-              <p>
-                This guide will show you exactly how to use virtual try-on tools to find prescription glasses that 
-                fit perfectly—without ever leaving your home.
-              </p>
-
-              <h2>Why Virtual Try-On for Prescription Glasses?</h2>
-              <p>
-                Virtual try-on technology has revolutionized online eyewear shopping. Here&apos;s why it matters:
-              </p>
-              <ul>
-                <li><strong>See before you buy</strong> - Visualize how frames look on your face</li>
-                <li><strong>Save time</strong> - No need to visit multiple stores</li>
-                <li><strong>Better decisions</strong> - Compare multiple styles instantly</li>
-                <li><strong>Confidence</strong> - Know exactly what you&apos;re getting</li>
-                <li><strong>Convenience</strong> - Shop anytime, anywhere</li>
-              </ul>
-
-              <h2>Step-by-Step Guide to Virtual Try-On</h2>
-
-              <h3>Step 1: Prepare Your Photo</h3>
-              <p>
-                The quality of your virtual try-on depends on your photo. Here&apos;s what you need:
-              </p>
-              <ul>
-                <li>Clear, front-facing photo of your face</li>
-                <li>Good lighting (natural light is best)</li>
-                <li>No sunglasses or hats</li>
-                <li>Neutral expression</li>
-                <li>Hair pulled back (optional but helpful)</li>
-              </ul>
-
-              <h3>Step 2: Upload and Select Frames</h3>
-              <p>
-                Upload your photo to the virtual try-on tool and browse prescription glasses options.
-              </p>
-
-              <h3>Step 3: Try Multiple Styles</h3>
-              <p>
-                Don&apos;t settle on the first pair! Try at least 5-10 different styles to see what works best.
-              </p>
-
-              <h3>Step 4: Check the Fit</h3>
-              <p>
-                Look for proper alignment and balance with your face shape.
-              </p>
-
-              <h2>Best Prescription Glasses for Virtual Try-On</h2>
-              <div className="my-6">
-                <Image
-                  src="/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg"
-                  alt="Ray-Ban prescription glasses for virtual try-on"
-                  width={800}
-                  height={600}
-                  className="rounded-lg shadow-md"
-                />
-              </div>
-              <p>
-                Popular brands that work great with virtual try-on:
-              </p>
-              <ul>
-                <li><strong>Ray-Ban</strong> - Classic styles, excellent quality</li>
-                <li><strong>Tom Ford</strong> - Luxury options, premium materials</li>
-                <li><strong>Oliver Peoples</strong> - Sophisticated designs</li>
-                <li><strong>Warby Parker</strong> - Affordable, stylish frames</li>
-              </ul>
-
-              <h2>Pro Tips for Success</h2>
-              <ul>
-                <li>Try frames in different colors</li>
-                <li>Consider your lifestyle</li>
-                <li>Check frame size</li>
-                <li>Read reviews from other customers</li>
-                <li>Use multiple tools for comparison</li>
-              </ul>
-
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-lg my-8">
-                <h3 className="text-2xl font-bold mb-4">Ready to Try Prescription Glasses Virtually?</h3>
-                <p className="mb-6">
-                  Use our AI-powered virtual try-on tool to find your perfect prescription glasses.
-                </p>
-                <Link href="../try-on" className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
-                  Start Virtual Try-On →
-                </Link>
-              </div>
-
-              <h2>Conclusion</h2>
-              <p>
-                Virtual try-on technology makes buying prescription glasses online safer and more enjoyable. 
-                By following this guide, you can confidently find frames that look great and fit perfectly.
-              </p>
-            </div>
-          </article>
-        </main>
+        </article>
       </div>
-    </>
+    </main>
   )
 }
