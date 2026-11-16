@@ -1,7 +1,7 @@
+import { blogArt } from '@/config/blog-art'
 import { Metadata } from 'next'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 import Link from '@/components/layout/PublicLink'
-import { ArrowLeft, Crown, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
@@ -9,16 +9,20 @@ import { localizedPath } from '@/lib/localized-path'
 
 export const dynamic = 'force-static'
 
+const cover = blogArt['tom-ford-luxury-eyewear-guide-2025']
+
 const title = 'Tom Ford Luxury Eyewear Guide 2025 - Ultimate Style & Quality'
 const description = 'Explore Tom Ford luxury eyeglasses collection. Discover iconic styles, premium craftsmanship, and why Tom Ford frames are the ultimate status symbol in eyewear.'
-const coverImage = '/Tom Ford FT5873.jpg'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as any,
     title,
     description,
-    image: coverImage,
+    image: cover.src,
+    imageAlt: cover.alt,
+    imageWidth: cover.width,
+    imageHeight: cover.height,
     pathname: '/blog/tom-ford-luxury-eyewear-guide-2025',
     type: 'article',
   })
@@ -30,7 +34,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt: '2025-10-21T16:00:00Z',
   modifiedAt: '2025-10-21T16:00:00Z',
   author: 'VisuTry Team',
-  image: coverImage,
+  image: `${SITE_CONFIG.url}${cover.src}`,
 })
 
 const articleTags = ['Tom Ford', 'Luxury Eyewear', 'Designer Glasses', 'Premium Frames', 'Fashion']
@@ -60,12 +64,6 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
 
           <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="h-64 bg-gradient-to-r from-gray-900 to-gray-700 flex items-center justify-center">
-              <div className="text-center text-white">
-                <Crown className="w-16 h-16 mx-auto mb-4" />
-                <h1 className="text-3xl font-bold">Tom Ford Luxury Eyewear</h1>
-              </div>
-            </div>
 
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
@@ -92,11 +90,6 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 Saint Laurent. Today, <a href="https://www.tomford.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Tom Ford eyewear</a> is 
                 synonymous with sophisticated luxury, worn by celebrities, executives, and fashion connoisseurs worldwide.
               </p>
-              <p>
-                According to <a href="https://www.businessoffashion.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Business of Fashion</a>, 
-                Tom Ford eyewear generates over <strong>$500 million in annual revenue</strong>, making it one 
-                of the most successful luxury eyewear brands globally.
-              </p>
 
               <h2>What Sets Tom Ford Apart</h2>
               <ul>
@@ -109,26 +102,22 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
               <h2>Signature Tom Ford Styles</h2>
 
-              <h3>1. Tom Ford FT5873 - Modern Sophistication</h3>
-              <div className="my-6">
+              <h3>1. Square optical frames</h3>
+              <figure className="my-6">
                 <Image
-                  src="/Tom Ford FT5873.jpg"
-                  alt="Tom Ford FT5873 eyeglasses"
-                  width={800}
-                  height={600}
-                  className="rounded-lg shadow-md"
+                  src={cover.src}
+                  alt={cover.alt}
+                  width={cover.width}
+                  height={cover.height}
+                  sizes="(max-width: 640px) 85vw, 480px"
+                  className="mx-auto h-auto max-h-72 w-full max-w-lg object-contain"
                 />
-              </div>
+                <figcaption className="mt-2 text-center text-sm text-gray-600">VisuTry’s square-frame example. See{' '}
+                  <a href="https://www.tomfordfashion.com/en-us/square-optical-frame/FT5304-F001.html">Tom Ford’s official FT5304 product photos</a> to inspect the actual frame and temple details.</figcaption>
+              </figure>
               <p>
-                The <strong>FT5873</strong> represents contemporary Tom Ford design at its finest:
+                On a square optical frame, compare the straightness of the brow line, the depth of the lenses and the thickness at the hinges. A front view shows the silhouette, while the side view shows how far the decorative temple detail extends.
               </p>
-              <ul>
-                <li><strong>Square silhouette</strong> with refined proportions</li>
-                <li><strong>Thick acetate construction</strong> for substantial feel</li>
-                <li><strong>Signature &quot;T&quot; temples</strong> in polished metal</li>
-                <li><strong>Available in classic colors</strong> - black, tortoise, havana</li>
-                <li><strong>Perfect for:</strong> Business professionals, fashion-forward individuals</li>
-              </ul>
 
               <h3>2. Tom Ford FT5401 - The Classic</h3>
               <p>
@@ -321,7 +310,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 choice for those who can afford it.
               </p>
               <p>
-                Whether you choose the modern FT5873, the classic FT5401, or any other Tom Ford style, 
+                Whether you choose the square FT5304, the classic FT5401, or any other Tom Ford style,
                 you&apos;re investing in eyewear that will serve you well for years while making a 
                 sophisticated style statement.
               </p>

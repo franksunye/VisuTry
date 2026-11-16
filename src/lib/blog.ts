@@ -3,6 +3,7 @@
  * Supports static articles and future dynamic articles
  */
 
+import { blogArt } from '@/config/blog-art'
 import { getAiGlassesAdvisorArticleCopy } from '@/config/ai-glasses-advisor-article-locales'
 
 export interface BlogPost {
@@ -17,7 +18,10 @@ export interface BlogPost {
   tags: string[]
   isPublished: boolean
   coverImage: string
+  coverAlt?: string
 }
+
+export const blogShareImage = '/blog-covers/visutry-social.jpg'
 
 // Static blog posts list (can be fetched from database in the future)
 export const staticBlogPosts: BlogPost[] = [
@@ -32,7 +36,8 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '12 min read',
     tags: ['Eyewear Trends', 'Glasses Trends 2026', 'Sunglasses Trends', 'Style Explorer', 'Virtual Try-On'],
     isPublished: true,
-    coverImage: '/blog-covers/ai-virtual-tryon.jpg',
+    coverImage: blogArt['eyewear-trends-2026-glasses-sunglasses'].src,
+    coverAlt: blogArt['eyewear-trends-2026-glasses-sunglasses'].alt,
   },
   {
     slug: 'ai-face-analysis-for-glasses-guide',
@@ -84,7 +89,8 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '7 min read',
     tags: ['Ray-Ban', 'Designer Glasses', 'Virtual Try-On', 'Style Guide'],
     isPublished: true,
-    coverImage: '/blog-covers/rayban-guide.jpg',
+    coverImage: blogArt['rayban-glasses-virtual-tryon-guide'].src,
+    coverAlt: blogArt['rayban-glasses-virtual-tryon-guide'].alt,
   },
   {
     slug: 'celebrity-glasses-style-guide-2025',
@@ -97,7 +103,8 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '9 min read',
     tags: ['Celebrity Style', 'Fashion Trends', 'Style Inspiration', 'Eyewear Fashion', 'Virtual Try-On'],
     isPublished: true,
-    coverImage: '/blog-covers/celebrity-style.jpg',
+    coverImage: blogArt['celebrity-glasses-style-guide-2025'].src,
+    coverAlt: blogArt['celebrity-glasses-style-guide-2025'].alt,
   },
   {
     slug: 'oliver-peoples-finley-vintage-review',
@@ -110,7 +117,8 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '8 min read',
     tags: ['Oliver Peoples', 'Luxury Eyewear', 'Product Review', 'Designer Glasses', 'Premium Frames'],
     isPublished: true,
-    coverImage: '/blog-covers/oliver-peoples-review.jpg',
+    coverImage: blogArt['oliver-peoples-finley-vintage-review'].src,
+    coverAlt: blogArt['oliver-peoples-finley-vintage-review'].alt,
   },
   {
     slug: 'tom-ford-luxury-eyewear-guide-2025',
@@ -123,20 +131,22 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '7 min read',
     tags: ['Tom Ford', 'Luxury Eyewear', 'Designer Glasses', 'Premium Frames', 'Fashion'],
     isPublished: true,
-    coverImage: '/blog-covers/tom-ford-luxury.jpg',
+    coverImage: blogArt['tom-ford-luxury-eyewear-guide-2025'].src,
+    coverAlt: blogArt['tom-ford-luxury-eyewear-guide-2025'].alt,
   },
   {
     slug: 'acetate-vs-plastic-eyeglass-frames-guide',
-    title: 'Acetate vs Plastic Eyeglass Frames 2025 - Complete Comparison',
-    description: 'Discover the key differences between acetate and plastic eyeglass frames. Learn about durability, comfort, style, and which material is best for your needs.',
+    title: 'Acetate vs Plastic Eyeglass Frames: What to Compare',
+    description: 'Acetate is one kind of plastic. Learn what zyl means, how sheet acetate differs from molded frames, and which details to check when comparing two pairs.',
     publishedAt: '2025-10-24T17:00:00Z',
-    modifiedAt: '2025-10-24T17:00:00Z',
+    modifiedAt: '2026-11-16T00:00:00Z',
     author: 'VisuTry Team',
     category: 'Materials Guide',
-    readTime: '7 min read',
+    readTime: '3 min read',
     tags: ['Eyeglass Materials', 'Frame Guide', 'Acetate Frames', 'Buying Guide', 'Eyewear Education'],
     isPublished: true,
-    coverImage: '/blog-covers/acetate-vs-plastic.jpg',
+    coverImage: blogArt['acetate-vs-plastic-eyeglass-frames-guide'].src,
+    coverAlt: blogArt['acetate-vs-plastic-eyeglass-frames-guide'].alt,
   },
   {
     slug: 'browline-clubmaster-glasses-complete-guide',
@@ -149,20 +159,22 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '8 min read',
     tags: ['Browline Glasses', 'Clubmaster', 'Retro Style', 'Vintage Eyewear', 'Fashion Trends'],
     isPublished: true,
-    coverImage: '/blog-covers/browline-clubmaster.jpg',
+    coverImage: blogArt['browline-clubmaster-glasses-complete-guide'].src,
+    coverAlt: blogArt['browline-clubmaster-glasses-complete-guide'].alt,
   },
   {
     slug: 'prescription-glasses-online-shopping-guide-2025',
-    title: 'How to Buy Prescription Glasses Online 2025 - Complete Guide',
-    description: 'Learn how to safely buy prescription glasses online. Get tips on measuring PD, reading prescriptions, choosing lenses, and avoiding common mistakes.',
+    title: 'How to Buy Prescription Glasses Online',
+    description: 'Check your prescription, compare frame measurements and lens options, and review the seller’s full price and return terms before placing an order.',
     publishedAt: '2025-10-28T19:00:00Z',
-    modifiedAt: '2025-10-28T19:00:00Z',
+    modifiedAt: '2026-11-16T00:00:00Z',
     author: 'VisuTry Team',
     category: 'Shopping Guide',
-    readTime: '10 min read',
+    readTime: '3 min read',
     tags: ['Online Shopping', 'Prescription Glasses', 'Buying Guide', 'Eyewear Tips', 'How-To'],
     isPublished: true,
-    coverImage: '/blog-covers/prescription-online-shopping.jpg',
+    coverImage: blogArt['prescription-glasses-online-shopping-guide-2025'].src,
+    coverAlt: blogArt['prescription-glasses-online-shopping-guide-2025'].alt,
   },
   {
     slug: 'best-glasses-for-face-shapes-guide',
@@ -179,16 +191,17 @@ export const staticBlogPosts: BlogPost[] = [
   },
   {
     slug: 'prescription-glasses-virtual-tryon-guide',
-    title: 'Prescription Glasses Virtual Try-On Guide - Find Your Perfect Fit Online',
-    description: 'Complete guide to using virtual try-on tools for prescription glasses. Learn how to find the perfect fit online without visiting a store.',
+    title: 'How to Try On Prescription Glasses From a Photo',
+    description: 'Compare two frame styles using your portrait and a product image, then check the measurements and lens options with the seller.',
     publishedAt: '2025-11-04T10:00:00Z',
-    modifiedAt: '2025-11-04T10:00:00Z',
+    modifiedAt: '2026-11-16T00:00:00Z',
     author: 'VisuTry Team',
     category: 'Virtual Try-On',
-    readTime: '6 min read',
+    readTime: '3 min read',
     tags: ['Virtual Try-On', 'Prescription', 'Buying Guide'],
     isPublished: true,
-    coverImage: '/blog-covers/ai-virtual-tryon.jpg',
+    coverImage: blogArt['prescription-glasses-virtual-tryon-guide'].src,
+    coverAlt: blogArt['prescription-glasses-virtual-tryon-guide'].alt,
   },
   {
     slug: 'find-perfect-glasses-online-guide',
@@ -201,7 +214,8 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '7 min read',
     tags: ['Online Shopping', 'Glasses Guide', 'Virtual Try-On'],
     isPublished: true,
-    coverImage: '/blog-covers/ai-virtual-tryon.jpg',
+    coverImage: blogArt['find-perfect-glasses-online-guide'].src,
+    coverAlt: blogArt['find-perfect-glasses-online-guide'].alt,
   },
   {
     slug: 'virtual-try-on-reduce-eyewear-returns',

@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { generateI18nSEO } from '@/lib/seo'
 import Link from '@/components/layout/PublicLink'
 import { ArrowLeft, Tag as TagIcon, Calendar, User, ArrowRight } from 'lucide-react'
-import { getAllBlogPosts } from '@/lib/blog'
+import { blogShareImage, getAllBlogPosts } from '@/lib/blog'
 
 type Props = {
   params: { locale: string; tag: string }
@@ -14,6 +14,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     locale: params.locale as any,
     title: `${tag} - Blog Articles`,
     description: `Browse all articles tagged with ${tag}. Discover insights, guides, and tips about ${tag}.`,
+    image: blogShareImage,
+    imageAlt: 'VisuTry glasses logo',
     pathname: `/blog/tag/${params.tag}`,
     noIndex: true,
   })

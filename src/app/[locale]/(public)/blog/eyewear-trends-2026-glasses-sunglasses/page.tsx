@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import Image from 'next/image'
+import { blogArt } from '@/config/blog-art'
 import Link from '@/components/layout/PublicLink'
 import {
   ArrowRight,
@@ -18,7 +19,7 @@ export const dynamic = 'force-static'
 const title = 'Eyewear Trends 2026: 16 Glasses and Sunglasses Styles to Try'
 const description =
   'Explore 16 defining eyewear styles for 2026, from timeless Wayfarers and refined optical frames to shield sunglasses, rimless geometry, and bold statement looks.'
-const coverImage = '/blog-covers/ai-virtual-tryon.jpg'
+const cover = blogArt['eyewear-trends-2026-glasses-sunglasses']
 const publishedAt = '2026-07-20T10:00:00Z'
 const modifiedAt = '2026-07-20T15:00:00Z'
 
@@ -27,7 +28,10 @@ export async function generateMetadata({ params }: { params: { locale: string } 
     locale: params.locale as any,
     title,
     description,
-    image: coverImage,
+    image: cover.src,
+    imageAlt: cover.alt,
+    imageWidth: cover.width,
+    imageHeight: cover.height,
     pathname: '/blog/eyewear-trends-2026-glasses-sunglasses',
     type: 'article',
   })
@@ -39,7 +43,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt,
   modifiedAt,
   author: 'VisuTry Team',
-  image: coverImage,
+  image: cover.src,
 })
 
 type FrameStyle = {

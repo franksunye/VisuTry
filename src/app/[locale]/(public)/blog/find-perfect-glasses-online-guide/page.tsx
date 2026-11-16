@@ -1,29 +1,48 @@
+import type { Metadata } from 'next'
+import { blogArt } from '@/config/blog-art'
+import type { Locale } from '@/i18n'
 import Link from '@/components/layout/PublicLink'
 import Image from 'next/image'
-import { generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { localizedPath } from '@/lib/localized-path'
 
 export const dynamic = 'force-static'
 
+const title = 'How to Find Your Perfect Glasses Online - Step-by-Step Guide'
+const description = 'Complete step-by-step guide to finding and buying the perfect glasses online. Learn how to choose frames, use virtual try-on, and make confident purchases.'
+const pathname = '/blog/find-perfect-glasses-online-guide'
+const cover = blogArt['find-perfect-glasses-online-guide']
+
+type BlogPostPageProps = {
+  params: { locale: Locale }
+}
+
+export function generateMetadata({ params }: BlogPostPageProps): Metadata {
+  return {
+    ...generateI18nSEO({
+      locale: params.locale,
+      title,
+      description,
+      pathname,
+      type: 'article',
+      image: cover.src,
+      imageAlt: cover.alt,
+      imageWidth: cover.width,
+      imageHeight: cover.height,
+    }),
+    keywords: 'find perfect glasses online, how to choose glasses online, buy glasses online, glasses shopping guide',
+  }
+}
+
 const structuredData = generateStructuredData('article', {
-  title: 'How to Find Your Perfect Glasses Online - Step-by-Step Guide',
-  description: 'Complete step-by-step guide to finding and buying the perfect glasses online. Learn how to choose frames, use virtual try-on, and make confident purchases.',
+  title,
+  description,
   publishedAt: '2025-11-06T12:00:00Z',
   modifiedAt: '2025-11-06T12:00:00Z',
   author: 'VisuTry Team',
-  image: '/blog-covers/ai-virtual-tryon.jpg',
+  image: `${SITE_CONFIG.url}${cover.src}`,
 })
-
-export const metadata = {
-  title: 'How to Find Your Perfect Glasses Online - Step-by-Step Guide',
-  description: 'Complete step-by-step guide to finding and buying the perfect glasses online. Learn how to choose frames, use virtual try-on, and make confident purchases.',
-  keywords: 'find perfect glasses online, how to choose glasses online, buy glasses online, glasses shopping guide',
-}
-
-type BlogPostPageProps = {
-  params: { locale: string }
-}
 
 export default function BlogPostPage({ params }: BlogPostPageProps) {
   return (
@@ -76,15 +95,17 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               </p>
 
               <h2>Step 4: Use Virtual Try-On</h2>
-              <div className="my-6">
+              <figure className="my-6">
                 <Image
-                  src="/Oliver Peoples Finley Vintage.jpg"
-                  alt="Virtual try-on process for finding perfect glasses online"
-                  width={800}
-                  height={600}
-                  className="rounded-lg shadow-md"
+                  src={cover.src}
+                  alt={cover.alt}
+                  width={cover.width}
+                  height={cover.height}
+                  sizes="(min-width: 768px) 704px, calc(100vw - 64px)"
+                  className="h-auto w-full rounded-lg"
                 />
-              </div>
+                <figcaption>Compare the upper rim across all four styles while the portrait stays the same.</figcaption>
+              </figure>
               <p>
                 This is the game-changer for online shopping. Virtual try-on lets you see how frames look on your face.
               </p>

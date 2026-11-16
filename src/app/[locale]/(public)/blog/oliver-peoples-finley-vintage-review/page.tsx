@@ -1,7 +1,7 @@
+import { blogArt } from '@/config/blog-art'
 import { Metadata } from 'next'
-import { generateStructuredData, generateI18nSEO } from '@/lib/seo'
+import { generateStructuredData, generateI18nSEO, SITE_CONFIG } from '@/lib/seo'
 import Link from '@/components/layout/PublicLink'
-import { Award } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
@@ -9,11 +9,17 @@ import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 
 export const dynamic = 'force-static'
 
+const cover = blogArt['oliver-peoples-finley-vintage-review']
+
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as any,
     title: 'Oliver Peoples Finley Vintage Review: Face Shape Fit & Try-On',
     description: 'Oliver Peoples Finley Vintage review with face-shape fit advice, frame sizing notes, and virtual glasses try-on guidance before you buy.',
+    image: cover.src,
+    imageAlt: cover.alt,
+    imageWidth: cover.width,
+    imageHeight: cover.height,
     pathname: '/blog/oliver-peoples-finley-vintage-review',
     type: 'article',
   })
@@ -25,7 +31,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt: '2025-10-21T15:00:00Z',
   modifiedAt: '2026-06-12T10:00:00Z',
   author: 'VisuTry Team',
-  image: '/Oliver Peoples Finley Vintage.jpg',
+  image: `${SITE_CONFIG.url}${cover.src}`,
 })
 
 const faqSchema = generateStructuredData('faqPage', {
@@ -74,12 +80,6 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
           </div>
 
           <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="h-64 bg-gradient-to-r from-amber-600 to-orange-500 flex items-center justify-center">
-              <div className="text-center text-white">
-                <Award className="w-16 h-16 mx-auto mb-4" />
-                <h1 className="text-3xl font-bold">Oliver Peoples Finley Vintage</h1>
-              </div>
-            </div>
 
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
@@ -144,16 +144,18 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               </p>
 
               <h2>The Finley Vintage: Design and Aesthetics</h2>
-              <div className="my-6">
+              <figure className="my-6">
                 <Image
-                  src="/Oliver Peoples Finley Vintage.jpg"
-                  alt="Oliver Peoples Finley Vintage eyeglasses"
-                  width={800}
-                  height={600}
-                  className="rounded-lg shadow-md"
-                  style={{ width: '100%', height: 'auto' }}
+                  src={cover.src}
+                  alt={cover.alt}
+                  width={cover.width}
+                  height={cover.height}
+                  sizes="(max-width: 640px) 85vw, 480px"
+                  className="mx-auto h-auto max-h-72 w-full max-w-lg object-contain"
                 />
-              </div>
+                <figcaption className="mt-2 text-center text-sm text-gray-600">VisuTry’s style example shows how a mottled finish breaks up the outline of a dark rim. For official photos, dimensions and color details, see the{' '}
+                  <a href="https://www.oliverpeoples.com/en-us/products/0ov5397u-1799">Oliver Peoples Finley Vintage OV5397U</a>.</figcaption>
+              </figure>
               <p>
                 The <strong>Finley Vintage (OV5397U)</strong> is a square-shaped frame that perfectly embodies 
                 Oliver Peoples&apos; design ethos. It&apos;s a modern interpretation of classic 1960s eyewear, 
@@ -186,7 +188,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               <p>
                 This is where Oliver Peoples truly justifies its premium pricing. The Finley Vintage is crafted
                 from <strong>premium Italian acetate</strong>, which offers several advantages over standard
-                plastic frames. For a detailed comparison of frame materials, check out our <Link href="../blog/acetate-vs-plastic-eyeglass-frames-guide" className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
+                plastic frames. For a detailed comparison of frame materials, check out our <Link href={`${localePrefix}/blog/acetate-vs-plastic-eyeglass-frames-guide`} className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
               </p>
 
               <h3>Acetate Quality</h3>

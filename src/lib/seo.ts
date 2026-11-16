@@ -104,6 +104,7 @@ export const SITE_CONFIG = {
   description: VISUTRY_POSITIONING.organization,
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com',
   ogImage: '/blog-covers/ai-virtual-tryon.jpg',
+  logo: '/assets/marketing/visutry-new-logo.png',
   keywords: ALL_KEYWORDS,
   author: 'VisuTry Team',
   creator: 'VisuTry',
@@ -411,7 +412,7 @@ export function generateStructuredData(
           name: SITE_CONFIG.name,
           logo: {
             '@type': 'ImageObject',
-            url: `${SITE_CONFIG.url}${SITE_CONFIG.ogImage}`,
+            url: `${SITE_CONFIG.url}${SITE_CONFIG.logo}`,
           },
         },
         ...data,
@@ -478,6 +479,7 @@ export function generateI18nSEO({
   title,
   description,
   image,
+  imageAlt,
   imageWidth = 1200,
   imageHeight = 630,
   pathname = '',
@@ -489,6 +491,7 @@ export function generateI18nSEO({
   title: string
   description: string
   image?: string
+  imageAlt?: string
   imageWidth?: number
   imageHeight?: number
   pathname?: string
@@ -536,7 +539,7 @@ export function generateI18nSEO({
           url: seoImage,
           width: imageWidth,
           height: imageHeight,
-          alt: title,
+          alt: imageAlt ?? title,
         }
       ],
       siteName: SITE_CONFIG.name,
@@ -547,7 +550,7 @@ export function generateI18nSEO({
       card: 'summary_large_image',
       title,
       description,
-      images: [seoImage],
+      images: imageAlt ? [{ url: seoImage, alt: imageAlt }] : [seoImage],
       creator: '@visutry',
     },
 

@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { SITE_CONFIG, generateI18nSEO } from '@/lib/seo'
 import Link from '@/components/layout/PublicLink'
 import { Calendar, User, ArrowRight } from 'lucide-react'
-import { getAllBlogPosts } from '@/lib/blog'
+import { blogShareImage, getAllBlogPosts } from '@/lib/blog'
 import Image from 'next/image'
 
 const blogDescription = 'Practical guides for face shape, frame selection, eyewear sizing, virtual glasses try-on, frame comparison, and confident online eyewear decisions.'
@@ -16,6 +16,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     locale: params.locale as any,
     title: 'Blog - Fashion & Style Tips',
     description: blogDescription,
+    image: blogShareImage,
+    imageAlt: 'VisuTry glasses logo',
     pathname: '/blog',
   })
 }
@@ -40,7 +42,7 @@ export default async function BlogPage({ params }: Props) {
     publisher: {
       '@type': 'Organization',
       name: SITE_CONFIG.name,
-      logo: `${SITE_CONFIG.url}${SITE_CONFIG.ogImage}`,
+      logo: `${SITE_CONFIG.url}${SITE_CONFIG.logo}`,
     },
     blogPost: posts.map((post) => ({
       '@type': 'BlogPosting',
@@ -100,13 +102,14 @@ export default async function BlogPage({ params }: Props) {
                   key={post.slug}
                   className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  <Link href={articleHref} prefetch={false} className="block">
+                  <Link href={articleHref} prefetch={false} aria-label={post.title} className="block">
                     <div className="relative h-48 w-full overflow-hidden">
                       <Image
                         src={post.coverImage}
-                        alt={post.title}
+                        alt={post.coverAlt ?? post.title}
                         fill
-                        className="object-cover"
+                        sizes="(min-width: 1152px) 363px, (min-width: 1024px) 31vw, (min-width: 768px) 46vw, 95vw"
+                        className={post.coverAlt ? 'object-contain' : 'object-cover'}
                         priority={index < 3}
                       />
                     </div>
