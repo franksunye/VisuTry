@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useRef } from 'react'
 import { ArrowRight, FileText, PlayCircle } from 'lucide-react'
-import { businessHref } from '@/config/business-site'
-import { businessGuides, inStoreRetailDemo, inStoreRetailWhitepaper, type BusinessResource } from '@/config/business-resources'
+import { businessHref, businessPages } from '@/config/business-site'
+import { resourceTopics, inStoreRetailDemo, inStoreRetailWhitepaper, type BusinessResource } from '@/config/business-resources'
 import { analytics } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 
@@ -45,7 +45,7 @@ function ResourceLink({
   )
 }
 
-function DemoVideo({ placement, compact = false }: { placement: BusinessResourcePlacement; compact?: boolean }) {
+function DemoVideo({ placement }: { placement: BusinessResourcePlacement }) {
   const started = useRef(false)
 
   return (
@@ -78,11 +78,6 @@ function DemoVideo({ placement, compact = false }: { placement: BusinessResource
       >
         <source src={inStoreRetailDemo.url} type="video/mp4" />
       </video>
-      {!compact ? (
-        <div className="border-t border-white/10 px-5 py-4 text-xs text-slate-400">
-          {inStoreRetailDemo.formatLabel} · {inStoreRetailDemo.version}
-        </div>
-      ) : null}
     </div>
   )
 }
@@ -108,7 +103,7 @@ export function BusinessResourceStrip({
               Explore all resources<ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
-          <DemoVideo placement={placement} compact />
+          <DemoVideo placement={placement} />
         </div>
       </section>
     )
@@ -177,69 +172,75 @@ export function BusinessResourceStrip({
 }
 
 export function BusinessResourcesPage({ locale }: { locale: string }) {
+  const page = businessPages.resources
+  const mediaLinks = [page.primaryCta, ...(page.secondaryCta ? [page.secondaryCta] : [])]
+
   return (
-    <>
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <ul className="grid gap-x-12 gap-y-8 md:grid-cols-2">
-            {businessGuides.map((guide) => (
-              <li key={guide.path}>
-                <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
-                  <Link href={businessHref(locale, guide.path)} prefetch={false} className="hover:underline">
-                    {guide.title}
-                  </Link>
-                </h2>
-                <p className="mt-2 max-w-2xl text-base leading-7 text-slate-600">{guide.description}</p>
-              </li>
-            ))}
-          </ul>
+    <div className="mx-auto max-w-7xl px-5 sm:px-8">
+      <header className="border-b border-slate-200 pb-5 pt-8 sm:pb-7 sm:pt-12">
+        <Link href={businessHref(locale, '/business')} prefetch={false} className="text-sm font-semibold text-blue-700 hover:underline">
+          {page.eyebrow}
+        </Link>
+        <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-[-0.045em] sm:text-5xl lg:text-6xl">{page.title}</h1>
+        <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">{page.description}</p>
+        <nav aria-label="Resource topics" className="mt-5 flex flex-wrap items-center gap-2 sm:mt-6">
+          {resourceTopics.map((topic) => (
+            <a key={topic.id} href={`#${topic.id}`} className="inline-flex min-h-11 items-center rounded-full border border-slate-300 px-3.5 text-sm font-medium text-slate-800 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-800">
+              {topic.shortTitle}
+            </a>
+          ))}
+        </nav>
+        <div className="mt-2 flex flex-wrap items-center gap-x-5 lg:hidden">
+          {mediaLinks.map((link) => (
+            <a key={link.href} href={link.href} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-blue-700 hover:underline">
+              {link.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          ))}
         </div>
-      </section>
+      </header>
 
-      <section id="product-demo" className="bg-white scroll-mt-20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[0.72fr_1.28fr] lg:items-center lg:px-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Product Demo</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">{inStoreRetailDemo.title}</h2>
-            <p className="mt-5 text-base leading-7 text-slate-600">{inStoreRetailDemo.description}</p>
-            <p className="mt-4 text-sm text-slate-500">{inStoreRetailDemo.formatLabel} · {inStoreRetailDemo.version}</p>
-          </div>
-          <DemoVideo placement="resources" />
+      <div className="grid gap-8 py-7 sm:py-10 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.41fr)] lg:gap-10">
+        <div className="grid content-start gap-x-8 gap-y-8 md:grid-cols-2">
+          {resourceTopics.map((topic) => (
+            <section key={topic.id} id={topic.id} aria-labelledby={`${topic.id}-heading`} className="min-w-0 scroll-mt-24">
+              <h2 id={`${topic.id}-heading`} className="border-b-2 border-slate-800 pb-3 text-xl font-semibold leading-tight tracking-[-0.025em] sm:text-2xl">
+                {topic.title}
+              </h2>
+              <ul className="divide-y divide-slate-200">
+                {topic.links.map((link) => (
+                  <li key={link.path}>
+                    <Link href={businessHref(locale, link.path)} prefetch={false} className="group flex min-h-11 items-center justify-between gap-3 py-3 text-[0.95rem] font-medium leading-6 text-slate-700 hover:text-blue-700">
+                      <span className="group-hover:underline">{link.label}</span>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-blue-700" aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
         </div>
-      </section>
 
-      <section id="white-paper" className="border-y border-slate-200 bg-[#f8fafc] scroll-mt-20">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1fr_0.55fr] lg:items-center lg:px-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">White Paper</p>
-            <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">{inStoreRetailWhitepaper.title}</h2>
-            <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">{inStoreRetailWhitepaper.description}</p>
-            <ResourceLink
-              resource={inStoreRetailWhitepaper}
-              placement="resources"
-              label="Read the white paper"
-              className="mt-7 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-            />
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <FileText className="h-8 w-8 text-blue-700" aria-hidden="true" />
-            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{inStoreRetailWhitepaper.formatLabel} · {inStoreRetailWhitepaper.version}</p>
-            <p className="mt-3 text-sm leading-6 text-slate-600">Face Intelligence → Recommendation → Try-On → Compare → Decision → Continuation, plus shared-device retail, deployment, and pilot-to-rollout.</p>
-          </div>
-        </div>
-      </section>
+        <aside aria-label="Product demo and white paper" className="self-start rounded-2xl bg-slate-50 px-5 py-6 sm:px-6">
+          <section id="product-demo" className="scroll-mt-24">
+            <h2 className="text-lg font-semibold leading-snug tracking-tight">{inStoreRetailDemo.title}</h2>
+            <div className="mt-4"><DemoVideo placement="resources" /></div>
+            <p className="mt-3 text-sm leading-6 text-slate-600">See how a shopper compares frames with an optician during a store visit.</p>
+          </section>
+          <section id="white-paper" className="mt-6 scroll-mt-24 border-t border-slate-200 pt-5">
+            <p className="flex items-center gap-2 text-xs font-semibold text-slate-600"><FileText className="h-4 w-4" aria-hidden="true" />{inStoreRetailWhitepaper.formatLabel} · {inStoreRetailWhitepaper.version}</p>
+            <h2 className="mt-2 text-lg font-semibold leading-snug tracking-tight">{inStoreRetailWhitepaper.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Explore shared-device setup and how to move from a store pilot to rollout.</p>
+            <ResourceLink resource={inStoreRetailWhitepaper} placement="resources" label="Read the white paper" className="mt-2 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-blue-700 hover:underline" />
+          </section>
+        </aside>
+      </div>
 
-      <section className="bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Next step</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Ready to test this with your own eyewear catalog?</h2>
-          </div>
-          <Link href={businessHref(locale, '/business/pilot')} prefetch={false} onClick={() => analytics.trackBusinessCtaClicked({ locale, ctaLocation: 'business_resources', intentType: 'pilot_request' })} className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800">
-            Start 30-Day Pilot<ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
-        </div>
+      <section className="flex flex-col items-start gap-4 border-t border-slate-200 py-7 sm:flex-row sm:items-center sm:justify-between sm:py-9">
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Ready to test this with your own frames?</h2>
+        <Link href={businessHref(locale, '/business/pilot')} prefetch={false} onClick={() => analytics.trackBusinessCtaClicked({ locale, ctaLocation: 'business_resources', intentType: 'pilot_request' })} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+          Start 30-Day Pilot<ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
       </section>
-    </>
+    </div>
   )
 }

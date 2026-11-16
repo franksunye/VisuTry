@@ -72,15 +72,15 @@ describe('Business public content contract', () => {
       if (key === 'pilot') {
         expect(page.primaryCta.label).toBe('Request Pilot Review')
       } else if (key === 'resources') {
-        expect(page.primaryCta.label).toBe('Watch Product Demo')
+        expect(page.primaryCta.label).toBe('Product demo')
       } else {
         expect(page.primaryCta).toEqual({ label: 'Start Free', href: '/merchant?commercialIntent=FREE' })
       }
     }
   })
 
-  it('keeps Resources as a proof layer rather than another product overview', () => {
-    expect(businessPages.resources.title).toBe('See the product. Go deeper on the retail model.')
+  it('presents merchant resources with addressable demo and white paper sections', () => {
+    expect(businessPages.resources.title).toBe('Eyewear retail resources')
     expect(businessPages.resources.primaryCta.href).toBe('#product-demo')
     expect(businessPages.resources.secondaryCta?.href).toBe('#white-paper')
     expect(businessPages.resources.sections).toEqual([])

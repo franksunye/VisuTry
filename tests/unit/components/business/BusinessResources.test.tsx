@@ -1,7 +1,7 @@
 import React from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { BusinessResourceStrip, BusinessResourcesPage } from '@/components/business/BusinessResources'
-import { inStoreRetailDemo, inStoreRetailWhitepaper } from '@/config/business-resources'
+import { businessGuides, inStoreRetailDemo, inStoreRetailWhitepaper, resourceTopics } from '@/config/business-resources'
 import { analytics } from '@/lib/analytics'
 
 jest.mock('next/link', () => ({
@@ -49,6 +49,32 @@ describe('BusinessResources', () => {
 
     expect(screen.getByRole('link', { name: 'Read the white paper' })).toHaveAttribute('href', inStoreRetailWhitepaper.url)
     expect(screen.getByRole('link', { name: 'Read the white paper' })).toHaveAttribute('target', '_blank')
+  })
+
+  it('links each task shortcut to its guides and exposes all 16 merchant destinations exactly once in the directory', () => {
+    render(<BusinessResourcesPage locale="en" />)
+
+    const directories = resourceTopics.map((topic) => {
+      const shortcut = screen.getByRole('link', { name: topic.shortTitle })
+      expect(shortcut.closest('nav')).not.toBeNull()
+      expect(shortcut).toHaveAttribute('href', `#${topic.id}`)
+
+      const target = document.getElementById(topic.id)
+      expect(target).not.toBeNull()
+      const heading = screen.getByRole('heading', { name: topic.title })
+      const section = heading.closest('section')
+      expect(section).not.toBeNull()
+      expect(section).toContainElement(target)
+      return within(section!).getAllByRole('link').map((link) => link.getAttribute('href'))
+    })
+
+    const owners = [
+      ...businessGuides.map((guide) => guide.path),
+      '/business/store', '/business/pricing', '/business/integrations', '/business/examples',
+      '/business/campaigns', '/business/pilot', '/business/commerce-intelligence',
+      '/blog/virtual-try-on-reduce-eyewear-returns',
+    ]
+    expect(directories.flat().sort()).toEqual(owners.map((path) => `/en${path}`).sort())
   })
 
   it('records resource and video engagement without changing the asset URL', () => {
