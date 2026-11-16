@@ -41,7 +41,20 @@ for (const view of [
     await expect(section.getByText(/not an overall width or a fit score/i)).toBeVisible()
     expect(writes).toEqual([])
 
-    await section.screenshot({ path: `test-results/frame-size-${view.name}.png` })
+    // Pin the section below the sticky navbar before capturing actual viewport
+    // pixels; taking an element screenshot after scrolling to its last result
+    // can otherwise misleadingly overlay the sticky header on the heading.
+    await section.evaluate((element) => {
+      const top = element.getBoundingClientRect().top + window.scrollY
+      window.scrollTo(0, Math.max(0, top - 96))
+    })
+    if (view.name === 'mobile-430') {
+      await page.screenshot({ path: 'test-results/frame-size-mobile-430-top.png' })
+      await section.getByText('−5 mm', { exact: true }).scrollIntoViewIfNeeded()
+      await page.screenshot({ path: 'test-results/frame-size-mobile-430-result.png' })
+    } else {
+      await section.screenshot({ path: 'test-results/frame-size-desktop.png' })
+    }
 
     // Changing a source marking invalidates the old calculation.
     await candidate.fill('not a frame mark')

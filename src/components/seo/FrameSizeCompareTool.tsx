@@ -57,9 +57,9 @@ export function FrameSizeCompareTool() {
   }
 
   return (
-    <section aria-labelledby="frame-marking-compare" className="mt-8 rounded-xl border border-blue-200 bg-blue-50/60 p-5 md:p-6">
+    <section aria-labelledby="frame-marking-compare" className="mt-8 scroll-mt-28 rounded-xl border border-blue-200 bg-blue-50/60 p-5 md:p-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Optional free comparison</p>
-      <h3 id="frame-marking-compare" className="mt-2 text-xl font-semibold text-slate-950">
+      <h3 id="frame-marking-compare" className="mt-2 scroll-mt-28 text-xl font-semibold text-slate-950">
         Compare the markings on two frames
       </h3>
       <p className="mt-2 text-sm leading-6 text-slate-700">
