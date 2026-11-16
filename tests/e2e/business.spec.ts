@@ -122,7 +122,7 @@ test.describe('@critical Business market-facing narrative', () => {
       await page.setViewportSize({ width: 430, height: 932 });
       const path = `/en/business/resources/${slug}`;
       await page.goto('/en/business/resources', { waitUntil: 'domcontentloaded' });
-      await page.getByRole('link', { name: heading, exact: true }).click();
+      await page.locator(`main a[href="${path}"]`).click();
       await expect(page).toHaveURL(path);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://www.visutry.com${path}`);
@@ -204,9 +204,21 @@ test.describe('@critical Business market-facing narrative', () => {
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
     await expect(page).toHaveTitle(/VisuTry Business Resources/);
-    await expect(page.getByRole('heading', { name: 'See the product. Go deeper on the retail model.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Eyewear retail resources' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'VisuTry In-Store Retail Product Demo' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'AI Eyewear Decision Experience for In-Store Retail' })).toBeVisible();
+
+    const topics = page.getByRole('navigation', { name: 'Resource topics' });
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 430, height: 932 }]) {
+      await page.setViewportSize(viewport);
+      await expect(topics.getByRole('link')).toHaveCount(4);
+      await expect(topics.getByRole('link', { name: 'Costs & results' })).toBeInViewport();
+      await expect(page.locator('#catalog li a').first()).toBeInViewport();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+    await topics.getByRole('link', { name: 'Costs & results' }).click();
+    await expect(page).toHaveURL(/#evaluation$/);
+    await expect(page.getByRole('heading', { name: 'Evaluate cost and results' })).toBeInViewport();
 
     const video = page.locator('video[data-business-resource="instore-retail-demo-v2"]');
     await expect(video).toHaveAttribute('preload', 'none');

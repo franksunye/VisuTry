@@ -55,7 +55,7 @@ function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey })
   const primaryCta = page.primaryCta
   const secondaryCta = page.secondaryCta
   const slot = visualSlots[pageKey]
-  const textOnly = pageKey === 'pricing' || pageKey === 'examples' || pageKey === 'integrations' || pageKey === 'pilot' || pageKey === 'resources'
+  const textOnly = pageKey === 'pricing' || pageKey === 'examples' || pageKey === 'integrations' || pageKey === 'pilot'
   const dark = pageKey === 'intelligence'
   const storeDominant = pageKey === 'store'
   const audienceLine = pageKey === 'overview'
@@ -271,8 +271,7 @@ export function BusinessMarketingPage({ locale, pageKey, pilotIntent = 'pilot_re
 
   if (pageKey === 'resources') {
     return (
-      <main className="bg-[#f8fafc] text-slate-950">
-        <Hero locale={locale} pageKey={pageKey} />
+      <main className="bg-white text-slate-950">
         <BusinessResourcesPage locale={locale} />
       </main>
     )

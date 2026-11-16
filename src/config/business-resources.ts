@@ -90,3 +90,50 @@ export const businessGuides = [
   inventoryCatalogGuide, framePhotoGuide, eyewearFaceShapeGuide, shoppableLookbookGuide,
   preVisitFrameGalleryGuide, ipadComparisonGuide, takeHomeShortlistGuide, buyerSoftwareGuide,
 ] as const
+
+export const resourceTopics = [
+  {
+    id: 'catalog',
+    title: 'Prepare your frame catalog',
+    shortTitle: 'Catalog setup',
+    links: [
+      { path: inventoryCatalogGuide.path, label: 'Turn your inventory spreadsheet into a catalog' },
+      { path: framePhotoGuide.path, label: 'Photograph frames for virtual try-on' },
+      { path: '/business/integrations', label: 'Add try-on to your existing website' },
+      { path: '/business/examples', label: 'Recommend frames from your own inventory' },
+    ],
+  },
+  {
+    id: 'shop-floor',
+    title: 'Help shoppers choose frames',
+    shortTitle: 'In-store visits',
+    links: [
+      { path: preVisitFrameGalleryGuide.path, label: 'Share a frame gallery before a visit' },
+      { path: '/business/store', label: 'Let shoppers try on frames from your store' },
+      { path: ipadComparisonGuide.path, label: 'Compare frames on a shared iPad' },
+      { path: takeHomeShortlistGuide.path, label: 'Send shoppers home with their shortlist' },
+    ],
+  },
+  {
+    id: 'collections',
+    title: 'Promote an eyewear collection',
+    shortTitle: 'Brand campaigns',
+    links: [
+      { path: eyewearFaceShapeGuide.path, label: 'Show the same frames on different face shapes' },
+      { path: shoppableLookbookGuide.path, label: 'Build a shoppable eyewear lookbook' },
+      { path: '/business/campaigns', label: 'Create a QR code for a trunk show' },
+    ],
+  },
+  {
+    id: 'evaluation',
+    title: 'Evaluate cost and results',
+    shortTitle: 'Costs & results',
+    links: [
+      { path: buyerSoftwareGuide.path, label: 'Choose virtual try-on software' },
+      { path: '/business/pricing', label: 'Compare retailer plans and pricing' },
+      { path: '/business/pilot', label: 'Plan a 30-day pilot with a small catalog' },
+      { path: '/business/commerce-intelligence', label: 'See which frames shoppers compare and click' },
+      { path: '/blog/virtual-try-on-reduce-eyewear-returns', label: 'Test whether try-on reduces eyewear returns' },
+    ],
+  },
+] as const
