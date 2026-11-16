@@ -1,5 +1,23 @@
 /** Artwork shared by article figures, index cards and link previews. */
 export const blogArt = {
+  'how-to-choose-glasses-for-your-face': {
+    src: '/images/seo/core/glasses-frame-a-vs-b.webp',
+    alt: 'One portrait with dark rectangular rims on the left and pale round rims on the right',
+    width: 1448,
+    height: 1086,
+  },
+  'best-ai-virtual-glasses-tryon-tools-2025': {
+    src: '/blog-covers/ai-virtual-tryon-tools-2026.jpg',
+    alt: 'Illustration of a glasses preview on a laptop and phone beside a pair of frames',
+    width: 1672,
+    height: 941,
+  },
+  'virtual-try-on-reduce-eyewear-returns': {
+    src: '/blog-covers/virtual-try-on-reduce-returns.jpg',
+    alt: 'Illustration of frame previews and example charts on a desk beside eyeglasses and parcels',
+    width: 1672,
+    height: 941,
+  },
   'prescription-glasses-online-shopping-guide-2025': {
     src: '/blog-covers/ordering-prescription-glasses.webp',
     alt: 'Brown eyeglass frames beside a laptop displaying frames and a delivery box',

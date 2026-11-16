@@ -63,7 +63,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             />
           </div>
 
-          <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+          <article lang="en" dir="ltr" className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
 
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
@@ -135,7 +135,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
             <div className="p-8 bg-gray-50 border-t">
               <div className="flex items-center justify-between flex-wrap gap-4">
-                <BlogTags tags={articleTags} />
+                <BlogTags locale={params.locale} tags={articleTags} />
                 <Link
                   href={localizedPath(params.locale, '/try-glasses-on-photo')}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"

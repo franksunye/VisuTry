@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { SITE_CONFIG, generateI18nSEO } from '@/lib/seo'
 import Link from '@/components/layout/PublicLink'
 import { Calendar, User, ArrowRight } from 'lucide-react'
-import { blogShareImage, getAllBlogPosts } from '@/lib/blog'
+import { blogPostPath, blogShareImage, getAllBlogPosts } from '@/lib/blog'
 import Image from 'next/image'
 
 const blogDescription = 'Practical guides for face shape, frame selection, eyewear sizing, virtual glasses try-on, frame comparison, and confident online eyewear decisions.'
@@ -48,7 +48,7 @@ export default async function BlogPage({ params }: Props) {
       '@type': 'BlogPosting',
       headline: post.title,
       description: post.description,
-      url: `${SITE_CONFIG.url}${localePrefix}/blog/${post.slug}`,
+      url: `${SITE_CONFIG.url}${blogPostPath(params.locale, post.slug)}`,
       image: `${SITE_CONFIG.url}${post.coverImage}`,
       datePublished: post.publishedAt,
       dateModified: post.modifiedAt || post.publishedAt,
@@ -66,7 +66,7 @@ export default async function BlogPage({ params }: Props) {
       '@type': 'ListItem',
       position: index + 1,
       name: post.title,
-      url: `${SITE_CONFIG.url}${localePrefix}/blog/${post.slug}`,
+      url: `${SITE_CONFIG.url}${blogPostPath(params.locale, post.slug)}`,
     })),
   }
 
@@ -95,7 +95,7 @@ export default async function BlogPage({ params }: Props) {
           {/* Blog posts list */}
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             {posts.map((post, index) => {
-              const articleHref = `${localePrefix}/blog/${post.slug}`
+              const articleHref = blogPostPath(params.locale, post.slug)
 
               return (
                 <article

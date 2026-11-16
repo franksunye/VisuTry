@@ -1,230 +1,179 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from '@/components/layout/PublicLink'
-import { CheckCircle2, Image as ImageIcon, Shield, Smartphone, Store } from 'lucide-react'
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { blogArt } from '@/config/blog-art'
+import type { Locale } from '@/i18n'
+import { localizedPath } from '@/lib/localized-path'
+import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
-const title = 'AI Virtual Try-On Tools in 2026 - What Actually Matters'
-const description = 'A practical 2026 guide to choosing virtual try-on tools for eyewear, including photo-based AI, real-time AR, catalog coverage, privacy, and shopping workflow fit.'
-const coverImage = '/blog-covers/ai-virtual-tryon-tools-2026.jpg'
+const pathname = '/blog/best-ai-virtual-glasses-tryon-tools-2025'
+const title = 'Virtual Glasses Try-On Tools Compared: Warby Parker, Zenni and VisuTry'
+const description = 'Compare three virtual glasses try-on tools. See which accepts a frame screenshot, which offers a live camera preview, and what to check before ordering.'
+const publishedAt = '2025-10-14T10:00:00Z'
+const modifiedAt = '2026-11-16T00:00:00Z'
+const cover = blogArt['best-ai-virtual-glasses-tryon-tools-2025']
+type PageProps = { params: { locale: Locale } }
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  return generateI18nSEO({
-    locale: params.locale as any,
-    title,
-    description,
-    image: coverImage,
-    pathname: '/blog/best-ai-virtual-glasses-tryon-tools-2025',
-    type: 'article',
-  })
-}
-
-const structuredData = generateStructuredData('article', {
-  title,
-  description,
-  publishedAt: '2025-10-20T10:00:00Z',
-  modifiedAt: '2026-05-20T10:00:00Z',
-  author: 'VisuTry Team',
-  image: coverImage,
-})
-
-const faqSchema = generateStructuredData('faqPage', {
-  questions: [
-    {
-      question: 'What is the best AI virtual try-on tool for glasses?',
-      answer: 'The best tool depends on the workflow. For shoppers who already know the frame they want, photo-based try-on can produce a clear preview. For shoppers who do not know where to start, a stronger workflow combines face analysis, frame recommendations, and virtual try-on.',
-    },
-    {
-      question: 'Do virtual glasses try-on tools need a face-shape feature?',
-      answer: 'Face-shape analysis is useful when it helps shoppers build a smaller frame shortlist before try-on. It should lead into practical frame recommendations, not stop at a generic face-shape label.',
-    },
-    {
-      question: 'Is photo-based AI try-on or real-time AR better?',
-      answer: 'Photo-based AI try-on is often better for polished previews, custom frame images, and shareable decision images. Real-time AR is useful for fast live browsing when a store has prepared frame assets.',
-    },
-  ],
-})
-
-const criteria = [
+const questions = [
   {
-    icon: ImageIcon,
-    title: 'Photo quality and fit realism',
-    body: 'The most useful try-on result is not the flashiest one. Look for stable frame placement, believable lens scale, natural skin and hair boundaries, and output that helps a shopper decide.',
+    question: 'Which tool can use a screenshot of glasses from another store?',
+    answer: 'VisuTry accepts a frame image or retailer screenshot along with a portrait. Crop the screenshot to show the whole front of one frame and keep the original listing handy for the model, color and size.',
   },
   {
-    icon: Smartphone,
-    title: 'Workflow fit',
-    body: 'Real-time AR can be great for live browsing. Photo-based AI is often better when the buyer wants a polished preview, wants to upload a product image, or is comparing a few shortlisted frames.',
+    question: 'Can I try on Zenni frames without a live camera?',
+    answer: 'Yes. Zenni’s help guide lists an uploaded portrait as an alternative to its live camera. You still choose the frame from Zenni’s catalog.',
   },
   {
-    icon: Store,
-    title: 'Catalog coverage',
-    body: 'A virtual try-on tool is only as useful as the frames it can show. Small stores should prioritize custom frame upload and fast testing before investing in a large 3D catalog.',
-    merchantLink: true,
-  },
-  {
-    icon: Shield,
-    title: 'Privacy and buyer trust',
-    body: 'Ask what happens to user photos, how long they are stored, and whether customers can preview without unnecessary account friction. Trust is part of conversion.',
+    question: 'How do I tell if the glasses will actually fit?',
+    answer: 'Compare the listed frame width, bridge and temple length with a pair you wear comfortably. A preview can show a silhouette. It cannot tell you how the bridge will feel or whether the temples will press. An optician can check the fit and lens positioning.',
   },
 ]
 
-export default function BlogPostPage({ params }: { params: { locale: string } }) {
-  const localePrefix = `/${params.locale}`
+export function generateMetadata({ params }: PageProps): Metadata {
+  return generateI18nSEO({
+    locale: params.locale, pathname, title, description, type: 'article',
+    image: cover.src, imageAlt: cover.alt, imageWidth: cover.width, imageHeight: cover.height,
+  })
+}
+
+const articleSchema = generateStructuredData('article', {
+  title, description, publishedAt, modifiedAt,
+  author: 'VisuTry Team', image: `${SITE_CONFIG.url}${cover.src}`,
+})
+const faqSchema = generateStructuredData('faqPage', { questions })
+
+export default function BlogPostPage({ params: { locale } }: PageProps) {
+  const photoGuide = localizedPath(locale, '/try-glasses-on-photo')
+  const textLink = 'font-medium text-blue-700 underline underline-offset-2'
+  const sectionHeading = 'text-2xl font-semibold leading-tight text-slate-950'
 
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <main className="container mx-auto px-4 py-12">
-          <div className="mb-6">
-            <Breadcrumbs
-              items={[
-                { name: 'Blog', url: `${localePrefix}/blog` },
-                { name: 'AI Virtual Try-On Tools in 2026' },
-              ]}
-            />
-          </div>
-
-          <article className="mx-auto max-w-4xl overflow-hidden rounded-lg bg-white shadow-lg">
-            <div className="relative h-72 w-full overflow-hidden md:h-96">
-              <Image
-                src={coverImage}
-                alt="AI virtual try-on tools shown on laptop and phone screens"
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-
-            <div className="border-b p-8">
-              <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-600">
-                <span>VisuTry Team</span>
-                <span>Updated May 20, 2026</span>
-                <span>8 min read</span>
+    <main className="bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <div className="mx-auto max-w-4xl px-5 py-8 sm:px-8 sm:py-12">
+        <Breadcrumbs items={[
+          { name: 'Blog', url: localizedPath(locale, '/blog') },
+          { name: 'Virtual glasses try-on tools' },
+        ]} />
+        <article lang="en" dir="ltr" className="mt-6 space-y-8 leading-7 text-slate-800">
+          <header>
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">{title}</h1>
+            <p className="mt-4 text-lg leading-8">
+              If the frame is already in your shopping cart, start with the retailer’s try-on button.
+              If you found two pairs at different stores, a tool that accepts frame photos lets you
+              compare both on the same portrait. Here is how to choose between the three.
+            </p>
+            <p className="mt-3 text-sm text-slate-600">
+              VisuTry Team · Published <time dateTime={publishedAt}>October 14, 2025</time> · Updated{' '}
+              <time dateTime={modifiedAt}>November 16, 2026</time>
+            </p>
+          </header>
+          <figure>
+            <Image src={cover.src} alt={cover.alt} width={cover.width} height={cover.height} priority
+              sizes="(min-width: 896px) 832px, calc(100vw - 40px)" className="h-auto w-full rounded-xl" />
+            <figcaption className="mt-2 text-sm text-slate-600">Editorial illustration of a virtual glasses preview.</figcaption>
+          </figure>
+          <section className="space-y-4">
+            <h2 className={sectionHeading}>Where does the frame come from?</h2>
+            <table className="w-full table-fixed border-collapse text-start text-sm leading-6 sm:text-base">
+              <caption className="pb-3 text-start text-slate-600">U.S. website workflows checked November 16, 2026.</caption>
+              <thead>
+                <tr className="border-y bg-slate-50">
+                  <th scope="col" className="w-1/4 px-2 py-3 text-start">Tool</th>
+                  <th scope="col" className="w-1/3 px-2 py-3 text-start">Frame source</th>
+                  <th scope="col" className="px-2 py-3 text-start">How you preview it</th>
+                </tr>
+              </thead>
+              <tbody className="align-top">
+                <tr className="border-b">
+                  <th scope="row" className="px-2 py-3 text-start">Warby Parker</th>
+                  <td className="px-2 py-3">A Warby Parker listing</td>
+                  <td className="px-2 py-3">Open the virtual mirror from the frame page on a phone, tablet or computer.</td>
+                </tr>
+                <tr className="border-b">
+                  <th scope="row" className="px-2 py-3 text-start">Zenni</th>
+                  <td className="px-2 py-3">A Zenni listing</td>
+                  <td className="px-2 py-3">Use the live camera, or upload a portrait to see the same catalog frame.</td>
+                </tr>
+                <tr className="border-b">
+                  <th scope="row" className="px-2 py-3 text-start">VisuTry</th>
+                  <td className="px-2 py-3">Your frame photo or retailer screenshot</td>
+                  <td className="px-2 py-3">Add a front-facing portrait and generate a still image. Reuse the portrait for your next frame.</td>
+                </tr>
+              </tbody>
+            </table>
+            <p>
+              We checked the providers’ published instructions and the public starting points below. The comparison
+              covers inputs, frame selection and device options. Zenni describes its live camera mode as augmented reality (AR). VisuTry uses photo-based AI to generate a still preview. Image quality and fit accuracy were not measured.
+            </p>
+          </section>
+          <section className="space-y-4">
+            <h2 className={sectionHeading}>Try a frame from a retailer’s catalog</h2>
+            <p>
+              <strong>Warby Parker.</strong> On the{' '}
+              <a className={textLink} href="https://www.warbyparker.com/eyeglasses/percey/chestnut-crystal">Percey in Chestnut Crystal</a>{' '}
+              listing, look for “Try on virtually” beside the frame photos. Keep the width you selected in mind when
+              you return to the product page. Warby Parker’s{' '}
+              <a className={textLink} href="https://www.warbyparker.com/ways-to-try">Ways to Try guide</a>{' '}
+              explains the browser option and the additional saved-favorites feature in its app.
+            </p>
+            <p>
+              <strong>Zenni.</strong> The{' '}
+              <a className={textLink} href="https://www.zennioptical.com/p/classic-rectangle-eyeglasses/44136/4413621">black rectangle frame #4413621</a>{' '}
+              has a “Try On” button. If your desktop has no webcam, a saved face photo is an option.
+              Zenni’s <a className={textLink} href="https://www.zennioptical.com/help/frames-fitting/virtual-try-on">Virtual Try-On guide</a>{' '}
+              describes both inputs and how to enable camera access.
+            </p>
+          </section>
+          <section className="space-y-4">
+            <h2 className={sectionHeading}>Compare frames from two different shops</h2>
+            <p>
+              Suppose you have one black rectangular pair and one translucent cat-eye pair bookmarked.
+              Save a clear front view of each, then use the same evenly lit portrait for both previews.
+              Check where the top rims sit relative to your brows and how far each corner extends toward
+              your temples. Keep the product tabs open to check the actual measurements afterward.
+            </p>
+            <p>
+              Follow VisuTry’s <Link className={textLink} href={photoGuide}>photo and frame upload guide</Link>.
+              If you are still deciding which shapes to shortlist, start with the{' '}
+              <Link className={textLink} href={localizedPath(locale, '/blog/how-to-choose-glasses-for-your-face')}>glasses and face shape guide</Link>. For individualized frame suggestions, VisuTry also offers a{' '}
+              <Link className={textLink} href={localizedPath(locale, '/face-analysis')}>credit-based AI glasses advisor</Link>.
+            </p>
+            <FaceAnalysisFunnelCTA locale={locale} tone="light" title="Try your shortlisted frames"
+              body="Bring a portrait and a front view of the frame you want to preview. If you are still choosing a shape, start with the free detector." />
+          </section>
+          <section className="space-y-4">
+            <h2 className={sectionHeading}>Before you place an order</h2>
+            <p>
+              Zoom in on the original listing for details a preview can smooth over, such as the bridge profile,
+              hinge design and translucent edges. Check that the seller offers the color and size you previewed.
+              For prescription lenses, use the{' '}
+              <Link className={textLink} href={localizedPath(locale, '/blog/prescription-glasses-online-shopping-guide-2025')}>ordering checklist</Link>{' '}
+              to compare the finished price and return terms.
+            </p>
+            {locale === 'en' && (
+              <p>Evaluating try-on for a shop? See how a retailer can{' '}
+                <Link className={textLink} href="/en/business/store">offer previews of its own frames</Link>.
+              </p>
+            )}
+          </section>
+          <section className="space-y-5">
+            <h2 className={sectionHeading}>Common questions</h2>
+            {questions.map(({ question, answer }) => (
+              <div key={question}>
+                <h3 className="text-lg font-semibold text-slate-950">{question}</h3>
+                <p className="mt-1">{answer}</p>
               </div>
-              <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
-                AI Virtual Try-On Tools in 2026: What Actually Matters
-              </h1>
-              <p className="text-xl text-gray-600">
-                Virtual try-on is no longer just a novelty button on an eyewear site. In 2026,
-                the better question is which kind of try-on experience matches your customer,
-                product catalog, and buying workflow.
-              </p>
-            </div>
-
-            <div className="prose prose-lg max-w-none p-8">
-              <p>
-                Older virtual try-on comparisons often rank tools as if every shopper needs the
-                same experience. That is not how eyewear buying works. Some buyers want a quick
-                mobile preview. Some want to upload a frame from a small store. Others want a
-                realistic image they can share before buying prescription glasses online.
-              </p>
-
-              <p>
-                This guide focuses on the practical criteria that matter when evaluating AI
-                virtual try-on tools today. If you are still choosing frames by face shape, start
-                with our <Link href={`${localePrefix}/blog/how-to-choose-glasses-for-your-face`}>face shape guide</Link>.
-                If you are buying prescription frames, pair try-on with our
-                {' '}<Link href={`${localePrefix}/blog/prescription-glasses-online-shopping-guide-2025`}>online shopping checklist</Link>.
-              </p>
-
-              <FaceAnalysisFunnelCTA
-                locale={params.locale}
-                title="Compare tools by the shopping path, not the demo"
-                body="For eyewear, the strongest path is not just virtual try-on. It is face analysis, frame recommendations, and then try-on with a smaller, better shortlist."
-                tone="light"
-              />
-
-              <h2>Two try-on models are emerging</h2>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg bg-blue-50 p-5">
-                  <h3 className="mt-0 text-xl font-bold text-gray-900">Photo-based AI try-on</h3>
-                  <p>
-                    The shopper uploads a photo and receives a generated preview. This is useful
-                    when image quality, custom frame upload, and shareable results matter more
-                    than live camera movement.
-                  </p>
-                </div>
-                <div className="rounded-lg bg-slate-50 p-5">
-                  <h3 className="mt-0 text-xl font-bold text-gray-900">Real-time AR try-on</h3>
-                  <p>
-                    The shopper uses a live camera preview. This can feel immediate and familiar,
-                    especially for large catalogs with prepared 3D frame assets.
-                  </p>
-                </div>
-              </div>
-
-              <h2>What to evaluate before choosing a tool</h2>
-              <div className="not-prose grid gap-4">
-                {criteria.map((item) => {
-                  const Icon = item.icon
-                  return (
-                    <div key={item.title} className="flex gap-4 rounded-lg border border-gray-200 p-5">
-                      <Icon className="mt-1 h-6 w-6 flex-shrink-0 text-blue-600" />
-                      <div>
-                        <h3 className="mb-2 text-lg font-bold text-gray-900">{item.title}</h3>
-                        <p className="text-gray-600">
-                          {item.body}
-                          {item.merchantLink && params.locale === 'en' && (
-                            <>{' '}See how <Link href="/en/business/store" className="text-blue-700 underline">eyewear retailers offer try-on with their own frames</Link>.</>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              <h2>Where VisuTry fits</h2>
-              <p>
-                VisuTry is designed for a lightweight photo-based workflow: upload a customer
-                photo, choose or upload a frame image, and generate a polished preview without
-                installing an app. That makes it a practical fit for shoppers who want a clear
-                before-buying image and for smaller eyewear sellers that do not yet have a full
-                3D frame catalog.
-              </p>
-              <p>
-                The newer VisuTry path adds a decision layer before try-on: <Link href={`${localePrefix}/face-analysis`}>AI face analysis for glasses</Link>
-                {' '}helps shoppers understand their face shape and frame directions first, then
-                moves them into <Link href={`${localePrefix}/try-on/glasses`}>AI glasses try-on</Link>
-                {' '}with styles that are worth comparing.
-              </p>
-
-              <div className="not-prose my-8 rounded-lg bg-blue-600 p-6 text-white">
-                <h3 className="mb-3 text-2xl font-bold">Quick evaluation checklist</h3>
-                <ul className="flex flex-col gap-y-2">
-                  <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5" /> Does the preview help a buyer make a decision?</li>
-                  <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5" /> Can you test frames before building a large catalog?</li>
-                  <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5" /> Are photo handling and storage expectations clear?</li>
-                  <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5" /> Does the result work well on both desktop and mobile?</li>
-                </ul>
-              </div>
-
-              <h2>Bottom line</h2>
-              <p>
-                The best AI virtual try-on tool in 2026 is not always the one with the most
-                advanced demo. It is the one that reduces uncertainty at the exact moment your
-                buyer is deciding whether a frame is worth ordering.
-              </p>
-
-              <FaceAnalysisFunnelCTA locale={params.locale} />
-            </div>
-          </article>
-        </main>
+            ))}
+          </section>
+          <FaceAnalysisFunnelCTA locale={locale} />
+        </article>
       </div>
-    </>
+    </main>
   )
 }

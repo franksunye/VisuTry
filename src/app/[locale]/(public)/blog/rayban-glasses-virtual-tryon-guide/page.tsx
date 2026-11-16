@@ -55,7 +55,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
       title,
       description,
       publishedAt: '2025-10-16T10:00:00Z',
-      modifiedAt: '2026-08-03T06:00:00Z',
+      modifiedAt: '2026-11-16T00:00:00Z',
       author: 'VisuTry Team',
       image: `${SITE_CONFIG.url}${cover.src}`,
     }),
@@ -71,7 +71,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
   return (
     <>
       {schemas.map((schema, index) => <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />)}
-      <main className="mx-auto max-w-6xl px-4 py-8 md:py-12">
+      <main lang="en" dir="ltr" className="mx-auto max-w-6xl px-4 py-8 md:py-12">
         <nav className="mb-7 flex items-center gap-2 text-sm text-gray-600" aria-label="Breadcrumb">
           <Link href={`/${locale}`} className="hover:text-gray-950">Home</Link><span>/</span>
           <Link href={`/${locale}/blog`} className="hover:text-gray-950">Blog</Link><span>/</span>
@@ -80,7 +80,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
 
         <section className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-700">Updated August 3, 2026 · 7 min read</p>
+            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-700">Updated November 16, 2026 · 7 min read</p>
             <h1 className="text-3xl font-bold leading-tight text-gray-950 md:text-5xl">{title}</h1>
             <p className="mt-5 text-lg leading-8 text-gray-600">{description}</p>
             <p className="mt-4 leading-7 text-gray-700">The unbranded examples show how the silhouettes differ. To preview a specific Ray-Ban model, use a front-facing portrait and a clear product image of that frame.</p>
