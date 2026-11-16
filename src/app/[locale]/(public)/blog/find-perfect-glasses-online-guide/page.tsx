@@ -9,8 +9,8 @@ import { localizedPath } from '@/lib/localized-path'
 
 export const dynamic = 'force-static'
 
-const title = 'How to Find Your Perfect Glasses Online - Step-by-Step Guide'
-const description = 'Complete step-by-step guide to finding and buying the perfect glasses online. Learn how to choose frames, use virtual try-on, and make confident purchases.'
+const title = 'How to Choose Between Two Pairs of Glasses Online'
+const description = 'Shortlist two frames, compare their outline on the same portrait, and use the seller’s measurements and terms to decide which pair to order.'
 const pathname = '/blog/find-perfect-glasses-online-guide'
 const cover = blogArt['find-perfect-glasses-online-guide']
 
@@ -39,7 +39,7 @@ const structuredData = generateStructuredData('article', {
   title,
   description,
   publishedAt: '2025-11-06T12:00:00Z',
-  modifiedAt: '2025-11-06T12:00:00Z',
+  modifiedAt: '2026-11-16T00:00:00Z',
   author: 'VisuTry Team',
   image: `${SITE_CONFIG.url}${cover.src}`,
 })
@@ -54,132 +54,51 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             <Breadcrumbs
               items={[
                 { name: 'Blog', url: localizedPath(params.locale, '/blog') },
-                { name: 'How to Find Your Perfect Glasses Online' },
+                { name: title },
               ]}
             />
           </div>
 
-          <article className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-8">
-              <h1 className="text-4xl font-bold mb-4">
-                How to Find Your Perfect Glasses Online
-              </h1>
-              <p className="text-xl text-green-100 mb-6">
-                Step-by-Step Guide to Confident Online Eyewear Shopping
-              </p>
-              <div className="flex items-center justify-between text-sm text-green-100">
-                <span>By VisuTry Team</span>
-                <span>7 min read</span>
-              </div>
-            </div>
-
-            <div className="p-8 prose prose-lg max-w-none">
+          <article lang="en" dir="ltr" className="mx-auto max-w-3xl rounded-lg bg-white p-6 text-slate-800 shadow-sm sm:p-10">
+            <header>
+              <h1 className="text-3xl font-bold leading-tight text-slate-950 sm:text-4xl">{title}</h1>
+              <p className="mt-4 text-lg leading-7">{description}</p>
+              <p className="mt-3 text-sm text-slate-600">VisuTry Team · Updated November 16, 2026 · 3 min read</p>
+            </header>
+            <div className="mt-8 space-y-4 leading-7 [&_h2]:pt-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_a]:font-medium [&_a]:text-blue-700 [&_a]:underline">
+              <h2>Choose the difference you want to see</h2>
               <p>
-                Buying glasses online can be intimidating. But with the right approach, you can find frames 
-                that look amazing and fit perfectly—often at better prices than in-store options.
+                Start with a pair you already wear. What would you change first? If your black frames
+                feel too prominent, compare them with a lighter color in a similar shape. If you want
+                more of your cheeks to show, compare a shallow rectangle with a deeper frame in the same color.
+                Changing one feature makes it easier to explain why you prefer one pair.
               </p>
-
-              <h2>Step 1: Determine Your Face Shape</h2>
+              <h2>Put both styles on the same portrait</h2>
               <p>
-                Before you start shopping, identify your face shape. This is the foundation for finding flattering frames.
+                Use a front-facing portrait and the front-view product photo for each frame. Keep the
+                portrait the same. Look at where the upper rim meets your brows and how much of your face
+                is visible through the lenses. Save the product link, color and size with each preview.
               </p>
-
-              <h2>Step 2: Gather Your Information</h2>
-              <p>
-                You&apos;ll need: your prescription, pupillary distance (PD), frame size preferences, and style preferences.
-              </p>
-
-              <h2>Step 3: Choose Your Style</h2>
-              <p>
-                Think about your lifestyle: Professional? Casual? Fashion-forward? Timeless?
-              </p>
-
-              <h2>Step 4: Use Virtual Try-On</h2>
               <figure className="my-6">
-                <Image
-                  src={cover.src}
-                  alt={cover.alt}
-                  width={cover.width}
-                  height={cover.height}
-                  sizes="(min-width: 768px) 704px, calc(100vw - 64px)"
-                  className="h-auto w-full rounded-lg"
-                />
-                <figcaption>Compare the upper rim across all four styles while the portrait stays the same.</figcaption>
+                <Image src={cover.src} alt={cover.alt} width={cover.width} height={cover.height}
+                  sizes="(min-width: 768px) 688px, calc(100vw - 64px)" className="h-auto w-full rounded-lg" />
+                <figcaption className="mt-2 text-sm text-slate-600">The same portrait with four styles. Compare the upper rim on the browline and aviator examples.</figcaption>
               </figure>
+              <p><Link href={localizedPath(params.locale, '/try-on/glasses')}>Preview your two frame choices</Link>.</p>
+              <h2>Check the measurements that could rule a pair out</h2>
               <p>
-                This is the game-changer for online shopping. Virtual try-on lets you see how frames look on your face.
+                Two sizes of one model may use the same product photo. A preview alone cannot tell which
+                bridge will feel comfortable or whether the temples are long enough. Compare the seller’s
+                total width, bridge and temple measurements with a comfortable pair. Ask the seller for
+                missing dimensions or try the frame in person if that difference affects your choice.
+                See <Link href={localizedPath(params.locale, '/glasses-guide/how-wide-should-glasses-be-for-my-face')}>how to compare frame widths</Link>.
               </p>
-              <ol>
-                <li>Take a clear, front-facing photo</li>
-                <li>Upload it to the virtual try-on tool</li>
-                <li>Browse and try different frame styles</li>
-                <li>Compare multiple options</li>
-                <li>Save your favorites</li>
-              </ol>
-
-              <h2>Step 5: Compare Brands and Prices</h2>
+              <h2>Compare the price of the pair you would actually order</h2>
               <p>
-                Ray-Ban, Tom Ford, Oliver Peoples, Warby Parker - each has different price points and styles.
-              </p>
-
-              <h2>Step 6: Check Reviews and Ratings</h2>
-              <p>
-                Read reviews from other customers about fit, comfort, quality, and accuracy.
-              </p>
-
-              <h2>Step 7: Verify Your Prescription</h2>
-              <p>
-                Double-check: Sphere, Cylinder, Axis, Add, and Pupillary Distance (PD).
-              </p>
-
-              <h2>Step 8: Make Your Purchase</h2>
-              <p>
-                Choose your frame, enter prescription details, select lens options, and complete checkout.
-              </p>
-
-              <h2>Step 9: Receive and Inspect</h2>
-              <p>
-                Check that they match your order, inspect for damage, try them on, and verify the prescription.
-              </p>
-
-              <h2>Step 10: Adjust and Enjoy</h2>
-              <p>
-                If needed, visit a local optician for minor adjustments. Most adjustments are free or low-cost.
-              </p>
-
-              <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-8 rounded-lg my-8">
-                <h3 className="text-2xl font-bold mb-4">Ready to Find Your Perfect Glasses?</h3>
-                <p className="mb-6">
-                  Start with our virtual try-on tool to see how different frames look on your face.
-                </p>
-                <Link href={localizedPath(params.locale, '/try-on')} className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
-                  Start Virtual Try-On →
-                </Link>
-              </div>
-
-              <h2>Common Mistakes to Avoid</h2>
-              <ul>
-                <li>❌ Buying without trying on first</li>
-                <li>❌ Ignoring your face shape</li>
-                <li>❌ Choosing frames that are too small or too large</li>
-                <li>❌ Not verifying your prescription</li>
-                <li>❌ Forgetting to check return policies</li>
-              </ul>
-
-              <h2>Pro Tips for Success</h2>
-              <ul>
-                <li>✅ Try at least 5-10 different styles</li>
-                <li>✅ Ask friends for opinions</li>
-                <li>✅ Consider your lifestyle and daily activities</li>
-                <li>✅ Don&apos;t rush - take your time deciding</li>
-                <li>✅ Check return and warranty policies</li>
-              </ul>
-
-              <h2>Conclusion</h2>
-              <p>
-                Finding your perfect glasses online is easier than ever with virtual try-on technology. 
-                By following these 10 steps, you can confidently choose frames that look great, fit perfectly, 
-                and match your personal style.
+                Select your lens options at both shops before comparing totals. Check which parts you
+                can return, the deadline, and whether you would receive money back or store credit.
+                For prescription lenses, use the <Link href={localizedPath(params.locale, '/blog/prescription-glasses-online-shopping-guide-2025')}>order checklist</Link>
+                {' '}to review the prescription, measurements and remake terms.
               </p>
             </div>
           </article>

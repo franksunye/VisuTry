@@ -1,8 +1,9 @@
+import Image from 'next/image'
 import { Metadata } from 'next'
 import { generateI18nSEO } from '@/lib/seo'
 import Link from '@/components/layout/PublicLink'
 import { ArrowLeft, Tag as TagIcon, Calendar, User, ArrowRight } from 'lucide-react'
-import { blogShareImage, getAllBlogPosts } from '@/lib/blog'
+import { blogPostPath, blogShareImage, getAllBlogPosts } from '@/lib/blog'
 
 type Props = {
   params: { locale: string; tag: string }
@@ -32,7 +33,7 @@ export async function generateStaticParams() {
 export default async function TagPage({ params }: Props) {
   const tag = decodeURIComponent(params.tag)
   const locale = params.locale
-  const allPosts = await getAllBlogPosts()
+  const allPosts = await getAllBlogPosts(locale)
   
   // Filter posts by tag
   const filteredPosts = allPosts.filter(post => 
@@ -75,12 +76,12 @@ export default async function TagPage({ params }: Props) {
                 key={post.slug}
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
               >
-                {/* Article image placeholder */}
-                <div className="h-48 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
-                  <span className="text-white text-lg font-medium">
-                    {post.title.substring(0, 10)}...
-                  </span>
-                </div>
+                <Link href={blogPostPath(locale, post.slug)} aria-label={post.title}
+                  className="relative block h-48 w-full overflow-hidden">
+                  <Image src={post.coverImage} alt={post.coverAlt ?? post.title} fill
+                    sizes="(min-width: 1152px) 363px, (min-width: 1024px) 31vw, (min-width: 768px) 46vw, 95vw"
+                    className={post.coverAlt ? 'object-contain' : 'object-cover'} />
+                </Link>
 
                 {/* Article content */}
                 <div className="p-6">
@@ -122,7 +123,7 @@ export default async function TagPage({ params }: Props) {
 
                   {/* Read more link */}
                   <Link
-                    href={`/${locale}/blog/${post.slug}`}
+                    href={blogPostPath(locale, post.slug)}
                     className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
                   >
                     Read Full Article

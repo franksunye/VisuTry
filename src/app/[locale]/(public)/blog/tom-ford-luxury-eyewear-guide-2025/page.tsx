@@ -1,338 +1,94 @@
-import { blogArt } from '@/config/blog-art'
-import { Metadata } from 'next'
-import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
-import Link from '@/components/layout/PublicLink'
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
+import Link from '@/components/layout/PublicLink'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { blogArt } from '@/config/blog-art'
+import type { Locale } from '@/i18n'
 import { localizedPath } from '@/lib/localized-path'
+import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
+const pathname = '/blog/tom-ford-luxury-eyewear-guide-2025'
 const cover = blogArt['tom-ford-luxury-eyewear-guide-2025']
+const title = 'Tom Ford Eyeglasses: How to Read a Frame Listing'
+const description = 'Use the FT5304 square optical frame to compare model codes, dimensions, temple details and the price of a complete pair.'
+const publishedAt = '2025-10-21T16:00:00Z'
+const updatedAt = '2026-11-16T00:00:00Z'
+const articleTags = ['Tom Ford', 'Luxury Eyewear', 'Designer Glasses', 'Premium Frames', 'Fashion']
 
-const title = 'Tom Ford Luxury Eyewear Guide 2025 - Ultimate Style & Quality'
-const description = 'Explore Tom Ford luxury eyeglasses collection. Discover iconic styles, premium craftsmanship, and why Tom Ford frames are the ultimate status symbol in eyewear.'
+type PageProps = { params: { locale: Locale } }
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export function generateMetadata({ params }: PageProps): Metadata {
   return generateI18nSEO({
-    locale: params.locale as any,
-    title,
-    description,
-    image: cover.src,
-    imageAlt: cover.alt,
-    imageWidth: cover.width,
-    imageHeight: cover.height,
-    pathname: '/blog/tom-ford-luxury-eyewear-guide-2025',
-    type: 'article',
+    locale: params.locale, pathname, title, description, type: 'article',
+    image: cover.src, imageWidth: cover.width, imageHeight: cover.height, imageAlt: cover.alt,
   })
 }
 
-const structuredData = generateStructuredData('article', {
-  title,
-  description: 'Complete guide to Tom Ford luxury eyeglasses and their iconic designs.',
-  publishedAt: '2025-10-21T16:00:00Z',
-  modifiedAt: '2025-10-21T16:00:00Z',
-  author: 'VisuTry Team',
-  image: `${SITE_CONFIG.url}${cover.src}`,
+const article = generateStructuredData('article', {
+  title, description, publishedAt, modifiedAt: updatedAt,
+  author: 'VisuTry Team', image: `${SITE_CONFIG.url}${cover.src}`,
 })
 
-const articleTags = ['Tom Ford', 'Luxury Eyewear', 'Designer Glasses', 'Premium Frames', 'Fashion']
-
-type BlogPostPageProps = {
-  params: { locale: string }
-}
-
-export default function BlogPostPage({ params }: BlogPostPageProps) {
+export default function BlogPostPage({ params: { locale } }: PageProps) {
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <main className="container mx-auto px-4 py-12">
-          {/* Breadcrumbs */}
-          <div className="mb-6">
-            <Breadcrumbs
-              items={[
-                { name: 'Blog', url: localizedPath(params.locale, '/blog') },
-                { name: 'Tom Ford Luxury Eyewear Guide 2025' },
-              ]}
-            />
-          </div>
-
-          <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-
-            <div className="p-8 border-b">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-x-4 text-sm text-gray-600">
-                  <span>Author: VisuTry Team</span>
-                  <span>Published: October 21, 2025</span>
-                  <span>Read time: 7 min</span>
-                </div>
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Tom Ford Luxury Eyewear Guide 2025: The Ultimate in Style & Quality
-              </h1>
-              <p className="text-xl text-gray-600">
-                Discover why Tom Ford eyeglasses represent the pinnacle of luxury eyewear. From iconic designs 
-                to impeccable craftsmanship, explore what makes these frames worth the investment.
-              </p>
-            </div>
-
-            <div className="p-8 prose prose-lg max-w-none">
-              <h2>The Tom Ford Legacy</h2>
-              <p>
-                When <strong>Tom Ford</strong> launched his eponymous brand in 2005, he brought the same 
-                meticulous attention to detail and luxury aesthetic that made him famous at Gucci and Yves 
-                Saint Laurent. Today, <a href="https://www.tomford.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Tom Ford eyewear</a> is 
-                synonymous with sophisticated luxury, worn by celebrities, executives, and fashion connoisseurs worldwide.
-              </p>
-
-              <h2>What Sets Tom Ford Apart</h2>
-              <ul>
-                <li><strong>Iconic &quot;T&quot; logo</strong> - Instantly recognizable signature detail</li>
-                <li><strong>Premium materials</strong> - Italian acetate, titanium, and precious metals</li>
-                <li><strong>Impeccable craftsmanship</strong> - Handmade in Italy and Japan</li>
-                <li><strong>Timeless designs</strong> - Classic styles that transcend trends</li>
-                <li><strong>Celebrity endorsement</strong> - Worn by A-list stars and influencers</li>
-              </ul>
-
-              <h2>Signature Tom Ford Styles</h2>
-
-              <h3>1. Square optical frames</h3>
-              <figure className="my-6">
-                <Image
-                  src={cover.src}
-                  alt={cover.alt}
-                  width={cover.width}
-                  height={cover.height}
-                  sizes="(max-width: 640px) 85vw, 480px"
-                  className="mx-auto h-auto max-h-72 w-full max-w-lg object-contain"
-                />
-                <figcaption className="mt-2 text-center text-sm text-gray-600">VisuTry’s square-frame example. See{' '}
-                  <a href="https://www.tomfordfashion.com/en-us/square-optical-frame/FT5304-F001.html">Tom Ford’s official FT5304 product photos</a> to inspect the actual frame and temple details.</figcaption>
-              </figure>
-              <p>
-                On a square optical frame, compare the straightness of the brow line, the depth of the lenses and the thickness at the hinges. A front view shows the silhouette, while the side view shows how far the decorative temple detail extends.
-              </p>
-
-              <h3>2. Tom Ford FT5401 - The Classic</h3>
-              <p>
-                One of Tom Ford&apos;s most popular optical frames:
-              </p>
-              <ul>
-                <li>Rectangular shape suitable for most face types</li>
-                <li>Versatile design for professional and casual wear</li>
-                <li>Lightweight yet durable construction</li>
-                <li>Price range: $400-$500</li>
-              </ul>
-
-              <h3>3. Tom Ford FT5178 - The Statement Maker</h3>
-              <p>
-                Bold, oversized frames for those who want to make an impression:
-              </p>
-              <ul>
-                <li>Large square frames with thick rims</li>
-                <li>Fashion-forward aesthetic</li>
-                <li>Popular among creative professionals</li>
-                <li>Available in unique color combinations</li>
-              </ul>
-
-              <h2>Materials and Craftsmanship</h2>
-              <p>
-                Tom Ford uses only the finest materials. For a detailed comparison of frame materials, check out our <Link href={localizedPath(params.locale, '/blog/acetate-vs-plastic-eyeglass-frames-guide')} className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
-              </p>
-
-              <h3>Premium Acetate</h3>
-              <ul>
-                <li><strong>Italian Mazzucchelli acetate</strong> - The world&apos;s finest</li>
-                <li><strong>Rich, deep colors</strong> with unique patterns</li>
-                <li><strong>Hypoallergenic</strong> and comfortable for sensitive skin</li>
-                <li><strong>Durable</strong> - Resists fading and cracking</li>
-              </ul>
-
-              <h3>Metal Components</h3>
-              <ul>
-                <li><strong>Titanium temples</strong> for lightweight strength</li>
-                <li><strong>Gold-plated hardware</strong> on premium models</li>
-                <li><strong>Precision-engineered hinges</strong> for smooth operation</li>
-              </ul>
-
-              <h2>The Signature &quot;T&quot; Logo</h2>
-              <p>
-                The iconic <strong>&quot;T&quot; logo</strong> on the temples is more than just branding—it&apos;s a
-                status symbol. This distinctive detail:
-              </p>
-              <ul>
-                <li>Signals luxury and sophistication</li>
-                <li>Is crafted from polished metal for durability</li>
-                <li>Adds architectural interest to the frame design</li>
-                <li>Has become one of the most recognizable logos in eyewear</li>
-              </ul>
-
-              <h2>Price and Value</h2>
-              <p>
-                Tom Ford eyeglasses typically range from <strong>$400 to $800</strong> for optical frames. 
-                While expensive, they offer:
-              </p>
-
-              <h3>What You&apos;re Paying For:</h3>
-              <ul>
-                <li><strong>Brand prestige</strong> - Tom Ford name carries significant cachet</li>
-                <li><strong>Superior materials</strong> - Top-tier acetate and metals</li>
-                <li><strong>Italian craftsmanship</strong> - Handmade with attention to detail</li>
-                <li><strong>Timeless design</strong> - Won&apos;t look dated in 5-10 years</li>
-                <li><strong>Warranty and service</strong> - Comprehensive coverage and support</li>
-              </ul>
-
-              <h3>Investment Perspective:</h3>
-              <p>
-                At $500 average cost, worn daily for 7 years:
-              </p>
-              <ul>
-                <li><strong>Cost per day:</strong> $0.20</li>
-                <li><strong>Cost per wear:</strong> Less than a cup of coffee</li>
-                <li><strong>Resale value:</strong> Tom Ford frames retain 30-50% of value</li>
-              </ul>
-
-              <div className="bg-gradient-to-r from-gray-900 to-gray-700 text-white p-8 rounded-lg my-8">
-                <h3 className="text-2xl font-bold mb-4">Experience Tom Ford Virtually</h3>
-                <p className="mb-6">
-                  See how Tom Ford&apos;s luxury frames look on your face before investing. Try multiple 
-                  styles and colors with our AI-powered virtual try-on tool.
-                </p>
-                <Link
-                  href={localizedPath(params.locale, '/')}
-                  className="inline-block bg-white text-gray-900 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
-                >
-                  Try Tom Ford Styles →
-                </Link>
-              </div>
-
-              <h2>Who Should Buy Tom Ford?</h2>
-
-              <h3>Ideal For:</h3>
-              <ul>
-                <li><strong>Executives and professionals</strong> who want to project success</li>
-                <li><strong>Fashion enthusiasts</strong> who appreciate luxury brands</li>
-                <li><strong>Quality seekers</strong> who value craftsmanship over price</li>
-                <li><strong>Collectors</strong> who want investment-grade eyewear</li>
-              </ul>
-
-              <h3>Consider Alternatives If:</h3>
-              <ul>
-                <li>You&apos;re on a tight budget</li>
-                <li>You frequently lose or damage glasses</li>
-                <li>You prefer understated, logo-free designs</li>
-                <li>You change styles frequently</li>
-              </ul>
-
-              <h2>Styling Tom Ford Eyewear</h2>
-
-              <h3>Business Professional</h3>
-              <ul>
-                <li>Pair with tailored suits and dress shirts</li>
-                <li>Choose classic colors: black, tortoise, or dark havana</li>
-                <li>Keep other accessories minimal to let frames shine</li>
-              </ul>
-
-              <h3>Smart Casual</h3>
-              <ul>
-                <li>Works perfectly with blazers and designer jeans</li>
-                <li>Experiment with bolder frame colors</li>
-                <li>Coordinate with leather accessories</li>
-              </ul>
-
-              <h3>Creative Professional</h3>
-              <ul>
-                <li>Mix with contemporary fashion pieces</li>
-                <li>Try unique colorways and patterns</li>
-                <li>Use as a statement piece in your outfit</li>
-              </ul>
-
-              <h2>Where to Buy</h2>
-              <p>
-                Purchase from authorized retailers to ensure authenticity:
-              </p>
-              <ul>
-                <li>
-                  <a href="https://www.tomford.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Tom Ford official website</a> - Full selection, direct warranty
-                </li>
-                <li>
-                  <a href="https://www.lenscrafters.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">LensCrafters</a> - Authorized retailer with professional fitting
-                </li>
-                <li><strong>Sunglass Hut</strong> - Wide availability</li>
-                <li><strong>Neiman Marcus, Nordstrom</strong> - Luxury department stores</li>
-                <li><strong>Local authorized opticians</strong> - Personalized service</li>
-              </ul>
-
-              <div className="bg-yellow-50 border-s-4 border-yellow-400 p-6 my-8">
-                <h3 className="text-lg font-bold text-yellow-900 mb-2">⚠️ Beware of Counterfeits</h3>
-                <p className="text-gray-800 mb-0">
-                  Tom Ford is one of the most counterfeited eyewear brands. Always buy from authorized
-                  retailers. Check for: quality &quot;T&quot; logo, proper packaging, authentication cards, and
-                  serial numbers inside the temple.
-                </p>
-              </div>
-
-              <h2>Care and Maintenance</h2>
-              <ul>
-                <li><strong>Clean daily</strong> with microfiber cloth and proper lens cleaner</li>
-                <li><strong>Store in original case</strong> when not wearing</li>
-                <li><strong>Avoid extreme temperatures</strong> to prevent acetate warping</li>
-                <li><strong>Professional adjustments</strong> at authorized retailers</li>
-                <li><strong>Annual servicing</strong> to maintain optimal condition</li>
-              </ul>
-
-              <h2>Celebrity Endorsements</h2>
-              <p>
-                Tom Ford eyewear is favored by numerous celebrities and influencers:
-              </p>
-              <ul>
-                <li><strong>Ryan Gosling</strong> - Frequently spotted in Tom Ford frames</li>
-                <li><strong>Beyoncé</strong> - Wears Tom Ford for red carpet events</li>
-                <li><strong>Daniel Craig</strong> - Wore Tom Ford in James Bond films</li>
-                <li><strong>Jennifer Lopez</strong> - Regular Tom Ford eyewear wearer</li>
-              </ul>
-              <p>
-                This celebrity association adds to the brand&apos;s prestige and desirability.
-              </p>
-
-              <h2>Conclusion</h2>
-              <p>
-                <strong>Tom Ford eyewear</strong> represents the pinnacle of luxury eyeglasses. With 
-                exceptional craftsmanship, timeless designs, and undeniable prestige, these frames are 
-                an investment in both style and quality. While the price point is high, the combination 
-                of superior materials, Italian craftsmanship, and iconic design makes Tom Ford a worthwhile 
-                choice for those who can afford it.
-              </p>
-              <p>
-                Whether you choose the square FT5304, the classic FT5401, or any other Tom Ford style,
-                you&apos;re investing in eyewear that will serve you well for years while making a 
-                sophisticated style statement.
-              </p>
-              <p className="font-bold text-lg mt-6">
-                Ready to experience luxury eyewear? Explore Tom Ford styles with our virtual try-on tool today! Also check out our <Link href={localizedPath(params.locale, '/blog/oliver-peoples-finley-vintage-review')} className="text-blue-600 hover:text-blue-800">Oliver Peoples Finley Vintage review</Link> and <Link href={localizedPath(params.locale, '/blog/celebrity-glasses-style-guide-2025')} className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link> for more luxury eyewear inspiration.
-              </p>
-            </div>
-
-            <div className="p-8 bg-gray-50 border-t">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <BlogTags tags={articleTags} />
-                <Link
-                  href={localizedPath(params.locale, '/')}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Try Tom Ford Virtually
-                </Link>
-              </div>
-            </div>
-          </article>
-        </main>
-      </div>
-    </>
+    <main className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(article) }} />
+      <Breadcrumbs items={[{ name: 'Blog', url: localizedPath(locale, '/blog') }, { name: title }]} />
+      <article lang="en" dir="ltr" className="mt-6">
+        <header>
+          <h1 className="text-3xl font-bold leading-tight text-slate-950 sm:text-5xl">{title}</h1>
+          <p className="mt-4 text-lg leading-8 text-slate-700">
+            Two square black frames can look alike head-on. A side view, a model code and three measurements will tell you whether two sellers are showing the same Tom Ford frame.
+          </p>
+          <p className="mt-3 text-sm text-slate-600">
+            VisuTry Team · Published <time dateTime={publishedAt}>October 21, 2025</time> · Updated <time dateTime={updatedAt}>November 16, 2026</time>
+          </p>
+        </header>
+        <figure className="my-7">
+          <Image src={cover.src} alt={cover.alt} width={cover.width} height={cover.height} priority
+            sizes="(min-width: 768px) 704px, calc(100vw - 40px)" className="mx-auto h-auto max-h-80 w-full object-contain" />
+          <figcaption className="mt-2 text-sm text-slate-600">VisuTry’s unbranded square frame illustrates a thick, dark outline. See the linked Tom Ford photographs for the FT5304.</figcaption>
+        </figure>
+        <div className="prose prose-slate max-w-none prose-a:text-blue-700">
+          <h2>Start with one model and one color</h2>
+          <p>
+            The black FT5304 is a square optical frame. Tom Ford specifies a shiny black finish, a
+            rose-gold-colored T at the temple, engraved stripes on the outer temples and a spring
+            hinge. The side photograph is particularly useful here. The engraving and T detail are
+            easier to see from that angle than in the front view. <a href="https://www.tomfordfashion.com/en-us/square-optical-frame/FT5304-F001.html">Tom Ford FT5304 in black, with product photographs and specifications</a>.
+          </p>
+          <h2>Use 54–19–145 to compare listings</h2>
+          <p>
+            For this version Tom Ford lists 54–19–145. These are the lens width, bridge width and
+            temple length in millimeters. Copy all three alongside the model and color. A second
+            seller might use “square black glasses” for a different model, or put the size in a
+            drop-down below the photographs.
+          </p>
+          <p>
+            If your current pair is marked 52–19–145, the listed lens width is 2 mm wider on each side
+            and the other two numbers match. The outline, rims and hinges still affect the overall
+            width. Ask for the outside width and try the pair on if your usual frames press at the
+            temples.
+          </p>
+          <h2>Decide which detail is worth paying for</h2>
+          <p>
+            If the side hardware is what caught your eye, include the side view when saving the
+            listing. If you mainly like the bold square front, compare its outline with an unbranded
+            square frame on the same portrait. A <Link href={localizedPath(locale, '/try-glasses-on-photo')}>photo
+            try-on with your own frame image</Link> can help you decide which proportions you prefer.
+          </p>
+          <p>
+            Compare like-for-like totals from the sellers you are considering. Include the selected
+            lenses, delivery and any aftercare you would use. Ask who handles adjustments or replacement
+            parts and what happens if you return the prescription lenses. Save the item reference and
+            written terms with your quote.
+          </p>
+        </div>
+        <footer className="mt-8 border-t pt-4"><BlogTags locale={locale} tags={articleTags} /></footer>
+      </article>
+    </main>
   )
 }

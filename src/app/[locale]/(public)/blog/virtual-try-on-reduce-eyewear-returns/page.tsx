@@ -1,24 +1,28 @@
 import { framePhotoGuide, inventoryCatalogGuide } from '@/config/business-resources'
+import { blogArt } from '@/config/blog-art'
 import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from '@/components/layout/PublicLink'
 import { BarChart3, CheckCircle2, PackageCheck, ShoppingCart, UserCheck } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 import { localizedPath } from '@/lib/localized-path'
 
 export const dynamic = 'force-static'
 
 const title = 'How to Test Whether Virtual Try-On Reduces Eyewear Returns'
 const description = 'Measure whether photo try-on reduces style-related frame returns. Compare delivered units, return reasons and matched products over a complete return window.'
-const coverImage = '/blog-covers/virtual-try-on-reduce-returns.jpg'
+const cover = blogArt['virtual-try-on-reduce-eyewear-returns']
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as any,
     title,
     description,
-    image: coverImage,
+    image: cover.src,
+    imageAlt: cover.alt,
+    imageWidth: cover.width,
+    imageHeight: cover.height,
     pathname: '/blog/virtual-try-on-reduce-eyewear-returns',
     type: 'article',
   })
@@ -30,7 +34,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt: '2026-05-27T10:00:00Z',
   modifiedAt: '2026-11-15T00:00:00Z',
   author: 'VisuTry Team',
-  image: coverImage,
+  image: `${SITE_CONFIG.url}${cover.src}`,
 })
 
 const benefits = [
@@ -79,16 +83,14 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             />
           </div>
 
-          <article className="mx-auto max-w-4xl overflow-hidden rounded-lg bg-white shadow-lg">
-            <div className="relative h-72 w-full overflow-hidden md:h-96">
-              <Image
-                src={coverImage}
-                alt="Ecommerce dashboard showing virtual eyewear try-on and returns analytics"
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
+          <article lang="en" dir="ltr" className="mx-auto max-w-4xl overflow-hidden rounded-lg bg-white shadow-lg">
+            <figure>
+              <Image src={cover.src} alt={cover.alt} width={cover.width} height={cover.height}
+                sizes="(min-width: 896px) 896px, 100vw" className="h-auto w-full" priority />
+              <figcaption className="px-8 pt-3 text-sm text-gray-600">
+                Editorial illustration. Use your store’s delivered orders and recorded returns for the comparison.
+              </figcaption>
+            </figure>
 
             <div className="border-b p-8">
               <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-600">
