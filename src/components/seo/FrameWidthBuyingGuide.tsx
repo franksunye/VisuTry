@@ -2,6 +2,8 @@
 // https://www.warbyparker.com/learn/how-should-glasses-fit
 // https://www.eyebuydirect.com/guides/frame-measurements
 // The frame numbers describe lens/bridge/temple dimensions, not outer width.
+import { FrameSizeCompareTool } from '@/components/seo/FrameSizeCompareTool'
+
 const frameSizeMarks = [
   { mark: '52', measurement: 'Lens width', meaning: 'Width of one lens, in millimeters.' },
   { mark: '18', measurement: 'Bridge width', meaning: 'Gap between the lenses, in millimeters.' },
@@ -69,6 +71,8 @@ export function FrameWidthBuyingGuide() {
           Look for the retailer&apos;s <strong>overall frame width</strong>, or measure a well-fitting frame from outermost edge to outermost edge, including rims and end pieces.
         </p>
       </div>
+
+      <FrameSizeCompareTool />
 
       <h3 className="mt-8 text-xl font-semibold text-gray-950">Four checks you can make before choosing a size</h3>
       <div className="mt-4 grid gap-4 md:grid-cols-2">

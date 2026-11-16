@@ -41,6 +41,8 @@ export const AnalyticsEvent = {
   ComparisonCreated: 'comparison_created',
   ComparisonCompleted: 'comparison_completed',
   FrameFavorited: 'frame_favorited',
+  // Existing-guide, browser-only frame-marking comparison (no personal dimensions).
+  FrameSizeCompared: 'frame_size_compared',
 
   PurchaseIntentClicked: 'purchase_intent_clicked',
   PaywallViewed: 'paywall_viewed',
