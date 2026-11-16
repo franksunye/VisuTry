@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { trackCampaignEvent } from '@/lib/analytics-v2'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 import { compareFrameMarks, parseFrameMark, type FrameDifference } from '@/lib/frame-size-compare'
@@ -21,6 +21,10 @@ export function FrameSizeCompareTool() {
   const [candidate, setCandidate] = useState('')
   const [difference, setDifference] = useState<FrameDifference | null>(null)
   const [error, setError] = useState('')
+  // An SSR button with no hydrated handler silently ignores a fast first tap.
+  // Leave it disabled until React has attached the input and click handlers.
+  const [ready, setReady] = useState(false)
+  useEffect(() => setReady(true), [])
 
   function compare() {
     const oldMark = parseFrameMark(current)
@@ -84,8 +88,8 @@ export function FrameSizeCompareTool() {
           />
         </div>
       </div>
-      <button type="button" onClick={compare}
-        className="mt-4 rounded-lg bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+      <button type="button" onClick={compare} disabled={!ready}
+        className="mt-4 rounded-lg bg-blue-600 px-5 py-2.5 font-semibold text-white hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:cursor-wait disabled:opacity-60">
         Compare markings
       </button>
       {error ? <p role="alert" className="mt-3 text-sm font-medium text-red-700">{error}</p> : null}

@@ -18,6 +18,8 @@ for (const view of [
     const previous = section.getByRole('textbox', { name: 'Your current pair' })
     const candidate = section.getByRole('textbox', { name: 'Frame you are considering' })
     const action = section.getByRole('button', { name: 'Compare markings' })
+    // Avoid checking the SSR shell before its client event handlers are attached.
+    await expect(action).toBeEnabled()
 
     // Only observe requests initiated after the page has loaded; a comparison
     // must not call any AI, media or Vercel analytics API.

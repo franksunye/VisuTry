@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { FrameSizeCompareTool } from '@/components/seo/FrameSizeCompareTool'
 import { trackCampaignEvent } from '@/lib/analytics-v2'
 
@@ -6,6 +7,11 @@ jest.mock('@/lib/analytics-v2', () => ({ trackCampaignEvent: jest.fn() }))
 
 describe('FrameSizeCompareTool', () => {
   beforeEach(() => jest.clearAllMocks())
+
+  it('is disabled in server HTML until hydration attaches handlers', () => {
+    const html = renderToStaticMarkup(<FrameSizeCompareTool />)
+    expect(html).toMatch(/<button[^>]*disabled=""/)
+  })
 
   it('compares printed dimensions locally and emits one privacy-safe event', () => {
     render(<FrameSizeCompareTool />)
