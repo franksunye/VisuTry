@@ -1,9 +1,18 @@
 # Blog Cover Images Credits
 
 Most legacy images are sourced from Unsplash.com and are free to use under the Unsplash License.
-New 2026 blog covers were generated with Codex imagegen for VisuTry.
+The article-to-image mapping and captions are maintained in `src/config/blog-art.ts`. Editorial images illustrate workflows and styles. The brand guides link to the manufacturer for exact model photos.
 
-## Image Sources
+## Current additions · November 16, 2026
+
+| File | Source and subject |
+| --- | --- |
+| ordering-prescription-glasses.webp | VisuTry-generated editorial scene of frames, an online catalog and a parcel. |
+| optical-and-sunglass-styles.webp | VisuTry-generated editorial arrangement of four optical and sunglass styles. |
+| visutry-social.jpg | Landscape version of the VisuTry brand mark used for sharing. |
+
+
+## Earlier image sources
 
 ### 1. face-shape-guide.jpg
 - **Source**: Unsplash
@@ -14,13 +23,13 @@ New 2026 blog covers were generated with Codex imagegen for VisuTry.
 ### 2. ai-virtual-tryon.jpg
 - **Source**: Unsplash
 - **Photo ID**: photo-1556306535-0f09a537f0a3
-- **Description**: Technology and AI concept
+- **Description**: Gray baseball cap. Retired as a try-on cover and share image.
 - **License**: Unsplash License (Free to use)
 
 ### 3. rayban-guide.jpg
 - **Source**: Unsplash
 - **Photo ID**: photo-1509695507497-903c140c43b0
-- **Description**: Stylish sunglasses display
+- **Description**: Legacy stock image. The Ray-Ban guide now uses a labeled VisuTry style example.
 - **License**: Unsplash License (Free to use)
 
 ### 4. celebrity-style.jpg
@@ -32,39 +41,39 @@ New 2026 blog covers were generated with Codex imagegen for VisuTry.
 ### 5. oliver-peoples-review.jpg
 - **Source**: Unsplash
 - **Photo ID**: photo-1577803645773-f96470509666
-- **Description**: Premium eyewear display
+- **Description**: Gold aviator sunglasses. Retired as the Finley Vintage cover.
 - **License**: Unsplash License (Free to use)
 
 ### 6. tom-ford-luxury.jpg
 - **Source**: Unsplash
 - **Photo ID**: photo-1622445275463-afa2ab738c34
-- **Description**: Luxury eyewear concept
+- **Description**: Person in a white shirt and cap. Retired as the Tom Ford cover.
 - **License**: Unsplash License (Free to use)
 
 ### 7. acetate-vs-plastic.jpg
 - **Source**: Unsplash
 - **Photo ID**: photo-1588200908342-23b585c03e26
-- **Description**: Eyeglass frames materials
+- **Description**: Computer monitor. Retired as the frame-materials cover.
 - **License**: Unsplash License (Free to use)
 
 ### 8. browline-clubmaster.jpg
 - **Source**: Unsplash
 - **Photo ID**: photo-1511499767150-a48a237f0083
-- **Description**: Classic eyewear style
+- **Description**: Round sunglasses. Retired as the browline cover.
 - **License**: Unsplash License (Free to use)
 
 ### 9. prescription-online-shopping.jpg
 - **Source**: Unsplash
 - **Photo ID**: photo-1441986300917-64674bd600d8
-- **Description**: Shopping and retail concept
+- **Description**: Clothing shop. Retired as the prescription-shopping cover.
 - **License**: Unsplash License (Free to use)
 
-### 10. ai-virtual-tryon-tools-2026.png
+### 10. ai-virtual-tryon-tools-2026.jpg
 - **Source**: Codex imagegen
 - **Description**: Editorial cover for evaluating AI virtual try-on tools in 2026
 - **Prompt summary**: Premium SaaS-style ecommerce workspace with laptop and phone virtual eyewear try-on previews, no brand logos or readable text
 
-### 11. virtual-try-on-reduce-returns.png
+### 11. virtual-try-on-reduce-returns.jpg
 - **Source**: Codex imagegen
 - **Description**: Editorial cover for virtual try-on reducing eyewear ecommerce returns
 - **Prompt summary**: Ecommerce operations dashboard, eyewear frames, shipping boxes, and returns workflow visuals, no brand logos or readable text
@@ -86,4 +95,4 @@ For more information, visit: https://unsplash.com/license
 
 ---
 
-**Last Updated**: May 27, 2026
+**Last updated** November 16, 2026

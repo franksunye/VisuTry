@@ -103,7 +103,7 @@ export const SITE_CONFIG = {
   title: 'VisuTry - Free Face Shape Detector & Virtual Glasses Try-On',
   description: VISUTRY_POSITIONING.organization,
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com',
-  ogImage: '/blog-covers/ai-virtual-tryon.jpg',
+  ogImage: '/blog-covers/visutry-social.jpg',
   logo: '/assets/marketing/visutry-new-logo.png',
   keywords: ALL_KEYWORDS,
   author: 'VisuTry Team',
@@ -311,7 +311,7 @@ export function generateStructuredData(
         ...baseData,
         name: SITE_CONFIG.name,
         url: SITE_CONFIG.url,
-        logo: `${SITE_CONFIG.url}${SITE_CONFIG.ogImage}`,
+        logo: `${SITE_CONFIG.url}${SITE_CONFIG.logo}`,
         description: SITE_CONFIG.description,
         sameAs: [
           'https://twitter.com/visutry',
