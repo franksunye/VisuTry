@@ -221,3 +221,16 @@ jobs:
 
       - name: Revenue Critical Browser Gate
         run: npm run test:e2e:revenue-critical
+
+      # E1 Consumer acquisition prototype must be tested in a real browser.
+      # The local Next.js mock server never contacts production services.
+      - name: Consumer Frame Size Browser Gate (desktop and 430x932)
+        run: npx playwright test tests/e2e/consumer-frame-size-comparator.spec.ts --project=chromium --workers=1
+
+      - name: Upload Consumer Frame Size QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-frame-size-browser-${{ github.run_id }}
+          path: test-results/frame-size-*.png
+          if-no-files-found: ignore

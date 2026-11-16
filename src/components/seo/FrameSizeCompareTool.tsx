@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { trackCampaignEvent } from '@/lib/analytics-v2'
+import { AnalyticsEvent } from '@/lib/analytics-events'
 import { compareFrameMarks, parseFrameMark, type FrameDifference } from '@/lib/frame-size-compare'
 
 const SOURCE_PAGE = '/en/glasses-guide/how-wide-should-glasses-be-for-my-face'
@@ -31,7 +32,7 @@ export function FrameSizeCompareTool() {
     }
     setError('')
     setDifference(compareFrameMarks(oldMark, newMark))
-    trackCampaignEvent('frame_size_compared', {
+    trackCampaignEvent(AnalyticsEvent.FrameSizeCompared, {
       entry_point: 'consumer',
       source_page: SOURCE_PAGE,
       query_cluster: 'frame-width-fit',
