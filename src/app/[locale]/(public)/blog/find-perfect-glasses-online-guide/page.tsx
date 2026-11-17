@@ -87,7 +87,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               <p><Link href={localizedPath(params.locale, '/try-on/glasses')}>Preview your two frame choices</Link>.</p>
               <h2>Choose the right virtual comparison method</h2>
               <p>
-                For exact retail frames, generate separate Virtual Try-On previews with your own portrait and each product's front-facing photo. For early style discovery, Frame Compare generates up to four <strong>built-in presets</strong> on one portrait; it does not fetch the exact store products from your screenshots. Neither method measures physical comfort.
+                For exact retail frames, generate separate Virtual Try-On previews with your own portrait and each product’s front-facing photo. For early style discovery, Frame Compare generates up to four <strong>built-in presets</strong> on one portrait; it does not fetch the exact store products from your screenshots. Neither method measures physical comfort.
               </p>
               <p>
                 Use <Link href={localizedPath(params.locale, '/try-on/glasses')}>your own specific product photo</Link> or <Link href={localizedPath(params.locale, '/try-on/glasses/compare')}>compare preset frame directions</Link>, then check seller measurements.
