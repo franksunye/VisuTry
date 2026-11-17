@@ -6,6 +6,7 @@
 import { blogArt } from '@/config/blog-art'
 import { locales, type Locale } from '@/i18n'
 import { getAiGlassesAdvisorArticleCopy } from '@/config/ai-glasses-advisor-article-locales'
+import { getPrescriptionTryOnArticleCopy, PRESCRIPTION_TRYON_PUBLISHED_LOCALES } from '@/config/prescription-tryon-article-locales'
 
 export interface BlogPost {
   slug: string
@@ -241,7 +242,9 @@ export const staticBlogPosts: BlogPost[] = [
  * are English text under an otherwise localized navigation/footer shell.
  */
 export function getBlogArticleLocales(slug: string): readonly Locale[] {
-  return slug === 'ai-face-analysis-for-glasses-guide' ? locales : ['en']
+  if (slug === 'ai-face-analysis-for-glasses-guide') return locales
+  if (slug === 'prescription-glasses-virtual-tryon-guide') return PRESCRIPTION_TRYON_PUBLISHED_LOCALES
+  return ['en']
 }
 
 /** Indexes link directly to an article's canonical published language. */
@@ -259,15 +262,30 @@ export async function getAllBlogPosts(locale = 'en'): Promise<BlogPost[]> {
   // Currently returns static articles, can be fetched from database in the future
   return staticBlogPosts
     .filter(post => post.isPublished)
-    .map((post) => post.slug === 'ai-face-analysis-for-glasses-guide'
-      ? {
+    .map((post) => {
+      if (post.slug === 'ai-face-analysis-for-glasses-guide') {
+        return {
           ...post,
           title: advisorCopy.metaTitle,
           description: advisorCopy.metaDescription,
           category: advisorCopy.articleLabel,
           readTime: advisorCopy.readTime,
         }
-      : post)
+      }
+      // Only show native translated article cards for published body locales.
+      if (post.slug === 'prescription-glasses-virtual-tryon-guide'
+          && (locale === 'es' || locale === 'fr')) {
+        const copy = getPrescriptionTryOnArticleCopy(locale)
+        return {
+          ...post,
+          title: copy.title,
+          description: copy.description,
+          category: copy.category,
+          readTime: copy.readTime,
+        }
+      }
+      return post
+    })
     .sort((a, b) => {
       const dateA = new Date(a.modifiedAt || a.publishedAt).getTime()
       const dateB = new Date(b.modifiedAt || b.publishedAt).getTime()

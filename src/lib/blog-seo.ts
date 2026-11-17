@@ -18,16 +18,20 @@ export function generateBlogArticleSEO(input: SeoInput): Metadata {
   const articleLocales = getBlogArticleLocales(pathname.slice('/blog/'.length))
   const metadata = generateI18nSEO({ ...input, availableLocales: articleLocales })
 
-  if (articleLocales.length > 1 || input.locale === 'en') {
+  if (articleLocales.includes(input.locale)) {
     return metadata
   }
 
   const englishUrl = new URL(`/en${pathname}`, SITE_CONFIG.url).toString()
+  const validLanguages = Object.fromEntries(
+    articleLocales.map((locale) => [locale, new URL(`/${locale}${pathname}`, SITE_CONFIG.url).toString()]),
+  )
+  validLanguages['x-default'] = englishUrl
   return {
     ...metadata,
     alternates: {
       canonical: englishUrl,
-      languages: { en: englishUrl, 'x-default': englishUrl },
+      languages: validLanguages,
     },
     openGraph: {
       ...metadata.openGraph,
