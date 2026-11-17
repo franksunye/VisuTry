@@ -21,6 +21,13 @@ export type NativeEditorialCopy = {
   sections: readonly { heading: string; paragraphs: readonly string[]; bullets?: readonly string[] }[]
   faq?: readonly { question: string; answer: string }[]
   sources?: readonly { label: string; url: string }[]
+  comparisonTable?: {
+    caption: string
+    headers: readonly [string, string, string]
+    rows: readonly { name: string; source: string; method: string }[]
+  }
+  /** Merchant research articles use measurement CTAs rather than consumer credits. */
+  merchantCta?: { href: string; label: string; notes: string }
   tryOnLabel: string
   detectorLabel: string
   compareLabel: string
@@ -86,6 +93,25 @@ export function NativeEditorialArticle({
                 {section.bullets && <ul className="space-y-2">{section.bullets.map((bullet,index) => <li key={index}>{bullet}</li>)}</ul>}
               </section>
             ))}
+            {copy.comparisonTable && (
+              <div className="w-full overflow-x-auto" data-native-comparison="true">
+                <table className="w-full min-w-[480px] border-collapse text-start text-sm">
+                  <caption className="pb-3 text-start text-slate-600">{copy.comparisonTable.caption}</caption>
+                  <thead><tr className="border-y bg-slate-50">
+                    {copy.comparisonTable.headers.map(header => <th key={header} scope="col" className="px-3 py-3 text-start">{header}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {copy.comparisonTable.rows.map(row => (
+                      <tr key={row.name} className="border-b">
+                        <th scope="row" className="px-3 py-3 text-start">{row.name}</th>
+                        <td className="px-3 py-3">{row.source}</td>
+                        <td className="px-3 py-3">{row.method}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             {copy.faq && copy.faq.length > 0 && (
               <section className="space-y-3">
                 {copy.faq.map(item => (
@@ -104,6 +130,15 @@ export function NativeEditorialArticle({
                 ))}
               </div>
             )}
+            {copy.merchantCta && (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-3">
+                <p className="text-sm text-slate-700">{copy.merchantCta.notes}</p>
+                <Link href={copy.merchantCta.href} prefetch={false} className="font-semibold text-blue-700 underline underline-offset-2">
+                  {copy.merchantCta.label}
+                </Link>
+              </div>
+            )}
+            {!copy.merchantCta && (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-3">
               <p className="text-sm text-slate-700">{copy.creditDisclosure}</p>
               <div className="flex flex-wrap gap-x-5 gap-y-3 text-sm font-semibold text-blue-700">
@@ -117,6 +152,7 @@ export function NativeEditorialArticle({
                 <Link href={localizedPath(locale, '/try-on/glasses/compare')}>{copy.compareLabel}</Link>
               </div>
             </div>
+            )}
             <p className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-blue-700">
               <Link href={localizedPath(locale, '/glasses-guide/how-wide-should-glasses-be-for-my-face')}>{copy.widthLabel}</Link>
               <Link href={blogPostPath(locale, relatedSlug)}>{copy.relatedLabel}</Link>
