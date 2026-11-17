@@ -51,10 +51,10 @@ for (const viewport of [{ label: 'desktop', width: 1440, height: 900 }, { label:
 }
 
 test('JA legacy non-translated article still prefers its English canonical', async ({ page }) => {
-  const untranslated = 'best-ai-virtual-glasses-tryon-tools-2025'
+  const untranslated = 'rayban-glasses-virtual-tryon-guide'
   const response = await page.goto('/ja/blog/' + untranslated, { waitUntil: 'domcontentloaded' })
   expect(response?.status()).toBe(200)
-  await expect(page.locator('article[lang="en"]')).toHaveCount(1)
+  await expect(page.locator('main[lang="en"]')).toHaveCount(1)
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href', 'https://www.visutry.com/en/blog/' + untranslated,
   )
