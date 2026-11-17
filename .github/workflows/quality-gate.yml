@@ -227,6 +227,19 @@ jobs:
       - name: GEO Try-On Hero Handoff Browser Gate (desktop and mobile)
         run: npx playwright test tests/e2e/vercel-cpu-p0-try-on-static.spec.ts --project=chromium --workers=1
 
+      # GEO: visible, schema-consistent, English-only shopping answers on FAQ.
+      # Anonymous public Chrome desktop/mobile; no auth, data writes, or provider calls.
+      - name: GEO FAQ Task Answers Browser Gate (desktop and mobile)
+        run: npx playwright test tests/e2e/geo-faq-task-answers.spec.ts --project=chromium --workers=1
+
+      - name: Upload GEO FAQ QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geo-faq-browser-${{ github.run_id }}
+          path: test-results/geo-faq-*.png
+          if-no-files-found: ignore
+
       # E1 Consumer acquisition prototype must be tested in a real browser.
       # The local Next.js mock server never contacts production services.
       - name: Consumer Frame Size Browser Gate (desktop and 430x932)

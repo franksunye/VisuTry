@@ -4,6 +4,7 @@ import { ArrowRight, Glasses, Grid2X2, ScanFace, Shield, Sparkles } from 'lucide
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { Locale } from '@/i18n'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { EnglishEyewearDecisionFaq, ENGLISH_EYEWEAR_DECISION_FAQS } from '@/components/seo/EnglishEyewearDecisionFaq'
 
 type Props = {
   params: { locale: string }
@@ -56,7 +57,13 @@ export default async function FaqPage({ params }: Props) {
       ],
     },
   ]
-  const allFaqItems = faqGroups.flatMap((group) => group.items)
+  const allFaqItems = [
+    ...faqGroups.flatMap((group) => group.items),
+    // Add the same visible English-only answers to existing FAQPage JSON-LD.
+    ...(params.locale === 'en'
+      ? ENGLISH_EYEWEAR_DECISION_FAQS.map(({ question, answer }) => ({ question, answer }))
+      : []),
+  ]
   const faqSchema = generateStructuredData('faqPage', {
     questions: allFaqItems,
   })
@@ -106,6 +113,14 @@ export default async function FaqPage({ params }: Props) {
                 {group.title}
               </a>
             ))}
+            {params.locale === 'en' && (
+              <a
+                href="#eyewear-shopping-decisions"
+                className="block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+              >
+                Online eyewear decisions
+              </a>
+            )}
           </div>
         </aside>
 
@@ -125,6 +140,8 @@ export default async function FaqPage({ params }: Props) {
               </div>
             </div>
           ))}
+
+          {params.locale === 'en' && <EnglishEyewearDecisionFaq />}
 
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
             <div className="flex items-start gap-3">
