@@ -8,6 +8,7 @@ import { GET as blogSitemap } from '@/app/sitemaps/blog.xml/route'
 
 const translated = 'ai-face-analysis-for-glasses-guide'
 const rayBan = 'rayban-glasses-virtual-tryon-guide'
+const spanishFrench = 'prescription-glasses-virtual-tryon-guide'
 const englishOnly = 'acetate-vs-plastic-eyeglass-frames-guide'
 
 describe('published blog locale contract', () => {
@@ -17,7 +18,8 @@ describe('published blog locale contract', () => {
     expect(getBlogArticleLocales(translated)).toEqual(locales)
     expect(getBlogArticleLocales(rayBan)).toEqual(['en'])
     expect(getBlogArticleLocales(englishOnly)).toEqual(['en'])
-    expect(posts.reduce((sum, post) => sum + getBlogArticleLocales(post.slug).length, 0)).toBe(22)
+    expect(getBlogArticleLocales(spanishFrench)).toEqual(['en', 'es', 'fr'])
+    expect(posts.reduce((sum, post) => sum + getBlogArticleLocales(post.slug).length, 0)).toBe(24)
   })
 
   it('uses the canonical language from blog and tag indexes', () => {
@@ -25,6 +27,8 @@ describe('published blog locale contract', () => {
     expect(blogPostPath('fr', englishOnly)).toBe('/en/blog/' + englishOnly)
     expect(blogPostPath('ja', rayBan)).toBe('/en/blog/' + rayBan)
     expect(blogPostPath('en', englishOnly)).toBe('/en/blog/' + englishOnly)
+    expect(blogPostPath('es', spanishFrench)).toBe('/es/blog/' + spanishFrench)
+    expect(blogPostPath('de', spanishFrench)).toBe('/en/blog/' + spanishFrench)
   })
 
   it('keeps old pages indexable but prefers English for an untranslated article', () => {
@@ -45,26 +49,39 @@ describe('published blog locale contract', () => {
     expect(native.alternates?.languages).toEqual(expect.objectContaining({
       en: expect.any(String), fr: expect.any(String), ja: expect.any(String),
     }))
+    const spanish = generateBlogArticleSEO({ ...common, locale: 'es', pathname: '/blog/' + spanishFrench })
+    expect(spanish.alternates?.canonical).toBe('https://www.visutry.com/es/blog/' + spanishFrench)
+    expect(spanish.alternates?.languages).toEqual(expect.objectContaining({
+      en: expect.any(String), es: expect.any(String), fr: expect.any(String),
+    }))
+    const fallback = generateBlogArticleSEO({ ...common, locale: 'ja', pathname: '/blog/' + spanishFrench })
+    expect(fallback.alternates?.canonical).toBe('https://www.visutry.com/en/blog/' + spanishFrench)
+    expect(fallback.alternates?.languages?.ja).toBeUndefined()
+    expect(fallback.alternates?.languages?.es).toBe('https://www.visutry.com/es/blog/' + spanishFrench)
+
     expect(() => generateBlogArticleSEO({ ...common, locale: 'en', pathname: '/other' })).toThrow()
   })
 
-  it('emits 22 true article-language sitemap URLs rather than 118 duplicated shells', async () => {
+  it('emits 24 true article-language sitemap URLs rather than 118 duplicated shells', async () => {
     const response = await blogSitemap()
     expect(response.status).toBe(200)
     const xml = await response.text()
-    expect((xml.match(/<loc>/g) || [])).toHaveLength(22)
+    expect((xml.match(/<loc>/g) || [])).toHaveLength(24)
     expect(xml).toContain('https://www.visutry.com/en/blog/' + englishOnly)
     expect(xml).not.toContain('https://www.visutry.com/fr/blog/' + englishOnly)
     expect(xml).not.toContain('https://www.visutry.com/ja/blog/' + rayBan)
+    expect(xml).toContain('https://www.visutry.com/es/blog/' + spanishFrench)
+    expect(xml).toContain('https://www.visutry.com/fr/blog/' + spanishFrench)
+    expect(xml).not.toContain('https://www.visutry.com/ja/blog/' + spanishFrench)
     for (const locale of locales) {
       expect(xml).toContain(`https://www.visutry.com/${locale}/blog/${translated}`)
     }
   })
 
-  it('binds all twelve English-body article metadata owners to the centralized policy', async () => {
+  it('binds all remaining eleven English-only article metadata owners to the centralized policy', async () => {
     const posts = await getAllBlogPosts()
     const slugs = posts.filter((p) => getBlogArticleLocales(p.slug).length === 1 && p.slug !== rayBan)
-    expect(slugs).toHaveLength(12)
+    expect(slugs).toHaveLength(11)
     for (const post of slugs) {
       const source = fs.readFileSync(path.join(
         process.cwd(), 'src', 'app', '[locale]', '(public)', 'blog', post.slug, 'page.tsx',

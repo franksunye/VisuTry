@@ -252,6 +252,18 @@ jobs:
           path: test-results/geo-sitewide-*.png
           if-no-files-found: ignore
 
+      # SEO P1: actual ES/FR editorial localization, metadata, CTAs and EN fallback.
+      - name: Native ES-FR Blog Browser Gate (desktop and mobile)
+        run: npx playwright test tests/e2e/seo-native-blog-prescription.spec.ts --project=chromium --workers=1
+
+      - name: Upload Localized Blog QA Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-blog-localization-${{ github.run_id }}
+          path: test-results/seo-blog-*.png
+          if-no-files-found: ignore
+
       # E1 Consumer acquisition prototype must be tested in a real browser.
       # The local Next.js mock server never contacts production services.
       - name: Consumer Frame Size Browser Gate (desktop and 430x932)
