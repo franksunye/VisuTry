@@ -12,6 +12,9 @@ export type LocalizedRetailArticle = Pick<
   readTime: string
   /** Brand/source labels are localized too; URLs point to original primary evidence. */
   sources?: NativeEditorialCopy['sources']
+  comparisonTable?: NativeEditorialCopy['comparisonTable']
+  merchantCta?: NativeEditorialCopy['merchantCta']
+  faq?: NativeEditorialCopy['faq']
   /** Related article is already localized or the English-only fallback is explicitly disclosed. */
   relatedLabel?: string
 }
