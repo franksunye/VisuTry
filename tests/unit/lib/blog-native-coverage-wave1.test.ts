@@ -63,7 +63,7 @@ describe('SEO P1 native coverage wave 1: 30 full article-language editions', () 
     expect(posts.filter(post => getBlogArticleLocales(post.slug).length === 9)).toHaveLength(13)
     expect(posts.reduce((n, post) => n + getBlogArticleLocales(post.slug).length, 0)).toBe(118)
     expect(getBlogArticleLocales('rayban-glasses-virtual-tryon-guide')).toEqual(['en'])
-    expect(getBlogArticleLocales('best-ai-virtual-glasses-tryon-tools-2025')).toEqual(['en'])
+    expect(getBlogArticleLocales('best-ai-virtual-glasses-tryon-tools-2025')).toEqual(locales)
   })
 
   it('localizes the blog index, marks English-only articles, and reflects native card copy', async () => {
