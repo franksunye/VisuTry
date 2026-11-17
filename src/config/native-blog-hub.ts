@@ -9,6 +9,7 @@ export type NativeBlogHubText = {
   width: string
   detector: string
   onlyEnglish: string
+  readMore: string
 }
 
 const copies: Record<Locale, NativeBlogHubText> = {
@@ -20,7 +21,8 @@ const copies: Record<Locale, NativeBlogHubText> = {
     "choice": "Two frames → compare before buying",
     "width": "Frame markings → browser size comparator",
     "detector": "Find my face shape free",
-    "onlyEnglish": "English article"
+    "onlyEnglish": "English article",
+    "readMore": "Read Full Article"
   },
   "es": {
     "metaTitle": "Guías para elegir gafas y probar monturas virtualmente | VisuTry",
@@ -30,7 +32,8 @@ const copies: Record<Locale, NativeBlogHubText> = {
     "choice": "Dos monturas → compara antes de comprar",
     "width": "Medidas → compara la anchura",
     "detector": "Descubre gratis la forma de tu rostro",
-    "onlyEnglish": "Artículo en inglés"
+    "onlyEnglish": "Artículo en inglés",
+    "readMore": "Leer la guía completa"
   },
   "fr": {
     "metaTitle": "Guides lunettes, tailles et essayage virtuel | VisuTry",
@@ -40,7 +43,8 @@ const copies: Record<Locale, NativeBlogHubText> = {
     "choice": "Deux montures → choisir avant d'acheter",
     "width": "Dimensions → comparer les largeurs",
     "detector": "Trouver gratuitement ma forme de visage",
-    "onlyEnglish": "Article en anglais"
+    "onlyEnglish": "Article en anglais",
+    "readMore": "Lire le guide complet"
   },
   "ru": {
     "metaTitle": "Гиды по выбору очков и виртуальной примерке | VisuTry",
@@ -50,7 +54,8 @@ const copies: Record<Locale, NativeBlogHubText> = {
     "choice": "Две оправы → сравнение перед заказом",
     "width": "Маркировка → ширина оправы",
     "detector": "Бесплатно определить форму лица",
-    "onlyEnglish": "Статья на английском"
+    "onlyEnglish": "Статья на английском",
+    "readMore": "Читать полный гид"
   },
   "ja": {
     "metaTitle": "メガネ選び・サイズ・写真試着ガイド | VisuTry",
@@ -60,7 +65,8 @@ const copies: Record<Locale, NativeBlogHubText> = {
     "choice": "2本のメガネを比べて選ぶ",
     "width": "メガネのサイズ表示と幅を確認",
     "detector": "無料で顔型を調べる",
-    "onlyEnglish": "英語の記事"
+    "onlyEnglish": "英語の記事",
+    "readMore": "記事を読む"
   },
   "ar": {
     "metaTitle": "دليل اختيار النظارات ومقاساتها وتجربتها افتراضيًا | VisuTry",
@@ -70,7 +76,8 @@ const copies: Record<Locale, NativeBlogHubText> = {
     "choice": "إطاران ← مقارنة قبل الشراء",
     "width": "المقاسات ← مقارنة عرض الإطارات",
     "detector": "تحديد شكل الوجه مجانًا",
-    "onlyEnglish": "مقال باللغة الإنجليزية"
+    "onlyEnglish": "مقال باللغة الإنجليزية",
+    "readMore": "اقرأ الدليل كاملًا"
   },
   "pt": {
     "metaTitle": "Guias de compra de óculos e experimentação virtual | VisuTry",
@@ -80,7 +87,8 @@ const copies: Record<Locale, NativeBlogHubText> = {
     "choice": "Duas armações → comparar antes de comprar",
     "width": "Marcação → comparar larguras",
     "detector": "Descobrir o formato do rosto gratuitamente",
-    "onlyEnglish": "Artigo em inglês"
+    "onlyEnglish": "Artigo em inglês",
+    "readMore": "Ler o guia completo"
   },
   "id": {
     "metaTitle": "Panduan memilih kacamata dan coba virtual | VisuTry",
@@ -90,7 +98,8 @@ const copies: Record<Locale, NativeBlogHubText> = {
     "choice": "Dua bingkai → bandingkan sebelum membeli",
     "width": "Ukuran bingkai → bandingkan lebar",
     "detector": "Cari bentuk wajah gratis",
-    "onlyEnglish": "Artikel berbahasa Inggris"
+    "onlyEnglish": "Artikel berbahasa Inggris",
+    "readMore": "Baca panduan"
   },
   "de": {
     "metaTitle": "Brillenratgeber, Fassungsgrößen und virtuelle Anprobe | VisuTry",
@@ -100,7 +109,8 @@ const copies: Record<Locale, NativeBlogHubText> = {
     "choice": "Zwei Fassungen → vor dem Kauf vergleichen",
     "width": "Größenangaben → Breite vergleichen",
     "detector": "Gesichtsform kostenlos bestimmen",
-    "onlyEnglish": "Artikel auf Englisch"
+    "onlyEnglish": "Artikel auf Englisch",
+    "readMore": "Ganzen Ratgeber lesen"
   }
 }
 
