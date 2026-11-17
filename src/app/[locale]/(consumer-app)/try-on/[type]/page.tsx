@@ -253,7 +253,7 @@ async function PublicTryOnLanding({
         {isGlasses && (
           <div className="mb-8">
             <RouteMessagesProvider namespaces={['marketing.modelTryOnSlides']}>
-              <ModelTryOnSlides locale={locale} mode="glasses" />
+              <ModelTryOnSlides locale={locale} mode="glasses" prefetch={false} signInOnGlassesStart />
             </RouteMessagesProvider>
           </div>
         )}

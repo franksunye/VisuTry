@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowRight, ChevronLeft, ChevronRight, Glasses, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils/cn'
+import { TryOnStartLink } from '@/components/try-on/TryOnStartLink'
 
 type ShowcaseMode = 'home' | 'glasses' | 'compare' | 'face'
 
@@ -23,6 +24,8 @@ interface ModelTryOnSlidesProps {
   preloadFirstImage?: boolean
   /** Public pages disable speculative route fetching; app pages keep the default. */
   prefetch?: boolean
+  /** Only the signed-out public Try-On landing should send the hero CTA to sign-in. */
+  signInOnGlassesStart?: boolean
 }
 
 const tryOnSlides: ShowcaseSlide[] = [
@@ -84,6 +87,8 @@ const modeSteps: Record<ShowcaseMode, Array<{ icon: typeof ScanFace; key: string
   ],
 }
 
+const PRIMARY_CTA_CLASS = 'inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700'
+
 const fitDisclaimers: Record<string, string> = {
   en: 'Visual preview only. Confirm frame width, bridge width, temple length, prescription compatibility, and the seller\'s return policy before buying.',
   fr: 'Aperçu visuel uniquement. Vérifiez la largeur de la monture, le pont, la longueur des branches, la compatibilité avec votre correction et la politique de retour du vendeur avant l’achat.',
@@ -102,6 +107,7 @@ export function ModelTryOnSlides({
   compact = false,
   preloadFirstImage = true,
   prefetch = true,
+  signInOnGlassesStart = false,
 }: ModelTryOnSlidesProps) {
   const t = useTranslations('marketing.modelTryOnSlides')
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -166,19 +172,29 @@ export function ModelTryOnSlides({
           })}
         </div>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-          <Link
-            href={{
-              home: `/${locale}/try-on/glasses`,
-              glasses: `/${locale}/try-on/glasses`,
-              compare: `/${locale}/try-on/glasses/compare`,
-              face: `/${locale}/face-analysis`,
-            }[mode]}
-            prefetch={prefetch}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700"
-          >
-            {t(`modes.${mode}.ctaLabel`)}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          {mode === 'glasses' && signInOnGlassesStart ? (
+            <TryOnStartLink
+              locale={locale}
+              type="glasses"
+              label={t(`modes.${mode}.ctaLabel`)}
+              className={PRIMARY_CTA_CLASS}
+              prefetch={false}
+            />
+          ) : (
+            <Link
+              href={{
+                home: `/${locale}/try-on/glasses`,
+                glasses: `/${locale}/try-on/glasses`,
+                compare: `/${locale}/try-on/glasses/compare`,
+                face: `/${locale}/face-analysis`,
+              }[mode]}
+              prefetch={prefetch}
+              className={PRIMARY_CTA_CLASS}
+            >
+              {t(`modes.${mode}.ctaLabel`)}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
           <Link
             href={{
               home: `/${locale}/try-on/glasses/compare`,
