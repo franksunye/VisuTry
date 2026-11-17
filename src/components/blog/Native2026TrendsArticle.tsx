@@ -1,3 +1,4 @@
+import { blogArt } from '@/config/blog-art'
 import type { Locale } from '@/i18n'
 import { localeDirections } from '@/i18n'
 import Image from 'next/image'
@@ -20,7 +21,7 @@ export function Native2026TrendsArticle({ locale }: { locale: Locale }) {
   const article = generateStructuredData('article', {
     title: copy.title, description: copy.description, publishedAt, modifiedAt,
     author: 'VisuTry Team',
-    image: new URL('/blog-covers/visutry-social.jpg', SITE_CONFIG.url).toString(),
+    image: new URL(blogArt['eyewear-trends-2026-glasses-sunglasses'].src, SITE_CONFIG.url).toString(),
     inLanguage: locale, url: canonical, mainEntityOfPage: canonical,
   })
   const faq = generateStructuredData('faqPage', {
