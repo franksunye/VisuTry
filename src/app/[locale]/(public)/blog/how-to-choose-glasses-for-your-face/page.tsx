@@ -1,3 +1,5 @@
+import { NativeEditorialArticle } from '@/components/blog/NativeEditorialArticle'
+import { getNativeFaceFrameGuide } from '@/config/native-face-shape-frame-guide'
 import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import type { Metadata } from 'next'
 import Image from 'next/image'
@@ -39,13 +41,20 @@ const faq = generateStructuredData('faqPage', { questions: frameQuestions })
 type PageProps = { params: { locale: Locale } }
 
 export function generateMetadata({ params: { locale } }: PageProps): Metadata {
+  const native = getNativeFaceFrameGuide(locale)
   return generateBlogArticleSEO({
-    locale, title, description, pathname, type: 'article',
-    image: art.src, imageAlt: art.alt, imageWidth: art.width, imageHeight: art.height,
+    locale, title: native?.title || title, description: native?.description || description, pathname, type: 'article',
+    image: art.src, imageAlt: native?.imageAlt || art.alt, imageWidth: art.width, imageHeight: art.height,
   })
 }
 
 export default function BlogPostPage({ params: { locale } }: PageProps) {
+  const native = getNativeFaceFrameGuide(locale)
+  if (native) return (
+    <NativeEditorialArticle locale={locale} slug="how-to-choose-glasses-for-your-face" copy={native}
+      art={art} publishedAt={publishedAt} modifiedAt={updatedAt}
+      relatedSlug="ai-face-analysis-for-glasses-guide" />
+  )
   return (
     <main className="bg-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(article) }} />
