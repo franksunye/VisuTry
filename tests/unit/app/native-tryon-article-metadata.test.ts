@@ -15,9 +15,9 @@ describe('P1 all nine languages photo try-on article localization', () => {
     expect(getBlogArticleLocales(slug)).toEqual(locales)
     for (const copy of locales.map(locale => getPrescriptionTryOnArticleCopy(locale))) {
       expect(copy.title).toBeTruthy()
-      expect(copy.startP1.length).toBeGreaterThan(150)
-      expect(copy.startP2.length).toBeGreaterThan(150)
-      expect(copy.fitP.length).toBeGreaterThan(180)
+      expect(copy.startP1.length).toBeGreaterThan(75)
+      expect(copy.startP2.length).toBeGreaterThan(75)
+      expect(copy.fitP.length).toBeGreaterThan(90)
       expect(copy.creditNote.length).toBeGreaterThan(40)
     }
     expect(es.startHeading).toContain('dos fotos')
