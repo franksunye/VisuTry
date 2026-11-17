@@ -52,7 +52,7 @@ for (const item of cases) {
       }
       if (item.slug === 'virtual-try-on-reduce-eyewear-returns') {
         await expect(article).toContainText('100')
-        await expect(article).toContainText('3%')
+        await expect(article).toContainText(/3\\s*[%％]/)
         await expect(article.getByRole('link', { name: copy.merchantCta!.label, exact: true }))
           .toHaveAttribute('href', '/en/business/pilot')
       }
