@@ -259,6 +259,9 @@ jobs:
       - name: Native Buyer Guides and Blog Hubs (eight locales, mobile + desktop)
         run: npx playwright test tests/e2e/seo-native-buyer-guides.spec.ts --project=chromium --workers=2
 
+      - name: Genuine Native Retail Guides (32 locales, mobile and desktop)
+        run: npx playwright test tests/e2e/seo-native-retail-guides.spec.ts --project=chromium --workers=2
+
       - name: Upload Localized Blog QA Screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -267,6 +270,7 @@ jobs:
           path: |
             test-results/seo-blog-*.png
             test-results/seo-buyer-*.png
+            test-results/seo-retail-*.png
           if-no-files-found: ignore
 
       # E1 Consumer acquisition prototype must be tested in a real browser.
