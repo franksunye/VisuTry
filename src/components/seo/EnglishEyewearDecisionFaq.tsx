@@ -31,7 +31,7 @@ export function EnglishEyewearDecisionFaq() {
     <section
       id="eyewear-shopping-decisions"
       aria-labelledby="eyewear-shopping-decisions-title"
-      className="rounded-lg border border-blue-100 bg-blue-50/50 p-5 shadow-sm"
+      className="scroll-mt-28 rounded-lg border border-blue-100 bg-blue-50/50 p-5 shadow-sm"
     >
       <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
         Practical buying decisions

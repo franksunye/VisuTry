@@ -42,7 +42,18 @@ for (const viewport of [
     const ssrResponse = await page.request.get('/en/faq')
     const html = await ssrResponse.text()
     for (const question of newQuestions) expect(html).toContain(question.replace(/'/g, '&#x27;'))
-    await section.screenshot({ path: `test-results/geo-faq-${viewport.label}.png` })
+    // A real reader reaches the section from the page's Topics navigation.
+    // The sticky mobile header must not cover the destination heading.
+    await page.getByRole('link', { name: 'Online eyewear decisions' }).click()
+    await expect.poll(async () => {
+      const box = await section.getByRole('heading', { name: 'Before trying glasses from a product image' }).boundingBox()
+      return Math.round(box?.y ?? -1)
+    }).toBeGreaterThan(64)
+    await page.screenshot({ path: `test-results/geo-faq-${viewport.label}-top.png` })
+    if (viewport.label === 'mobile-430') {
+      await section.getByRole('link', { name: 'Compare two frame size markings' }).scrollIntoViewIfNeeded()
+      await page.screenshot({ path: 'test-results/geo-faq-mobile-430-bottom.png' })
+    }
   })
 }
 
