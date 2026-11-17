@@ -70,13 +70,13 @@ for (const locale of nativeLocales) {
     const response = await page.goto('/' + locale + '/blog', { waitUntil: 'domcontentloaded' })
     expect(response?.status()).toBe(200)
     await expect(page.getByRole('heading', { level: 1, name: text.title })).toBeVisible()
-    await expect(page.getByRole('link', { name: text.exact })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: text.exact, exact: true })).toHaveAttribute(
       'href', '/' + locale + '/blog/prescription-glasses-virtual-tryon-guide',
     )
-    await expect(page.getByRole('link', { name: text.choice })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: text.choice, exact: true })).toHaveAttribute(
       'href', '/' + locale + '/blog/find-perfect-glasses-online-guide',
     )
-    await expect(page.getByRole('link', { name: text.detector })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: text.detector, exact: true })).toHaveAttribute(
       'href', '/' + locale + '/face-shape-detector',
     )
     const choice = getNativeChoiceGuide(locale)!
