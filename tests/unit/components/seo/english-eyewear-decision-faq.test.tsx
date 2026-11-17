@@ -9,7 +9,7 @@ describe('English eyewear decision FAQ', () => {
     expect(ENGLISH_EYEWEAR_DECISION_FAQS).toHaveLength(3)
     expect(html).toContain('Before trying glasses from a product image')
     for (const item of ENGLISH_EYEWEAR_DECISION_FAQS) {
-      expect(html).toContain(item.question.replaceAll("'", '&#x27;'))
+      expect(html).toContain(item.question.replace(/'/g, '&#x27;'))
       expect(html).toContain(item.href)
       expect(html).toContain(item.ctaLabel)
     }

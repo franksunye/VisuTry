@@ -41,7 +41,7 @@ for (const viewport of [
     // Contents are regular server-rendered text, not a client-only panel.
     const ssrResponse = await page.request.get('/en/faq')
     const html = await ssrResponse.text()
-    for (const question of newQuestions) expect(html).toContain(question.replaceAll("'", '&#x27;'))
+    for (const question of newQuestions) expect(html).toContain(question.replace(/'/g, '&#x27;'))
     await section.screenshot({ path: `test-results/geo-faq-${viewport.label}.png` })
   })
 }
