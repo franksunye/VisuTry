@@ -31,7 +31,13 @@ for (const viewport of [{ label: 'desktop', width: 1440, height: 900 }, { label:
       const body = await article.innerText()
       expect(body.length).toBeGreaterThan(1600)
       if (viewport.label === 'mobile-430') {
-        await article.screenshot({ path: 'test-results/seo-blog-' + item.locale + '-430.png' })
+        // A full-height element screenshot scrolls the article under the fixed nav
+        // and misrepresents the initial viewport. Capture the real landing state.
+        await page.evaluate(() => window.scrollTo(0, 0))
+        const title = article.getByRole('heading', { level: 1, name: item.heading })
+        const titleBounds = await title.boundingBox()
+        expect(titleBounds?.y).toBeGreaterThan(42)
+        await page.screenshot({ path: 'test-results/seo-blog-' + item.locale + '-430-top.png' })
       }
     })
   }
