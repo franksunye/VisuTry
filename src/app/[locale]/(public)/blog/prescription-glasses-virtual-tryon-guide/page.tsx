@@ -45,7 +45,7 @@ export default function BlogPostPage({ params: { locale } }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(article) }} />
       <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
         <Breadcrumbs items={[{ name: 'Blog', url: localizedPath(locale, '/blog') }, { name: copy.title }]} />
-        <article lang={copy.language} dir="ltr" className="mt-6">
+        <article lang={copy.language} dir={copy.language === 'ar' ? 'rtl' : 'ltr'} className="mt-6">
           <header>
             <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">{copy.title}</h1>
             <p className="mt-4 text-lg leading-8 text-slate-700">{copy.description}</p>

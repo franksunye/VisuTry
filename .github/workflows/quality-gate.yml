@@ -253,15 +253,20 @@ jobs:
           if-no-files-found: ignore
 
       # SEO P1: actual ES/FR editorial localization, metadata, CTAs and EN fallback.
-      - name: Native ES-FR Blog Browser Gate (desktop and mobile)
+      - name: Nine-Language Photo Try-On Blog Browser Gate (desktop and mobile)
         run: npx playwright test tests/e2e/seo-native-blog-prescription.spec.ts --project=chromium --workers=1
+
+      - name: Native Buyer Guides and Blog Hubs (eight locales, mobile + desktop)
+        run: npx playwright test tests/e2e/seo-native-buyer-guides.spec.ts --project=chromium --workers=2
 
       - name: Upload Localized Blog QA Screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: seo-blog-localization-${{ github.run_id }}
-          path: test-results/seo-blog-*.png
+          path: |
+            test-results/seo-blog-*.png
+            test-results/seo-buyer-*.png
           if-no-files-found: ignore
 
       # E1 Consumer acquisition prototype must be tested in a real browser.

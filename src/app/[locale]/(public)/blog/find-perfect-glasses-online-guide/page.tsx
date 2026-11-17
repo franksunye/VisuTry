@@ -1,3 +1,5 @@
+import { NativeEditorialArticle } from '@/components/blog/NativeEditorialArticle'
+import { getNativeChoiceGuide } from '@/config/native-choice-between-frames'
 import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import type { Metadata } from 'next'
 import { blogArt } from '@/config/blog-art'
@@ -20,15 +22,16 @@ type BlogPostPageProps = {
 }
 
 export function generateMetadata({ params }: BlogPostPageProps): Metadata {
+  const native = getNativeChoiceGuide(params.locale)
   return {
     ...generateBlogArticleSEO({
       locale: params.locale,
-      title,
-      description,
+      title: native?.title || title,
+      description: native?.description || description,
       pathname,
       type: 'article',
       image: cover.src,
-      imageAlt: cover.alt,
+      imageAlt: native?.imageAlt || cover.alt,
       imageWidth: cover.width,
       imageHeight: cover.height,
     }),
@@ -46,6 +49,12 @@ const structuredData = generateStructuredData('article', {
 })
 
 export default function BlogPostPage({ params }: BlogPostPageProps) {
+  const native = getNativeChoiceGuide(params.locale)
+  if (native) return (
+    <NativeEditorialArticle locale={params.locale} slug="find-perfect-glasses-online-guide" copy={native}
+      art={cover} publishedAt={'2025-11-06T12:00:00Z'} modifiedAt={'2026-11-16T00:00:00Z'}
+      relatedSlug="prescription-glasses-online-shopping-guide-2025" />
+  )
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />

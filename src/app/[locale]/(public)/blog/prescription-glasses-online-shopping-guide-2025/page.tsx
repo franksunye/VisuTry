@@ -1,3 +1,5 @@
+import { NativeEditorialArticle } from '@/components/blog/NativeEditorialArticle'
+import { getNativePrescriptionShoppingGuide } from '@/config/native-prescription-shopping-guide'
 import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import type { Metadata } from 'next'
 import Image from 'next/image'
@@ -23,9 +25,10 @@ const updatedAt = '2026-11-16T00:00:00Z'
 type PageProps = { params: { locale: Locale } }
 
 export function generateMetadata({ params }: PageProps): Metadata {
+  const native = getNativePrescriptionShoppingGuide(params.locale)
   return generateBlogArticleSEO({
-    locale: params.locale, pathname, title, description, type: 'article',
-    image: artwork.src, imageAlt: artwork.alt, imageWidth: artwork.width, imageHeight: artwork.height,
+    locale: params.locale, pathname, title: native?.title || title, description: native?.description || description, type: 'article',
+    image: artwork.src, imageAlt: native?.imageAlt || artwork.alt, imageWidth: artwork.width, imageHeight: artwork.height,
   })
 }
 
@@ -35,6 +38,12 @@ const article = generateStructuredData('article', {
 })
 
 export default function BlogPostPage({ params: { locale } }: PageProps) {
+  const native = getNativePrescriptionShoppingGuide(locale)
+  if (native) return (
+    <NativeEditorialArticle locale={locale} slug="prescription-glasses-online-shopping-guide-2025" copy={native}
+      art={artwork} publishedAt={publishedAt} modifiedAt={updatedAt}
+      relatedSlug="prescription-glasses-virtual-tryon-guide" />
+  )
   return (
     <main className="bg-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(article) }} />
