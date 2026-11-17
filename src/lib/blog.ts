@@ -4,6 +4,7 @@
  */
 
 import { blogArt } from '@/config/blog-art'
+import { locales, type Locale } from '@/i18n'
 import { getAiGlassesAdvisorArticleCopy } from '@/config/ai-glasses-advisor-article-locales'
 
 export interface BlogPost {
@@ -235,9 +236,17 @@ export const staticBlogPosts: BlogPost[] = [
   },
 ]
 
-// The Ray-Ban article publishes only its English URL for indexing.
+/**
+ * Only Advisor has genuinely translated article body. Other article locales
+ * are English text under an otherwise localized navigation/footer shell.
+ */
+export function getBlogArticleLocales(slug: string): readonly Locale[] {
+  return slug === 'ai-face-analysis-for-glasses-guide' ? locales : ['en']
+}
+
+/** Indexes link directly to an article's canonical published language. */
 export function blogPostPath(locale: string, slug: string): string {
-  const articleLocale = slug === 'rayban-glasses-virtual-tryon-guide' ? 'en' : locale
+  const articleLocale = getBlogArticleLocales(slug).includes(locale as Locale) ? locale : 'en'
   return `/${articleLocale}/blog/${slug}`
 }
 

@@ -1,5 +1,4 @@
-import { locales } from '@/i18n'
-import { getBlogSitemapEntries } from '@/lib/blog'
+import { getBlogArticleLocales, getBlogSitemapEntries } from '@/lib/blog'
 import { serializeSitemap, type SitemapEntry } from '@/lib/sitemap-xml'
 
 export const dynamic = 'force-static'
@@ -11,16 +10,18 @@ export async function GET() {
 
   blogPagesBase.forEach((page) => {
     const path = page.url.replace(baseUrl, '')
-    const blogLocales = path === '/blog/rayban-glasses-virtual-tryon-guide' ? ['en'] : locales
-    blogLocales.forEach((locale) => {
+    const slug = path.replace(/^\/blog\//, '')
+    const articleLocales = getBlogArticleLocales(slug)
+    const languages: Record<string, string> = Object.fromEntries(
+      articleLocales.map((locale) => [locale, `${baseUrl}/${locale}${path}`]),
+    )
+    languages['x-default'] = `${baseUrl}/en${path}`
+
+    articleLocales.forEach((locale) => {
       entries.push({
         ...page,
         url: `${baseUrl}/${locale}${path}`,
-        alternates: {
-          languages: path === '/blog/rayban-glasses-virtual-tryon-guide'
-            ? { en: `${baseUrl}/en${path}` }
-            : Object.fromEntries(locales.map((item) => [item, `${baseUrl}/${item}${path}`])),
-        },
+        alternates: { languages },
       })
     })
   })

@@ -1,3 +1,4 @@
+import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
@@ -6,7 +7,7 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { blogArt } from '@/config/blog-art'
 import type { Locale } from '@/i18n'
 import { localizedPath } from '@/lib/localized-path'
-import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
+import { generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 
 export const dynamic = 'force-static'
@@ -22,7 +23,7 @@ const articleTags = ['Oliver Peoples', 'Luxury Eyewear', 'Product Review', 'Desi
 type PageProps = { params: { locale: Locale } }
 
 export function generateMetadata({ params }: PageProps): Metadata {
-  return generateI18nSEO({
+  return generateBlogArticleSEO({
     locale: params.locale, pathname, title, description, type: 'article',
     image: cover.src, imageWidth: cover.width, imageHeight: cover.height, imageAlt: cover.alt,
   })
