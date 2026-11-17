@@ -240,6 +240,18 @@ jobs:
           path: test-results/geo-faq-*.png
           if-no-files-found: ignore
 
+      # Whole-site GEO facts on audited exact EN route owners, not 152 programmatic URLs.
+      - name: Sitewide GEO Task Facts Browser Gate (desktop, mobile, locale boundaries)
+        run: npx playwright test tests/e2e/geo-sitewide-task-facts.spec.ts --project=chromium --workers=2
+
+      - name: Upload Sitewide GEO QA Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geo-sitewide-browser-${{ github.run_id }}
+          path: test-results/geo-sitewide-*.png
+          if-no-files-found: ignore
+
       # E1 Consumer acquisition prototype must be tested in a real browser.
       # The local Next.js mock server never contacts production services.
       - name: Consumer Frame Size Browser Gate (desktop and 430x932)

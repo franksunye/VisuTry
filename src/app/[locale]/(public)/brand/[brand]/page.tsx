@@ -153,6 +153,20 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
           </div>
         </section>
 
+        {locale === 'en' && (
+          <aside aria-labelledby={`brand-source-boundary-${content.slug}`} className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-5">
+            <h2 id={`brand-source-boundary-${content.slug}`} className="text-lg font-bold text-blue-950">
+              What this {content.name} guide represents
+            </h2>
+            <p className="mt-2 text-sm leading-7 text-blue-900">
+              These four cards show independently selected style directions related to {content.name} searches. They are not authenticated {content.name} SKUs, a licensed brand catalog, or an official partnership. Preview an exact model using its own front-facing image and your portrait; confirm size, color and availability with the seller.
+            </p>
+            <Link href="/en/glasses-guide/how-wide-should-glasses-be-for-my-face" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-blue-800 underline-offset-4 hover:underline">
+              Check published frame measurements
+            </Link>
+          </aside>
+        )}
+
         <section className="mt-12">
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">Compare before you buy</p>
           <h2 className="mt-2 text-2xl font-bold text-gray-950 md:text-3xl">Four {content.name} style directions to test</h2>

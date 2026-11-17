@@ -1,3 +1,4 @@
+import { GeoTaskFacts } from '@/components/seo/GeoTaskFacts'
 import type { Metadata } from 'next'
 import Link from '@/components/layout/PublicLink'
 import { ArrowRight } from 'lucide-react'
@@ -51,6 +52,8 @@ export default function GlassesGuideHub({ params }: Props) {
           </h1>
           <p className="text-lg leading-8 text-gray-600">{copy.intro}</p>
         </section>
+
+        {locale === 'en' && <GeoTaskFacts task="guide" />}
 
         {groups.map((group) => {
           const pages = localizedPages.filter((page) => page.type === group.type)

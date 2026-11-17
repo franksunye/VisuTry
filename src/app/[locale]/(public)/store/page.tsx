@@ -1,3 +1,4 @@
+import { GeoTaskFacts } from '@/components/seo/GeoTaskFacts'
 import { Metadata } from 'next'
 import Link from '@/components/layout/PublicLink'
 import {
@@ -164,6 +165,12 @@ export default async function StoreLandingPage({ params }: StorePageProps) {
           />
         </div>
       </section>
+
+      {locale === 'en' && (
+        <section className="mx-auto mb-14 max-w-6xl" aria-label="What merchants can expect">
+          <GeoTaskFacts task="merchant" />
+        </section>
+      )}
 
       <section id="workflow" className="mx-auto mb-20 max-w-6xl scroll-mt-24">
         <div className="mx-auto mb-8 max-w-3xl text-center">

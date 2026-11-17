@@ -79,6 +79,13 @@ export default function BlogPostPage({ params: { locale } }: PageProps) {
               colors of the same model, keep the shape and size fixed. Check the seller’s photos under
               different lighting before choosing a finish.
             </p>
+            <h2>What your visual preview actually demonstrates</h2>
+            <p>
+              A saved AI preview compares the appearance of a particular frame image under the same portrait and lighting. Record the seller’s model name, color and printed lens/bridge/temple numbers alongside the image: VisuTry does not verify those seller details or measure exact fit from a photograph.
+            </p>
+            <p>
+              If you want to explore frame silhouettes rather than a store’s exact model, <Link href={localizedPath(locale, '/try-on/glasses/compare')}>Frame Compare</Link> uses built-in preset looks. That is a separate workflow from the exact-image Try-On above.
+            </p>
             <h2>Check the physical frame before ordering</h2>
             <p>
               A photo preview can help you shortlist a look. It cannot measure bridge pressure, temple
