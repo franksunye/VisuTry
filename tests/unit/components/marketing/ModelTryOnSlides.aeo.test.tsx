@@ -2,6 +2,12 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { ModelTryOnSlides } from '@/components/marketing/ModelTryOnSlides'
 
+const mockUseSearchParams = jest.fn()
+
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => mockUseSearchParams(),
+}))
+
 jest.mock('next/image', () => ({
   __esModule: true,
   default: ({
@@ -15,7 +21,7 @@ jest.mock('next/image', () => ({
 
 jest.mock('next/link', () => ({
   __esModule: true,
-  default: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) => (
+  default: ({ children, href, prefetch: _prefetch, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; prefetch?: boolean }) => (
     <a href={href} {...props}>{children}</a>
   ),
 }))
@@ -29,6 +35,12 @@ jest.mock('next-intl', () => ({
 
 describe('ModelTryOnSlides AEO disclosures', () => {
   beforeEach(() => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams({
+      source: 'free-face-shape-detector',
+      faceShape: 'oval',
+      photoHandoff: 'handoff-test',
+      ignored: 'not-allowed',
+    }))
     jest.spyOn(window, 'setInterval').mockImplementation(
       () => 1 as unknown as ReturnType<typeof window.setInterval>,
     )
@@ -52,6 +64,23 @@ describe('ModelTryOnSlides AEO disclosures', () => {
     expect(screen.queryByText(/Visual preview only/i)).not.toBeInTheDocument()
   })
 
+  it('sends the public glasses hero CTA directly to secure sign-in with allowlisted handoff', () => {
+    render(<ModelTryOnSlides locale="en" mode="glasses" signInOnGlassesStart />)
+    const primary = screen.getByRole('link', { name: 'modes.glasses.ctaLabel' })
+    const href = primary.getAttribute('href')!
+    const target = new URL(href, 'https://www.visutry.com')
+    expect(target.pathname).toBe('/en/auth/signin')
+    const callback = target.searchParams.get('callbackUrl')
+    expect(callback).toBe('/en/try-on/glasses?source=free-face-shape-detector&faceShape=oval&photoHandoff=handoff-test')
+    expect(callback).not.toContain('ignored')
+  })
+
+  it('preserves the original CTA for other showcase modes and default opt-out', () => {
+    const { rerender } = render(<ModelTryOnSlides locale="en" mode="home" signInOnGlassesStart />)
+    expect(screen.getByRole('link', { name: 'modes.home.ctaLabel' })).toHaveAttribute('href', '/en/try-on/glasses')
+    rerender(<ModelTryOnSlides locale="en" mode="glasses" />)
+    expect(screen.getByRole('link', { name: 'modes.glasses.ctaLabel' })).toHaveAttribute('href', '/en/try-on/glasses')
+  })
   it('falls back to the English disclosure for an unknown locale', () => {
     render(<ModelTryOnSlides locale="unknown" mode="glasses" />)
 

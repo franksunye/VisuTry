@@ -222,6 +222,11 @@ jobs:
       - name: Revenue Critical Browser Gate
         run: npm run test:e2e:revenue-critical
 
+      # GEO: verify the first, above-the-fold Try-On CTA cannot self-loop for new visitors.
+      # Preserve auth callback parameters and offline/no-AI test boundaries.
+      - name: GEO Try-On Hero Handoff Browser Gate (desktop and mobile)
+        run: npx playwright test tests/e2e/vercel-cpu-p0-try-on-static.spec.ts --project=chromium --workers=1
+
       # E1 Consumer acquisition prototype must be tested in a real browser.
       # The local Next.js mock server never contacts production services.
       - name: Consumer Frame Size Browser Gate (desktop and 430x932)
