@@ -289,7 +289,7 @@ export async function getAllBlogPosts(locale = 'en'): Promise<BlogPost[]> {
       const language = getValidLocale(locale)
       if (post.slug === 'prescription-glasses-virtual-tryon-guide' && language !== 'en') {
         const copy = getPrescriptionTryOnArticleCopy(language)
-        return { ...post, title: copy.title, description: copy.description, category: copy.category, readTime: copy.readTime }
+        return { ...post, title: copy.title, description: copy.description, category: copy.category, readTime: copy.readTime, coverAlt: copy.imageAlt }
       }
       const native = post.slug === 'find-perfect-glasses-online-guide'
         ? getNativeChoiceGuide(language)
@@ -307,7 +307,7 @@ export async function getAllBlogPosts(locale = 'en'): Promise<BlogPost[]> {
                   ? getNativeTomFordFrameGuide(language)
                   : null
       return native
-        ? { ...post, title: native.title, description: native.description, category: native.category, readTime: native.readTime }
+        ? { ...post, title: native.title, description: native.description, category: native.category, readTime: native.readTime, coverAlt: native.imageAlt }
         : post
     })
     .sort((a, b) => {
