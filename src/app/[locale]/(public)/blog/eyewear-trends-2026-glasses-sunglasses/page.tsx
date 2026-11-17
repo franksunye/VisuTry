@@ -1,3 +1,6 @@
+import { getValidLocale } from '@/i18n'
+import { Native2026TrendsArticle } from '@/components/blog/Native2026TrendsArticle'
+import { getNative2026Trends } from '@/config/native-eyewear-trends-2026'
 import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import { Metadata } from 'next'
 import Image from 'next/image'
@@ -25,10 +28,12 @@ const publishedAt = '2026-07-20T10:00:00Z'
 const modifiedAt = '2026-11-16T00:00:00Z'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  const locale = getValidLocale(params.locale)
+  const native = getNative2026Trends(locale)
   return generateBlogArticleSEO({
-    locale: params.locale as any,
-    title,
-    description,
+    locale,
+    title: native?.title || title,
+    description: native?.description || description,
     image: cover.src,
     imageAlt: cover.alt,
     imageWidth: cover.width,
@@ -281,6 +286,8 @@ function Intensity({ value }: { value: number }) {
 }
 
 export default function BlogPostPage({ params }: { params: { locale: string } }) {
+  const locale = getValidLocale(params.locale)
+  if (locale !== 'en') return <Native2026TrendsArticle locale={locale} />
   const localePrefix = `/${params.locale}`
   const questions = [
     { question: 'Which frame shapes appeared in 2026 collections?', answer: 'Chanel’s Fall–Winter collection includes shield sunglasses and oval eyeglasses. The October MYKITA and RIMOWA release pairs a slim wraparound shield with a round design.' },
