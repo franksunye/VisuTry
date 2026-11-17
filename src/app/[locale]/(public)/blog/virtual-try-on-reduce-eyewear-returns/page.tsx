@@ -1,3 +1,6 @@
+import { getValidLocale } from '@/i18n'
+import { NativeEditorialArticle } from '@/components/blog/NativeEditorialArticle'
+import { getNativeEyewearReturnsStudy } from '@/config/native-eyewear-returns-study'
 import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import { framePhotoGuide, inventoryCatalogGuide } from '@/config/business-resources'
 import { blogArt } from '@/config/blog-art'
@@ -16,12 +19,14 @@ const description = 'Measure whether photo try-on reduces style-related frame re
 const cover = blogArt['virtual-try-on-reduce-eyewear-returns']
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  const locale = getValidLocale(params.locale)
+  const native = getNativeEyewearReturnsStudy(locale)
   return generateBlogArticleSEO({
-    locale: params.locale as any,
-    title,
-    description,
+    locale,
+    title: native?.title || title,
+    description: native?.description || description,
     image: cover.src,
-    imageAlt: cover.alt,
+    imageAlt: native?.imageAlt || cover.alt,
     imageWidth: cover.width,
     imageHeight: cover.height,
     pathname: '/blog/virtual-try-on-reduce-eyewear-returns',
@@ -66,6 +71,11 @@ type BlogPostPageProps = {
 }
 
 export default function BlogPostPage({ params }: BlogPostPageProps) {
+  const locale = getValidLocale(params.locale)
+  const native = getNativeEyewearReturnsStudy(locale)
+  if (native) return <NativeEditorialArticle locale={locale} slug="virtual-try-on-reduce-eyewear-returns"
+    copy={native} art={cover} publishedAt={'2026-05-27T10:00:00Z'} modifiedAt={'2026-11-15T00:00:00Z'}
+    relatedSlug="prescription-glasses-virtual-tryon-guide" />
   return (
     <>
       <script
