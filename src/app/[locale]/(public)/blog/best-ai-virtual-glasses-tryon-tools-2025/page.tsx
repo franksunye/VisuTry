@@ -1,3 +1,5 @@
+import { NativeEditorialArticle } from '@/components/blog/NativeEditorialArticle'
+import { getNativeTryOnToolComparison } from '@/config/native-tryon-tools-comparison'
 import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import type { Metadata } from 'next'
 import Image from 'next/image'
@@ -35,9 +37,10 @@ const questions = [
 ]
 
 export function generateMetadata({ params }: PageProps): Metadata {
+  const native = getNativeTryOnToolComparison(params.locale)
   return generateBlogArticleSEO({
-    locale: params.locale, pathname, title, description, type: 'article',
-    image: cover.src, imageAlt: cover.alt, imageWidth: cover.width, imageHeight: cover.height,
+    locale: params.locale, pathname, title: native?.title || title, description: native?.description || description, type: 'article',
+    image: cover.src, imageAlt: native?.imageAlt || cover.alt, imageWidth: cover.width, imageHeight: cover.height,
   })
 }
 
@@ -48,6 +51,10 @@ const articleSchema = generateStructuredData('article', {
 const faqSchema = generateStructuredData('faqPage', { questions })
 
 export default function BlogPostPage({ params: { locale } }: PageProps) {
+  const native = getNativeTryOnToolComparison(locale)
+  if (native) return <NativeEditorialArticle locale={locale} slug="best-ai-virtual-glasses-tryon-tools-2025"
+    copy={native} art={cover} publishedAt={publishedAt} modifiedAt={modifiedAt}
+    relatedSlug="prescription-glasses-online-shopping-guide-2025" />
   const photoGuide = localizedPath(locale, '/try-glasses-on-photo')
   const textLink = 'font-medium text-blue-700 underline underline-offset-2'
   const sectionHeading = 'text-2xl font-semibold leading-tight text-slate-950'

@@ -1,3 +1,7 @@
+import { getNativeTryOnToolComparison } from '@/config/native-tryon-tools-comparison'
+import { getNativeCelebrityPhotoFrameGuide } from '@/config/native-celebrity-frame-photo-guide'
+import { getNativeEyewearReturnsStudy } from '@/config/native-eyewear-returns-study'
+import { getNative2026Trends } from '@/config/native-eyewear-trends-2026'
 import { getNativeAcetateGuide } from '@/config/native-acetate-frame-guide'
 import { getNativeBrowlineGuide } from '@/config/native-browline-clubmaster-guide'
 import { getNativeFinleyVintageGuide } from '@/config/native-finley-vintage-guide'
@@ -259,7 +263,11 @@ export function getBlogArticleLocales(slug: string): readonly Locale[] {
       || slug === 'acetate-vs-plastic-eyeglass-frames-guide'
       || slug === 'browline-clubmaster-glasses-complete-guide'
       || slug === 'oliver-peoples-finley-vintage-review'
-      || slug === 'tom-ford-luxury-eyewear-guide-2025') return locales
+      || slug === 'tom-ford-luxury-eyewear-guide-2025'
+      || slug === 'best-ai-virtual-glasses-tryon-tools-2025'
+      || slug === 'celebrity-glasses-style-guide-2025'
+      || slug === 'virtual-try-on-reduce-eyewear-returns'
+      || slug === 'eyewear-trends-2026-glasses-sunglasses') return locales
   return ['en']
 }
 
@@ -293,6 +301,12 @@ export async function getAllBlogPosts(locale = 'en'): Promise<BlogPost[]> {
         const copy = getPrescriptionTryOnArticleCopy(language)
         return { ...post, title: copy.title, description: copy.description, category: copy.category, readTime: copy.readTime, coverAlt: copy.imageAlt }
       }
+      if (post.slug === 'eyewear-trends-2026-glasses-sunglasses') {
+        const trends = getNative2026Trends(language)
+        return trends
+          ? { ...post, title: trends.title, description: trends.description, category: trends.category, readTime: trends.readTime, coverAlt: trends.description }
+          : post
+      }
       const native = post.slug === 'find-perfect-glasses-online-guide'
         ? getNativeChoiceGuide(language)
         : post.slug === 'how-to-choose-glasses-for-your-face'
@@ -307,7 +321,13 @@ export async function getAllBlogPosts(locale = 'en'): Promise<BlogPost[]> {
                 ? getNativeFinleyVintageGuide(language)
                 : post.slug === 'tom-ford-luxury-eyewear-guide-2025'
                   ? getNativeTomFordFrameGuide(language)
-                  : null
+                  : post.slug === 'best-ai-virtual-glasses-tryon-tools-2025'
+                    ? getNativeTryOnToolComparison(language)
+                    : post.slug === 'celebrity-glasses-style-guide-2025'
+                      ? getNativeCelebrityPhotoFrameGuide(language)
+                      : post.slug === 'virtual-try-on-reduce-eyewear-returns'
+                        ? getNativeEyewearReturnsStudy(language)
+                        : null
       return native
         ? { ...post, title: native.title, description: native.description, category: native.category, readTime: native.readTime, coverAlt: native.imageAlt }
         : post
