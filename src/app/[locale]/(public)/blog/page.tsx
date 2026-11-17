@@ -1,3 +1,5 @@
+import { getNativeBlogHubText } from '@/config/native-blog-hub'
+import { getValidLocale } from '@/i18n'
 import { GeoTaskFacts } from '@/components/seo/GeoTaskFacts'
 import { Metadata } from 'next'
 import { SITE_CONFIG, generateI18nSEO } from '@/lib/seo'
@@ -13,10 +15,11 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const content = getNativeBlogHubText(getValidLocale(params.locale))
   return generateI18nSEO({
     locale: params.locale as any,
-    title: params.locale === 'en' ? 'Eyewear Buying Guides, Frame Sizing & Virtual Try-On | VisuTry' : 'Blog - Fashion & Style Tips',
-    description: blogDescription,
+    title: content.metaTitle,
+    description: content.description,
     image: blogShareImage,
     imageAlt: 'VisuTry glasses logo',
     pathname: '/blog',
@@ -27,6 +30,7 @@ export const dynamic = 'force-static'
 
 export default async function BlogPage({ params }: Props) {
   const posts = await getAllBlogPosts(params.locale)
+  const hub = getNativeBlogHubText(getValidLocale(params.locale))
   const localePrefix = `/${params.locale}`
   const getDisplayDate = (post: Awaited<ReturnType<typeof getAllBlogPosts>>[number]) =>
     new Date(post.modifiedAt || post.publishedAt).toLocaleDateString(params.locale, {
@@ -86,10 +90,10 @@ export default async function BlogPage({ params }: Props) {
         <main className="container mx-auto px-4 py-12">
           <div className="mx-auto mb-10 max-w-4xl text-center">
             <h1 className="text-4xl font-bold tracking-normal text-gray-900">
-              Virtual Try-On Blog
+              {hub.title}
             </h1>
             <p className="mt-4 text-lg text-gray-600">
-              Practical eyewear shopping guides, frame comparisons, and AI virtual try-on tips from VisuTry.
+              {hub.description}
             </p>
           </div>
 
@@ -104,10 +108,26 @@ export default async function BlogPage({ params }: Props) {
             </section>
           )}
 
+          {params.locale !== 'en' && (
+            <section className="mx-auto mb-10 max-w-5xl space-y-4" aria-label={hub.title}>
+              <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <Link href={blogPostPath(params.locale, 'prescription-glasses-virtual-tryon-guide')}
+                  prefetch={false} className="rounded-lg border border-slate-200 bg-white p-4 font-semibold text-blue-700 hover:border-blue-300">{hub.exact}</Link>
+                <Link href={blogPostPath(params.locale, 'find-perfect-glasses-online-guide')}
+                  prefetch={false} className="rounded-lg border border-slate-200 bg-white p-4 font-semibold text-blue-700 hover:border-blue-300">{hub.choice}</Link>
+                <Link href={`/${params.locale}/glasses-guide/how-wide-should-glasses-be-for-my-face`}
+                  prefetch={false} className="rounded-lg border border-slate-200 bg-white p-4 font-semibold text-blue-700 hover:border-blue-300">{hub.width}</Link>
+                <Link href={`/${params.locale}/face-shape-detector`}
+                  prefetch={false} className="rounded-lg border border-slate-200 bg-white p-4 font-semibold text-blue-700 hover:border-blue-300">{hub.detector}</Link>
+              </div>
+            </section>
+          )}
+
           {/* Blog posts list */}
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
             {posts.map((post, index) => {
               const articleHref = blogPostPath(params.locale, post.slug)
+              const isEnglishFallback = params.locale !== 'en' && articleHref.startsWith('/en/')
 
               return (
                 <article
@@ -136,6 +156,8 @@ export default async function BlogPage({ params }: Props) {
                       </span>
                       <span className="text-sm text-gray-500">{post.readTime}</span>
                     </div>
+
+                    {isEnglishFallback && <span className="mb-2 inline-block rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{hub.onlyEnglish}</span>}
 
                     {/* Article title */}
                     <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
@@ -167,7 +189,7 @@ export default async function BlogPage({ params }: Props) {
                       prefetch={false}
                       className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
                     >
-                      Read Full Article
+                      {hub.readMore}
                       <ArrowRight className="w-4 h-4 ms-1" />
                     </Link>
                   </div>
