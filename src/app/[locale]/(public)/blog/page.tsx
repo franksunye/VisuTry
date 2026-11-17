@@ -97,9 +97,9 @@ export default async function BlogPage({ params }: Props) {
             <section className="mx-auto mb-10 max-w-5xl" aria-label="Choosing an eyewear buying guide">
               <GeoTaskFacts task="blog" />
               <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
-                <Link href="/en/blog/prescription-glasses-virtual-tryon-guide" className="rounded-lg border border-slate-200 bg-white p-4 text-blue-700 hover:border-blue-300">Specific store image → custom Try-On guide</Link>
-                <Link href="/en/blog/find-perfect-glasses-online-guide" className="rounded-lg border border-slate-200 bg-white p-4 text-blue-700 hover:border-blue-300">Two finalists → compare before buying</Link>
-                <Link href="/en/glasses-guide/how-wide-should-glasses-be-for-my-face" className="rounded-lg border border-slate-200 bg-white p-4 text-blue-700 hover:border-blue-300">Frame markings → browser size comparator</Link>
+                <Link href="/en/blog/prescription-glasses-virtual-tryon-guide" prefetch={false} className="rounded-lg border border-slate-200 bg-white p-4 text-blue-700 hover:border-blue-300">Specific store image → custom Try-On guide</Link>
+                <Link href="/en/blog/find-perfect-glasses-online-guide" prefetch={false} className="rounded-lg border border-slate-200 bg-white p-4 text-blue-700 hover:border-blue-300">Two finalists → compare before buying</Link>
+                <Link href="/en/glasses-guide/how-wide-should-glasses-be-for-my-face" prefetch={false} className="rounded-lg border border-slate-200 bg-white p-4 text-blue-700 hover:border-blue-300">Frame markings → browser size comparator</Link>
               </div>
             </section>
           )}
