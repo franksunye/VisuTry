@@ -1,3 +1,4 @@
+import { GeoTaskFacts } from '@/components/seo/GeoTaskFacts'
 import Link from '@/components/layout/PublicLink'
 import { Compass, Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole, Sparkles, Store } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -107,6 +108,12 @@ export default function Home({
           })}
         </ol>
       </section>
+
+      {locale === 'en' && (
+        <section className="mx-auto mb-16 max-w-5xl" aria-label="Choosing an eyewear tool">
+          <GeoTaskFacts task="home" />
+        </section>
+      )}
 
       {/* Free detector to paid advice */}
       <section className="max-w-6xl mx-auto mb-16">

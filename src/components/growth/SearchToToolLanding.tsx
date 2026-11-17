@@ -1,3 +1,4 @@
+import { GeoTaskFacts, getGeoSearchTaskId } from '@/components/seo/GeoTaskFacts'
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { CheckCircle2 } from 'lucide-react'
@@ -75,6 +76,7 @@ export function SearchToToolLanding({
   principles,
 }: SearchToToolLandingProps) {
   const shellCopy = getSearchToToolShellCopy(locale)
+  const geoTask = locale === 'en' ? getGeoSearchTaskId(sourcePage) : null
   const resolvedFaqTitle = faqTitle ?? shellCopy.commonQuestions
   const resolvedFaqEyebrow = faqEyebrow ?? shellCopy.nextStep
 
@@ -135,6 +137,8 @@ export function SearchToToolLanding({
             </div>
           ) : null}
         </section>
+
+        {geoTask && <GeoTaskFacts task={geoTask} />}
 
         {children}
 
