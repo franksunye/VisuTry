@@ -1,3 +1,4 @@
+import { getNativeBlogHubText } from '@/config/native-blog-hub'
 import type { Locale } from '@/i18n'
 import { localeDirections } from '@/i18n'
 import Image from 'next/image'
@@ -61,7 +62,7 @@ export function NativeEditorialArticle({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(article) }} />
       {faq && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }} />}
       <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
-        <Breadcrumbs items={[{ name: 'Blog', url: localizedPath(locale, '/blog') }, { name: copy.title }]} />
+        <Breadcrumbs items={[{ name: getNativeBlogHubText(locale).title, url: localizedPath(locale, '/blog') }, { name: copy.title }]} />
         <article lang={locale} dir={localeDirections[locale]} className="mt-6">
           <header>
             <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">{copy.title}</h1>
