@@ -4,9 +4,12 @@
  */
 
 import { blogArt } from '@/config/blog-art'
-import { locales, type Locale } from '@/i18n'
+import { locales, getValidLocale, type Locale } from '@/i18n'
 import { getAiGlassesAdvisorArticleCopy } from '@/config/ai-glasses-advisor-article-locales'
 import { getPrescriptionTryOnArticleCopy, PRESCRIPTION_TRYON_PUBLISHED_LOCALES } from '@/config/prescription-tryon-article-locales'
+import { getNativeChoiceGuide } from '@/config/native-choice-between-frames'
+import { getNativeFaceFrameGuide } from '@/config/native-face-shape-frame-guide'
+import { getNativePrescriptionShoppingGuide } from '@/config/native-prescription-shopping-guide'
 
 export interface BlogPost {
   slug: string
@@ -244,6 +247,9 @@ export const staticBlogPosts: BlogPost[] = [
 export function getBlogArticleLocales(slug: string): readonly Locale[] {
   if (slug === 'ai-face-analysis-for-glasses-guide') return locales
   if (slug === 'prescription-glasses-virtual-tryon-guide') return PRESCRIPTION_TRYON_PUBLISHED_LOCALES
+  if (slug === 'find-perfect-glasses-online-guide'
+      || slug === 'how-to-choose-glasses-for-your-face'
+      || slug === 'prescription-glasses-online-shopping-guide-2025') return locales
   return ['en']
 }
 
@@ -272,19 +278,21 @@ export async function getAllBlogPosts(locale = 'en'): Promise<BlogPost[]> {
           readTime: advisorCopy.readTime,
         }
       }
-      // Only show native translated article cards for published body locales.
-      if (post.slug === 'prescription-glasses-virtual-tryon-guide'
-          && (locale === 'es' || locale === 'fr')) {
-        const copy = getPrescriptionTryOnArticleCopy(locale)
-        return {
-          ...post,
-          title: copy.title,
-          description: copy.description,
-          category: copy.category,
-          readTime: copy.readTime,
-        }
+      const language = getValidLocale(locale)
+      if (post.slug === 'prescription-glasses-virtual-tryon-guide' && language !== 'en') {
+        const copy = getPrescriptionTryOnArticleCopy(language)
+        return { ...post, title: copy.title, description: copy.description, category: copy.category, readTime: copy.readTime }
       }
-      return post
+      const native = post.slug === 'find-perfect-glasses-online-guide'
+        ? getNativeChoiceGuide(language)
+        : post.slug === 'how-to-choose-glasses-for-your-face'
+          ? getNativeFaceFrameGuide(language)
+          : post.slug === 'prescription-glasses-online-shopping-guide-2025'
+            ? getNativePrescriptionShoppingGuide(language)
+            : null
+      return native
+        ? { ...post, title: native.title, description: native.description, category: native.category, readTime: native.readTime }
+        : post
     })
     .sort((a, b) => {
       const dateA = new Date(a.modifiedAt || a.publishedAt).getTime()
