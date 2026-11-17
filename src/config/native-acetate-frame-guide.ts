@@ -1,3 +1,4 @@
+import { getNativePrescriptionShoppingGuide } from '@/config/native-prescription-shopping-guide'
 import type { Locale } from '@/i18n'
 import { makeNativeRetailArticle, type NativeBlogLocale, type LocalizedRetailArticle } from '@/config/native-retail-guide-common'
 import type { NativeEditorialCopy } from '@/components/blog/NativeEditorialArticle'
@@ -415,6 +416,7 @@ const translations: Record<NativeBlogLocale, LocalizedRetailArticle> = {
 }
 
 export function getNativeAcetateGuide(locale: Locale): NativeEditorialCopy | null {
-  return locale === 'en' ? null
-    : makeNativeRetailArticle(locale, translations[locale], '2025-10-24T17:00:00Z', '2026-11-16T00:00:00Z')
+  if (locale === 'en') return null
+  const copy = makeNativeRetailArticle(locale, translations[locale], '2025-10-24T17:00:00Z', '2026-11-16T00:00:00Z')
+  return { ...copy, relatedLabel: getNativePrescriptionShoppingGuide(locale)?.title || copy.relatedLabel }
 }
