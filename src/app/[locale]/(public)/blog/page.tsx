@@ -41,8 +41,8 @@ export default async function BlogPage({ params }: Props) {
   const blogSchema = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
-    name: 'VisuTry Blog',
-    description: blogDescription,
+    name: hub.title,
+    description: hub.description,
     url: `${SITE_CONFIG.url}${localePrefix}/blog`,
     publisher: {
       '@type': 'Organization',
@@ -66,7 +66,7 @@ export default async function BlogPage({ params }: Props) {
   const itemListSchema = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'VisuTry blog articles',
+    name: hub.title,
     itemListElement: posts.map((post, index) => ({
       '@type': 'ListItem',
       position: index + 1,
