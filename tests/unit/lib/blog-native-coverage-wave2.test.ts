@@ -85,10 +85,10 @@ describe('SEO P1 native wave B2: 32 complete material and brand-frame article ed
   it('keeps precisely 14 original English articles and 86 true article-language URLs', async () => {
     const posts = await getAllBlogPosts()
     expect(posts).toHaveLength(14)
-    expect(posts.filter(post => getBlogArticleLocales(post.slug).length === 9)).toHaveLength(9)
-    expect(posts.reduce((n, post) => n + getBlogArticleLocales(post.slug).length, 0)).toBe(86)
+    expect(posts.filter(post => getBlogArticleLocales(post.slug).length === 9)).toHaveLength(13)
+    expect(posts.reduce((n, post) => n + getBlogArticleLocales(post.slug).length, 0)).toBe(118)
     expect(getBlogArticleLocales('rayban-glasses-virtual-tryon-guide')).toEqual(['en'])
-    expect(getBlogArticleLocales('virtual-try-on-reduce-eyewear-returns')).toEqual(['en'])
+    expect(getBlogArticleLocales('virtual-try-on-reduce-eyewear-returns')).toEqual(locales)
   })
 
   it('uses true localized titles/descriptions and image alt text in native index cards', async () => {
