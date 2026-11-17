@@ -1,22 +1,23 @@
 import { generateMetadata } from '@/app/[locale]/(public)/blog/find-perfect-glasses-online-guide/page'
+import { getNativeChoiceGuide } from '@/config/native-choice-between-frames'
 import { locales } from '@/i18n'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
 const articlePath = '/blog/find-perfect-glasses-online-guide'
 
 describe('online glasses guide metadata', () => {
-  it.each(locales)('points the %s English-body article at its original English canonical', (locale) => {
+  it.each(locales)('publishes %s self-canonical with genuine translated main article text', (locale) => {
     const metadata = generateMetadata({ params: { locale } })
-    const englishUrl = `${siteUrl}/en${articlePath}`
+    const articleUrl = `${siteUrl}/${locale}${articlePath}`
+    const copy = getNativeChoiceGuide(locale)
 
-    // Localized navigation/footer does not make the English article itself
-    // a translated edition. The historic locale link remains accessible.
-    expect(metadata.alternates?.canonical).toBe(englishUrl)
-    expect(metadata.openGraph).toMatchObject({ type: 'article', url: englishUrl, locale: 'en_US' })
+    expect(metadata.alternates?.canonical).toBe(articleUrl)
+    expect(metadata.openGraph).toMatchObject({ type: 'article', url: articleUrl })
     expect(metadata.robots).toMatchObject({ index: true, follow: true })
-    expect(metadata.alternates?.languages).toEqual({
-      en: englishUrl,
-      'x-default': englishUrl,
-    })
+    expect(metadata.title).toBe(copy?.title || 'How to Choose Between Two Pairs of Glasses Online')
+    for (const language of locales) {
+      expect(metadata.alternates?.languages?.[language]).toBe(`${siteUrl}/${language}${articlePath}`)
+    }
+    expect(metadata.alternates?.languages?.['x-default']).toBe(`${siteUrl}/en${articlePath}`)
   })
 })
