@@ -1,3 +1,6 @@
+import { NativeEditorialArticle } from '@/components/blog/NativeEditorialArticle'
+import { getNativeAcetateGuide } from '@/config/native-acetate-frame-guide'
+import { getValidLocale } from '@/i18n'
 import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import { blogArt } from '@/config/blog-art'
 import { Metadata } from 'next'
@@ -16,12 +19,14 @@ const title = 'Acetate vs Plastic Eyeglass Frames: What to Compare'
 const description = 'Acetate is one kind of plastic. Learn what zyl means, how sheet acetate differs from molded frames, and which details to check when comparing two pairs.'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  const locale = getValidLocale(params.locale)
+  const native = getNativeAcetateGuide(locale)
   return generateBlogArticleSEO({
-    locale: params.locale as any,
-    title,
-    description,
+    locale,
+    title: native?.title || title,
+    description: native?.description || description,
     image: cover.src,
-    imageAlt: cover.alt,
+    imageAlt: native?.imageAlt || cover.alt,
     imageWidth: cover.width,
     imageHeight: cover.height,
     pathname: '/blog/acetate-vs-plastic-eyeglass-frames-guide',
@@ -45,6 +50,14 @@ type BlogPostPageProps = {
 }
 
 export default function BlogPostPage({ params }: BlogPostPageProps) {
+  const locale = getValidLocale(params.locale)
+  const native = getNativeAcetateGuide(locale)
+  if (native) {
+    return <NativeEditorialArticle locale={locale}
+      slug="acetate-vs-plastic-eyeglass-frames-guide" copy={native}
+      art={cover} publishedAt={'2025-10-24T17:00:00Z'} modifiedAt={'2026-11-16T00:00:00Z'}
+      relatedSlug="prescription-glasses-online-shopping-guide-2025" />
+  }
   return (
     <>
       <script

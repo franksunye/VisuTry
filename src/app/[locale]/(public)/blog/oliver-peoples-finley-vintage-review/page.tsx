@@ -1,3 +1,5 @@
+import { NativeEditorialArticle } from '@/components/blog/NativeEditorialArticle'
+import { getNativeFinleyVintageGuide } from '@/config/native-finley-vintage-guide'
 import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import type { Metadata } from 'next'
 import Image from 'next/image'
@@ -23,9 +25,10 @@ const articleTags = ['Oliver Peoples', 'Luxury Eyewear', 'Product Review', 'Desi
 type PageProps = { params: { locale: Locale } }
 
 export function generateMetadata({ params }: PageProps): Metadata {
+  const native = getNativeFinleyVintageGuide(params.locale)
   return generateBlogArticleSEO({
-    locale: params.locale, pathname, title, description, type: 'article',
-    image: cover.src, imageWidth: cover.width, imageHeight: cover.height, imageAlt: cover.alt,
+    locale: params.locale, pathname, title: native?.title || title, description: native?.description || description, type: 'article',
+    image: cover.src, imageWidth: cover.width, imageHeight: cover.height, imageAlt: native?.imageAlt || cover.alt,
   })
 }
 
@@ -35,6 +38,13 @@ const article = generateStructuredData('article', {
 })
 
 export default function BlogPostPage({ params: { locale } }: PageProps) {
+  const native = getNativeFinleyVintageGuide(locale)
+  if (native) {
+    return <NativeEditorialArticle locale={locale}
+      slug="oliver-peoples-finley-vintage-review" copy={native}
+      art={cover} publishedAt={publishedAt} modifiedAt={updatedAt}
+      relatedSlug="find-perfect-glasses-online-guide" />
+  }
   return (
     <main className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(article) }} />

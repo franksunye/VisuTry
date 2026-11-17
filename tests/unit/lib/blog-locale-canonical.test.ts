@@ -9,8 +9,13 @@ import { GET as blogSitemap } from '@/app/sitemaps/blog.xml/route'
 const translated = 'ai-face-analysis-for-glasses-guide'
 const rayBan = 'rayban-glasses-virtual-tryon-guide'
 const spanishFrench = 'prescription-glasses-virtual-tryon-guide'
-const englishOnly = 'acetate-vs-plastic-eyeglass-frames-guide'
-const fullNative = ['find-perfect-glasses-online-guide', 'how-to-choose-glasses-for-your-face', 'prescription-glasses-online-shopping-guide-2025']
+const englishOnly = 'best-ai-virtual-glasses-tryon-tools-2025'
+const fullNative = [
+  'find-perfect-glasses-online-guide', 'how-to-choose-glasses-for-your-face',
+  'prescription-glasses-online-shopping-guide-2025',
+  'acetate-vs-plastic-eyeglass-frames-guide', 'browline-clubmaster-glasses-complete-guide',
+  'oliver-peoples-finley-vintage-review', 'tom-ford-luxury-eyewear-guide-2025',
+]
 
 describe('published blog locale contract', () => {
   it('counts only real editorial translations', async () => {
@@ -21,7 +26,7 @@ describe('published blog locale contract', () => {
     expect(getBlogArticleLocales(englishOnly)).toEqual(['en'])
     expect(getBlogArticleLocales(spanishFrench)).toEqual(locales)
     fullNative.forEach(slug => expect(getBlogArticleLocales(slug)).toEqual(locales))
-    expect(posts.reduce((sum, post) => sum + getBlogArticleLocales(post.slug).length, 0)).toBe(54)
+    expect(posts.reduce((sum, post) => sum + getBlogArticleLocales(post.slug).length, 0)).toBe(86)
   })
 
   it('uses the canonical language from blog and tag indexes', () => {
@@ -64,11 +69,11 @@ describe('published blog locale contract', () => {
     expect(() => generateBlogArticleSEO({ ...common, locale: 'en', pathname: '/other' })).toThrow()
   })
 
-  it('emits 54 true article-language sitemap URLs rather than 118 duplicated shells', async () => {
+  it('emits 86 true article-language sitemap URLs rather than 118 duplicated shells', async () => {
     const response = await blogSitemap()
     expect(response.status).toBe(200)
     const xml = await response.text()
-    expect((xml.match(/<loc>/g) || [])).toHaveLength(54)
+    expect((xml.match(/<loc>/g) || [])).toHaveLength(86)
     expect(xml).toContain('https://www.visutry.com/en/blog/' + englishOnly)
     expect(xml).not.toContain('https://www.visutry.com/fr/blog/' + englishOnly)
     expect(xml).not.toContain('https://www.visutry.com/ja/blog/' + rayBan)
@@ -83,10 +88,10 @@ describe('published blog locale contract', () => {
     }
   })
 
-  it('binds all remaining eight English-only article metadata owners to the centralized policy', async () => {
+  it('binds all remaining four English-only article metadata owners to the centralized policy', async () => {
     const posts = await getAllBlogPosts()
     const slugs = posts.filter((p) => getBlogArticleLocales(p.slug).length === 1 && p.slug !== rayBan)
-    expect(slugs).toHaveLength(8)
+    expect(slugs).toHaveLength(4)
     for (const post of slugs) {
       const source = fs.readFileSync(path.join(
         process.cwd(), 'src', 'app', '[locale]', '(public)', 'blog', post.slug, 'page.tsx',

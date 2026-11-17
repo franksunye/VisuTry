@@ -1,3 +1,7 @@
+import { getNativeAcetateGuide } from '@/config/native-acetate-frame-guide'
+import { getNativeBrowlineGuide } from '@/config/native-browline-clubmaster-guide'
+import { getNativeFinleyVintageGuide } from '@/config/native-finley-vintage-guide'
+import { getNativeTomFordFrameGuide } from '@/config/native-tom-ford-frame-guide'
 /**
  * Blog content management utilities
  * Supports static articles and future dynamic articles
@@ -241,15 +245,21 @@ export const staticBlogPosts: BlogPost[] = [
 ]
 
 /**
- * Only Advisor has genuinely translated article body. Other article locales
- * are English text under an otherwise localized navigation/footer shell.
+ * Publication-language contract: list a locale only when its article BODY has
+ * a genuine native edition (not merely an i18n navigation/footer shell).
+ * Keep sitemap, hreflang, canonical and blog cards synchronized here.
+ * Untranslated routes remain available, canonically owned by their EN source.
  */
 export function getBlogArticleLocales(slug: string): readonly Locale[] {
   if (slug === 'ai-face-analysis-for-glasses-guide') return locales
   if (slug === 'prescription-glasses-virtual-tryon-guide') return PRESCRIPTION_TRYON_PUBLISHED_LOCALES
   if (slug === 'find-perfect-glasses-online-guide'
       || slug === 'how-to-choose-glasses-for-your-face'
-      || slug === 'prescription-glasses-online-shopping-guide-2025') return locales
+      || slug === 'prescription-glasses-online-shopping-guide-2025'
+      || slug === 'acetate-vs-plastic-eyeglass-frames-guide'
+      || slug === 'browline-clubmaster-glasses-complete-guide'
+      || slug === 'oliver-peoples-finley-vintage-review'
+      || slug === 'tom-ford-luxury-eyewear-guide-2025') return locales
   return ['en']
 }
 
@@ -281,7 +291,7 @@ export async function getAllBlogPosts(locale = 'en'): Promise<BlogPost[]> {
       const language = getValidLocale(locale)
       if (post.slug === 'prescription-glasses-virtual-tryon-guide' && language !== 'en') {
         const copy = getPrescriptionTryOnArticleCopy(language)
-        return { ...post, title: copy.title, description: copy.description, category: copy.category, readTime: copy.readTime }
+        return { ...post, title: copy.title, description: copy.description, category: copy.category, readTime: copy.readTime, coverAlt: copy.imageAlt }
       }
       const native = post.slug === 'find-perfect-glasses-online-guide'
         ? getNativeChoiceGuide(language)
@@ -289,9 +299,17 @@ export async function getAllBlogPosts(locale = 'en'): Promise<BlogPost[]> {
           ? getNativeFaceFrameGuide(language)
           : post.slug === 'prescription-glasses-online-shopping-guide-2025'
             ? getNativePrescriptionShoppingGuide(language)
-            : null
+            : post.slug === 'acetate-vs-plastic-eyeglass-frames-guide'
+            ? getNativeAcetateGuide(language)
+            : post.slug === 'browline-clubmaster-glasses-complete-guide'
+              ? getNativeBrowlineGuide(language)
+              : post.slug === 'oliver-peoples-finley-vintage-review'
+                ? getNativeFinleyVintageGuide(language)
+                : post.slug === 'tom-ford-luxury-eyewear-guide-2025'
+                  ? getNativeTomFordFrameGuide(language)
+                  : null
       return native
-        ? { ...post, title: native.title, description: native.description, category: native.category, readTime: native.readTime }
+        ? { ...post, title: native.title, description: native.description, category: native.category, readTime: native.readTime, coverAlt: native.imageAlt }
         : post
     })
     .sort((a, b) => {
