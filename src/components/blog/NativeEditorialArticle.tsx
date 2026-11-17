@@ -74,7 +74,7 @@ export function NativeEditorialArticle({
           <figure className="my-8">
             <Image src={art.src} width={art.width} height={art.height} alt={copy.imageAlt}
               sizes="(min-width: 768px) 704px, calc(100vw - 40px)"
-              className="h-auto w-full rounded-xl object-contain" />
+              className="h-auto w-full rounded-xl object-contain" priority />
             <figcaption className="mt-2 text-sm text-slate-600">{copy.imageCaption}</figcaption>
           </figure>
           <div className="space-y-5 leading-7 text-slate-800 [&_h2]:pt-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:ps-6">
