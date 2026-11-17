@@ -30,7 +30,7 @@ describe('P1 Spanish / French photo try-on article localization', () => {
     expect(meta.title).toBe(getPrescriptionTryOnArticleCopy(locale).title)
     expect(meta.description).toBe(getPrescriptionTryOnArticleCopy(locale).description)
     expect(meta.alternates?.canonical).toBe(base + '/' + locale + path)
-    for (const l of ['en', 'es', 'fr']) {
+    for (const l of ['en', 'es', 'fr'] as const) {
       expect(meta.alternates?.languages?.[l]).toBe(base + '/' + l + path)
     }
     expect(meta.alternates?.languages?.['x-default']).toBe(base + '/en' + path)
