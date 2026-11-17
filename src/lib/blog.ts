@@ -245,8 +245,10 @@ export const staticBlogPosts: BlogPost[] = [
 ]
 
 /**
- * Only Advisor has genuinely translated article body. Other article locales
- * are English text under an otherwise localized navigation/footer shell.
+ * Publication-language contract: list a locale only when its article BODY has
+ * a genuine native edition (not merely an i18n navigation/footer shell).
+ * Keep sitemap, hreflang, canonical and blog cards synchronized here.
+ * Untranslated routes remain available, canonically owned by their EN source.
  */
 export function getBlogArticleLocales(slug: string): readonly Locale[] {
   if (slug === 'ai-face-analysis-for-glasses-guide') return locales
