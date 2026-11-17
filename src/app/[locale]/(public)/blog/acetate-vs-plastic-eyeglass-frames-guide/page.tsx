@@ -1,6 +1,7 @@
+import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import { blogArt } from '@/config/blog-art'
 import { Metadata } from 'next'
-import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
+import { generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 import Link from '@/components/layout/PublicLink'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
@@ -15,7 +16,7 @@ const title = 'Acetate vs Plastic Eyeglass Frames: What to Compare'
 const description = 'Acetate is one kind of plastic. Learn what zyl means, how sheet acetate differs from molded frames, and which details to check when comparing two pairs.'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  return generateI18nSEO({
+  return generateBlogArticleSEO({
     locale: params.locale as any,
     title,
     description,

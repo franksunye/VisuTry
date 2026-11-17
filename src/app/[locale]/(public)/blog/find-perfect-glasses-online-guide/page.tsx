@@ -1,9 +1,10 @@
+import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import type { Metadata } from 'next'
 import { blogArt } from '@/config/blog-art'
 import type { Locale } from '@/i18n'
 import Link from '@/components/layout/PublicLink'
 import Image from 'next/image'
-import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
+import { generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { localizedPath } from '@/lib/localized-path'
 
@@ -20,7 +21,7 @@ type BlogPostPageProps = {
 
 export function generateMetadata({ params }: BlogPostPageProps): Metadata {
   return {
-    ...generateI18nSEO({
+    ...generateBlogArticleSEO({
       locale: params.locale,
       title,
       description,

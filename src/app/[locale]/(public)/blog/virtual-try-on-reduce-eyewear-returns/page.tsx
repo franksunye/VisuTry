@@ -1,3 +1,4 @@
+import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import { framePhotoGuide, inventoryCatalogGuide } from '@/config/business-resources'
 import { blogArt } from '@/config/blog-art'
 import { Metadata } from 'next'
@@ -5,7 +6,7 @@ import Image from 'next/image'
 import Link from '@/components/layout/PublicLink'
 import { BarChart3, CheckCircle2, PackageCheck, ShoppingCart, UserCheck } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
+import { generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 import { localizedPath } from '@/lib/localized-path'
 
 export const dynamic = 'force-static'
@@ -15,7 +16,7 @@ const description = 'Measure whether photo try-on reduces style-related frame re
 const cover = blogArt['virtual-try-on-reduce-eyewear-returns']
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  return generateI18nSEO({
+  return generateBlogArticleSEO({
     locale: params.locale as any,
     title,
     description,

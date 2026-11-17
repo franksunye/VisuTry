@@ -1,3 +1,4 @@
+import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import { Metadata } from 'next'
 import Image from 'next/image'
 import { blogArt } from '@/config/blog-art'
@@ -12,7 +13,7 @@ import {
   Sun,
 } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
+import { generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
@@ -24,7 +25,7 @@ const publishedAt = '2026-07-20T10:00:00Z'
 const modifiedAt = '2026-11-16T00:00:00Z'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  return generateI18nSEO({
+  return generateBlogArticleSEO({
     locale: params.locale as any,
     title,
     description,

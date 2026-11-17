@@ -1,3 +1,4 @@
+import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from '@/components/layout/PublicLink'
@@ -6,7 +7,7 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { blogArt } from '@/config/blog-art'
 import type { Locale } from '@/i18n'
 import { localizedPath } from '@/lib/localized-path'
-import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
+import { generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
@@ -38,7 +39,7 @@ const faq = generateStructuredData('faqPage', { questions: frameQuestions })
 type PageProps = { params: { locale: Locale } }
 
 export function generateMetadata({ params: { locale } }: PageProps): Metadata {
-  return generateI18nSEO({
+  return generateBlogArticleSEO({
     locale, title, description, pathname, type: 'article',
     image: art.src, imageAlt: art.alt, imageWidth: art.width, imageHeight: art.height,
   })
