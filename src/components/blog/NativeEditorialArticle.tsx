@@ -20,6 +20,7 @@ export type NativeEditorialCopy = {
   updatedLabel: string
   sections: readonly { heading: string; paragraphs: readonly string[]; bullets?: readonly string[] }[]
   faq?: readonly { question: string; answer: string }[]
+  sources?: readonly { label: string; url: string }[]
   tryOnLabel: string
   detectorLabel: string
   compareLabel: string
@@ -94,6 +95,14 @@ export function NativeEditorialArticle({
                   </div>
                 ))}
               </section>
+            )}
+            {copy.sources && copy.sources.length > 0 && (
+              <div className="flex flex-wrap gap-3 text-sm text-blue-700" data-native-sources="true">
+                {copy.sources.map(source => (
+                  <a key={source.url} href={source.url} target="_blank" rel="noopener noreferrer"
+                    className="underline underline-offset-2">{source.label}</a>
+                ))}
+              </div>
             )}
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-3">
               <p className="text-sm text-slate-700">{copy.creditDisclosure}</p>
