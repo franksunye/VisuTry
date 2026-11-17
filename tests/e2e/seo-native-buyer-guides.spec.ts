@@ -42,6 +42,10 @@ for (const guide of guides) {
         const schema = JSON.parse(raw)
         return schema['@type'] === 'Article' && schema.headline === copy.title && schema.inLanguage === locale
       })).toBe(true)
+      const heroImage = article.locator('img').first()
+      await expect.poll(async () => heroImage.evaluate(
+        image => (image as HTMLImageElement).naturalWidth,
+      )).toBeGreaterThan(0)
       if (['es','ja','ar'].includes(locale)) {
         await page.evaluate(() => window.scrollTo(0, 0))
         await page.screenshot({ path: 'test-results/seo-buyer-' + guide.slug + '-' + locale + '-430.png' })
