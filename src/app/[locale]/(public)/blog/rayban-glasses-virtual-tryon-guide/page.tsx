@@ -32,7 +32,7 @@ const faqs = [
 ]
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  return generateI18nSEO({
+  const metadata = generateI18nSEO({
     locale: params.locale as Locale,
     title: `${title} | VisuTry`,
     description,
@@ -45,6 +45,23 @@ export async function generateMetadata({ params }: { params: { locale: string } 
     noIndex: params.locale !== 'en',
     availableLocales: ['en'] as const,
   })
+  if (params.locale === 'en') return metadata
+  // The article body is always English. Keep the established non-EN noindex
+  // policy, but don't advertise a conflicting canonical or OG page owner.
+  const englishUrl = new URL('/en' + pagePath, SITE_CONFIG.url).toString()
+  return {
+    ...metadata,
+    alternates: {
+      canonical: englishUrl,
+      languages: { en: englishUrl, 'x-default': englishUrl },
+    },
+    openGraph: {
+      ...metadata.openGraph,
+      url: englishUrl,
+      locale: 'en_US',
+      alternateLocale: [],
+    },
+  }
 }
 
 export default function RayBanGuidePage({ params }: { params: { locale: string } }) {
