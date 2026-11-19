@@ -117,7 +117,7 @@ for (const size of SCREEN_SIZES) {
     test.setTimeout(95000)
     await page.setViewportSize({ width: size.width, height: size.height })
     await page.route('**/api/auth/session', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: 'null' }),
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }),
     )
     await page.goto('/en/face-shape-detector', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('input[type=file]').first()).toBeAttached()
