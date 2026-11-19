@@ -59,7 +59,7 @@ test('@consumer-audit mobile-430: real Detector CTA preserves photo through mock
     route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: loggedIn ? JSON.stringify(syntheticSession) : 'null',
+      body: loggedIn ? JSON.stringify(syntheticSession) : '{}',
     }),
   )
   await page.route('**/api/face-analysis/submit', async route => {
