@@ -97,6 +97,27 @@ test('@consumer-audit mobile-430: real Detector CTA preserves photo through mock
   ])
   const pendingId = new URL(page.url()).searchParams.get('photoHandoff')
   expect(pendingId).toBeTruthy()
+  const inspectHandoff = async () => page.evaluate(async (token) => {
+    return await new Promise<string>(resolve => {
+      const request = indexedDB.open('visutry-local-handoffs', 1)
+      request.onerror = () => resolve('open-error')
+      request.onsuccess = () => {
+        const db = request.result
+        try {
+          const tx = db.transaction('face-analysis-photos', 'readonly')
+          const get = tx.objectStore('face-analysis-photos').get(token)
+          get.onsuccess = () => { resolve(get.result ? 'present' : 'missing'); db.close() }
+          get.onerror = () => { resolve('read-error'); db.close() }
+        } catch {
+          resolve('transaction-error')
+          db.close()
+        }
+      }
+    })
+  }, pendingId || '')
+  const handoffBeforeLogin = await inspectHandoff()
+  console.log('HANDOFF_BEFORE_LOGIN', handoffBeforeLogin)
+  expect(handoffBeforeLogin).toBe('present')
   await expect(page.getByRole('button', { name: /Get personalized advice/i })).toBeVisible()
   await page.screenshot({ path: info.outputPath('08-advisor-guest-after-real-click.png') })
 
@@ -105,7 +126,19 @@ test('@consumer-audit mobile-430: real Detector CTA preserves photo through mock
   loggedIn = true
   await page.reload({ waitUntil: 'domcontentloaded' })
   const restoredPhoto = page.locator('img[src^="blob:"]').first()
-  await expect(restoredPhoto).toBeVisible({ timeout: 15000 })
+  try {
+    await expect(restoredPhoto).toBeVisible({ timeout: 12000 })
+  } catch (error) {
+    const handoffAfterLogin = await inspectHandoff()
+    console.log('HANDOFF_RESTORE_DIAGNOSTIC', JSON.stringify({
+      handoffBeforeLogin,
+      handoffAfterLogin,
+      tokenStillInUrl: new URL(page.url()).searchParams.has('photoHandoff'),
+      authenticatedWorkspaceVisible: await page.getByRole('button', { name: /Analyze My Face/i }).count() > 0,
+    }))
+    await page.screenshot({ path: info.outputPath('09-advisor-photo-restoration-failed.png') })
+    throw error
+  }
   await expect(page).toHaveURL(/face-analysis/)
   const imgDetails = await restoredPhoto.evaluate(img => ({
     naturalWidth: (img as HTMLImageElement).naturalWidth,
