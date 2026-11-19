@@ -152,7 +152,7 @@ for (const size of SCREEN_SIZES) {
       { waitUntil: 'domcontentloaded' },
     )
     await expect(page.locator('body')).toContainText(/Face Analysis|Face Shape|Glasses Advisor/i)
-    const signInCta = page.getByRole('button', { name: /start face analysis/i })
+    const signInCta = page.getByRole('button', { name: /get personalized advice/i })
     await expect(signInCta).toBeVisible()
     await page.screenshot({ path: testInfo.outputPath('03-advisor-guest-viewport.png') })
     await page.screenshot({ path: testInfo.outputPath('03-advisor-guest-full.png'), fullPage: true })
