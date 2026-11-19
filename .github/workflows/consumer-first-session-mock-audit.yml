@@ -48,6 +48,7 @@ jobs:
       - name: Run true Next.js Consumer pages with synthetic API fixtures
         run: >
           npx playwright test tests/e2e/consumer-first-session-audit.spec.ts
+          tests/e2e/consumer-detector-advisor-handoff-audit.spec.ts
           --project=chromium --workers=1 --reporter=list
 
       - name: Upload raw browser screenshots and test diagnostics even on failure
