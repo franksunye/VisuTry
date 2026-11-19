@@ -1,0 +1,64 @@
+name: Consumer First-Session Mock Browser Audit
+
+on:
+  push:
+    branches:
+      - audit/consumer-first-session-playwright-20261119
+
+permissions:
+  contents: read
+
+concurrency:
+  group: consumer-first-session-mock-audit
+  cancel-in-progress: true
+
+jobs:
+  browser-audit:
+    name: Actual Consumer UI / Mock API / Chromium Screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      CI: "true"
+      NODE_ENV: test
+      ENABLE_MOCKS: "true"
+      TEST_MODE: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      SKIP_ENV_VALIDATION: "1"
+      NEXTAUTH_SECRET: ci-only-consumer-audit-secret
+      NEXTAUTH_URL: http://127.0.0.1:3001
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/visutry_consumer_audit
+      DATABASE_URL_UNPOOLED: postgresql://ci:ci@127.0.0.1:5432/visutry_consumer_audit
+      STRIPE_SECRET_KEY: sk_test_consumer_audit_placeholder
+    steps:
+      - name: Check out exact audit branch
+        uses: actions/checkout@v4
+
+      - name: Install isolated Node runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install repository dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run true Next.js Consumer pages with synthetic API fixtures
+        run: >
+          npx playwright test tests/e2e/consumer-first-session-audit.spec.ts
+          --project=chromium --workers=1 --reporter=list
+
+      - name: Upload raw browser screenshots and test diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-first-session-mock-browser-${{ github.run_id }}
+          path: |
+            test-results/**/*.png
+            test-results/**/*.json
+            test-results/**/*.zip
+            test-results/**/*.webm
+          retention-days: 14
+          if-no-files-found: warn
