@@ -11,6 +11,10 @@ jest.mock('next-auth/react', () => ({
   useSession: () => mockSessionState,
 }))
 
+jest.mock('@/components/face-analysis/DetectorAdvisorContinuation', () => ({
+  DetectorAdvisorContinuation: ({ fallback }: { fallback: React.ReactNode }) => <>{fallback}</>,
+}))
+
 jest.mock('@/components/face-analysis/FaceAnalysisInterface', () => ({
   FaceAnalysisInterface: () => <div>authenticated face analysis</div>,
 }))
