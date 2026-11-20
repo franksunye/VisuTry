@@ -34,6 +34,7 @@ export default async function FaceAnalysisPage({ params }: Props) {
   return (
     <RouteMessagesProvider namespaces={['faceAnalysis']}>
       <FaceAnalysisGate
+        locale={params.locale}
         landing={<FaceAnalysisLanding locale={params.locale} />}
         loadingText={t('loading')}
       />
