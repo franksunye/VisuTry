@@ -1,0 +1,88 @@
+name: Consumer Handoff & Unlock First-Fold Quality
+
+on:
+  push:
+    branches:
+      - fix/consumer-handoff-and-unlock-fold-20261120
+
+permissions:
+  contents: read
+
+concurrency:
+  group: consumer-handoff-unlock-fold
+  cancel-in-progress: true
+
+jobs:
+  targeted-unit:
+    name: StrictMode and Paid Report Contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    env:
+      CI: "true"
+      NODE_ENV: test
+      ENABLE_MOCKS: "true"
+      TEST_MODE: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      SKIP_ENV_VALIDATION: "1"
+      NEXTAUTH_SECRET: consumer-qa-only-secret
+      NEXTAUTH_URL: http://127.0.0.1:3001
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/visutry_consumer_qa
+      DATABASE_URL_UNPOOLED: postgresql://ci:ci@localhost:5432/visutry_consumer_qa
+      STRIPE_SECRET_KEY: sk_test_consumer_qa_placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Targeted component and business regressions
+        run: >
+          npx jest
+          tests/unit/components/face-analysis/FaceAnalysisInterface.test.tsx
+          tests/unit/components/face-analysis/FaceAnalysisGate.test.tsx
+          tests/unit/components/face-analysis/FaceAnalysisResult.test.tsx
+          tests/unit/components/face-analysis/FaceAnalysisCriticalJourney.test.tsx
+          tests/unit/api/payment-face-analysis-unlock-critical.test.ts
+          --runInBand --silent
+
+  real-browser-mock:
+    name: Real Next.js Playwright 430/390/Desktop
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      CI: "true"
+      NODE_ENV: test
+      ENABLE_MOCKS: "true"
+      TEST_MODE: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      SKIP_ENV_VALIDATION: "1"
+      NEXTAUTH_SECRET: consumer-qa-only-secret
+      NEXTAUTH_URL: http://127.0.0.1:3001
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/visutry_consumer_qa
+      DATABASE_URL_UNPOOLED: postgresql://ci:ci@127.0.0.1:5432/visutry_consumer_qa
+      STRIPE_SECRET_KEY: sk_test_consumer_qa_placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Browser QA with synthetic photo/session/checkout
+        run: >
+          npx playwright test tests/e2e/consumer-first-session-fix.spec.ts
+          --project=chromium --workers=1 --reporter=list
+      - name: Upload original screenshots, evidence, and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-handoff-unlock-fold-${{ github.run_id }}
+          path: |
+            test-results/**/*.png
+            test-results/**/*.json
+            test-results/**/*.zip
+            test-results/**/*.webm
+          retention-days: 14
+          if-no-files-found: warn
