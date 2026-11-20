@@ -246,6 +246,16 @@ for (const viewport of [
       })
     })
 
+    // The real checkout redirects off-site. Keep navigation local and synthetic:
+    // middleware may add /en before the mock path, both forms are accepted.
+    await page.route('**/mock/checkout/**', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: '<!doctype html><html><body><h1>Mock Checkout</h1></body></html>',
+      }),
+    )
+
     await page.goto(`/en/face-analysis?taskId=${TASK_ID}`, { waitUntil: 'domcontentloaded' })
     const earlyOffer = page.getByTestId('face-analysis-primary-unlock')
     await expect(earlyOffer).toBeVisible()
@@ -275,7 +285,8 @@ for (const viewport of [
     const confirm = paywall.getByRole('button', { name: /Unlock for \$2\.99/ })
     await expect(confirm).toBeEnabled()
     await page.screenshot({ path: info.outputPath(`03-paywall-${viewport.name}.png`) })
-    await Promise.all([page.waitForURL(url => url.pathname === checkoutUrl), confirm.click()])
+    await Promise.all([page.waitForURL(url => url.pathname.endsWith(checkoutUrl)), confirm.click()])
+    await expect(page.getByRole('heading', { name: 'Mock Checkout' })).toBeVisible()
     expect(checkoutCount).toBe(1)
     expect(requestBody).toEqual(expect.objectContaining({
       productType: 'CREDITS_PACK',
