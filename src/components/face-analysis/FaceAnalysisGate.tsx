@@ -3,12 +3,14 @@
 import { useSession } from 'next-auth/react'
 import { ReactNode, Suspense, useEffect, useState } from 'react'
 import { FaceAnalysisInterface } from '@/components/face-analysis/FaceAnalysisInterface'
+import { DetectorAdvisorContinuation } from '@/components/face-analysis/DetectorAdvisorContinuation'
 import { ConversionPaywallBoundary } from '@/components/payments/ConversionPaywallBoundary'
 import styles from './FaceAnalysisGate.module.css'
 
 interface FaceAnalysisGateProps {
   landing: ReactNode
   loadingText: string
+  locale?: string
 }
 
 /**
@@ -18,7 +20,7 @@ interface FaceAnalysisGateProps {
  * Once authenticated, keep the interface mounted while session.update() is
  * refreshing so task recovery effects cannot restart from a clean mount.
  */
-export function FaceAnalysisGate({ landing, loadingText }: FaceAnalysisGateProps) {
+export function FaceAnalysisGate({ landing, loadingText, locale = 'en' }: FaceAnalysisGateProps) {
   const { data: session, status } = useSession()
   const [lastAuthenticatedSession, setLastAuthenticatedSession] = useState<typeof session>(null)
 
@@ -39,7 +41,11 @@ export function FaceAnalysisGate({ landing, loadingText }: FaceAnalysisGateProps
     : status === 'loading' ? lastAuthenticatedSession : null
 
   if (!visibleSession) {
-    return <>{landing}</>
+    return (
+      <Suspense fallback={landing}>
+        <DetectorAdvisorContinuation locale={locale} fallback={landing} />
+      </Suspense>
+    )
   }
 
   return (

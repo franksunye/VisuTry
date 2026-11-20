@@ -144,7 +144,8 @@ test('@consumer-release 430x932: signed-out handoff restores the same image afte
     `/en/face-analysis?source=free-face-shape-detector&faceShape=oval&photoHandoff=${token}`,
     { waitUntil: 'domcontentloaded' },
   )
-  await expect(page.getByRole('button', { name: /get personalized advice/i })).toBeVisible()
+  await expect(page.getByTestId('detector-advisor-continuation')).toBeVisible()
+  await expect(page.getByRole('button', { name: /sign in and continue with my result/i })).toBeVisible()
 
   // Seed exactly the same IndexedDB schema that the real free Detector uses.
   // Fetch a checked-in, non-customer sample photo from THIS mock web server.
