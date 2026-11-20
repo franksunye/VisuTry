@@ -121,6 +121,7 @@ export function FaceAnalysisResult({
             onUnlock={onUnlock}
             isLoading={isUnlocking}
             faceShape={basic.faceShape}
+            previewBestFrames={previewBestFrames}
           />
         </div>
       )}
@@ -902,51 +903,49 @@ function LockedPremiumPreview({
   bestFrames: string[]
   framesToAvoid: string[]
 }) {
+  // Only show the API's already-authorized lockedTeaser. The previous
+  // blurred metric cards used synthetic placeholder values; never invent
+  // match scores, report details, or content reserved for paid accounts.
   return (
-    <div className="space-y-5">
-      <section className={cn(FACE_ANALYSIS_LAYOUT.card, 'relative overflow-hidden p-5')}>
-        <div className="grid gap-5 md:grid-cols-3">
-          <PremiumPreviewCard title="Face metrics" lines={['Face length', 'Face width', 'Jawline', 'Symmetry']} />
-          <PremiumPreviewCard title="Best frames" lines={bestFrames.length ? bestFrames : ['Round frames', 'Aviator frames']} />
-          <PremiumPreviewCard title="Style guide" lines={['Personalized frame notes', 'Fit and sizing tips', 'Try-on guidance']} />
-        </div>
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 p-6 text-center backdrop-blur-[2px]">
-          <Lock className="mb-3 h-9 w-9 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-950">Unlock your complete report</h3>
-          <p className="mt-2 max-w-md text-sm leading-6 text-gray-600">
-            See detailed metrics, frame scores, styles to avoid, and a personal style guide built for your face shape.
+    <section
+      data-testid="advisor-trustworthy-preview"
+      className={cn(FACE_ANALYSIS_LAYOUT.card, 'overflow-hidden p-4 sm:p-5')}
+    >
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+          <Lock className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">A preview, not the full decision</p>
+          <h3 className="mt-1 text-lg font-semibold text-gray-950">Unlock your complete report</h3>
+          <p className="mt-1 text-sm leading-6 text-gray-600">
+            Face shape is the starting point. The complete report explains which frames
+            to try first, which to reconsider, and why they work with your features.
           </p>
         </div>
-      </section>
+      </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
-        <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-5')}>
-          <p className="mb-3 text-sm font-semibold text-gray-900">Preview: best frame directions</p>
-          <p className="text-sm leading-6 text-gray-600">{bestFrames.join(' · ')}</p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-3.5">
+          <p className="text-sm font-semibold text-gray-950">Preview: best frame directions</p>
+          <p className="mt-2 text-sm leading-6 text-gray-700">
+            {bestFrames.length > 0 ? bestFrames.join(' · ') : 'No individual frame preview is available yet.'}
+          </p>
         </div>
-        <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-5')}>
-          <p className="mb-3 text-sm font-semibold text-gray-900">Preview: styles to avoid</p>
-          <p className="text-sm leading-6 text-gray-600">{framesToAvoid.join(' · ')}</p>
+        <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-3.5">
+          <p className="text-sm font-semibold text-gray-950">Preview: styles to avoid</p>
+          <p className="mt-2 text-sm leading-6 text-gray-700">
+            {framesToAvoid.length > 0 ? framesToAvoid.join(' · ') : 'Detailed avoid-first advice is in the full report.'}
+          </p>
         </div>
       </div>
 
-    </div>
-  )
-}
-
-function PremiumPreviewCard({ title, lines }: { title: string; lines: string[] }) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 blur-sm">
-      <p className="mb-3 text-sm font-semibold text-gray-950">{title}</p>
-      <div className="space-y-2">
-        {lines.map((line) => (
-          <div key={line} className="flex items-center gap-2 text-sm text-gray-600">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            {line}
-          </div>
-        ))}
+      <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-600">
+        <span className="rounded-full bg-blue-50 px-2.5 py-1">Detailed frame-fit reasons</span>
+        <span className="rounded-full bg-blue-50 px-2.5 py-1">Personal styling guidance</span>
+        <span className="rounded-full bg-blue-50 px-2.5 py-1">Four try-on directions using credits</span>
       </div>
-    </div>
+    </section>
   )
 }
 
