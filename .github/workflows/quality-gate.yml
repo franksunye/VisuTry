@@ -222,6 +222,21 @@ jobs:
       - name: Revenue Critical Browser Gate
         run: npm run test:e2e:revenue-critical
 
+      # A stable Consumer conversion regression: never send a user photo to paid
+      # services, and never let the report-unlock CTA slip below mobile fold.
+      - name: Consumer Photo Handoff and First-Fold Unlock Browser Gate
+        run: npx playwright test tests/e2e/consumer-first-session-fix.spec.ts --project=chromium --workers=1
+
+      - name: Upload Consumer Conversion Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-first-session-browser-${{ github.run_id }}
+          path: |
+            test-results/**/*.png
+            test-results/**/*.json
+          if-no-files-found: ignore
+
       # GEO: verify the first, above-the-fold Try-On CTA cannot self-loop for new visitors.
       # Preserve auth callback parameters and offline/no-AI test boundaries.
       - name: GEO Try-On Hero Handoff Browser Gate (desktop and mobile)
