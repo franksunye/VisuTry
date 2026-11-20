@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { ReactNode, Suspense } from 'react'
+import { ReactNode, Suspense, useEffect, useState } from 'react'
 import { FaceAnalysisInterface } from '@/components/face-analysis/FaceAnalysisInterface'
 import { ConversionPaywallBoundary } from '@/components/payments/ConversionPaywallBoundary'
 import styles from './FaceAnalysisGate.module.css'
@@ -20,8 +20,25 @@ interface FaceAnalysisGateProps {
  */
 export function FaceAnalysisGate({ landing, loadingText }: FaceAnalysisGateProps) {
   const { data: session, status } = useSession()
+  const [lastAuthenticatedSession, setLastAuthenticatedSession] = useState<typeof session>(null)
 
-  if (status === 'unauthenticated' || !session) {
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      setLastAuthenticatedSession(session)
+    } else if (status === 'unauthenticated') {
+      // Preserve the strict sign-out boundary, even after a background refresh.
+      setLastAuthenticatedSession(null)
+    }
+  }, [session, status])
+
+  // NextAuth may report loading with data=null during update(). Do not unmount
+  // the live Advisor workspace (including its one-time photo handoff) until a
+  // real unauthenticated state is confirmed.
+  const visibleSession = status === 'authenticated'
+    ? session
+    : status === 'loading' ? lastAuthenticatedSession : null
+
+  if (!visibleSession) {
     return <>{landing}</>
   }
 
