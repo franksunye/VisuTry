@@ -164,7 +164,7 @@ describe('FaceAnalysisResult', () => {
     expect(screen.queryByTestId('advisor-personalized-unlock-preview')).not.toBeInTheDocument()
     expect(screen.getByText('No individual frame preview is available yet.')).toBeInTheDocument()
     expect(screen.getByText('Detailed avoid-first advice is in the full report.')).toBeInTheDocument()
-    expect(screen.queryByText(/Round frames/)).not.toBeInTheDocument()
+    expect(screen.getByTestId('advisor-trustworthy-preview')).not.toHaveTextContent('Round frames')
   })
 
   it('keeps the locked result focused on unlocking personalized recommendations', () => {
