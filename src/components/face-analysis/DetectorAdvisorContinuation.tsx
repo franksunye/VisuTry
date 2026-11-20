@@ -4,8 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { ReactNode } from 'react'
 import { ArrowRight, CheckCircle2, Glasses, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { LoginButton } from '@/components/auth/LoginButton'
-import { getFaceShapeIcon } from '@/config/face-analysis'
-import { getFaceShapeContent } from '@/config/face-shape-content'
+import { getFaceShapeIcon, isCanonicalFaceShape } from '@/config/face-analysis'
 
 /**
  * Contextual guest handoff, not a second marketing landing.
@@ -24,13 +23,12 @@ export function DetectorAdvisorContinuation({
 }) {
   const searchParams = useSearchParams()
   const faceShape = searchParams.get('faceShape')
-  const shape = getFaceShapeContent(faceShape || '')
-
-  if (locale !== 'en' || searchParams.get('source') !== 'free-face-shape-detector' || !shape) {
+  if (locale !== 'en' || searchParams.get('source') !== 'free-face-shape-detector' || !faceShape || !isCanonicalFaceShape(faceShape)) {
     return <>{fallback}</>
   }
 
-  const ShapeIcon = getFaceShapeIcon(shape.slug)
+  const ShapeIcon = getFaceShapeIcon(faceShape)
+  const shapeName = faceShape.charAt(0).toUpperCase() + faceShape.slice(1)
   const hasHandoff = Boolean(searchParams.get('photoHandoff'))
 
   return (
@@ -57,7 +55,7 @@ export function DetectorAdvisorContinuation({
           </span>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">From your free check</p>
-            <p className="text-xl font-bold text-gray-950">{shape.name} face <span className="text-xs font-normal text-gray-600">(likely)</span></p>
+            <p className="text-xl font-bold text-gray-950">{shapeName} face <span className="text-xs font-normal text-gray-600">(likely)</span></p>
           </div>
         </div>
 
