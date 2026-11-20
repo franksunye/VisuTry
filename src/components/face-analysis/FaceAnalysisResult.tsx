@@ -115,6 +115,16 @@ export function FaceAnalysisResult({
         </div>
       </div>
 
+      {!isUnlocked && (
+        <div data-testid="face-analysis-primary-unlock">
+          <UnlockCreditsBanner
+            onUnlock={onUnlock}
+            isLoading={isUnlocking}
+            faceShape={basic.faceShape}
+          />
+        </div>
+      )}
+
       <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.05fr)] xl:grid-cols-[250px_minmax(0,1fr)_270px]">
         <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'overflow-hidden p-3 sm:p-4')}>
           <div className="relative mx-auto aspect-[4/5] w-full max-w-[220px] overflow-hidden rounded-lg bg-gray-100 sm:max-w-[280px] xl:max-w-none">
@@ -245,9 +255,6 @@ export function FaceAnalysisResult({
         <LockedPremiumPreview
           bestFrames={previewBestFrames}
           framesToAvoid={previewFramesToAvoid}
-          onUnlock={onUnlock}
-          isUnlocking={isUnlocking}
-          faceShape={basic.faceShape}
         />
       )}
 
@@ -891,15 +898,9 @@ function FramePresetProductImage({
 function LockedPremiumPreview({
   bestFrames,
   framesToAvoid,
-  onUnlock,
-  isUnlocking,
-  faceShape,
 }: {
   bestFrames: string[]
   framesToAvoid: string[]
-  onUnlock: () => void
-  isUnlocking?: boolean
-  faceShape?: string
 }) {
   return (
     <div className="space-y-5">
@@ -929,7 +930,6 @@ function LockedPremiumPreview({
         </div>
       </div>
 
-      <UnlockCreditsBanner onUnlock={onUnlock} isLoading={isUnlocking} faceShape={faceShape} />
     </div>
   )
 }
