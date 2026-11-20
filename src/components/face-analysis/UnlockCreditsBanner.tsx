@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { Lock, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { FACE_ANALYSIS_LAYOUT } from '@/config/face-analysis'
+import { getFaceShapeContent } from '@/config/face-shape-content'
 import { PRICE_CONFIG, QUOTA_CONFIG } from '@/config/pricing'
 import { analytics } from '@/lib/analytics'
 
@@ -12,12 +13,14 @@ interface UnlockCreditsBannerProps {
   onUnlock: () => void
   isLoading?: boolean
   faceShape?: string
+  previewBestFrames?: string[]
 }
 
 export function UnlockCreditsBanner({
   onUnlock,
   isLoading,
   faceShape,
+  previewBestFrames,
 }: UnlockCreditsBannerProps) {
   const t = useTranslations('faceAnalysis.unlock')
   const params = useParams()
@@ -25,6 +28,13 @@ export function UnlockCreditsBanner({
   const locale = (params.locale as string) || 'en'
   const taskId = searchParams.get('taskId')?.trim() || ''
   const price = (PRICE_CONFIG.CREDITS_PACK / 100).toFixed(2)
+  // These are already-public lockedTeaser strings returned by the API.
+  // Never fabricate match scores, rankings, or paid fit explanations.
+  const shape = locale === 'en' ? getFaceShapeContent(faceShape || '') : null
+  const teaserDirections = (previewBestFrames || [])
+    .filter((value) => typeof value === 'string' && value.trim().length > 0)
+    .map((value) => value.trim().slice(0, 48))
+    .slice(0, 2)
   const paywallHref = taskId
     ? `/${locale}/pricing?source=face-analysis-unlock&taskId=${encodeURIComponent(taskId)}`
     : null
@@ -60,6 +70,11 @@ export function UnlockCreditsBanner({
             <Sparkles className="w-5 h-5 text-blue-600" />
             {t('title')}
           </h3>
+          {shape && teaserDirections.length > 0 && (
+            <p data-testid="advisor-personalized-unlock-preview" className="mt-2 rounded-lg border border-blue-100 bg-white/80 px-3 py-2 text-xs leading-5 text-gray-800 sm:text-sm">
+              Your <strong>{shape.name.toLowerCase()} face</strong> preview points toward <strong>{teaserDirections.join(' · ')}</strong>. Unlock the fit reasons and a try-on-ready shortlist.
+            </p>
+          )}
           <ul className="mt-2 space-y-1 text-sm text-gray-600">
             <li>{t('feature1')}</li>
             <li>{t('feature2', { count: QUOTA_CONFIG.CREDITS_PACK })}</li>
