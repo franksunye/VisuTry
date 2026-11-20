@@ -227,6 +227,11 @@ jobs:
       - name: Consumer Photo Handoff and First-Fold Unlock Browser Gate
         run: npx playwright test tests/e2e/consumer-first-session-fix.spec.ts --project=chromium --workers=1
 
+      # Guest Detector continuation must keep source context without touching
+      # Auth0, server AI, credits or real Stripe checkout.
+      - name: Detector-to-Advisor Contextual Continuation Browser Gate
+        run: npx playwright test tests/e2e/consumer-detector-advisor-bridge.spec.ts --project=chromium --workers=1
+
       - name: Upload Consumer Conversion Screenshots
         if: always()
         uses: actions/upload-artifact@v4
