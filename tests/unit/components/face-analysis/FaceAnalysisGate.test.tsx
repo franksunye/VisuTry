@@ -35,13 +35,16 @@ describe('FaceAnalysisGate', () => {
       <FaceAnalysisGate landing={<div>static landing</div>} loadingText="Loading" />
     )
 
-    mockSessionState = {
-      data: { user: { id: 'user-1' } },
-      status: 'loading',
-    }
+    // NextAuth can temporarily clear data while updating the session.
+    mockSessionState = { data: null, status: 'loading' }
     rerender(<FaceAnalysisGate landing={<div>static landing</div>} loadingText="Loading" />)
 
     expect(screen.getByText('authenticated face analysis')).toBeInTheDocument()
     expect(screen.queryByText('static landing')).not.toBeInTheDocument()
+
+    mockSessionState = { data: null, status: 'unauthenticated' }
+    rerender(<FaceAnalysisGate landing={<div>static landing</div>} loadingText="Loading" />)
+    expect(screen.getByText('static landing')).toBeInTheDocument()
+    expect(screen.queryByText('authenticated face analysis')).not.toBeInTheDocument()
   })
 })
