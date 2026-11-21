@@ -253,9 +253,9 @@ export default function BlogPostPage({ params }: PageProps) {
               </div>
 
               {locale === 'en' ? (
-                <section aria-labelledby="frame-comparison">
-                  <h2 id="frame-comparison">How two frames change the look of the same face</h2>
-                  <figure className="mx-auto max-w-xl">
+                <section aria-labelledby="frame-comparison" className="not-prose space-y-5">
+                  <h2 id="frame-comparison" className="text-2xl font-bold leading-tight text-gray-900">How two frames change the look of the same face</h2>
+                  <figure className="mx-auto max-w-xl space-y-4">
                     <StaticContentImage
                       src="/images/seo/core/glasses-frame-a-vs-b.webp"
                       alt="Illustration comparing the same woman in dark frames with softly squared corners on the left and pale, rounded frames on the right."
@@ -268,7 +268,7 @@ export default function BlogPostPage({ params }: PageProps) {
                       <p><strong>Frame B (right).</strong> The pale, rounded rims create a softer outline and draw less attention to the frame.</p>
                     </figcaption>
                   </figure>
-                  <p>To check physical fit beyond this illustration, compare the frame’s total width with a pair that feels comfortable, then try it on in person to check the bridge and temples.</p>
+                  <p className="text-base leading-7 text-gray-700">To check physical fit beyond this illustration, compare the frame’s total width with a pair that feels comfortable, then try it on in person to check the bridge and temples.</p>
                 </section>
               ) : (
                 <div className="not-prose rounded-xl bg-gray-950 p-7 text-white">
