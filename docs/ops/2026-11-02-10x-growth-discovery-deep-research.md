@@ -606,7 +606,7 @@ SQL 使用 payment.checkout_id 去重付款、task.id 去重任务；Try-On 仅�
 | **E1** GM independent BYO | 10 GA4 Google-organic first-landing sessions report `tryon_completed` Nov2–15; source page to event now supported at *session aggregate* level | No verified two-image/real task completion or anonymous Axiom joined flow; GM GSC clicks **164→137**; Oakley/Ray-Ban do not replicate | **INCONCLUSIVE / evidence upgraded, NO SCALE**; one **read-only Axiom `consumer_funnel_id`→server task** validation before product/SEO changes |
 | **E3 / E4 / E5** fit / share / offsite | Nov16 discovery identifies an *existing* size-guide draft opportunity, but GSC demand thin | No independently verified new paid completions or safe share-return cohorts; privacy review outstanding | **HOLD** any launch; do not trade privacy/payment bounds for speculative traffic |
 
-**Release review for #520: HOLD.** No automated merge/deploy or pricing, entitlement, free Detector or AI Provider change. Next existing checkpoint should explicitly refresh GSC completeness, true Google re-crawl, GA4 page-first landing and completed sessions, Axiom first-party same-session task integrity, Neon/Stripe attached settlement/refunds and retained unlocks, allocable incremental costs. A complete 28d window with commercial observations is mandatory before **SCALE/MODIFY/STOP**; missing rows or incomparable instrumentation ⇒ **INCONCLUSIVE**, not a fabricated zero or causal claim.
+**Release review for #520: HOLD.** No automated merge/deploy or pricing, entitlement, free Detector or AI Provider change. Next existing checkpoint should explicitly refresh GSC completeness, true Google re-crawl, GA4 page-first landing and completed sessions, Axiom first-party same-session task integrity, Neon/Stripe attached settlement/refunds and retained unlocks, allocable incremental costs. **Correction added Nov 21 following the user's early-review direction.** The full 28d window applies to the registered 28d SEO target. Complete comparable shorter windows can support interim allocation and bounded MODIFY / STOP decisions. The canonical GTM's 10× SCALE gate continues to require repeatable qualified completion, verified net payments and cost/refund protection. Missing or incomparable measures leave their specific claims INCONCLUSIVE.
 
 
 ### 2026-11-20 — 17/28d Guide partial read + actual production intervention boundary
@@ -631,3 +631,121 @@ SQL 使用 payment.checkout_id 去重付款、task.id 去重任务；Try-On 仅�
 - **E3 Fit, E4 Compare/Share, E5 GEO: HOLD.** No new repeatable qualified paid completions this run; no new expansion or production change.
 
 **Next established Dec 1 gate:** recheck every Nov 2–29 GSC date, note absent days and recrawl uncertainty, report a distinct verified post-recrawl 28d if possible. If GSC incomplete, retain INCONCLUSIVE and revisit next existing run. Do not blend business outcomes across Nov 20 code/measurement changes or infer 10× from client events.
+
+### 2026-11-21 — Early growth decision from two complete weeks
+
+The user requested an immediate review of the recent traffic increase. **Acquisition growth and increased product-use signals now justify a resource-priority decision.** The scheduled full 28-day scorecard remains a separate evaluation of its stated target. Earlier wording that required 28 days before *any* SCALE / MODIFY / STOP decision was overly broad and is corrected below. The canonical strategy remains [Organic acquisition aperture](../strategy/analytics/gtm.md#organic-acquisition-aperture--gsc-verified-2026-11-02).
+
+**Scope and reproducibility.** Read on Nov 21, starting at 16:48 Beijing time, with the production Neon query executed at 17:04:31, through the connected first-party GA4 and Search Console APIs. Compare **Nov 6–12 with Nov 13–19**, inclusive. GA4 property `508789390` uses China Time, with `hostname = www.visutry.com`. GSC uses the `https://www.visutry.com/` Web property's own reporting dates. These are comparable weeks within each system, with different system day boundaries. No identity or revenue conversion is inferred across systems. GSC `include_fresh_data=false` ends Nov 19. Nov 20 is preliminary at 271 clicks and is excluded. GA4 Nov 20 is also excluded, retaining a window before the Nov 20 conversion changes.
+
+#### Acquisition and product use
+
+| Metric | Nov 6–12 | Nov 13–19 | Change |
+| --- | ---: | ---: | ---: |
+| GA4 production Sessions, whole-window query | 1,772 | 2,738 | +54.5% |
+| GA4 engaged Sessions | 1,318 | 2,140 | +62.4% |
+| GA4 engagement rate | 74.38% | 78.16% | +3.78 percentage points |
+| GSC Web clicks, property aggregation | 1,335 | 2,350 | +76.0% |
+| GSC impressions, property aggregation | 35,069 | 52,896 | +50.8% |
+| GA4 free Detector completion-bearing Sessions | 854 | 1,530 | +79.2% |
+| GA4 Advisor completion-bearing Sessions | 87 | 123 | +41.4% |
+| GA4 Try-On completion-bearing Sessions | 5 | 19 | +14 Sessions |
+
+GA4 whole-window `session_primary_channel_group` shows Organic Search **1,396→2,297**, AI Assistant **87→109**, Direct **236→252**, and Referral **34→32**. The source/medium report shows `google / organic` **1,312→2,209**. Google's independent search increase is consistent with GA4 acquisition growth. The Nov 13 #521 title/current-page measurement repair alone cannot explain the GSC result. GA4 totals are queried directly without `date`; dimensioned session estimates and event-bearing Sessions can differ slightly from unsegmented Sessions and are not forced to reconcile by summation.
+
+Product counts above are Sessions with a specified client event, individually deduplicated by GA4. They do not establish event order, unique people, a completed server task, or paid-report delivery. On-device Detector intentionally has no server completion event. `face_analysis_completed` event counts are **87→126**, versus **87→123 Sessions**. `tryon_completed` counts are **5→31**, versus **5→19 Sessions**. Advisor failed events **18→39** occurred in **10→15 Sessions**, including multiple failure-event emissions within a few sessions. Actual error causes and provider cost were unavailable, so neither task failure rate nor cost deterioration is established.
+
+#### Which existing search entries expanded
+
+| Exact canonical page | GSC clicks before | After | Additional clicks |
+| --- | ---: | ---: | ---: |
+| /en/face-shape-detector | 318 | 810 | 492 |
+| /en/blog/ai-face-analysis-for-glasses-guide | 228 | 337 | 109 |
+| /en/face-analysis | 111 | 199 | 88 |
+| /ja/face-shape-detector | 165 | 229 | 64 |
+| /es/face-shape-detector | 40 | 103 | 63 |
+
+Page-aggregated site clicks are **1,340→2,365**, an increase of 1,025. These five existing pages contribute **816 / 1,025 = 79.6%** of page-level incremental clicks. Page aggregation and property aggregation have different totals. The top three pages' click share is **53.1%→58.2%**, and top ten **84.5%→84.7%**. Click-bearing URLs increased **78→89**. Current growth remains concentrated in established entry points.
+
+For EN Detector, exact `face shape detector` clicks **162→416**, impressions **6,945→11,897**, CTR **2.33%→3.50%**, and average position **7.51→6.65**. This term accounts for 254 of the page's 492 additional clicks. The previously observed decline has reversed in this window.
+
+For the existing Advisor tool page, `which glasses suit my face ai` clicks **5→13**, impressions **76→149**, position **7.16→5.58**; `best glasses for my face ai` clicks **0→8**, impressions **20→46**, position **7.10→5.13**. These task-matched queries support including the existing Advisor page in the first-priority acquisition work. They do not identify any individual payer. Visible queries cover only **37/111→47/199** of Advisor page clicks, so the intent of all incremental traffic is unknown. The Guide continues to own the stronger photo-upload query, with `what glasses suit my face upload photo` **24→31 clicks** at position **4.23→4.45**. Preserve distinct existing page tasks when selecting content work.
+
+Country/device breakdowns from this connector have lower query-visible coverage than unsegmented page totals. For example, EN Detector segmented coverage is **254→632 clicks**, versus page totals **318→810**. India's **34→228** and the US **96→140** belong to that subset and cannot be presented as a complete country allocation.
+
+#### Natural entry to reported completion
+
+GA4 filters are exact production hostname, `session_source_medium = google / organic`, and the first `landing_page`. Landing entrants below are Sessions with `session_start`. All event rows are whole-window queries without a date dimension.
+
+| First landing | Entrant Sessions | Advisor completion-bearing Sessions | Try-On completion-bearing Sessions |
+| --- | ---: | ---: | ---: |
+| EN Detector | 295→774 | 1→9 | no returned row→1 |
+| EN Guide | 234→302 | 17→16 | no returned row→1 |
+| EN Advisor | 108→183 | 12→28 | no returned row→1 |
+| Gentle Monster editorial guide | 134→118 | 2→2 | 2→7 |
+| JA Detector | 169→184 | no returned row in either window | no returned row in either window |
+| ES Detector | 39→105 | 1→3 | no returned row in either window |
+
+EN Detector completed Sessions **213→577**, `journey_continued` **74→190**, and Advisor sign-in-click Sessions **8→15**. JA Detector completion Sessions **86→106**, ES **26→68**. An absent event row is not proof of zero actual tasks. Sessions may span authentication attribution changes, and separate event rows do not prove a sequential funnel.
+
+**Counterevidence matters.** The Guide gained entrants while Advisor completions stayed approximately flat. Direct Advisor landing increased both entrants and completed-event Sessions. GM increased Try-On completion signals while search clicks **141→138** and GA4 entrants fell. Oakley GSC **7→11** and GA4 entrants **9→9** have no returned completion row; Ray-Ban guide GSC **2→4** remains too small. These observations support different priorities for each existing path.
+
+
+#### Production Payment and report verification
+
+Following the user's restored Neon access, executed a bounded read-only aggregate on production `visutry-postgresql / main / neondb` at **2026-11-21 09:04:31 UTC**. Payment `completedAt` windows are **[Nov 5 16:00, Nov 12 16:00) UTC** and **[Nov 12 16:00, Nov 19 16:00) UTC**, matching the two GA4 China Time weeks.
+
+The query deduplicates `stripeSessionId`, selects completed or subsequently refunded Checkouts by their completion timestamp, distinguishes live Checkout IDs and current USER / ADMIN roles, and joins an attached report by task ID plus matching user ID. Every returned paid row is a live Checkout for a current USER. No test/admin/unclassified paid row was returned. This does not identify every possible internal user. No paid-status row lacked `completedAt`.
+
+| Production Payment metric | Nov 6–12 | Nov 13–19 |
+| --- | ---: | ---: |
+| Completed Checkout orders | **2** | **14** |
+| Amount | **$5.98** | **$41.86** |
+| Distinct paying users in the window | **2** | **13** |
+| Report-attached Checkout orders | **2** | **11** |
+| Report-attached amount | **$5.98** | **$32.89** |
+| Orders with a current refund marker | 0 | 0 |
+
+All sixteen orders across the two windows are Credits Pack purchases at $2.99 each. Distinct paying users are not necessarily first-time payers. The database currently records no refunds for these orders and no `refundedAt` activity in either window. Stripe settlement/refund amounts were not independently reread, following the user's instruction to proceed with Neon. Production Payment status supplies current paid evidence.
+
+**Recent paid acquisition by the context saved at Checkout**
+
+| Saved first landing and source | Paid orders | Distinct payers | Amount | Report-attached orders | Currently retained completed, unlocked matching reports |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| EN Detector, Google organic | **8** | **7** | **$23.92** | **7** | **6** |
+| EN Guide, Google organic | 2 | 2 | $5.98 | 1 | 1 |
+| EN Advisor, Google organic | 1 | 1 | $2.99 | 1 | 1 |
+| GM editorial guide, Google organic | 1 | 1 | $2.99 | 0 | 0 |
+| EN Advisor, direct | 1 | 1 | $2.99 | 1 | 1 |
+| Other landing, direct | 1 | 1 | $2.99 | 1 | 1 |
+
+Google-organic saved acquisition contributes **12 paid Checkouts / $35.88**, including **9 report-attached**. The retained report verification identifies **10 distinct matching completed and unlocked reports** across the recent 11 attached orders. One Detector-attached task is missing at read time. The earlier two attached tasks are also missing. These missing rows cannot establish failed historical delivery. In particular, retained report counts of 0 and 10 cannot be used as a comparable historical delivery-rate improvement. Every retained attached report matched its payment's user, was completed and was unlocked.
+
+**This changes the priority suggested by GA4 purchase attribution alone.** EN Detector is the largest verified paid acquisition source in this window. Its GA4 landing cohort returned no purchase event, while its saved Checkout acquisition has eight completed payments. GA4 session first landing and the acquisition context preserved at Checkout are different attribution scopes. No individual purchase session is paired to a Payment by approximate time, amount, query or aggregate counts, and their difference alone does not establish an attribution defect.
+
+GA4 `purchase` and `checkout_return_verified` each increased **1→9 event-bearing Sessions**, with **1→10 events**. The recent natural first-landing purchase signals are EN Advisor **5 Sessions / 6 events**, Guide **3 / 3**, and GM **1 / 1**. Seven purchase events have `face_analysis_report` context, and three have `pricing` context. Context groups overlap in Sessions. These remain client observations alongside the separately verified Payment outcomes.
+
+**Remaining commercial limits are now narrower.** Actual incremental AI/CPU cost and Stripe-level refund settlement are unavailable. The current `visutry-pro` production logging allowlist contains no billable cost field, and the mixed business `amount` field cannot supply provider cost. Axiom access was restored, but the current anonymous `visutry-traffic-pro` event schema lacks server task ID and two-image verification fields. This review therefore does not establish brand landing → server-verified BYO task continuity. These limits do not invalidate the newly verified completed payments and retained paid reports. [Cost logging contract](https://github.com/franksunye/VisuTry/blob/main/src/lib/logger.ts) · [Consumer event contract](https://github.com/franksunye/VisuTry/blob/main/src/lib/traffic-telemetry.ts)
+
+
+#### Evidence, contradiction and decision
+
+| Path | New proof | Contradiction or missing proof | Current decision |
+| --- | --- | --- | --- |
+| Existing EN Detector → paid Advisor | +492 GSC clicks; natural detection-completion Sessions 213→577; saved organic acquisition yields 8 real paid orders, 7 report-attached and 6 retained completed unlocked reports | One attached task missing; repeatability and incremental cost remain open | **MODIFY priority to first**; focus existing-page acquisition and evaluate the already shipped continuation treatment |
+| Existing direct Advisor entry | Organic entrants 108→183; reported completions 12→28; one saved Google-organic paid attached order with its unlocked report | GA4 purchase attribution exceeds saved Checkout attribution because scopes differ; paid sample remains small | **CONTINUE** as a second existing high-intent entry |
+| Guide → Advisor | More entrants; 2 saved Google-organic paid orders, one attached to a verified unlocked report | Reported completion Sessions 17→16 despite more visits | **CONTINUE / MODIFY content priorities**; preserve its proven photo-intent role and compare paid quality with Detector |
+| E1 independent brand BYO | GM landing Try-On completion Sessions 2→7; one real Google-organic credit purchase | Traffic did not grow; the new payment has no attached report; actual two-image task/session continuity and cross-brand replication unknown | **INCONCLUSIVE** on scalable brand acquisition |
+| E3 fit, E4 share, E5 offsite/GEO | AI Assistant Sessions 87→109 | This run did not establish incremental verified paid completion attributable to these mechanisms | **INCONCLUSIVE**; current incremental resources favor established natural paths |
+
+**Overall decision is MODIFY the allocation toward EN Detector → paid Advisor, supported by simultaneous acquisition, product-use and verified-payment growth.** Direct Advisor and Guide remain useful secondary owners of distinct search intent. The commercial growth observation is now proved in production Payment. A repeatable, cost-qualified 10× SCALE claim remains INCONCLUSIVE given the two- versus fourteen-order samples and unavailable incremental cost.
+
+The immediate objective is additional qualified natural entries and actual paid completed decisions through these existing pages. Use exact page/query acquisition and source-preserved paid report cohorts, including refunds and retained-task limitations. Preserve the currently running conversion treatment's observation window while selecting bounded existing-page acquisition improvements according to the canonical GTM.
+
+The observed rise started around Nov 13–14, before the Nov 20 production releases. Fresh Vercel reads give #544 **11:57:29**, #519 **15:24:41**, and #545 **21:06:50 Beijing time on Nov 20**. The current comparison ends Nov 19. It is a pre-treatment baseline for those changes. #519 also changes unlock-success event validity. The broader Nov 17 content/localization work and unknown Google re-crawl timing prevent attribution of the aggregate increase to a single SEO change.
+
+Use the already scheduled Nov 28 review of #545 for its first complete post-release week, measuring the same Detector first-landing cohort, contextual continuation, Advisor completion, matched paid report delivery and incremental cost. Proceed with existing-page acquisition work according to the canonical GTM. Select any further conversion treatment only after interpreting the current one. For a future content variant, require its own exact-page/query baseline and a useful task distinction; modify or stop if comparable qualified completion falls, existing owner demand is displaced, or actual paid quality/cost deteriorates. Missing measurement yields INCONCLUSIVE. A full 28-day target is assessed against 28 complete days; early growth/resource decisions can use the evidence available now.
+
+Sources and release evidence: [GA4 property](https://analytics.google.com/analytics/web/#/a310444897p508789390/), [GSC property](https://search.google.com/search-console/performance/search-analytics?resource_id=https%3A%2F%2Fwww.visutry.com%2F), [#543 earlier first-landing audit](https://github.com/franksunye/VisuTry/issues/543), [#544 production](https://github.com/franksunye/VisuTry/pull/544#issuecomment-7029991636), [#519 production](https://github.com/franksunye/VisuTry/pull/519#issuecomment-7033613553), [#545 production](https://github.com/franksunye/VisuTry/pull/545#issuecomment-7040366805).
+
+Reproduction fields are GA4 `sessions, engaged_sessions, engagement_rate` without date for the overall period, `session_primary_channel_group` or `session_source_medium` for acquisition, `landing_page, session_source_medium, event_name, sessions, event_count` for the product cohorts, and `customevent_purchase_context` for checkout context. GSC uses `include_fresh_data=false`, Web, date for property totals, page for page contributions, and exact page + query for the cited terms. Neon reproduction uses Payment completion time, unique Checkout ID, saved landing/source, report attachment, matching user/task and current refund markers.
