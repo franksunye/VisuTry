@@ -269,12 +269,38 @@ for (const locale of ['fr', 'ru'] as const) {
   if (value) copies[locale] = { shapeNames: shapeNames[locale], ...value }
 }
 
+const prioritySunglassesDetail = {
+  ja: {
+    fitTitle: 'サイズや掛け心地はどう確認しますか？',
+    fitChecks: [
+      'こめかみを締めつけず、フレームが大きくはみ出さない幅か確認します。',
+      '鼻に安定して乗り、下を向いてもずれ落ちないか確認します。',
+      '笑ったときにレンズやフレームの下端が頬に触れないか確認します。',
+    ],
+    lensTitle: 'レンズやUVカット性能で確認すべき点は？',
+    lensText: '実際の商品にあるUVカット表示と、販売店が示すレンズの仕様を確認してください。',
+    lensDisclaimer: '写真やバーチャル試着では、UVカット性能や光学的な品質は確認できません。詳しい仕様は販売店に確認してください。',
+  },
+  es: {
+    fitTitle: '¿Cómo comprobar el ajuste de las gafas de sol?',
+    fitChecks: [
+      'Comprueba que la montura no apriete las sienes ni sobresalga demasiado a los lados.',
+      'El puente debe apoyar de forma estable, sin pellizcar ni deslizarse al mirar hacia abajo.',
+      'Al sonreír, comprueba que el borde inferior y las lentes no descansen sobre las mejillas.',
+    ],
+    lensTitle: '¿Qué revisar en las lentes y la protección UV?',
+    lensText: 'Revisa la etiqueta de protección UV y las especificaciones de las lentes en la ficha del vendedor.',
+    lensDisclaimer: 'Una foto o una prueba virtual no permiten verificar la protección UV ni la calidad óptica. Confirma esos datos con el vendedor.',
+  },
+}
+
 for (const locale of ['ja', 'es'] as const) {
   const value = priorityLocaleCopy[locale]
   copies[locale] = {
     ...copies[locale],
     detector: { ...copies[locale].detector, ...value.detector },
     glasses: { ...copies[locale].glasses, ...value.glasses },
+    detail: { ...copies[locale].detail, ...prioritySunglassesDetail[locale] },
   }
 }
 

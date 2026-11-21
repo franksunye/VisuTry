@@ -14,6 +14,7 @@ import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { generateBreadcrumbSchema, generateCollectionPageSchema } from '@/lib/programmatic-seo'
 import { getFaceShapeSeoCopy, interpolateSeoCopy } from '@/config/face-shape-seo-locales'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
+import { getSunglassesStyleReason } from '@/config/sunglasses-style-reasons'
 
 interface SunglassesGuidePageProps {
   params: { locale: string; faceShape: string }
@@ -63,13 +64,15 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
   const locale = params.locale
   const copy = getFaceShapeSeoCopy(locale)
   const shapeName = copy.shapeNames[guide.faceShape]
-  const description = interpolateSeoCopy(copy.detail.descriptionTemplate, { shape: shapeName })
+  const description = locale === 'en' ? guide.description : interpolateSeoCopy(copy.detail.descriptionTemplate, { shape: shapeName })
+  const fitChecks = locale === 'en' ? guide.fitChecks : copy.detail.fitChecks
+  const reconsider = locale === 'en' ? guide.reconsider : copy.detail.reconsider
   const presets = guide.bestStyles.map((item) => getTopPickPresetById(item.presetId)).filter(isPreset)
   const otherGuides = Object.values(SUNGLASSES_FACE_SHAPE_GUIDES).filter((item) => item.slug !== guide.slug)
   const faqContent = [
-    { question: copy.detail.stylesTitle, answer: description },
-    { question: copy.detail.fitTitle, answer: copy.detail.fitChecks.join(' ') },
-    { question: copy.detail.lensTitle, answer: `${copy.detail.lensText} ${copy.detail.lensDisclaimer}` },
+    { id: 'styles', question: copy.detail.stylesTitle, answer: description },
+    { id: 'fit', question: copy.detail.fitTitle, answer: fitChecks.join(' ') },
+    { id: 'lenses', question: copy.detail.lensTitle, answer: `${copy.detail.lensText} ${copy.detail.lensDisclaimer}` },
   ]
   const faqSchema = generateStructuredData('faqPage', { questions: faqContent })
   const breadcrumbSchema = generateBreadcrumbSchema([
@@ -179,7 +182,7 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-950">{copy.detail.styleNames[getStyleKey(style.presetId)] ?? preset.name}</h3>
-                    <p className="mt-2 text-sm leading-6 text-gray-600">{copy.sunglasses.goals[guide.faceShape]}</p>
+                    <p className="mt-2 text-sm leading-6 text-gray-600">{getSunglassesStyleReason(locale, guide.faceShape, style) ?? copy.sunglasses.goals[guide.faceShape]}</p>
                     <Link href={`/${locale}/style-explorer`} className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:text-blue-900">
                       {copy.detail.styleLink} <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -197,7 +200,7 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
               <h2 className="text-xl font-bold text-gray-950">{copy.detail.fitTitle}</h2>
             </div>
             <ul className="grid gap-3 text-sm leading-6 text-gray-700">
-              {copy.detail.fitChecks.map((item) => (
+              {fitChecks.map((item) => (
                 <li key={item} className="flex gap-2">
                   <CheckCircle2 className="mt-1 h-4 w-4 flex-shrink-0 text-green-600" />
                   <span>{item}</span>
@@ -211,7 +214,7 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
               <h2 className="text-xl font-bold text-gray-950">{copy.detail.reconsiderTitle}</h2>
             </div>
             <ul className="grid gap-3 text-sm leading-6 text-gray-700">
-              {copy.detail.reconsider.map((item) => (
+              {reconsider.map((item) => (
                 <li key={item} className="flex gap-2">
                   <span className="mt-3 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400" />
                   <span>{item}</span>
@@ -257,7 +260,7 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
           <h2 className="mb-5 text-2xl font-bold text-gray-950">{interpolateSeoCopy(copy.detail.faqTitleTemplate, { shape: shapeName })}</h2>
           <div className="grid gap-4 md:grid-cols-3">
             {faqContent.map((item) => (
-              <article key={item.question} className="rounded-lg border border-gray-200 bg-white p-5">
+              <article key={item.id} className="rounded-lg border border-gray-200 bg-white p-5">
                 <h3 className="mb-2 font-semibold text-gray-950">{item.question}</h3>
                 <p className="text-sm leading-6 text-gray-600">{item.answer}</p>
               </article>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="310" viewBox="0 0 900 310" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Glasses and eyebrow positions</title>
+  <desc id="desc">Three schematic faces compare glasses below the eyebrows, partly overlapping the eyebrows, and sitting low toward the cheeks. The first two are styling choices; the third calls for a physical fit check.</desc>
+  <defs>
+    <g id="face">
+      <path d="M76 60C78 26 112 13 150 13C188 13 222 26 224 60L230 130C228 202 195 260 150 275C105 260 72 202 70 130Z" fill="#F5E7DD" stroke="#D8B9A5" stroke-width="3"/>
+      <path d="M77 68C83 37 111 28 150 30C189 28 217 37 223 68" stroke="#56463E" stroke-width="13" stroke-linecap="round"/>
+      <path d="M98 111Q116 101 134 111M166 111Q184 101 202 111" stroke="#56463E" stroke-width="7" stroke-linecap="round"/>
+      <path d="M101 137Q116 129 132 137M168 137Q184 129 199 137" stroke="#75655E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="117" cy="136" r="4" fill="#403B39"/>
+      <circle cx="183" cy="136" r="4" fill="#403B39"/>
+      <path d="M150 143L143 180Q150 185 157 180M132 220Q150 229 168 220" stroke="#C19980" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g id="frames" stroke="#245575" stroke-width="6" stroke-linejoin="round">
+      <rect x="78" y="119" width="64" height="43" rx="12" fill="#E3F0F7" fill-opacity=".2"/>
+      <rect x="158" y="119" width="64" height="43" rx="12" fill="#E3F0F7" fill-opacity=".2"/>
+      <path d="M142 130Q150 125 158 130M70 124L78 128M222 128L230 124"/>
+    </g>
+  </defs>
+  <rect x="1" y="1" width="288" height="308" rx="20" fill="#F8FAFC"/>
+  <rect x="306" y="1" width="288" height="308" rx="20" fill="#F8FAFC"/>
+  <rect x="611" y="1" width="288" height="308" rx="20" fill="#FFFBF3"/>
+  <g transform="translate(-5 10)"><use href="#face"/><use href="#frames"/></g>
+  <g transform="translate(300 10)"><use href="#face"/><use href="#frames" transform="translate(0 -15)"/></g>
+  <g transform="translate(605 10)"><use href="#face"/><use href="#frames" transform="translate(0 29)"/><path d="M92 187Q109 181 126 187M174 187Q191 181 208 187" stroke="#C78337" stroke-width="3" stroke-dasharray="4 4" stroke-linecap="round"/><path d="M245 143V170M238 163L245 171L252 163" stroke="#B77929" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

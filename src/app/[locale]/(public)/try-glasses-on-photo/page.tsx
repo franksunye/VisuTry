@@ -8,6 +8,7 @@ import { getSearchToToolRouteCopy } from '@/config/search-to-tool-route-copy'
 import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
 import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
+import Link from '@/components/layout/PublicLink'
 
 const pathname = '/try-glasses-on-photo'
 const routeId = 'try-glasses-on-photo' as const
@@ -73,17 +74,29 @@ export default function TryGlassesOnPhotoPage({ params }: Props) {
           <h2 id="frame-photo-tips" className="text-2xl font-bold text-slate-900">
             How to try on glasses from an online store screenshot
           </h2>
-          <ol className="mt-5 list-decimal space-y-3 pl-5 text-base leading-7 text-slate-700">
-            <li>Save or crop the product image so the complete frame and both temples are visible, without covering labels or stickers.</li>
-            <li>Choose a straight-on portrait with your face centered and evenly lit.</li>
-            <li>Upload both images in Try-On and inspect the result for shape, color and apparent frame scale.</li>
-            <li>When two pairs look close, generate both previews and compare them before deciding.</li>
-          </ol>
+          <div className="mt-5 grid gap-5 sm:grid-cols-3">
+            <article>
+              <h3 className="font-semibold text-slate-900">One clear frame image</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-700">Use a product photo or screenshot you are allowed to use. Crop to one pair, keeping the full front, bridge and outer corners visible. Avoid side-only views or price labels covering the frame.</p>
+            </article>
+            <article>
+              <h3 className="font-semibold text-slate-900">One front-facing portrait</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-700">Keep your head level, your face evenly lit and your eyes visible. A clear portrait without glasses helps you judge the new frame outline.</p>
+            </article>
+            <article>
+              <h3 className="font-semibold text-slate-900">Compare the appearance</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-700">Upload both images in Try-On. To compare two pairs, reuse the same portrait and change only the frame image. Look at shape, color and apparent scale.</p>
+            </article>
+          </div>
           <p className="mt-5 text-sm leading-6 text-slate-600">
             This is an independent visual preview using the frame image you provide. VisuTry does not
             offer a retailer or brand inventory, and an AI preview cannot verify measurements, optical
             fit or comfort. Confirm those details with the seller.
           </p>
+          <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+            <Link href="/en/glasses-guide/how-wide-should-glasses-be-for-my-face" className="text-blue-700 hover:text-blue-900">Check frame measurements before buying</Link>
+            <Link href="/en/blog/ai-face-analysis-for-glasses-guide" className="text-blue-700 hover:text-blue-900">Still choosing a frame shape?</Link>
+          </div>
         </section>
       ) : null}
       <B02VisualSeoSections locale={locale} pagePath="/try-glasses-on-photo" />

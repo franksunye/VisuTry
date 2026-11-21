@@ -139,6 +139,7 @@ type DecisionQuestionInput = {
   decisionTip: string
   includeCtas?: readonly CombinationSearchAction[]
   bottomCtas?: readonly CombinationSearchAction[]
+  faq?: CombinationSearchPage['faq']
 }
 
 function makeDecisionQuestion(input: DecisionQuestionInput): CombinationSearchPage {
@@ -162,7 +163,7 @@ function makeDecisionQuestion(input: DecisionQuestionInput): CombinationSearchPa
       compare: 'Compare a few frames',
       advisor: 'Get personalized advice',
     },
-    faq: [
+    faq: input.faq ?? [
       { question: input.title.replace(/\?$/, '') + '?', answer: input.primaryAnswer },
       { question: 'What is the fastest way to validate the choice?', answer: input.decisionTip },
       {
@@ -633,15 +634,29 @@ export const COMBINATION_SEARCH_PAGES: readonly CombinationSearchPage[] = [
     metaDescription:
       'Glasses can overlap the eyebrows, but the upper rim should usually relate naturally to the brow line. See what to check before deciding a frame is too high or too large.',
     primaryAnswer:
-      'Glasses do not have to leave every eyebrow fully visible, but the upper rim should usually relate naturally to your brow line instead of cutting across it awkwardly.',
+      'Glasses can sit below your eyebrows or overlap them. Choose a brow relationship you like; slipping, cheek contact and discomfort are more useful fit warnings than eyebrow visibility alone.',
     whyItWorks:
       'Brow alignment affects how centered and intentional the frame looks, but it is not a strict fitting rule for every design.',
     watchFor:
-      'If the frame hides the brows completely and also sits low on the cheeks, it may simply be too large or positioned poorly. Fit and bridge height matter.',
+      'Check whether the frame slips down your nose, presses at the temples or rests on your cheeks when you smile. Those are reasons to check the bridge, width or adjustment.',
     decisionTip:
-      'Use a straight-on photo and compare two frame heights. Pick the one whose upper rim works with your brow rather than judging eyebrow visibility alone.',
+      'Compare below-brow and partly overlapping positions on a straight-on photo. Then check how the real frame stays in place when you smile and move.',
     includeCtas: ['try_on', 'compare', 'advisor'],
     bottomCtas: ['try_on', 'compare'],
+    faq: [
+      {
+        question: 'Should the top of my glasses follow my eyebrows?',
+        answer: 'Following the brow curve can look balanced, but straight, cat-eye and oversized frames may deliberately use a different line. It is a style choice, not a universal fit rule.',
+      },
+      {
+        question: 'Are my glasses too big if they cover my eyebrows?',
+        answer: 'Not necessarily. Eyebrow coverage alone does not establish size. Check the actual frame width, bridge position and cheek clearance as well.',
+      },
+      {
+        question: 'Can I fix frames that sit too low?',
+        answer: 'An optician can check bridge fit and adjustment. Raising a frame in a photo preview cannot tell you whether it will stay there comfortably in real life.',
+      },
+    ],
   }),
   makeDecisionQuestion({
     slug: 'how-wide-should-glasses-be-for-my-face',

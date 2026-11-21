@@ -42,7 +42,7 @@ export function VisualSeoAsset({
 
   if (isCompact) {
     return (
-      <article className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm md:block md:p-4">
+      <article id={asset.id.toLowerCase()} className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm md:block md:p-4">
         <figure className="col-start-1 row-start-1">
           <VisualSeoImage
             src={asset.publicPath}
@@ -73,7 +73,7 @@ export function VisualSeoAsset({
 
   if (isSupportingWide) {
     return (
-      <article className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm md:grid-cols-[minmax(280px,40%)_minmax(0,1fr)] md:items-start md:gap-x-6 md:gap-y-2 md:p-4">
+      <article id={asset.id.toLowerCase()} className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm md:grid-cols-[minmax(280px,40%)_minmax(0,1fr)] md:items-start md:gap-x-6 md:gap-y-2 md:p-4">
         <figure className="col-start-1 row-start-1 md:row-span-3">
           <VisualSeoImage
             src={asset.publicPath}
@@ -106,7 +106,7 @@ export function VisualSeoAsset({
 
   if (isEditorial) {
     return (
-      <article className={`mx-auto ${displayWidth}`}>
+      <article id={asset.id.toLowerCase()} className={`mx-auto ${displayWidth}`}>
         <h2 className={headingClass('mb-4 text-2xl font-bold tracking-tight text-slate-950 md:text-3xl')}>
           {asset.heading}
         </h2>
@@ -139,7 +139,7 @@ export function VisualSeoAsset({
   }
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+    <article id={asset.id.toLowerCase()} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
       <h2 className={headingClass('mb-4 text-2xl font-bold tracking-tight text-slate-950 md:text-3xl')}>
         {asset.heading}
       </h2>

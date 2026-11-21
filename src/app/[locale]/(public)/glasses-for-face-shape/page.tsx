@@ -6,6 +6,7 @@ import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
+import { EN_FACE_SHAPE_GLASSES_HUB, EN_FRAME_FIT_CHECKS } from '@/config/english-search-entry-content'
 
 type Props = {
   params: { locale: string }
@@ -15,10 +16,11 @@ export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const copy = getFaceShapeSeoCopy(params.locale)
+  const glassesCopy = params.locale === 'en' ? { ...copy.glasses, ...EN_FACE_SHAPE_GLASSES_HUB } : copy.glasses
   return generateI18nSEO({
     locale: params.locale as Locale,
-    title: copy.glasses.metaTitle,
-    description: copy.glasses.metaDescription,
+    title: glassesCopy.metaTitle,
+    description: glassesCopy.metaDescription,
     pathname: '/glasses-for-face-shape',
   })
 }
@@ -26,14 +28,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default function GlassesForFaceShapePage({ params }: Props) {
   const locale = params.locale
   const copy = getFaceShapeSeoCopy(locale)
+  const glassesCopy = locale === 'en' ? { ...copy.glasses, ...EN_FACE_SHAPE_GLASSES_HUB } : copy.glasses
   const sourcePage = 'glasses-for-face-shape'
   const queryCluster = 'glasses-for-face-shape'
-  const faqSchema = generateStructuredData('faqPage', { questions: copy.glasses.faq })
+  const faqSchema = generateStructuredData('faqPage', { questions: glassesCopy.faq })
   const howToSchema = generateStructuredData('howTo', {
-    name: copy.glasses.title,
-    description: copy.glasses.intro,
+    name: glassesCopy.title,
+    description: glassesCopy.intro,
     totalTime: 'PT5M',
-    steps: copy.glasses.steps.map((step) => ({ name: step.title, text: step.text })),
+    steps: glassesCopy.steps.map((step) => ({ name: step.title, text: step.text })),
   })
 
   return (
@@ -42,11 +45,11 @@ export default function GlassesForFaceShapePage({ params }: Props) {
       sourcePage={sourcePage}
       queryCluster={queryCluster}
       contentCluster="search-tool"
-      eyebrow={copy.glasses.eyebrow}
-      title={copy.glasses.title}
-      intro={copy.glasses.intro}
+      eyebrow={glassesCopy.eyebrow}
+      title={glassesCopy.title}
+      intro={glassesCopy.intro}
       schemas={[faqSchema, howToSchema]}
-      steps={copy.glasses.steps.map((step, index) => ({
+      steps={glassesCopy.steps.map((step, index) => ({
         ...step,
         icon: [ScanFace, Glasses, Camera][index],
       }))}
@@ -55,10 +58,10 @@ export default function GlassesForFaceShapePage({ params }: Props) {
         tryOn: copy.glasses.tryOnCta,
         compare: 'Compare frames side by side',
       }}
-      principles={copy.glasses.principles}
-      faq={copy.glasses.faq}
-      faqEyebrow={copy.glasses.nextEyebrow}
-      faqTitle={copy.glasses.nextTitle}
+      principles={glassesCopy.principles}
+      faq={glassesCopy.faq}
+      faqEyebrow={glassesCopy.nextEyebrow}
+      faqTitle={glassesCopy.nextTitle}
       afterCtas={(
         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
           <Link href={locale === 'en' ? `/${locale}/face-shapes` : `/${locale}/face-shape-detector`} className="text-blue-700 hover:text-blue-900">
@@ -86,30 +89,54 @@ export default function GlassesForFaceShapePage({ params }: Props) {
             {copy.glasses.guideTitle}
           </h2>
           <p className="text-sm leading-6 text-gray-600">
-            {copy.glasses.guideIntro}
+            {glassesCopy.guideIntro}
           </p>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-          <div className="min-w-[900px]">
-            <div className="grid grid-cols-[0.9fr_1.45fr_1.2fr_1.55fr] gap-4 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700">
-              {copy.glasses.columns.map((column) => <span key={column}>{column}</span>)}
-            </div>
+        {locale === 'en' ? (
+          <div className="divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200 bg-white">
             {FACE_SHAPE_SLUGS.map((shape) => (
-              <div
-                key={shape}
-                className="grid grid-cols-[0.9fr_1.45fr_1.2fr_1.55fr] gap-4 border-t border-gray-200 px-4 py-4 text-sm"
-              >
-                <Link href={`/${locale}/style/${shape}-face`} className="font-semibold text-blue-700 hover:text-blue-900">
-                  {copy.shapeNames[shape]}
-                </Link>
-                <span className="text-gray-700">{copy.glasses.tryFirst[shape]}</span>
-                <span className="text-gray-600">{copy.glasses.avoidFirst[shape]}</span>
-                <span className="text-gray-600">{copy.glasses.reasons[shape]}</span>
-              </div>
+              <article key={shape} className="grid gap-3 p-5 md:grid-cols-[0.7fr_1.3fr_1.5fr] md:gap-6">
+                <h3 className="font-semibold">
+                  <Link href={`/en/style/${shape}-face`} className="text-blue-700 hover:text-blue-900">{copy.shapeNames[shape]}</Link>
+                </h3>
+                <p className="text-sm leading-6 text-gray-700"><span className="font-semibold">Try first: </span>{copy.glasses.tryFirst[shape]}.</p>
+                <div className="text-sm leading-6 text-gray-600">
+                  <p>{copy.glasses.reasons[shape]}</p>
+                  <p className="mt-1">{EN_FRAME_FIT_CHECKS[shape]}</p>
+                </div>
+              </article>
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+            <div className="min-w-[900px]">
+              <div className="grid grid-cols-[0.9fr_1.45fr_1.2fr_1.55fr] gap-4 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700">
+                {copy.glasses.columns.map((column) => <span key={column}>{column}</span>)}
+              </div>
+              {FACE_SHAPE_SLUGS.map((shape) => (
+                <div
+                  key={shape}
+                  className="grid grid-cols-[0.9fr_1.45fr_1.2fr_1.55fr] gap-4 border-t border-gray-200 px-4 py-4 text-sm"
+                >
+                  <Link href={`/${locale}/style/${shape}-face`} className="font-semibold text-blue-700 hover:text-blue-900">
+                    {copy.shapeNames[shape]}
+                  </Link>
+                  <span className="text-gray-700">{copy.glasses.tryFirst[shape]}</span>
+                  <span className="text-gray-600">{copy.glasses.avoidFirst[shape]}</span>
+                  <span className="text-gray-600">{copy.glasses.reasons[shape]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {locale === 'en' && (
+          <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+            <Link href="/en/blog/ai-face-analysis-for-glasses-guide" className="text-blue-700 hover:text-blue-900">Choose glasses using your photo</Link>
+            <Link href="/en/glasses-guide/how-wide-should-glasses-be-for-my-face" className="text-blue-700 hover:text-blue-900">How wide should glasses be?</Link>
+            <Link href="/en/glasses-guide/should-glasses-cover-your-eyebrows" className="text-blue-700 hover:text-blue-900">Where should frames sit near your brows?</Link>
+          </div>
+        )}
       </section>
     </SearchToToolLanding>
   )
