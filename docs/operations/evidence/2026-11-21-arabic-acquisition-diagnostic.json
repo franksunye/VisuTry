@@ -1,0 +1,4443 @@
+{
+  "scope": "Read-only Arabic-language and Gulf-country Google acquisition diagnostic; no product/deployment change.",
+  "checked_at": "2026-11-21 12:23:10 UTC",
+  "application_sha": "22fbafce61a0ca232617cb24e49824314c02a3dd",
+  "windows": {
+    "current_28d": [
+      "2026-10-23",
+      "2026-11-19"
+    ],
+    "previous_7d": [
+      "2026-11-06",
+      "2026-11-12"
+    ],
+    "latest_7d": [
+      "2026-11-13",
+      "2026-11-19"
+    ],
+    "previous_28d": {
+      "dates": [
+        "2026-09-25",
+        "2026-10-22"
+      ],
+      "status": "UNAVAILABLE via connector",
+      "reason": "Windsor trial limits history to the last 30 days; no upgrade or workaround attempted."
+    }
+  },
+  "source_settings": {
+    "gsc": {
+      "connector": "searchconsole",
+      "site": "https://www.visutry.com/",
+      "search_type": "web",
+      "include_fresh_data": false,
+      "latest_returned_finalized_date": "2026-11-19"
+    },
+    "ga4": {
+      "connector": "googleanalytics4",
+      "property": "508789390",
+      "source_medium": "google / organic",
+      "property_timezone": "not retrieved; no cross-source rate computed"
+    }
+  },
+  "summary": {
+    "gsc_property": {
+      "clicks": 6476,
+      "impressions": 162412
+    },
+    "arabic_pages": {
+      "clicks": 190,
+      "impressions": 4121
+    },
+    "arabic_top_three_clicks": 170,
+    "arabic_weeks": {
+      "summary": {
+        "previous": {
+          "clicks": 43,
+          "impressions": 930
+        },
+        "latest": {
+          "clicks": 51,
+          "impressions": 1090
+        }
+      },
+      "bypage": {
+        "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide": {
+          "previous": 7,
+          "latest": 7
+        },
+        "https://www.visutry.com/ar/find-glasses-for-my-face": {
+          "previous": 12,
+          "latest": 18
+        },
+        "https://www.visutry.com/ar/try-on/glasses": {
+          "previous": 7,
+          "latest": 1
+        },
+        "https://www.visutry.com/ar/what-is-my-face-shape": {
+          "previous": 17,
+          "latest": 22
+        },
+        "https://www.visutry.com/ar/discover": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/glasses-guide/best-aviator-glasses-for-oval-face": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/style/oblong-face": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/try-glasses-on-photo": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/try-on/glasses/compare": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/face-shape-detector": {
+          "previous": 0,
+          "latest": 2
+        },
+        "https://www.visutry.com/ar/glasses-guide/should-glasses-cover-your-eyebrows": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/glasses-guide/do-round-glasses-suit-a-round-face": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/face-analysis": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/sunglasses-for/oblong-face": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-round-face": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/style/heart-face": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/sunglasses-for/oval-face": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/style-explorer": {
+          "previous": 0,
+          "latest": 1
+        },
+        "https://www.visutry.com/ar/style/diamond-face": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/glasses-guide/glasses-for-oval-face-men": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/what-glasses-suit-my-face": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/virtual-glasses-try-on": {
+          "previous": 0,
+          "latest": 0
+        },
+        "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-women": {
+          "previous": 0,
+          "latest": 0
+        }
+      }
+    },
+    "gulf_country_totals": {
+      "clicks": 178,
+      "impressions": 2989
+    },
+    "ga4_gulf_landing_language": {
+      "landing_sessions": {
+        "ar": 48,
+        "en": 113,
+        "id": 1,
+        "ru": 2,
+        "(root)": 1
+      },
+      "browser_languages": {
+        "ar": 24,
+        "en-us": 67,
+        "en-gb": 37,
+        "en-in": 11,
+        "en-ae": 3,
+        "ar-eg": 2,
+        "ar-ae": 7,
+        "ar-sa": 3,
+        "ar-bh": 1,
+        "en-qa": 1,
+        "ar-ma": 1,
+        "en": 2,
+        "en-as": 1,
+        "en-au": 1,
+        "en-ca": 1,
+        "en-sa": 2,
+        "fr-fr": 1
+      },
+      "total_sessions": 165
+    }
+  },
+  "limitations": [
+    "Page/property and country/page aggregations are separate; no forced equality or cross-source conversion rate.",
+    "GSC country-by-page returned 97 Gulf clicks versus 178 in the country-only report. The gap is unresolved; do not use it for an exact country-language traffic share or population inference.",
+    "GA4 Gulf country/source report sums to 164 Google-organic sessions; added landing-page/browser-language dimensions sum to 165. Keep report scopes distinct and do not claim exact reconciliation.",
+    "Arabic page language, query language, browser language, country and nationality are not interchangeable. Country-level traffic includes English pages.",
+    "Query rows omit withheld queries and are not a complete search-demand census. Own-site impressions do not measure market keyword volume.",
+    "No current Arabic Google URL Inspection, local-country SERP rank test, market-volume estimate, entitlement/payment or cost audit was performed.",
+    "Observed week-on-week increase is descriptive on a small sample and does not prove causality or 10x attainability."
+  ],
+  "gsc_arabic_pages": [
+    {
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 85,
+      "impressions": 2825,
+      "position": 6.0446
+    },
+    {
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 58,
+      "impressions": 380,
+      "position": 5.6842
+    },
+    {
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 27,
+      "impressions": 345,
+      "position": 7.1072
+    },
+    {
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 12,
+      "impressions": 193,
+      "position": 6.886
+    },
+    {
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 58,
+      "position": 5.6724
+    },
+    {
+      "page": "https://www.visutry.com/ar/virtual-glasses-try-on",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 16,
+      "position": 5.8125
+    },
+    {
+      "page": "https://www.visutry.com/ar/face-analysis",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 8,
+      "position": 5.5
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/do-round-glasses-suit-a-round-face",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 20,
+      "position": 5.75
+    },
+    {
+      "page": "https://www.visutry.com/ar/style-explorer",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 2,
+      "position": 6
+    },
+    {
+      "page": "https://www.visutry.com/ar/blog/eyewear-trends-2026-glasses-sunglasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "page": "https://www.visutry.com/ar/blog/oliver-peoples-finley-vintage-review",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 29,
+      "position": 7.8621
+    },
+    {
+      "page": "https://www.visutry.com/ar/compare-glasses-frames",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 41,
+      "position": 5.2927
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-for-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/best-aviator-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 5.5
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 8,
+      "position": 6.875
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-round-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 5
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/best-cat-eye-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/best-cat-eye-glasses-for-round-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 6
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/best-oversized-glasses-for-long-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/best-round-glasses-for-square-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 10
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/do-aviators-suit-an-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-diamond-face-women",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 4.5
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-heart-shaped-face-women",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-oval-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 7.3333
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 31,
+      "position": 5.9677
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-women",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 10.8
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/how-should-glasses-fit-your-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 6.5
+    },
+    {
+      "page": "https://www.visutry.com/ar/glasses-guide/should-glasses-cover-your-eyebrows",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 9.6
+    },
+    {
+      "page": "https://www.visutry.com/ar/pricing",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "page": "https://www.visutry.com/ar/style/diamond-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 4.6667
+    },
+    {
+      "page": "https://www.visutry.com/ar/style/heart-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 7.75
+    },
+    {
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 91,
+      "position": 6.7253
+    },
+    {
+      "page": "https://www.visutry.com/ar/style/oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 8.4
+    },
+    {
+      "page": "https://www.visutry.com/ar/sunglasses-for/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "page": "https://www.visutry.com/ar/sunglasses-for/oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 7.6667
+    },
+    {
+      "page": "https://www.visutry.com/ar/try-glasses-on-photo",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 8,
+      "position": 6
+    },
+    {
+      "page": "https://www.visutry.com/ar/try-on/glasses/compare",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 9,
+      "position": 9.8889
+    },
+    {
+      "page": "https://www.visutry.com/ar/what-glasses-suit-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    }
+  ],
+  "gsc_arabic_queries": [
+    {
+      "query": "كيف اعرف شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 36,
+      "impressions": 804,
+      "position": 4.403
+    },
+    {
+      "query": "موقع لمعرفة النظارة المناسبة للوجه",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 5,
+      "impressions": 24,
+      "position": 3.8333
+    },
+    {
+      "query": "ازاي اعرف شكل وشي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 46,
+      "position": 4.1522
+    },
+    {
+      "query": "ازاي اعرف شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 63,
+      "position": 4.4762
+    },
+    {
+      "query": "كيف اعرف نوع وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 58,
+      "position": 7.6207
+    },
+    {
+      "query": "كيف تعرف شكل وجهك",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 30,
+      "position": 4.7667
+    },
+    {
+      "query": "كيف اعرف رسمة وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 30,
+      "position": 5.2333
+    },
+    {
+      "query": "visutry",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 18,
+      "position": 4.5556
+    },
+    {
+      "query": "اختبار تحديد شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "ازاي اعرف نوع وشي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 21,
+      "position": 4.5714
+    },
+    {
+      "query": "التعرف على الوجه مجاني",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 25,
+      "position": 11.04
+    },
+    {
+      "query": "برنامج تحديد شكل الوجه مجاني",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 2,
+      "position": 9
+    },
+    {
+      "query": "برنامج لمعرفة النظارة المناسبة للوجه",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 9,
+      "position": 35.4444
+    },
+    {
+      "query": "برنامج لمعرفة النظارة المناسبة للوجه",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 8,
+      "position": 26.5
+    },
+    {
+      "query": "تجربة نظارات على الوجه",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 11,
+      "position": 7.3636
+    },
+    {
+      "query": "تحديد شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 7,
+      "position": 6
+    },
+    {
+      "query": "تطبيق او موقع",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "query": "طريقة معرفة شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 4,
+      "position": 2.75
+    },
+    {
+      "query": "كيف أعرف شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 33,
+      "position": 4.5152
+    },
+    {
+      "query": "كيف اعرف شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 12,
+      "position": 6.9167
+    },
+    {
+      "query": "مةقع",
+      "page": "https://www.visutry.com/ar/style-explorer",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "query": "معرفة شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 27,
+      "position": 8.2593
+    },
+    {
+      "query": "موقع تحديد شكل الوجه بالعربي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 2,
+      "position": 9.5
+    },
+    {
+      "query": "موقع تحديد شكل الوجه بواسطة الصورة",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 8,
+      "position": 7.625
+    },
+    {
+      "query": "ai glasses try on",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "query": "ai glasses try on photo",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 44
+    },
+    {
+      "query": "browline نظارات",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 12
+    },
+    {
+      "query": "facecheck id",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "glass try on face",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "glasses try on",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "query": "glasses virtual try on",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8
+    },
+    {
+      "query": "try frames online",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7
+    },
+    {
+      "query": "try glass",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8.5
+    },
+    {
+      "query": "try glasses",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 8.6667
+    },
+    {
+      "query": "try glasses online",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7.5
+    },
+    {
+      "query": "try glasses online with photo",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "try glasses virtually",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7.5
+    },
+    {
+      "query": "try on glasses",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 7.6667
+    },
+    {
+      "query": "try on glasses online",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7
+    },
+    {
+      "query": "virtually try on glasses",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "query": "visu try",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "query": "visu try",
+      "page": "https://www.visutry.com/ar/style/oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "visu try",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "visu try",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "query": "visutry",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 37,
+      "position": 5.1351
+    },
+    {
+      "query": "visutry",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 4.6667
+    },
+    {
+      "query": "visutry",
+      "page": "https://www.visutry.com/ar/try-on/glasses/compare",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "visutry",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 6.5
+    },
+    {
+      "query": "اريد الان",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "ازاى اعرف شكل وجهى",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 5.3333
+    },
+    {
+      "query": "ازاى اعرف شكل وشى",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "ازاي اعرف نوع وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 9.25
+    },
+    {
+      "query": "اشكال النظارات على الوجه",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "انواع الملامح",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "query": "برنامج لمعرفة النظارة المناسبة للوجه",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 12
+    },
+    {
+      "query": "برنامج لمعرفة النظارة المناسبة للوجه للاندرويد",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "query": "بعد",
+      "page": "https://www.visutry.com/ar/virtual-glasses-try-on",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "query": "تجربة النظارات على الوجه",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "تجربة نظارات على الوجه",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 16.5
+    },
+    {
+      "query": "تجربة نظارات على الوجه",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 11
+    },
+    {
+      "query": "تحديد الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "تحديد ملامح الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 21,
+      "position": 16.5714
+    },
+    {
+      "query": "تطبيق اختيار النظارات حسب شكل الوجه",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 8.8
+    },
+    {
+      "query": "تطبيق اختيار النظارات حسب شكل الوجه",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8.5
+    },
+    {
+      "query": "شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 12,
+      "position": 8.9167
+    },
+    {
+      "query": "شكل الوش",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 8
+    },
+    {
+      "query": "شكل وجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 34,
+      "position": 7.2941
+    },
+    {
+      "query": "شكل وجهه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 9,
+      "position": 8.5556
+    },
+    {
+      "query": "شكلني",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 7.6
+    },
+    {
+      "query": "شلون اعرف شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 15,
+      "position": 3.9333
+    },
+    {
+      "query": "صورة افتراضية",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 1
+    },
+    {
+      "query": "صورة نظارات",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 1
+    },
+    {
+      "query": "عايز اعرف شكل",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "فلتر النظارات المناسبة للوجه",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 10
+    },
+    {
+      "query": "قياس شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "كاشف شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 9
+    },
+    {
+      "query": "كيف احدد شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "query": "كيف اعرف النظارات التي تناسب وجهي",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 23,
+      "position": 8.1304
+    },
+    {
+      "query": "كيف اعرف النظارات التي تناسب وجهي",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 9.6667
+    },
+    {
+      "query": "كيف اعرف النظارة التي تناسب وجهي",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 18,
+      "position": 7.9444
+    },
+    {
+      "query": "كيف اعرف النظارة التي تناسب وجهي",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "كيف اعرف النظارة الي تناسب وجهي",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 9.25
+    },
+    {
+      "query": "كيف اعرف النظارة الي تناسب وجهي",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "كيف اعرف النظاره اللي تناسب وجهي",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 7,
+      "position": 6.7143
+    },
+    {
+      "query": "كيف اعرف شكل وجهي الحقيقي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 14,
+      "position": 9
+    },
+    {
+      "query": "كيف اعرف شكل وجهي بالصور",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 43,
+      "position": 7.4884
+    },
+    {
+      "query": "كيف اعرف وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 15,
+      "position": 5.6667
+    },
+    {
+      "query": "كيف اعرف وجهي اي شكل",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "query": "كيف اعرف وجهي اي شكل",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 7,
+      "position": 2.2857
+    },
+    {
+      "query": "كيف تتوقع شكلي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 4
+    },
+    {
+      "query": "كيف تعرف نوع وجهك",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "كيف شكل",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 12,
+      "position": 6.3333
+    },
+    {
+      "query": "كيف شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "query": "كيف شكلك",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 11,
+      "position": 9.1818
+    },
+    {
+      "query": "كيف شكله",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 7.8
+    },
+    {
+      "query": "كيف شكلها",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 6.3333
+    },
+    {
+      "query": "كيف شكلي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 4
+    },
+    {
+      "query": "كيف وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "query": "كيف يبدو شكل",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "كيفاش نعرف شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 17,
+      "position": 4.9412
+    },
+    {
+      "query": "كيفية تحديد شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "query": "كيفية معرفة شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 7
+    },
+    {
+      "query": "ما نوع وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 10
+    },
+    {
+      "query": "ما هو شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 5.8333
+    },
+    {
+      "query": "ما هو شكلك",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "ما هو نوعها",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "query": "ماهو شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 7,
+      "position": 4.8571
+    },
+    {
+      "query": "معرفة شكل الوجه",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 10.5
+    },
+    {
+      "query": "معرفة شكل الوجه من الصورة",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "معرفة شكل الوجه من الصورة",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 14,
+      "position": 9.7143
+    },
+    {
+      "query": "معرفة شكل وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 8.1667
+    },
+    {
+      "query": "معرفة نوع الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "query": "معرفه شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 5
+    },
+    {
+      "query": "ملامح الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "query": "ممكن شكله",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 30
+    },
+    {
+      "query": "من صوره",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "من وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "query": "موقع تحديد شكل الوجه بالذكاء الاصطناعي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 7.25
+    },
+    {
+      "query": "موقع لمعرفة النظارة المناسبة للوجه",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 18
+    },
+    {
+      "query": "موقع معرفة شكل الوجه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "query": "نظارات browline",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 9.6667
+    },
+    {
+      "query": "نظارات الوجه المستطيل",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 1
+    },
+    {
+      "query": "نظارات تناسب الوجه",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "query": "نظارات شمسية للوجه البيضاوي",
+      "page": "https://www.visutry.com/ar/sunglasses-for/oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "query": "نظارات للوجه المستطيل",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 9
+    },
+    {
+      "query": "نوع وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 6
+    },
+    {
+      "query": "هل تعرف شكلي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "query": "هل يتغير شكل الوجه بعد التقويم",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "query": "وجه مقارنه",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 8
+    },
+    {
+      "query": "وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 56,
+      "position": 7.0536
+    },
+    {
+      "query": "‏كيف شكل",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 8
+    },
+    {
+      "query": "‏وجهي",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    }
+  ],
+  "gsc_countries": [
+    {
+      "country": "Egypt",
+      "countryname": "Egypt",
+      "search_type": "web",
+      "clicks": 88,
+      "impressions": 1274,
+      "position": 7.0377
+    },
+    {
+      "country": "Saudi Arabia",
+      "countryname": "Saudi Arabia",
+      "search_type": "web",
+      "clicks": 73,
+      "impressions": 1254,
+      "position": 6.8628
+    },
+    {
+      "country": "United Arab Emirates",
+      "countryname": "United Arab Emirates",
+      "search_type": "web",
+      "clicks": 64,
+      "impressions": 1077,
+      "position": 7.9406
+    },
+    {
+      "country": "Morocco",
+      "countryname": "Morocco",
+      "search_type": "web",
+      "clicks": 34,
+      "impressions": 715,
+      "position": 6.9021
+    },
+    {
+      "country": "Algeria",
+      "countryname": "Algeria",
+      "search_type": "web",
+      "clicks": 32,
+      "impressions": 715,
+      "position": 6.7832
+    },
+    {
+      "country": "Qatar",
+      "countryname": "Qatar",
+      "search_type": "web",
+      "clicks": 18,
+      "impressions": 213,
+      "position": 6.3897
+    },
+    {
+      "country": "Tunisia",
+      "countryname": "Tunisia",
+      "search_type": "web",
+      "clicks": 14,
+      "impressions": 294,
+      "position": 6.7449
+    },
+    {
+      "country": "Oman",
+      "countryname": "Oman",
+      "search_type": "web",
+      "clicks": 13,
+      "impressions": 234,
+      "position": 6.6667
+    },
+    {
+      "country": "Jordan",
+      "countryname": "Jordan",
+      "search_type": "web",
+      "clicks": 11,
+      "impressions": 251,
+      "position": 6.3944
+    },
+    {
+      "country": "Iraq",
+      "countryname": "Iraq",
+      "search_type": "web",
+      "clicks": 10,
+      "impressions": 432,
+      "position": 6.4144
+    },
+    {
+      "country": "Libya",
+      "countryname": "Libya",
+      "search_type": "web",
+      "clicks": 9,
+      "impressions": 102,
+      "position": 5.8922
+    },
+    {
+      "country": "Kuwait",
+      "countryname": "Kuwait",
+      "search_type": "web",
+      "clicks": 7,
+      "impressions": 142,
+      "position": 7.5775
+    },
+    {
+      "country": "Sudan",
+      "countryname": "Sudan",
+      "search_type": "web",
+      "clicks": 5,
+      "impressions": 62,
+      "position": 5.4839
+    },
+    {
+      "country": "Yemen",
+      "countryname": "Yemen",
+      "search_type": "web",
+      "clicks": 5,
+      "impressions": 151,
+      "position": 6.3245
+    },
+    {
+      "country": "Bahrain",
+      "countryname": "Bahrain",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 69,
+      "position": 6.1449
+    },
+    {
+      "country": "Lebanon",
+      "countryname": "Lebanon",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 103,
+      "position": 6.4078
+    },
+    {
+      "country": "Palestine",
+      "countryname": "Palestine, State of",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 58,
+      "position": 6.5172
+    }
+  ],
+  "gsc_arabic_daily_pages": [
+    {
+      "date": "2026-11-06",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 13,
+      "position": 7.1538
+    },
+    {
+      "date": "2026-11-06",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 20,
+      "position": 5.9
+    },
+    {
+      "date": "2026-11-06",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 10,
+      "position": 5.4
+    },
+    {
+      "date": "2026-11-06",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 108,
+      "position": 5.6019
+    },
+    {
+      "date": "2026-11-06",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 4.6667
+    },
+    {
+      "date": "2026-11-06",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-aviator-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "date": "2026-11-06",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "date": "2026-11-06",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 12,
+      "position": 7
+    },
+    {
+      "date": "2026-11-06",
+      "page": "https://www.visutry.com/ar/try-glasses-on-photo",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "date": "2026-11-06",
+      "page": "https://www.visutry.com/ar/try-on/glasses/compare",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "date": "2026-11-07",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 9,
+      "position": 6.5556
+    },
+    {
+      "date": "2026-11-07",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 10,
+      "position": 7.4
+    },
+    {
+      "date": "2026-11-07",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 106,
+      "position": 6.217
+    },
+    {
+      "date": "2026-11-07",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "date": "2026-11-07",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "date": "2026-11-07",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 14,
+      "position": 5.4286
+    },
+    {
+      "date": "2026-11-07",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 5.6667
+    },
+    {
+      "date": "2026-11-07",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 6
+    },
+    {
+      "date": "2026-11-07",
+      "page": "https://www.visutry.com/ar/try-on/glasses/compare",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "date": "2026-11-08",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 5,
+      "position": 6.2
+    },
+    {
+      "date": "2026-11-08",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 13,
+      "position": 5.3077
+    },
+    {
+      "date": "2026-11-08",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8.5
+    },
+    {
+      "date": "2026-11-08",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 8,
+      "position": 6.25
+    },
+    {
+      "date": "2026-11-08",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 5.5
+    },
+    {
+      "date": "2026-11-08",
+      "page": "https://www.visutry.com/ar/glasses-guide/should-glasses-cover-your-eyebrows",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "date": "2026-11-08",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 6.1667
+    },
+    {
+      "date": "2026-11-08",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 84,
+      "position": 6.0238
+    },
+    {
+      "date": "2026-11-09",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 62,
+      "position": 5.629
+    },
+    {
+      "date": "2026-11-09",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 4,
+      "position": 4.5
+    },
+    {
+      "date": "2026-11-09",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 12,
+      "position": 4.9167
+    },
+    {
+      "date": "2026-11-09",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 4.5
+    },
+    {
+      "date": "2026-11-09",
+      "page": "https://www.visutry.com/ar/glasses-guide/do-round-glasses-suit-a-round-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "date": "2026-11-09",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "date": "2026-11-09",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 7.6
+    },
+    {
+      "date": "2026-11-09",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 8,
+      "position": 11.625
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 82,
+      "position": 5.3415
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 10,
+      "position": 6.9
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 8,
+      "position": 4.75
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/face-analysis",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 12
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 4.5
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 8
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/sunglasses-for/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "date": "2026-11-10",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 5
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 18,
+      "position": 6.5
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 95,
+      "position": 5.2105
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 5,
+      "position": 7.2
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 18,
+      "position": 8.8889
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/face-analysis",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 7.3333
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 2
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-round-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/style/heart-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 9.5
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 4
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/sunglasses-for/oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "date": "2026-11-11",
+      "page": "https://www.visutry.com/ar/try-on/glasses/compare",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 55
+    },
+    {
+      "date": "2026-11-12",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 5,
+      "impressions": 74,
+      "position": 5.6622
+    },
+    {
+      "date": "2026-11-12",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 15,
+      "position": 4.2
+    },
+    {
+      "date": "2026-11-12",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 9,
+      "position": 6
+    },
+    {
+      "date": "2026-11-12",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 7,
+      "position": 7.2857
+    },
+    {
+      "date": "2026-11-12",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 4.6667
+    },
+    {
+      "date": "2026-11-12",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "date": "2026-11-12",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "date": "2026-11-12",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 13,
+      "position": 6.7692
+    },
+    {
+      "date": "2026-11-12",
+      "page": "https://www.visutry.com/ar/try-on/glasses/compare",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "date": "2026-11-13",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 5,
+      "impressions": 110,
+      "position": 6.1636
+    },
+    {
+      "date": "2026-11-13",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 3,
+      "position": 2.3333
+    },
+    {
+      "date": "2026-11-13",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 18,
+      "position": 6.4444
+    },
+    {
+      "date": "2026-11-13",
+      "page": "https://www.visutry.com/ar/style-explorer",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "date": "2026-11-13",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 13,
+      "position": 6.3077
+    },
+    {
+      "date": "2026-11-13",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 7,
+      "position": 5
+    },
+    {
+      "date": "2026-11-13",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 2
+    },
+    {
+      "date": "2026-11-13",
+      "page": "https://www.visutry.com/ar/style/diamond-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "date": "2026-11-13",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 4.3333
+    },
+    {
+      "date": "2026-11-13",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 14,
+      "position": 7.0714
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 5,
+      "impressions": 102,
+      "position": 5.902
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 21,
+      "position": 4.9524
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 18,
+      "position": 4.0556
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 5
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 5
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 3.5
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/style-explorer",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/style/diamond-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 1.5
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/style/heart-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 6
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 8.6667
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/sunglasses-for/oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8
+    },
+    {
+      "date": "2026-11-14",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 7,
+      "position": 8
+    },
+    {
+      "date": "2026-11-15",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 8,
+      "position": 4
+    },
+    {
+      "date": "2026-11-15",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 88,
+      "position": 5.6932
+    },
+    {
+      "date": "2026-11-15",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7
+    },
+    {
+      "date": "2026-11-15",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 7.6
+    },
+    {
+      "date": "2026-11-15",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 11,
+      "position": 5.3636
+    },
+    {
+      "date": "2026-11-15",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 7.8
+    },
+    {
+      "date": "2026-11-15",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 13,
+      "position": 6.0769
+    },
+    {
+      "date": "2026-11-16",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 19,
+      "position": 5.2105
+    },
+    {
+      "date": "2026-11-16",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 90,
+      "position": 5.4
+    },
+    {
+      "date": "2026-11-16",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 10,
+      "position": 5.8
+    },
+    {
+      "date": "2026-11-16",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 15,
+      "position": 5.7333
+    },
+    {
+      "date": "2026-11-16",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 5.1667
+    },
+    {
+      "date": "2026-11-16",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 6
+    },
+    {
+      "date": "2026-11-16",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "date": "2026-11-16",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-oval-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 6
+    },
+    {
+      "date": "2026-11-16",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 7.5
+    },
+    {
+      "date": "2026-11-16",
+      "page": "https://www.visutry.com/ar/what-glasses-suit-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "date": "2026-11-17",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 80,
+      "position": 5.225
+    },
+    {
+      "date": "2026-11-17",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 17,
+      "position": 8.9412
+    },
+    {
+      "date": "2026-11-17",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 17,
+      "position": 14.5882
+    },
+    {
+      "date": "2026-11-17",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 12
+    },
+    {
+      "date": "2026-11-17",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "date": "2026-11-17",
+      "page": "https://www.visutry.com/ar/glasses-guide/do-round-glasses-suit-a-round-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "date": "2026-11-17",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 5.3333
+    },
+    {
+      "date": "2026-11-17",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 5
+    },
+    {
+      "date": "2026-11-17",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 6.6
+    },
+    {
+      "date": "2026-11-17",
+      "page": "https://www.visutry.com/ar/virtual-glasses-try-on",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 11
+    },
+    {
+      "date": "2026-11-18",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 6,
+      "impressions": 29,
+      "position": 5.5172
+    },
+    {
+      "date": "2026-11-18",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 107,
+      "position": 5.5794
+    },
+    {
+      "date": "2026-11-18",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 25,
+      "position": 5.28
+    },
+    {
+      "date": "2026-11-18",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 5.5
+    },
+    {
+      "date": "2026-11-18",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "date": "2026-11-18",
+      "page": "https://www.visutry.com/ar/glasses-guide/do-round-glasses-suit-a-round-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 7.5
+    },
+    {
+      "date": "2026-11-18",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-women",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "date": "2026-11-18",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 7,
+      "position": 6.4286
+    },
+    {
+      "date": "2026-11-18",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 12,
+      "position": 3.75
+    },
+    {
+      "date": "2026-11-18",
+      "page": "https://www.visutry.com/ar/virtual-glasses-try-on",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 4.25
+    },
+    {
+      "date": "2026-11-19",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 5,
+      "impressions": 20,
+      "position": 2.9
+    },
+    {
+      "date": "2026-11-19",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 6,
+      "position": 3.8333
+    },
+    {
+      "date": "2026-11-19",
+      "page": "https://www.visutry.com/ar/face-shape-detector",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 4,
+      "position": 8.5
+    },
+    {
+      "date": "2026-11-19",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 93,
+      "position": 5.8602
+    },
+    {
+      "date": "2026-11-19",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 5
+    },
+    {
+      "date": "2026-11-19",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "date": "2026-11-19",
+      "page": "https://www.visutry.com/ar/glasses-guide/do-round-glasses-suit-a-round-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "date": "2026-11-19",
+      "page": "https://www.visutry.com/ar/glasses-guide/glasses-for-round-face-men",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 7.3333
+    },
+    {
+      "date": "2026-11-19",
+      "page": "https://www.visutry.com/ar/style/oblong-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 7.75
+    },
+    {
+      "date": "2026-11-19",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 11,
+      "position": 4.2727
+    }
+  ],
+  "gsc_gulf_country_page_incomplete": [
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 20,
+      "impressions": 377,
+      "position": 5.0106
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "search_type": "web",
+      "clicks": 12,
+      "impressions": 444,
+      "position": 7.4009
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 11,
+      "impressions": 168,
+      "position": 11.881
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/brand/gentle-monster",
+      "search_type": "web",
+      "clicks": 7,
+      "impressions": 11,
+      "position": 1.8182
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 7,
+      "impressions": 73,
+      "position": 9.2466
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "search_type": "web",
+      "clicks": 6,
+      "impressions": 85,
+      "position": 6.6471
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "search_type": "web",
+      "clicks": 6,
+      "impressions": 253,
+      "position": 6.6561
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 3,
+      "position": 1
+    },
+    {
+      "country": "Kuwait",
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 14,
+      "position": 4
+    },
+    {
+      "country": "Kuwait",
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 62,
+      "position": 8.5161
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 2,
+      "position": 13
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/face-analysis",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 20,
+      "position": 7.2
+    },
+    {
+      "country": "Oman",
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 59,
+      "position": 7.5763
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 13,
+      "position": 7.3077
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en",
+      "search_type": "web",
+      "clicks": 2,
+      "impressions": 2,
+      "position": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 5,
+      "position": 14
+    },
+    {
+      "country": "Bahrain",
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 33,
+      "position": 6.0909
+    },
+    {
+      "country": "Oman",
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 13,
+      "position": 3.3077
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 7,
+      "position": 6.4286
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en/brand/gentle-monster",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 2
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 11,
+      "position": 18.6364
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/brand/gentle-monster",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 2,
+      "position": 3
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/id/face-analysis",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 3
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 6
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 38,
+      "position": 10.8684
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/blog/best-ai-virtual-glasses-tryon-tools-2025",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/blog/browline-clubmaster-glasses-complete-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 10.3333
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/blog/how-to-choose-glasses-for-your-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 10,
+      "position": 73
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/blog/rayban-glasses-virtual-tryon-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 18,
+      "position": 6.7778
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/brand/miu-miu",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 6.6667
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/brand/oakley",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 5.6667
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 14.8333
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/glasses-for-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 16,
+      "position": 73.625
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/glasses-guide/best-cat-eye-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/try-glasses-on-photo",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/en/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 22.4
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/es/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/pt/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 7
+    },
+    {
+      "country": "United Arab Emirates",
+      "page": "https://www.visutry.com/ru",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "country": "Bahrain",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "country": "Bahrain",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 7.5
+    },
+    {
+      "country": "Bahrain",
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 9
+    },
+    {
+      "country": "Bahrain",
+      "page": "https://www.visutry.com/en/blog/how-to-choose-glasses-for-your-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 5.75
+    },
+    {
+      "country": "Bahrain",
+      "page": "https://www.visutry.com/en/blog/rayban-glasses-virtual-tryon-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "country": "Bahrain",
+      "page": "https://www.visutry.com/en/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "country": "Bahrain",
+      "page": "https://www.visutry.com/ja",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 4
+    },
+    {
+      "country": "Kuwait",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "country": "Kuwait",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "country": "Kuwait",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 10,
+      "position": 9.1
+    },
+    {
+      "country": "Kuwait",
+      "page": "https://www.visutry.com/en/blog/browline-clubmaster-glasses-complete-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "country": "Kuwait",
+      "page": "https://www.visutry.com/en/blog/rayban-glasses-virtual-tryon-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "country": "Kuwait",
+      "page": "https://www.visutry.com/en/brand/miu-miu",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "country": "Kuwait",
+      "page": "https://www.visutry.com/en/face-analysis",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 3
+    },
+    {
+      "country": "Kuwait",
+      "page": "https://www.visutry.com/en/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "country": "Oman",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 10.75
+    },
+    {
+      "country": "Oman",
+      "page": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "country": "Oman",
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 52,
+      "position": 6.4231
+    },
+    {
+      "country": "Oman",
+      "page": "https://www.visutry.com/en/blog/browline-clubmaster-glasses-complete-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 8
+    },
+    {
+      "country": "Oman",
+      "page": "https://www.visutry.com/en/brand/gucci",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "country": "Oman",
+      "page": "https://www.visutry.com/en/brand/zenni",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 10
+    },
+    {
+      "country": "Oman",
+      "page": "https://www.visutry.com/en/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 5
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 3
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 5
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en/blog/best-ai-virtual-glasses-tryon-tools-2025",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en/blog/browline-clubmaster-glasses-complete-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 9.5
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en/blog/rayban-glasses-virtual-tryon-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 6.3333
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en/face-analysis",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 3
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en/try-glasses-on-photo",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 3.5
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/en/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/es/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "country": "Qatar",
+      "page": "https://www.visutry.com/pt/try-on/glasses?source_page=%2Ftry-glasses-on-photo",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 10,
+      "position": 31.1
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/ar/discover",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 7.6667
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/ar/glasses-guide/best-browline-glasses-for-oval-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 12
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/ar/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 10,
+      "position": 6.3
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/de/what-is-my-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 8
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/ai-glasses-advisor",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/blog/best-ai-virtual-glasses-tryon-tools-2025",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/blog/browline-clubmaster-glasses-complete-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 5.5
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/blog/rayban-glasses-virtual-tryon-guide",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 10,
+      "position": 5.8
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/brand/miu-miu",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 7.75
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/brand/oakley",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 9
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/brand/zenni",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 7
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/face-analysis",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 9,
+      "position": 19.5556
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/find-glasses-for-my-face",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 39.6667
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/glasses-for-face-shape",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 9,
+      "position": 65
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/try-glasses-on-photo",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 2,
+      "position": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/en/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/es/try-on/glasses",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 17
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/ja",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 6,
+      "position": 74
+    },
+    {
+      "country": "Saudi Arabia",
+      "page": "https://www.visutry.com/ru/face-shape-detector",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 45
+    }
+  ],
+  "ga4_gulf_google_landings": [
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/what-is-my-face-shape",
+      "language_code": "ar",
+      "session_source_medium": "google / organic",
+      "sessions": 13
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/brand/gentle-monster",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 7
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 7
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 6
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 6
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/face-analysis",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 6
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 6
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 6
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 5
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 5
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 5
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-in",
+      "session_source_medium": "google / organic",
+      "sessions": 3
+    },
+    {
+      "country": "Kuwait",
+      "country_id": "KW",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 3
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/find-glasses-for-my-face",
+      "language_code": "ar",
+      "session_source_medium": "google / organic",
+      "sessions": 3
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 3
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/face-analysis",
+      "language_code": "en-ae",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-in",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/glasses-for-face-shape",
+      "language_code": "en-in",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "landing_page": "/ar/find-glasses-for-my-face",
+      "language_code": "ar-eg",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "landing_page": "/en/face-analysis",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/try-on/glasses",
+      "language_code": "ar",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "ar-ae",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/find-glasses-for-my-face",
+      "language_code": "ar-sa",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/brand/gentle-monster",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/find-glasses-for-my-face",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/what-is-my-face-shape",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/try-on/glasses",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 2
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/ar/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "ar-ae",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/ar/find-glasses-for-my-face",
+      "language_code": "ar-ae",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-ae",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/brand/gentle-monster",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/face-analysis",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/ar/find-glasses-for-my-face",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/ar/what-is-my-face-shape",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/en/auth/signin",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/id/face-analysis",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/ru",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "landing_page": "/ru/face-shape-detector",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Bahrain",
+      "country_id": "BH",
+      "landing_page": "/ar/find-glasses-for-my-face",
+      "language_code": "ar",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Bahrain",
+      "country_id": "BH",
+      "landing_page": "/ar/find-glasses-for-my-face",
+      "language_code": "ar-bh",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Bahrain",
+      "country_id": "BH",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Kuwait",
+      "country_id": "KW",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Kuwait",
+      "country_id": "KW",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-in",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Kuwait",
+      "country_id": "KW",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Kuwait",
+      "country_id": "KW",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "landing_page": "/en/blog/browline-clubmaster-glasses-complete-guide",
+      "language_code": "ar",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-in",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "landing_page": "/ar/what-is-my-face-shape",
+      "language_code": "ar",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "landing_page": "/en",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "landing_page": "/en/brand/gentle-monster",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-qa",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "landing_page": "/en/brand/gentle-monster",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "ar",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/virtual-glasses-try-on",
+      "language_code": "ar",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/try-on/glasses",
+      "language_code": "ar",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/find-glasses-for-my-face",
+      "language_code": "ar-ae",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/try-on/glasses",
+      "language_code": "ar-ae",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/what-is-my-face-shape",
+      "language_code": "ar-ae",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en",
+      "language_code": "ar-ma",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/what-is-my-face-shape",
+      "language_code": "ar-sa",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "(not set)",
+      "language_code": "en",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/face-analysis",
+      "language_code": "en",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/what-is-my-face-shape",
+      "language_code": "en-as",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-au",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-ca",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/face-analysis",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-gb",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/face-analysis",
+      "language_code": "en-in",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/face-shape-detector",
+      "language_code": "en-in",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/what-is-my-face-shape",
+      "language_code": "en-sa",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "language_code": "en-sa",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/en/brand/gentle-monster",
+      "language_code": "en-us",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "landing_page": "/ar/what-is-my-face-shape",
+      "language_code": "fr-fr",
+      "session_source_medium": "google / organic",
+      "sessions": 1
+    }
+  ],
+  "ga4_gulf_country_sources": [
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "session_source_medium": "google / organic",
+      "sessions": 72
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "session_source_medium": "google / organic",
+      "sessions": 57
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "session_source_medium": "chatgpt.com / ai-assistant",
+      "sessions": 22
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "session_source_medium": "google / organic",
+      "sessions": 15
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "session_source_medium": "chatgpt.com / ai-assistant",
+      "sessions": 13
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "session_source_medium": "(direct) / (none)",
+      "sessions": 12
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "session_source_medium": "google / organic",
+      "sessions": 10
+    },
+    {
+      "country": "Kuwait",
+      "country_id": "KW",
+      "session_source_medium": "google / organic",
+      "sessions": 7
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "session_source_medium": "accounts.google.com / referral",
+      "sessions": 4
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "session_source_medium": "chatgpt.com / ai-assistant",
+      "sessions": 4
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "session_source_medium": "(direct) / (none)",
+      "sessions": 4
+    },
+    {
+      "country": "Bahrain",
+      "country_id": "BH",
+      "session_source_medium": "google / organic",
+      "sessions": 3
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "session_source_medium": "(direct) / (none)",
+      "sessions": 3
+    },
+    {
+      "country": "Oman",
+      "country_id": "OM",
+      "session_source_medium": "chatgpt.com / ai-assistant",
+      "sessions": 3
+    },
+    {
+      "country": "Kuwait",
+      "country_id": "KW",
+      "session_source_medium": "chatgpt.com / ai-assistant",
+      "sessions": 2
+    },
+    {
+      "country": "Bahrain",
+      "country_id": "BH",
+      "session_source_medium": "chatgpt.com / ai-assistant",
+      "sessions": 1
+    },
+    {
+      "country": "Kuwait",
+      "country_id": "KW",
+      "session_source_medium": "(direct) / (none)",
+      "sessions": 1
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "session_source_medium": "(direct) / (none)",
+      "sessions": 1
+    },
+    {
+      "country": "Qatar",
+      "country_id": "QA",
+      "session_source_medium": "gemini.google.com / ai-assistant",
+      "sessions": 1
+    },
+    {
+      "country": "Saudi Arabia",
+      "country_id": "SA",
+      "session_source_medium": "accounts.google.com / referral",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "session_source_medium": "(not set)",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "session_source_medium": "bing / organic",
+      "sessions": 1
+    },
+    {
+      "country": "United Arab Emirates",
+      "country_id": "AE",
+      "session_source_medium": "yandex.ru / referral",
+      "sessions": 1
+    }
+  ],
+  "production_http_checks": [
+    {
+      "path": "/ar/what-is-my-face-shape",
+      "title": "ما شكل وجهي؟ كاشف مجاني من الصورة | VisuTry",
+      "h1": "ما شكل وجهي؟",
+      "status": 200,
+      "final_url": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "canonical": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "html_lang": "ar",
+      "html_dir": "rtl",
+      "robots": "index, follow",
+      "x_robots_tag": null
+    },
+    {
+      "path": "/ar/find-glasses-for-my-face",
+      "title": "اعثر على نظارات تناسب وجهي من صورة | VisuTry",
+      "h1": "اعثر على نظارات تناسب وجهي",
+      "status": 200,
+      "final_url": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "canonical": "https://www.visutry.com/ar/find-glasses-for-my-face",
+      "html_lang": "ar",
+      "html_dir": "rtl",
+      "robots": "index, follow",
+      "x_robots_tag": null
+    },
+    {
+      "path": "/ar/face-shape-detector",
+      "title": "كاشف شكل الوجه المجاني",
+      "h1": "كاشف شكل الوجه المجاني",
+      "status": 200,
+      "final_url": "https://www.visutry.com/ar/face-shape-detector",
+      "canonical": "https://www.visutry.com/ar/face-shape-detector",
+      "html_lang": "ar",
+      "html_dir": "rtl",
+      "robots": "index, follow",
+      "x_robots_tag": null
+    },
+    {
+      "path": "/ar/blog/ai-face-analysis-for-glasses-guide",
+      "title": "ما النظارات التي تناسب وجهي؟ كاشف شكل الوجه المجاني",
+      "h1": "ما النظارات التي تناسب وجهي؟ ابدأ بكاشف شكل الوجه المجاني",
+      "status": 200,
+      "final_url": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "canonical": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide",
+      "html_lang": "ar",
+      "html_dir": "rtl",
+      "robots": "index, follow",
+      "x_robots_tag": null
+    }
+  ],
+  "source_audit": [
+    {
+      "finding": "Core Arabic owners are live and indexable by response, not proven currently indexed by URL Inspection.",
+      "evidence": [
+        "src/i18n.ts",
+        "src/app/[locale]/layout.tsx",
+        "src/lib/seo.ts",
+        "src/lib/sitemap-static.ts"
+      ],
+      "boundary": "HTTP 200, self-canonical, index/follow and historical GSC clicks do not replace current Google URL Inspection."
+    },
+    {
+      "finding": "Arabic shape guidance uses compact repeated explanations rather than distinct per-shape/per-frame answers.",
+      "evidence": [
+        "src/config/face-shape-seo-locales.ts",
+        "src/config/sunglasses-style-reasons.ts"
+      ],
+      "boundary": "Verified content deficit; not a demonstrated cause of low traffic."
+    },
+    {
+      "finding": "The actual winning Arabic face-identification and photo-selection owners lack the specific visual/example sections supplied to English or Japanese.",
+      "evidence": [
+        "src/config/search-to-tool-locales.ts",
+        "src/config/search-to-tool-phase-a-locales.ts",
+        "src/app/[locale]/(public)/what-is-my-face-shape/page.tsx",
+        "src/app/[locale]/(public)/find-glasses-for-my-face/page.tsx",
+        "src/components/seo/B01VisualSeoSections.tsx",
+        "src/components/seo/B02VisualSeoSections.tsx"
+      ],
+      "boundary": "Preserve the winning Arabic URLs and titles until intent evidence supports a change; do not clone English owner allocation."
+    },
+    {
+      "finding": "Free Detector result copy still contains hardcoded English and links into intentionally noindexed non-English education owners.",
+      "evidence": [
+        "src/components/face-shape/FreeFaceShapeResult.tsx",
+        "src/app/[locale]/(public)/face-shape-measurement/page.tsx",
+        "src/app/[locale]/(public)/face-shapes/[faceShape]/page.tsx"
+      ],
+      "boundary": "Shared non-English experience gap, not an explanation established for search clicks; no blanket noindex removal."
+    }
+  ],
+  "external_primary_examples": [
+    {
+      "url": "https://eyewa.com/ae-ar/faqs",
+      "observed": "Arabic face-shape glasses selection and sizing answers exist; shows competing Arabic content, not market volume or rankings."
+    }
+  ],
+  "decision": {
+    "status": "MODIFY / bounded candidate",
+    "market_size": "INCONCLUSIVE",
+    "proposal": "Improve the two existing Arabic winning owners first with distinct short task answers, useful original RTL visuals and relevant Arabic topic links. No new duplicate routes or blanket translation batch.",
+    "pilot_goal": "Planning target: Arabic page-level Web clicks >=250 per comparable finalized 28 days from the 190 baseline, plus broader relevant nonbrand query coverage; not a forecast or causal threshold.",
+    "review": "After confirmed recrawl and two usable finalized windows. MODIFY if no net topic-click/query gain; STOP duplicate expansion or net displacement; INCONCLUSIVE if insufficient exposure. No purchase or completion gate.",
+    "implementation_status": "PROPOSED, not implemented or deployed by this diagnostic."
+  }
+}
