@@ -1,5 +1,6 @@
 import { getVisualSeoAssetsForPage } from '@/config/visual-seo-assets'
 import { VisualSeoAsset } from '@/components/seo/VisualSeoAsset'
+import { DetectorResultExample } from '@/components/seo/DetectorResultExample'
 
 type B01VisualSeoPage = '/face-shape-detector' | '/what-is-my-face-shape' | '/what-glasses-suit-my-face'
 
@@ -21,19 +22,22 @@ export function B01VisualSeoSections({ locale, pagePath }: B01VisualSeoSectionsP
   if (assets.length === 0) return null
 
   const [primaryAsset, ...supportingAssets] = assets
+  const resultExample = supportingAssets.find((asset) => asset.id === 'VSEO-003')
+  const supportingGuides = supportingAssets.filter((asset) => asset.id !== 'VSEO-003')
 
   return (
     <section className="mt-12 space-y-5 sm:space-y-6" aria-label="Visual face shape guides">
       <VisualSeoAsset asset={primaryAsset} headingDisplay="sr-only" />
-      {supportingAssets.length === 1 ? (
-        <VisualSeoAsset asset={supportingAssets[0]} variant="supporting-wide" />
-      ) : supportingAssets.length > 1 ? (
+      {supportingGuides.length === 1 ? (
+        <VisualSeoAsset asset={supportingGuides[0]} variant="supporting-wide" />
+      ) : supportingGuides.length > 1 ? (
         <div className="grid gap-4 md:grid-cols-2">
-          {supportingAssets.map((asset) => (
+          {supportingGuides.map((asset) => (
             <VisualSeoAsset key={asset.id} asset={asset} variant="compact" />
           ))}
         </div>
       ) : null}
+      {resultExample ? <DetectorResultExample asset={resultExample} /> : null}
     </section>
   )
 }

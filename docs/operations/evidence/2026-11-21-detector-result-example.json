@@ -1,0 +1,90 @@
+{
+  "capturedAtUtc": "2026-11-21T09:48:39.672Z",
+  "gitCommit": "8ef9d93d1b3f62bb4b34d53b7b252167c318df99",
+  "sourceFiles": {
+    "src/lib/face-landmark-client.ts": "02d3e240aa8602cda8054c5052b363c27949c1797a50558d98d3f50946027b00",
+    "src/lib/face-landmark-metrics.ts": "019cb6a5aa6bf51492f92c730adb9ab83c8203726e62204f44c83d2a22104901",
+    "src/utils/image.ts": "6fc711261aefdd1dc7e6a20a6afdaab080fd90a8c6a04623947e859d8db52b4d",
+    "src/components/face-shape/FreeFaceShapeDetector.tsx": "59863734871b65f85ef65042cd681165b4b616ae5228e67df239ba6478014bf3"
+  },
+  "browser": "151.0.7922.34",
+  "executable": "playwright",
+  "mediaPipeVersion": "0.10.35",
+  "assetHashes": {
+    "wasm/vision_wasm_internal.js": "e7fd9858e8e8f221d9b96eddc11f8e077f263e0b7bbd79d3cbe882b134274f8c",
+    "wasm/vision_wasm_internal.wasm": "6a5c64584c2ab61c763b6e204afbdbc7ce1caf7f5216187322bca8df94f646bc",
+    "models/face_landmarker.task": "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff"
+  },
+  "input": {
+    "sourcePath": "docs/assets/local-demo/visutry-demo-shopper-v1.png",
+    "sha256": "2a1277cbaef4bee43ebc5566311da50fd48ebcbd73f8abe028bc2622c072c9a0",
+    "type": "VisuTry-owned synthetic demo portrait",
+    "publicPermission": "docs/assets/local-demo/ASSET_PROVENANCE.md: Suitable for external publication YES"
+  },
+  "pipeline": {
+    "compressImage": {
+      "maxDimension": 1280,
+      "quality": 0.88,
+      "profile": "user-photo"
+    },
+    "algorithm": "analyzeFaceLandmarkFile from pinned main",
+    "mediaPipe": "pinned bytes, local delivery only",
+    "defaultDelegate": "GPU"
+  },
+  "output": {
+    "geometry": {
+      "version": "landmark-v1",
+      "status": "measured",
+      "source": "mediapipe-face-landmarker",
+      "faceDetected": true,
+      "faceCount": 1,
+      "qualityScore": 87,
+      "measuredShape": "oval",
+      "alternativeShapes": [],
+      "measuredConfidence": 0.76,
+      "ratios": {
+        "faceAspectRatio": 1.233,
+        "cheekToFaceWidth": 0.926,
+        "jawToCheekWidth": 0.853,
+        "foreheadToCheekWidth": 0.774,
+        "eyeLineTiltDeg": -3.5,
+        "symmetryOffset": 0.007,
+        "noseBridgeToFaceWidth": 0.255
+      },
+      "signals": [
+        "Oval shape supported by measured proportions",
+        "Balanced face length-to-width ratio",
+        "Jawline has moderate taper",
+        "Cheekbones read wider than the upper face"
+      ],
+      "warnings": []
+    },
+    "processedSha256": "e325c57215c6e667dc70653aa9eacc325bdcb64fd2c38190c0e10b8a2ca56f06",
+    "uiSummaryText": "YOUR LIKELY FACE SHAPE\n\nOval\nLikely geometry match\n87% photo quality\n\nA face that is slightly longer than it is wide, with balanced proportions and a softly tapered jaw.\n\nFace Length\n\nBalanced\n\nFace Width\n\nWide\n\nJawline\n\nModerate\n\nCheekbone Span\n\nDefined\n\nWhy this result\n\nOval shape supported by measured proportions\nBalanced face length-to-width ratio\nJawline has moderate taper\nCheekbones read wider than the upper face"
+  },
+  "privacy": {
+    "localOnly": true,
+    "externalRequestsCompleted": 0,
+    "providerCalls": 0,
+    "productionDatabaseAccess": false,
+    "blockedRequests": []
+  },
+  "limitations": [
+    "One synthetic demo image; no population accuracy evidence.",
+    "Heuristic geometry match and photo quality are not calibrated correctness probabilities.",
+    "Local Chromium SwiftShader runtime; other devices or source encodings may vary.",
+    "No paid Advisor or Try-On generation performed."
+  ],
+  "publishedAsset": {
+    "sourcePath": "assets/visual-seo/B01/source/VSEO-003__detector-browser-result-20261121.png",
+    "sourceSha256": "b5e8ae441dc55dfad8358a0aeb6c2b51414f7f707d5a0ff93f5737199e477777",
+    "publicPath": "/images/seo/core/detector-browser-result-20261121.webp",
+    "publicSha256": "7553807d231793c56f966f2007e191260083faa95a8688ab963cafedd2fb9ec5",
+    "width": 1062,
+    "height": 510,
+    "sourceBytes": 350967,
+    "publicBytes": 49034,
+    "conversion": "WebP quality 84; no image content edits",
+    "capture": "Actual result-row DOM screenshot after normal scrolling below the sticky navigation"
+  }
+}
