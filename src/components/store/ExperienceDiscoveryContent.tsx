@@ -13,7 +13,7 @@ import { MerchantShopperAccountControlSlot } from '@/components/store/MerchantSh
 import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
 import { shouldBypassMerchantImageOptimization, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
 import { brandAccentForDisplay } from '@/modules/merchant/domain/merchant-brand-kit'
-import { getMerchantDiscoveryEditorial, normalizeMerchantDiscoveryDestinations } from '@/lib/merchant-discovery-editorial'
+import { getMerchantDiscoveryEditorial, normalizeMerchantDiscoveryDestinations } from '@/modules/store/application/merchant-discovery-editorial'
 import { ExperienceDiscoveryEditorial } from '@/components/store/ExperienceDiscoveryEditorial'
 
 function formatPrice(price: number | null, currency: string | null): string | null {
@@ -203,7 +203,7 @@ export function ExperienceDiscoveryContent({
             </div>
             <div>
               <ExperienceHeroVisual
-                title={title}
+                title={editorial?.headline || (isCampaign ? experience.name : title)}
                 description={description}
                 merchantName={merchant.name}
                 heroImage={heroImage}

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { render, screen } from '@testing-library/react'
 import CanaryFramePage, { generateMetadata } from '@/app/[locale]/(public)/discover/frames/[frameId]/page'
 import { getCanaryDiscoveryFrame } from '@/modules/store/application/get-canary-discovery-frames'
-import { buildCanaryDiscoveryFrames } from '@/lib/canary-discovery-frames'
+import { buildCanaryDiscoveryFrames } from '@/modules/store/application/canary-discovery-frames'
 import { makeCanaryEditorialDiscovery } from '../../fixtures/merchant-discovery-editorial'
 
 jest.mock('@/modules/store/application/get-canary-discovery-frames', () => ({ getCanaryDiscoveryFrame: jest.fn() }))

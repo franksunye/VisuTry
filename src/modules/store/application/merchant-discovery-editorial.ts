@@ -1,9 +1,9 @@
 import { MERCHANT_DISCOVERY_EDITORIAL } from '@/config/merchant-discovery-editorial'
 import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
 import { publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
-import { isCanaryDiscoverySource } from '@/lib/canary-discovery-frames'
+import { isCanaryDiscoverySource } from '@/modules/store/application/canary-discovery-frames'
 
-export { normalizeMerchantDiscoveryDestinations } from '@/lib/canary-discovery-frames'
+export { normalizeMerchantDiscoveryDestinations } from '@/modules/store/application/canary-discovery-frames'
 
 type EditorialFrame = Pick<PublicExperienceDiscovery['frames'][number],
   'id' | 'name' | 'shape' | 'imageUrl'>

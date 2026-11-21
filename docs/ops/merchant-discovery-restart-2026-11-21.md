@@ -99,7 +99,10 @@ JSON-LD draw from the same reviewed copy. Other locales keep their existing
 noindex policy and do not receive this new English section.
 
 Store metadata and the visible title now honor a saved Store headline, with the
-existing fallback for stores that have no headline.
+existing fallback for stores that have no headline. Ordinary Campaigns retain
+their Campaign name in the image area alongside the saved headline. Merchant
+discovery projections live inside the Store module, preserving the ADR-007
+Consumer/Merchant import boundary.
 
 ### Discovery entry
 
@@ -125,14 +128,15 @@ or concurrency gate.
 | Verification | Outcome |
 | --- | --- |
 | Saved-page eligibility and both backend read models | 7 targeted Jest suites, 95 tests passed |
-| Editorial, exact-ID destinations, public source readers and detail page | 7 targeted Jest suites, 73 tests passed |
+| Editorial, exact-ID destinations, public source readers and detail page | 7 targeted Jest suites, 74 tests passed |
 | Domain readiness, SEO metadata, existing sitemap and Campaign-list regression | 4 targeted Jest suites, 42 tests passed |
+| ADR-007 Consumer stability and module boundary | 1 targeted Jest suite, 13 tests passed |
 | Full TypeScript check | `tsc --noEmit --incremental false` passed |
 | Changed source lint and whitespace | Targeted Next ESLint and `git diff --check` passed |
 | Documentation audit | No canonical issues or actionable broken local links; existing repository metadata/archive warnings remain |
 | Real local browser/API/SSR check | 1 scenario passed in 36.1 seconds; desktop and 430×932 screenshots visually reviewed |
 
-The 18 unit suites contain **210 passing tests**. The final browser run verifies
+The 19 unit suites contain **224 passing tests**. The final browser run verifies
 actual product-link navigation to the same frame ID, image/name/canonical and
 non-sale disclosure, return to the same Campaign, six current English detail
 URLs in the dynamic sitemap, and HTTP 404 for unknown/other-tenant/non-English

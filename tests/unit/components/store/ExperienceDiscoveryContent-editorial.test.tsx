@@ -46,6 +46,17 @@ describe('Experience discovery acquisition example', () => {
     expect(screen.queryByRole('region', { name: 'Compare two frame outlines' })).not.toBeInTheDocument()
   })
 
+  it('preserves an ordinary Campaign name beside its saved headline', () => {
+    const discovery = makeCanaryEditorialDiscovery()
+    discovery.merchant.slug = 'independent-optical'
+    discovery.experience.name = 'Petite Fit Collection'
+    discovery.experience.headline = 'Find frames for smaller faces'
+    render(<ExperienceDiscoveryContent discovery={discovery} locale="en" pathname="/en/c/independent-optical/petite-fit" />)
+    expect(screen.getByRole('heading', { level: 1, name: 'Find frames for smaller faces' })).toBeInTheDocument()
+    expect(screen.getByText('Petite Fit Collection', { exact: true })).toBeVisible()
+    expect(screen.queryByRole('region', { name: 'Compare two frame outlines' })).not.toBeInTheDocument()
+  })
+
   it.each(['ARCHIVED', 'DRAFT'] as const)('does not render acquisition content for a %s Campaign', (status) => {
     const discovery = makeCanaryEditorialDiscovery()
     discovery.experience.status = status

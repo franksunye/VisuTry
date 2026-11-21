@@ -1,5 +1,5 @@
-import { getMerchantDiscoveryEditorial, normalizeMerchantDiscoveryDestinations } from '@/lib/merchant-discovery-editorial'
-import { canaryDiscoveryFrameUrl } from '@/lib/canary-discovery-frames'
+import { getMerchantDiscoveryEditorial, normalizeMerchantDiscoveryDestinations } from '@/modules/store/application/merchant-discovery-editorial'
+import { canaryDiscoveryFrameUrl } from '@/modules/store/application/canary-discovery-frames'
 import { makeCanaryEditorialDiscovery } from '../../fixtures/merchant-discovery-editorial'
 
 describe('reviewed Merchant discovery editorial', () => {

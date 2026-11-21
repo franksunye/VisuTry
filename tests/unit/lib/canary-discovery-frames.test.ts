@@ -2,7 +2,7 @@ import {
   buildCanaryDiscoveryFrames,
   canaryDiscoveryFrameUrl,
   normalizeMerchantDiscoveryDestinations,
-} from '@/lib/canary-discovery-frames'
+} from '@/modules/store/application/canary-discovery-frames'
 import { makeCanaryEditorialDiscovery } from '../../fixtures/merchant-discovery-editorial'
 
 function makeStore() {

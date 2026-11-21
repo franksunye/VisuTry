@@ -4,10 +4,10 @@ import {
   buildCanaryDiscoveryFrames,
   isCanaryDiscoveryFrameId,
   type CanaryDiscoveryFrame,
-} from '@/lib/canary-discovery-frames'
+} from '@/modules/store/application/canary-discovery-frames'
 import { getPublicExperienceDiscoveryContentForRoute } from './get-public-experience-discovery-route'
 
-export type { CanaryDiscoveryFrame } from '@/lib/canary-discovery-frames'
+export type { CanaryDiscoveryFrame } from '@/modules/store/application/canary-discovery-frames'
 
 /**
  * Read only the two bounded public sources through the existing cache/admission

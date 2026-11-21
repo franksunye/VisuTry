@@ -1,4 +1,4 @@
-import type { MerchantDiscoveryEditorial } from '@/lib/merchant-discovery-editorial'
+import type { MerchantDiscoveryEditorial } from '@/modules/store/application/merchant-discovery-editorial'
 
 /** Server-rendered, factual reading content; it never starts a shopper session. */
 export function ExperienceDiscoveryEditorial({ editorial }: { editorial: MerchantDiscoveryEditorial }) {

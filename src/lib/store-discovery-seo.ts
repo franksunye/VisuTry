@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { localeToOGLocale, type Locale } from '@/i18n'
 import { SITE_CONFIG } from '@/lib/seo'
-import { getMerchantDiscoveryEditorial, normalizeMerchantDiscoveryDestinations } from '@/lib/merchant-discovery-editorial'
+import { getMerchantDiscoveryEditorial, normalizeMerchantDiscoveryDestinations } from '@/modules/store/application/merchant-discovery-editorial'
 import type { ExperienceSearchVisibility } from '@/modules/store/domain/experience-search-visibility'
 import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
 

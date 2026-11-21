@@ -7,7 +7,7 @@ import {
 import { buildMerchantExperienceHref } from './build-merchant-experience-href'
 import { VISUTRY_DEMO_MERCHANT_SLUG } from '../domain/visutry-demo-identity'
 import { MERCHANT_DISCOVERY_EDITORIAL } from '@/config/merchant-discovery-editorial'
-import { getMerchantDiscoveryEditorial } from '@/lib/merchant-discovery-editorial'
+import { getMerchantDiscoveryEditorial } from '@/modules/store/application/merchant-discovery-editorial'
 import { resolveExperienceSearchVisibility } from '../domain/experience-search-visibility'
 import type {
   ExperienceRecord,
