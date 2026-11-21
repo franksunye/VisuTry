@@ -391,13 +391,17 @@ describe('Campaign application service', () => {
 
   it('commits combined configuration and activation with one write and one invalidation', async () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
-    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: activeLaunchPeriodStart, billingPeriodEnd: activeLaunchPeriodEnd, createdAt: activeLaunchPeriodStart }
+    const merchant = { id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE', pilotType: 'LIVE', websiteUrl: null, sponsoredUsagePolicyKey: null, referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: activeLaunchPeriodStart, billingPeriodEnd: activeLaunchPeriodEnd, createdAt: activeLaunchPeriodStart }
+    const publishableRow = {
+      ...baseRow,
+      frames: Array.from({ length: 4 }, (_, index) => ({ ...baseRow.frames[0], merchantFrameId: `frame-${index}`, merchantFrame: { ...baseRow.frames[0].merchantFrame, id: `frame-${index}` } })),
+    }
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue(merchant)
-    const update = jest.fn(async ({ data }: { data: Record<string, unknown> }) => ({ ...baseRow, ...data }))
+    const update = jest.fn(async ({ data }: { data: Record<string, unknown> }) => ({ ...publishableRow, ...data }))
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
       $queryRaw: jest.fn(),
       merchant: { findUnique: jest.fn().mockResolvedValue(merchant) },
-      experience: { findFirst: jest.fn().mockResolvedValue(baseRow), count: jest.fn().mockResolvedValue(0), update },
+      experience: { findFirst: jest.fn().mockResolvedValue(publishableRow), count: jest.fn().mockResolvedValue(0), update },
     }))
 
     const result = await updateAndPublishCampaign({
@@ -408,6 +412,7 @@ describe('Campaign application service', () => {
     })
 
     expect(result.status).toBe('ACTIVE')
+    expect(result.searchVisibility).toMatchObject({ visibility: 'PUBLIC_INDEX', reasons: [], activeFrameCount: 4 })
     expect(update).toHaveBeenCalledTimes(1)
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'ACTIVE', headline: 'Atomic live headline', journeyPolicy: expect.any(Object), deliveryPolicy: expect.any(Object) }) }))
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledTimes(1)
@@ -433,5 +438,32 @@ describe('Campaign application service', () => {
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
 
     await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CAMPAIGN_NOT_READY' })
+  })
+
+  it.each([
+    { status: 'ACTIVE', activeCount: 4, referenceData: false, destination: true, visibility: 'PUBLIC_INDEX', reason: null },
+    { status: 'ACTIVE', activeCount: 3, referenceData: false, destination: true, visibility: 'PUBLIC_NOINDEX', reason: 'INSUFFICIENT_FRAMES' },
+    { status: 'ACTIVE', activeCount: 4, referenceData: false, destination: false, visibility: 'PUBLIC_NOINDEX', reason: 'MISSING_DESTINATION' },
+    { status: 'DRAFT', activeCount: 4, referenceData: false, destination: true, visibility: 'PRIVATE', reason: 'DRAFT' },
+    { status: 'ARCHIVED', activeCount: 4, referenceData: false, destination: true, visibility: 'PUBLIC_NOINDEX', reason: 'EXPERIENCE_ARCHIVED' },
+    { status: 'ACTIVE', activeCount: 4, referenceData: true, destination: true, visibility: 'PUBLIC_NOINDEX', reason: 'REFERENCE' },
+  ])('reports search visibility for a $status Campaign with $activeCount active products and reference=$referenceData', async ({ status, activeCount, referenceData, destination, visibility, reason }) => {
+    const frames = Array.from({ length: activeCount }, (_, index) => ({
+      merchantFrameId: `frame-${index}`,
+      merchantFrame: { ...baseRow.frames[0].merchantFrame, id: `frame-${index}`, productUrl: destination ? 'https://shop.example.test/product' : null },
+    }))
+    const archivedFrame = { merchantFrameId: 'archived-frame', merchantFrame: { ...baseRow.frames[0].merchantFrame, id: 'archived-frame', status: 'INACTIVE' } }
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ ...baseRow, status, referenceData, frames: [...frames, archivedFrame] })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({
+      id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE',
+      pilotType: 'LIVE', referenceData: false, websiteUrl: null, sponsoredUsagePolicyKey: null,
+    })
+
+    const result = await getCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
+
+    expect(result.searchVisibility).toMatchObject({ visibility, activeFrameCount: activeCount, minimumFrameCount: 4, indexableLocale: 'en' })
+    expect(result.searchVisibility.reasons).toEqual(reason ? expect.arrayContaining([reason]) : [])
+    expect(prisma.experience.update).not.toHaveBeenCalled()
+    expect(withPublicDiscoveryInvalidation).not.toHaveBeenCalled()
   })
 })

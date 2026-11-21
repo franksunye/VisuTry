@@ -73,6 +73,22 @@ export function DiscoverPage({ content }: { content: DiscoverContent }) {
         </div>
       </section>
 
+      {content.learningExample ? (
+        <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8" aria-labelledby="frame-comparison-example">
+          <Link
+            href={content.learningExample.href}
+            className="group flex max-w-3xl items-center justify-between gap-5 rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:p-6"
+          >
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Frame comparison example</p>
+              <h2 id="frame-comparison-example" className="mt-2 text-xl font-semibold text-slate-950">{content.learningExample.headline}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{content.learningExample.description}</p>
+            </div>
+            <ArrowRight className="h-5 w-5 shrink-0 text-blue-600 transition group-hover:translate-x-1" aria-hidden="true" />
+          </Link>
+        </section>
+      ) : null}
+
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>

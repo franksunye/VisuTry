@@ -26,7 +26,7 @@ function frame(overrides: Partial<MerchantStoreWorkspaceFrame> = {}): MerchantSt
 
 function workspace(overrides: Partial<MerchantStoreWorkspace> = {}): MerchantStoreWorkspace {
   return {
-    store: { id: 'store-a', slug: 'store-a', name: 'North Star Store', status: 'DRAFT', headline: null, description: null, publicPath: '/en/store/north-star', selectedFrameIds: ['frame-a'], journeyPolicy: DEFAULT_DECISION_JOURNEY_POLICY, effectiveJourneyPolicy: DEFAULT_DECISION_JOURNEY_POLICY, deliveryPolicy: DEFAULT_EXPERIENCE_DELIVERY_POLICY, presentationMode: 'PRODUCT_FIRST', primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null, secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null },
+    store: { id: 'store-a', slug: 'store-a', name: 'North Star Store', status: 'DRAFT', headline: null, description: null, publicPath: '/en/store/north-star', selectedFrameIds: ['frame-a'], searchVisibility: { visibility: 'PRIVATE', reasons: ['DRAFT'], indexableLocale: 'en', activeFrameCount: 1, minimumFrameCount: 4 }, journeyPolicy: DEFAULT_DECISION_JOURNEY_POLICY, effectiveJourneyPolicy: DEFAULT_DECISION_JOURNEY_POLICY, deliveryPolicy: DEFAULT_EXPERIENCE_DELIVERY_POLICY, presentationMode: 'PRODUCT_FIRST', primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null, secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null },
     capabilities: { tryOnEnabled: true, compareEnabled: true, kioskDeliveryEnabled: true },
     catalog: [frame()],
     ...overrides,

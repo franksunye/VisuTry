@@ -1,4 +1,3 @@
-import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
 import { slugify } from '@/lib/programmatic-seo'
 import { isCuratedBrandSlug } from '@/config/brand-try-on-content'
@@ -6,6 +5,7 @@ import { getCachedPublicExperienceSitemapEntries } from '@/lib/store-discovery-s
 import { serializeSitemap, type SitemapEntry } from '@/lib/sitemap-xml'
 import { buildSitemapAlternates } from '@/lib/sitemap-static'
 import { locales } from '@/i18n'
+import { getCanaryDiscoveryFrames } from '@/modules/store/application/get-canary-discovery-frames'
 
 export const revalidate = 7 * 24 * 60 * 60
 
@@ -100,11 +100,25 @@ export async function GET() {
     }
   }
 
-  try {
-    const publicExperiencePages: MetadataRoute.Sitemap = await getCachedPublicExperienceSitemapEntries(baseUrl)
-    entries.push(...publicExperiencePages)
-  } catch {
+  const [experiencePages, canaryFrames] = await Promise.allSettled([
+    getCachedPublicExperienceSitemapEntries(baseUrl),
+    getCanaryDiscoveryFrames(),
+  ])
+  if (experiencePages.status === 'fulfilled') {
+    entries.push(...experiencePages.value)
+  } else {
     console.log('Unable to fetch public Store/Campaign pages, skipping discovery sitemap entries')
+  }
+  if (canaryFrames.status === 'fulfilled') {
+    entries.push(...canaryFrames.value.map((frame) => ({
+      url: `${baseUrl}${frame.canonicalPath}`,
+      lastModified: frame.lastModified,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+      alternates: { languages: { en: `${baseUrl}${frame.canonicalPath}` } },
+    })))
+  } else {
+    console.log('Unable to fetch first-party discovery frame pages, skipping those sitemap entries')
   }
 
   return new Response(serializeSitemap(entries), {

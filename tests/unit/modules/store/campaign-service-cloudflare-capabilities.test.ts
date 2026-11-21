@@ -55,4 +55,37 @@ describe('Cloudflare single-Campaign entitlement read parity', () => {
     })
     expect(sql.mock.calls).toHaveLength(2)
   })
+
+  it.each([
+    { status: 'ACTIVE', count: 4, reference: false, destination: true, visibility: 'PUBLIC_INDEX', reason: null },
+    { status: 'ACTIVE', count: 3, reference: false, destination: true, visibility: 'PUBLIC_NOINDEX', reason: 'INSUFFICIENT_FRAMES' },
+    { status: 'ACTIVE', count: 4, reference: false, destination: false, visibility: 'PUBLIC_NOINDEX', reason: 'MISSING_DESTINATION' },
+    { status: 'DRAFT', count: 4, reference: false, destination: true, visibility: 'PRIVATE', reason: 'DRAFT' },
+    { status: 'ARCHIVED', count: 4, reference: false, destination: true, visibility: 'PUBLIC_NOINDEX', reason: 'EXPERIENCE_ARCHIVED' },
+    { status: 'ACTIVE', count: 4, reference: true, destination: true, visibility: 'PUBLIC_NOINDEX', reason: 'REFERENCE' },
+  ])('keeps $status search eligibility in parity with $count active products and reference=$reference', async ({ status, count, reference, destination, visibility, reason }) => {
+    const rows = Array.from({ length: count + 1 }, (_, index) => ({
+      ...campaign, status, referenceData: reference, headline: 'Everyday frames',
+      merchantFrameId: `frame-${index}`, frameId: `frame-${index}`, frameName: `Frame ${index}`,
+      sku: `SKU-${index}`, frameProductUrl: destination ? 'https://merchant.example.test/product' : null,
+      frameImageUrl: 'https://cdn.example.test/frame.png', frameShape: 'round', frameWidthClass: 'M',
+      frameStatus: index < count ? 'ACTIVE' : 'INACTIVE',
+    }))
+    const sql = jest.fn(async (template: TemplateStringsArray) => {
+      const query = template.join('')
+      if (query.includes('FROM "Merchant"')) return [{ ...merchant, name: 'Merchant A', status: 'ACTIVE', pilotType: 'LIVE', websiteUrl: null, sponsoredUsagePolicyKey: null }]
+      if (query.includes('FROM "Experience" e LEFT JOIN')) return rows
+      throw new Error(`Unexpected read: ${query}`)
+    })
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+    ;(getMerchantCommercialCapabilityCloudflare as jest.Mock).mockResolvedValue({
+      decisions: { GENERATIVE_TRY_ON: { allowed: false }, COMPARE: { allowed: false }, KIOSK_DELIVERY: { allowed: false } },
+    })
+
+    const result = await getCampaign({ merchantId: merchant.id, campaignId: campaign.id })
+
+    expect(result.searchVisibility).toMatchObject({ visibility, activeFrameCount: count, minimumFrameCount: 4, indexableLocale: 'en' })
+    expect(result.searchVisibility.reasons).toEqual(reason ? expect.arrayContaining([reason]) : [])
+    expect(sql.mock.calls).toHaveLength(2)
+  })
 })

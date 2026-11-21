@@ -6,6 +6,9 @@ import {
 } from '@/config/discover'
 import { buildMerchantExperienceHref } from './build-merchant-experience-href'
 import { VISUTRY_DEMO_MERCHANT_SLUG } from '../domain/visutry-demo-identity'
+import { MERCHANT_DISCOVERY_EDITORIAL } from '@/config/merchant-discovery-editorial'
+import { getMerchantDiscoveryEditorial } from '@/lib/merchant-discovery-editorial'
+import { resolveExperienceSearchVisibility } from '../domain/experience-search-visibility'
 import type {
   ExperienceRecord,
   ExperienceRepository,
@@ -44,6 +47,12 @@ export type DiscoverContent = {
   copy: ReturnType<typeof getDiscoverCopy>
   featured: DiscoverFeaturedExperience[]
   merchants: DiscoverMerchant[]
+  learningExample: {
+    href: string
+    headline: string
+    description: string
+    nonSaleNotice: string
+  } | null
   demo: {
     href: string
     name: string
@@ -88,7 +97,52 @@ export async function getDiscoverContent(
     return pending
   }
 
-  const [featured, merchants] = await Promise.all([
+  const readLearningExample = async (): Promise<DiscoverContent['learningExample']> => {
+    // The reviewed text is English. Keep this small acquisition example separate
+    // from the productized sales Demo and from the Reference portfolio.
+    if (locale !== 'en') return null
+    const candidate = MERCHANT_DISCOVERY_EDITORIAL
+    const merchant = await findMerchant(candidate.merchantSlug)
+    if (!merchant || merchant.slug !== candidate.merchantSlug || merchant.status !== 'ACTIVE'
+      || merchant.referenceData || merchant.pilotType?.toUpperCase() !== 'LIVE') return null
+
+    const experience = await runtime.experiences.findActiveCampaignByMerchantAndSlug(
+      merchant.id,
+      candidate.experienceSlug,
+    )
+    if (!experience || experience.merchantId !== merchant.id || experience.type !== 'CAMPAIGN'
+      || experience.slug !== candidate.experienceSlug || experience.status !== 'ACTIVE'
+      || experience.referenceData) return null
+
+    const selectedFrames = runtime.frames.findActiveByMerchantAndExperience
+      ? await runtime.frames.findActiveByMerchantAndExperience(merchant.id, experience)
+      : []
+    const frames = selectedFrames.filter((frame) => frame.merchantId === merchant.id
+      && frame.status === 'ACTIVE' && experience.frameIds.includes(frame.id))
+    // Discovery links honor the same public admission rule as the destination;
+    // an allowlist entry never makes a draft, reference or thin collection public.
+    const visibility = resolveExperienceSearchVisibility({ merchant, experience, frames })
+    const editorial = getMerchantDiscoveryEditorial({
+      merchant: { ...merchant, pilotType: merchant.pilotType ?? null, referenceData: Boolean(merchant.referenceData) },
+      experience,
+      frames,
+      visibility,
+    })
+    if (!editorial) return null
+
+    return {
+      href: buildMerchantExperienceHref({
+        path: `/en/c/${merchant.slug}/${experience.slug}`,
+        surface: 'discover',
+        campaign: 'discover-canary-learning',
+      }),
+      headline: editorial.headline,
+      description: editorial.description,
+      nonSaleNotice: editorial.nonSaleNotice,
+    }
+  }
+
+  const [featured, merchants, learningExample] = await Promise.all([
     Promise.all(DISCOVER_FEATURED_EXPERIENCES.map(async (candidate) => {
       const merchant = await findMerchant(candidate.merchantSlug)
       if (!merchant) return null
@@ -144,12 +198,14 @@ export async function getDiscoverContent(
         }),
       }
     })),
+    readLearningExample(),
   ])
 
   return {
     copy: getDiscoverCopy(locale),
     featured: featured.filter((item) => item !== null),
     merchants: merchants.filter((item) => item !== null),
+    learningExample,
     demo: {
       href: `/${locale}/store/${VISUTRY_DEMO_MERCHANT_SLUG}?source=visutry&medium=internal&surface=discover&campaign=canonical-demo`,
       name: 'VisuTry Demo Optical',

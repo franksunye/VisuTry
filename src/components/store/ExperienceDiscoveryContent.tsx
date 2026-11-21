@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import type { Locale } from '@/i18n'
 import { ExternalLink, Glasses, Store } from 'lucide-react'
 import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
 import { resolvePresentationMode } from '@/modules/store/domain/presentation-mode'
@@ -12,6 +13,8 @@ import { MerchantShopperAccountControlSlot } from '@/components/store/MerchantSh
 import { MerchantHandoffLink } from '@/components/store/MerchantHandoffLink'
 import { shouldBypassMerchantImageOptimization, publicMerchantImageUrl } from '@/lib/is-loopback-image-url'
 import { brandAccentForDisplay } from '@/modules/merchant/domain/merchant-brand-kit'
+import { getMerchantDiscoveryEditorial, normalizeMerchantDiscoveryDestinations } from '@/lib/merchant-discovery-editorial'
+import { ExperienceDiscoveryEditorial } from '@/components/store/ExperienceDiscoveryEditorial'
 
 function formatPrice(price: number | null, currency: string | null): string | null {
   if (price === null || price === undefined) return null
@@ -41,20 +44,19 @@ function externalLinkProps(
 }
 
 function ExperienceHeroVisual({
-  experience,
+  title,
+  description,
   merchantName,
   heroImage,
   mode,
 }: {
-  experience: PublicExperienceDiscovery['experience']
+  title: string
+  description: string | null | undefined
   merchantName: string
   heroImage: string | null | undefined
   mode: PresentationMode
 }) {
-  const heroTitle = experience.type === 'CAMPAIGN'
-    ? experience.name
-    : `Shop the ${merchantName} eyewear collection`
-  const heroDescription = experience.description?.trim() || `Selected eyewear from ${merchantName}.`
+  const heroDescription = description?.trim() || `Selected eyewear from ${merchantName}.`
   const heroBackground = mode === 'EDITORIAL_FIRST'
     ? 'bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)]'
     : 'bg-[linear-gradient(145deg,#edf3fb,#faf7f2)]'
@@ -80,7 +82,7 @@ function ExperienceHeroVisual({
         aria-hidden="true"
       />
       <div className="absolute inset-x-6 bottom-6 text-white sm:inset-x-8 sm:bottom-8">
-        <p className="font-serif text-2xl font-semibold sm:text-3xl">{heroTitle}</p>
+        <p className="font-serif text-2xl font-semibold sm:text-3xl">{title}</p>
         <p className="mt-2 max-w-md text-sm leading-6 text-white/85">{heroDescription}</p>
       </div>
     </div>
@@ -94,38 +96,40 @@ export function ExperienceDiscoveryContent({
   archivedCampaignCopy,
 }: {
   discovery: PublicExperienceDiscovery
-  locale: string
+  locale: Locale
   pathname: string
   archivedCampaignCopy?: { title: string; body: string; storeLink: string }
 }) {
   const isCampaign = discovery.experience.type === 'CAMPAIGN'
   const isArchivedCampaign = isCampaign && discovery.experience.status === 'ARCHIVED'
+  const normalizedDiscovery = normalizeMerchantDiscoveryDestinations(discovery)
   const safeDiscovery = {
-    ...discovery,
+    ...normalizedDiscovery,
     merchant: {
-      ...discovery.merchant,
-      logoUrl: publicMerchantImageUrl(discovery.merchant.logoUrl),
+      ...normalizedDiscovery.merchant,
+      logoUrl: publicMerchantImageUrl(normalizedDiscovery.merchant.logoUrl),
       ...(isArchivedCampaign ? { websiteUrl: null } : {}),
     },
-    experience: { ...discovery.experience, heroAssetUrl: publicMerchantImageUrl(discovery.experience.heroAssetUrl) },
-    frames: discovery.frames.map((frame) => ({
+    experience: { ...normalizedDiscovery.experience, heroAssetUrl: publicMerchantImageUrl(normalizedDiscovery.experience.heroAssetUrl) },
+    frames: normalizedDiscovery.frames.map((frame) => ({
       ...frame,
       imageUrl: publicMerchantImageUrl(frame.imageUrl),
       ...(isArchivedCampaign ? { productUrl: null } : {}),
     })),
   }
   const { merchant, experience, frames } = safeDiscovery
+  const editorial = locale === 'en' ? getMerchantDiscoveryEditorial(safeDiscovery) : null
   const brandAccent = brandAccentForDisplay(merchant.accentColor)
-  const title = experience.type === 'STORE'
+  const title = editorial?.headline || experience.headline?.trim() || (experience.type === 'STORE'
     ? `Shop the ${merchant.name} eyewear collection`
-    : experience.headline?.trim() || experience.name
-  const description = experience.description?.trim()
+    : experience.name)
+  const description = editorial?.description || experience.description?.trim()
   const heroImage = experience.heroAssetUrl || frames.find((frame) => frame.imageUrl)?.imageUrl
   const presentationMode = resolvePresentationMode({
     experienceType: experience.type,
     persistedPresentationMode: experience.presentationMode,
   })
-  const jsonLd = buildExperienceDiscoveryJsonLd({ discovery: safeDiscovery, pathname })
+  const jsonLd = buildExperienceDiscoveryJsonLd({ discovery: safeDiscovery, pathname, locale })
 
   return (
     <main
@@ -199,7 +203,8 @@ export function ExperienceDiscoveryContent({
             </div>
             <div>
               <ExperienceHeroVisual
-                experience={experience}
+                title={title}
+                description={description}
                 merchantName={merchant.name}
                 heroImage={heroImage}
                 mode={presentationMode}
@@ -224,7 +229,10 @@ export function ExperienceDiscoveryContent({
 
                 return (
                   <li key={frame.id}>
-                    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_40px_-30px_rgba(15,23,42,0.6)]">
+                    <article
+                      id={editorial?.comparison.find((item) => item.frameId === frame.id)?.anchorId}
+                      className="flex h-full scroll-mt-6 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_40px_-30px_rgba(15,23,42,0.6)]"
+                    >
                       <div className="relative aspect-[4/3] bg-slate-50">
                         {frame.imageUrl ? (
                           <Image
@@ -264,6 +272,7 @@ export function ExperienceDiscoveryContent({
               })}
             </ul>
           </section>
+          {editorial ? <ExperienceDiscoveryEditorial editorial={editorial} /> : null}
         </section>
 
         <div className="mt-10 px-1 sm:px-2">

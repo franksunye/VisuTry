@@ -28,6 +28,7 @@ import {
   merchantActivationEventInsertStatement,
 } from './merchant-activation-cloudflare'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
+import { resolveExperienceSearchReadiness, type SearchVisibilityExperience } from '@/modules/store/domain/experience-search-visibility'
 import { resolveDecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
 import { resolvePublicDecisionJourney } from '@/modules/store/domain/experience-policy'
 import { resolveExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
@@ -197,9 +198,11 @@ async function activeFrames(merchantId: string, frameIds?: string[]) {
 
 async function findStore(merchantId: string, storeId?: string) {
   const sql = getCloudflareSql()
+  // Match the public and Prisma readers so search status describes the Store
+  // shoppers see, including tenants that retain an older Draft Store.
   const rows = storeId
-    ? await sql`SELECT "id", "merchantId", "slug", "name", "status", "headline", "description", "journeyPolicy", "deliveryPolicy", "presentationMode", "primaryCtaType", "primaryCtaLabel", "primaryCtaUrl", "secondaryCtaType", "secondaryCtaLabel", "secondaryCtaUrl" FROM "Experience" WHERE "id" = ${storeId} AND "merchantId" = ${merchantId} AND "type" = 'STORE' LIMIT 1`
-    : await sql`SELECT "id", "merchantId", "slug", "name", "status", "headline", "description", "journeyPolicy", "deliveryPolicy", "presentationMode", "primaryCtaType", "primaryCtaLabel", "primaryCtaUrl", "secondaryCtaType", "secondaryCtaLabel", "secondaryCtaUrl" FROM "Experience" WHERE "merchantId" = ${merchantId} AND "type" = 'STORE' ORDER BY "createdAt" ASC LIMIT 1`
+    ? await sql`SELECT "id", "merchantId", "slug", "name", "status", "headline", "description", "referenceData", "journeyPolicy", "deliveryPolicy", "presentationMode", "primaryCtaType", "primaryCtaLabel", "primaryCtaUrl", "secondaryCtaType", "secondaryCtaLabel", "secondaryCtaUrl" FROM "Experience" WHERE "id" = ${storeId} AND "merchantId" = ${merchantId} AND "type" = 'STORE' LIMIT 1`
+    : await sql`SELECT "id", "merchantId", "slug", "name", "status", "headline", "description", "referenceData", "journeyPolicy", "deliveryPolicy", "presentationMode", "primaryCtaType", "primaryCtaLabel", "primaryCtaUrl", "secondaryCtaType", "secondaryCtaLabel", "secondaryCtaUrl" FROM "Experience" WHERE "merchantId" = ${merchantId} AND "type" = 'STORE' ORDER BY CASE WHEN "status" = 'ACTIVE' THEN 0 ELSE 1 END, CASE WHEN "status" = 'ACTIVE' THEN "slug" ELSE NULL END ASC, "updatedAt" DESC LIMIT 1`
   const store = rows[0]
   if (!store) return null
   const frameRows = await sql`SELECT ef."merchantFrameId", ef."sortOrder", mf."id", mf."sku", mf."name", mf."brand", mf."imageUrl", mf."productUrl", mf."shape", mf."widthClass", mf."color", mf."source", mf."externalId", mf."enrichmentStatus", mf."status" FROM "ExperienceFrame" ef JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE ef."experienceId" = ${String(store.id)} AND ef."merchantId" = ${merchantId} AND ef."active" = true ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`
@@ -234,7 +237,7 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
   const [store, catalog, capabilityRows] = await Promise.all([
     findStore(input.actor.merchantId),
     sql`SELECT "id", "sku", "externalId", "productUrl", "name", "brand", "imageUrl", "price", "currency", "shape", "source", "status", "enrichmentStatus" FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId} ORDER BY "name" ASC`,
-    sql`SELECT "tryOnEnabled", "compareEnabled", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`,
+    sql`SELECT "tryOnEnabled", "compareEnabled", "classification", "pilotType", "referenceData", "sponsoredUsagePolicyKey", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`,
   ])
   const commercialCapability = capabilityRows[0] ? await getMerchantCommercialCapabilityCloudflare({ merchantId: input.actor.merchantId, includeResourceUsage: false }).catch(() => null) : null
   const capabilities = {
@@ -252,6 +255,24 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
       description: store.store.description == null ? null : String(store.store.description),
       publicPath: `/en/store/${merchant.slug}`,
       selectedFrameIds: store.frames.map((frame) => String(frame.merchantFrameId)),
+      searchVisibility: resolveExperienceSearchReadiness({
+        merchant: {
+          ...merchant,
+          pilotType: capabilityRows[0]?.pilotType == null ? null : String(capabilityRows[0].pilotType),
+          referenceData: Boolean(capabilityRows[0]?.referenceData),
+          sponsoredUsagePolicyKey: capabilityRows[0]?.sponsoredUsagePolicyKey == null ? null : String(capabilityRows[0].sponsoredUsagePolicyKey),
+        },
+        experience: {
+          type: 'STORE',
+          name: String(store.store.name),
+          status: String(store.store.status) as SearchVisibilityExperience['status'],
+          headline: store.store.headline == null ? null : String(store.store.headline),
+          referenceData: Boolean(store.store.referenceData),
+        },
+        frames: store.frames.filter((frame) => frame.status === 'ACTIVE').map((frame) => ({
+          productUrl: frame.productUrl == null ? null : String(frame.productUrl),
+        })),
+      }),
       journeyPolicy: resolveDecisionJourneyPolicy(jsonRecord(store.store.journeyPolicy)),
       effectiveJourneyPolicy: resolvePublicDecisionJourney(capabilities, { journeyPolicy: jsonRecord(store.store.journeyPolicy) }),
       deliveryPolicy: resolveExperienceDeliveryPolicy(jsonRecord(store.store.deliveryPolicy)),

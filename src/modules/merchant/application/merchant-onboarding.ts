@@ -31,6 +31,7 @@ import type { DecisionJourneyPolicy } from '@/modules/store/domain/decision-jour
 import type { ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 import { resolveMerchantCatalogPresentation, type MerchantCatalogPresentationState } from '../domain/merchant-catalog-presentation'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
+import { resolveExperienceSearchReadiness } from '@/modules/store/domain/experience-search-visibility'
 import { parseCatalogProductMediaUrl } from '../domain/merchant-catalog-media'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
@@ -569,6 +570,7 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
     prisma.merchantFrame.findMany({ where: { merchantId: input.actor.merchantId, status: 'ACTIVE' }, orderBy: { name: 'asc' } }),
     prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: {
       tryOnEnabled: true, compareEnabled: true, classification: true, pilotType: true,
+      referenceData: true, sponsoredUsagePolicyKey: true,
       planCode: true, commercialStatus: true, commercialStage: true, pricingVersion: true,
       entitlementVersion: true, commerceSessionAllowance: true, standardRenderAllowance: true,
       premiumRenderAllowance: true, campaignAllowance: true, entitlementEffectiveFrom: true,
@@ -584,6 +586,7 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
     kioskDeliveryEnabled: commercialCapability?.decisions.KIOSK_DELIVERY.allowed ?? false,
     sessionTryOnLimitsEnabled: true,
   }
+  const selectedFrameIds = new Set(store?.frames.map((frame) => frame.merchantFrameId) ?? [])
   return {
     store: store ? {
       id: store.id,
@@ -594,6 +597,18 @@ export async function getMerchantStoreWorkspace(input: { actor: MerchantActorCon
       description: store.description,
       publicPath: `/en/store/${merchant.slug}`,
       selectedFrameIds: store.frames.map((frame) => frame.merchantFrameId),
+      searchVisibility: resolveExperienceSearchReadiness({
+        merchant: {
+          ...merchant,
+          pilotType: capabilitySource?.pilotType,
+          referenceData: capabilitySource?.referenceData,
+          sponsoredUsagePolicyKey: capabilitySource?.sponsoredUsagePolicyKey,
+        },
+        experience: store,
+        // Match the public collection: an inactive catalog row must not count
+        // merely because its ExperienceFrame selection still exists.
+        frames: catalog.filter((frame) => frame.status === 'ACTIVE' && selectedFrameIds.has(frame.id)),
+      }),
       journeyPolicy: resolveDecisionJourneyPolicy(store.journeyPolicy),
       effectiveJourneyPolicy: resolvePublicDecisionJourney(capabilities, store),
       deliveryPolicy: resolveExperienceDeliveryPolicy(store.deliveryPolicy),
