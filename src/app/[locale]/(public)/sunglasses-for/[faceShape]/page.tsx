@@ -70,9 +70,9 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
   const presets = guide.bestStyles.map((item) => getTopPickPresetById(item.presetId)).filter(isPreset)
   const otherGuides = Object.values(SUNGLASSES_FACE_SHAPE_GUIDES).filter((item) => item.slug !== guide.slug)
   const faqContent = [
-    { question: copy.detail.stylesTitle, answer: description },
-    { question: copy.detail.fitTitle, answer: fitChecks.join(' ') },
-    { question: copy.detail.lensTitle, answer: `${copy.detail.lensText} ${copy.detail.lensDisclaimer}` },
+    { id: 'styles', question: copy.detail.stylesTitle, answer: description },
+    { id: 'fit', question: copy.detail.fitTitle, answer: fitChecks.join(' ') },
+    { id: 'lenses', question: copy.detail.lensTitle, answer: `${copy.detail.lensText} ${copy.detail.lensDisclaimer}` },
   ]
   const faqSchema = generateStructuredData('faqPage', { questions: faqContent })
   const breadcrumbSchema = generateBreadcrumbSchema([
@@ -260,7 +260,7 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
           <h2 className="mb-5 text-2xl font-bold text-gray-950">{interpolateSeoCopy(copy.detail.faqTitleTemplate, { shape: shapeName })}</h2>
           <div className="grid gap-4 md:grid-cols-3">
             {faqContent.map((item) => (
-              <article key={item.question} className="rounded-lg border border-gray-200 bg-white p-5">
+              <article key={item.id} className="rounded-lg border border-gray-200 bg-white p-5">
                 <h3 className="mb-2 font-semibold text-gray-950">{item.question}</h3>
                 <p className="text-sm leading-6 text-gray-600">{item.answer}</p>
               </article>
