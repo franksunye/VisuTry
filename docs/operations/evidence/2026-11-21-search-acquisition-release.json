@@ -1,0 +1,3447 @@
+{
+  "date": "2026-11-21",
+  "scope": "Google organic acquisition on existing owners; no conversion gate and no causal growth claim.",
+  "pr": "https://github.com/franksunye/VisuTry/pull/551",
+  "testedCodeHead": "47683ddf33b1a129f5925a6ad3756ea0ab361c5b",
+  "indexInspection": {
+    "checkedAtUTC": "2026-11-21",
+    "source": "Authenticated Google Search Console URL Inspection UI",
+    "property": "https://www.visutry.com/",
+    "scope": "Indexed version before this content release; not a live test or ranking forecast.",
+    "timezone": "Last-crawl values copied exactly from UI; display timezone not independently verified.",
+    "requestsSubmitted": 0,
+    "pages": [
+      {
+        "url": "https://www.visutry.com/en/style/round-face",
+        "verdict": "Indexed",
+        "crawlAllowed": true,
+        "indexingAllowed": true,
+        "pageFetch": "Successful",
+        "lastCrawlDisplayed": "2026年11月20日 09:41:02",
+        "userDeclaredCanonical": "https://www.visutry.com/en/style/round-face",
+        "googleSelectedCanonical": "Inspected URL",
+        "sitemapStatus": "https://www.visutry.com/sitemap.xml",
+        "rawVisibleResult": "check_circle\n网址已收录到 Google\n它能显示在 Google 搜索结果中（如果没有受到人工处置措施或移除要求的影响），并能使用所有相关的增强选项。了解详情\n查看被抓取的网页\n更改了网页？\n请求编入索引\ncheck_circle\n网页索引编制\n网页已编入索引\n\n发现\n站点地图\nhttps://www.visutry.com/sitemap.xml\n引荐来源网页\nhttps://www.visutry.com/es/style/round-face\n抓取\n上次抓取时间\n2026年11月20日 09:41:02\n当时所用的用户代理\nGooglebot 智能手机版\n是否允许抓取？\n是\n网页抓取\n成功\n是否允许编入索引？\n是\n编制索引\n用户声明的规范网址\nhttps://www.visutry.com/en/style/round-face\nGoogle 选择的规范网址\n\n所检查的网址\n了解详情\n打开报告\n增强功能和体验\ncheck_circle\nHTTPS\n网页采用 HTTPS 协议\n\ncheck_circle\n路径\n检测到了 1 项有效内容\n"
+      },
+      {
+        "url": "https://www.visutry.com/en/sunglasses-for/round-face",
+        "verdict": "Indexed",
+        "crawlAllowed": true,
+        "indexingAllowed": true,
+        "pageFetch": "Successful",
+        "lastCrawlDisplayed": "2026年10月25日 17:36:11",
+        "userDeclaredCanonical": "https://www.visutry.com/en/sunglasses-for/round-face",
+        "googleSelectedCanonical": "Inspected URL",
+        "sitemapStatus": "No sitemap detected",
+        "rawVisibleResult": "check_circle\n网址已收录到 Google\n它能显示在 Google 搜索结果中（如果没有受到人工处置措施或移除要求的影响），并能使用所有相关的增强选项。了解详情\n查看被抓取的网页\n更改了网页？\n请求编入索引\ncheck_circle\n网页索引编制\n网页已编入索引\n\n增强功能和体验\ncheck_circle\nHTTPS\n网页采用 HTTPS 协议\n\ncheck_circle\n路径\n检测到了 1 项有效内容\n"
+      },
+      {
+        "url": "https://www.visutry.com/en/glasses-for-face-shape",
+        "verdict": "Indexed",
+        "crawlAllowed": true,
+        "indexingAllowed": true,
+        "pageFetch": "Successful",
+        "lastCrawlDisplayed": "2026年11月19日 21:43:21",
+        "userDeclaredCanonical": "https://www.visutry.com/en/glasses-for-face-shape",
+        "googleSelectedCanonical": "Inspected URL",
+        "sitemapStatus": "No sitemap detected",
+        "rawVisibleResult": "check_circle\n网址已收录到 Google\n它能显示在 Google 搜索结果中（如果没有受到人工处置措施或移除要求的影响），并能使用所有相关的增强选项。了解详情\n查看被抓取的网页\n更改了网页？\n请求编入索引\ncheck_circle\n网页索引编制\n网页已编入索引\n\n发现\n站点地图\n未检测到任何引荐站点地图\n引荐来源网页\n未检测到引荐来源网页\n目前未报告的其他来源或许能识别此网址\n抓取\n上次抓取时间\n2026年11月19日 21:43:21\n当时所用的用户代理\nGooglebot 智能手机版\n是否允许抓取？\n是\n网页抓取\n成功\n是否允许编入索引？\n是\n编制索引\n用户声明的规范网址\nhttps://www.visutry.com/en/glasses-for-face-shape\nGoogle 选择的规范网址\n\n所检查的网址\n了解详情\n打开报告\n增强功能和体验\ncheck_circle\nHTTPS\n网页采用 HTTPS 协议\n"
+      },
+      {
+        "url": "https://www.visutry.com/en/style/oval-face",
+        "verdict": "Indexed",
+        "crawlAllowed": true,
+        "indexingAllowed": true,
+        "pageFetch": "Successful",
+        "lastCrawlDisplayed": "2026年10月19日 20:15:50",
+        "userDeclaredCanonical": "https://www.visutry.com/en/style/oval-face",
+        "googleSelectedCanonical": "Inspected URL",
+        "sitemapStatus": "Temporary processing error",
+        "rawVisibleResult": "check_circle\n网址已收录到 Google\n它能显示在 Google 搜索结果中（如果没有受到人工处置措施或移除要求的影响），并能使用所有相关的增强选项。了解详情\n查看被抓取的网页\n更改了网页？\n请求编入索引\ncheck_circle\n网页索引编制\n网页已编入索引\n\n发现\n站点地图\n临时处理错误\n引荐来源网页\nhttps://www.visutry.com/id/style/oval-face\n抓取\n上次抓取时间\n2026年10月19日 20:15:50\n当时所用的用户代理\nGooglebot 智能手机版\n是否允许抓取？\n是\n网页抓取\n成功\n是否允许编入索引？\n是\n编制索引\n用户声明的规范网址\nhttps://www.visutry.com/en/style/oval-face\nGoogle 选择的规范网址\n\n所检查的网址\n了解详情\n打开报告\n增强功能和体验\ncheck_circle\nHTTPS\n网页采用 HTTPS 协议\n\ncheck_circle\n路径\n检测到了 1 项有效内容\n"
+      },
+      {
+        "url": "https://www.visutry.com/en/style/diamond-face",
+        "verdict": "Indexed",
+        "crawlAllowed": true,
+        "indexingAllowed": true,
+        "pageFetch": "Successful",
+        "lastCrawlDisplayed": "2026年11月16日 20:44:19",
+        "userDeclaredCanonical": "https://www.visutry.com/en/style/diamond-face",
+        "googleSelectedCanonical": "Inspected URL",
+        "sitemapStatus": "Temporary processing error",
+        "rawVisibleResult": "check_circle\n网址已收录到 Google\n它能显示在 Google 搜索结果中（如果没有受到人工处置措施或移除要求的影响），并能使用所有相关的增强选项。了解详情\n查看被抓取的网页\n更改了网页？\n请求编入索引\ncheck_circle\n网页索引编制\n网页已编入索引\n\n发现\n站点地图\n临时处理错误\n引荐来源网页\nhttps://www.visutry.com/pt/style/diamond-face\nhttps://www.visutry.com/ja/style/diamond-face\nhttps://www.visutry.com/ar/style/diamond-face\nhttps://www.visutry.com/es/style/diamond-face\nhttps://www.visutry.com/de/style/diamond-face\n抓取\n上次抓取时间\n2026年11月16日 20:44:19\n当时所用的用户代理\nGooglebot 智能手机版\n是否允许抓取？\n是\n网页抓取\n成功\n是否允许编入索引？\n是\n编制索引\n用户声明的规范网址\nhttps://www.visutry.com/en/style/diamond-face\nGoogle 选择的规范网址\n\n所检查的网址\n了解详情\n打开报告\n增强功能和体验\ncheck_circle\nHTTPS\n网页采用 HTTPS 协议\n\ncheck_circle\n路径\n检测到了 1 项有效内容\n"
+      },
+      {
+        "url": "https://www.visutry.com/en/try-glasses-on-photo",
+        "verdict": "Indexed",
+        "crawlAllowed": true,
+        "indexingAllowed": true,
+        "pageFetch": "Successful",
+        "lastCrawlDisplayed": "2026年11月7日 18:20:12",
+        "userDeclaredCanonical": "https://www.visutry.com/en/try-glasses-on-photo",
+        "googleSelectedCanonical": "Inspected URL",
+        "sitemapStatus": "https://www.visutry.com/sitemap.xml",
+        "rawVisibleResult": "check_circle\n网址已收录到 Google\n它能显示在 Google 搜索结果中（如果没有受到人工处置措施或移除要求的影响），并能使用所有相关的增强选项。了解详情\n查看被抓取的网页\n更改了网页？\n请求编入索引\ncheck_circle\n网页索引编制\n网页已编入索引\n\n发现\n站点地图\nhttps://www.visutry.com/sitemap.xml\n引荐来源网页\nhttps://www.visutry.com/de/try-glasses-on-photo\nhttps://www.visutry.com/ru/try-glasses-on-photo\n抓取\n上次抓取时间\n2026年11月7日 18:20:12\n当时所用的用户代理\nGooglebot 智能手机版\n是否允许抓取？\n是\n网页抓取\n成功\n是否允许编入索引？\n是\n编制索引\n用户声明的规范网址\nhttps://www.visutry.com/en/try-glasses-on-photo\nGoogle 选择的规范网址\n\n所检查的网址\n了解详情\n打开报告\n增强功能和体验\ncheck_circle\nHTTPS\n网页采用 HTTPS 协议\n"
+      },
+      {
+        "url": "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows",
+        "verdict": "Indexed",
+        "crawlAllowed": true,
+        "indexingAllowed": true,
+        "pageFetch": "Successful",
+        "lastCrawlDisplayed": "2026年10月25日 10:19:11",
+        "userDeclaredCanonical": "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows",
+        "googleSelectedCanonical": "Inspected URL",
+        "sitemapStatus": "Temporary processing error",
+        "rawVisibleResult": "check_circle\n网址已收录到 Google\n它能显示在 Google 搜索结果中（如果没有受到人工处置措施或移除要求的影响），并能使用所有相关的增强选项。了解详情\n查看被抓取的网页\n更改了网页？\n请求编入索引\ncheck_circle\n网页索引编制\n网页已编入索引\n\n发现\n站点地图\n临时处理错误\n引荐来源网页\n未检测到引荐来源网页\n目前未报告的其他来源或许能识别此网址\n抓取\n上次抓取时间\n2026年10月25日 10:19:11\n当时所用的用户代理\nGooglebot 智能手机版\n是否允许抓取？\n是\n网页抓取\n成功\n是否允许编入索引？\n是\n编制索引\n用户声明的规范网址\nhttps://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows\nGoogle 选择的规范网址\n\n所检查的网址\n了解详情\n打开报告\n增强功能和体验\ncheck_circle\nHTTPS\n网页采用 HTTPS 协议\n"
+      },
+      {
+        "url": "https://www.visutry.com/en/what-is-my-face-shape",
+        "verdict": "Indexed",
+        "crawlAllowed": true,
+        "indexingAllowed": true,
+        "pageFetch": "Successful",
+        "lastCrawlDisplayed": "2026年10月26日 07:50:50",
+        "userDeclaredCanonical": "https://www.visutry.com/en/what-is-my-face-shape",
+        "googleSelectedCanonical": "Inspected URL",
+        "sitemapStatus": "https://www.visutry.com/sitemap.xml",
+        "rawVisibleResult": "check_circle\n网址已收录到 Google\n它能显示在 Google 搜索结果中（如果没有受到人工处置措施或移除要求的影响），并能使用所有相关的增强选项。了解详情\n查看被抓取的网页\n更改了网页？\n请求编入索引\ncheck_circle\n网页索引编制\n网页已编入索引\n\n发现\n站点地图\nhttps://www.visutry.com/sitemap.xml\n引荐来源网页\nhttps://www.visutry.com/ru/what-is-my-face-shape\nhttps://www.visutry.com/pt/what-is-my-face-shape\n抓取\n上次抓取时间\n2026年10月26日 07:50:50\n当时所用的用户代理\nGooglebot 智能手机版\n是否允许抓取？\n是\n网页抓取\n成功\n是否允许编入索引？\n是\n编制索引\n用户声明的规范网址\nhttps://www.visutry.com/en/what-is-my-face-shape\nGoogle 选择的规范网址\n\n所检查的网址\n了解详情\n打开报告\n增强功能和体验\ncheck_circle\nHTTPS\n网页采用 HTTPS 协议\n"
+      }
+    ],
+    "interpretation": "All eight existing English owners are indexed and self-canonical. Sparse or absent returned GSC query/page rows do not establish non-indexing. Sitemap diagnostic warnings do not override the positive URL verdict."
+  },
+  "browserQA": {
+    "environment": "Isolated Vercel Sandbox, Next.js dev server, Chromium; no production credentials.",
+    "startedAt": "2026-11-21T11:55:05.303Z",
+    "finishedAt": "2026-11-21T11:55:25.013Z",
+    "pass": true,
+    "visits": 24,
+    "pages": [
+      {
+        "path": "/en/what-is-my-face-shape",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "What Is My Face Shape? Free Photo Face Shape Detector | VisuTry",
+        "h1": [
+          "What Is My Face Shape?"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/what-is-my-face-shape"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 3,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/glasses-for-face-shape",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "Glasses for Your Face Shape: 7-Shape Frame Guide | VisuTry",
+        "h1": [
+          "Glasses for Your Face Shape"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/glasses-for-face-shape"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/style/round-face",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "Best Glasses for Round Faces: Styles to Try First",
+        "h1": [
+          "Best Glasses for Round Faces"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/style/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 7,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/style/oval-face",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "Best Glasses for Oval Faces: Styles to Try First",
+        "h1": [
+          "Best Glasses for Oval Faces"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/style/oval-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 7,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/style/diamond-face",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "Best Glasses for Diamond-Shaped Faces: Styles to Try First",
+        "h1": [
+          "Best Glasses for Diamond-Shaped Faces"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/style/diamond-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 7,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/sunglasses-for/round-face",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "Best Sunglasses for Round Faces",
+        "h1": [
+          "Best Sunglasses for Round Faces"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/sunglasses-for/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 5,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/try-glasses-on-photo",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "Try On Glasses from a Photo or Store Screenshot | VisuTry",
+        "h1": [
+          "Try Glasses from a Product Photo or Screenshot"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/try-glasses-on-photo"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 3,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/glasses-guide/should-glasses-cover-your-eyebrows",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "Should Glasses Cover Your Eyebrows? | VisuTry",
+        "h1": [
+          "Should Glasses Cover Your Eyebrows?"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 1,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/ja/style/round-face",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "丸型の顔に似合うメガネ｜フレームの選び方",
+        "h1": [
+          "丸型の顔に似合うメガネ"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/ja/style/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 4,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/es/style/diamond-face",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "Mejores gafas para rostro en forma de diamante",
+        "h1": [
+          "Mejores gafas para rostro en forma de diamante"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/es/style/diamond-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 4,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/ja/sunglasses-for/round-face",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "顔型別おすすめサングラス: 丸型",
+        "h1": [
+          "顔型別おすすめサングラス: 丸型"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/ja/sunglasses-for/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 5,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/es/sunglasses-for/round-face",
+        "viewport": "desktop",
+        "httpStatus": 200,
+        "title": "Gafas de sol para cada forma de rostro: Redondo",
+        "h1": [
+          "Gafas de sol para cada forma de rostro: Redondo"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/es/sunglasses-for/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 5,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 1440,
+          "scrollWidth": 1440
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/what-is-my-face-shape",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "What Is My Face Shape? Free Photo Face Shape Detector | VisuTry",
+        "h1": [
+          "What Is My Face Shape?"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/what-is-my-face-shape"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 3,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/glasses-for-face-shape",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "Glasses for Your Face Shape: 7-Shape Frame Guide | VisuTry",
+        "h1": [
+          "Glasses for Your Face Shape"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/glasses-for-face-shape"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/style/round-face",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "Best Glasses for Round Faces: Styles to Try First",
+        "h1": [
+          "Best Glasses for Round Faces"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/style/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 7,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/style/oval-face",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "Best Glasses for Oval Faces: Styles to Try First",
+        "h1": [
+          "Best Glasses for Oval Faces"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/style/oval-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 7,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/style/diamond-face",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "Best Glasses for Diamond-Shaped Faces: Styles to Try First",
+        "h1": [
+          "Best Glasses for Diamond-Shaped Faces"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/style/diamond-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 7,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/sunglasses-for/round-face",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "Best Sunglasses for Round Faces",
+        "h1": [
+          "Best Sunglasses for Round Faces"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/sunglasses-for/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 5,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/try-glasses-on-photo",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "Try On Glasses from a Photo or Store Screenshot | VisuTry",
+        "h1": [
+          "Try Glasses from a Product Photo or Screenshot"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/try-glasses-on-photo"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 3,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/en/glasses-guide/should-glasses-cover-your-eyebrows",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "Should Glasses Cover Your Eyebrows? | VisuTry",
+        "h1": [
+          "Should Glasses Cover Your Eyebrows?"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 1,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/ja/style/round-face",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "丸型の顔に似合うメガネ｜フレームの選び方",
+        "h1": [
+          "丸型の顔に似合うメガネ"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/ja/style/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 4,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/es/style/diamond-face",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "Mejores gafas para rostro en forma de diamante",
+        "h1": [
+          "Mejores gafas para rostro en forma de diamante"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/es/style/diamond-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 4,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/ja/sunglasses-for/round-face",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "顔型別おすすめサングラス: 丸型",
+        "h1": [
+          "顔型別おすすめサングラス: 丸型"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/ja/sunglasses-for/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 5,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      },
+      {
+        "path": "/es/sunglasses-for/round-face",
+        "viewport": "mobile",
+        "httpStatus": 200,
+        "title": "Gafas de sol para cada forma de rostro: Redondo",
+        "h1": [
+          "Gafas de sol para cada forma de rostro: Redondo"
+        ],
+        "canonicals": [
+          "https://www.visutry.com/es/sunglasses-for/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflangCount": 10,
+        "markerPresent": true,
+        "imageCount": 5,
+        "brokenImageCount": 0,
+        "layout": {
+          "viewportWidth": 430,
+          "scrollWidth": 430
+        },
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0
+      }
+    ],
+    "sitemap": {
+      "coreEntries": 638,
+      "blogEntries": 118,
+      "combinationOwners": [
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-055__best-rectangle-glasses-for-round-face-01-hero.0a01ae3a.png",
+            "https://www.visutry.com/_next/static/media/VSEO-056__best-rectangle-glasses-for-round-face-02-why-it-works.a462b192.png",
+            "https://www.visutry.com/_next/static/media/VSEO-057__best-rectangle-glasses-for-round-face-03-watch-for.5bbe4f62.png",
+            "https://www.visutry.com/_next/static/media/VSEO-058__best-rectangle-glasses-for-round-face-04-compare.ad59eead.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-square-glasses-for-round-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-059__best-square-glasses-for-round-face-01-hero.f994bdad.png",
+            "https://www.visutry.com/_next/static/media/VSEO-060__best-square-glasses-for-round-face-02-why-it-works.5ce37692.png",
+            "https://www.visutry.com/_next/static/media/VSEO-061__best-square-glasses-for-round-face-03-watch-for.0f4da637.png",
+            "https://www.visutry.com/_next/static/media/VSEO-062__best-square-glasses-for-round-face-04-compare.64343b81.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-browline-glasses-for-round-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-063__best-browline-glasses-for-round-face-01-hero.e14e9398.png",
+            "https://www.visutry.com/_next/static/media/VSEO-064__best-browline-glasses-for-round-face-02-why-it-works.5f170561.png",
+            "https://www.visutry.com/_next/static/media/VSEO-065__best-browline-glasses-for-round-face-03-watch-for.b7a227b5.png",
+            "https://www.visutry.com/_next/static/media/VSEO-066__best-browline-glasses-for-round-face-04-compare.bd49c73b.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-cat-eye-glasses-for-round-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-067__best-cat-eye-glasses-for-round-face-01-hero.755b80b6.png",
+            "https://www.visutry.com/_next/static/media/VSEO-068__best-cat-eye-glasses-for-round-face-02-why-it-works.a9aae1a1.png",
+            "https://www.visutry.com/_next/static/media/VSEO-069__best-cat-eye-glasses-for-round-face-03-watch-for.b9065f47.png",
+            "https://www.visutry.com/_next/static/media/VSEO-070__best-cat-eye-glasses-for-round-face-04-compare.e3cdf8d4.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-geometric-glasses-for-round-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-071__best-geometric-glasses-for-round-face-01-hero.0599aee3.png",
+            "https://www.visutry.com/_next/static/media/VSEO-072__best-geometric-glasses-for-round-face-02-why-it-works.a16fe6a3.png",
+            "https://www.visutry.com/_next/static/media/VSEO-073__best-geometric-glasses-for-round-face-03-watch-for.167ae3db.png",
+            "https://www.visutry.com/_next/static/media/VSEO-074__best-geometric-glasses-for-round-face-04-compare.ba4fb3b4.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-cat-eye-glasses-for-oval-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-075__best-cat-eye-glasses-for-oval-face-01-hero.697b82b7.png",
+            "https://www.visutry.com/_next/static/media/VSEO-076__best-cat-eye-glasses-for-oval-face-02-why-it-works.06391e73.png",
+            "https://www.visutry.com/_next/static/media/VSEO-077__best-cat-eye-glasses-for-oval-face-03-watch-for.8938ef07.png",
+            "https://www.visutry.com/_next/static/media/VSEO-078__best-cat-eye-glasses-for-oval-face-04-compare.88d074f3.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-aviator-glasses-for-oval-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-079__best-aviator-glasses-for-oval-face-01-hero.34889132.png",
+            "https://www.visutry.com/_next/static/media/VSEO-080__best-aviator-glasses-for-oval-face-02-why-it-works.47a7c1f1.png",
+            "https://www.visutry.com/_next/static/media/VSEO-081__best-aviator-glasses-for-oval-face-03-watch-for.86428d33.png",
+            "https://www.visutry.com/_next/static/media/VSEO-082__best-aviator-glasses-for-oval-face-04-compare.d00f3370.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-browline-glasses-for-oval-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-083__best-browline-glasses-for-oval-face-01-hero.fda2c939.png",
+            "https://www.visutry.com/_next/static/media/VSEO-084__best-browline-glasses-for-oval-face-02-why-it-works.3951e47f.png"
+          ]
+        }
+      ],
+      "combinationImageCount": 30,
+      "jaSelection": {
+        "url": "https://www.visutry.com/ja/find-glasses-for-my-face",
+        "images": [
+          "https://www.visutry.com/images/seo/decisions/glasses-frame-shapes-comparison.webp"
+        ]
+      },
+      "eyebrow": {
+        "url": "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows",
+        "images": [
+          "https://www.visutry.com/images/seo/decisions/glasses-eyebrow-position-guide.svg"
+        ]
+      },
+      "guide": {
+        "url": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+        "images": [
+          "https://www.visutry.com/images/seo/core/glasses-frame-a-vs-b.webp"
+        ]
+      }
+    },
+    "assets": [
+      {
+        "declaredUrl": "https://www.visutry.com/_next/static/media/VSEO-055__best-rectangle-glasses-for-round-face-01-hero.0a01ae3a.png",
+        "fetchedPath": "/_next/static/media/VSEO-055__best-rectangle-glasses-for-round-face-01-hero.0a01ae3a.png",
+        "status": 200,
+        "type": "image/png",
+        "bytes": 1289350
+      },
+      {
+        "declaredUrl": "https://www.visutry.com/images/seo/decisions/glasses-frame-shapes-comparison.webp",
+        "fetchedPath": "/images/seo/decisions/glasses-frame-shapes-comparison.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 112180
+      },
+      {
+        "declaredUrl": "https://www.visutry.com/images/seo/decisions/glasses-eyebrow-position-guide.svg",
+        "fetchedPath": "/images/seo/decisions/glasses-eyebrow-position-guide.svg",
+        "status": 200,
+        "type": "image/svg+xml",
+        "bytes": 2387
+      },
+      {
+        "declaredUrl": "https://www.visutry.com/images/seo/core/glasses-frame-a-vs-b.webp",
+        "fetchedPath": "/images/seo/core/glasses-frame-a-vs-b.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 93104
+      }
+    ],
+    "failures": [],
+    "visualReview": "Root viewed desktop hub, eyebrow hero, Japanese round cards, Spanish diamond mobile cards, complete eyebrow mobile page, and hub mobile comparison."
+  },
+  "editorialCitations": {
+    "state": "PREPARED_UNSENT",
+    "count": 3,
+    "draftFile": "docs/operations/evidence/2026-11-21-editorial-citation-drafts.md"
+  },
+  "growthResult": "Not yet measured. Compare finalized GSC Web clicks / relevant-query breadth after recrawl; Images separately.",
+  "release": {
+    "applicationCommit": "22fbafce61a0ca232617cb24e49824314c02a3dd",
+    "vercel": {
+      "deploymentId": "dpl_5t6UK4auZX6aUb5CNfz48cBXf7C7",
+      "state": "READY",
+      "readyAtUTC": "2026-11-21T12:04:24.778Z",
+      "readyAtAsiaShanghai": "2026-11-21T20:04:24.778+08:00",
+      "alias": "www.visutry.com",
+      "url": "https://vercel.com/sunye/visutry/5t6UK4auZX6aUb5CNfz48cBXf7C7"
+    },
+    "cloudflare": {
+      "workflow": "https://github.com/franksunye/VisuTry/actions/runs/44902244923",
+      "result": "success",
+      "completedAtUTC": "2026-11-21T12:07:32Z",
+      "workerVersion": "35a5e1ff-3611-4378-85d7-85797c91abf7",
+      "mode": "auto",
+      "assetDeploymentRequired": true,
+      "matchingFile": "public/images/seo/decisions/glasses-eyebrow-position-guide.svg",
+      "exactPurgeUrlCount": 7,
+      "originProducerSmoke": "PASS",
+      "runnerChallenge": "Homepage returned cf-mitigated: challenge; runner recorded SECURITY_CHALLENGE_SKIP. Normal-client evidence below closes this evidence gap without a bypass."
+    },
+    "qualityGate": "https://github.com/franksunye/VisuTry/actions/runs/44901356496",
+    "businessLandingGate": "https://github.com/franksunye/VisuTry/actions/runs/44901356532",
+    "exactHeadChecks": "All required jobs success on 47683ddf33b1a129f5925a6ad3756ea0ab361c5b before merge."
+  },
+  "productionAcceptance": {
+    "startedAtUTC": "2026-11-21T12:07:22Z",
+    "origin": "https://www.visutry.com",
+    "mode": "full",
+    "method": "Unauthenticated normal GET, no query, no retries, no redirect following, no cache bypass",
+    "maxThreads": 3,
+    "requestTimeoutSeconds": 30,
+    "scope": "Content delivery acceptance only; not Google indexing or growth evidence.",
+    "pages": [
+      {
+        "url": "https://www.visutry.com/en/what-is-my-face-shape",
+        "startedAtUTC": "2026-11-21T12:07:22Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/what-is-my-face-shape",
+        "headers": {
+          "cf-ray": "a5df92ff3c4fa1fd-MSP",
+          "age": "0",
+          "cf-cache-status": "DYNAMIC",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:28 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 78317,
+        "bodySha256": "ce54460446dc0ab839d0c42ee4596a2f596c8a058c1f48c0f3650ab05e4e95f1",
+        "finishedAtUTC": "2026-11-21T12:07:28Z",
+        "kind": "acquisition",
+        "title": "What Is My Face Shape? Free Photo Face Shape Detector | VisuTry",
+        "h1": [
+          "What Is My Face Shape?"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/what-is-my-face-shape"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/what-is-my-face-shape"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/what-is-my-face-shape"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/what-is-my-face-shape"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/what-is-my-face-shape"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/what-is-my-face-shape"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/what-is-my-face-shape"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/what-is-my-face-shape"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/what-is-my-face-shape"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/what-is-my-face-shape"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/what-is-my-face-shape"
+          }
+        ],
+        "visibleCharacters": 3381,
+        "mainCharacters": 2853,
+        "markers": [
+          {
+            "text": "Between two face shapes?",
+            "found": true
+          }
+        ],
+        "imageAnchor": {
+          "id": "vseo-004",
+          "count": 1
+        },
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/glasses-for-face-shape",
+        "startedAtUTC": "2026-11-21T12:07:22Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/glasses-for-face-shape",
+        "headers": {
+          "cf-ray": "a5df92ff2ae1348b-MSP",
+          "age": "0",
+          "cf-cache-status": "DYNAMIC",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:28 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 78754,
+        "bodySha256": "e580aaabe7ad6d4cd7df061352fc00cc1061b7b411978298db71fc42f38fc573",
+        "finishedAtUTC": "2026-11-21T12:07:28Z",
+        "kind": "acquisition",
+        "title": "Glasses for Your Face Shape: 7-Shape Frame Guide | VisuTry",
+        "h1": [
+          "Glasses for Your Face Shape"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/glasses-for-face-shape"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/glasses-for-face-shape"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/glasses-for-face-shape"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/glasses-for-face-shape"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/glasses-for-face-shape"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/glasses-for-face-shape"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/glasses-for-face-shape"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/glasses-for-face-shape"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/glasses-for-face-shape"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/glasses-for-face-shape"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/glasses-for-face-shape"
+          }
+        ],
+        "visibleCharacters": 3901,
+        "mainCharacters": 3373,
+        "markers": [
+          {
+            "text": "Glasses for Your Face Shape",
+            "found": true
+          },
+          {
+            "text": "How wide should glasses be?",
+            "found": true
+          }
+        ],
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/style/round-face",
+        "startedAtUTC": "2026-11-21T12:07:22Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/style/round-face",
+        "headers": {
+          "cf-ray": "a5df92ff2ae5348b-MSP",
+          "age": null,
+          "cf-cache-status": "EXPIRED",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:28 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 89744,
+        "bodySha256": "c432fe4111bdfc7a8bde49f18f60f4d9b6e02759162d49a54871f9dae9780c91",
+        "finishedAtUTC": "2026-11-21T12:07:28Z",
+        "kind": "acquisition",
+        "title": "Best Glasses for Round Faces: Styles to Try First",
+        "h1": [
+          "Best Glasses for Round Faces"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/style/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/style/round-face"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/style/round-face"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/style/round-face"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/style/round-face"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/style/round-face"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/style/round-face"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/style/round-face"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/style/round-face"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/style/round-face"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/style/round-face"
+          }
+        ],
+        "visibleCharacters": 4079,
+        "mainCharacters": 3551,
+        "markers": [
+          {
+            "text": "Width before shape",
+            "found": true
+          }
+        ],
+        "imageAnchor": {
+          "id": "vseo-025",
+          "count": 1
+        },
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/style/oval-face",
+        "startedAtUTC": "2026-11-21T12:07:28Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/style/oval-face",
+        "headers": {
+          "cf-ray": "a5df93185bf3a1fd-MSP",
+          "age": null,
+          "cf-cache-status": "EXPIRED",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:32 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 89804,
+        "bodySha256": "0b0dbd779f7353176b3f22a5f577bb799c4d35104fc0afbaece1af5298559565",
+        "finishedAtUTC": "2026-11-21T12:07:32Z",
+        "kind": "acquisition",
+        "title": "Best Glasses for Oval Faces: Styles to Try First",
+        "h1": [
+          "Best Glasses for Oval Faces"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/style/oval-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/style/oval-face"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/style/oval-face"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/style/oval-face"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/style/oval-face"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/style/oval-face"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/style/oval-face"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/style/oval-face"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/style/oval-face"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/style/oval-face"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/style/oval-face"
+          }
+        ],
+        "visibleCharacters": 4147,
+        "mainCharacters": 3619,
+        "markers": [
+          {
+            "text": "Keep width in proportion",
+            "found": true
+          }
+        ],
+        "imageAnchor": {
+          "id": "vseo-028",
+          "count": 1
+        },
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/style/diamond-face",
+        "startedAtUTC": "2026-11-21T12:07:28Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/style/diamond-face",
+        "headers": {
+          "cf-ray": "a5df93185f1a348b-MSP",
+          "age": null,
+          "cf-cache-status": "EXPIRED",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:32 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 90396,
+        "bodySha256": "f05267e8e9eecc20c73e5151777c6dae9a0fffc1cf8d1f14f16f457591b10fc6",
+        "finishedAtUTC": "2026-11-21T12:07:32Z",
+        "kind": "acquisition",
+        "title": "Best Glasses for Diamond-Shaped Faces: Styles to Try First",
+        "h1": [
+          "Best Glasses for Diamond-Shaped Faces"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/style/diamond-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/style/diamond-face"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/style/diamond-face"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/style/diamond-face"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/style/diamond-face"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/style/diamond-face"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/style/diamond-face"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/style/diamond-face"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/style/diamond-face"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/style/diamond-face"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/style/diamond-face"
+          }
+        ],
+        "visibleCharacters": 4269,
+        "mainCharacters": 3741,
+        "markers": [
+          {
+            "text": "Leave room at the cheeks",
+            "found": true
+          }
+        ],
+        "imageAnchor": {
+          "id": "vseo-037",
+          "count": 1
+        },
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/sunglasses-for/round-face",
+        "startedAtUTC": "2026-11-21T12:07:28Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/sunglasses-for/round-face",
+        "headers": {
+          "cf-ray": "a5df93185f19348b-MSP",
+          "age": null,
+          "cf-cache-status": "MISS",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:32 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 83996,
+        "bodySha256": "84b8fce5a602470d3a66afaf0bf7b8b25c5329340c2fedeef3f7cc8e43345cb4",
+        "finishedAtUTC": "2026-11-21T12:07:32Z",
+        "kind": "acquisition",
+        "title": "Best Sunglasses for Round Faces",
+        "h1": [
+          "Best Sunglasses for Round Faces"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/sunglasses-for/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/sunglasses-for/round-face"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/sunglasses-for/round-face"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/sunglasses-for/round-face"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/sunglasses-for/round-face"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/sunglasses-for/round-face"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/sunglasses-for/round-face"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/sunglasses-for/round-face"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/sunglasses-for/round-face"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/sunglasses-for/round-face"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/sunglasses-for/round-face"
+          }
+        ],
+        "visibleCharacters": 2992,
+        "mainCharacters": 2464,
+        "markers": [
+          {
+            "text": "A straight brow and angled lower corners contrast with a curved jawline.",
+            "found": true
+          }
+        ],
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/try-glasses-on-photo",
+        "startedAtUTC": "2026-11-21T12:07:32Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/try-glasses-on-photo",
+        "headers": {
+          "cf-ray": "a5df9338fd5d348b-MSP",
+          "age": "0",
+          "cf-cache-status": "DYNAMIC",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:37 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 85487,
+        "bodySha256": "e2e02b96dd21717d22ae02fa7c9687cee27998591a04fa1ecddbbf1306728735",
+        "finishedAtUTC": "2026-11-21T12:07:37Z",
+        "kind": "acquisition",
+        "title": "Try On Glasses from a Photo or Store Screenshot | VisuTry",
+        "h1": [
+          "Try Glasses from a Product Photo or Screenshot"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/try-glasses-on-photo"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/try-glasses-on-photo"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/try-glasses-on-photo"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/try-glasses-on-photo"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/try-glasses-on-photo"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/try-glasses-on-photo"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/try-glasses-on-photo"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/try-glasses-on-photo"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/try-glasses-on-photo"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/try-glasses-on-photo"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/try-glasses-on-photo"
+          }
+        ],
+        "visibleCharacters": 4422,
+        "mainCharacters": 3894,
+        "markers": [
+          {
+            "text": "One clear frame image",
+            "found": true
+          }
+        ],
+        "imageAnchor": {
+          "id": "vseo-016",
+          "count": 1
+        },
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows",
+        "startedAtUTC": "2026-11-21T12:07:32Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows",
+        "headers": {
+          "cf-ray": "a5df9338fd64348b-MSP",
+          "age": null,
+          "cf-cache-status": "EXPIRED",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:37 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 61971,
+        "bodySha256": "c881bde364e855ffb3150bb3472af4e6fc9dc6831d15e3271d2f6064a4e6850f",
+        "finishedAtUTC": "2026-11-21T12:07:37Z",
+        "kind": "acquisition",
+        "title": "Should Glasses Cover Your Eyebrows? | VisuTry",
+        "h1": [
+          "Should Glasses Cover Your Eyebrows?"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/glasses-guide/should-glasses-cover-your-eyebrows"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/glasses-guide/should-glasses-cover-your-eyebrows"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/glasses-guide/should-glasses-cover-your-eyebrows"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/glasses-guide/should-glasses-cover-your-eyebrows"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/glasses-guide/should-glasses-cover-your-eyebrows"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/glasses-guide/should-glasses-cover-your-eyebrows"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/glasses-guide/should-glasses-cover-your-eyebrows"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/glasses-guide/should-glasses-cover-your-eyebrows"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows"
+          }
+        ],
+        "visibleCharacters": 2566,
+        "mainCharacters": 2038,
+        "markers": [
+          {
+            "text": "Some overlap",
+            "found": true
+          },
+          {
+            "text": "Check the fit, then choose the look",
+            "found": true
+          }
+        ],
+        "imageAnchor": {
+          "id": "eyebrow-position-comparison",
+          "count": 1
+        },
+        "newImage": [
+          {
+            "src": "/images/seo/decisions/glasses-eyebrow-position-guide.svg",
+            "alt": "Three illustrated glasses positions: eyebrows above the rim, partial brow overlap, and a frame sitting low near the cheeks"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/ja/style/round-face",
+        "startedAtUTC": "2026-11-21T12:07:32Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/ja/style/round-face",
+        "headers": {
+          "cf-ray": "a5df9338eb6ba1fd-MSP",
+          "age": null,
+          "cf-cache-status": "MISS",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:37 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 79602,
+        "bodySha256": "6602e5a0d280ca1137b983cd7b3f0f086b701bd75570c97cf695f6b8b129c427",
+        "finishedAtUTC": "2026-11-21T12:07:37Z",
+        "kind": "acquisition",
+        "title": "丸型の顔に似合うメガネ｜フレームの選び方",
+        "h1": [
+          "丸型の顔に似合うメガネ"
+        ],
+        "canonical": [
+          "https://www.visutry.com/ja/style/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/style/round-face"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/style/round-face"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/style/round-face"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/style/round-face"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/style/round-face"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/style/round-face"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/style/round-face"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/style/round-face"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/style/round-face"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/style/round-face"
+          }
+        ],
+        "visibleCharacters": 1489,
+        "mainCharacters": 1145,
+        "markers": [
+          {
+            "text": "長方形のスクエア",
+            "found": true
+          },
+          {
+            "text": "上下の直線で丸い頬にメリハリを。",
+            "found": true
+          }
+        ],
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/es/style/diamond-face",
+        "startedAtUTC": "2026-11-21T12:07:37Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/es/style/diamond-face",
+        "headers": {
+          "cf-ray": "a5df93521b5ca1fd-MSP",
+          "age": null,
+          "cf-cache-status": "MISS",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:41 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 77686,
+        "bodySha256": "89889f9f675782e524a2c174d603fd5f72ed8bd088c747cb6c3bc5cf2137dffb",
+        "finishedAtUTC": "2026-11-21T12:07:41Z",
+        "kind": "acquisition",
+        "title": "Mejores gafas para rostro en forma de diamante",
+        "h1": [
+          "Mejores gafas para rostro en forma de diamante"
+        ],
+        "canonical": [
+          "https://www.visutry.com/es/style/diamond-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/style/diamond-face"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/style/diamond-face"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/style/diamond-face"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/style/diamond-face"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/style/diamond-face"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/style/diamond-face"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/style/diamond-face"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/style/diamond-face"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/style/diamond-face"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/style/diamond-face"
+          }
+        ],
+        "visibleCharacters": 3328,
+        "mainCharacters": 2757,
+        "markers": [
+          {
+            "text": "Las curvas suaves contrastan con los pómulos angulosos.",
+            "found": true
+          }
+        ],
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/ja/sunglasses-for/round-face",
+        "startedAtUTC": "2026-11-21T12:07:37Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/ja/sunglasses-for/round-face",
+        "headers": {
+          "cf-ray": "a5df93521858348b-MSP",
+          "age": null,
+          "cf-cache-status": "MISS",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:41 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 86883,
+        "bodySha256": "53217593c2f081ca6ce1d27223a26eb1f13009bd17c294704b708d1871e74111",
+        "finishedAtUTC": "2026-11-21T12:07:41Z",
+        "kind": "acquisition",
+        "title": "顔型別おすすめサングラス: 丸型",
+        "h1": [
+          "顔型別おすすめサングラス: 丸型"
+        ],
+        "canonical": [
+          "https://www.visutry.com/ja/sunglasses-for/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/sunglasses-for/round-face"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/sunglasses-for/round-face"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/sunglasses-for/round-face"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/sunglasses-for/round-face"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/sunglasses-for/round-face"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/sunglasses-for/round-face"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/sunglasses-for/round-face"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/sunglasses-for/round-face"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/sunglasses-for/round-face"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/sunglasses-for/round-face"
+          }
+        ],
+        "visibleCharacters": 1590,
+        "mainCharacters": 1246,
+        "markers": [
+          {
+            "text": "直線的な上辺と角が、丸みのある頬やあごにメリハリを加えます。",
+            "found": true
+          },
+          {
+            "text": "サイズや掛け心地はどう確認しますか？",
+            "found": true
+          },
+          {
+            "text": "レンズやUVカット性能で確認すべき点は？",
+            "found": true
+          },
+          {
+            "text": "鼻に安定して乗り、下を向いてもずれ落ちないか確認します。",
+            "found": true
+          },
+          {
+            "text": "実際の商品にあるUVカット表示と、販売店が示すレンズの仕様を確認してください。",
+            "found": true
+          }
+        ],
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/es/sunglasses-for/round-face",
+        "startedAtUTC": "2026-11-21T12:07:37Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/es/sunglasses-for/round-face",
+        "headers": {
+          "cf-ray": "a5df93521859348b-MSP",
+          "age": null,
+          "cf-cache-status": "EXPIRED",
+          "x-visutry-edge-cache": null,
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:41 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 85215,
+        "bodySha256": "e0447187d8215bdbc4b0fd075f0527003140da16ee624dfb3be04c3c79238d67",
+        "finishedAtUTC": "2026-11-21T12:07:41Z",
+        "kind": "acquisition",
+        "title": "Gafas de sol para cada forma de rostro: Redondo",
+        "h1": [
+          "Gafas de sol para cada forma de rostro: Redondo"
+        ],
+        "canonical": [
+          "https://www.visutry.com/es/sunglasses-for/round-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/sunglasses-for/round-face"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/sunglasses-for/round-face"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/sunglasses-for/round-face"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/sunglasses-for/round-face"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/sunglasses-for/round-face"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/sunglasses-for/round-face"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/sunglasses-for/round-face"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/sunglasses-for/round-face"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/sunglasses-for/round-face"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/sunglasses-for/round-face"
+          }
+        ],
+        "visibleCharacters": 3555,
+        "mainCharacters": 2984,
+        "markers": [
+          {
+            "text": "La línea superior recta y las esquinas contrastan con las mejillas y la mandíbula curvas.",
+            "found": true
+          },
+          {
+            "text": "¿Cómo comprobar el ajuste de las gafas de sol?",
+            "found": true
+          },
+          {
+            "text": "¿Qué revisar en las lentes y la protección UV?",
+            "found": true
+          },
+          {
+            "text": "El puente debe apoyar de forma estable, sin pellizcar ni deslizarse al mirar hacia abajo.",
+            "found": true
+          },
+          {
+            "text": "Revisa la etiqueta de protección UV y las especificaciones de las lentes en la ficha del vendedor.",
+            "found": true
+          }
+        ],
+        "pass": true
+      }
+    ],
+    "allowlist": [
+      {
+        "url": "https://www.visutry.com/en",
+        "startedAtUTC": "2026-11-21T12:07:41Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en",
+        "headers": {
+          "cf-ray": "a5df936eeceaa1fd-MSP",
+          "age": "0",
+          "cf-cache-status": "DYNAMIC",
+          "x-visutry-edge-cache": "MISS",
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:46 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 116631,
+        "bodySha256": "21ac98a734bf4cee68f9861e86f2f2cdff62e6e3821a43aaae1a925d3be70b1c",
+        "finishedAtUTC": "2026-11-21T12:07:46Z",
+        "kind": "allowlist",
+        "title": "Free Face Shape Detector & Virtual Glasses Try-On | VisuTry",
+        "h1": [
+          "Find glasses that actually suit your face"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en"
+          }
+        ],
+        "visibleCharacters": 4290,
+        "mainCharacters": 3796,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/face-shape-detector",
+        "startedAtUTC": "2026-11-21T12:07:41Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/face-shape-detector",
+        "headers": {
+          "cf-ray": "a5df936ee8da348b-MSP",
+          "age": "143",
+          "cf-cache-status": "DYNAMIC",
+          "x-visutry-edge-cache": "MISS",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:45 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 95819,
+        "bodySha256": "65e013466d219e4b6ed17a74ec7a5a1239fe16c9771d09614da1a980b2679ae8",
+        "finishedAtUTC": "2026-11-21T12:07:45Z",
+        "kind": "allowlist",
+        "title": "Free Face Shape Detector Online — Photo Test | VisuTry",
+        "h1": [
+          "Free Face Shape Detector Online"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/face-shape-detector"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/face-shape-detector"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/face-shape-detector"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/face-shape-detector"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/face-shape-detector"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/face-shape-detector"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/face-shape-detector"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/face-shape-detector"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/face-shape-detector"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/face-shape-detector"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/face-shape-detector"
+          }
+        ],
+        "visibleCharacters": 5127,
+        "mainCharacters": 4599,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/what-glasses-suit-my-face",
+        "startedAtUTC": "2026-11-21T12:07:41Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/what-glasses-suit-my-face",
+        "headers": {
+          "cf-ray": "a5df936ee8dc348b-MSP",
+          "age": "35",
+          "cf-cache-status": "DYNAMIC",
+          "x-visutry-edge-cache": "MISS",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:45 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 80431,
+        "bodySha256": "1ad8c0075ad82fc804c89131dee8dc04d9cfa32919a43a36e78424efb36f240e",
+        "finishedAtUTC": "2026-11-21T12:07:46Z",
+        "kind": "allowlist",
+        "title": "What Glasses Suit My Face? Upload a Photo and Shortlist Frames",
+        "h1": [
+          "What Glasses Suit My Face?"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/what-glasses-suit-my-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/what-glasses-suit-my-face"
+          }
+        ],
+        "visibleCharacters": 3253,
+        "mainCharacters": 2725,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/ai-glasses-advisor",
+        "startedAtUTC": "2026-11-21T12:07:45Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/ai-glasses-advisor",
+        "headers": {
+          "cf-ray": "a5df9385e807348b-MSP",
+          "age": "38",
+          "cf-cache-status": "DYNAMIC",
+          "x-visutry-edge-cache": "MISS",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:49 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 79318,
+        "bodySha256": "9b1e8c2726016a2d040dbdda3a2e4b386e3c8b62f2e5ae983c6ec455d09e7be6",
+        "finishedAtUTC": "2026-11-21T12:07:49Z",
+        "kind": "allowlist",
+        "title": "AI Glasses Advisor: Find Frames for Your Face | VisuTry",
+        "h1": [
+          "AI Glasses Advisor"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/ai-glasses-advisor"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/ai-glasses-advisor"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/ai-glasses-advisor"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/ai-glasses-advisor"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/ai-glasses-advisor"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/ai-glasses-advisor"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/ai-glasses-advisor"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/ai-glasses-advisor"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/ai-glasses-advisor"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/ai-glasses-advisor"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/ai-glasses-advisor"
+          }
+        ],
+        "visibleCharacters": 3140,
+        "mainCharacters": 2612,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/virtual-glasses-try-on",
+        "startedAtUTC": "2026-11-21T12:07:46Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/virtual-glasses-try-on",
+        "headers": {
+          "cf-ray": "a5df93862ad5a1fd-MSP",
+          "age": "36",
+          "cf-cache-status": "DYNAMIC",
+          "x-visutry-edge-cache": "MISS",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:49 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 80165,
+        "bodySha256": "6aa9cd24fbc563949bc96ec2f66cf3fddcd80c139d91d345fdb2de9bf0bb406a",
+        "finishedAtUTC": "2026-11-21T12:07:49Z",
+        "kind": "allowlist",
+        "title": "Virtual Glasses Try On from Your Photo | VisuTry",
+        "h1": [
+          "Virtual Glasses Try On Online"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/virtual-glasses-try-on"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/virtual-glasses-try-on"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/virtual-glasses-try-on"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/virtual-glasses-try-on"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/virtual-glasses-try-on"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/virtual-glasses-try-on"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/virtual-glasses-try-on"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/virtual-glasses-try-on"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/virtual-glasses-try-on"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/virtual-glasses-try-on"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/virtual-glasses-try-on"
+          }
+        ],
+        "visibleCharacters": 3442,
+        "mainCharacters": 2914,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+        "startedAtUTC": "2026-11-21T12:07:46Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+        "headers": {
+          "cf-ray": "a5df9385e816348b-MSP",
+          "age": "35",
+          "cf-cache-status": "DYNAMIC",
+          "x-visutry-edge-cache": "MISS",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:49 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 96696,
+        "bodySha256": "4edb5ffc6168e2ec74e1901e1d3f537dd4f5f7a1098e5ffa6ca4d1c25eba4e48",
+        "finishedAtUTC": "2026-11-21T12:07:49Z",
+        "kind": "allowlist",
+        "title": "What Glasses Suit My Face? Upload a Photo | VisuTry",
+        "h1": [
+          "Which Glasses Suit My Face? Use a Photo to Find Out"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide"
+          }
+        ],
+        "visibleCharacters": 5570,
+        "mainCharacters": 5042,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/brand/gentle-monster",
+        "startedAtUTC": "2026-11-21T12:07:49Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/brand/gentle-monster",
+        "headers": {
+          "cf-ray": "a5df939b2be2348b-MSP",
+          "age": "37",
+          "cf-cache-status": "DYNAMIC",
+          "x-visutry-edge-cache": "MISS",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:07:52 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 87764,
+        "bodySha256": "301d03101cdba8a9cc401510559db5037825d6f0fb8d6dc2993c4fc373260187",
+        "finishedAtUTC": "2026-11-21T12:07:52Z",
+        "kind": "allowlist",
+        "title": "Gentle Monster Virtual Try-On Guide | VisuTry",
+        "h1": [
+          "Gentle Monster Virtual Try-On Guide"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/brand/gentle-monster"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/brand/gentle-monster"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/brand/gentle-monster"
+          }
+        ],
+        "visibleCharacters": 4154,
+        "mainCharacters": 3626,
+        "pass": true
+      }
+    ],
+    "failures": [],
+    "sitemaps": {
+      "responses": [
+        {
+          "url": "https://www.visutry.com/sitemaps/core.xml",
+          "startedAtUTC": "2026-11-21T12:07:52Z",
+          "method": "GET",
+          "status": 200,
+          "finalUrl": "https://www.visutry.com/sitemaps/core.xml",
+          "headers": {
+            "cf-ray": "a5df93b58fa3348b-MSP",
+            "age": "88",
+            "cf-cache-status": "DYNAMIC",
+            "x-visutry-edge-cache": null,
+            "x-vercel-cache": "HIT",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "cdn-cache-control": "public, max-age=86400, stale-while-revalidate=604800",
+            "cloudflare-cdn-cache-control": null,
+            "vercel-cdn-cache-control": null,
+            "x-nextjs-cache": null,
+            "cf-mitigated": null,
+            "server": "envoy",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Sat, 21 Nov 2026 12:07:57 GMT"
+          },
+          "charset": "utf-8",
+          "bytes": 796855,
+          "bodySha256": "107b2365bdbd533116815d5a9f92268596b74fdcc8176a75b6596f4d01319552",
+          "finishedAtUTC": "2026-11-21T12:07:57Z"
+        },
+        {
+          "url": "https://www.visutry.com/sitemaps/blog.xml",
+          "startedAtUTC": "2026-11-21T12:07:57Z",
+          "method": "GET",
+          "status": 200,
+          "finalUrl": "https://www.visutry.com/sitemaps/blog.xml",
+          "headers": {
+            "cf-ray": "a5df93d29876348b-MSP",
+            "age": "92",
+            "cf-cache-status": "DYNAMIC",
+            "x-visutry-edge-cache": null,
+            "x-vercel-cache": "HIT",
+            "cache-control": "public, max-age=0, must-revalidate",
+            "cdn-cache-control": "public, max-age=86400, stale-while-revalidate=604800",
+            "cloudflare-cdn-cache-control": null,
+            "vercel-cdn-cache-control": null,
+            "x-nextjs-cache": null,
+            "cf-mitigated": null,
+            "server": "envoy",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Sat, 21 Nov 2026 12:08:01 GMT"
+          },
+          "charset": "utf-8",
+          "bytes": 175084,
+          "bodySha256": "4e9e70d4897887a90a19ff7a95b9af0602d55077579b4d106da4d89d2718fcdf",
+          "finishedAtUTC": "2026-11-21T12:08:02Z"
+        }
+      ],
+      "coreEntries": 638,
+      "blogEntries": 118,
+      "combinationOwners": [
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-055__best-rectangle-glasses-for-round-face-01-hero.0a01ae3a.png",
+            "https://www.visutry.com/_next/static/media/VSEO-056__best-rectangle-glasses-for-round-face-02-why-it-works.a462b192.png",
+            "https://www.visutry.com/_next/static/media/VSEO-057__best-rectangle-glasses-for-round-face-03-watch-for.5bbe4f62.png",
+            "https://www.visutry.com/_next/static/media/VSEO-058__best-rectangle-glasses-for-round-face-04-compare.ad59eead.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-square-glasses-for-round-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-059__best-square-glasses-for-round-face-01-hero.f994bdad.png",
+            "https://www.visutry.com/_next/static/media/VSEO-060__best-square-glasses-for-round-face-02-why-it-works.5ce37692.png",
+            "https://www.visutry.com/_next/static/media/VSEO-061__best-square-glasses-for-round-face-03-watch-for.0f4da637.png",
+            "https://www.visutry.com/_next/static/media/VSEO-062__best-square-glasses-for-round-face-04-compare.64343b81.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-browline-glasses-for-round-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-063__best-browline-glasses-for-round-face-01-hero.e14e9398.png",
+            "https://www.visutry.com/_next/static/media/VSEO-064__best-browline-glasses-for-round-face-02-why-it-works.5f170561.png",
+            "https://www.visutry.com/_next/static/media/VSEO-065__best-browline-glasses-for-round-face-03-watch-for.b7a227b5.png",
+            "https://www.visutry.com/_next/static/media/VSEO-066__best-browline-glasses-for-round-face-04-compare.bd49c73b.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-cat-eye-glasses-for-round-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-067__best-cat-eye-glasses-for-round-face-01-hero.755b80b6.png",
+            "https://www.visutry.com/_next/static/media/VSEO-068__best-cat-eye-glasses-for-round-face-02-why-it-works.a9aae1a1.png",
+            "https://www.visutry.com/_next/static/media/VSEO-069__best-cat-eye-glasses-for-round-face-03-watch-for.b9065f47.png",
+            "https://www.visutry.com/_next/static/media/VSEO-070__best-cat-eye-glasses-for-round-face-04-compare.e3cdf8d4.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-geometric-glasses-for-round-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-071__best-geometric-glasses-for-round-face-01-hero.0599aee3.png",
+            "https://www.visutry.com/_next/static/media/VSEO-072__best-geometric-glasses-for-round-face-02-why-it-works.a16fe6a3.png",
+            "https://www.visutry.com/_next/static/media/VSEO-073__best-geometric-glasses-for-round-face-03-watch-for.167ae3db.png",
+            "https://www.visutry.com/_next/static/media/VSEO-074__best-geometric-glasses-for-round-face-04-compare.ba4fb3b4.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-cat-eye-glasses-for-oval-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-075__best-cat-eye-glasses-for-oval-face-01-hero.697b82b7.png",
+            "https://www.visutry.com/_next/static/media/VSEO-076__best-cat-eye-glasses-for-oval-face-02-why-it-works.06391e73.png",
+            "https://www.visutry.com/_next/static/media/VSEO-077__best-cat-eye-glasses-for-oval-face-03-watch-for.8938ef07.png",
+            "https://www.visutry.com/_next/static/media/VSEO-078__best-cat-eye-glasses-for-oval-face-04-compare.88d074f3.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-aviator-glasses-for-oval-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-079__best-aviator-glasses-for-oval-face-01-hero.34889132.png",
+            "https://www.visutry.com/_next/static/media/VSEO-080__best-aviator-glasses-for-oval-face-02-why-it-works.47a7c1f1.png",
+            "https://www.visutry.com/_next/static/media/VSEO-081__best-aviator-glasses-for-oval-face-03-watch-for.86428d33.png",
+            "https://www.visutry.com/_next/static/media/VSEO-082__best-aviator-glasses-for-oval-face-04-compare.d00f3370.png"
+          ]
+        },
+        {
+          "url": "https://www.visutry.com/en/glasses-guide/best-browline-glasses-for-oval-face",
+          "images": [
+            "https://www.visutry.com/_next/static/media/VSEO-083__best-browline-glasses-for-oval-face-01-hero.fda2c939.png",
+            "https://www.visutry.com/_next/static/media/VSEO-084__best-browline-glasses-for-oval-face-02-why-it-works.3951e47f.png"
+          ]
+        }
+      ],
+      "combinationImages": 30,
+      "jaSelection": {
+        "url": "https://www.visutry.com/ja/find-glasses-for-my-face",
+        "images": [
+          "https://www.visutry.com/images/seo/decisions/glasses-frame-shapes-comparison.webp"
+        ]
+      },
+      "eyebrows": {
+        "url": "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows",
+        "images": [
+          "https://www.visutry.com/images/seo/decisions/glasses-eyebrow-position-guide.svg"
+        ]
+      },
+      "guide": {
+        "url": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+        "images": [
+          "https://www.visutry.com/images/seo/core/glasses-frame-a-vs-b.webp"
+        ]
+      }
+    },
+    "svg": {
+      "url": "https://www.visutry.com/images/seo/decisions/glasses-eyebrow-position-guide.svg",
+      "startedAtUTC": "2026-11-21T12:08:02Z",
+      "method": "GET",
+      "status": 200,
+      "finalUrl": "https://www.visutry.com/images/seo/decisions/glasses-eyebrow-position-guide.svg",
+      "headers": {
+        "cf-ray": "a5df93ea2e99348b-MSP",
+        "age": null,
+        "cf-cache-status": "MISS",
+        "x-visutry-edge-cache": null,
+        "x-vercel-cache": null,
+        "cache-control": "public, max-age=0, must-revalidate",
+        "cdn-cache-control": null,
+        "cloudflare-cdn-cache-control": null,
+        "vercel-cdn-cache-control": null,
+        "x-nextjs-cache": null,
+        "cf-mitigated": null,
+        "server": "envoy",
+        "content-type": "image/svg+xml",
+        "date": "Sat, 21 Nov 2026 12:08:05 GMT"
+      },
+      "charset": "utf-8",
+      "bytes": 2387,
+      "bodySha256": "1b5ad33c6f9bc57c460f67fbba422f303099fb1bd8c8c8cdd10c758369a1ef94",
+      "finishedAtUTC": "2026-11-21T12:08:05Z",
+      "localSource": "/workspace/scratch/c5c4f603bfc8/visutry-acquisition/public/images/seo/decisions/glasses-eyebrow-position-guide.svg",
+      "localSha256": "1b5ad33c6f9bc57c460f67fbba422f303099fb1bd8c8c8cdd10c758369a1ef94",
+      "sha256Matches": true,
+      "pass": true
+    },
+    "finishedAtUTC": "2026-11-21T12:08:05Z",
+    "pass": true,
+    "allowlistCacheStates": [
+      {
+        "path": "/en",
+        "status": 200,
+        "edgeCache": "MISS",
+        "cfCache": "DYNAMIC",
+        "age": "0"
+      },
+      {
+        "path": "/en/face-shape-detector",
+        "status": 200,
+        "edgeCache": "MISS",
+        "cfCache": "DYNAMIC",
+        "age": "143"
+      },
+      {
+        "path": "/en/what-glasses-suit-my-face",
+        "status": 200,
+        "edgeCache": "MISS",
+        "cfCache": "DYNAMIC",
+        "age": "35"
+      },
+      {
+        "path": "/en/ai-glasses-advisor",
+        "status": 200,
+        "edgeCache": "MISS",
+        "cfCache": "DYNAMIC",
+        "age": "38"
+      },
+      {
+        "path": "/en/virtual-glasses-try-on",
+        "status": 200,
+        "edgeCache": "MISS",
+        "cfCache": "DYNAMIC",
+        "age": "36"
+      },
+      {
+        "path": "/en/blog/ai-face-analysis-for-glasses-guide",
+        "status": 200,
+        "edgeCache": "MISS",
+        "cfCache": "DYNAMIC",
+        "age": "35"
+      },
+      {
+        "path": "/en/brand/gentle-monster",
+        "status": 200,
+        "edgeCache": "MISS",
+        "cfCache": "DYNAMIC",
+        "age": "37"
+      }
+    ]
+  },
+  "cacheFollowup": {
+    "startedAtUTC": "2026-11-21T12:09:32Z",
+    "origin": "https://www.visutry.com",
+    "mode": "allowlist-only",
+    "method": "Unauthenticated normal GET, no query, no retries, no redirect following, no cache bypass",
+    "maxThreads": 3,
+    "requestTimeoutSeconds": 30,
+    "scope": "Content delivery acceptance only; not Google indexing or growth evidence.",
+    "pages": [],
+    "allowlist": [
+      {
+        "url": "https://www.visutry.com/en",
+        "startedAtUTC": "2026-11-21T12:09:32Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en",
+        "headers": {
+          "cf-ray": "a5df96316a64348b-MSP",
+          "age": "112",
+          "cf-cache-status": "HIT",
+          "x-visutry-edge-cache": "HIT",
+          "x-vercel-cache": "PRERENDER",
+          "cache-control": "public, s-maxage=3600, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:09:38 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 116631,
+        "bodySha256": "21ac98a734bf4cee68f9861e86f2f2cdff62e6e3821a43aaae1a925d3be70b1c",
+        "finishedAtUTC": "2026-11-21T12:09:38Z",
+        "kind": "allowlist",
+        "title": "Free Face Shape Detector & Virtual Glasses Try-On | VisuTry",
+        "h1": [
+          "Find glasses that actually suit your face"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en"
+          }
+        ],
+        "visibleCharacters": 4290,
+        "mainCharacters": 3796,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/face-shape-detector",
+        "startedAtUTC": "2026-11-21T12:09:32Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/face-shape-detector",
+        "headers": {
+          "cf-ray": "a5df963168c0a1fd-MSP",
+          "age": "112",
+          "cf-cache-status": "HIT",
+          "x-visutry-edge-cache": "HIT",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, s-maxage=3600, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:09:38 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 95819,
+        "bodySha256": "65e013466d219e4b6ed17a74ec7a5a1239fe16c9771d09614da1a980b2679ae8",
+        "finishedAtUTC": "2026-11-21T12:09:38Z",
+        "kind": "allowlist",
+        "title": "Free Face Shape Detector Online — Photo Test | VisuTry",
+        "h1": [
+          "Free Face Shape Detector Online"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/face-shape-detector"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/face-shape-detector"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/face-shape-detector"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/face-shape-detector"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/face-shape-detector"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/face-shape-detector"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/face-shape-detector"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/face-shape-detector"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/face-shape-detector"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/face-shape-detector"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/face-shape-detector"
+          }
+        ],
+        "visibleCharacters": 5127,
+        "mainCharacters": 4599,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/what-glasses-suit-my-face",
+        "startedAtUTC": "2026-11-21T12:09:32Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/what-glasses-suit-my-face",
+        "headers": {
+          "cf-ray": "a5df96316a56348b-MSP",
+          "age": "112",
+          "cf-cache-status": "HIT",
+          "x-visutry-edge-cache": "HIT",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, s-maxage=3600, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:09:38 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 80431,
+        "bodySha256": "1ad8c0075ad82fc804c89131dee8dc04d9cfa32919a43a36e78424efb36f240e",
+        "finishedAtUTC": "2026-11-21T12:09:38Z",
+        "kind": "allowlist",
+        "title": "What Glasses Suit My Face? Upload a Photo and Shortlist Frames",
+        "h1": [
+          "What Glasses Suit My Face?"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/what-glasses-suit-my-face"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/what-glasses-suit-my-face"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/what-glasses-suit-my-face"
+          }
+        ],
+        "visibleCharacters": 3253,
+        "mainCharacters": 2725,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/ai-glasses-advisor",
+        "startedAtUTC": "2026-11-21T12:09:38Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/ai-glasses-advisor",
+        "headers": {
+          "cf-ray": "a5df9649cbe5348b-MSP",
+          "age": "113",
+          "cf-cache-status": "HIT",
+          "x-visutry-edge-cache": "HIT",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, s-maxage=3600, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:09:42 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 79318,
+        "bodySha256": "9b1e8c2726016a2d040dbdda3a2e4b386e3c8b62f2e5ae983c6ec455d09e7be6",
+        "finishedAtUTC": "2026-11-21T12:09:42Z",
+        "kind": "allowlist",
+        "title": "AI Glasses Advisor: Find Frames for Your Face | VisuTry",
+        "h1": [
+          "AI Glasses Advisor"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/ai-glasses-advisor"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/ai-glasses-advisor"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/ai-glasses-advisor"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/ai-glasses-advisor"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/ai-glasses-advisor"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/ai-glasses-advisor"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/ai-glasses-advisor"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/ai-glasses-advisor"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/ai-glasses-advisor"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/ai-glasses-advisor"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/ai-glasses-advisor"
+          }
+        ],
+        "visibleCharacters": 3140,
+        "mainCharacters": 2612,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/virtual-glasses-try-on",
+        "startedAtUTC": "2026-11-21T12:09:38Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/virtual-glasses-try-on",
+        "headers": {
+          "cf-ray": "a5df9649cbe4348b-MSP",
+          "age": "113",
+          "cf-cache-status": "HIT",
+          "x-visutry-edge-cache": "HIT",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, s-maxage=3600, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:09:42 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 80165,
+        "bodySha256": "6aa9cd24fbc563949bc96ec2f66cf3fddcd80c139d91d345fdb2de9bf0bb406a",
+        "finishedAtUTC": "2026-11-21T12:09:42Z",
+        "kind": "allowlist",
+        "title": "Virtual Glasses Try On from Your Photo | VisuTry",
+        "h1": [
+          "Virtual Glasses Try On Online"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/virtual-glasses-try-on"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/virtual-glasses-try-on"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/virtual-glasses-try-on"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/virtual-glasses-try-on"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/virtual-glasses-try-on"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/virtual-glasses-try-on"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/virtual-glasses-try-on"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/virtual-glasses-try-on"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/virtual-glasses-try-on"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/virtual-glasses-try-on"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/virtual-glasses-try-on"
+          }
+        ],
+        "visibleCharacters": 3442,
+        "mainCharacters": 2914,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+        "startedAtUTC": "2026-11-21T12:09:38Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+        "headers": {
+          "cf-ray": "a5df9649cf62a1fd-MSP",
+          "age": "113",
+          "cf-cache-status": "HIT",
+          "x-visutry-edge-cache": "HIT",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, s-maxage=3600, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:09:42 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 96696,
+        "bodySha256": "4edb5ffc6168e2ec74e1901e1d3f537dd4f5f7a1098e5ffa6ca4d1c25eba4e48",
+        "finishedAtUTC": "2026-11-21T12:09:42Z",
+        "kind": "allowlist",
+        "title": "What Glasses Suit My Face? Upload a Photo | VisuTry",
+        "h1": [
+          "Which Glasses Suit My Face? Use a Photo to Find Out"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "id",
+            "href": "https://www.visutry.com/id/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "ar",
+            "href": "https://www.visutry.com/ar/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "ru",
+            "href": "https://www.visutry.com/ru/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "de",
+            "href": "https://www.visutry.com/de/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "ja",
+            "href": "https://www.visutry.com/ja/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "es",
+            "href": "https://www.visutry.com/es/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "pt",
+            "href": "https://www.visutry.com/pt/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "fr",
+            "href": "https://www.visutry.com/fr/blog/ai-face-analysis-for-glasses-guide"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide"
+          }
+        ],
+        "visibleCharacters": 5570,
+        "mainCharacters": 5042,
+        "pass": true
+      },
+      {
+        "url": "https://www.visutry.com/en/brand/gentle-monster",
+        "startedAtUTC": "2026-11-21T12:09:42Z",
+        "method": "GET",
+        "status": 200,
+        "finalUrl": "https://www.visutry.com/en/brand/gentle-monster",
+        "headers": {
+          "cf-ray": "a5df9663f8e6348b-MSP",
+          "age": "114",
+          "cf-cache-status": "HIT",
+          "x-visutry-edge-cache": "HIT",
+          "x-vercel-cache": "HIT",
+          "cache-control": "public, s-maxage=3600, max-age=0, must-revalidate",
+          "cdn-cache-control": null,
+          "cloudflare-cdn-cache-control": null,
+          "vercel-cdn-cache-control": null,
+          "x-nextjs-cache": null,
+          "cf-mitigated": null,
+          "server": "envoy",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Sat, 21 Nov 2026 12:09:46 GMT"
+        },
+        "charset": "utf-8",
+        "bytes": 87764,
+        "bodySha256": "301d03101cdba8a9cc401510559db5037825d6f0fb8d6dc2993c4fc373260187",
+        "finishedAtUTC": "2026-11-21T12:09:46Z",
+        "kind": "allowlist",
+        "title": "Gentle Monster Virtual Try-On Guide | VisuTry",
+        "h1": [
+          "Gentle Monster Virtual Try-On Guide"
+        ],
+        "canonical": [
+          "https://www.visutry.com/en/brand/gentle-monster"
+        ],
+        "robots": [
+          "index, follow"
+        ],
+        "hreflang": [
+          {
+            "lang": "en",
+            "href": "https://www.visutry.com/en/brand/gentle-monster"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://www.visutry.com/en/brand/gentle-monster"
+          }
+        ],
+        "visibleCharacters": 4154,
+        "mainCharacters": 3626,
+        "pass": true
+      }
+    ],
+    "failures": [],
+    "finishedAtUTC": "2026-11-21T12:09:46Z",
+    "pass": true,
+    "allowlistCacheStates": [
+      {
+        "path": "/en",
+        "status": 200,
+        "edgeCache": "HIT",
+        "cfCache": "HIT",
+        "age": "112"
+      },
+      {
+        "path": "/en/face-shape-detector",
+        "status": 200,
+        "edgeCache": "HIT",
+        "cfCache": "HIT",
+        "age": "112"
+      },
+      {
+        "path": "/en/what-glasses-suit-my-face",
+        "status": 200,
+        "edgeCache": "HIT",
+        "cfCache": "HIT",
+        "age": "112"
+      },
+      {
+        "path": "/en/ai-glasses-advisor",
+        "status": 200,
+        "edgeCache": "HIT",
+        "cfCache": "HIT",
+        "age": "113"
+      },
+      {
+        "path": "/en/virtual-glasses-try-on",
+        "status": 200,
+        "edgeCache": "HIT",
+        "cfCache": "HIT",
+        "age": "113"
+      },
+      {
+        "path": "/en/blog/ai-face-analysis-for-glasses-guide",
+        "status": 200,
+        "edgeCache": "HIT",
+        "cfCache": "HIT",
+        "age": "113"
+      },
+      {
+        "path": "/en/brand/gentle-monster",
+        "status": 200,
+        "edgeCache": "HIT",
+        "cfCache": "HIT",
+        "age": "114"
+      }
+    ]
+  },
+  "screenshots": {
+    "release": "2026-11-21-search-acquisition-release-success.jpg",
+    "publicPage": "2026-11-21-search-acquisition-public.jpg",
+    "publicImageDecoded": {
+      "complete": true,
+      "naturalWidth": 900,
+      "naturalHeight": 310
+    }
+  },
+  "sandboxStopped": true,
+  "measurementBoundary": "Same-day acquisition content batch, overlapping the earlier Nov 21 approved Detector/JA selection/Guide batch. Release, indexed version and recrawl times remain distinct; no causal click lift established."
+}
