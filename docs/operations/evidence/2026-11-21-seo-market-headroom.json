@@ -1,0 +1,417 @@
+{
+  "scope": "All-language Google acquisition market-size/headroom diagnostic before the authorized Arabic content plan.",
+  "as_of": "2026-11-21",
+  "source_windows": [
+    {
+      "name": "28d",
+      "from": "2026-10-23",
+      "to": "2026-11-19",
+      "gsc_clicks": 6476,
+      "gsc_impressions": 162412,
+      "gsc_ctr": 0.039873900943280055,
+      "ga_sessions": 8387
+    },
+    {
+      "name": "previous_7d",
+      "from": "2026-11-06",
+      "to": "2026-11-12",
+      "gsc_clicks": 1335,
+      "gsc_impressions": 35069,
+      "gsc_ctr": 0.038067809176195504,
+      "ga_sessions": 1774
+    },
+    {
+      "name": "latest_7d",
+      "from": "2026-11-13",
+      "to": "2026-11-19",
+      "gsc_clicks": 2350,
+      "gsc_impressions": 52896,
+      "gsc_ctr": 0.04442679975801573,
+      "ga_sessions": 2741
+    }
+  ],
+  "ga4_daily_sessions": [
+    {
+      "date": "2026-10-23",
+      "sessions": 264
+    },
+    {
+      "date": "2026-10-24",
+      "sessions": 274
+    },
+    {
+      "date": "2026-10-25",
+      "sessions": 284
+    },
+    {
+      "date": "2026-10-26",
+      "sessions": 262
+    },
+    {
+      "date": "2026-10-27",
+      "sessions": 245
+    },
+    {
+      "date": "2026-10-28",
+      "sessions": 238
+    },
+    {
+      "date": "2026-10-29",
+      "sessions": 253
+    },
+    {
+      "date": "2026-10-30",
+      "sessions": 267
+    },
+    {
+      "date": "2026-10-31",
+      "sessions": 264
+    },
+    {
+      "date": "2026-11-01",
+      "sessions": 272
+    },
+    {
+      "date": "2026-11-02",
+      "sessions": 272
+    },
+    {
+      "date": "2026-11-03",
+      "sessions": 284
+    },
+    {
+      "date": "2026-11-04",
+      "sessions": 284
+    },
+    {
+      "date": "2026-11-05",
+      "sessions": 409
+    },
+    {
+      "date": "2026-11-06",
+      "sessions": 277
+    },
+    {
+      "date": "2026-11-07",
+      "sessions": 265
+    },
+    {
+      "date": "2026-11-08",
+      "sessions": 248
+    },
+    {
+      "date": "2026-11-09",
+      "sessions": 229
+    },
+    {
+      "date": "2026-11-10",
+      "sessions": 243
+    },
+    {
+      "date": "2026-11-11",
+      "sessions": 221
+    },
+    {
+      "date": "2026-11-12",
+      "sessions": 291
+    },
+    {
+      "date": "2026-11-13",
+      "sessions": 296
+    },
+    {
+      "date": "2026-11-14",
+      "sessions": 381
+    },
+    {
+      "date": "2026-11-15",
+      "sessions": 448
+    },
+    {
+      "date": "2026-11-16",
+      "sessions": 419
+    },
+    {
+      "date": "2026-11-17",
+      "sessions": 408
+    },
+    {
+      "date": "2026-11-18",
+      "sessions": 389
+    },
+    {
+      "date": "2026-11-19",
+      "sessions": 400
+    }
+  ],
+  "ga4_latest_week_source_rows": [
+    {
+      "session_source_medium": "google / organic",
+      "sessions": 2213
+    },
+    {
+      "session_source_medium": "(direct) / (none)",
+      "sessions": 252
+    },
+    {
+      "session_source_medium": "chatgpt.com / ai-assistant",
+      "sessions": 103
+    },
+    {
+      "session_source_medium": "yahoo / organic",
+      "sessions": 24
+    },
+    {
+      "session_source_medium": "bing / organic",
+      "sessions": 23
+    },
+    {
+      "session_source_medium": "yandex.ru / referral",
+      "sessions": 15
+    },
+    {
+      "session_source_medium": "(not set)",
+      "sessions": 11
+    },
+    {
+      "session_source_medium": "accounts.google.com / referral",
+      "sessions": 10
+    },
+    {
+      "session_source_medium": "esoquevosestasbuscando.com.ar / referral",
+      "sessions": 10
+    },
+    {
+      "session_source_medium": "duckduckgo / organic",
+      "sessions": 8
+    },
+    {
+      "session_source_medium": "ecosia.org / organic",
+      "sessions": 6
+    },
+    {
+      "session_source_medium": "gemini.google.com / ai-assistant",
+      "sessions": 6
+    },
+    {
+      "session_source_medium": "blog / (not set)",
+      "sessions": 5
+    },
+    {
+      "session_source_medium": "try_on_glasses / (not set)",
+      "sessions": 5
+    },
+    {
+      "session_source_medium": "ya.ru / referral",
+      "sessions": 5
+    },
+    {
+      "session_source_medium": "face_analysis_landing / (not set)",
+      "sessions": 4
+    },
+    {
+      "session_source_medium": "pricing / (not set)",
+      "sessions": 4
+    },
+    {
+      "session_source_medium": "qa-release / manual",
+      "sessions": 4
+    },
+    {
+      "session_source_medium": "alice.yandex.ru / referral",
+      "sessions": 3
+    },
+    {
+      "session_source_medium": "free_face_shape_detector / (not set)",
+      "sessions": 3
+    },
+    {
+      "session_source_medium": "yandex.by / referral",
+      "sessions": 3
+    },
+    {
+      "session_source_medium": "aidive.org / referral",
+      "sessions": 2
+    },
+    {
+      "session_source_medium": "checkout.stripe.com / referral",
+      "sessions": 2
+    },
+    {
+      "session_source_medium": "perplexity / (not set)",
+      "sessions": 2
+    },
+    {
+      "session_source_medium": "x / social",
+      "sessions": 2
+    },
+    {
+      "session_source_medium": "allaiapp / directory",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "chatgpt.com / (none)",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "cn.bing.com / referral",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "doubao.com / referral",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "facebook.com / referral",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "id.search.yahoo.com / referral",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "qwant.com / organic",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "search.brave.com / referral",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "theloupesguy.com / referral",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "try_on / (not set)",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "www-visutry-com.translate.goog / referral",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "x.com / referral",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "yandex.com.tr / referral",
+      "sessions": 1
+    },
+    {
+      "session_source_medium": "yandex.kz / referral",
+      "sessions": 1
+    }
+  ],
+  "measurement_notes": [
+    "GSC Web final data, no fresh days included; last finalized date November 19.",
+    "GA4 sessions, GSC clicks, search volume and third-party estimated organic traffic are distinct units.",
+    "GA4 property timezone was not retrieved. Latest-week date aggregation totals 2741 sessions and source aggregation totals 2739; no forced reconciliation or cross-source conversion rate.",
+    "Current 4.44% GSC CTR is clicks divided by VisuTry's observed impressions, not global search market share.",
+    "The current week multiplied by four is a run-rate scenario (9400 clicks/28d), not the actual preceding 28-day total (6476) or a forecast.",
+    "GSC query reporting is incomplete; page-level aggregation differs from property aggregation.",
+    "Global related keyword volume, available organic click pool, and VisuTry market click share are not yet established."
+  ],
+  "market_definition": {
+    "included": [
+      "Face shape identification and explanation",
+      "Selecting glasses/sunglasses by face shape or photo",
+      "Photo/BYO-frame glasses try-on and relevant fit/comparison questions"
+    ],
+    "excluded": [
+      "All eyewear ecommerce search volume",
+      "Broad brand/navigation demand without matching VisuTry task",
+      "Unrelated face detection or smart glasses intent"
+    ],
+    "aggregation": "Deduplicate close variants, define countries/time/network, and do not add overlapping topic/language buckets."
+  },
+  "external_reference": {
+    "provider": "Semrush (third-party model estimates)",
+    "url": "https://www.semrush.com/website/detect-face-shape.com/overview/",
+    "report_month": "2026-10",
+    "page_last_updated": "2026-11-11",
+    "retrieved": "2026-11-21",
+    "keyword_database": "India",
+    "keyword_volume_examples": [
+      {
+        "keyword": "face shape detector",
+        "estimated_monthly_searches": 135000
+      },
+      {
+        "keyword": "face shape ai",
+        "estimated_monthly_searches": 6600
+      },
+      {
+        "keyword": "face shape identifier",
+        "estimated_monthly_searches": 1900
+      },
+      {
+        "keyword": "face shape analyser",
+        "estimated_monthly_searches": 1600
+      },
+      {
+        "keyword": "face shape finder",
+        "estimated_monthly_searches": 9900
+      }
+    ],
+    "organic_search_traffic_widget": 55990,
+    "widget_geography": "Not explicitly identified in this public widget; keyword table is India. Do not claim global scope.",
+    "all_channel_visits": 133190,
+    "limits": "Examples only, not a global market denominator. Do not sum close variants or divide VisuTry GSC clicks by modelled search counts/competitor visits. Root opened October snapshot; an agent initially saw September at same URL; snapshots were not combined."
+  },
+  "historical_planner": {
+    "path": "docs/strategy/seo/2026-07-27-google-keyword-planner-brand-opportunities.md",
+    "collected": "2026-07-27",
+    "geography": "United States",
+    "language": "English",
+    "period": "2025-07 through 2026-06",
+    "kind": "Historical rounded monthly ranges for brand + virtual try-on; not current global demand and not all addressable BYO intent."
+  },
+  "access": {
+    "windsor_connected": [
+      "Google Analytics 4",
+      "Search Console"
+    ],
+    "current_keyword_planner": "UNAVAILABLE: connected browser reached a dialog saying Google Ads cannot work with an ad blocker. No browser settings changed, campaign created or money spent."
+  },
+  "scenarios": {
+    "forecast": false,
+    "baseline_weekly_clicks": 2350,
+    "baseline_weekly_impressions": 52896,
+    "unchanged_impressions": [
+      {
+        "assumed_ctr": 0.06,
+        "weekly_clicks": 3174,
+        "multiple": 1.3505361702127658
+      },
+      {
+        "assumed_ctr": 0.08,
+        "weekly_clicks": 4232,
+        "multiple": 1.8007148936170214
+      },
+      {
+        "assumed_ctr": 0.1,
+        "weekly_clicks": 5290,
+        "multiple": 2.2508936170212768
+      }
+    ],
+    "tenfold_weekly_clicks": 23500,
+    "required_weekly_impressions_at_8_percent_ctr": 293750,
+    "required_weekly_impressions_at_10_percent_ctr": 235000,
+    "required_exposure_multiple_range": [
+      4.442679975801573,
+      5.553349969751966
+    ]
+  },
+  "official_definitions": [
+    "https://support.google.com/webmasters/answer/10268906?hl=en",
+    "https://support.google.com/google-ads/answer/3022575?hl=en",
+    "https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics"
+  ],
+  "decision": {
+    "market_total": "UNAVAILABLE",
+    "market_share": "UNAVAILABLE",
+    "headroom": "Meaningful relevant search demand is externally evidenced; exact available global click pool and achievable 10x are INCONCLUSIVE.",
+    "allocation": "Continue bounded owner-quality work, including the approved Arabic pair; prioritize larger relevant task clusters using a deduplicated market-demand map when current keyword-volume access is restored.",
+    "arabic_implementation": "Authorized by user, held pending this pre-execution market-size question; not implemented in this diagnostic."
+  }
+}

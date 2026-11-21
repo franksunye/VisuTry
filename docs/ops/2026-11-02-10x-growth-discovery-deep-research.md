@@ -867,3 +867,24 @@ Read-only response to Ye's question about apparent absence of Arabic/Middle East
 **Decision: MODIFY the next-locale candidate assessment; Arabic market scale remains INCONCLUSIVE.** Arabic has enough real search evidence for a bounded improvement of its existing two winning owners. Proposed work: concise native face-identification comparisons, one useful authorized frame comparison with Arabic explanation, and relevant Arabic links between these owners/Guide/BYO page. Preserve winning URLs and title intent, free on-device Detector and paid Advisor boundaries; no new duplicate routes, blanket translation release or bulk noindex removal. This is a **proposed candidate, not implemented by this diagnostic**.
 
 A working test objective is **at least 250 Arabic-page Web clicks per comparable finalized 28 days**, from 190, together with wider relevant nonbrand-query coverage; it is a planning target, not a forecast. After confirmed recrawl and two usable windows, MODIFY if net topic clicks/coverage do not improve, STOP duplicate expansion or displacement without net gain, and retain INCONCLUSIVE where exposure is insufficient. No purchase/completion gate applies to this acquisition program.
+
+### 2026-11-21 — global SEO headroom: numerator verified, market denominator unavailable
+
+Ye approved the two-owner Arabic improvement, then asked for the all-language related-search market total and VisuTry's captured percentage before implementation. [Evidence and arithmetic](../operations/evidence/2026-11-21-seo-market-headroom.json).
+
+| Scope | November 13–19 | October 23–November 19 |
+| --- | ---: | ---: |
+| GA4 all-channel sessions (date report) | 2,741 | 8,387 |
+| GSC finalized Web clicks | 2,350 | 6,476 |
+| GSC property impressions | 52,896 | 162,412 |
+| GSC CTR | 4.44% | 3.99% |
+
+**CTR is not market share.** GSC counts the property's appearances and clicks, not all related Google searches or all sites' organic clicks. Current-week × four is a 9,400-click/28d run-rate scenario, distinct from the actual 6,476 preceding-28d clicks. No cross-source rate is computed.
+
+The public [Semrush October 2026 report for detect-face-shape.com](https://www.semrush.com/website/detect-face-shape.com/overview/) (updated November 11) estimates **135,000 monthly searches for “face shape detector” in India**. This is relevant external scale evidence, not a global total or first-party measurement. The report also shows a 55.99K estimated organic-traffic widget whose geographic scope is not explicit; no share is calculated from it. Historical US/English brand Keyword Planner ranges remain historical and partly mismatched to BYO intent.
+
+**Current global market total/share: UNAVAILABLE.** Windsor connects GA4/GSC, not keyword volume. A bounded read-only attempt to access the previously used Google Keyword Planner encountered its ad-blocker dialog. No settings, campaigns, accounts or spend were changed. [Google's historical metrics](https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics) require aligned country/time/network scope and close-variant deduplication. Search counts also differ from available organic clicks.
+
+At unchanged 52,896 weekly impressions, hypothetical 6%/8%/10% CTR yields 3,174/4,232/5,290 weekly clicks (**1.35×/1.80×/2.25×**). Reaching **23,500 clicks/week** at an assumed 8–10% CTR requires **235,000–293,750 impressions/week**, or **4.44–5.55×** current exposure. These are requirements, not forecasts or proof of attainable rankings.
+
+**Decision:** relevant demand and expansion opportunities are evidenced; exact remaining market share and attainable 10× remain **INCONCLUSIVE**. Build a deduplicated topic-demand denominator when current volume access is restored, while retaining the approved bounded Arabic owner work. This diagnostic does not implement that work or restore a conversion/payment gate.
