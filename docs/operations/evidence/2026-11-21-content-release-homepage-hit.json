@@ -1,0 +1,67 @@
+{
+  "purpose": "Satisfy trustedLocalHitEvidenceRequired for homepage skipped by GitHub runner challenge in run44896319910. Exactly two ordinary sequential GETs; no cache-busting, cookies, authentication, purge or challenge bypass.",
+  "workflowRun": "44896319910",
+  "url": "https://www.visutry.com/en",
+  "requests": [
+    {
+      "requestNumber": 1,
+      "requestedAtUtc": "2026-11-21T10:55:45.887070+00:00",
+      "completedAtUtc": "2026-11-21T10:55:51.950658+00:00",
+      "method": "GET",
+      "requestedUrl": "https://www.visutry.com/en",
+      "finalUrl": "https://www.visutry.com/en",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "age": "0",
+        "cf-mitigated": null,
+        "cf-cache-status": "DYNAMIC",
+        "cf-ray": "a5df2a1aedb9348b-MSP",
+        "x-visutry-edge-cache": "MISS",
+        "x-visutry-html-version": null,
+        "x-vercel-cache": "PRERENDER"
+      },
+      "title": "Free Face Shape Detector &amp; Virtual Glasses Try-On | VisuTry",
+      "bytes": 116631,
+      "bodySha256": "90122fd966637d55b7825c23b23a8d8b9c2a295d6030453c65fef6fa0b11ff34",
+      "noChallenge": true,
+      "clean200Hit": false
+    },
+    {
+      "requestNumber": 2,
+      "requestedAtUtc": "2026-11-21T10:55:51.950894+00:00",
+      "completedAtUtc": "2026-11-21T10:55:56.009645+00:00",
+      "method": "GET",
+      "requestedUrl": "https://www.visutry.com/en",
+      "finalUrl": "https://www.visutry.com/en",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, s-maxage=3600, max-age=0, must-revalidate",
+        "age": "4",
+        "cf-mitigated": null,
+        "cf-cache-status": "HIT",
+        "cf-ray": "a5df2a369850348b-MSP",
+        "x-visutry-edge-cache": "HIT",
+        "x-visutry-html-version": null,
+        "x-vercel-cache": "PRERENDER"
+      },
+      "title": "Free Face Shape Detector &amp; Virtual Glasses Try-On | VisuTry",
+      "bytes": 116631,
+      "bodySha256": "90122fd966637d55b7825c23b23a8d8b9c2a295d6030453c65fef6fa0b11ff34",
+      "noChallenge": true,
+      "clean200Hit": true
+    }
+  ],
+  "decision": "PASS",
+  "acceptanceCriteria": {
+    "bothCleanHttp200WithoutChallenge": true,
+    "secondRequestEdgeHit": true,
+    "sameHtmlBody": true
+  },
+  "observedCacheSequence": [
+    "MISS",
+    "HIT"
+  ]
+}

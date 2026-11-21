@@ -1,0 +1,54 @@
+{
+  "decision": "PASS",
+  "capturedAtUtc": "2026-11-21T10:53:25.651206+00:00",
+  "verifiedAtUtc": "2026-11-21T10:54:49.742937+00:00",
+  "releaseContextProvidedByOperator": {
+    "mainCommit": "9adc631cc20f887d3bd1b146cf3a2eec532e7ae0",
+    "deploymentId": "dpl_AQ8Me89djZf8ZRuXBkEc5btpVT2F",
+    "publicHtmlRun": "44896319910",
+    "publicHtmlRunSuccessAtUtc": "2026-11-21T10:53:10Z"
+  },
+  "scope": "Read-only public HTML, links and image bytes. No account activity, product task, AI call or purchase. Previous exact candidate mobile/desktop browser QA remains separate evidence.",
+  "checks": {
+    "allFourPagesHttp200": true,
+    "threeNewSectionsPresentExactlyOnce": true,
+    "japaneseDetectorAnchorPresent": true,
+    "detectorMatchesApproved61WordModule": true,
+    "detectorRatioExplanationAbsent": true,
+    "allTitlesCanonicalHreflangUnchanged": true,
+    "eachPageHasTenHreflang": true,
+    "noExistingKeyLinkTargetsLost": true,
+    "allThreeImagesHttp200AndDecoded": true,
+    "newDetectorWebpMatchesExpectedHashSizeDimensions": true,
+    "allFourAdvisorByoDestinationsHttp200NoRedirect": true,
+    "robotsMetadataUnchanged": true
+  },
+  "detectorWebp": {
+    "url": "https://www.visutry.com/images/seo/core/detector-browser-result-20261121.webp",
+    "finalUrl": "https://www.visutry.com/images/seo/core/detector-browser-result-20261121.webp",
+    "status": 200,
+    "headers": {
+      "content-type": "image/webp",
+      "cache-control": "public, max-age=0, must-revalidate",
+      "x-vercel-cache": null,
+      "x-vercel-id": null,
+      "age": null
+    },
+    "bytes": 49034,
+    "sha256": "7553807d231793c56f966f2007e191260083faa95a8688ab963cafedd2fb9ec5",
+    "decodedImage": {
+      "format": "WEBP",
+      "width": 1062,
+      "height": 510
+    }
+  },
+  "evidenceFiles": [
+    "baseline.json",
+    "ja-provisional.json",
+    "post.json",
+    "post-en-detector.html",
+    "post-ja-selection.html",
+    "post-ja-detector.html",
+    "post-en-guide.html"
+  ]
+}
