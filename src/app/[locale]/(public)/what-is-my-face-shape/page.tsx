@@ -9,6 +9,7 @@ import { B01VisualSeoSections } from '@/components/seo/B01VisualSeoSections'
 import Link from '@/components/layout/PublicLink'
 import { FACE_SHAPE_COMPARISONS } from '@/config/face-shape-comparisons'
 import { EN_FACE_IDENTIFICATION } from '@/config/english-search-entry-content'
+import { ArabicFaceShapeGuide } from '@/components/seo/ArabicFaceShapeGuide'
 
 const pathname = '/what-is-my-face-shape'
 const routeId = 'what-is-my-face-shape' as const
@@ -64,11 +65,12 @@ export default function WhatIsMyFaceShapePage({ params }: Props) {
       includeCtas={['detector', 'advisor', 'try_on']}
       bottomCtas={['detector']}
       ctaLabels={copy.ctaLabels}
-      principles={locale === 'en' ? undefined : copy.principles}
+      principles={locale === 'en' || locale === 'ar' ? undefined : copy.principles}
       faq={copy.faq}
       faqEyebrow={copy.faqEyebrow}
       faqTitle={copy.faqTitle}
     >
+      {locale === 'ar' ? <ArabicFaceShapeGuide /> : null}
       <B01VisualSeoSections locale={locale} pagePath="/what-is-my-face-shape" />
       {locale === 'en' && (
         <section className="mt-12" aria-labelledby="compare-face-shapes">
