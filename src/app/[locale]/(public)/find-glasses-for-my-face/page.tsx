@@ -7,6 +7,7 @@ import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
 import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
 import { B02VisualSeoSections } from '@/components/seo/B02VisualSeoSections'
+import { JapaneseGlassesSelectionExample } from '@/components/seo/JapaneseGlassesSelectionExample'
 
 const pathname = '/find-glasses-for-my-face'
 const routeId = 'find-glasses-for-my-face' as const
@@ -66,6 +67,7 @@ export default function FindGlassesForMyFacePage({ params }: Props) {
       faqTitle={copy.faqTitle}
     >
       <B02VisualSeoSections locale={locale} pagePath="/find-glasses-for-my-face" />
+      {locale === 'ja' ? <JapaneseGlassesSelectionExample /> : null}
     </SearchToToolLanding>
   )
 }
