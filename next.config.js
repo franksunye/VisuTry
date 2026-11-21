@@ -129,9 +129,11 @@ const nextConfig = {
     reactRemoveProperties: process.env.NODE_ENV === 'production',
   },
 
-  transpilePackages: process.env.CLOUDFLARE_BUILD === '1'
-    ? ['@prisma/client', '@prisma/adapter-neon']
-    : [],
+  // The shared SDK is ESM. Keep the same package executable in Next and next/jest.
+  transpilePackages: [
+    '@visutry/tryon-core',
+    ...(process.env.CLOUDFLARE_BUILD === '1' ? ['@prisma/client', '@prisma/adapter-neon'] : []),
+  ],
 
   output: 'standalone',
   async rewrites() {

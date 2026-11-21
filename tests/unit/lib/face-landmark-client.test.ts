@@ -25,6 +25,7 @@ import {
   shouldAllowRemoteMediaPipeFallback,
 } from '@/lib/face-landmark-client'
 import type { FaceLandmarkPoint } from '@/types/face-analysis'
+import geometryBaseline from './fixtures/face-geometry-pre-sdk.json'
 
 const landmarks: FaceLandmarkPoint[] = Array.from({ length: 455 }, (_, index) => ({
   x: 0.2 + (index % 20) * 0.02,
@@ -205,6 +206,24 @@ describe('face-landmark-client detector fallback', () => {
     expect(result.detection).not.toBeNull()
     expect(URL.createObjectURL).not.toHaveBeenCalled()
     expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+    expect(bitmap.close).toHaveBeenCalledTimes(1)
+  })
+
+  it('passes decoded portrait dimensions through the real SDK adapter', async () => {
+    const fixture = geometryBaseline.measurementCases.find((item) => item.name === 'pixel-geometry-800x1200')!
+    const points: FaceLandmarkPoint[] = Array.from({ length: 455 }, () => ({ x: 0.5, y: 0.5 }))
+    const selected = { ...geometryBaseline.defaultPoints, ...fixture.overrides }
+    for (const key of Object.keys(geometryBaseline.indices) as (keyof typeof geometryBaseline.indices)[]) {
+      points[geometryBaseline.indices[key]] = selected[key]!
+    }
+    const bitmap = { width: 800, height: 1200, close: jest.fn() }
+    ;(globalThis.createImageBitmap as jest.Mock).mockResolvedValue(bitmap)
+    mockGpuDetect.mockReturnValue({ faceLandmarks: [points] })
+
+    const result = await analyzeFaceLandmarkFile(new File(['portrait'], 'sdk-aspect-ratio.jpg', { type: 'image/jpeg' }))
+
+    expect(result.geometry).toEqual(fixture.expected)
+    expect(result.geometry.ratios?.faceAspectRatio).toBe(1.5)
     expect(bitmap.close).toHaveBeenCalledTimes(1)
   })
 

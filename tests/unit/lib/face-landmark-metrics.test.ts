@@ -24,6 +24,8 @@ const indices = {
   noseBridge: 168,
 }
 
+const squareImage = { imageWidth: 1000, imageHeight: 1000 }
+
 function makeLandmarks(overrides: Partial<Record<keyof typeof indices, FaceLandmarkPoint>>) {
   const points: FaceLandmarkPoint[] = Array.from({ length: 455 }, () => ({ x: 0.5, y: 0.5, z: 0 }))
   const defaults: Record<keyof typeof indices, FaceLandmarkPoint> = {
@@ -80,7 +82,7 @@ function makePixelScaledLandmarks(width: number, height: number) {
 
 describe('face-landmark-metrics', () => {
   it('measures landmarks and derives a supported face shape', () => {
-    const geometry = analyzeFaceLandmarks(makeLandmarks({}), { faceCount: 1 })
+    const geometry = analyzeFaceLandmarks(makeLandmarks({}), { faceCount: 1, ...squareImage })
 
     expect(geometry.status).toBe('measured')
     expect(geometry.faceDetected).toBe(true)
@@ -160,7 +162,7 @@ describe('face-landmark-metrics', () => {
     const geometry = analyzeFaceLandmarks(makeLandmarks({
       leftEyeOuter: { x: 0.38, y: 0.34 },
       rightEyeOuter: { x: 0.62, y: 0.46 },
-    }), { faceCount: 1 })
+    }), { faceCount: 1, ...squareImage })
 
     expect(geometry.status).toBe('unavailable')
     expect(geometry.warnings[0]).toContain('too tilted')
@@ -170,7 +172,7 @@ describe('face-landmark-metrics', () => {
   it('rejects a face that is off-center', () => {
     const geometry = analyzeFaceLandmarks(makeLandmarks({
       noseBridge: { x: 0.62, y: 0.42 },
-    }), { faceCount: 1 })
+    }), { faceCount: 1, ...squareImage })
 
     expect(geometry.status).toBe('unavailable')
     expect(geometry.warnings[0]).toContain('off-center')
@@ -184,7 +186,7 @@ describe('face-landmark-metrics', () => {
       leftFace: { x: 0.44, y: 0.5 },
       rightFace: { x: 0.56, y: 0.5 },
     })
-    const geometry = analyzeFaceLandmarks(tiny, { faceCount: 1 })
+    const geometry = analyzeFaceLandmarks(tiny, { faceCount: 1, ...squareImage })
 
     expect(geometry.status).toBe('unavailable')
     expect(geometry.warnings[0]).toContain('too small')
@@ -192,7 +194,7 @@ describe('face-landmark-metrics', () => {
   })
 
   it('builds landmark-sourced metrics when geometry is measured', () => {
-    const geometry = analyzeFaceLandmarks(makeLandmarks({}), { faceCount: 1 })
+    const geometry = analyzeFaceLandmarks(makeLandmarks({}), { faceCount: 1, ...squareImage })
     const metrics = buildMeasuredFaceMetrics('oblong', 0.82, geometry, {
       interpretation: 'landmark-only',
     })

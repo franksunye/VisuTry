@@ -30,7 +30,7 @@ const customJestConfig = {
     '<rootDir>/tests/e2e-playwright/',
   ],
   transformIgnorePatterns: [
-    '/node_modules/(?!(lucide-react)/)',
+    '/node_modules/(?!(lucide-react|@visutry/tryon-core)/)',
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
@@ -47,6 +47,9 @@ const customJestConfig = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    // Jest's CJS resolver cannot select an import-only export. Execute the real
+    // installed ESM entry through next/jest's SWC transform; never mock the SDK.
+    '^@visutry/tryon-core$': '<rootDir>/node_modules/@visutry/tryon-core/dist/index.js',
     '^lucide-react$': '<rootDir>/tests/mocks/lucide-react.cjs.js',
     '^lucide-react/dist/esm/icons/(.*)$': '<rootDir>/tests/mocks/lucide-icon.cjs.js',
   },
