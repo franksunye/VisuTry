@@ -1,87 +1,137 @@
-# VisuTry Reddit + YouTube Community Growth Runbook
+# VisuTry Reddit Community Growth Runbook
 
-**Status:** Historical safety runbook; 2026-08 cadence not reverified  
+**Status:** Current Reddit execution contract; publishing prerequisites remain explicit  
 **Owner:** Growth / Community Ops  
-**Last reviewed:** 2026-11-01
-
-Operational branch: `growth/community-ops`
-Timezone: project/operator local timezone, currently `Asia/Shanghai`
-Historical schedule claim (2026-08; not verified live): every day at 10:00 local time
-Scheduler evidence: the Codex automation is verified separately from this repository documentation. Persist the real task ID and status in `growth/community/state/community-state.json`; use `NOT_EXPOSED` for unavailable next-run or run-ID fields.
-
-**Governance checkpoint (2026-11-01):** The August Week 1 cadence, branch and references below are historical descriptions, not authorization to restart promotion, outreach or comments. Check actual scheduler/branch/log state before treating community work as live; do not disable a real external automation based solely on this documentation note. Current Consumer growth priorities and outbound approval are governed by `docs/strategy/analytics/gtm.md`.
+**Last reviewed:** 2026-11-21  
+**Strategy:** `docs/strategy/analytics/gtm.md`
 
 ## Purpose
 
-This system uses Reddit and YouTube for three connected jobs:
-
 1. Help people make eyewear decisions.
 2. Capture authentic customer questions and objections.
-3. Create qualified awareness of VisuTry only when a product mention is genuinely relevant.
+3. Create qualified awareness of VisuTry when the product and community context fit.
+4. Close the loop from a useful draft to a real publication, follow-up and outcome.
 
-The success condition is useful participation plus durable evidence. Comment count is not a target by itself.
+Comment count is not a target by itself. Repeated research-only reports do not
+establish a working distribution channel.
+
+## Authorization and current capability
+
+The user's 2026-11-21 request authorizes sustained useful Reddit participation
+and relevant VisuTry promotion. Do not repeatedly seek the same authorization.
+
+Current capability states are `HUMAN_PUBLISHING_AVAILABLE` and
+`AUTOMATED_PUBLISHING_NOT_VERIFIED`. They describe current evidence, not an
+agreed permanent human-only workflow. Verify the actual publishing method's
+platform/account/community requirements before transmission. User authorization
+does not establish app registration, and human review does not exempt an
+agent-operated account from Reddit rules.
+
+A logged-in session is not proof of permission for automated publishing.
+Registration alone does not permit continuous product promotion. If a concrete
+capability or rule prevents publication, deliver the exact target, final text
+and blocker while the opportunity is current.
 
 ## Canonical locations
 
-- Policy: `docs/growth/community/`
+- Policy and community evidence: `docs/growth/community/`
+- Execution entry point: `automation/community-growth/task-prompt.md`
 - Daily evidence: `growth/community/daily/YYYY-MM-DD.md`
-- Weekly review: `growth/community/weekly/YYYY-Wxx.md`
-- Accumulated insights: `growth/community/insights/`
-- Persistent state: `growth/community/state/`
-- Scheduler notes and manual entry point: `automation/community-growth/`
+- Weekly outcome review: `growth/community/weekly/YYYY-Wxx.md`
+- Customer insights: `growth/community/insights/`
+- Interaction index and state: `growth/community/state/`
 
-## Daily cadence
+Read the current authorized checkout. Do not require the historical
+`growth/community-ops` branch or fixed local machine path. Old state timestamps
+and `ACTIVE` fields remain historical until real scheduler evidence is rechecked.
 
-| Day | Mode | Default new activity ceiling |
-| --- | --- | --- |
-| Monday | Active discovery and participation | Reddit 2-4, YouTube 2-4 |
-| Tuesday | Follow-up and light discovery | Reddit 0-2, YouTube 0-2 |
-| Wednesday | Active participation | Reddit 2-4, YouTube 2-4 |
-| Thursday | Research and follow-up | Reddit 0-2, YouTube 0-2 |
-| Friday | Active participation and optional post evaluation | Reddit 2-3, YouTube 2-3, max 1 Reddit post |
-| Saturday/Sunday | Maintenance and exceptional opportunities | Follow-ups first; avoid aggressive discovery |
+## Execution loop
 
-Week 1 is intentionally below these ceilings while account history, rules, authentication, and logging are validated.
+1. Read recent actual publications, pending drafts, follow-ups and current rules.
+2. Verify the selected session's account/auth state without extracting secrets.
+3. Check relevant replies before discovering new threads.
+4. Search several distinct eyewear decision intents and rule-compatible formats.
+5. Read the full context and current community rules. Assess product mentions,
+   links and AI content independently; no extra rule shown is not moderator approval.
+6. Decide whether a contribution is useful. Choose `COMMUNITY_VALUE`,
+   `TRANSPARENT_MENTION` or `DIRECT_SHARE` and the minimum helpful depth:
+   `LIGHT`, `CONVERSATIONAL`, `DETAILED` or `FOLLOW_UP`.
+7. Produce a complete packet: exact target, final text, relevance, disclosures,
+   rule evidence/date, any link and a freshness condition. Do not use a generic
+   monitoring summary when a useful concrete draft can be delivered.
+8. Verify the intended publishing method's requirements, recheck context and
+   submit only when those requirements are satisfied. If blocked, record the
+   precise boundary and deliver the packet; do not wait indefinitely.
+9. Verify actual publication through a live permalink and visible content.
+   Check public visibility when the author view could conceal filtering or
+   moderation; otherwise record `PUBLIC_VISIBILITY_UNVERIFIED`. Record drafts
+   and submit attempts separately. Recheck removal status and replies on the
+   next run; do not claim a post survives moderation from a submit response.
+10. Save concise evidence, evidence-backed insights and an outcome review through
+    the current authorized repository workflow. Do not automatically restore an
+    old branch, create weekly PRs or fabricate scheduled-run evidence.
 
-## Required execution order
+Keep the pending queue small and current. Expire removed, locked, answered or
+stale candidates instead of mechanically recycling them. No forced daily
+promotion quota or volume increase to compensate for missed runs.
 
-1. Read the previous seven daily logs, current weekly report, interaction index, insight files, recent VisuTry mentions/links, and community maps.
-2. Open the authenticated browser profile and verify Reddit and YouTube/Google separately.
-3. If authentication is missing, record `AUTH_REQUIRED: REDDIT` or `AUTH_REQUIRED: YOUTUBE`; do not bypass security.
-4. Check notifications, replies, and existing conversations before discovering new threads or videos.
-5. Search broad eyewear decision intent using the query pools in the platform maps.
-6. Read full context, community rules, and existing discussion before acting.
-7. Publish only standalone-useful, non-duplicative responses. Default to no VisuTry mention and no link.
-8. Decide whether a response is actually needed, then choose `LIGHT`, `CONVERSATIONAL`, `DETAILED`, or `FOLLOW_UP` depth and match the community/user tone. Compare against recent account comments to avoid repeated cadence.
-9. Record the execution trigger as `MANUAL`, `SCHEDULED`, `RETRY`, or `UNKNOWN`; record a scheduler run ID only when the platform exposes one.
-10. Extract real user questions, growth opportunities, product/merchant signals, and measurement gaps.
-11. Update the daily log, insight files, community state, and interaction index.
-12. Inspect the diff for secrets and unrelated changes, commit with `growth: community ops YYYY-MM-DD`, and push the operational branch.
-13. On the final operating run of the ISO week, update the weekly review and create or update one PR targeting `main`.
+## Outcome states
 
-## Safe output states
+| State | Meaning |
+| --- | --- |
+| `DRAFT_READY` | Complete target-specific text is ready for review or a permitted publishing method. |
+| `PUBLISHED_VERIFIED` | A live permalink and visible published text were observed. |
+| `PUBLIC_VISIBILITY_UNVERIFIED` | Submission or author-visible text exists, but public availability is not verified. |
+| `FOLLOW_UP_READY` | A real conversation needs a specific next reply. |
+| `AUTH_REQUIRED` | The selected account session cannot be used. |
+| `PUBLISHING_METHOD_NOT_VERIFIED` | Requirements for the intended publishing method are not verified. |
+| `PLATFORM_RULE_BLOCKED` | The intended content or method is not permitted. |
+| `RUNTIME_CONFIRMATION_REQUIRED` | The current runtime requires an unavailable action-time confirmation. |
+| `NO_RELEVANT_OPPORTUNITY` | A bounded, varied search found no worthwhile candidate. |
+| `EXPIRED` | Context changed; the draft must not be reused unchanged. |
 
-- `COMPLETED`: useful work and evidence were recorded.
-- `NO_HIGH_QUALITY_ACTION_FOUND`: research happened, but no public interaction was appropriate.
-- `AUTH_REQUIRED`: one platform could not be used safely; continue with the other if possible.
-- `PLATFORM_BLOCKED`, `BROWSER_ERROR`, `RATE_LIMITED`, `COMMUNITY_RULE_RESTRICTION`, `GIT_PUSH_FAILED`, or `SCHEDULER_FAILED`: record the exact failure and stop the affected action path.
+Record `MANUAL`, `SCHEDULED`, `RETRY` or `UNKNOWN` truthfully. Use
+`NOT_EXPOSED` for unavailable scheduler run IDs. Repository edits, old task IDs
+and a separate review automation do not prove that the publishing workflow runs.
 
-## Pause and manual run
+Repeated zero-publication runs require a specific correction to access,
+community coverage or format. Do not confuse a relevant blocked draft with a
+relevance rejection, or declare the channel unsuccessful from drafts alone.
 
-Pause or resume the Codex automation named `VisuTry Daily Community Growth` from the automation controls. Do not delete the repository system to pause it.
+## Writing, privacy and measurement
 
-For a manual run, check out `growth/community-ops`, open a Codex task in `/Users/yesun/Code/visutry`, and use the prompt in `automation/community-growth/task-prompt.md`. The manual run must use the same log/state/commit workflow and the same safety policy. Do not run a separate shell-only implementation that pretends to have performed browser actions.
+Match the question's tone and required detail without impersonation or invented
+experience. Avoid repeated openings, generic praise and landing-page copy.
+Commercial affiliation and required AI disclosure remain explicit.
 
-Every run must explicitly record `trigger`: `MANUAL`, `SCHEDULED`, `RETRY`, or `UNKNOWN`. For scheduled runs, record `scheduler_run_id` when exposed, otherwise `NOT_EXPOSED`. Do not manually run the next normal daily cycle to fabricate scheduled evidence; allow the active Codex automation to produce the next scheduled log and commit.
+Use the existing authorized session only. Never extract or commit credentials,
+cookies, profiles, tokens, auth headers or private keys. Log only the public
+content needed for follow-up and evidence. Respect removed/deleted content.
 
-## Interaction style review
+Review actual publications, useful replies, moderation outcomes, qualified
+referrals and completed VisuTry decisions. Keep drafts and research separate
+from published actions. Do not infer a causal conversion lift from sparse or
+unjoinable data. Follow the GTM expand / modify / stop review discipline.
 
-Review whether recent replies vary appropriately in depth and tone, fit local norms and the user's wording, avoid repeated structures, and stop when another answer would add noise. Use `LIGHT` or `FOLLOW_UP` when a mini-essay is unnecessary; reserve `DETAILED` for questions that genuinely need multi-factor reasoning.
+## 2026-11-21 verification checkpoint
 
-## Authentication and privacy
+- Live browser check observed Reddit account `u/ZISO_Frank` signed in.
+- Automated app registration/permission was not verified.
+- `r/glassesadvice` still displayed restrictions on advertising and AI posts.
+- `r/glasses` displayed a rule to follow Reddit Rules; no additional rule was
+  observed in this check.
+- `r/SideProject` described project sharing and constructive feedback; its rules
+  page displayed no additional rules. This is not a guarantee of moderator acceptance.
+- One SideProject product-introduction draft was saved in Reddit; the UI
+  confirmed `Draft saved`. Full text and the draft link are recorded in
+  `growth/community/daily/2026-11-21.md`. No public submission was made.
 
-Use the existing authenticated browser session only. Never extract or commit cookies, browser profiles, passwords, tokens, OAuth credentials, auth headers, or private keys. Public URLs and exact public comments may be logged.
+These are dated observations, not permanent permissions or proof of a scheduler.
+Recheck the account, content and rules when taking a real action.
 
-## Weekly review and PR
+## Historical record
 
-The weekly review is a compact management view, not a raw link dump. Highlight the best 3-5 interactions, strongest 3-5 questions, growth/product findings, risks, and at most three next-week experiments. Detailed evidence remains in daily logs. Use PR title `Community Growth — YYYY Wxx` and update the same weekly PR instead of creating one per day.
+The August/September Reddit + YouTube cadence, local Codex task, operational
+branch and closed-unmerged PR #156 remain historical evidence. This contract
+does not restart YouTube, old warm-up quotas or the fixed-branch weekly PR loop.
+Preserve old logs and unique evidence without merging stale operational state.

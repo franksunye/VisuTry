@@ -1,30 +1,48 @@
 # Reddit Community Map
 
-Last reviewed: 2026-08-24
-Review rule: verify visible rules before posting; never treat a prior classification as permanent.
+Last reviewed: 2026-11-21  
+Review rule: verify the intended content and publishing method against current
+rules before posting. A previous classification is not permanent permission.
 
-| Subreddit | Relevance | Activity | Typical questions | Promotion/link rules observed | Tone | Classification | Interaction mode |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `r/glassesadvice` | High: eyewear choice, style, fit, frame hardware | Active | Which frame suits me, frame width, fit, color/shape | Current visible rules: no optometry, ads/spam/off-topic responses, AI posts, online-glasses recommendations, or frame identification requests | Advice-seeking, image-led | CAUTION | Specific fashion/fit/hardware reasoning only; no product, AI, or link by default |
+## Dated community observations
 
-Typical interaction style: short to conversational, image-led, direct but generally supportive; moderate tolerance for fit detail, low tolerance for promotion or generic essays. Prefer `LIGHT` or `CONVERSATIONAL`; use `DETAILED` only when the user asks how fit works or several factors need separating.
+| Subreddit | Relevant use | Rules/context observed on 2026-11-21 | Current action |
+| --- | --- | --- | --- |
+| `r/glassesadvice` | Eyewear style and fit questions | Advertising and AI posts remain restricted. | Read for customer questions; do not publish AI-assisted or promotional content. |
+| `r/glasses` | Eyewear discussion and questions | Visible rule requires following Reddit Rules; no additional rule observed in this check. | Assess a specific thread, AI disclosure, affiliation and publishing method; no blanket promotion approval. |
+| `r/SideProject` | A clearly affiliated product introduction and constructive feedback | Description explicitly supports sharing projects and feedback; rules page displayed no additional rules. | Prepare a specific project-sharing draft; verify method and current context before any submission. Moderator acceptance is not guaranteed. |
 
-## Discovery queue
+These observations come from the current live browser review. They do not verify
+automated app registration, establish a scheduled posting service, or authorize
+a continuously promotional bot. Follow the interaction policy and runbook.
 
-Search and validate candidate communities before adding them to the allowlist. Useful themes include eyewear, fashion advice, online shopping, face shape, style, and product comparison. A candidate remains `UNKNOWN` until its current rules and recent discussion are reviewed in-browser.
+Reference surfaces:
+- [glassesadvice rules](https://www.reddit.com/r/glassesadvice/about/rules/)
+- [glasses rules](https://www.reddit.com/r/glasses/about/rules/)
+- [SideProject](https://www.reddit.com/r/SideProject/)
+- [SideProject rules](https://www.reddit.com/r/SideProject/about/rules/)
 
-Suggested fields for each new entry:
+## Discovery and classification
 
-- Topic relevance
-- Activity level
-- Typical question types
-- Self-promotion and external-link rules
-- Posting restrictions
-- Account-age/karma restrictions if visible
-- Observed tone
-- Last reviewed date
-- Recommended interaction mode
-- Classification: `ALLOW`, `CAUTION`, `AVOID`, or `UNKNOWN`
+Assess product mentions, links, AI-assisted content and the publishing method
+separately. A community can be useful for research while unsuitable for the
+proposed public response. Do not infer permission from another user's
+unmoderated promotional post.
+
+For each current candidate record:
+
+- Exact post/comment or permitted project-sharing format
+- User need and standalone value of the proposed contribution
+- Product mention and link rules
+- AI-content/disclosure rules
+- Posting/account restrictions actually exposed by the platform
+- Rule evidence URL and check date
+- Publishing method and whether its prerequisites are verified
+- Status: `DRAFT_READY`, `RECHECK_REQUIRED`, `PLATFORM_RULE_BLOCKED` or an actual published permalink
+
+Missing evidence means `RECHECK_REQUIRED`, not automatic permission. Choose
+relevant communities deliberately rather than repeatedly searching only a
+restricted surface. Keep the queue small and expire stale targets.
 
 ## Seed query pool
 
