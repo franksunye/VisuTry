@@ -14,12 +14,15 @@ import {
   getOrdinaryGlassesDetailCopy,
   getOrdinaryGlassesHeadingShape,
   getEnglishOrdinaryGlassesStyleNote,
+  getOrdinaryGlassesStyleCopy,
+  getOrdinaryGlassesShapeCheck,
   getOrdinaryGlassesTemplateShape,
   interpolateOrdinaryGlassesCopy,
 } from '@/config/ordinary-glasses-detail-locales'
 import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { generateBreadcrumbSchema, generateCollectionPageSchema, slugify } from '@/lib/programmatic-seo'
+import { EN_STYLE_SHOPPING_GUIDANCE } from '@/config/english-search-entry-content'
 
 interface FaceShapePageProps {
   params: { locale: string; faceShape: string }
@@ -100,8 +103,9 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
     : null
   const pageUrl = `https://www.visutry.com/${locale}${pagePath}`
   const presets = presetIds[shape].map(getTopPickPresetById).filter(isPreset)
+  const englishGuidance = locale === 'en' ? EN_STYLE_SHOPPING_GUIDANCE[shape] : undefined
   const title = interpolateOrdinaryGlassesCopy(detail.title, headingShapeName)
-  const description = interpolateOrdinaryGlassesCopy(detail.description, templateShapeName)
+  const description = englishGuidance?.intro ?? interpolateOrdinaryGlassesCopy(detail.description, templateShapeName)
   const faqContent = [
     {
       question: interpolateOrdinaryGlassesCopy(detail.faqBest, templateShapeName),
@@ -174,7 +178,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
                 {interpolateOrdinaryGlassesCopy(detail.characteristicsTitle, headingShapeName)}
               </h2>
             </div>
-            <p className="mb-5 text-sm leading-6 text-gray-600">{detail.characteristicsText}</p>
+            <p className="mb-5 text-sm leading-6 text-gray-600">{englishGuidance?.priorities ?? getOrdinaryGlassesShapeCheck(locale, shape) ?? detail.characteristicsText}</p>
             <div className="rounded-lg bg-blue-50 p-4 text-sm leading-6 text-blue-900">{detail.guidance}</div>
           </div>
         </section>
@@ -214,38 +218,41 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {presets.map((preset, index) => (
-              <GrowthFunnelLink prefetch={false}
-                key={preset.id}
-                href={`/${locale}/try-on/glasses`}
-                sourcePage={pagePath}
-                destination="glasses-try-on"
-                ctaLocation={`recommended-style-${index + 1}`}
-                queryCluster="glasses-by-face-shape"
-                className="group overflow-hidden rounded-lg border border-gray-200 bg-white transition hover:shadow-lg"
-              >
-                <div className="relative h-48 overflow-hidden bg-gray-100">
-                  <Image
-                    src={`/${preset.assetPath}`}
-                    alt={locale === 'en' ? `${preset.name} frames for ${templateShapeName} faces` : `${detail.recommendedEyebrow} ${index + 1} · ${shapeName}`}
-                    width={360}
-                    height={240}
-                    className="h-full w-full object-cover transition group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-950 group-hover:text-blue-700">
-                    {locale === 'en' ? `${preset.name} Frames` : `${detail.recommendedEyebrow} ${index + 1}`}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-gray-600">
-                    {locale === 'en'
-                      ? getEnglishOrdinaryGlassesStyleNote(shape, preset.id) ?? seoCopy.glasses.reasons[shape]
-                      : seoCopy.glasses.reasons[shape]}
-                  </p>
-                  <p className="mt-3 text-sm font-semibold text-blue-700">{detail.tryStyle}</p>
-                </div>
-              </GrowthFunnelLink>
-            ))}
+            {presets.map((preset, index) => {
+              const localizedStyle = getOrdinaryGlassesStyleCopy(locale, shape, preset.id)
+              return (
+                <GrowthFunnelLink prefetch={false}
+                  key={preset.id}
+                  href={`/${locale}/try-on/glasses`}
+                  sourcePage={pagePath}
+                  destination="glasses-try-on"
+                  ctaLocation={`recommended-style-${index + 1}`}
+                  queryCluster="glasses-by-face-shape"
+                  className="group overflow-hidden rounded-lg border border-gray-200 bg-white transition hover:shadow-lg"
+                >
+                  <div className="relative h-48 overflow-hidden bg-gray-100">
+                    <Image
+                      src={`/${preset.assetPath}`}
+                      alt={localizedStyle ? `${localizedStyle.name} · ${shapeName}` : locale === 'en' ? `${preset.name} frames for ${templateShapeName} faces` : `${detail.recommendedEyebrow} ${index + 1} · ${shapeName}`}
+                      width={360}
+                      height={240}
+                      className="h-full w-full object-cover transition group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-950 group-hover:text-blue-700">
+                      {localizedStyle?.name ?? (locale === 'en' ? `${preset.name} Frames` : `${detail.recommendedEyebrow} ${index + 1}`)}
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-gray-600">
+                      {localizedStyle?.note ?? (locale === 'en'
+                        ? getEnglishOrdinaryGlassesStyleNote(shape, preset.id) ?? seoCopy.glasses.reasons[shape]
+                        : seoCopy.glasses.reasons[shape])}
+                    </p>
+                    <p className="mt-3 text-sm font-semibold text-blue-700">{detail.tryStyle}</p>
+                  </div>
+                </GrowthFunnelLink>
+              )
+            })}
           </div>
         </section>
 
@@ -255,9 +262,9 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
         <section className="mt-12 rounded-lg border border-gray-200 bg-white p-6">
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">{detail.workflowEyebrow}</p>
+              <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">{englishGuidance ? 'Before choosing a pair' : detail.workflowEyebrow}</p>
               <h2 className="text-2xl font-bold text-gray-950">
-                {interpolateOrdinaryGlassesCopy(detail.workflowTitle, headingShapeName)}
+                {englishGuidance ? `Three checks for ${templateShapeName} faces` : interpolateOrdinaryGlassesCopy(detail.workflowTitle, headingShapeName)}
               </h2>
             </div>
             <GrowthFunnelLink prefetch={false}
@@ -272,13 +279,20 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
             </GrowthFunnelLink>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
-            {seoCopy.glasses.steps.map((step) => (
+            {(englishGuidance?.checks ?? seoCopy.glasses.steps).map((step) => (
               <article key={step.title} className="rounded-lg border border-gray-200 p-5">
                 <h3 className="mb-2 font-semibold text-gray-950">{step.title}</h3>
                 <p className="text-sm leading-6 text-gray-700">{step.text}</p>
               </article>
             ))}
           </div>
+          {englishGuidance && (
+            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+              {englishGuidance.links.map((link) => (
+                <Link key={link.href} href={link.href} prefetch={false} className="text-blue-700 hover:text-blue-900">{link.label}</Link>
+              ))}
+            </div>
+          )}
         </section>
 
         {b04PagePath ? <B04VisualSeoSections locale={locale} pagePath={b04PagePath} stage="fit" /> : null}

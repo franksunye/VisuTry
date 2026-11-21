@@ -6,6 +6,9 @@ import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
 import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
 import { B01VisualSeoSections } from '@/components/seo/B01VisualSeoSections'
+import Link from '@/components/layout/PublicLink'
+import { FACE_SHAPE_COMPARISONS } from '@/config/face-shape-comparisons'
+import { EN_FACE_IDENTIFICATION } from '@/config/english-search-entry-content'
 
 const pathname = '/what-is-my-face-shape'
 const routeId = 'what-is-my-face-shape' as const
@@ -26,17 +29,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default function WhatIsMyFaceShapePage({ params }: Props) {
   const locale = params.locale
-  const copy = getSearchToToolLandingCopy(locale, routeId)
+  const baseCopy = getSearchToToolLandingCopy(locale, routeId)
+  const copy = locale === 'en' ? { ...baseCopy, ...EN_FACE_IDENTIFICATION } : baseCopy
   const sourcePage = pathname
   const queryCluster = 'what-is-my-face-shape'
 
   const schemas = [
     generateStructuredData('faqPage', { questions: copy.faq }),
     generateStructuredData('howTo', {
-      name: copy.howTo.name,
-      description: copy.howTo.description,
+      name: locale === 'en' ? 'How to identify your face shape' : copy.howTo.name,
+      description: locale === 'en' ? copy.intro : copy.howTo.description,
       totalTime: 'PT2M',
-      steps: copy.howTo.steps,
+      steps: locale === 'en'
+        ? copy.steps.map(({ title, text }) => ({ name: title, text }))
+        : copy.howTo.steps,
     }),
   ]
 
@@ -58,12 +64,32 @@ export default function WhatIsMyFaceShapePage({ params }: Props) {
       includeCtas={['detector', 'advisor', 'try_on']}
       bottomCtas={['detector']}
       ctaLabels={copy.ctaLabels}
-      principles={copy.principles}
+      principles={locale === 'en' ? undefined : copy.principles}
       faq={copy.faq}
       faqEyebrow={copy.faqEyebrow}
       faqTitle={copy.faqTitle}
     >
       <B01VisualSeoSections locale={locale} pagePath="/what-is-my-face-shape" />
+      {locale === 'en' && (
+        <section className="mt-12" aria-labelledby="compare-face-shapes">
+          <h2 id="compare-face-shapes" className="text-2xl font-bold text-gray-950">Between two face shapes?</h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {Object.values(FACE_SHAPE_COMPARISONS).map((comparison) => (
+              <article key={comparison.slug} className="rounded-lg border border-gray-200 bg-white p-5">
+                <h3 className="font-semibold capitalize text-gray-950">{comparison.first} vs {comparison.second}</h3>
+                <p className="mt-2 text-sm leading-6 text-gray-600">{comparison.keyDifference}</p>
+                <Link href={`/en/face-shapes/compare/${comparison.slug}`} className="mt-3 inline-block text-sm font-semibold text-blue-700 hover:text-blue-900">
+                  Compare the signs →
+                </Link>
+              </article>
+            ))}
+          </div>
+          <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+            <Link href="/en/face-shape-measurement" className="text-blue-700 hover:text-blue-900">How to measure your face</Link>
+            <Link href="/en/glasses-for-face-shape" className="text-blue-700 hover:text-blue-900">Find glasses for your face shape</Link>
+          </div>
+        </section>
+      )}
     </SearchToToolLanding>
   )
 }

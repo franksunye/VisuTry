@@ -5,7 +5,7 @@ import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { FACE_SHAPE_COMPARISON_SLUGS } from '@/config/face-shape-comparisons'
 import { CURATED_BRAND_SLUGS } from '@/config/brand-try-on-content'
 import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
-import { getVisualSeoAssetsForPage } from '@/config/visual-seo-assets'
+import { getEditorialImagePaths } from '@/config/editorial-image-discovery'
 import { VISUTRY_DEMO_FRAME_ROUTES } from '@/lib/visutry-demo-frame-routes'
 
 export function buildSitemapAlternates(baseUrl: string, path: string): Record<string, string> {
@@ -17,9 +17,9 @@ export function buildSitemapAlternates(baseUrl: string, path: string): Record<st
   return alternates
 }
 
-function visualSeoImages(baseUrl: string, path: string): string[] | undefined {
-  const assets = getVisualSeoAssetsForPage(path)
-  return assets.length > 0 ? assets.map((asset) => `${baseUrl}${asset.publicPath}`) : undefined
+function editorialImages(baseUrl: string, path: string, locale = 'en'): Pick<SitemapEntry, 'images'> {
+  const paths = getEditorialImagePaths(path, locale)
+  return paths.length > 0 ? { images: paths.map((imagePath) => `${baseUrl}${imagePath}`) } : {}
 }
 
 export function buildCoreSitemapEntries(baseUrl: string): SitemapEntry[] {
@@ -79,7 +79,7 @@ export function buildCoreSitemapEntries(baseUrl: string): SitemapEntry[] {
         changeFrequency,
         priority,
         alternates: { languages: buildSitemapAlternates(baseUrl, path) },
-        ...(locale === 'en' && visualSeoImages(baseUrl, path) ? { images: visualSeoImages(baseUrl, path) } : {}),
+        ...editorialImages(baseUrl, path, locale),
       })
     })
   })
@@ -111,19 +111,18 @@ export function buildCoreSitemapEntries(baseUrl: string): SitemapEntry[] {
         changeFrequency: 'weekly',
         priority: 0.8,
         alternates: { languages: buildSitemapAlternates(baseUrl, path) },
-        ...(locale === 'en' && visualSeoImages(baseUrl, path) ? { images: visualSeoImages(baseUrl, path) } : {}),
+        ...editorialImages(baseUrl, path, locale),
       })
     })
   })
 
   staticFaceShapePaths.forEach((path) => {
-    const images = visualSeoImages(baseUrl, path)
     entries.push({
       url: `${baseUrl}/en${path}`,
       changeFrequency: 'weekly',
       priority: 0.75,
       alternates: { languages: { en: `${baseUrl}/en${path}` } },
-      ...(images ? { images } : {}),
+      ...editorialImages(baseUrl, path),
     })
   })
 
@@ -134,6 +133,7 @@ export function buildCoreSitemapEntries(baseUrl: string): SitemapEntry[] {
         changeFrequency: 'weekly',
         priority: 0.8,
         alternates: { languages: buildSitemapAlternates(baseUrl, path) },
+        ...editorialImages(baseUrl, path, locale),
       })
     })
   })

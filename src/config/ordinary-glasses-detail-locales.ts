@@ -1,6 +1,8 @@
 import { defaultLocale, isValidLocale, type Locale } from '@/i18n'
 import type { FaceShapeContentSlug } from '@/config/face-shape-content'
 
+export { getOrdinaryGlassesShapeCheck, getOrdinaryGlassesStyleCopy } from '@/config/ordinary-glasses-native-style-copy'
+
 export type OrdinaryGlassesDetailCopy = {
   metaTitle: string
   metaDescription: string
@@ -39,8 +41,8 @@ const englishHeadingShapes: Record<FaceShapeContentSlug, string> = {
 }
 
 // The four recommended cards must explain the actual preset shown, not reuse
-// a face-shape slogan under numbered placeholders. English first; other locale
-// cards retain their current translated copy until individually reviewed.
+// a face-shape slogan under numbered placeholders. JA/ES notes are provided by
+// ordinary-glasses-native-style-copy; other locales retain their existing copy.
 const englishStyleNotes: Record<FaceShapeContentSlug, Record<string, string>> = {
   round: {
     'rectangle-classic': 'Straight top and bottom edges add definition; compare the frame width with the widest part of your face.',
@@ -152,7 +154,30 @@ const copies: Record<Locale, OrdinaryGlassesDetailCopy> = {
     metaTitle: 'Kacamata Terbaik untuk Wajah {shape}', metaDescription: 'Temukan kacamata terbaik untuk wajah {shape}, bandingkan bingkai dan kecocokannya, lalu coba pilihan pada foto Anda.', title: 'Kacamata Terbaik untuk Wajah {shape}', badge: 'Panduan kacamata berdasarkan bentuk wajah', home: 'Beranda', description: 'Gunakan bentuk wajah {shape} untuk memilih bingkai awal, lalu periksa lebar, tinggi lensa, jembatan, warna, dan gaya pada foto Anda.', characteristicsTitle: 'Tujuan pilihan untuk wajah {shape}', characteristicsText: 'Bentuk wajah adalah filter awal yang berguna. Bingkai terbaik juga sesuai dengan ukuran, resep, kenyamanan, dan gaya pribadi.', guidance: 'Mulai dengan rekomendasi berikut, lalu gunakan coba virtual sebagai pemeriksaan visual.', tryFirstTitle: 'Coba lebih dulu', avoidFirstTitle: 'Pertimbangkan kembali', whyTitle: 'Mengapa cocok', recommendedEyebrow: 'Bingkai yang direkomendasikan', recommendedTitle: 'Kacamata untuk wajah {shape}', tryAny: 'Coba kacamata pada foto saya', tryStyle: 'Coba gaya ini', workflowEyebrow: 'Alur belanja dengan AI', workflowTitle: 'Dari panduan wajah {shape} ke coba virtual', advisorCta: 'Dapatkan saran kacamata personal', faqTitle: 'FAQ kacamata untuk wajah {shape}', faqBest: 'Kacamata apa yang cocok untuk wajah {shape}?', faqAvoid: 'Apakah wajah {shape} perlu menghindari kacamata tertentu?', faqAi: 'Bisakah AI membantu memilih kacamata?', otherTitle: 'Bandingkan bentuk wajah lain',
   },
   ja: {
-    metaTitle: '{shape}顔に似合うおすすめメガネ', metaDescription: '{shape}顔に似合うメガネを比較し、サイズやフィットを確認して、自分の写真で候補を試着できます。', title: '{shape}顔に似合うおすすめメガネ', badge: '顔型別メガネガイド', home: 'ホーム', description: '{shape}顔を最初の絞り込みに使い、フレーム幅、レンズの高さ、ブリッジ、色、印象を自分の写真で確認しましょう。', characteristicsTitle: '{shape}顔のフレーム選び', characteristicsText: '顔型は便利な最初の基準です。最適なフレームは、実寸、度数、掛け心地、自分らしいスタイルも満たします。', guidance: '下の候補から始め、最後はバーチャル試着で見た目を確認してください。', tryFirstTitle: '最初に試す', avoidFirstTitle: '最初の候補では再検討', whyTitle: '似合いやすい理由', recommendedEyebrow: 'おすすめフレーム', recommendedTitle: '{shape}顔で試したいメガネ', tryAny: '自分の写真でメガネを試す', tryStyle: 'このスタイルを試す', workflowEyebrow: 'AIメガネ選び', workflowTitle: '{shape}顔ガイドからバーチャル試着へ', advisorCta: 'パーソナル提案を見る', faqTitle: '{shape}顔のメガネFAQ', faqBest: '{shape}顔にはどんなメガネが似合いますか？', faqAvoid: '{shape}顔が避けるべきメガネはありますか？', faqAi: 'AIで似合うメガネを選べますか？', otherTitle: 'ほかの顔型も比較する',
+    metaTitle: '{shape}の顔に似合うメガネ｜フレームの選び方',
+    metaDescription: '{shape}の顔に合わせてフレームを比較。形ごとの見え方と、幅・レンズの高さ・鼻での掛かり具合を確認しましょう。',
+    title: '{shape}の顔に似合うメガネ',
+    badge: '顔型別メガネガイド',
+    home: 'ホーム',
+    description: '{shape}の顔に合わせて、まずは幅の近い2本を比較。形・リムの太さ・眉との位置で、好みの印象を探しましょう。',
+    characteristicsTitle: '{shape}の顔のフレーム選び',
+    characteristicsText: '顔型は候補を探す手掛かりです。フレームの実寸、度数、掛け心地、自分らしいスタイルも合わせて選びましょう。',
+    guidance: '写真で印象を比べ、実際の掛け心地は眼鏡店で確認しましょう。顔型だけで似合う形が一つに決まるわけではありません。',
+    tryFirstTitle: 'まず比べたい形',
+    avoidFirstTitle: 'サイズや印象を確かめたい形',
+    whyTitle: '選び方のポイント',
+    recommendedEyebrow: 'フレームの形を比較',
+    recommendedTitle: '{shape}の顔で試したいメガネ',
+    tryAny: '自分の写真でメガネを試す',
+    tryStyle: 'この形を試す',
+    workflowEyebrow: '自分の写真で比べる',
+    workflowTitle: '{shape}の顔に合う候補を試す',
+    advisorCta: '個別のメガネ提案を見る',
+    faqTitle: '{shape}の顔とメガネ：よくある質問',
+    faqBest: '{shape}の顔にはどんなメガネが似合いますか？',
+    faqAvoid: '{shape}の顔では避けたほうがよい形はありますか？',
+    faqAi: 'AIで似合うメガネを選べますか？',
+    otherTitle: 'ほかの顔型と比べる',
   },
   es: {
     metaTitle: 'Mejores gafas para rostro {shape}', metaDescription: 'Encuentra las mejores gafas para rostro {shape}, compara monturas y ajuste y prueba la selección en tu foto.', title: 'Mejores gafas para rostro {shape}', badge: 'Guía de gafas por forma de rostro', home: 'Inicio', description: 'Usa tu rostro {shape} para preseleccionar monturas y después compara anchura, altura de lente, puente, color y estilo en tu foto.', characteristicsTitle: 'Objetivo para un rostro {shape}', characteristicsText: 'La forma del rostro es un primer filtro útil. La mejor montura también respeta medidas, graduación, comodidad y estilo personal.', guidance: 'Empieza por estas recomendaciones y usa la prueba virtual como comprobación visual.', tryFirstTitle: 'Prueba primero', avoidFirstTitle: 'Reconsidera primero', whyTitle: 'Por qué funciona', recommendedEyebrow: 'Monturas recomendadas', recommendedTitle: 'Gafas para probar en un rostro {shape}', tryAny: 'Probar gafas en mi foto', tryStyle: 'Probar este estilo', workflowEyebrow: 'Proceso de compra con IA', workflowTitle: 'De la guía para rostro {shape} a la prueba virtual', advisorCta: 'Recibir recomendación personalizada', faqTitle: 'Preguntas sobre gafas para rostro {shape}', faqBest: '¿Qué gafas quedan bien a un rostro {shape}?', faqAvoid: '¿Un rostro {shape} debe evitar algunas gafas?', faqAi: '¿Puede la IA ayudarme a elegir gafas?', otherTitle: 'Comparar otras formas de rostro',
@@ -163,8 +188,26 @@ const copies: Record<Locale, OrdinaryGlassesDetailCopy> = {
 }
 
 // Breadcrumb labels use nominative face-shape names; text templates need the
-// inflected forms required by their specific Russian and German constructions.
+// forms required by the local grammar and face-shape terminology.
 const templateShapeVariants: Partial<Record<Locale, Record<FaceShapeContentSlug, string>>> = {
+  ja: {
+    oval: '卵型',
+    round: '丸型',
+    square: '四角型',
+    heart: 'ハート型',
+    diamond: 'ひし形',
+    oblong: '面長',
+    triangle: '三角型',
+  },
+  es: {
+    oval: 'ovalado',
+    round: 'redondo',
+    square: 'cuadrado',
+    heart: 'en forma de corazón',
+    diamond: 'en forma de diamante',
+    oblong: 'alargado',
+    triangle: 'triangular',
+  },
   ru: {
     oval: 'овального',
     round: 'круглого',

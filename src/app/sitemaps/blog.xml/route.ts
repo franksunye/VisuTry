@@ -1,5 +1,6 @@
 import { getBlogArticleLocales, getBlogSitemapEntries } from '@/lib/blog'
 import { serializeSitemap, type SitemapEntry } from '@/lib/sitemap-xml'
+import { getEditorialImagePaths } from '@/config/editorial-image-discovery'
 
 export const dynamic = 'force-static'
 
@@ -18,10 +19,12 @@ export async function GET() {
     languages['x-default'] = `${baseUrl}/en${path}`
 
     articleLocales.forEach((locale) => {
+      const editorialImages = getEditorialImagePaths(path, locale).map((imagePath) => `${baseUrl}${imagePath}`)
       entries.push({
         ...page,
         url: `${baseUrl}/${locale}${path}`,
         alternates: { languages },
+        ...(editorialImages.length > 0 ? { images: editorialImages } : {}),
       })
     })
   })

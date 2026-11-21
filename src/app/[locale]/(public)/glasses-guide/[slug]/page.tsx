@@ -4,12 +4,14 @@ import { notFound } from 'next/navigation'
 import { ArrowRight, Glasses, ScanFace, SlidersHorizontal } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
 import { FrameWidthBuyingGuide } from '@/components/seo/FrameWidthBuyingGuide'
+import { EyebrowFitComparison } from '@/components/seo/EyebrowFitComparison'
 import {
   CombinationVisualSeoHero,
   CombinationVisualSeoSections,
 } from '@/components/seo/CombinationVisualSeoSections'
 import { getCombinationVisualSeoAssets } from '@/config/combination-visual-seo-assets'
 import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
+import { getRelatedCombinationPages } from '@/config/search-combination-related'
 import {
   getCombinationGuideShellCopy,
   getLocalizedCombinationSearchPage,
@@ -51,15 +53,14 @@ export default function CombinationSearchPage({ params }: Props) {
   const locale = params.locale
   const shell = getCombinationGuideShellCopy(locale)
   const pathname = `/glasses-guide/${page.slug}`
+  const isEyebrowPilot = locale === 'en' && page.slug === 'should-glasses-cover-your-eyebrows'
   const hasVisualSeoAssets = locale === 'en' && getCombinationVisualSeoAssets(pathname).length > 0
   const localizedPages = getLocalizedCombinationSearchPages(locale)
-  const relatedPages = localizedPages
-    .filter((item) => item.slug !== page.slug && item.type === page.type)
-    .slice(0, 4)
+  const relatedPages = getRelatedCombinationPages(page, localizedPages)
 
   const schemas = [
     generateStructuredData('faqPage', { questions: page.faq }),
-    generateStructuredData('howTo', {
+    ...(!isEyebrowPilot ? [generateStructuredData('howTo', {
       name: page.title,
       description: page.metaDescription,
       totalTime: 'PT5M',
@@ -68,7 +69,7 @@ export default function CombinationSearchPage({ params }: Props) {
         { name: shell.howToCheck, text: page.watchFor },
         { name: shell.howToValidate, text: page.decisionTip },
       ],
-    }),
+    })] : []),
   ]
 
   return (
@@ -81,8 +82,8 @@ export default function CombinationSearchPage({ params }: Props) {
       title={page.title}
       intro={page.intro}
       schemas={schemas}
-      visual={hasVisualSeoAssets ? <CombinationVisualSeoHero locale={locale} page={page} /> : undefined}
-      steps={[
+      visual={isEyebrowPilot ? <EyebrowFitComparison /> : hasVisualSeoAssets ? <CombinationVisualSeoHero locale={locale} page={page} /> : undefined}
+      steps={isEyebrowPilot ? undefined : [
         {
           title: shell.stepShortlist,
           text: page.primaryAnswer,
@@ -102,7 +103,7 @@ export default function CombinationSearchPage({ params }: Props) {
       includeCtas={[...page.includeCtas]}
       bottomCtas={[...page.bottomCtas]}
       ctaLabels={page.ctaLabels}
-      principles={[
+      principles={isEyebrowPilot ? undefined : [
         page.whyItWorks,
         page.watchFor,
         shell.visualDisclaimer,
@@ -111,7 +112,7 @@ export default function CombinationSearchPage({ params }: Props) {
       faqEyebrow={shell.faqEyebrow}
       faqTitle={shell.faqTitle}
     >
-      <section className="mt-12 grid gap-5 md:grid-cols-3">
+      {!isEyebrowPilot && <section className="mt-12 grid gap-5 md:grid-cols-3">
         <article className="rounded-lg border border-gray-200 bg-white p-5">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-600">{shell.quickAnswer}</p>
           <h2 className="mb-3 text-lg font-semibold text-gray-950">{shell.whatToTryFirst}</h2>
@@ -127,7 +128,7 @@ export default function CombinationSearchPage({ params }: Props) {
           <h2 className="mb-3 text-lg font-semibold text-gray-950">{shell.whatCanGoWrong}</h2>
           <p className="text-sm leading-6 text-gray-700">{page.watchFor}</p>
         </article>
-      </section>
+      </section>}
 
       {locale === 'en' && page.slug === 'how-wide-should-glasses-be-for-my-face'
         ? <FrameWidthBuyingGuide />
@@ -137,7 +138,8 @@ export default function CombinationSearchPage({ params }: Props) {
 
       <section className="mt-12 rounded-lg border border-blue-100 bg-blue-50 p-6">
         <p className="mb-2 text-sm font-semibold text-blue-700">{shell.decisionTip}</p>
-        <h2 className="mb-3 text-2xl font-bold text-gray-950">{shell.doNotDecideFromLabel}</h2>
+        <h2 className="mb-3 text-2xl font-bold text-gray-950">{isEyebrowPilot ? 'Check the fit, then choose the look' : shell.doNotDecideFromLabel}</h2>
+        {isEyebrowPilot && <p className="mb-3 max-w-3xl text-sm leading-7 text-gray-700">{page.watchFor}</p>}
         <p className="max-w-3xl text-sm leading-7 text-gray-700">{page.decisionTip}</p>
         {page.relatedOwnerPath && (
           <Link
