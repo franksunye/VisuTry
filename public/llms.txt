@@ -35,6 +35,13 @@ VisuTry focuses on eyewear decisions. It should not be described as a general-pu
 - Demo frames are first-party demonstration inventory and are not offered for sale; this surface does not imply an external merchant, customer, or partner relationship.
 - The prior `visutry-demo` Store/Campaign belongs to the historical Discovery Canary and is not the current canonical Demo.
 
+## First-party discovery example
+
+- [VisuTry Demo collection](https://www.visutry.com/en/store/visutry-demo): the independent first-party Discovery Canary collection, separate from the current Demo Optical sales and QA tenant.
+- [Everyday Fit: round or rectangular?](https://www.visutry.com/en/c/visutry-demo/everyday-fit): compare the visible outlines of round and rectangular frames in this Canary collection. Its demo frames are not offered for sale.
+- The example supports evaluating public search and AI discovery. It is not a customer deployment, sales result, or claim of verified organic traffic. Follow the page's current availability and indexing directives.
+- The comparison uses frames in that Campaign and same-page collection links. The `/en/demo/frames/` pages above belong to Demo Optical, not to this independent Canary.
+
 ## Stable product facts
 
 - The Face Shape Detector is free, requires no login, and processes the selected photo in browser memory without uploading it to VisuTry.

@@ -29,7 +29,7 @@ function frame(id: string, name: string): MerchantStoreWorkspaceFrame {
 
 function workspace(status: 'DRAFT' | 'ACTIVE' = 'DRAFT'): WorkspaceData {
   return {
-    store: { id: 'store-a', slug: 'north-star', name: 'North Star Store', status, headline: null, description: null, publicPath: '/en/store/north-star', selectedFrameIds: ['frame-a'], journeyPolicy: DEFAULT_DECISION_JOURNEY_POLICY, effectiveJourneyPolicy: DEFAULT_DECISION_JOURNEY_POLICY, deliveryPolicy: DEFAULT_EXPERIENCE_DELIVERY_POLICY, presentationMode: 'PRODUCT_FIRST', primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null, secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null },
+    store: { id: 'store-a', slug: 'north-star', name: 'North Star Store', status, headline: null, description: null, publicPath: '/en/store/north-star', selectedFrameIds: ['frame-a'], searchVisibility: { visibility: status === 'DRAFT' ? 'PRIVATE' : 'PUBLIC_NOINDEX', reasons: status === 'DRAFT' ? ['DRAFT'] : ['INSUFFICIENT_FRAMES', 'MISSING_DESTINATION'], indexableLocale: 'en', activeFrameCount: 1, minimumFrameCount: 4 }, journeyPolicy: DEFAULT_DECISION_JOURNEY_POLICY, effectiveJourneyPolicy: DEFAULT_DECISION_JOURNEY_POLICY, deliveryPolicy: DEFAULT_EXPERIENCE_DELIVERY_POLICY, presentationMode: 'PRODUCT_FIRST', primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null, secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null },
     capabilities: { tryOnEnabled: true, compareEnabled: true, kioskDeliveryEnabled: true },
     catalog: [frame('frame-a', 'Round frame'), frame('frame-b', 'Square frame')],
   }
@@ -58,6 +58,18 @@ describe('MerchantStoreWorkspace lifecycle UX', () => {
       return ok(workspace())
     }) as jest.Mock
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: jest.fn().mockResolvedValue(undefined) } })
+  })
+
+  it('shows saved English search eligibility for a live Store separately from its public link', async () => {
+    global.fetch = jest.fn().mockImplementation(async (input: string) => input.endsWith('/preview') ? ok(storePreview('ACTIVE')) : ok(workspace('ACTIVE'))) as jest.Mock
+    render(<MerchantStoreWorkspace merchantId="merchant-a" locale="ja" />)
+
+    const panel = await screen.findByRole('region', { name: 'Search visibility' })
+    expect(screen.getByText('Your Store is visible to shoppers')).toBeInTheDocument()
+    expect(panel).toHaveTextContent('Public · not eligible for search')
+    expect(panel).toHaveTextContent('Currently: 1.')
+    expect(panel).toHaveTextContent('English public page')
+    expect(global.fetch).not.toHaveBeenCalledWith(expect.stringContaining('/publish'), expect.anything())
   })
 
   it('saves Journey and delivery settings through the existing Store Experience PATCH without publishing', async () => {

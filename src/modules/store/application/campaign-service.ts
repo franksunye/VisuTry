@@ -21,6 +21,7 @@ import { resolveDecisionJourneyPolicy } from '../domain/decision-journey'
 import { resolvePublicDecisionJourney } from '../domain/experience-policy'
 import { resolveSessionTryOnLimit } from '../domain/session-tryon-limit'
 import { resolveExperienceDeliveryPolicy } from '../domain/delivery-profile'
+import { resolveExperienceSearchReadiness, type ExperienceSearchReadiness, type SearchVisibilityMerchant } from '../domain/experience-search-visibility'
 
 export { CampaignServiceError }
 
@@ -67,6 +68,7 @@ export type CampaignReadModel = {
   }>
   referenceData: boolean
   publicPath: string
+  searchVisibility: ExperienceSearchReadiness
   readiness: { ready: boolean; blockingIssues: string[]; warnings: string[] }
 }
 
@@ -80,6 +82,10 @@ type CampaignRow = Experience & { frames: CampaignFrame[] }
 const merchantCommercialSelect = {
   id: true,
   slug: true,
+  name: true,
+  status: true,
+  websiteUrl: true,
+  sponsoredUsagePolicyKey: true,
   classification: true,
   pilotType: true,
   referenceData: true,
@@ -137,7 +143,7 @@ function validatePolicy(input: { objective: unknown; gate: unknown; presentation
   }
 }
 
-function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceData: boolean, capabilities: MerchantCommercialFields & { tryOnEnabled?: boolean | null; compareEnabled?: boolean | null; kioskDeliveryEnabled?: boolean } = {}): CampaignReadModel {
+function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceData: boolean, capabilities: MerchantCommercialFields & SearchVisibilityMerchant & { tryOnEnabled?: boolean | null; compareEnabled?: boolean | null; kioskDeliveryEnabled?: boolean }): CampaignReadModel {
   const policy = resolveCampaignConversionPolicy(row)
   if (!policy) throw new CampaignServiceError('INVALID_REQUEST', 'Experience is not a Campaign.')
   const presentationMode = resolvePresentationMode({ experienceType: 'CAMPAIGN', persistedPresentationMode: row.presentationMode })
@@ -203,6 +209,11 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
     })),
     referenceData: merchantReferenceData || row.referenceData,
     publicPath: `/en/c/${merchantSlug}/${row.slug}`,
+    searchVisibility: resolveExperienceSearchReadiness({
+      merchant: capabilities,
+      experience: row,
+      frames: row.frames.flatMap((frame) => frame.merchantFrame?.status === 'ACTIVE' ? [frame.merchantFrame] : []),
+    }),
     readiness: { ready, blockingIssues, warnings },
   }
 }
@@ -430,15 +441,15 @@ export async function updateAndPublishCampaign(input: CampaignUpdateInput) {
         data: { ...data, status: 'ACTIVE' },
         include: campaignFramesInclude,
       })
-      return { row, merchantSlug: lockedMerchant.slug, merchantReferenceData: lockedMerchant.referenceData, capabilities: { tryOnEnabled: lockedMerchant.tryOnEnabled, compareEnabled: lockedMerchant.compareEnabled, kioskDeliveryEnabled: resolveMerchantCommercialCapability(lockedMerchant).decisions.KIOSK_DELIVERY.allowed } }
+      return { row, merchant: lockedMerchant }
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
   })
-  const result = publication as { row: CampaignRow; merchantSlug: string; merchantReferenceData: boolean; capabilities: { tryOnEnabled: boolean; compareEnabled: boolean; kioskDeliveryEnabled: boolean } }
+  const result = publication as { row: CampaignRow; merchant: Prisma.MerchantGetPayload<{ select: typeof merchantCommercialSelect }> }
   const commercial = await getMerchantCommercialCapability({ merchantId: input.merchantId }).catch(() => null)
-  return mapCampaign(result.row, result.merchantSlug, result.merchantReferenceData, {
-    ...result.capabilities,
-    tryOnEnabled: result.capabilities.tryOnEnabled && Boolean(commercial?.decisions.GENERATIVE_TRY_ON.allowed),
-    compareEnabled: result.capabilities.compareEnabled && Boolean(commercial?.decisions.COMPARE.allowed),
+  return mapCampaign(result.row, result.merchant.slug, result.merchant.referenceData, {
+    ...result.merchant,
+    tryOnEnabled: result.merchant.tryOnEnabled && Boolean(commercial?.decisions.GENERATIVE_TRY_ON.allowed),
+    compareEnabled: result.merchant.compareEnabled && Boolean(commercial?.decisions.COMPARE.allowed),
     kioskDeliveryEnabled: commercial?.decisions.KIOSK_DELIVERY.allowed ?? false,
   })
 }

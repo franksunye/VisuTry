@@ -622,6 +622,17 @@ The server-authoritative `ExperienceSearchVisibility` policy is:
 
 Reference provenance remains disclosed as reference content and never becomes a partnership claim through metadata or structured data. Sitemap inclusion and page robots metadata use the same policy; currently only the English route is indexable when the underlying content is shared English copy.
 
+Merchant Store and Campaign workspaces expose the saved page's search eligibility
+from this same policy, including blocking reasons and the active selected-product
+count. Publication and search eligibility are separate: a published collection
+can be publicly readable while excluded from search. Eligibility is not evidence
+of actual indexing, ranking, AI citation, or shopper acquisition. Unsaved edits
+do not change this status; search engines decide when and whether to index the
+English public page. Node/Prisma and Cloudflare read models use the same resolver.
+
+The bounded first-party discovery experiment and its measurement baseline are
+recorded in [Merchant discovery restart — 2026-11-21](../../ops/merchant-discovery-restart-2026-11-21.md).
+
 
 ---
 

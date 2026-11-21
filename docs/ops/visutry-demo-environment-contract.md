@@ -2,7 +2,7 @@
 
 **Status:** Active operational authority
 **Owner:** Product / Engineering / Operations
-**Last reviewed:** 2026-10-17
+**Last reviewed:** 2026-11-21
 **Scope:** Canonical VisuTry-owned Demo identity, public URL, prepared-result
 parity, provider policy, Local/Production Demo operation, and the operational
 boundary for the productized Demo capability.
@@ -91,6 +91,18 @@ the Canary is **not** the canonical sales or QA Demo tenant.
 The old `/en/c/visutry-demo/everyday-fit` Campaign is historical Canary
 content, not a canonical Demo continuation. Do not promote it as the current
 Demo journey. This contract does not delete or mutate it.
+
+The separately labeled [2026-11-21 discovery experiment](./merchant-discovery-restart-2026-11-21.md)
+may link from English Discover and LLM discovery guidance to this existing
+Canary Campaign when its current data passes the public search policy and
+contains the reviewed comparison frames. This is a first-party, non-sale frame
+comparison example, not the sales/QA Demo journey. Canonical Demo entry points
+remain on Demo Optical. The Canary public catalog and structured data map its
+six known stale detail destinations to `/en/discover/frames/{actual-frame-id}`.
+These bounded first-party read-only pages resolve only current selected frames
+from the Canary's admitted Store and `everyday-fit` Campaign, and return to the
+same source identity. They do not reassign SKUs, redirect tenants, or rewrite
+stored history, and do not create a general merchant product-page capability.
 
 ## Standard journey and Provider rule
 

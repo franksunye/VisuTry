@@ -7,6 +7,7 @@ import {
   buildExperienceDiscoveryMetadata,
 } from '@/lib/store-discovery-seo'
 import { SITE_CONFIG } from '@/lib/seo'
+import { MERCHANT_DISCOVERY_EDITORIAL } from '@/config/merchant-discovery-editorial'
 import {
   getPublicExperienceDiscovery,
   resolvePublicGenerativeTryOnAvailability,
@@ -348,6 +349,7 @@ describe('Store/Campaign discovery SEO', () => {
   it('emits collection, organization, item list, and breadcrumbs without commerce claims', () => {
     const jsonLd = buildExperienceDiscoveryJsonLd({
       discovery: discovery(),
+      locale: 'en',
       pathname: '/en/c/visutry-optical/petite-fit',
     })
     const graph = jsonLd['@graph'] as Array<Record<string, unknown>>
@@ -359,6 +361,53 @@ describe('Store/Campaign discovery SEO', () => {
     expect(collection.mainEntity).toMatchObject({ '@type': 'ItemList' })
     expect(graph.find((item) => item['@type'] === 'BreadcrumbList')).toBeDefined()
     expect(JSON.stringify(jsonLd)).not.toMatch(/Offer|Review|AggregateRating|availability/i)
+  })
+
+  it('uses the saved Store headline while preserving the fallback for existing stores', () => {
+    const store = discovery()
+    store.experience.type = 'STORE'
+    store.experience.headline = 'Explore our everyday frames'
+    const input = { discovery: store, locale: 'en' as const, pathname: '/en/store/visutry-optical' }
+    expect(buildExperienceDiscoveryMetadata(input).title).toBe('Explore our everyday frames | VisuTry Optical')
+    store.experience.headline = '  '
+    expect(buildExperienceDiscoveryMetadata(input).title).toBe('VisuTry Optical Eyewear Collection | VisuTry')
+  })
+
+  it('keeps the English Canary copy consistent across metadata and visible collection data', () => {
+    const canary = discovery()
+    canary.merchant.slug = 'visutry-demo'
+    canary.experience.slug = 'everyday-fit'
+    canary.frames[1].shape = 'rectangle'
+    const input = { discovery: canary, locale: 'en' as const, pathname: '/en/c/visutry-demo/everyday-fit' }
+    const metadata = buildExperienceDiscoveryMetadata(input)
+    expect(metadata.title).toBe(MERCHANT_DISCOVERY_EDITORIAL.title)
+    expect(metadata.description).toBe(MERCHANT_DISCOVERY_EDITORIAL.description)
+    expect(metadata.openGraph).toMatchObject({ title: metadata.title, description: metadata.description })
+    expect((buildExperienceDiscoveryJsonLd(input)['@graph'] as Array<Record<string, unknown>>)[0])
+      .toMatchObject({ name: metadata.title, description: metadata.description })
+
+    const translated = { ...input, locale: 'ja' as const, pathname: '/ja/c/visutry-demo/everyday-fit' }
+    expect(buildExperienceDiscoveryMetadata(translated)).toMatchObject({
+      title: 'Best glasses for petite faces | VisuTry Optical',
+      robots: { index: false, follow: true },
+    })
+    expect((buildExperienceDiscoveryJsonLd(translated)['@graph'] as Array<Record<string, unknown>>)[0].name)
+      .not.toBe(MERCHANT_DISCOVERY_EDITORIAL.title)
+  })
+
+  it('does not identify legacy Canary products with the other Demo tenant’s detail URLs', () => {
+    const canary = discovery()
+    canary.merchant.slug = 'visutry-demo'
+    canary.experience.slug = 'everyday-fit'
+    canary.frames[0].productUrl = 'https://www.visutry.com/en/demo/frames/round'
+    canary.frames[1].productUrl = 'https://merchant.example.test/actual-rectangle'
+    const jsonLd = buildExperienceDiscoveryJsonLd({
+      discovery: canary, locale: 'en', pathname: '/en/c/visutry-demo/everyday-fit',
+    })
+    expect(JSON.stringify(jsonLd)).not.toContain('/en/demo/frames/round')
+    expect(JSON.stringify(jsonLd)).toContain('/en/discover/frames/frame-0')
+    expect(JSON.stringify(jsonLd)).toContain('https://merchant.example.test/actual-rectangle')
+    expect(canary.frames[0].productUrl).toBe('https://www.visutry.com/en/demo/frames/round')
   })
 
   it('resolves complete public discovery data without session/runtime services', async () => {

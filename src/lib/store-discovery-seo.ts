@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { localeToOGLocale, type Locale } from '@/i18n'
 import { SITE_CONFIG } from '@/lib/seo'
+import { getMerchantDiscoveryEditorial, normalizeMerchantDiscoveryDestinations } from '@/modules/store/application/merchant-discovery-editorial'
 import type { ExperienceSearchVisibility } from '@/modules/store/domain/experience-search-visibility'
 import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
 
@@ -23,14 +24,18 @@ export function localizedDiscoveryVisibility(
   return visibility
 }
 
-function discoveryTitle(discovery: PublicExperienceDiscovery): string {
+function discoveryTitle(discovery: PublicExperienceDiscovery, locale: string): string {
+  const editorial = locale === 'en' ? getMerchantDiscoveryEditorial(discovery) : null
+  if (editorial) return editorial.title
   const { merchant, experience } = discovery
-  return experience.type === 'STORE'
+  return experience.type === 'STORE' && !experience.headline?.trim()
     ? `${merchant.name} Eyewear Collection | VisuTry`
     : `${experience.headline?.trim() || experience.name} | ${merchant.name}`
 }
 
-function discoveryDescription(discovery: PublicExperienceDiscovery): string {
+function discoveryDescription(discovery: PublicExperienceDiscovery, locale: string): string {
+  const editorial = locale === 'en' ? getMerchantDiscoveryEditorial(discovery) : null
+  if (editorial) return editorial.description
   const { merchant, experience, frames } = discovery
   return experience.description?.trim()
     || `${merchant.name}'s ${experience.type === 'STORE' ? 'eyewear collection' : 'featured eyewear edit'} includes ${frames.length} frame${frames.length === 1 ? '' : 's'} with product details and merchant links.`
@@ -44,12 +49,14 @@ export function buildExperienceDiscoveryMetadata(input: {
   const { discovery, locale, pathname } = input
   const canonical = discoveryCanonicalUrl(pathname)
   const visibility = localizedDiscoveryVisibility(discovery.visibility, locale)
+  const title = discoveryTitle(discovery, locale)
+  const description = discoveryDescription(discovery, locale)
   const image = discovery.experience.heroAssetUrl
     || discovery.frames.find((frame) => frame.imageUrl)?.imageUrl
     || SITE_CONFIG.ogImage
   const metadata: Metadata = {
-    title: discoveryTitle(discovery),
-    description: discoveryDescription(discovery),
+    title,
+    description,
     metadataBase: new URL(SITE_CONFIG.url),
     alternates: { canonical },
     robots: {
@@ -65,16 +72,16 @@ export function buildExperienceDiscoveryMetadata(input: {
     openGraph: {
       type: 'website',
       url: canonical,
-      title: discoveryTitle(discovery),
-      description: discoveryDescription(discovery),
+      title,
+      description,
       siteName: SITE_CONFIG.name,
       locale: localeToOGLocale[locale],
       images: image ? [{ url: image, alt: `${discovery.merchant.name} eyewear collection` }] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
-      title: discoveryTitle(discovery),
-      description: discoveryDescription(discovery),
+      title,
+      description,
       images: image ? [image] : undefined,
     },
   }
@@ -112,12 +119,14 @@ function productFacts(discovery: PublicExperienceDiscovery, frame: PublicExperie
 /** Structured data intentionally omits Offer, Review, AggregateRating and availability. */
 export function buildExperienceDiscoveryJsonLd(input: {
   discovery: PublicExperienceDiscovery
+  locale: string
   pathname: string
 }): Record<string, unknown> {
-  const { discovery, pathname } = input
+  const { locale, pathname } = input
+  const discovery = normalizeMerchantDiscoveryDestinations(input.discovery)
   const canonical = discoveryCanonicalUrl(pathname)
-  const title = discoveryTitle(discovery)
-  const description = discoveryDescription(discovery)
+  const title = discoveryTitle(discovery, locale)
+  const description = discoveryDescription(discovery, locale)
   const collectionImage = discovery.experience.heroAssetUrl
     || discovery.frames.find((frame) => frame.imageUrl)?.imageUrl
 

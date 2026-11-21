@@ -15,6 +15,7 @@ import { MerchantExperienceHeroSettings } from './MerchantExperienceHeroSettings
 import { MerchantExperienceConfiguration, type ExperienceConfigurationDraft } from './MerchantExperienceConfiguration'
 import { normalizeMerchantHandoffAction } from '@/modules/store/domain/merchant-handoff'
 import { isLoopbackImageUrl } from '@/lib/is-loopback-image-url'
+import { MerchantSearchVisibility } from './MerchantSearchVisibility'
 
 type CampaignDate = Date | string | null
 type Campaign = Omit<CampaignReadModel, 'startAt' | 'endAt'> & { startAt: CampaignDate; endAt: CampaignDate }
@@ -454,6 +455,8 @@ export function MerchantCampaignDetailWorkspace({
           {campaign.readiness.blockingIssues.length ? <ul className="mt-3 space-y-2 text-sm text-slate-700">{presentation.issues.map((issue) => <li key={issue} className="flex gap-2"><span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />{issue}</li>)}</ul> : <p className="mt-3 text-sm text-slate-600">The saved Campaign meets the current publish checks.</p>}
           {campaign.selectedFrames.some((frame) => !frame.valid) ? <Link href={merchantWorkspaceHref({ locale, section: 'catalog', merchantId })} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:underline">Fix products in Catalog <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /></Link> : null}
         </section>
+
+        {campaign.searchVisibility ? <MerchantSearchVisibility status={campaign.searchVisibility} /> : null}
 
         {!readOnly ? <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5" aria-label="Campaign actions">
           {campaign.status === 'DRAFT' ? <>
