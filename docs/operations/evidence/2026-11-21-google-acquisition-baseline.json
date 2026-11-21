@@ -1,0 +1,747 @@
+{
+  "scope": "Google organic acquisition only; no conversion, revenue, completion or paid-quality expansion gates.",
+  "retrievedOn": "2026-11-21",
+  "source": "Connected first-party Google Search Console via Windsor.ai Search Analytics",
+  "property": "https://www.visutry.com/",
+  "options": {
+    "include_fresh_data": false
+  },
+  "dateCoverage": {
+    "requestedDailyFrom": "2026-11-06",
+    "requestedDailyTo": "2026-11-20",
+    "lastReturnedFinalizedDate": "2026-11-19",
+    "comparisonPeriods": [
+      {
+        "from": "2026-11-06",
+        "to": "2026-11-12",
+        "clicks": 1335,
+        "impressions": 35069,
+        "ctr": 0.038067809176195504
+      },
+      {
+        "from": "2026-11-13",
+        "to": "2026-11-19",
+        "clicks": 2350,
+        "impressions": 52896,
+        "ctr": 0.04442679975801573
+      }
+    ]
+  },
+  "measurementNotes": [
+    "Property/date clicks are the program baseline: 2350 for Nov13-19; 10x target is23500/week.",
+    "Page aggregation returned2365 clicks. Do not force page/query/property sums to match; their aggregation differs.",
+    "Query x page returns1338 clicks in4057 rows. It is not the complete query market, and query rows omit some clicks.",
+    "Search Console impressions are own-property appearances, not market keyword volume.",
+    "A missing page row is NO_ROW, not a URL Inspection verdict or proof of zero demand.",
+    "The screenshot's2600 GA4 active users spans channels and is not the Google clicks baseline.",
+    "Web and Image clicks are separate reporting surfaces; image is not silently added to the Web10x goal.",
+    "Public search results verify competing formats and topic relevance, not geo-specific Google ranks or keyword volumes."
+  ],
+  "webDaily": [
+    {
+      "date": "2026-11-06",
+      "search_type": "web",
+      "clicks": 212,
+      "impressions": 5224,
+      "ctr": 0.0406,
+      "position": 10.1447
+    },
+    {
+      "date": "2026-11-07",
+      "search_type": "web",
+      "clicks": 172,
+      "impressions": 4708,
+      "ctr": 0.0365,
+      "position": 9.8626
+    },
+    {
+      "date": "2026-11-08",
+      "search_type": "web",
+      "clicks": 180,
+      "impressions": 5138,
+      "ctr": 0.035,
+      "position": 10.9848
+    },
+    {
+      "date": "2026-11-09",
+      "search_type": "web",
+      "clicks": 181,
+      "impressions": 4547,
+      "ctr": 0.0398,
+      "position": 9.0787
+    },
+    {
+      "date": "2026-11-10",
+      "search_type": "web",
+      "clicks": 166,
+      "impressions": 4897,
+      "ctr": 0.0339,
+      "position": 9.1103
+    },
+    {
+      "date": "2026-11-11",
+      "search_type": "web",
+      "clicks": 192,
+      "impressions": 4784,
+      "ctr": 0.0401,
+      "position": 9.5111
+    },
+    {
+      "date": "2026-11-12",
+      "search_type": "web",
+      "clicks": 232,
+      "impressions": 5771,
+      "ctr": 0.0402,
+      "position": 9.4634
+    },
+    {
+      "date": "2026-11-13",
+      "search_type": "web",
+      "clicks": 293,
+      "impressions": 6645,
+      "ctr": 0.0441,
+      "position": 9.4993
+    },
+    {
+      "date": "2026-11-14",
+      "search_type": "web",
+      "clicks": 355,
+      "impressions": 7755,
+      "ctr": 0.0458,
+      "position": 8.6897
+    },
+    {
+      "date": "2026-11-15",
+      "search_type": "web",
+      "clicks": 341,
+      "impressions": 8194,
+      "ctr": 0.0416,
+      "position": 9.1323
+    },
+    {
+      "date": "2026-11-16",
+      "search_type": "web",
+      "clicks": 376,
+      "impressions": 7631,
+      "ctr": 0.0493,
+      "position": 8.3393
+    },
+    {
+      "date": "2026-11-17",
+      "search_type": "web",
+      "clicks": 331,
+      "impressions": 7068,
+      "ctr": 0.0468,
+      "position": 8.1518
+    },
+    {
+      "date": "2026-11-18",
+      "search_type": "web",
+      "clicks": 338,
+      "impressions": 7785,
+      "ctr": 0.0434,
+      "position": 8.594
+    },
+    {
+      "date": "2026-11-19",
+      "search_type": "web",
+      "clicks": 316,
+      "impressions": 7818,
+      "ctr": 0.0404,
+      "position": 7.9149
+    }
+  ],
+  "pageAggregation": {
+    "totalRows": 297,
+    "clicks": 2365,
+    "top3Clicks": 1376,
+    "top10Clicks": 2002,
+    "locales": {
+      "en": {
+        "clicks": 1647,
+        "impressions": 40623,
+        "pages": 73,
+        "clickedPages": 26
+      },
+      "ja": {
+        "clicks": 268,
+        "impressions": 2926,
+        "pages": 22,
+        "clickedPages": 5
+      },
+      "es": {
+        "clicks": 154,
+        "impressions": 3335,
+        "pages": 32,
+        "clickedPages": 7
+      },
+      "pt": {
+        "clicks": 67,
+        "impressions": 1194,
+        "pages": 35,
+        "clickedPages": 9
+      },
+      "id": {
+        "clicks": 58,
+        "impressions": 1686,
+        "pages": 17,
+        "clickedPages": 5
+      },
+      "ar": {
+        "clicks": 51,
+        "impressions": 1090,
+        "pages": 18,
+        "clickedPages": 6
+      },
+      "ru": {
+        "clicks": 37,
+        "impressions": 921,
+        "pages": 32,
+        "clickedPages": 8
+      },
+      "fr": {
+        "clicks": 48,
+        "impressions": 1736,
+        "pages": 34,
+        "clickedPages": 10
+      },
+      "de": {
+        "clicks": 35,
+        "impressions": 1914,
+        "pages": 31,
+        "clickedPages": 13
+      },
+      "root": {
+        "clicks": 0,
+        "impressions": 2,
+        "pages": 1,
+        "clickedPages": 0
+      },
+      "privacy": {
+        "clicks": 0,
+        "impressions": 1,
+        "pages": 1,
+        "clickedPages": 0
+      },
+      "user": {
+        "clicks": 0,
+        "impressions": 8,
+        "pages": 1,
+        "clickedPages": 0
+      }
+    },
+    "mutuallyExclusivePageFamilies": {
+      "detector": {
+        "clicks": 1205,
+        "impressions": 27272,
+        "pages": 9
+      },
+      "photo-guide": {
+        "clicks": 420,
+        "impressions": 9111,
+        "pages": 9
+      },
+      "advisor-tool": {
+        "clicks": 236,
+        "impressions": 3247,
+        "pages": 7
+      },
+      "brand": {
+        "clicks": 170,
+        "impressions": 2811,
+        "pages": 8
+      },
+      "other": {
+        "clicks": 304,
+        "impressions": 10088,
+        "pages": 113
+      },
+      "glasses-shape-fit": {
+        "clicks": 30,
+        "impressions": 2782,
+        "pages": 146
+      },
+      "face-shape-education": {
+        "clicks": 0,
+        "impressions": 125,
+        "pages": 5
+      }
+    },
+    "familyDefinitions": {
+      "detector": "/face-shape-detector exact route",
+      "photo-guide": "/blog/ai-face-analysis-for-glasses-guide",
+      "advisor-tool": "/face-analysis exact route",
+      "brand": "/brand/ or rayban-glasses-virtual-tryon",
+      "glasses-shape-fit": "/style/, /glasses-guide/, /glasses-for-face-shape, /sunglasses-for/",
+      "face-shape-education": "/face-shapes/, /hairstyles-for/, /face-shape-measurement",
+      "other": "All remaining page rows, exclusive assignment"
+    }
+  },
+  "selectedPages": [
+    {
+      "path": "/en/face-shape-detector",
+      "row": {
+        "page": "https://www.visutry.com/en/face-shape-detector",
+        "search_type": "web",
+        "clicks": 810,
+        "impressions": 22422,
+        "ctr": 0.0361,
+        "position": 7.6149
+      }
+    },
+    {
+      "path": "/en/blog/ai-face-analysis-for-glasses-guide",
+      "row": {
+        "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+        "search_type": "web",
+        "clicks": 337,
+        "impressions": 7681,
+        "ctr": 0.0439,
+        "position": 7.8371
+      }
+    },
+    {
+      "path": "/en/what-is-my-face-shape",
+      "row": {
+        "page": "https://www.visutry.com/en/what-is-my-face-shape",
+        "search_type": "web",
+        "clicks": 0,
+        "impressions": 16,
+        "ctr": 0,
+        "position": 8.125
+      }
+    },
+    {
+      "path": "/en/glasses-for-face-shape",
+      "row": {
+        "page": "https://www.visutry.com/en/glasses-for-face-shape",
+        "search_type": "web",
+        "clicks": 6,
+        "impressions": 339,
+        "ctr": 0.0177,
+        "position": 38.7876
+      }
+    },
+    {
+      "path": "/en/style/round-face",
+      "row": null,
+      "missingRowMeaning": "NO_ROW; index and market demand unverified"
+    },
+    {
+      "path": "/en/style/oval-face",
+      "row": {
+        "page": "https://www.visutry.com/en/style/oval-face",
+        "search_type": "web",
+        "clicks": 0,
+        "impressions": 1,
+        "ctr": 0,
+        "position": 13
+      }
+    },
+    {
+      "path": "/en/style/diamond-face",
+      "row": {
+        "page": "https://www.visutry.com/en/style/diamond-face",
+        "search_type": "web",
+        "clicks": 0,
+        "impressions": 91,
+        "ctr": 0,
+        "position": 16.7692
+      }
+    },
+    {
+      "path": "/en/sunglasses-for-face-shape",
+      "row": {
+        "page": "https://www.visutry.com/en/sunglasses-for-face-shape",
+        "search_type": "web",
+        "clicks": 0,
+        "impressions": 11,
+        "ctr": 0,
+        "position": 8.5455
+      }
+    },
+    {
+      "path": "/en/sunglasses-for/round-face",
+      "row": null,
+      "missingRowMeaning": "NO_ROW; index and market demand unverified"
+    },
+    {
+      "path": "/en/try-glasses-on-photo",
+      "row": {
+        "page": "https://www.visutry.com/en/try-glasses-on-photo",
+        "search_type": "web",
+        "clicks": 5,
+        "impressions": 294,
+        "ctr": 0.017,
+        "position": 11.5952
+      }
+    },
+    {
+      "path": "/en/glasses-guide/should-glasses-cover-your-eyebrows",
+      "row": {
+        "page": "https://www.visutry.com/en/glasses-guide/should-glasses-cover-your-eyebrows",
+        "search_type": "web",
+        "clicks": 0,
+        "impressions": 153,
+        "ctr": 0,
+        "position": 8.3856
+      }
+    },
+    {
+      "path": "/en/glasses-guide/glasses-for-round-face-men",
+      "row": {
+        "page": "https://www.visutry.com/en/glasses-guide/glasses-for-round-face-men",
+        "search_type": "web",
+        "clicks": 0,
+        "impressions": 71,
+        "ctr": 0,
+        "position": 8.9577
+      }
+    },
+    {
+      "path": "/en/glasses-guide/best-cat-eye-glasses-for-oval-face",
+      "row": {
+        "page": "https://www.visutry.com/en/glasses-guide/best-cat-eye-glasses-for-oval-face",
+        "search_type": "web",
+        "clicks": 0,
+        "impressions": 127,
+        "ctr": 0,
+        "position": 9.9606
+      }
+    },
+    {
+      "path": "/ja/face-shape-detector",
+      "row": {
+        "page": "https://www.visutry.com/ja/face-shape-detector",
+        "search_type": "web",
+        "clicks": 229,
+        "impressions": 2068,
+        "ctr": 0.1107,
+        "position": 6.5392
+      }
+    },
+    {
+      "path": "/es/face-shape-detector",
+      "row": {
+        "page": "https://www.visutry.com/es/face-shape-detector",
+        "search_type": "web",
+        "clicks": 103,
+        "impressions": 1913,
+        "ctr": 0.0538,
+        "position": 7.2786
+      }
+    },
+    {
+      "path": "/pt/face-shape-detector",
+      "row": {
+        "page": "https://www.visutry.com/pt/face-shape-detector",
+        "search_type": "web",
+        "clicks": 40,
+        "impressions": 452,
+        "ctr": 0.0885,
+        "position": 6.8938
+      }
+    }
+  ],
+  "selectedQueryPages": [
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "face shape detector",
+      "search_type": "web",
+      "clicks": 416,
+      "impressions": 11897,
+      "ctr": 0.035,
+      "position": 6.6535
+    },
+    {
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "query": "what glasses suit my face",
+      "search_type": "web",
+      "clicks": 13,
+      "impressions": 904,
+      "ctr": 0.0144,
+      "position": 7.5398
+    },
+    {
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "query": "which glasses suit my face",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 585,
+      "ctr": 0.0068,
+      "position": 7.3316
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "face detector",
+      "search_type": "web",
+      "clicks": 5,
+      "impressions": 499,
+      "ctr": 0.01,
+      "position": 7.5351
+    },
+    {
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "query": "what glasses suit my face upload photo",
+      "search_type": "web",
+      "clicks": 31,
+      "impressions": 490,
+      "ctr": 0.0633,
+      "position": 4.4531
+    },
+    {
+      "page": "https://www.visutry.com/ja/face-shape-detector",
+      "query": "顔の形診断 カメラ 無料",
+      "search_type": "web",
+      "clicks": 63,
+      "impressions": 488,
+      "ctr": 0.1291,
+      "position": 5.0943
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "check face",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 377,
+      "ctr": 0.0106,
+      "position": 6.4244
+    },
+    {
+      "page": "https://www.visutry.com/ja/face-shape-detector",
+      "query": "顔の形診断 カメラ",
+      "search_type": "web",
+      "clicks": 44,
+      "impressions": 295,
+      "ctr": 0.1492,
+      "position": 4.6203
+    },
+    {
+      "page": "https://www.visutry.com/ja/find-glasses-for-my-face",
+      "query": "似合うメガネ診断 カメラ 無料",
+      "search_type": "web",
+      "clicks": 13,
+      "impressions": 286,
+      "ctr": 0.0455,
+      "position": 8.2063
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "face shape",
+      "search_type": "web",
+      "clicks": 6,
+      "impressions": 277,
+      "ctr": 0.0217,
+      "position": 8.639
+    },
+    {
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "query": "which glasses suit my face ai",
+      "search_type": "web",
+      "clicks": 28,
+      "impressions": 234,
+      "ctr": 0.1197,
+      "position": 2.6667
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "face shape detector online",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 226,
+      "ctr": 0.0177,
+      "position": 5.7522
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "face shape finder",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 203,
+      "ctr": 0.0197,
+      "position": 8.2463
+    },
+    {
+      "page": "https://www.visutry.com/ja/face-shape-detector",
+      "query": "顔診断 写真",
+      "search_type": "web",
+      "clicks": 10,
+      "impressions": 189,
+      "ctr": 0.0529,
+      "position": 7.836
+    },
+    {
+      "page": "https://www.visutry.com/ar/what-is-my-face-shape",
+      "query": "كيف اعرف شكل وجهي",
+      "search_type": "web",
+      "clicks": 13,
+      "impressions": 182,
+      "ctr": 0.0714,
+      "position": 4.1593
+    },
+    {
+      "page": "https://www.visutry.com/en/blog/rayban-glasses-virtual-tryon-guide",
+      "query": "ray ban virtual try on",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 172,
+      "ctr": 0,
+      "position": 8.2267
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "checks face",
+      "search_type": "web",
+      "clicks": 1,
+      "impressions": 167,
+      "ctr": 0.006,
+      "position": 5.7006
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "face shape detector for glasses",
+      "search_type": "web",
+      "clicks": 24,
+      "impressions": 161,
+      "ctr": 0.1491,
+      "position": 5.3168
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "face analysis",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 153,
+      "ctr": 0,
+      "position": 8.7647
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "free face shape detector",
+      "search_type": "web",
+      "clicks": 17,
+      "impressions": 149,
+      "ctr": 0.1141,
+      "position": 5.1007
+    },
+    {
+      "page": "https://www.visutry.com/en/face-analysis",
+      "query": "which glasses suit my face ai",
+      "search_type": "web",
+      "clicks": 13,
+      "impressions": 149,
+      "ctr": 0.0872,
+      "position": 5.5772
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "face witness free",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 138,
+      "ctr": 0.029,
+      "position": 5.7174
+    },
+    {
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "query": "which glasses suit me",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 133,
+      "ctr": 0,
+      "position": 8.0827
+    },
+    {
+      "page": "https://www.visutry.com/en/face-shape-detector",
+      "query": "face type detector",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 130,
+      "ctr": 0.0231,
+      "position": 7.9077
+    },
+    {
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "query": "which glasses suit my face ai free",
+      "search_type": "web",
+      "clicks": 17,
+      "impressions": 123,
+      "ctr": 0.1382,
+      "position": 2.122
+    },
+    {
+      "page": "https://www.visutry.com/ja/face-shape-detector",
+      "query": "顔の形 診断",
+      "search_type": "web",
+      "clicks": 3,
+      "impressions": 113,
+      "ctr": 0.0265,
+      "position": 8.2301
+    },
+    {
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "query": "best glasses for my face ai",
+      "search_type": "web",
+      "clicks": 19,
+      "impressions": 112,
+      "ctr": 0.1696,
+      "position": 2.9375
+    },
+    {
+      "page": "https://www.visutry.com/en/blog/ai-face-analysis-for-glasses-guide",
+      "query": "which ai glasses should i buy?",
+      "search_type": "web",
+      "clicks": 0,
+      "impressions": 109,
+      "ctr": 0,
+      "position": 1
+    },
+    {
+      "page": "https://www.visutry.com/en",
+      "query": "visutry",
+      "search_type": "web",
+      "clicks": 44,
+      "impressions": 106,
+      "ctr": 0.4151,
+      "position": 1.6132
+    },
+    {
+      "page": "https://www.visutry.com/es/face-shape-detector",
+      "query": "como saber que tipo de rostro tengo",
+      "search_type": "web",
+      "clicks": 4,
+      "impressions": 105,
+      "ctr": 0.0381,
+      "position": 8.581
+    }
+  ],
+  "googleImages": [
+    {
+      "search_type": "image",
+      "clicks": 3,
+      "impressions": 1716,
+      "ctr": 0.0017,
+      "position": 23.4819
+    }
+  ],
+  "arithmeticScenario": {
+    "forecast": false,
+    "currentWeeklyClicks": 2350,
+    "targetWeeklyClicks": 23500,
+    "currentWeeklyImpressions": 52896,
+    "ctrAtBaseline": 0.04442679975801573,
+    "clicksAtUnchangedImpressionsAndAssumed10PercentCtr": 5289.6,
+    "illustrativeTenfoldScenario": {
+      "exposureMultiplier": 5,
+      "ctrMultiplier": 2,
+      "weeklyImpressions": 264480,
+      "ctr": 0.08885359951603146
+    }
+  },
+  "unverified": [
+    "External keyword search volumes / addressable click pool",
+    "URL Inspection coverage for the proposed low-exposure flagship pages",
+    "Repeatable tenfold Google traffic growth",
+    "Causal impact of the November21 content batch"
+  ]
+}
