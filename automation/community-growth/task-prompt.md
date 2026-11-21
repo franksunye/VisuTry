@@ -9,9 +9,11 @@ not establish current execution.
 
 The user's 2026-11-21 request authorizes sustained useful participation and
 relevant VisuTry promotion. Do not invent a missing-user-authorization blocker.
-Current capability observations are `HUMAN_PUBLISHING_AVAILABLE` and
-`AUTOMATED_PUBLISHING_NOT_VERIFIED`; these do not select a permanent publishing
-mode on the user's behalf.
+The user then explicitly selected `HUMAN_REVIEW_AND_PUBLISH`: the assistant
+selects topics and writes drafts; the user reviews and personally publishes;
+the assistant follows replies and reviews results. Apply this division to
+follow-up comments too. Do not click Post or Comment on the user's behalf.
+App registration for automatic publishing does not block this drafting work.
 
 Use only the authorized session and supported tools. Never extract credentials,
 cookies, tokens, headers or browser profiles. Never bypass authentication,
@@ -41,14 +43,14 @@ Execute in this order:
 7. Prepare the complete publishing packet: exact target URL and post/comment,
    final text, why it helps, rule evidence/date, disclosures, any destination
    link and a freshness/expiry condition. A draft is `DRAFT_READY`, not published.
-8. Before any transmission, verify the actual publishing method's platform,
-   account and community requirements. Do not treat agent-driven browser clicks
-   as exempt from automated-account/app rules. Registration alone never permits
-   a bot that continuously promotes VisuTry. If prerequisites are unverified,
-   deliver the usable packet and the specific blocker; do not wait indefinitely
-   or repeatedly request user authorization already given.
-9. Recheck the context immediately before publishing or reusing a packet. Expire
-   removed, locked, answered or stale candidates. After an actual publication,
+8. Deliver the complete packet for the user's review and personal submission.
+   If the authorized browser is available, a private saved draft can shorten
+   this step; otherwise deliver the full text and exact target directly.
+   Do not submit posts or comments automatically. Do not hold useful drafts
+   for agent-app registration or repeatedly request authorization already given.
+9. Recheck context when handing off or reusing a packet. Expire removed, locked,
+   answered or stale candidates. After the user publishes, obtain the actual
+   permalink from the user or available public account activity; then
    verify the live permalink and visible text before recording
    `PUBLISHED_VERIFIED`. If only the author view is available or filtering is
    unresolved, use `PUBLIC_VISIBILITY_UNVERIFIED`. A submit attempt alone is not
@@ -61,8 +63,14 @@ Execute in this order:
     available. Preserve historical logs and state timestamps. Do not require
     `growth/community-ops`, restore PR #156, automatically create a weekly PR,
     or label repository documentation as proof of an active scheduler.
-12. Return a concise delivery: ready packets, actual published links, follow-ups,
-    result and exact blocker. If no worthwhile candidate exists, report
+12. Resolve existing pending drafts and genuine reply needs first. Keep at most
+    two unresolved new drafts; deliver one primary recommendation and at most
+    one useful backup instead of accumulating an unchecked queue.
+    Return a concise review packet: recommended target, why it matters,
+    complete English text, whether it mentions/links VisuTry, required
+    disclosure, and the direct review/publish entry. Prioritize needed
+    follow-ups; include actual published links and any specific blocker.
+    If no worthwhile candidate exists, report
     `NO_RELEVANT_OPPORTUNITY` with search coverage and the next concrete
     adjustment. Repeated zero-publication runs require a correction to access,
     community coverage or format, not another generic monitoring summary.

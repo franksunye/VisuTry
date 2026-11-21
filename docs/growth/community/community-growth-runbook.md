@@ -1,6 +1,6 @@
 # VisuTry Reddit Community Growth Runbook
 
-**Status:** Current Reddit execution contract; publishing prerequisites remain explicit  
+**Status:** HUMAN_REVIEW_AND_PUBLISH approved on 2026-11-21  
 **Owner:** Growth / Community Ops  
 **Last reviewed:** 2026-11-21  
 **Strategy:** `docs/strategy/analytics/gtm.md`
@@ -15,22 +15,27 @@
 Comment count is not a target by itself. Repeated research-only reports do not
 establish a working distribution channel.
 
-## Authorization and current capability
+## Authorization and agreed responsibilities
 
 The user's 2026-11-21 request authorizes sustained useful Reddit participation
 and relevant VisuTry promotion. Do not repeatedly seek the same authorization.
 
-Current capability states are `HUMAN_PUBLISHING_AVAILABLE` and
-`AUTOMATED_PUBLISHING_NOT_VERIFIED`. They describe current evidence, not an
-agreed permanent human-only workflow. Verify the actual publishing method's
-platform/account/community requirements before transmission. User authorization
-does not establish app registration, and human review does not exempt an
-agent-operated account from Reddit rules.
+The user explicitly approved `HUMAN_REVIEW_AND_PUBLISH` on 2026-11-21:
 
-A logged-in session is not proof of permission for automated publishing.
-Registration alone does not permit continuous product promotion. If a concrete
-capability or rule prevents publication, deliver the exact target, final text
-and blocker while the opportunity is current.
+| Responsibility | Owner |
+| --- | --- |
+| Select topics, verify context/rules and write complete English drafts | Assistant |
+| Review each draft and personally click Post or Comment | User |
+| Check actual publications/replies, draft follow-ups and review outcomes | Assistant |
+
+Follow-up comments require the same user review and personal publication.
+The assistant may save private drafts but does not submit public content.
+Automatic publishing/app registration is outside this mechanism and must not
+block everyday selection, drafting or follow-up preparation.
+
+If a concrete content rule prevents a proposed contribution, choose another
+appropriate target or explain the specific content issue. Deliver usable work
+while its context is current.
 
 ## Canonical locations
 
@@ -59,10 +64,13 @@ and `ACTIVE` fields remain historical until real scheduler evidence is rechecked
 7. Produce a complete packet: exact target, final text, relevance, disclosures,
    rule evidence/date, any link and a freshness condition. Do not use a generic
    monitoring summary when a useful concrete draft can be delivered.
-8. Verify the intended publishing method's requirements, recheck context and
-   submit only when those requirements are satisfied. If blocked, record the
-   precise boundary and deliver the packet; do not wait indefinitely.
-9. Verify actual publication through a live permalink and visible content.
+8. Hand the complete packet to the user for review and personal submission.
+   Keep the target and final text directly accessible; save a private Reddit
+   draft when useful and available. Do not click Post or Comment.
+   Agent-app registration is not a drafting blocker under this mechanism.
+9. After the user publishes, obtain the actual permalink and verify publicly
+   visible content. The user's notification can start this check but is not
+   itself proof of public visibility.
    Check public visibility when the author view could conceal filtering or
    moderation; otherwise record `PUBLIC_VISIBILITY_UNVERIFIED`. Record drafts
    and submit attempts separately. Recheck removal status and replies on the
@@ -71,20 +79,22 @@ and `ACTIVE` fields remain historical until real scheduler evidence is rechecked
     the current authorized repository workflow. Do not automatically restore an
     old branch, create weekly PRs or fabricate scheduled-run evidence.
 
-Keep the pending queue small and current. Expire removed, locked, answered or
-stale candidates instead of mechanically recycling them. No forced daily
+Keep at most two unresolved new drafts. Prioritize actual replies and existing
+pending work; offer one primary recommendation and at most one useful backup.
+Expire removed, locked, answered or stale candidates instead of mechanically
+recycling them. No forced daily
 promotion quota or volume increase to compensate for missed runs.
 
 ## Outcome states
 
 | State | Meaning |
 | --- | --- |
-| `DRAFT_READY` | Complete target-specific text is ready for review or a permitted publishing method. |
-| `PUBLISHED_VERIFIED` | A live permalink and visible published text were observed. |
+| `DRAFT_READY` | Complete target-specific text is ready for user review and personal publication. |
+| `PUBLISHED_VERIFIED` | A live permalink and publicly visible published text were observed. |
 | `PUBLIC_VISIBILITY_UNVERIFIED` | Submission or author-visible text exists, but public availability is not verified. |
 | `FOLLOW_UP_READY` | A real conversation needs a specific next reply. |
 | `AUTH_REQUIRED` | The selected account session cannot be used. |
-| `PUBLISHING_METHOD_NOT_VERIFIED` | Requirements for the intended publishing method are not verified. |
+| `PUBLISHING_METHOD_NOT_VERIFIED` | Historical or separately proposed method requirements are unverified; not a blocker for the agreed human publishing workflow. |
 | `PLATFORM_RULE_BLOCKED` | The intended content or method is not permitted. |
 | `RUNTIME_CONFIRMATION_REQUIRED` | The current runtime requires an unavailable action-time confirmation. |
 | `NO_RELEVANT_OPPORTUNITY` | A bounded, varied search found no worthwhile candidate. |
@@ -116,7 +126,9 @@ unjoinable data. Follow the GTM expand / modify / stop review discipline.
 ## 2026-11-21 verification checkpoint
 
 - Live browser check observed Reddit account `u/ZISO_Frank` signed in.
-- Automated app registration/permission was not verified.
+- Automated app registration/permission was not verified at the initial check.
+  The user subsequently selected human review and personal publication, so this
+  is not a blocker for the active drafting workflow.
 - `r/glassesadvice` still displayed restrictions on advertising and AI posts.
 - `r/glasses` displayed a rule to follow Reddit Rules; no additional rule was
   observed in this check.

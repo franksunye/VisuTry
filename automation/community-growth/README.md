@@ -1,30 +1,30 @@
 # Community Growth Automation
 
-**Status:** Reddit execution contract refreshed; live scheduling and automated publishing not verified  
+**Status:** HUMAN_REVIEW_AND_PUBLISH approved; preparation/follow-up scheduling recorded separately  
 **Last reviewed:** 2026-11-21
 
 This is the repository-side entry point for VisuTry's Reddit participation work.
 The current strategy remains `docs/strategy/analytics/gtm.md`; this workflow does
 not create a separate GTM plan or restart historical YouTube/outreach work.
 
-## Authorization and publishing capability
+## Approved operating mechanism
 
 The user's 2026-11-21 request authorizes sustained, useful Reddit participation
 and relevant VisuTry promotion. Do not repeatedly ask for authorization already
 given within that scope.
 
-Current capability observations:
+On 2026-11-21 the user explicitly selected `HUMAN_REVIEW_AND_PUBLISH`:
 
-- `HUMAN_PUBLISHING_AVAILABLE`: the existing Reddit account can be used by its
-  human owner; the current session's account evidence belongs in the dated log.
-- `AUTOMATED_PUBLISHING_NOT_VERIFIED`: Reddit app registration and the permission
-  required for agent-operated publishing have not been verified.
+- The assistant selects topics, checks rules, writes complete English drafts,
+  prepares follow-up replies and reviews actual outcomes.
+- The user reviews each final text and personally clicks Post or Comment.
+- All public follow-up replies use the same review-and-publish division.
 
-These are capability states, not a user decision to adopt a permanent
-human-only workflow. Verify the actual publishing method against current Reddit
-and community rules before submitting. A logged-in browser, user authorization,
-or human approval does not establish Reddit app registration or exempt an agent
-from platform rules. Registration does not permit continuous product promotion.
+The assistant may prepare or save drafts, but does not submit public posts or
+comments. Agent-operated app registration is not a prerequisite for this
+drafting workflow and must not become a recurring blocker. Automatic public
+submission is outside the selected mechanism. Current community rules and
+commercial/AI disclosure still apply to the final content.
 
 ## Current execution
 
@@ -41,14 +41,32 @@ from platform rules. Registration does not permit continuous product promotion.
 - The historical Codex task and the separate ChatGPT review task are different
   systems. Do not claim that enabling a review task enables publication.
 
+## Preparation and follow-up task — verified 2026-11-21
+
+- Task: `VisuTry Reddit 选题与跟进`
+- ID: `Automation_950003f090788191a770a7fa7063ad3c`
+- Enabled: `true`
+- Schedule: daily around 10:00, `Asia/Shanghai`, `flexible_schedule`.
+- Next scheduled run: `2026-11-22T10:00:00+08:00`.
+- Last run: `null`; first execution is pending. Configuration is not run evidence.
+- Saturday: add the weekly outcome review to the same daily packet.
+- One task handles preparation and follow-up; the old paused review task is not restarted.
+
+Prioritize actual replies and existing pending drafts. Deliver one primary
+recommendation with at most one useful backup, and retain at most two unresolved
+new drafts. This task prepares work for human review/publication; it does not
+submit public posts or comments.
+
 ## Evidence and review
 
 Use daily evidence under `growth/community/daily/` and the existing state/index
 where appropriate. Preserve historical timestamps and records; old `ACTIVE`
 fields are not current scheduler verification.
 
-Only a verified live permalink and visible published text count as
-`PUBLISHED_VERIFIED`. A completed draft is `DRAFT_READY`.
+Only a verified live permalink and publicly visible published text count as
+`PUBLISHED_VERIFIED`. A completed draft is `DRAFT_READY`; a user-reported
+submission with public visibility still unchecked is
+`PUBLIC_VISIBILITY_UNVERIFIED`.
 
 Inspect any repository diff for unrelated changes and secrets. Follow the
 current authorized repository workflow for evidence writes; do not automatically

@@ -58,21 +58,23 @@ friction or adds little value.
 ## Identity, AI assistance and publishing method
 
 The user's 2026-11-21 request authorizes this Reddit work; do not repeatedly ask
-for the same authorization. Follow the runbook's current capability evidence.
-`HUMAN_PUBLISHING_AVAILABLE` and `AUTOMATED_PUBLISHING_NOT_VERIFIED` are observations,
-not the user's choice of a permanent operating mode.
+for the same authorization. The user explicitly selected
+`HUMAN_REVIEW_AND_PUBLISH`: the assistant prepares topics, final drafts,
+follow-up drafts and outcome reviews; the user reviews and personally submits
+each public post/comment. The assistant may save private drafts but must not
+click Post or Comment.
 
 Disclose the VisuTry relationship whenever recommending or sharing the product.
 Make AI assistance transparent as required by current Reddit/community rules.
 Human review does not justify concealing AI involvement or commercial affiliation.
 Never represent the agent as an independent customer, optician or human author.
 
-Agent-operated publishing requires verified applicable platform registration and
-permission, including when using browser UI. A logged-in account or user approval
-alone does not satisfy those conditions. Registration is not permission for a
-bot that continuously promotes VisuTry. Do not publish AI-assisted content where
-the community prohibits it; stop at the concrete rule/capability boundary and
-deliver the prepared packet.
+Agent-operated publishing is outside the current mechanism. Its registration
+requirements must not prevent routine topic selection, drafting or follow-up
+preparation. Any future change of publishing method would need separate
+verification; registration does not permit a continuously promotional bot.
+Do not prepare AI-assisted content for publication where the community prohibits
+it. Apply current content/disclosure rules and deliver suitable review packets.
 
 Current policy references, checked for this restart:
 - [Reddit Spam policy](https://support.reddithelp.com/hc/en-us/articles/360043504051-Spam)

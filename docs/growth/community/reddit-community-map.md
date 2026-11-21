@@ -12,9 +12,11 @@ rules before posting. A previous classification is not permanent permission.
 | `r/glasses` | Eyewear discussion and questions | Visible rule requires following Reddit Rules; no additional rule observed in this check. | Assess a specific thread, AI disclosure, affiliation and publishing method; no blanket promotion approval. |
 | `r/SideProject` | A clearly affiliated product introduction and constructive feedback | Description explicitly supports sharing projects and feedback; rules page displayed no additional rules. | Prepare a specific project-sharing draft; verify method and current context before any submission. Moderator acceptance is not guaranteed. |
 
-These observations come from the current live browser review. They do not verify
-automated app registration, establish a scheduled posting service, or authorize
-a continuously promotional bot. Follow the interaction policy and runbook.
+These observations come from the live browser review. The selected mechanism
+is `HUMAN_REVIEW_AND_PUBLISH`: the assistant prepares content and follow-ups;
+the user reviews and personally submits. These rows do not guarantee moderator
+acceptance or establish an automatic posting service. Follow the interaction
+policy and runbook.
 
 Reference surfaces:
 - [glassesadvice rules](https://www.reddit.com/r/glassesadvice/about/rules/)
