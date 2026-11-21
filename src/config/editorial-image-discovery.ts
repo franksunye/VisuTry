@@ -5,6 +5,9 @@ export const EYEBROW_FIT_IMAGE_PATH = '/images/seo/decisions/glasses-eyebrow-pos
 
 /** Match actual editorial renders; never attach untranslated figures to locale pages. */
 export function getEditorialImagePaths(pagePath: string, locale: string): string[] {
+  if (locale === 'ar' && pagePath === '/find-glasses-for-my-face') {
+    return ['/images/seo/core/glasses-frame-a-vs-b.webp']
+  }
   if (locale === 'ja' && pagePath === '/find-glasses-for-my-face') {
     return ['/images/seo/decisions/glasses-frame-shapes-comparison.webp']
   }
