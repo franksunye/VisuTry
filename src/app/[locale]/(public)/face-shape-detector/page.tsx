@@ -131,6 +131,21 @@ export default function FaceShapeDetectorPage({ params }: FaceShapeDetectorPageP
           <B01VisualSeoSections locale={locale} pagePath="/face-shape-detector" />
           {locale === 'en' ? <DetectorShapeGuideLinks /> : null}
 
+          {locale === 'ja' ? (
+            <section aria-labelledby="detector-glasses-next-step" className="mt-12 rounded-lg border border-gray-200 bg-white p-6">
+              <h2 id="detector-glasses-next-step" className="text-2xl font-bold leading-relaxed text-gray-950">
+                顔型の結果を、メガネ選びに使う
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-gray-700">
+                顔型は候補を絞る目安です。次は、丸型と長方形など印象の違うフレームを比べ、幅・ブリッジ・掛け心地も確認しましょう。
+                同じ顔で4種類のフレームを比べる例から、見た目の違いとサイズの確認方法を紹介します。
+              </p>
+              <Link href="/ja/find-glasses-for-my-face#frame-selection-example" className="mt-4 inline-flex items-center gap-2 font-semibold text-blue-700 underline decoration-blue-200 underline-offset-4 hover:text-blue-900">
+                フレームを比べる例と、メガネの選び方を見る <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
+              </Link>
+            </section>
+          ) : null}
+
           <section className="mt-12">
             <h2 className="mb-5 text-2xl font-bold text-gray-950">{copy.detector.faqTitle}</h2>
             <div className="grid gap-4 md:grid-cols-2">
