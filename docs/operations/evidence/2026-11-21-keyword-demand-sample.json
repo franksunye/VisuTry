@@ -1,0 +1,858 @@
+{
+  "retrieval_date_utc": "2026-11-21",
+  "provider": "Keyword Tool official Guest MCP",
+  "endpoint": "https://mcp.keywordtool.io/guest",
+  "source_documentation": [
+    "https://keywordtool.io/mcp/guest",
+    "https://keywordtool.io/api.md"
+  ],
+  "keyword_request_count": 15,
+  "quantified_keywords": [
+    {
+      "seed": "face shape detector",
+      "keyword": "face shape detector",
+      "volume": 201000,
+      "request_metadata": {
+        "platform": "google",
+        "country": "Global / Worldwide",
+        "language": "English"
+      }
+    },
+    {
+      "seed": "face shape detector",
+      "keyword": "ai face shape detector",
+      "volume": 6600,
+      "request_metadata": {
+        "platform": "google",
+        "country": "Global / Worldwide",
+        "language": "English"
+      }
+    },
+    {
+      "seed": "virtual glasses try on",
+      "keyword": "virtual glasses try on",
+      "volume": 12100,
+      "request_metadata": {
+        "platform": "google",
+        "country": "Global / Worldwide",
+        "language": "English"
+      }
+    }
+  ],
+  "sample_arithmetic": {
+    "face_identification_cluster_conservative_max": 201000,
+    "virtual_eyewear_cluster": 12100,
+    "sum_of_cluster_maxima": 213100,
+    "raw_sum_of_quantified_rows": 219700,
+    "largest_single_quantified_row": 201000
+  },
+  "limitations": [
+    "Provider-cached average monthly search volume, not actual searches in November 2026. Cache dates and represented month range are not returned.",
+    "Official API reference defines volume as last-12-month average; omitted metrics_location resolves to worldwide; Guest response does not expose metrics_location or metrics_network.",
+    "Common API default metrics_network is googlesearchnetwork. Do not assert Google Search-only scope.",
+    "Suggestion language English describes seed/suggestion text, not a verified restriction to English-language users.",
+    "Unavailable free-cache metrics are not zero.",
+    "This is an observed keyword sample, not all-language market total, unique users, click volume, or market share.",
+    "213100 is a conservative cluster-max arithmetic scenario, not a statistical confidence bound on true current market size."
+  ],
+  "records": [
+    {
+      "retrieved_at": null,
+      "request": {
+        "keyword": "face shape detector",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "English",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: 2 of 390 keywords carry at least one metric - search volume, trend, competition, CPC and Top of Page Bid, where cached; the rest show keyword text only. Keyword Tool Pro returns full metrics on every keyword.",
+        "data": [
+          {
+            "string": "face shape detector",
+            "volume": 201000,
+            "trend": -70,
+            "cpc": 1.34,
+            "cmp": 0.05,
+            "top_of_page_bid_low": 0.3,
+            "top_of_page_bid_high": 1.56,
+            "top_of_page_bid": "$0.30 - $1.56",
+            "metrics_status": "included"
+          },
+          {
+            "string": "ai face shape detector",
+            "volume": 6600,
+            "trend": -76,
+            "cpc": 1.99,
+            "cmp": 0.09,
+            "top_of_page_bid_low": 0.3,
+            "top_of_page_bid_high": 2.16,
+            "top_of_page_bid": "$0.30 - $2.16",
+            "metrics_status": "included"
+          },
+          {
+            "string": "free face shape detector",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "hiface face shape detector",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "my face shape detector",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "English"
+        },
+        "total_count": 390,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:11.663709+00:00",
+      "request": {
+        "keyword": "what is my face shape",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "English",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "what is my face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "what is my face shape free",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "how to know what is my face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "what is my face shape for hair",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "what is my face shape app",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "English"
+        },
+        "total_count": 334,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:11.664418+00:00",
+      "request": {
+        "keyword": "face shape",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "English",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "oblong face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "oval face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "diamond face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "what is my face shape",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "English"
+        },
+        "total_count": 656,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:11.665202+00:00",
+      "request": {
+        "keyword": "glasses for face shape",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "English",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "glasses for face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "best glasses for face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "how to pick glasses for face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "woman glasses for face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "glasses for face shape male",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "English"
+        },
+        "total_count": 394,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:11.665652+00:00",
+      "request": {
+        "keyword": "what glasses suit my face",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "English",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "what glasses suit my face",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "what glasses suit my face upload photo",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "how do i know what glasses suit my face",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "what glasses suit my face shape",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "how to find what glasses suit my face",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "English"
+        },
+        "total_count": 204,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:11.666429+00:00",
+      "request": {
+        "keyword": "virtual glasses try on",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "English",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: 1 of 337 keywords carry at least one metric - search volume, trend, competition, CPC and Top of Page Bid, where cached; the rest show keyword text only. Keyword Tool Pro returns full metrics on every keyword.",
+        "data": [
+          {
+            "string": "virtual glasses try on",
+            "volume": 12100,
+            "trend": 0,
+            "cpc": 1.69,
+            "cmp": 1,
+            "top_of_page_bid_low": 0.35,
+            "top_of_page_bid_high": 1.76,
+            "top_of_page_bid": "$0.35 - $1.76",
+            "metrics_status": "included"
+          },
+          {
+            "string": "virtual glasses try on online free",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "best virtual glasses try on",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "virtual glasses try on upload photo",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "virtual glasses try on with photo",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "English"
+        },
+        "total_count": 337,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:49.842665+00:00",
+      "request": {
+        "keyword": "顔型診断",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "Japanese",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "顔型診断",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "ホットペッパー 顔型診断 やり方",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "ホットペッパー 顔型診断 アプリ",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "ホットペッパービューティ 顔型診断",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "ホットペーパー 顔型診断",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "Japanese - 日本語"
+        },
+        "total_count": 217,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:49.843446+00:00",
+      "request": {
+        "keyword": "顔の形診断",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "Japanese",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "顔の形診断",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "メンズ 顔の形診断 カメラ",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "メガネ 顔の形診断",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "顔の形診断 男",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "顔の形診断 カメラ",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "Japanese - 日本語"
+        },
+        "total_count": 103,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:49.844166+00:00",
+      "request": {
+        "keyword": "detector de forma de cara",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "Spanish",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "detector de forma de cara",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "analizador facial y detector de forma de cara con ia",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "airbrush detector de forma de cara con ia",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "detector de forma de cara con ia",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "detectores de características",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "Spanish - Español"
+        },
+        "total_count": 96,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:54.177614+00:00",
+      "request": {
+        "keyword": "كيف اعرف شكل وجهي",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "Arabic",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "كيف اعرف شكل وجهي",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "اختبار كيف اعرف شكل وجهي",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "كيف اعرف شكل وجهي بالصور",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "كيف اعرف شكل وجهي للرجال",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "كيف اعرف شكل وجهي الحقيقي",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "Arabic - العربية"
+        },
+        "total_count": 68,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:54.250132+00:00",
+      "request": {
+        "keyword": "formato de rosto",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "Portuguese",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "formato de rosto",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "tipos de formato de rosto",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "como saber meu formato de rosto",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "oculos formato de rosto",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "qual o formato de rosto mais bonito",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "Portuguese (Brazil) - Português (Brasil)"
+        },
+        "total_count": 470,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:43:54.307004+00:00",
+      "request": {
+        "keyword": "bentuk wajah",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "Indonesian",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "bentuk wajah",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "gaya rambut pendek pria sesuai bentuk wajah",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "potongan rambut anak laki laki sesuai bentuk wajah",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "model rambut pendek wanita sesuai bentuk wajah bulat",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "model rambut wanita 2026 sesuai bentuk wajah",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "Indonesian - Bahasa Indonesia"
+        },
+        "total_count": 501,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:45:10.690928+00:00",
+      "request": {
+        "keyword": "glasses for round face",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "English",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "glasses for round face",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "best glasses for round face",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "chubby face glasses for round face female",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "what shape glasses for round face",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "best shape glasses for round face",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "English"
+        },
+        "total_count": 422,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:45:10.691672+00:00",
+      "request": {
+        "keyword": "glasses for oval face",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "English",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "glasses for oval face",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "best glasses for oval face",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "trendy glasses for oval face female",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "trendy glasses for oval face male",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "best shape glasses for oval face",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "English"
+        },
+        "total_count": 379,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    },
+    {
+      "retrieved_at": "2026-11-21T12:45:10.692698+00:00",
+      "request": {
+        "keyword": "try on glasses",
+        "platform": "google",
+        "category": "web",
+        "country": "Global / Worldwide",
+        "language": "English",
+        "type": "suggestions",
+        "limit": 5
+      },
+      "response": {
+        "success": true,
+        "notice": "Guest access: this result returns keyword text only (no cached metrics were available for these keywords). Keyword Tool Pro returns search volume, trend, competition, CPC, and Top of Page Bid on every keyword, with live data for uncached terms.",
+        "data": [
+          {
+            "string": "try on glasses",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "virtual try on glasses",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "specsavers try on glasses",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "lenskart try on glasses",
+            "metrics_status": "requires Pro"
+          },
+          {
+            "string": "app to try on glasses",
+            "metrics_status": "requires Pro"
+          }
+        ],
+        "metadata": {
+          "platform": "google",
+          "country": "Global / Worldwide",
+          "language": "English"
+        },
+        "total_count": 531,
+        "pagination": {
+          "current_page": 0,
+          "has_more": true,
+          "next_page": 1
+        }
+      }
+    }
+  ],
+  "gsc_same_query_window": {
+    "from": "2026-10-23",
+    "to": "2026-11-19",
+    "source": "Windsor searchconsole, finalized Web, query-only aggregation",
+    "rows": [
+      {
+        "query": "face shape detector",
+        "search_type": "web",
+        "clicks": 923,
+        "impressions": 40169,
+        "position": 7.1081
+      },
+      {
+        "query": "virtual glasses try on",
+        "search_type": "web",
+        "clicks": 0,
+        "impressions": 94,
+        "position": 64.5851
+      }
+    ]
+  },
+  "interpretation": {
+    "global_market_total": "UNVERIFIED; 213100 is an observed cached sample calculation, not a global total or guaranteed current-month lower bound.",
+    "global_market_share": "UNVERIFIED; whole-site clicks must not be divided by this incomplete keyword sample.",
+    "same_term_order_of_magnitude": {
+      "query": "face shape detector",
+      "gsc_clicks_28d": 923,
+      "provider_average_monthly_searches": 201000,
+      "unadjusted_ratio": 0.004592039800995025,
+      "ratio_kind": "Illustrative search-to-site-click capture comparison, NOT an observed market share or click-through conversion rate.",
+      "limitations": "Different time windows, provider cache age and network scope; no precise KPI or confidence interval is claimed."
+    },
+    "competitive_scale_reference": {
+      "domain": "detect-face-shape.com",
+      "source": "https://www.semrush.com/website/detect-face-shape.com/overview/",
+      "report_month": "2026-10",
+      "estimated_monthly_organic_traffic": 55990,
+      "geography": "organic widget not explicitly identified",
+      "method": "Third-party rank/volume/CTR model, not the site's analytics."
+    },
+    "allocation_decision": "GO on organic acquisition. Preserve 2x/5x/10x milestones; about 50000 monthly clicks has a same-task external scale reference, while 10x attainability is not validated. Prioritize major face-identification and eyewear-selection tasks. Arabic two-owner improvement remains a bounded approved experiment, not the 10x thesis."
+  }
+}
