@@ -64,9 +64,9 @@ export const B01_VISUAL_SEO_ASSETS = [
     pagePath: '/face-shape-detector',
     width: 1062,
     height: 510,
-    heading: 'A Real Face Shape Detector Result, Explained',
+    heading: 'See an actual detector result',
     alt: 'Actual VisuTry detector output for a synthetic portrait, showing the facial landmark mesh and an oval estimate with measured proportions',
-    body: 'This synthetic demo portrait was processed by the actual free browser detector. Its measured proportions support an oval estimate; they are relative distances in this photo, not millimetres or proof that a particular frame will fit.',
+    body: 'An actual on-device result from a synthetic demo photo, suggesting an oval face shape as a starting point for exploring glasses styles.',
     link: {
       href: '/en/what-is-my-face-shape',
       label: 'See how to use your face shape result',

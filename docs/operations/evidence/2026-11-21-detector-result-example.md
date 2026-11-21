@@ -12,7 +12,7 @@ This replaces the VSEO-003 illustration on the existing English Detector with a 
 
 ## Observed result
 
-| Measurement | Raw value | Page label |
+| Measurement | Raw value | Interpretation |
 | --- | ---: | --- |
 | Estimated shape | oval | Oval |
 | Face length / outer face width | 1.233 | Face length ÷ face width: 1.23 |
@@ -20,6 +20,8 @@ This replaces the VSEO-003 illustration on the existing English Detector with a 
 | Jaw landmark span / cheekbone span | 0.853 | Jaw ÷ cheekbone width: 0.85 |
 
 The actual UI agrees: Oval, Balanced face length, Wide cheek span, Moderate jawline and Defined cheekbone span. Its 87 photo-quality and 0.76 geometry-match scores are heuristic scores, not validated accuracy. One synthetic portrait is not an accuracy study; values can vary with the photo, encoding or runtime.
+
+The marketing example was shortened after visual review on November 21. It retains the actual screenshot, one plain-language result sentence, brief source/quality disclosure, the free/paid boundary and the existing interpretation link. The standalone ratio table and detailed methodology are no longer rendered in this example; the recorded measurements remain here and in the capture manifest.
 
 ## Asset and reproducibility
 

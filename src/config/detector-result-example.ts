@@ -12,5 +12,5 @@ export const DETECTOR_RESULT_EXAMPLE = {
     jawToCheekWidth: 0.853,
   },
   explanation:
-    'In this photo, the face is a little longer than it is wide, and the jaw is narrower than the cheekbones. The detector considers the proportions together and estimates an oval shape. A different photo or pose can change the estimate.',
+    'This example suggests an oval face shape, a starting point for exploring glasses styles.',
 } as const
