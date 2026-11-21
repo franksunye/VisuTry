@@ -18,14 +18,23 @@ export function buildTryOnSignInHref(locale: string, type: string, searchParams?
   return `/${locale}/auth/signin?callbackUrl=${encodeURIComponent(callbackPath)}`
 }
 
-function QueryAwareStartLink({ locale, type, label }: { locale: string; type: string; label: string }) {
+type TryOnStartLinkProps = {
+  locale: string
+  type: string
+  label: string
+  /** Optional hero styles; existing callers retain the original button appearance. */
+  className?: string
+  /** Public entry points can disable speculative prefetch of authentication. */
+  prefetch?: boolean
+}
+function QueryAwareStartLink({ locale, type, label, className, prefetch }: TryOnStartLinkProps) {
   const searchParams = useSearchParams()
-  return <StartLink href={buildTryOnSignInHref(locale, type, searchParams)} label={label} />
+  return <StartLink href={buildTryOnSignInHref(locale, type, searchParams)} label={label} className={className} prefetch={prefetch} />
 }
 
-function StartLink({ href, label }: { href: string; label: string }) {
+function StartLink({ href, label, className = START_LINK_CLASS, prefetch }: Pick<TryOnStartLinkProps, 'label' | 'className' | 'prefetch'> & { href: string }) {
   return (
-    <Link href={href} className={START_LINK_CLASS}>
+    <Link href={href} className={className} prefetch={prefetch}>
       {label}
       <ArrowRight className="ms-2 h-4 w-4" />
     </Link>
@@ -33,10 +42,10 @@ function StartLink({ href, label }: { href: string; label: string }) {
 }
 
 /** Keep the marketing page prerenderable; resolve login handoff only in the client island. */
-export function TryOnStartLink({ locale, type, label }: { locale: string; type: string; label: string }) {
+export function TryOnStartLink({ locale, type, label, className, prefetch }: TryOnStartLinkProps) {
   return (
-    <Suspense fallback={<StartLink href={buildTryOnSignInHref(locale, type)} label={label} />}>
-      <QueryAwareStartLink locale={locale} type={type} label={label} />
+    <Suspense fallback={<StartLink href={buildTryOnSignInHref(locale, type)} label={label} className={className} prefetch={prefetch} />}>
+      <QueryAwareStartLink locale={locale} type={type} label={label} className={className} prefetch={prefetch} />
     </Suspense>
   )
 }

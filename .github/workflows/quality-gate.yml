@@ -221,3 +221,91 @@ jobs:
 
       - name: Revenue Critical Browser Gate
         run: npm run test:e2e:revenue-critical
+
+      # A stable Consumer conversion regression: never send a user photo to paid
+      # services, and never let the report-unlock CTA slip below mobile fold.
+      - name: Consumer Photo Handoff and First-Fold Unlock Browser Gate
+        run: npx playwright test tests/e2e/consumer-first-session-fix.spec.ts --project=chromium --workers=1
+
+      # Guest Detector continuation must keep source context without touching
+      # Auth0, server AI, credits or real Stripe checkout.
+      - name: Detector-to-Advisor Contextual Continuation Browser Gate
+        run: npx playwright test tests/e2e/consumer-detector-advisor-bridge.spec.ts --project=chromium --workers=1
+
+      - name: Upload Consumer Conversion Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-first-session-browser-${{ github.run_id }}
+          path: |
+            test-results/**/*.png
+            test-results/**/*.json
+          if-no-files-found: ignore
+
+      # GEO: verify the first, above-the-fold Try-On CTA cannot self-loop for new visitors.
+      # Preserve auth callback parameters and offline/no-AI test boundaries.
+      - name: GEO Try-On Hero Handoff Browser Gate (desktop and mobile)
+        run: npx playwright test tests/e2e/vercel-cpu-p0-try-on-static.spec.ts --project=chromium --workers=1
+
+      # GEO: visible, schema-consistent, English-only shopping answers on FAQ.
+      # Anonymous public Chrome desktop/mobile; no auth, data writes, or provider calls.
+      - name: GEO FAQ Task Answers Browser Gate (desktop and mobile)
+        run: npx playwright test tests/e2e/geo-faq-task-answers.spec.ts --project=chromium --workers=1
+
+      - name: Upload GEO FAQ QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geo-faq-browser-${{ github.run_id }}
+          path: test-results/geo-faq-*.png
+          if-no-files-found: ignore
+
+      # Whole-site GEO facts on audited exact EN route owners, not 152 programmatic URLs.
+      - name: Sitewide GEO Task Facts Browser Gate (desktop, mobile, locale boundaries)
+        run: npx playwright test tests/e2e/geo-sitewide-task-facts.spec.ts --project=chromium --workers=2
+
+      - name: Upload Sitewide GEO QA Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: geo-sitewide-browser-${{ github.run_id }}
+          path: test-results/geo-sitewide-*.png
+          if-no-files-found: ignore
+
+      # SEO P1: actual ES/FR editorial localization, metadata, CTAs and EN fallback.
+      - name: Nine-Language Photo Try-On Blog Browser Gate (desktop and mobile)
+        run: npx playwright test tests/e2e/seo-native-blog-prescription.spec.ts --project=chromium --workers=1
+
+      - name: Native Buyer Guides and Blog Hubs (eight locales, mobile + desktop)
+        run: npx playwright test tests/e2e/seo-native-buyer-guides.spec.ts --project=chromium --workers=2
+
+      - name: Genuine Native Retail Guides (32 locales, mobile and desktop)
+        run: npx playwright test tests/e2e/seo-native-retail-guides.spec.ts --project=chromium --workers=2
+
+      - name: Final 32 Genuine Native Blog Editions (8 locales, 16 illustrated styles)
+        run: npx playwright test tests/e2e/seo-native-final-blog.spec.ts --project=chromium --workers=2
+
+      - name: Upload Localized Blog QA Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-blog-localization-${{ github.run_id }}
+          path: |
+            test-results/seo-blog-*.png
+            test-results/seo-buyer-*.png
+            test-results/seo-retail-*.png
+            test-results/seo-final-*.png
+          if-no-files-found: ignore
+
+      # E1 Consumer acquisition prototype must be tested in a real browser.
+      # The local Next.js mock server never contacts production services.
+      - name: Consumer Frame Size Browser Gate (desktop and 430x932)
+        run: npx playwright test tests/e2e/consumer-frame-size-comparator.spec.ts --project=chromium --workers=1
+
+      - name: Upload Consumer Frame Size QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-frame-size-browser-${{ github.run_id }}
+          path: test-results/frame-size-*.png
+          if-no-files-found: ignore

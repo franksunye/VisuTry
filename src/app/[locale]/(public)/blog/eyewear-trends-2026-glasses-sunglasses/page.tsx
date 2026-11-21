@@ -1,5 +1,10 @@
+import { getValidLocale } from '@/i18n'
+import { Native2026TrendsArticle } from '@/components/blog/Native2026TrendsArticle'
+import { getNative2026Trends } from '@/config/native-eyewear-trends-2026'
+import { generateBlogArticleSEO } from '@/lib/blog-seo'
 import { Metadata } from 'next'
 import Image from 'next/image'
+import { blogArt } from '@/config/blog-art'
 import Link from '@/components/layout/PublicLink'
 import {
   ArrowRight,
@@ -11,23 +16,28 @@ import {
   Sun,
 } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
 const title = 'Eyewear Trends 2026: 16 Glasses and Sunglasses Styles to Try'
 const description =
-  'Explore 16 defining eyewear styles for 2026, from timeless Wayfarers and refined optical frames to shield sunglasses, rimless geometry, and bold statement looks.'
-const coverImage = '/blog-covers/ai-virtual-tryon.jpg'
+  'Compare 16 optical and sunglass styles in the VisuTry catalog, with examples from 2026 collections and photos to help you shortlist a shape.'
+const cover = blogArt['eyewear-trends-2026-glasses-sunglasses']
 const publishedAt = '2026-07-20T10:00:00Z'
-const modifiedAt = '2026-07-20T15:00:00Z'
+const modifiedAt = '2026-11-16T00:00:00Z'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  return generateI18nSEO({
-    locale: params.locale as any,
-    title,
-    description,
-    image: coverImage,
+  const locale = getValidLocale(params.locale)
+  const native = getNative2026Trends(locale)
+  return generateBlogArticleSEO({
+    locale,
+    title: native?.title || title,
+    description: native?.description || description,
+    image: cover.src,
+    imageAlt: cover.alt,
+    imageWidth: cover.width,
+    imageHeight: cover.height,
     pathname: '/blog/eyewear-trends-2026-glasses-sunglasses',
     type: 'article',
   })
@@ -39,7 +49,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt,
   modifiedAt,
   author: 'VisuTry Team',
-  image: coverImage,
+  image: `${SITE_CONFIG.url}${cover.src}`,
 })
 
 type FrameStyle = {
@@ -63,7 +73,7 @@ const groups: Array<{
     id: 'timeless-classics',
     title: 'Timeless classics, updated',
     intro:
-      'These shapes remain useful because they are easy to understand, easy to style, and flexible across work and everyday settings. In 2026, the update comes from finish, lens color, scale, and material rather than a completely new silhouette.',
+      'These shapes remain useful because they are easy to understand, easy to style, and flexible across work and everyday settings. Compare finish, lens color and scale within the same silhouette.',
     frames: [
       {
         id: 'sun-wayfarer-black',
@@ -207,7 +217,7 @@ const groups: Array<{
     id: 'sport-future-retro',
     title: 'Sport, future, and retro revival',
     intro:
-      'Some of the clearest 2026 signals come from sport-derived wraparounds, flat architectural tops, narrow Y2K rectangles, and rounded tortoise frames. They cover very different personalities, which is why trying them on matters more than reading a generic rule.',
+      'Compare a shield that curves around the face, a straight flat top, a narrow rectangle and a rounded tortoise frame. Watch where each outer corner ends relative to your cheek.',
     frames: [
       {
         id: 'sun-shield-wraparound-black',
@@ -276,30 +286,17 @@ function Intensity({ value }: { value: number }) {
 }
 
 export default function BlogPostPage({ params }: { params: { locale: string } }) {
+  const locale = getValidLocale(params.locale)
+  if (locale !== 'en') return <Native2026TrendsArticle locale={locale} />
   const localePrefix = `/${params.locale}`
+  const questions = [
+    { question: 'Which frame shapes appeared in 2026 collections?', answer: 'Chanel’s Fall–Winter collection includes shield sunglasses and oval eyeglasses. The October MYKITA and RIMOWA release pairs a slim wraparound shield with a round design.' },
+    { question: 'How can I compare a trend with my usual style?', answer: 'Keep a familiar frame as a reference. Compare one new shape on the same portrait and look at the upper rim, lens depth and the space around your cheeks.' },
+    { question: 'What changes when a frame is rimless?', answer: 'The lens edge forms the outline, so the lens shape and the position of the bridge and temples are easier to see. Compare the rimless example with a full-rim frame of a similar width.' },
+    { question: 'How many frames should I try first?', answer: 'Start with two that differ in one feature. If the outline works for you, try a second color or finish before comparing prices and physical measurements.' },
+  ]
   const faqSchema = generateStructuredData('faqPage', {
-    questions: [
-      {
-        question: 'What glasses are in style in 2026?',
-        answer:
-          'Important 2026 directions include shield and wraparound sunglasses, curved flat-top frames, oversized statement shapes, slim oval optical frames, rimless geometry, refined metal frames, and updated classics such as Wayfarers and Aviators.',
-      },
-      {
-        question: 'Should I choose glasses based on trends or face shape?',
-        answer:
-          'Use face shape to narrow proportions, style intent to decide what you want the frame to communicate, and virtual try-on to make the final visual decision.',
-      },
-      {
-        question: 'Are shield sunglasses wearable for everyday use?',
-        answer:
-          'Yes, but they have high visual intensity. They are easiest to wear when the rest of the outfit is relatively controlled and when the frame width and curvature suit your face.',
-      },
-      {
-        question: 'Are rimless glasses back in style?',
-        answer:
-          'Rimless and barely-there frames are part of the current minimal eyewear direction. Geometric lens shapes and refined metal hardware make the modern versions feel more intentional than invisible.',
-      },
-    ],
+    questions,
   })
 
   return (
@@ -318,12 +315,12 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
             />
           </div>
 
-          <article className="mx-auto max-w-5xl overflow-hidden rounded-xl bg-white shadow-lg">
+          <article lang="en" dir="ltr" className="mx-auto max-w-5xl overflow-hidden rounded-xl bg-white shadow-lg">
             <div className="border-b border-gray-100 px-6 py-10 md:px-12 md:py-14">
               <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-500">
                 <span className="rounded-full bg-blue-50 px-3 py-1 font-medium text-blue-700">Eyewear Trends</span>
                 <span>VisuTry Team</span>
-                <span>Published Jul 20, 2026</span>
+                <span>Published Jul 20, 2026 · Updated Nov 16, 2026</span>
                 <span>12 min read</span>
               </div>
               <h1 className="max-w-4xl text-4xl font-bold tracking-tight text-gray-950 md:text-5xl">
@@ -353,18 +350,15 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
 
             <div className="prose prose-lg max-w-none px-6 py-10 md:px-12">
               <p className="lead">
-                Eyewear has become a more visible part of personal style. Recent fashion coverage has
-                highlighted shield and wraparound sunglasses, curved flat tops, oversized shapes,
-                slim 1990s ovals, refined metal frames, and barely-there rimless designs. At the same
-                time, Wayfarers, Aviators, browlines, and tortoise acetate remain useful because a
-                classic shape can still feel current when its proportion and finish are right.
+                A shield and a slim oval make very different starting points. In its{' '}
+                <a className="text-blue-700 underline" href="https://www.chanel.com/us/eyewear/fall-winter-2026-collection/">Fall–Winter 2026 eyewear collection</a>,
+                Chanel shows shield sunglasses and oval optical frames. In October,{' '}
+                <a className="text-blue-700 underline" href="https://press.rimowa.com/rimowa-and-mykita-unveil-two-new-eyewear-designs-alongside-a-campaign-fronted-by-nina-hoss-leon-dame/?lang=eng">MYKITA and RIMOWA introduced</a>
+                {' '}both a round design and a slim wraparound shield.
               </p>
-
               <p>
-                That creates a practical problem: trend articles can tell you what is visible in the
-                market, but they cannot tell you which frame looks convincing on your face. VisuTry&apos;s
-                approach is to combine three signals: <strong>face proportion</strong>, <strong>style intent</strong>,
-                and <strong>actual try-on results</strong>.
+                The 16 images below are VisuTry catalog examples. Use them to compare one feature at a
+                time, such as a flat versus curved upper rim, before looking for a specific retail model.
               </p>
 
               <div className="not-prose my-8 rounded-xl border border-blue-100 bg-blue-50 p-6">
@@ -507,42 +501,16 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               </p>
               <p>
                 They are also designed to complement VisuTry&apos;s existing 16 practical optical presets.
-                Together, the 32-frame system supports two different jobs: a reliable face-shape and
-                fit shortlist, and a broader exploration of personal style.
+                Start with one style set, save the shapes you like, and check the seller’s dimensions for your final pair.
               </p>
 
               <h2>FAQ</h2>
-              <h3>What glasses are in style in 2026?</h3>
-              <p>
-                The clearest directions include shield and wraparound sunglasses, curved flat-top
-                frames, oversized statement shapes, slim oval frames, refined metal, rimless geometry,
-                and updated versions of classic Wayfarers, Aviators, browlines, and tortoise acetate.
-              </p>
-
-              <h3>Should I choose glasses based on trends or face shape?</h3>
-              <p>
-                Use face shape to narrow proportions, not to impose a rule. Then use style intent to
-                choose the message and virtual try-on to judge the result on your own face.
-              </p>
-
-              <h3>Are shield sunglasses practical for everyday use?</h3>
-              <p>
-                They can be, especially for outdoor use, but they carry high visual intensity. A
-                restrained outfit and a well-proportioned frame make them easier to wear.
-              </p>
-
-              <h3>Are rimless glasses back in style?</h3>
-              <p>
-                Yes. Modern rimless frames often use geometric lens shapes and precise hardware, so
-                they feel designed rather than merely invisible.
-              </p>
-
-              <h3>How many frames should I try before choosing?</h3>
-              <p>
-                Four is a useful first comparison when the choices are intentionally different. Try
-                one safe option, two styles close to your intent, and one stretch option that tests a
-                new direction.
-              </p>
+              {questions.map(({ question, answer }) => (
+                <div key={question} className="mb-5">
+                  <h3 className="font-semibold">{question}</h3>
+                  <p>{answer}</p>
+                </div>
+              ))}
 
               <div className="not-prose mt-12 rounded-xl border border-blue-100 bg-blue-50 p-7 text-center">
                 <Glasses className="mx-auto h-8 w-8 text-blue-600" />
@@ -568,14 +536,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 </div>
               </div>
 
-              <div className="mt-10 border-t border-gray-200 pt-6 text-sm text-gray-500">
-                <p>
-                  Editorial context: the article reflects 2026 coverage of shield sunglasses,
-                  wraparound frames, curved flat tops, oversized silhouettes, metal frames, and
-                  1990s-inspired ovals. Trends are directional signals, not guarantees of fit or
-                  long-term preference.
-                </p>
-              </div>
+
             </div>
           </article>
         </main>

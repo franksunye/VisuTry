@@ -1,3 +1,4 @@
+import { GeoTaskFacts } from '@/components/seo/GeoTaskFacts'
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { CheckCircle2, Grid2X2, Sparkles, Store } from 'lucide-react'
@@ -66,6 +67,7 @@ async function PublicFrameCompareLanding({ locale }: { locale: string }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }} />
       <h1 className="sr-only">{t('srOnlyTitle')}</h1>
       <CompareLandingVisual locale={locale} startHref={signInHref} />
+      {locale === 'en' && <GeoTaskFacts task="compare" />}
 
       <section className="mt-8 grid gap-4 md:grid-cols-3">
         {[

@@ -12,6 +12,8 @@
 
 ---
 
+> **Consumer New Entry Discovery (2026-11-16; Draft only):** Additional first-entry hypotheses beyond Detector/Advisor are `frame size interpretation`, `photo → frame-style vocabulary`, `consent-based Compare/Share`, and existing sunglasses/style exploration. Current GSC Web 2026-10-17–11-13 found only 1/21 clicks/impressions on EN width guide and 2/57 on EN compare search landing, so no new growth engine is proven. An EN existing-guide client-only size comparator may enter Draft QA; no new URL, unpaid Advisor Top Picks, public voting or automatic release. Legacy share-by-task-ID needs a separate privacy/consent/expiry/revocation gate. This continues H3/H4 of the 2026-11-02 research. [Evidence and experiment contracts](../../ops/2026-11-16-consumer-new-entry-discovery.md), [Issue #529](https://github.com/franksunye/VisuTry/issues/529). Keep the active Guide experiment #520 on hold and protect the 28-day qualified-funnel readout.
+
 ## 0. Operating restart — 2026-11-01
 
 **Decision:** Retain the 10× qualified Consumer traffic objective and resume one weekly SEO/GEO growth loop. This is a resumption checkpoint, **not** proof that the objective has been met or a new 60–90-day forecast.

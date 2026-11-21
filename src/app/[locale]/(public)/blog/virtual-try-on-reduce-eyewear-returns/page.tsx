@@ -1,23 +1,34 @@
+import { getValidLocale } from '@/i18n'
+import { NativeEditorialArticle } from '@/components/blog/NativeEditorialArticle'
+import { getNativeEyewearReturnsStudy } from '@/config/native-eyewear-returns-study'
+import { generateBlogArticleSEO } from '@/lib/blog-seo'
+import { framePhotoGuide, inventoryCatalogGuide } from '@/config/business-resources'
+import { blogArt } from '@/config/blog-art'
 import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from '@/components/layout/PublicLink'
 import { BarChart3, CheckCircle2, PackageCheck, ShoppingCart, UserCheck } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 import { localizedPath } from '@/lib/localized-path'
 
 export const dynamic = 'force-static'
 
-const title = 'How Virtual Try-On Helps Online Eyewear Stores Reduce Returns'
-const description = 'A practical guide for eyewear ecommerce teams on using virtual try-on to improve buyer confidence, set better expectations, and reduce avoidable frame-fit returns.'
-const coverImage = '/blog-covers/virtual-try-on-reduce-returns.jpg'
+const title = 'How to Test Whether Virtual Try-On Reduces Eyewear Returns'
+const description = 'Measure whether photo try-on reduces style-related frame returns. Compare delivered units, return reasons and matched products over a complete return window.'
+const cover = blogArt['virtual-try-on-reduce-eyewear-returns']
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  return generateI18nSEO({
-    locale: params.locale as any,
-    title,
-    description,
-    image: coverImage,
+  const locale = getValidLocale(params.locale)
+  const native = getNativeEyewearReturnsStudy(locale)
+  return generateBlogArticleSEO({
+    locale,
+    title: native?.title || title,
+    description: native?.description || description,
+    image: cover.src,
+    imageAlt: native?.imageAlt || cover.alt,
+    imageWidth: cover.width,
+    imageHeight: cover.height,
     pathname: '/blog/virtual-try-on-reduce-eyewear-returns',
     type: 'article',
   })
@@ -27,9 +38,9 @@ const structuredData = generateStructuredData('article', {
   title,
   description,
   publishedAt: '2026-05-27T10:00:00Z',
-  modifiedAt: '2026-05-27T10:00:00Z',
+  modifiedAt: '2026-11-15T00:00:00Z',
   author: 'VisuTry Team',
-  image: coverImage,
+  image: `${SITE_CONFIG.url}${cover.src}`,
 })
 
 const benefits = [
@@ -45,8 +56,8 @@ const benefits = [
   },
   {
     icon: PackageCheck,
-    title: 'Fewer avoidable returns',
-    body: 'Not every return is preventable, but style mismatch and uncertainty-driven orders are exactly where virtual try-on can help.',
+    title: 'A return reason you can test',
+    body: 'Tag returns where the shopper says the color or shape looked different than expected. Count these separately from defects and physical discomfort.',
   },
   {
     icon: BarChart3,
@@ -60,6 +71,11 @@ type BlogPostPageProps = {
 }
 
 export default function BlogPostPage({ params }: BlogPostPageProps) {
+  const locale = getValidLocale(params.locale)
+  const native = getNativeEyewearReturnsStudy(locale)
+  if (native) return <NativeEditorialArticle locale={locale} slug="virtual-try-on-reduce-eyewear-returns"
+    copy={native} art={cover} publishedAt={'2026-05-27T10:00:00Z'} modifiedAt={'2026-11-15T00:00:00Z'}
+    relatedSlug="prescription-glasses-virtual-tryon-guide" />
   return (
     <>
       <script
@@ -78,29 +94,27 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             />
           </div>
 
-          <article className="mx-auto max-w-4xl overflow-hidden rounded-lg bg-white shadow-lg">
-            <div className="relative h-72 w-full overflow-hidden md:h-96">
-              <Image
-                src={coverImage}
-                alt="Ecommerce dashboard showing virtual eyewear try-on and returns analytics"
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
+          <article lang="en" dir="ltr" className="mx-auto max-w-4xl overflow-hidden rounded-lg bg-white shadow-lg">
+            <figure>
+              <Image src={cover.src} alt={cover.alt} width={cover.width} height={cover.height}
+                sizes="(min-width: 896px) 896px, 100vw" className="h-auto w-full" priority />
+              <figcaption className="px-8 pt-3 text-sm text-gray-600">
+                Editorial illustration. Use your store’s delivered orders and recorded returns for the comparison.
+              </figcaption>
+            </figure>
 
             <div className="border-b p-8">
               <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-600">
                 <span>VisuTry Team</span>
                 <span>Published May 27, 2026</span>
-                <span>7 min read</span>
+                <span>Updated November 15, 2026</span>
               </div>
               <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
-                How Virtual Try-On Helps Online Eyewear Stores Reduce Returns
+                {title}
               </h1>
               <p className="text-xl text-gray-600">
-                Returns are not just a logistics problem. In eyewear ecommerce, many returns
-                start earlier, when a buyer cannot tell whether a frame will actually suit them.
+                Can a shopper preview the shape and color accurately enough to choose a frame they keep?
+                Your store can test this with delivered orders, recorded return reasons and one full return window.
               </p>
             </div>
 
@@ -112,9 +126,8 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               </p>
 
               <p>
-                Virtual try-on fills that gap. It gives shoppers a personal preview before
-                checkout, which can reduce hesitation, improve order quality, and lower the
-                number of avoidable returns caused by style mismatch.
+                Photo try-on gives the buyer a preview before checkout. To find out whether that changes
+                what comes back, decide which return reasons a visual preview could influence.
               </p>
 
               <h2>What virtual try-on can and cannot fix</h2>
@@ -173,12 +186,30 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 </ul>
               </div>
 
-              <h2>Bottom line</h2>
+              {params.locale === 'en' && (
+                <p>
+                  To try this with your own stock, <Link href={localizedPath('en', inventoryCatalogGuide.path)} prefetch={false}>download a sample frame inventory CSV and see the catalog it creates</Link>.
+                  Use the <Link href={localizedPath('en', framePhotoGuide.path)} prefetch={false}>frame photography checklist</Link> to check that each photo matches the exact frame and color you sell.
+                </p>
+              )}
+
+              <h2>How do I measure style-related eyewear returns?</h2>
+              <ol>
+                <li><strong>Tag each returned unit once.</strong> Use a primary reason such as unexpected shape or color, physical discomfort, prescription or lens issue, damage, or unknown. Keep the shopper’s original comment for ambiguous cases.</li>
+                <li><strong>Choose comparable orders.</strong> When possible, randomly offer the preview to half of eligible visitors. Include all delivered frame units from each assigned group, including buyers who skip try-on. For a before-and-after review, use the same SKUs and note changes in price, stock, promotions or return policy.</li>
+                <li><strong>Wait for both return windows to close.</strong> In each group, divide frame units returned for unexpected shape or color by all eligible delivered frame units. For example, three style-related returns from 100 delivered units gives 3%. Report the counts and the all-reason return rate alongside it.</li>
+              </ol>
               <p>
-                Virtual try-on reduces returns best when it is treated as a decision-quality tool,
-                not just a visual gimmick. The goal is to help the buyer choose a frame they are
-                less likely to regret after delivery.
+                Read fulfilled orders and processed returns from your own commerce records. A try-on completion or
+                product-page click can explain what shoppers did on the way there. Small counts, incomplete return
+                windows or different product mixes leave the effect uncertain.
               </p>
+              {params.locale === 'en' && (
+                <p>
+                  Start with the <Link href="/en/business/pilot" prefetch={false}>30-day optical store pilot plan</Link>.
+                  Allow additional time for delivery and returns if your store’s policy runs beyond the pilot.
+                </p>
+              )}
 
               <p>
                 For the consumer side of this workflow, read our

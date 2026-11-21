@@ -12,7 +12,7 @@ describe('Business public content contract', () => {
     expect(businessPages.platform.title).toMatch(/system behind every VisuTry decision experience/i)
     expect(businessPages.platform.sections.some((section) => section.eyebrow === 'Platform architecture')).toBe(true)
 
-    expect(businessPages.store.title).toMatch(/hosted eyewear Store built around your frames/i)
+    expect(businessPages.store.title).toBe('Let shoppers try on frames from your own eyewear store.')
     expect(businessPages.store.sections.some((section) => section.eyebrow === 'When to use Store')).toBe(true)
 
     expect(businessPages.campaigns.title).toMatch(/Focused decision experiences for campaign traffic/i)
@@ -72,15 +72,15 @@ describe('Business public content contract', () => {
       if (key === 'pilot') {
         expect(page.primaryCta.label).toBe('Request Pilot Review')
       } else if (key === 'resources') {
-        expect(page.primaryCta.label).toBe('Watch Product Demo')
+        expect(page.primaryCta.label).toBe('Product demo')
       } else {
         expect(page.primaryCta).toEqual({ label: 'Start Free', href: '/merchant?commercialIntent=FREE' })
       }
     }
   })
 
-  it('keeps Resources as a proof layer rather than another product overview', () => {
-    expect(businessPages.resources.title).toBe('See the product. Go deeper on the retail model.')
+  it('presents merchant resources with addressable demo and white paper sections', () => {
+    expect(businessPages.resources.title).toBe('Eyewear retail resources')
     expect(businessPages.resources.primaryCta.href).toBe('#product-demo')
     expect(businessPages.resources.secondaryCta?.href).toBe('#white-paper')
     expect(businessPages.resources.sections).toEqual([])
@@ -103,9 +103,11 @@ describe('Business public content contract', () => {
     const setup = store.sections.find((section) => section.eyebrow === 'Getting started')
     const questions = store.sections.find((section) => section.eyebrow === 'Common questions')
 
-    expect(store.metaTitle).toMatch(/eyewear storefront/i)
+    expect(store.metaTitle).toMatch(/virtual try-on for eyewear retailers using their own frames/i)
     expect(setup?.steps).toHaveLength(4)
+    expect(setup?.body).toMatch(/SKU or the frame’s product page URL/)
     expect(setup?.note).toMatch(/Free includes basic recommendations, not generative Virtual Try-On/i)
+    expect(questions?.cards?.find((card) => card.href === '/business/pricing')?.label).toMatch(/try-on allowances/i)
     expect(questions?.cards?.some((card) => /native Shopify app/i.test(card.title))).toBe(true)
     expect(questions?.cards?.some((card) => /real-time AR/i.test(card.title))).toBe(true)
     expect(businessPages.overview.microcopy).toMatch(/requires an eligible paid plan/i)

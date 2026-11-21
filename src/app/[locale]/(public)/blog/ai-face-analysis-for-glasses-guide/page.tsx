@@ -6,6 +6,7 @@ import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { StaticContentImage } from '@/components/seo/StaticContentImage'
 import { getAiGlassesAdvisorArticleCopy } from '@/config/ai-glasses-advisor-article-locales'
+import { eyewearFaceShapeGuide } from '@/config/business-resources'
 import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
 import type { Locale } from '@/i18n'
@@ -182,6 +183,14 @@ export default function BlogPostPage({ params }: PageProps) {
                 </div>
               </div>
 
+              {locale === 'en' && (
+                <p>
+                  Showing your own frame collection to customers? Our{' '}
+                  <Link href={`${localePrefix}${eyewearFaceShapeGuide.path}`}>guide for eyewear brands</Link>{' '}
+                  explains how shoppers can preview the same frame on their own faces.
+                </p>
+              )}
+
               <h2>{article.decisionTitle}</h2>
               <p>{article.decisionIntro}</p>
               <ol>
@@ -249,17 +258,17 @@ export default function BlogPostPage({ params }: PageProps) {
                   <figure className="mx-auto max-w-xl">
                     <StaticContentImage
                       src="/images/seo/core/glasses-frame-a-vs-b.webp"
-                      alt="Side-by-side portraits of the same woman wearing dark, angular frames on the left and pale, rounded frames on the right."
+                      alt="Illustration comparing the same woman in dark frames with softly squared corners on the left and pale, rounded frames on the right."
                       width={1448}
                       height={1086}
                       className="h-auto w-full"
                     />
                     <figcaption className="space-y-2 text-base leading-6 text-slate-700">
-                      <p><strong>Frame A (left).</strong> The dark upper rim follows the brow line. The corners give the eyes a sharper outline.</p>
-                      <p><strong>Frame B (right).</strong> The pale, rounded rims draw less attention to the frame and leave the eyes more prominent.</p>
+                      <p><strong>Frame A (left).</strong> The darker rim and softly squared corners create a more defined outline around the eyes.</p>
+                      <p><strong>Frame B (right).</strong> The pale, rounded rims create a softer outline and draw less attention to the frame.</p>
                     </figcaption>
                   </figure>
-                  <p>Both frames appear about as wide as the face in this illustration. To check physical fit, compare the frame’s total width with a pair that feels comfortable and try it on to check the bridge and temples.</p>
+                  <p>To check physical fit beyond this illustration, compare the frame’s total width with a pair that feels comfortable, then try it on in person to check the bridge and temples.</p>
                 </section>
               ) : (
                 <div className="not-prose rounded-xl bg-gray-950 p-7 text-white">

@@ -1,5 +1,16 @@
 import { test, expect } from '@playwright/test';
 
+const eyewearBrandGuide = '/en/business/resources/show-eyewear-on-different-face-shapes';
+const retailerGuides = [
+  ['turn-frame-inventory-into-online-catalog', 'How to turn an optical store’s frame inventory into an online catalog', '/downloads/merchant/frame-inventory-example.csv'],
+  ['online-frame-gallery-for-optical-stores', 'How to let patients browse your optical store’s frames before a visit', '/en/store/framed-ewe'],
+  ['how-to-choose-eyewear-virtual-try-on-software', 'How to choose virtual try-on software for an eyewear store', '/en/business/pricing'],
+  ['ipad-frame-comparison-for-optical-stores', 'How to compare eyeglass frames on an iPad in an optical store', '/en/business/resources#product-demo'],
+  ['share-eyewear-shortlist-after-store-visit', 'How to share an eyewear shortlist after a store visit', '/en/demo/frames/round'],
+  ['shoppable-lookbook-for-eyewear-brands', 'How to make a shoppable lookbook for an eyewear collection', '/en/c/akila/statement-frames'],
+  ['how-to-photograph-frames-for-virtual-try-on', 'How to photograph eyeglass frames for photo try-on', '/en/demo/frames/rectangle'],
+] as const;
+
 test.describe('@critical Business market-facing narrative', () => {
   test('business route explains the catalog-to-intelligence story without fake proof', async ({ page }) => {
     const response = await page.goto('/en/business', { waitUntil: 'domcontentloaded' });
@@ -24,7 +35,7 @@ test.describe('@critical Business market-facing narrative', () => {
   test('core Business pages have distinct information roles under the same Merchant narrative', async ({ page }) => {
     const expectations = [
       ['/en/business/platform', /The system behind every VisuTry decision experience/i, /Platform architecture/i],
-      ['/en/business/store', /A hosted eyewear Store built around your frames/i, /When to use Store/i],
+      ['/en/business/store', /Let shoppers try on frames from your own eyewear store/i, /When to use Store/i],
       ['/en/business/campaigns', /Focused decision experiences for campaign traffic/i, /When to use Campaigns/i],
       ['/en/business/commerce-intelligence', /See where the decision journey gains — or loses — momentum/i, /Questions it answers/i],
     ] as const
@@ -62,10 +73,11 @@ test.describe('@critical Business market-facing narrative', () => {
   test('merchant search landing states hosted setup, limits, and live self-service destination', async ({ page }) => {
     const response = await page.goto('/en/business/store', { waitUntil: 'domcontentloaded' });
     expect(response?.status()).toBe(200);
-    await expect(page).toHaveTitle(/AI Eyewear Storefront & Virtual Try-On/);
+    await expect(page).toHaveTitle(/Virtual Try-On for Eyewear Retailers Using Their Own Frames/);
     await expect(page.getByRole('heading', { name: 'How to set up a hosted eyewear Store.' })).toBeVisible();
     await expect(page.getByText(/Free includes basic recommendations, not generative Virtual Try-On/i)).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Is there a native Shopify app?' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Compare retail plans and try-on allowances' })).toHaveAttribute('href', '/en/business/pricing');
     await expect(page.getByRole('link', { name: 'Start Free' }).first()).toHaveAttribute('href', '/en/merchant?commercialIntent=FREE');
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://www.visutry.com/en/business/store');
   });
@@ -80,11 +92,75 @@ test.describe('@critical Business market-facing narrative', () => {
   test('merchant search landing Resources is in core sitemap without locale duplicates', async ({ page }) => {
     const response = await page.request.get('/sitemaps/core.xml');
     expect(response.status()).toBe(200);
-    const xml = await response.text();
-    for (const url of ['/en/business', '/en/business/store', '/en/business/pricing', '/en/business/resources']) {
-      expect(xml).toContain(`https://www.visutry.com${url}`);
+    const locations = await page.evaluate((xml) => {
+      const sitemap = new DOMParser().parseFromString(xml, 'application/xml');
+      return Array.from(sitemap.getElementsByTagName('loc'), (entry) => entry.textContent);
+    }, await response.text());
+    for (const url of ['/en/business', '/en/business/store', '/en/business/pricing', '/en/business/resources', eyewearBrandGuide, ...retailerGuides.map(([slug]) => `/en/business/resources/${slug}`)]) {
+      expect(locations.filter((location) => location === `https://www.visutry.com${url}`)).toHaveLength(1);
     }
-    expect(xml).not.toContain('https://www.visutry.com/de/business');
+    expect(locations.some((location) => location?.startsWith('https://www.visutry.com/de/business'))).toBe(false);
+  });
+
+  test('merchant search landing brand guide resolves from Resources and redirects to its English canonical', async ({ page }) => {
+    await page.goto('/en/business/resources', { waitUntil: 'domcontentloaded' });
+    await page.locator(`main a[href="${eyewearBrandGuide}"]`).click();
+    await expect(page).toHaveURL(eyewearBrandGuide);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('How can eyewear brands show the same frames on different face shapes?');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://www.visutry.com${eyewearBrandGuide}`);
+    const frenchGuide = eyewearBrandGuide.replace('/en/', '/fr/');
+    const redirect = await page.request.get(frenchGuide, { maxRedirects: 0 });
+    expect(redirect.status()).toBe(308);
+    expect(new URL(redirect.headers().location, redirect.url()).pathname).toBe(eyewearBrandGuide);
+    const localized = await page.goto(frenchGuide, { waitUntil: 'domcontentloaded' });
+    expect(localized?.status()).toBe(200);
+    await expect(page).toHaveURL(eyewearBrandGuide);
+  });
+
+  for (const [slug, heading, destination] of retailerGuides) {
+    test(`merchant search landing resource opens from the hub: ${slug}`, async ({ page }) => {
+      await page.setViewportSize({ width: 430, height: 932 });
+      const path = `/en/business/resources/${slug}`;
+      await page.goto('/en/business/resources', { waitUntil: 'domcontentloaded' });
+      await page.locator(`main a[href="${path}"]`).click();
+      await expect(page).toHaveURL(path);
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://www.visutry.com${path}`);
+      await expect(page.locator(`article a[href="${destination}"]`).first()).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      const redirect = await page.request.get(path.replace('/en/', '/de/'), { maxRedirects: 0 });
+      expect(redirect.status()).toBe(308);
+      expect(new URL(redirect.headers().location, redirect.url()).pathname).toBe(path);
+    });
+  }
+
+  test('merchant search landing pages answer six existing retailer questions', async ({ page }) => {
+    const pages = [
+      ['/en/business/campaigns', 'How do I use a QR code at an optical trunk show?'],
+      ['/en/business/integrations', 'Check the round trip from your website to a frame and back.'],
+      ['/en/business/examples', 'Test a frame finder with a small optical catalog.'],
+      ['/en/business/commerce-intelligence', 'Which frames get tried, compared or clicked?'],
+      ['/en/business/pilot', 'What should we measure during a 30-day eyewear pilot?'],
+      ['/en/blog/virtual-try-on-reduce-eyewear-returns', 'How do I measure style-related eyewear returns?'],
+    ] as const;
+    for (const [path, heading] of pages) {
+      const response = await page.goto(path, { waitUntil: 'domcontentloaded' });
+      expect(response?.status()).toBe(200);
+      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://www.visutry.com${path}`);
+    }
+  });
+
+  test('merchant search landing links in Consumer articles lead to the relevant retailer resource', async ({ page }) => {
+    for (const [article, destination] of [
+      ['/en/blog/best-ai-virtual-glasses-tryon-tools-2025', '/en/business/store'],
+      ['/en/blog/ai-face-analysis-for-glasses-guide', eyewearBrandGuide],
+      ['/en/blog/virtual-try-on-reduce-eyewear-returns', '/en/business/resources/turn-frame-inventory-into-online-catalog'],
+    ]) {
+      const response = await page.goto(article, { waitUntil: 'domcontentloaded' });
+      expect(response?.status()).toBe(200);
+      await expect(page.locator(`article a[href="${destination}"]`)).toBeVisible();
+    }
   });
 
   test('public Merchant CTA preserves the anonymous authentication continuation', async ({ page }) => {
@@ -128,9 +204,21 @@ test.describe('@critical Business market-facing narrative', () => {
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
     await expect(page).toHaveTitle(/VisuTry Business Resources/);
-    await expect(page.getByRole('heading', { name: 'See the product. Go deeper on the retail model.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Eyewear retail resources' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'VisuTry In-Store Retail Product Demo' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'AI Eyewear Decision Experience for In-Store Retail' })).toBeVisible();
+
+    const topics = page.getByRole('navigation', { name: 'Resource topics' });
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 430, height: 932 }]) {
+      await page.setViewportSize(viewport);
+      await expect(topics.getByRole('link')).toHaveCount(4);
+      await expect(topics.getByRole('link', { name: 'Costs & results' })).toBeInViewport();
+      await expect(page.locator('#catalog li a').first()).toBeInViewport();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+    await topics.getByRole('link', { name: 'Costs & results' }).click();
+    await expect(page).toHaveURL(/#evaluation$/);
+    await expect(page.getByRole('heading', { name: 'Evaluate cost and results' })).toBeInViewport();
 
     const video = page.locator('video[data-business-resource="instore-retail-demo-v2"]');
     await expect(video).toHaveAttribute('preload', 'none');
@@ -154,9 +242,11 @@ test.describe('@critical Business market-facing narrative', () => {
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
-    await expect(page).toHaveTitle(/AI Eyewear Storefront Pricing/);
-    await expect(page.getByRole('heading', { name: /Simple pricing for the full eyewear decision journey/i })).toBeVisible();
-    await expect(page.getByText(/Start free with basic recommendations and Store setup/i)).toBeVisible();
+    await expect(page).toHaveTitle(/Virtual Try-On Pricing for Eyewear Retailers/);
+    await expect(page.getByRole('heading', { name: /How much does virtual try-on cost for an eyewear store/i })).toBeVisible();
+    await expect(page.getByText(/Start free with a private Store preview and basic frame recommendations/i)).toBeVisible();
+    await expect(page.getByText(/100 sessions and 200 completed images/i)).toBeVisible();
+    await expect(page.getByRole('link', { name: 'See how photo try-on works with your own frames' })).toHaveAttribute('href', '/en/business/store');
     await expect(page.getByText('No surprise usage billing.')).toBeVisible();
     await expect(page.locator('[data-primary-plan="true"]')).toHaveCount(3);
     await expect(page.locator('[data-plan-code="LAUNCH"][data-primary-plan="true"]')).toContainText('$199/month');
@@ -233,7 +323,7 @@ test.describe('@critical Business market-facing narrative', () => {
       expect(response).not.toBeNull();
       expect(response!.status()).toBeLessThan(400);
       await expect(page).toHaveURL('/en/business/pricing');
-      await expect(page.getByRole('heading', { name: /Simple pricing for the full eyewear decision journey/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /How much does virtual try-on cost for an eyewear store/i })).toBeVisible();
     });
   }
 });

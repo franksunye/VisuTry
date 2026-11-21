@@ -1,222 +1,106 @@
-import { Metadata } from 'next'
-import { generateStructuredData, generateI18nSEO } from '@/lib/seo'
-import Link from '@/components/layout/PublicLink'
-import { ArrowLeft, TrendingUp, History } from 'lucide-react'
+import { NativeEditorialArticle } from '@/components/blog/NativeEditorialArticle'
+import { getNativeBrowlineGuide } from '@/config/native-browline-clubmaster-guide'
+import { generateBlogArticleSEO } from '@/lib/blog-seo'
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
+import Link from '@/components/layout/PublicLink'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { blogArt } from '@/config/blog-art'
+import type { Locale } from '@/i18n'
+import { localizedPath } from '@/lib/localized-path'
+import { generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  return generateI18nSEO({
-    locale: params.locale as any,
-    title: 'Browline/Clubmaster Glasses Complete Guide 2025 - Retro Style Revival',
-    description: 'Discover the history, style, and modern appeal of browline/Clubmaster glasses. Learn why this retro style is making a major comeback in 2025.',
-    pathname: '/blog/browline-clubmaster-glasses-complete-guide',
-    type: 'article',
+const pathname = '/blog/browline-clubmaster-glasses-complete-guide'
+const cover = blogArt['browline-clubmaster-glasses-complete-guide']
+const title = 'Browline vs. Clubmaster: How to Tell the Frames Apart'
+const description = 'Learn what makes a browline frame, compare Ray-Ban Clubmaster Optics RB5154 with Clubmaster Classic RB3016 sunglasses, and check the size you need.'
+const publishedAt = '2025-10-21T18:00:00Z'
+const updatedAt = '2026-11-16T00:00:00Z'
+const articleTags = ['Browline Glasses', 'Clubmaster', 'Retro Style', 'Vintage Eyewear', 'Fashion Trends']
+
+type PageProps = { params: { locale: Locale } }
+
+export function generateMetadata({ params }: PageProps): Metadata {
+  const native = getNativeBrowlineGuide(params.locale)
+  return generateBlogArticleSEO({
+    locale: params.locale, pathname, title: native?.title || title, description: native?.description || description, type: 'article',
+    image: cover.src, imageWidth: cover.width, imageHeight: cover.height, imageAlt: native?.imageAlt || cover.alt,
   })
 }
 
-const structuredData = generateStructuredData('article', {
-  title: 'Browline/Clubmaster Glasses Complete Guide 2025',
-  description: 'Complete guide to browline and Clubmaster style eyeglasses.',
-  publishedAt: '2025-10-21T18:00:00Z',
-  modifiedAt: '2025-10-21T18:00:00Z',
-  author: 'VisuTry Team',
-  image: '/Zenni Retro Browline Glasses.jpg',
+const article = generateStructuredData('article', {
+  title, description, publishedAt, modifiedAt: updatedAt,
+  author: 'VisuTry Team', image: `${SITE_CONFIG.url}${cover.src}`,
 })
 
-const articleTags = ['Browline Glasses', 'Clubmaster', 'Retro Style', 'Vintage Eyewear', 'Fashion Trends']
-
-export default function BlogPostPage({ params }: { params: { locale: string } }) {
-  const localePrefix = `/${params.locale}`
-
+export default function BlogPostPage({ params: { locale } }: PageProps) {
+  const native = getNativeBrowlineGuide(locale)
+  if (native) {
+    return <NativeEditorialArticle locale={locale}
+      slug="browline-clubmaster-glasses-complete-guide" copy={native}
+      art={cover} publishedAt={publishedAt} modifiedAt={updatedAt}
+      relatedSlug="find-perfect-glasses-online-guide" />
+  }
   return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <main className="container mx-auto px-4 py-12">
-          {/* Breadcrumbs */}
-          <div className="mb-6">
-            <Breadcrumbs
-              items={[
-                { name: 'Blog', url: `${localePrefix}/blog` },
-                { name: 'Browline Clubmaster Glasses Guide' },
-              ]}
-            />
-          </div>
-
-          <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="h-64 bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center">
-              <div className="text-center text-white">
-                <History className="w-16 h-16 mx-auto mb-4" />
-                <h1 className="text-3xl font-bold">Browline/Clubmaster Guide</h1>
-              </div>
-            </div>
-            <div className="p-8 border-b">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-x-4 text-sm text-gray-600">
-                  <span>Author: VisuTry Team</span>
-                  <span>Published: October 21, 2025</span>
-                  <span>Read time: 8 min</span>
-                </div>
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Browline/Clubmaster Glasses Complete Guide 2025: The Retro Style Revival
-              </h1>
-              <p className="text-xl text-gray-600">
-                Discover why browline glasses are experiencing a major comeback. From their 1950s origins to 
-                modern interpretations, learn everything about this iconic retro style.
-              </p>
-            </div>
-            <div className="p-8 prose prose-lg max-w-none">
-              <h2>The History of Browline Glasses</h2>
-              <p>
-                <strong>Browline glasses</strong> (also known as Clubmaster style) were first introduced in the 
-                1940s and reached peak popularity in the 1950s and 1960s. According to <a href="https://www.smithsonianmag.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Smithsonian Magazine</a>, 
-                browline frames accounted for <strong>over 50% of all eyeglasses sold</strong> in America during 
-                the 1950s, making them the most popular eyewear style of the era.
-              </p>
-              <div className="my-6">
-                <Image src="/Zenni Retro Browline Glasses.jpg" alt="Retro browline glasses" width={800} height={600} className="rounded-lg shadow-md" />
-              </div>
-              <h2>What Defines Browline Style?</h2>
-              <p>Browline glasses are characterized by:</p>
-              <ul>
-                <li><strong>Bold upper frame</strong> - Thick acetate or plastic on top</li>
-                <li><strong>Thin lower rim</strong> - Metal wire or rimless bottom</li>
-                <li><strong>Keyhole bridge</strong> - Classic vintage detail</li>
-                <li><strong>Combination materials</strong> - Acetate and metal mix</li>
-                <li><strong>Intellectual aesthetic</strong> - Sophisticated, scholarly look</li>
-              </ul>
-              <h2>Why Browline Glasses Are Trending in 2025</h2>
-              <p>Several factors have contributed to the browline revival:</p>
-              <h3>1. Vintage Fashion Movement</h3>
-              <p>
-                The broader trend toward vintage and retro fashion has brought browline glasses back into the 
-                spotlight. Millennials and Gen Z consumers are embracing styles from the 1950s-1980s.
-              </p>
-              <h3>2. Celebrity Endorsement</h3>
-              <p>Celebrities wearing browline glasses include:</p>
-              <ul>
-                <li><strong>Robert Downey Jr.</strong> - Frequently spotted in Clubmasters</li>
-                <li><strong>Emma Watson</strong> - Wears browline frames for intellectual chic</li>
-                <li><strong>Bruno Mars</strong> - Signature retro style</li>
-                <li><strong>Rashida Jones</strong> - Modern browline advocate</li>
-              </ul>
-              <h3>3. Versatility</h3>
-              <p>
-                Browline glasses work across multiple contexts - professional, casual, creative - making them 
-                a practical choice for modern lifestyles.
-              </p>
-              <h2>Ray-Ban Clubmaster: The Iconic Version</h2>
-              <div className="my-6">
-                <Image src="/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg" alt="Ray-Ban Clubmaster eyeglasses" width={800} height={600} className="rounded-lg shadow-md" />
-              </div>
-              <p>
-                The <strong><Link href="../rayban-glasses-virtual-tryon-guide" className="text-blue-600 hover:text-blue-800">Ray-Ban Clubmaster</Link></strong> (RB5154 for optical, RB3016 for sunglasses) is the most
-                famous browline style. Introduced in the 1980s, it became an instant classic and remains one of
-                Ray-Ban&apos;s best-selling frames.
-              </p>
-              <h3>Clubmaster Features:</h3>
-              <ul>
-                <li>Premium acetate upper frame</li>
-                <li>Metal lower rim and temples</li>
-                <li>Available in multiple colors and sizes</li>
-                <li>Price: $150-$200 for optical frames</li>
-              </ul>
-              <h2>Face Shapes and Browline Glasses</h2>
-              <p>
-                Not sure if browline glasses suit your face shape? Check out our <Link href="../how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">complete face shape guide</Link> to learn more.
-              </p>
-              <h3>Best For:</h3>
-              <ul>
-                <li><strong>Oval faces</strong> - The angular top adds definition</li>
-                <li><strong>Square faces</strong> - Softens angular features</li>
-                <li><strong>Triangle faces</strong> - Balances narrow chin</li>
-              </ul>
-              <h3>May Not Suit:</h3>
-              <ul>
-                <li><strong>Round faces</strong> - Can emphasize roundness</li>
-                <li><strong>Heart-shaped faces</strong> - Top-heavy design may not balance</li>
-              </ul>
-              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-8 rounded-lg my-8">
-                <h3 className="text-2xl font-bold mb-4">Try Browline Styles Virtually</h3>
-                <p className="mb-6">
-                  See how browline/Clubmaster glasses look on your face before buying. Try multiple brands 
-                  and colors with our AI-powered virtual try-on tool!
-                </p>
-                <Link href="../try-on" className="inline-block bg-white text-indigo-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
-                  Try Browline Styles →
-                </Link>
-              </div>
-              <h2>Modern Browline Variations</h2>
-              <h3>1. Classic Browline</h3>
-              <p>Traditional 1950s style with thick acetate top and thin metal bottom.</p>
-              <h3>2. Contemporary Clubmaster</h3>
-              <p>Updated proportions with modern materials and colors.</p>
-              <h3>3. Oversized Browline</h3>
-              <p>Larger frames for a bold, fashion-forward statement.</p>
-              <h3>4. Minimalist Browline</h3>
-              <p>Subtle interpretation with thinner upper frame.</p>
-              <h2>Where to Buy Browline Glasses</h2>
-              <h3>Luxury Options ($200-$500)</h3>
-              <ul>
-                <li><strong>Ray-Ban Clubmaster</strong> - The original and best</li>
-                <li><strong>Oliver Peoples</strong> - Premium browline variations</li>
-                <li><strong>Moscot Yukel</strong> - Vintage-inspired quality</li>
-              </ul>
-              <h3>Mid-Range ($80-$200)</h3>
-              <ul>
-                <li><strong>Warby Parker Ames</strong> - Modern take on classic style</li>
-                <li><strong>Persol</strong> - Italian craftsmanship</li>
-              </ul>
-              <h3>Budget-Friendly ($20-$80)</h3>
-              <ul>
-                <li><strong>Zenni Optical</strong> - Affordable browline options</li>
-                <li><strong>EyeBuyDirect</strong> - Trendy budget frames</li>
-              </ul>
-              <h2>Styling Browline Glasses</h2>
-              <h3>Professional Look</h3>
-              <ul>
-                <li>Pair with suits and dress shirts</li>
-                <li>Choose classic colors: black, tortoise</li>
-                <li>Perfect for business meetings and presentations</li>
-              </ul>
-              <h3>Casual Style</h3>
-              <ul>
-                <li>Works with jeans and t-shirts</li>
-                <li>Try colorful acetate options</li>
-                <li>Great for coffee shops and creative spaces</li>
-              </ul>
-              <h3>Vintage Aesthetic</h3>
-              <ul>
-                <li>Combine with retro clothing</li>
-                <li>Choose authentic vintage colors</li>
-                <li>Perfect for themed events</li>
-              </ul>
-              <h2>Conclusion</h2>
-              <p>
-                <strong>Browline/Clubmaster glasses</strong> represent a perfect blend of vintage charm and
-                modern sophistication. Whether you choose the iconic Ray-Ban Clubmaster or a contemporary
-                variation, these frames offer timeless style that works across decades and occasions. For more style inspiration, check out our <Link href="../celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link>.
-              </p>
-              <p className="font-bold text-lg mt-6">
-                Ready to join the browline revival? Try these iconic frames virtually with our <Link href="../best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">AI virtual try-on tools</Link> and find your perfect match!
-              </p>
-            </div>
-            <div className="p-8 bg-gray-50 border-t">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <BlogTags tags={articleTags} />
-                <Link href="../try-on" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  Try Browline Styles
-                </Link>
-              </div>
-            </div>
-          </article>
-        </main>
-      </div>
-    </>
+    <main className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(article) }} />
+      <Breadcrumbs items={[{ name: 'Blog', url: localizedPath(locale, '/blog') }, { name: title }]} />
+      <article lang="en" dir="ltr" className="mt-6">
+        <header>
+          <h1 className="text-3xl font-bold leading-tight text-slate-950 sm:text-5xl">{title}</h1>
+          <p className="mt-4 text-lg leading-8 text-slate-700">
+            Browline describes a design with a pronounced upper rim that follows the eyebrows and a lighter lower rim. Clubmaster is Ray-Ban’s name for a family of frames. If a listing says only “browline,” the name tells you about the shape but does not identify a Ray-Ban model.
+          </p>
+          <p className="mt-3 text-sm text-slate-600">
+            VisuTry Team · Published <time dateTime={publishedAt}>October 21, 2025</time> · Updated <time dateTime={updatedAt}>November 16, 2026</time>
+          </p>
+        </header>
+        <figure className="my-7">
+          <Image src={cover.src} alt={cover.alt} width={cover.width} height={cover.height} priority
+            sizes="(min-width: 768px) 704px, calc(100vw - 40px)" className="mx-auto h-auto max-h-80 w-full object-contain" />
+          <figcaption className="mt-2 text-sm text-slate-600">An unbranded VisuTry browline example. The thick black upper rim stands out against the narrow lower rim.</figcaption>
+        </figure>
+        <div className="prose prose-slate max-w-none prose-a:text-blue-700">
+          <h2>Compare an optical Clubmaster and a sunglass Clubmaster</h2>
+          <dl>
+            <dt><strong>Clubmaster Optics RB5154</strong></dt>
+            <dd>Ray-Ban’s polished black-on-silver example is an optical frame. The 2000 colorway
+              shown in size 51–21 has a 51 mm lens width, a 21 mm bridge and 145 mm temples.
+              The manufacturer lists adjustable nose pads.
+              <a href="https://www.ray-ban.com/usa/eyeglasses/RX5154%20UNISEX%20clubmaster%20optics-black/8053672195736"> Ray-Ban RB5154 product details</a>.</dd>
+            <dt><strong>Clubmaster Classic RB3016</strong></dt>
+            <dd>Ray-Ban’s black-on-gold example is a sunglass frame with green lenses. A dark lens
+              changes how much contrast you see between the upper and lower rims. Save the model and
+              colorway along with the size when comparing retailer images.
+              <a href="https://www.ray-ban.com/usa/sunglasses/RB3016clubmasterclassic-blackongold/805289304449"> Ray-Ban RB3016 product details</a>.</dd>
+          </dl>
+          <h2>Check how the upper rim sits</h2>
+          <p>
+            Start with a front view in which the wearer is looking straight at the camera. Notice
+            whether the frame follows the brow, covers it or leaves a visible gap. Decide which effect
+            you like. A thicker black brow draws a stronger horizontal line. A thinner or translucent
+            brow lets more of your natural eyebrow remain visible.
+          </p>
+          <p>
+            If the top looks right but the frame slips, a different bridge or an adjustment may matter
+            more than changing the lens shape. Compare the width and bridge measurements with a pair
+            you wear comfortably, then check the actual pair with an optician. Head angle and distance
+            from the camera can move the upper rim noticeably in a photo.
+          </p>
+          <h2>Make a two-frame shortlist</h2>
+          <p>
+            Choose one frame with a strong upper rim and one lighter browline. For an exact model,
+            use a front product photo in the color you are considering and the same portrait for both.
+            <Link href={localizedPath(locale, '/try-glasses-on-photo')}> Preview your browline frames</Link>.
+            If you want a less pronounced brow, compare the result with one of the outlines in the
+            <Link href={localizedPath(locale, '/blog/rayban-glasses-virtual-tryon-guide')}> Ray-Ban style guide</Link>.
+          </p>
+        </div>
+        <footer className="mt-8 border-t pt-4"><BlogTags locale={locale} tags={articleTags} /></footer>
+      </article>
+    </main>
   )
 }

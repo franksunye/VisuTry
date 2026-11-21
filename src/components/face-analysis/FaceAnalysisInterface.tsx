@@ -47,6 +47,10 @@ export function FaceAnalysisInterface() {
   const submitInFlightRef = useRef(false)
   const handledQueryRef = useRef<string | null>(null)
   const handledPhotoHandoffRef = useRef<string | null>(null)
+  // React StrictMode and session refresh can re-run the effect while an
+  // IndexedDB read is pending. Share that one-time read across effect runs
+  // so the first cancelled listener cannot silently consume the only photo.
+  const pendingPhotoHandoffRef = useRef<{ id: string; promise: Promise<File | null> } | null>(null)
   const handoffPreviewUrlRef = useRef<string | null>(null)
 
   const remainingTrials = session?.user?.remainingTrials ?? 0
@@ -209,12 +213,23 @@ export function FaceAnalysisInterface() {
     const handoffId = searchParams.get('photoHandoff')
     if (source !== 'free-face-shape-detector' || !handoffId) return
     if (handledPhotoHandoffRef.current === handoffId) return
-    handledPhotoHandoffRef.current = handoffId
+
+    // Reuse the *same* IndexedDB consumption promise on StrictMode's
+    // setup -> cleanup -> setup cycle. A cancelled effect must not consume
+    // the photo and then prevent the replacement effect from restoring it.
+    if (pendingPhotoHandoffRef.current?.id !== handoffId) {
+      pendingPhotoHandoffRef.current = {
+        id: handoffId,
+        promise: consumeFaceAnalysisPhotoHandoff(handoffId),
+      }
+    }
 
     let cancelled = false
-    consumeFaceAnalysisPhotoHandoff(handoffId)
+    pendingPhotoHandoffRef.current.promise
       .then((file) => {
-        if (cancelled || !file) return
+        if (cancelled) return
+        handledPhotoHandoffRef.current = handoffId
+        if (!file) return
 
         const preview = URL.createObjectURL(file)
         handoffPreviewUrlRef.current = preview
@@ -226,6 +241,7 @@ export function FaceAnalysisInterface() {
         analytics.trackFaceAnalysisPhotoHandoffRestored(searchParams.get('faceShape'))
       })
       .catch(() => {
+        if (!cancelled) handledPhotoHandoffRef.current = handoffId
         // Private browsing and browser storage policies may make the handoff unavailable.
         // The standard upload control remains the safe fallback.
       })
@@ -270,8 +286,11 @@ export function FaceAnalysisInterface() {
 
       setIsRestoringTask(true)
       refreshTask(taskId, { syncSession: true })
-        .then(() => {
-          analytics.trackFaceAnalysisUnlockSuccess(taskId)
+        .then(({ success, data }) => {
+          // The checkout return can arrive before the webhook unlocks the report.
+          if (success === true && data?.id === taskId && data.status === 'completed' && data.reportUnlocked === true) {
+            analytics.trackFaceAnalysisUnlockSuccess(taskId)
+          }
         })
         .finally(() => setIsRestoringTask(false))
       return

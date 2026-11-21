@@ -1,3 +1,4 @@
+import { GeoTaskFacts } from '@/components/seo/GeoTaskFacts'
 import { notFound } from "next/navigation"
 import { TryOnGate } from "@/components/try-on/TryOnGate"
 import { generateStructuredData } from "@/lib/seo"
@@ -253,7 +254,7 @@ async function PublicTryOnLanding({
         {isGlasses && (
           <div className="mb-8">
             <RouteMessagesProvider namespaces={['marketing.modelTryOnSlides']}>
-              <ModelTryOnSlides locale={locale} mode="glasses" />
+              <ModelTryOnSlides locale={locale} mode="glasses" prefetch={false} signInOnGlassesStart />
             </RouteMessagesProvider>
           </div>
         )}
@@ -327,6 +328,8 @@ async function PublicTryOnLanding({
           </p>
         </div>
       </section>
+
+      {isGlasses && locale === 'en' && <GeoTaskFacts task="try-on" />}
 
       <section className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">

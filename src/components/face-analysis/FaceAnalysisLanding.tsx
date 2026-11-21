@@ -1,3 +1,4 @@
+import { GeoTaskFacts } from '@/components/seo/GeoTaskFacts'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, Glasses, ScanFace, Shield, Sparkles, Upload } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
@@ -175,6 +176,12 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
           </div>
         </section>
       </div>
+
+      {locale === 'en' && (
+        <div className="mx-auto max-w-6xl px-4">
+          <GeoTaskFacts task="advisor" />
+        </div>
+      )}
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:py-12">
         <section className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">

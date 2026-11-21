@@ -1,3 +1,4 @@
+import { blogArt } from '@/config/blog-art'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from '@/components/layout/PublicLink'
@@ -5,15 +6,16 @@ import { ArrowRight, CheckCircle2, ScanFace } from 'lucide-react'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 import { BRAND_TRY_ON_CONTENT, CURATED_BRAND_SLUGS } from '@/config/brand-try-on-content'
 import type { Locale } from '@/i18n'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData, SITE_CONFIG } from '@/lib/seo'
 import { generateBreadcrumbSchema, generateCollectionPageSchema } from '@/lib/programmatic-seo'
 
 export const dynamic = 'force-static'
 
+const cover = blogArt['rayban-glasses-virtual-tryon-guide']
+
 const pagePath = '/blog/rayban-glasses-virtual-tryon-guide'
 const title = 'Ray-Ban Virtual Try On: Compare Iconic Styles on Your Photo'
 const description = 'Ray-Ban virtual try on from your photo. Compare Wayfarer, Aviator, Clubmaster, and round directions, then confirm the exact model and fit before you buy.'
-const coverImage = '/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg'
 
 const styles = [
   { name: 'Wayfarer direction', image: '/assets/glasses-presets/style-explorer/sun-wayfarer-black.jpg', text: 'A strong trapezoid-like front with a clear brow line. It adds definition and works as the most recognizable starting point for a Ray-Ban style comparison.', fit: 'Compare first on round, oval, and heart-shaped faces.' },
@@ -30,16 +32,36 @@ const faqs = [
 ]
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  return generateI18nSEO({
+  const metadata = generateI18nSEO({
     locale: params.locale as Locale,
     title: `${title} | VisuTry`,
     description,
-    image: coverImage,
+    image: cover.src,
+    imageAlt: cover.alt,
+    imageWidth: cover.width,
+    imageHeight: cover.height,
     pathname: pagePath,
     type: 'article',
     noIndex: params.locale !== 'en',
     availableLocales: ['en'] as const,
   })
+  if (params.locale === 'en') return metadata
+  // The article body is always English. Keep the established non-EN noindex
+  // policy, but don't advertise a conflicting canonical or OG page owner.
+  const englishUrl = new URL('/en' + pagePath, SITE_CONFIG.url).toString()
+  return {
+    ...metadata,
+    alternates: {
+      canonical: englishUrl,
+      languages: { en: englishUrl, 'x-default': englishUrl },
+    },
+    openGraph: {
+      ...metadata.openGraph,
+      url: englishUrl,
+      locale: 'en_US',
+      alternateLocale: [],
+    },
+  }
 }
 
 export default function RayBanGuidePage({ params }: { params: { locale: string } }) {
@@ -50,9 +72,9 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
       title,
       description,
       publishedAt: '2025-10-16T10:00:00Z',
-      modifiedAt: '2026-08-03T06:00:00Z',
+      modifiedAt: '2026-11-16T00:00:00Z',
       author: 'VisuTry Team',
-      image: coverImage,
+      image: `${SITE_CONFIG.url}${cover.src}`,
     }),
     generateStructuredData('faqPage', { questions: faqs }),
     generateBreadcrumbSchema([
@@ -66,7 +88,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
   return (
     <>
       {schemas.map((schema, index) => <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />)}
-      <main className="mx-auto max-w-6xl px-4 py-8 md:py-12">
+      <main lang="en" dir="ltr" className="mx-auto max-w-6xl px-4 py-8 md:py-12">
         <nav className="mb-7 flex items-center gap-2 text-sm text-gray-600" aria-label="Breadcrumb">
           <Link href={`/${locale}`} className="hover:text-gray-950">Home</Link><span>/</span>
           <Link href={`/${locale}/blog`} className="hover:text-gray-950">Blog</Link><span>/</span>
@@ -75,10 +97,10 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
 
         <section className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-700">Updated August 3, 2026 · 7 min read</p>
+            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-700">Updated November 16, 2026 · 7 min read</p>
             <h1 className="text-3xl font-bold leading-tight text-gray-950 md:text-5xl">{title}</h1>
             <p className="mt-5 text-lg leading-8 text-gray-600">{description}</p>
-            <p className="mt-4 leading-7 text-gray-700">Start by comparing clearly different silhouettes. Once one direction feels right, use it to narrow the official catalog by shape and measurements.</p>
+            <p className="mt-4 leading-7 text-gray-700">The unbranded examples show how the silhouettes differ. To preview a specific Ray-Ban model, use a front-facing portrait and a clear product image of that frame.</p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <GrowthFunnelLink prefetch={false}
                 href={`/${locale}/try-on/glasses`}
@@ -103,7 +125,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
             </div>
           </div>
           <div className="relative min-h-80 overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
-            <Image src={coverImage} alt="Black browline frame for Ray-Ban style comparison" fill priority className="object-cover" sizes="(min-width: 1024px) 45vw, 100vw" />
+            <Image src={cover.src} alt={cover.alt} fill priority className="object-contain" sizes="(min-width: 1024px) 45vw, 100vw" />
           </div>
         </section>
 
@@ -111,7 +133,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
           <h2 className="text-2xl font-bold text-gray-950">How to use a Ray-Ban virtual try-on</h2>
           <div className="mt-6 grid gap-5 md:grid-cols-3">
             {[
-              ['1. Upload one clear photo', 'Use a straight-on image with even light and no glasses covering your eyes.'],
+              ['1. Bring two photos', 'Use a straight-on portrait and a separate front view of the frame you want to preview.'],
               ['2. Compare silhouettes', 'Test Wayfarer, Aviator, browline, and round directions instead of small variations of one frame.'],
               ['3. Confirm the exact model', 'Check official dimensions, prescription options, seller authorization, and return terms.'],
             ].map(([heading, text]) => <article key={heading} className="rounded-lg bg-white p-5"><h3 className="font-semibold text-gray-950">{heading}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{text}</p></article>)}
@@ -132,8 +154,8 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
                 queryCluster="brand-virtual-try-on:ray-ban"
                 className="group overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg"
               >
-                <div className="relative h-48 bg-gray-100"><Image src={style.image} alt={style.name} fill className="object-cover transition group-hover:scale-105" sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw" /></div>
-                <div className="p-5"><h3 className="font-semibold text-gray-950 group-hover:text-blue-700">{style.name}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{style.text}</p><p className="mt-3 text-sm leading-6 text-gray-700">{style.fit}</p><p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">Try this direction <ArrowRight className="h-4 w-4" /></p></div>
+                <div className="relative h-48 bg-gray-100"><Image src={style.image} alt={style.name} fill className="object-contain" sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw" /></div>
+                <div className="p-5"><h3 className="font-semibold text-gray-950 group-hover:text-blue-700">{style.name}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{style.text}</p><p className="mt-3 text-sm leading-6 text-gray-700">{style.fit}</p><p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">Try your frame photo <ArrowRight className="h-4 w-4" /></p></div>
               </GrowthFunnelLink>
             ))}
           </div>

@@ -1,6 +1,7 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { FaceAnalysisInterface } from '@/components/face-analysis/FaceAnalysisInterface'
+import { analytics } from '@/lib/analytics'
 
 const mockUpdate = jest.fn()
 const mockConsumePhotoHandoff = jest.fn()
@@ -116,7 +117,8 @@ describe('FaceAnalysisInterface continuation recovery', () => {
   it('consumes unlock=success before refreshing and does not refresh again after remount', async () => {
     const firstRender = render(<FaceAnalysisInterface />)
 
-    await waitFor(() => expect(mockUpdate).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(analytics.trackFaceAnalysisUnlockSuccess).toHaveBeenCalledWith('task-1'))
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
     expect(window.location.search).toBe('?taskId=task-1')
 
     firstRender.unmount()
@@ -125,6 +127,24 @@ describe('FaceAnalysisInterface continuation recovery', () => {
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2))
     expect(mockUpdate).toHaveBeenCalledTimes(1)
+    expect(analytics.trackFaceAnalysisUnlockSuccess).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    ['failed lookup', { success: false, error: 'Task not found' }],
+    ['locked report', { success: true, data: { ...completedTask, reportUnlocked: false } }],
+    ['unfinished report', { success: true, data: { ...completedTask, status: 'processing' } }],
+    ['different report', { success: true, data: { ...completedTask, id: 'task-2' } }],
+  ])('suppresses the unlock event for this response: %s', async (_label, body) => {
+    global.fetch = jest.fn().mockResolvedValue({ json: async () => body })
+
+    await act(async () => {
+      render(<FaceAnalysisInterface />)
+    })
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/face-analysis/task-1')
+    expect(analytics.trackFaceAnalysisUnlockSuccess).not.toHaveBeenCalled()
+    expect(window.location.search).toBe('?taskId=task-1')
   })
 
   it('restores a one-time detector photo and removes the handoff token from the URL', async () => {
@@ -158,6 +178,57 @@ describe('FaceAnalysisInterface continuation recovery', () => {
 
     view.unmount()
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:restored-face-photo')
+  })
+
+  it('restores a detector photo exactly once across React StrictMode effect replay', async () => {
+    let releaseRead!: (file: File | null) => void
+    const pendingRead = new Promise<File | null>((resolve) => { releaseRead = resolve })
+    mockConsumePhotoHandoff.mockReturnValue(pendingRead)
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: jest.fn(() => 'blob:strict-mode-restored-face'),
+    })
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: jest.fn(),
+    })
+
+    window.history.replaceState(
+      null, '', '/en/face-analysis?source=free-face-shape-detector&faceShape=square&photoHandoff=strict-1',
+    )
+    mockSearchParams = new URLSearchParams(window.location.search)
+
+    const view = render(<React.StrictMode><FaceAnalysisInterface /></React.StrictMode>)
+    // The first effect's cleanup must not discard the only IndexedDB read.
+    expect(mockConsumePhotoHandoff).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      releaseRead(new File(['portrait bytes'], 'portrait.jpg', { type: 'image/jpeg' }))
+      await pendingRead
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('image-upload')).toHaveAttribute(
+        'data-current-image', 'blob:strict-mode-restored-face',
+      )
+    })
+    expect(mockConsumePhotoHandoff).toHaveBeenCalledTimes(1)
+    expect(window.location.search).toBe('?source=free-face-shape-detector&faceShape=square')
+    view.unmount()
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:strict-mode-restored-face')
+  })
+
+  it('falls back to the standard upload without a stranded one-time token when storage is unavailable', async () => {
+    mockConsumePhotoHandoff.mockRejectedValue(new Error('IndexedDB unavailable'))
+    window.history.replaceState(
+      null, '', '/en/face-analysis?source=free-face-shape-detector&photoHandoff=blocked',
+    )
+    mockSearchParams = new URLSearchParams(window.location.search)
+
+    render(<React.StrictMode><FaceAnalysisInterface /></React.StrictMode>)
+    await waitFor(() => expect(window.location.search).toBe('?source=free-face-shape-detector'))
+    expect(screen.getByTestId('image-upload')).toHaveAttribute('data-current-image', '')
+    expect(mockConsumePhotoHandoff).toHaveBeenCalledTimes(1)
   })
 
   it('identifies the registered user credit as the included analysis credit', () => {

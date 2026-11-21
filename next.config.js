@@ -169,11 +169,13 @@ const nextConfig = {
       // App-rendered legacy redirects were observed as 307 without Location in
       // Production. Resolve these at the routing layer with canonical 308 targets.
       { source: '/en/try-on', destination: '/en/try-on/glasses', permanent: true },
-      ...['ar', 'de', 'es', 'fr', 'id', 'ja', 'pt', 'ru'].map((locale) => ({
-        source: `/${locale}/business`,
-        destination: '/en/business',
-        permanent: true,
-      })),
+      ...['/business', '/business/resources/:guide'].flatMap((route) =>
+        ['ar', 'de', 'es', 'fr', 'id', 'ja', 'pt', 'ru'].map((locale) => ({
+          source: `/${locale}${route}`,
+          destination: `/en${route}`,
+          permanent: true,
+        }))
+      ),
       { source: '/try-on/:type', destination: '/en/try-on/:type', permanent: true },
       { source: '/:locale/oval-face-shape', destination: '/:locale/face-shapes/oval', permanent: true },
       { source: '/:locale/round-face-shape', destination: '/:locale/face-shapes/round', permanent: true },

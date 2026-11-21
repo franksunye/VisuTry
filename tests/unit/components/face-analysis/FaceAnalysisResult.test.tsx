@@ -93,6 +93,7 @@ describe('FaceAnalysisResult', () => {
     render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={5} />)
 
     expect(screen.getByText('Your AI Face Shape Report')).toBeInTheDocument()
+    expect(screen.queryByTestId('face-analysis-primary-unlock')).not.toBeInTheDocument()
     expect(screen.getByText('Face Analysis Details')).toBeInTheDocument()
     expect(screen.getByText('Frames to Wear')).toBeInTheDocument()
     expect(screen.getByText('Frames to Avoid')).toBeInTheDocument()
@@ -138,6 +139,12 @@ describe('FaceAnalysisResult', () => {
     )
 
     expect(screen.getByText('Unlock your complete report')).toBeInTheDocument()
+    const earlyOffer = screen.getByTestId('face-analysis-primary-unlock')
+    expect(earlyOffer).toBeInTheDocument()
+    // One genuine paywall entry, above the lengthy photo and teaser panels.
+    expect(screen.getAllByText('Unlock My Recommendations')).toHaveLength(1)
+    const faceSummary = screen.getByText('Your Face Shape')
+    expect(earlyOffer.compareDocumentPosition(faceSummary) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.getByText('Preview: best frame directions')).toBeInTheDocument()
     expect(screen.getAllByText('Complete Your Personalized Frame Decision').length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: /unlock to download/i })).not.toBeInTheDocument()

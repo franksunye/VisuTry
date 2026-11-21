@@ -10,6 +10,33 @@
 
 ## Active restart queue — 2026-11-02
 
+### Consumer New Entry Discovery · November 16, 2026 (Draft)
+
+**Issue:** [#529](https://github.com/franksunye/VisuTry/issues/529). **Support research:** `docs/ops/2026-11-16-consumer-new-entry-discovery.md`. Canonical policy remains `docs/strategy/analytics/gtm.md`.
+
+- [x] GSC Web 2026-10-17–11-13 exact EN owner baseline: width guide 1/21, compare search 2/57, compare app 0/36, BYO photo 8/552, sunglasses face-shape 0/22 (clicks/impressions). Thin samples; no new 10× winner.
+- [x] Existing implementation review: EN size guide already explains the frame markings; Compare is paid/credit-controlled; legacy share link uses public task ID, requiring consent/expiry/revoke review before any vote/share growth experiment.
+- [ ] E1 **DRAFT ONLY:** client-only frame-marking comparator in current EN width guide, TypeScript/unit/mobile/desktop/CI gate; no new SEO URL or physical-fit claim. Event `frame_size_compared` must stay browser-only and must not trigger a new Vercel Function.
+- [ ] E2 Share/Compare: read real event delivery and consent/TTL/revoke design before any user-photo distribution; preserve paid comparison and private-by-default behavior.
+- [ ] E3 image style identifier and E4 sunglasses: demand/competitive validation before code, no personalized free recommendation or bulk pages.
+- [ ] Before any release obtain GA4/Axiom qualified source→action counts and independent Google keyword-demand evidence. Windsor GA4 account not configured and older GSC data unavailable under current 30d trial. Afterwards log public www/CDN proof and Google recrawl separately; 7d engaged actions, complete 28d query×page and actual paid quality.
+
+### Consumer blog governance · November 16, 2026
+
+The editorial inventory covers 14 published articles. The 2025 slugs and existing redirects remain valid. The earlier image and canonical corrections shipped in [#527](https://github.com/franksunye/VisuTry/pull/527). The next review uses these Google Web page totals from October 17–November 13, all countries and devices.
+
+| English article | Baseline clicks / impressions | Next readout |
+| --- | --- | --- |
+| Ray-Ban photo try-on | 14 / 3,863 | Separate Ray-Ban searches from VisuTry brand searches. Compare query CTR at similar positions and actual try-on starts. |
+| Browline vs. Clubmaster | 8 / 1,829 | Track the two-name comparison separately from model-only queries. |
+| Virtual try-on tools | 1 / 1,360 | Separate retailer/model queries, VisuTry brand and generic comparison queries. Check visits to the relevant tool. |
+| Choosing glasses for your face | 0 / 250 | Monitor manual frame-choice intent alongside the protected personalized guide. Retain both distinct reader tasks. |
+| Oliver Peoples Finley Vintage | 4 / 230 | Check model queries and entry into photo try-on. |
+
+All 14 articles together had 1,221 clicks. The Advisor guide contributed 1,193 across its nine languages, including 993 in English. Keep its existing December readout and the merchant returns observation window separate. In the weekly review, use URL Inspection to record the first observed post-release Google crawl per priority page. Compare full 28-day windows after that date with the pre-release baseline, disclosing sample size, position changes, and missing analytics. GA4 click events, completed try-ons, and verified payments are separate measures.
+
+The sitemap had 118 localized article URLs at audit. Most legacy articles have English body text under several locale shells. The translated Advisor guide is a separate case. Use actual query demand and indexed URL selection before deciding on further translation or URL consolidation.
+
 ### SEO Growth Wave 1: four-entry release scorecard — Nov 2, 2026
 
 **Release:** [PR #509](https://github.com/franksunye/VisuTry/pull/509) **MERGED**, main SHA `0277e6f2e496d97649fd3cf4f2a6d71158f71000`, Vercel Production `READY` on `www.visutry.com`. Public Cloudflare HTML freshness for five routes **not independently confirmed** at time of release. Start *visibility* clock on proven current bare-URL HTML; start *SEO effect* observation only after Google re-crawl/processing. All four changed together in one non-randomized release, so before–after association ≠ causal A/B proof.

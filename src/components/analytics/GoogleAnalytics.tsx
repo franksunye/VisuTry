@@ -38,10 +38,8 @@ export function GoogleAnalytics({ gaId, locale }: GoogleAnalyticsProps) {
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${gaId}', {
-              page_title: document.title,
-              page_location: window.location.href,
-            });
+            // GA reads the current URL and title for each event, including client-side navigation.
+            gtag('config', '${gaId}');
             // Set language user properties for audience segmentation
             gtag('set', 'user_properties', {
               landing_locale: document.documentElement.lang || undefined,
