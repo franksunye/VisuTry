@@ -72,7 +72,7 @@ describe('bounded merchant source network', () => {
       hostname: '93.184.216.34',
       servername: 'catalog.example.test',
       rejectUnauthorized: true,
-      headers: { Accept: 'text/html, application/xhtml+xml;q=0.9', Host: 'catalog.example.test' },
+      headers: { Accept: 'text/html, application/xhtml+xml;q=0.9, application/json;q=0.8, text/javascript;q=0.8', Host: 'catalog.example.test' },
     }), expect.any(Function))
   })
 
@@ -80,7 +80,7 @@ describe('bounded merchant source network', () => {
     [401, 'SOURCE_ACCESS_DENIED'],
     [403, 'SOURCE_ACCESS_DENIED'],
     [429, 'SOURCE_RATE_LIMITED'],
-    [404, 'SOURCE_UNREACHABLE'],
+    [404, 'SOURCE_NOT_FOUND'],
   ] as const)('classifies public source HTTP %i without changing origin protections', async (status, code) => {
     mockLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }])
     const result = response(status)
@@ -129,5 +129,23 @@ describe('bounded merchant source network', () => {
 
     await expect(fetchMerchantSourceDocument('http://catalog.example.test/products/a')).rejects.toMatchObject({ code: 'SOURCE_TOO_LARGE' })
     expect(request.destroy).toHaveBeenCalled()
+  })
+
+  it('preserves a Shopify platform hint when a page exceeds the safe body limit', async () => {
+    mockLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }])
+    const result = response(200, 'x'.repeat(MERCHANT_SOURCE_MAX_RESPONSE_BYTES + 1), {
+      'content-type': 'text/html',
+      'powered-by': 'Shopify',
+    })
+    const request = requestFor(result)
+    mockHttpsRequest.mockImplementation((_options: unknown, callback: (value: typeof result.value) => void) => {
+      process.nextTick(() => callback(result.value))
+      return request
+    })
+
+    await expect(fetchMerchantSourceDocument('https://moscot.example/products/lemtosh')).rejects.toMatchObject({
+      code: 'SOURCE_TOO_LARGE',
+      platformHint: 'SHOPIFY',
+    })
   })
 })

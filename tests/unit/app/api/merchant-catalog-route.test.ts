@@ -69,6 +69,28 @@ describe('Human merchant catalog route', () => {
     expect(mockImport).toHaveBeenCalledWith(expect.objectContaining({ actor: expect.objectContaining({ actorType: 'HUMAN', actorId: 'user-a', merchantId: 'merchant-a', membershipId: 'membership-a' }) }))
   })
 
+  it('denies a cross-tenant Catalog import before writing merchant data', async () => {
+    mockMembership.mockRejectedValueOnce(new MerchantAccessError())
+    const response = await POST(request({
+      approved: true,
+      sourceType: 'EXTERNAL',
+      frames: [{ name: 'Foreign product', productUrl: 'https://moscot.com/products/lemtosh', price: 34000, currency: 'usd', shape: 'round' }],
+    }), { params: { merchantId: 'merchant-b' } })
+
+    expect(response.status).toBe(404)
+    expect(await response.json()).toMatchObject({ error: 'MERCHANT_ACCESS_NOT_FOUND' })
+    expect(mockMembership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-b', roles: ['OWNER', 'ADMIN'] })
+    expect(mockImport).not.toHaveBeenCalled()
+  })
+
+  it('denies a cross-tenant Catalog read before querying merchant rows', async () => {
+    mockMembership.mockRejectedValueOnce(new MerchantAccessError())
+    const response = await GET(new NextRequest('http://localhost/api/merchant/merchant-b/catalog'), { params: { merchantId: 'merchant-b' } })
+
+    expect(response.status).toBe(404)
+    expect(mockList).not.toHaveBeenCalled()
+  })
+
   it('keeps catalog reads tenant-scoped and cursor-paginated', async () => {
     const response = await GET(new NextRequest('http://localhost/api/merchant/merchant-a/catalog?limit=50&cursor=frame-0'), { params: { merchantId: 'merchant-a' } })
     expect(response.status).toBe(200)

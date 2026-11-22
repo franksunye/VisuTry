@@ -63,6 +63,36 @@ start_server() {
   [[ "$ready" == true ]] || { echo "Merchant RC app not ready" >&2; exit 1; }
 }
 start_server
+if [[ "${SHOPIFY_LIVE_PRODUCT_E2E:-}" == "1" ]]; then
+  [[ "${SHOPIFY_LIVE_PRODUCT_URL:-}" == "https://goodr.com/products/hooked-on-onyx" ]] || {
+    echo 'The manual D2 run is pinned to the selected public goodr product URL.' >&2
+    exit 1
+  }
+  echo "Running manually requested D2 live Shopify browser journey at exact SHA $(git rev-parse HEAD)"
+  echo "Only the existing Merchant RC local PostgreSQL database and the selected public product URL are used."
+  npx jest --runInBand \
+    tests/unit/modules/merchant/merchant-catalog-source-progressive.test.ts \
+    tests/unit/modules/merchant/merchant-source-network.test.ts \
+    tests/unit/modules/merchant/merchant-catalog-source-cloudflare-shopify.test.ts \
+    tests/unit/app/api/merchant-catalog-route.test.ts
+  mkdir -p "$OUT/shopify-live"
+  if env \
+    P0_L1_LOCAL_MERCHANT_E2E=1 \
+    SHOPIFY_LIVE_PRODUCT_E2E=1 \
+    SHOPIFY_LIVE_PRODUCT_URL="$SHOPIFY_LIVE_PRODUCT_URL" \
+    SHOPIFY_LIVE_EVIDENCE_DIR="$OUT/shopify-live" \
+    PLAYWRIGHT_JSON_OUTPUT_FILE="$OUT/shopify-live/report.json" \
+    ./node_modules/.bin/playwright test tests/e2e/p0-l1-local-merchant-growth-lab.spec.ts \
+      --project=chromium --workers=1 --retries=0 --reporter=json --output="$OUT/shopify-live/playwright-output" \
+      --grep 'runs the real local acquisition-to-private-preview journey'; then
+    echo 'D2 live Shopify browser journey completed.'
+  else
+    status=$?
+    echo "D2 live Shopify browser journey failed with exit $status." >&2
+    exit "$status"
+  fi
+  exit 0
+fi
 reset_own_disposable_db_for_next_scenario() {
   # The Golden Path creates the clean QA identity. A subsequent Merchant test
   # MUST start from a fresh fixture, not reuse a now-activated Merchant.
