@@ -3,6 +3,7 @@ import type { MerchantFrameStoreReadiness } from '../domain/merchant-frame-store
 import type { DecisionJourneyPolicy } from '@/modules/store/domain/decision-journey'
 import type { ExperienceDeliveryPolicy } from '@/modules/store/domain/delivery-profile'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
+import type { ExperienceSearchReadiness } from '@/modules/store/domain/experience-search-visibility'
 
 export type MerchantStoreWorkspaceFrame = {
   id: string
@@ -60,6 +61,7 @@ export type MerchantStoreWorkspace = {
     description: string | null
     publicPath: string
     selectedFrameIds: string[]
+    searchVisibility: ExperienceSearchReadiness
     journeyPolicy: DecisionJourneyPolicy
     effectiveJourneyPolicy: DecisionJourneyPolicy
     deliveryPolicy: ExperienceDeliveryPolicy

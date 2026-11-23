@@ -45,6 +45,7 @@ function campaign(overrides: Partial<CampaignReadModel> & Pick<CampaignReadModel
     selectedFrames: [],
     referenceData: false,
     publicPath: `/en/c/merchant-a/${id}`,
+    searchVisibility: { visibility: status === 'DRAFT' ? 'PRIVATE' : 'PUBLIC_NOINDEX', reasons: status === 'DRAFT' ? ['DRAFT'] : ['NO_READABLE_CONTENT'], indexableLocale: 'en', activeFrameCount: 0, minimumFrameCount: 4 },
     readiness: { ready: true, blockingIssues: [], warnings: [] },
     ...rest,
   }

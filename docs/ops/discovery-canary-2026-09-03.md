@@ -5,6 +5,9 @@ Status: **HISTORICAL EVIDENCE** (originally marked PRODUCTION READY at its T0).
 This dated record describes the historical `visutry-demo` Canary, not the
 current canonical Demo tenant. Current Demo identity, routing, and operating
 rules are in the [VisuTry Demo Environment Contract](./visutry-demo-environment-contract.md).
+The [2026-11-21 restart record](./merchant-discovery-restart-2026-11-21.md)
+records current search observations and the bounded discovery refresh; frame
+destination ownership below describes the original September state only.
 
 This evidence record covers the minimum first-party Discovery Canary built by
 reusing the existing `VisuTry Demo`. It does not claim external merchant

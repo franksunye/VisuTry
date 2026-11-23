@@ -20,6 +20,7 @@ function campaign(): CampaignReadModel {
     secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null,
     startAt: null, endAt: null, frameIds: [], frameCount: 0, selectedFrames: [], referenceData: false,
     publicPath: '/en/c/north-star/spring', readiness: { ready: true, blockingIssues: [], warnings: [] },
+    searchVisibility: { visibility: 'PUBLIC_NOINDEX', reasons: ['NO_READABLE_CONTENT'], indexableLocale: 'en', activeFrameCount: 0, minimumFrameCount: 4 },
   }
 }
 
@@ -58,5 +59,12 @@ describe('MerchantCampaignDetailWorkspace Experience configuration', () => {
       journeyPolicy: { enabledStages: ['FACE_ANALYSIS', 'FIT_PROFILE', 'RECOMMENDATION'] },
     })
     expect(await screen.findByText('Campaign details saved. These changes are now visible in your live Campaign.')).toBeInTheDocument()
+  })
+
+  it('shows saved search eligibility separately from publish readiness', () => {
+    render(<MerchantCampaignDetailWorkspace locale="en" merchantId="merchant-a" merchantName="North Star" initialCampaign={campaign()} />)
+    expect(screen.getByRole('region', { name: 'Search visibility' })).toHaveTextContent('Public · not eligible for search')
+    expect(screen.getByRole('region', { name: 'Search visibility' })).toHaveTextContent('English public page')
+    expect(screen.getByText('The saved Campaign meets the current publish checks.')).toBeInTheDocument()
   })
 })

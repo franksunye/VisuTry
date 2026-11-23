@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
+suite="${VISUTRY_CONTAINER_E2E_SUITE:-all}"
+[[ "$suite" == all || "$suite" == discovery ]] || { echo 'Supported suites: all, discovery.' >&2; exit 1; }
 
 [[ "$(uname -s)" == Linux ]] || { echo 'Use the workstation native-PostgreSQL runner outside Linux.' >&2; exit 1; }
 [[ -z "${VERCEL:-}" && -z "${VERCEL_ENV:-}" ]] || { echo 'Refusing to run against Vercel.' >&2; exit 1; }
@@ -141,8 +143,15 @@ for _ in $(seq 1 90); do
 done
 [[ "$ready" == true ]] || { echo 'Merchant SSR failed to serve HTTP 200'; tail -90 "$run_dir/next.log"; exit 1; }
 
-echo 'Running Chromium against real Next SSR + seeded local DB + mocked shopper APIs'
 export PLAYWRIGHT_BASE_URL=http://127.0.0.1:3003
+if [[ "$suite" == discovery ]]; then
+  echo 'Running discovery SSR + real Merchant API + desktop/mobile search eligibility'
+  ./node_modules/.bin/playwright test tests/e2e/merchant-discovery-local.spec.ts \
+    --config=playwright.config.ts --project=chromium --workers=1 --retries=0
+  exit 0
+fi
+
+echo 'Running Chromium against real Next SSR + seeded local DB + mocked shopper APIs'
 ./node_modules/.bin/playwright test tests/e2e/store-pilot.spec.ts \
   --project=chromium --workers=1 --retries=0 \
   --grep 'configured merchant route|campaign experience route|applies the merchant compare|keeps a real provider failure|turns Store/Campaign AUTH_REQUIRED|presentation modes remain usable at mobile width|Store and Campaign landing actions remain usable at mobile width'

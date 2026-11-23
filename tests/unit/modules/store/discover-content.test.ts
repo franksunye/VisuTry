@@ -1,5 +1,6 @@
-import { getDiscoverContent } from '@/modules/store/application/get-discover-content'
+import { getDiscoverContent, type DiscoverRuntime } from '@/modules/store/application/get-discover-content'
 import { DISCOVER_FEATURED_EXPERIENCES, DISCOVER_MERCHANT_SLUGS } from '@/config/discover'
+import type { ExperienceRecord, MerchantFrameRecord, MerchantRecord } from '@/modules/store/application/ports/repositories'
 
 const makeMerchant = (slug: string, referenceData = true) => ({
   id: `merchant-${slug}`,
@@ -82,13 +83,41 @@ const makeFrame = (merchantId: string, slug: string) => ({
   styleTags: [],
   collectionTags: [],
   sourceNotes: null,
-  source: 'IMPORT' as const,
+  source: 'CSV' as const,
   externalId: null,
   enrichmentStatus: 'PENDING' as const,
   status: 'ACTIVE' as const,
   createdAt: new Date(),
   updatedAt: new Date(),
 })
+
+function makeLearningRuntime(input: {
+  merchant?: Partial<MerchantRecord>
+  experience?: Partial<ExperienceRecord>
+  transformFrames?: (frames: MerchantFrameRecord[]) => MerchantFrameRecord[]
+} = {}): DiscoverRuntime {
+  const merchant: MerchantRecord = {
+    ...makeMerchant('visutry-demo', false), pilotType: 'LIVE',
+    websiteUrl: null,
+    ...input.merchant,
+  }
+  const allFrames = ['round', 'rectangle', 'oval', 'aviator'].map((shape) => ({
+    ...makeFrame(merchant.id, shape), shape, productUrl: `https://www.visutry.com/en/demo/frames/${shape}`,
+  }))
+  const experience: ExperienceRecord = {
+    ...makeExperience(merchant.id, 'everyday-fit'), referenceData: false,
+    frameIds: allFrames.map((frame) => frame.id),
+    ...input.experience,
+  }
+  return {
+    merchants: { findBySlug: jest.fn(async (slug) => slug === 'visutry-demo' ? merchant : null) },
+    experiences: {
+      findActiveCampaignByMerchantAndSlug: jest.fn(async () => experience),
+      findDefaultStore: jest.fn(async () => null),
+    },
+    frames: { findActiveByMerchantAndExperience: jest.fn(async () => input.transformFrames?.(allFrames) ?? allFrames) },
+  }
+}
 
 describe('Discover content contract', () => {
   it('resolves only active, catalog-backed curated Experiences and all active merchants', async () => {
@@ -128,8 +157,10 @@ describe('Discover content contract', () => {
     expect(content.featured.every((item) => item.href.includes('campaign=discover-featured'))).toBe(true)
     expect(content.merchants).toHaveLength(5)
     expect(content.merchants.every((item) => item.referenceData)).toBe(true)
-    // Six featured cards and five store cards share only five distinct merchants.
-    expect(findBySlug).toHaveBeenCalledTimes(DISCOVER_MERCHANT_SLUGS.length)
+    // Existing cards share five merchants; the separate learning example checks
+    // its own current merchant state once and stays absent in this fixture.
+    expect(findBySlug).toHaveBeenCalledTimes(DISCOVER_MERCHANT_SLUGS.length + 1)
+    expect(content.learningExample).toBeNull()
     expect(content.demo).toEqual({
       href: '/en/store/visutry-demo-optical?source=visutry&medium=internal&surface=discover&campaign=canonical-demo',
       name: 'VisuTry Demo Optical',
@@ -157,13 +188,13 @@ describe('Discover content contract', () => {
 
     const first = await getDiscoverContent('en', runtime)
     expect(first.merchants).toHaveLength(5)
-    expect(findBySlug).toHaveBeenCalledTimes(5)
+    expect(findBySlug).toHaveBeenCalledTimes(6)
 
     active = false
     const second = await getDiscoverContent('en', runtime)
     expect(second.merchants).toHaveLength(0)
     expect(second.featured).toHaveLength(0)
-    expect(findBySlug).toHaveBeenCalledTimes(10)
+    expect(findBySlug).toHaveBeenCalledTimes(12)
   })
 
   it('filters an inactive or empty curated Experience without hiding other merchants', async () => {
@@ -182,5 +213,52 @@ describe('Discover content contract', () => {
     expect(content.featured).toHaveLength(0)
     expect(content.merchants).toHaveLength(5)
     expect(content.demo.href).toContain('/en/store/visutry-demo-optical')
+  })
+
+  it('offers the active public Canary as a separate, explicitly internal learning entry', async () => {
+    const content = await getDiscoverContent('en', makeLearningRuntime())
+    expect(content.learningExample).toMatchObject({
+      headline: 'Everyday Fit: round or rectangular?',
+      href: '/en/c/visutry-demo/everyday-fit?source=visutry&medium=internal&surface=discover&campaign=discover-canary-learning',
+    })
+    expect(content.learningExample?.description).toContain('not for sale')
+    expect(content.demo.href).toContain('/en/store/visutry-demo-optical')
+    expect(content.featured).toHaveLength(0)
+  })
+
+  it.each([
+    ['suspended merchant', { merchant: { status: 'SUSPENDED' } }],
+    ['merchant Reference', { merchant: { referenceData: true } }],
+    ['Reference pilot', { merchant: { pilotType: 'REFERENCE' } }],
+    ['different merchant', { merchant: { slug: 'visutry-demo-optical' } }],
+    ['draft Campaign', { experience: { status: 'DRAFT' } }],
+    ['ended Campaign', { experience: { status: 'ENDED' } }],
+    ['archived Campaign', { experience: { status: 'ARCHIVED' } }],
+    ['Reference Campaign', { experience: { referenceData: true } }],
+    ['different tenant', { experience: { merchantId: 'another-tenant' } }],
+    ['different Campaign', { experience: { slug: 'other-edit' } }],
+  ] as const)('hides the learning entry for %s', async (_label, overrides) => {
+    const content = await getDiscoverContent('en', makeLearningRuntime(overrides))
+    expect(content.learningExample).toBeNull()
+  })
+
+  it('does not promote a thin catalog, a missing comparison, or cross-tenant frames', async () => {
+    for (const transformFrames of [
+      (frames: MerchantFrameRecord[]) => frames.slice(0, 2),
+      (frames: MerchantFrameRecord[]) => frames.map((frame) => ({ ...frame, shape: 'round' })),
+      (frames: MerchantFrameRecord[]) => frames.map((frame) => ({ ...frame, merchantId: 'another-tenant' })),
+      (frames: MerchantFrameRecord[]) => frames.map((frame) => ({ ...frame, productUrl: null })),
+    ]) {
+      const content = await getDiscoverContent('en', makeLearningRuntime({ transformFrames }))
+      expect(content.learningExample).toBeNull()
+    }
+  })
+
+  it('does not add an English-only learning entry or its lookup to other locales', async () => {
+    const runtime = makeLearningRuntime()
+    const content = await getDiscoverContent('ja', runtime)
+    expect(content.learningExample).toBeNull()
+    expect(runtime.merchants.findBySlug).not.toHaveBeenCalledWith('visutry-demo')
+    expect(content.demo.href).toContain('/ja/store/visutry-demo-optical')
   })
 })

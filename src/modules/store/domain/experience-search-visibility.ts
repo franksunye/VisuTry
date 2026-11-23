@@ -8,6 +8,29 @@ export const EXPERIENCE_SEARCH_VISIBILITIES = [
 
 export type ExperienceSearchVisibility = (typeof EXPERIENCE_SEARCH_VISIBILITIES)[number]
 
+export type ExperienceSearchVisibilityReason =
+  | 'MISSING_MERCHANT'
+  | 'MISSING_EXPERIENCE'
+  | 'MERCHANT_INACTIVE'
+  | 'DRAFT'
+  | 'NO_READABLE_CONTENT'
+  | 'EXPERIENCE_ENDED'
+  | 'EXPERIENCE_ARCHIVED'
+  | 'EXPERIENCE_INACTIVE'
+  | 'REFERENCE'
+  | 'MERCHANT_NOT_INDEXABLE'
+  | 'INSUFFICIENT_FRAMES'
+  | 'MISSING_DESTINATION'
+
+/** Saved-page eligibility, not a claim that a search engine has indexed it. */
+export type ExperienceSearchReadiness = {
+  visibility: ExperienceSearchVisibility
+  reasons: ExperienceSearchVisibilityReason[]
+  indexableLocale: 'en'
+  activeFrameCount: number
+  minimumFrameCount: number
+}
+
 export type SearchVisibilityMerchant = {
   name: string
   status: string
@@ -87,38 +110,56 @@ function isIndexableMerchant(input: ExperienceSearchVisibilityInput): boolean {
  * Reference provenance is deliberately handled before indexability so a
  * reference catalog cannot become indexable merely by having enough frames.
  */
-export function resolveExperienceSearchVisibility(
+export function resolveExperienceSearchReadiness(
   input: ExperienceSearchVisibilityInput,
-): ExperienceSearchVisibility {
-  if (!input.merchant || !input.experience) return 'PRIVATE'
-  if (input.merchant.status !== 'ACTIVE') return 'PRIVATE'
-  if (input.experience.status === 'DRAFT') return 'PRIVATE'
-  if (!hasReadableDiscoveryContent(input)) return 'PUBLIC_NOINDEX'
+): ExperienceSearchReadiness {
+  const activeFrameCount = input.frameCount ?? input.frames.length
+  const result = (
+    visibility: ExperienceSearchVisibility,
+    reasons: ExperienceSearchVisibilityReason[] = [],
+  ): ExperienceSearchReadiness => ({
+    visibility,
+    reasons,
+    indexableLocale: 'en',
+    activeFrameCount,
+    minimumFrameCount: MINIMUM_INDEXABLE_CATALOG_ITEMS,
+  })
 
-  if (
-    input.experience.status === 'ENDED'
-    || input.experience.status === 'ARCHIVED'
-  ) {
-    return 'PUBLIC_NOINDEX'
+  if (!input.merchant || !input.experience) {
+    const reasons: ExperienceSearchVisibilityReason[] = []
+    if (!input.merchant) reasons.push('MISSING_MERCHANT')
+    if (!input.experience) reasons.push('MISSING_EXPERIENCE')
+    return result('PRIVATE', reasons)
+  }
+  if (input.merchant.status !== 'ACTIVE') return result('PRIVATE', ['MERCHANT_INACTIVE'])
+  if (input.experience.status === 'DRAFT') return result('PRIVATE', ['DRAFT'])
+  if (!hasReadableDiscoveryContent(input)) return result('PUBLIC_NOINDEX', ['NO_READABLE_CONTENT'])
+
+  if (input.experience.status === 'ENDED') {
+    return result('PUBLIC_NOINDEX', ['EXPERIENCE_ENDED'])
+  }
+  if (input.experience.status === 'ARCHIVED') {
+    return result('PUBLIC_NOINDEX', ['EXPERIENCE_ARCHIVED'])
   }
 
-  if (input.experience.status !== 'ACTIVE') return 'PRIVATE'
-  if (isReferenceExperience(input)) return 'PUBLIC_NOINDEX'
+  if (input.experience.status !== 'ACTIVE') return result('PRIVATE', ['EXPERIENCE_INACTIVE'])
+  if (isReferenceExperience(input)) return result('PUBLIC_NOINDEX', ['REFERENCE'])
 
   const hasMerchantDestination = hasHttpUrl(input.merchant.websiteUrl)
   const hasProductDestination = input.hasProductDestination
     ?? input.frames.some((frame) => hasHttpUrl(frame.productUrl))
-  const hasMeaningfulCollection = (input.frameCount ?? input.frames.length) >= MINIMUM_INDEXABLE_CATALOG_ITEMS
+  const reasons: ExperienceSearchVisibilityReason[] = []
+  if (!isIndexableMerchant(input)) reasons.push('MERCHANT_NOT_INDEXABLE')
+  if (!(activeFrameCount >= MINIMUM_INDEXABLE_CATALOG_ITEMS)) reasons.push('INSUFFICIENT_FRAMES')
+  if (!hasMerchantDestination && !hasProductDestination) reasons.push('MISSING_DESTINATION')
 
-  if (
-    !isIndexableMerchant(input)
-    || !hasMeaningfulCollection
-    || (!hasMerchantDestination && !hasProductDestination)
-  ) {
-    return 'PUBLIC_NOINDEX'
-  }
+  return result(reasons.length > 0 ? 'PUBLIC_NOINDEX' : 'PUBLIC_INDEX', reasons)
+}
 
-  return 'PUBLIC_INDEX'
+export function resolveExperienceSearchVisibility(
+  input: ExperienceSearchVisibilityInput,
+): ExperienceSearchVisibility {
+  return resolveExperienceSearchReadiness(input).visibility
 }
 
 export function visibilityToRobots(visibility: ExperienceSearchVisibility): {

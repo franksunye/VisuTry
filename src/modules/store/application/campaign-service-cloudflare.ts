@@ -20,6 +20,7 @@ import { resolveDecisionJourneyPolicy } from '../domain/decision-journey'
 import { resolvePublicDecisionJourney } from '../domain/experience-policy'
 import { resolveExperienceDeliveryPolicy } from '../domain/delivery-profile'
 import { getMerchantCommercialCapabilityCloudflare } from '@/modules/merchant/application/merchant-commercial-entitlements-cloudflare'
+import { resolveExperienceSearchReadiness, type ExperienceSearchReadiness, type SearchVisibilityExperience } from '../domain/experience-search-visibility'
 
 export { CampaignServiceError }
 
@@ -65,6 +66,7 @@ export type CampaignReadModel = {
   }>
   referenceData: boolean
   publicPath: string
+  searchVisibility: ExperienceSearchReadiness
   readiness: { ready: boolean; blockingIssues: string[]; warnings: string[] }
 }
 
@@ -152,6 +154,24 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
     primaryCtaType: row.primaryCtaType == null ? null : String(row.primaryCtaType), primaryCtaLabel: row.primaryCtaLabel == null ? null : String(row.primaryCtaLabel), primaryCtaUrl: row.primaryCtaUrl == null ? null : String(row.primaryCtaUrl),
     secondaryCtaType: row.secondaryCtaType == null ? null : String(row.secondaryCtaType), secondaryCtaLabel: row.secondaryCtaLabel == null ? null : String(row.secondaryCtaLabel), secondaryCtaUrl: row.secondaryCtaUrl == null ? null : String(row.secondaryCtaUrl),
     startAt: dateValue(row.startAt), endAt: dateValue(row.endAt), frameIds: frames.map((frame) => frame.merchantFrameId), frameCount: frames.length, referenceData: merchantReferenceData || Boolean(row.referenceData), publicPath: `/en/c/${merchantSlug}/${String(row.slug)}`, readiness: { ready, blockingIssues, warnings },
+    searchVisibility: resolveExperienceSearchReadiness({
+      merchant: {
+        name: capabilities.name == null ? '' : String(capabilities.name),
+        status: capabilities.status == null ? '' : String(capabilities.status),
+        websiteUrl: capabilities.websiteUrl == null ? null : String(capabilities.websiteUrl),
+        pilotType: capabilities.pilotType == null ? null : String(capabilities.pilotType),
+        referenceData: merchantReferenceData,
+        sponsoredUsagePolicyKey: capabilities.sponsoredUsagePolicyKey == null ? null : String(capabilities.sponsoredUsagePolicyKey),
+      },
+      experience: {
+        type: 'CAMPAIGN',
+        name: String(row.name),
+        status: String(row.status) as SearchVisibilityExperience['status'],
+        headline: row.headline == null ? null : String(row.headline),
+        referenceData: Boolean(row.referenceData),
+      },
+      frames: frames.flatMap((frame) => frame.merchantFrame?.status === 'ACTIVE' ? [frame.merchantFrame] : []),
+    }),
     selectedFrames: frames.map((frame, index) => ({ id: frame.merchantFrameId, name: frame.merchantFrame?.name ?? null, brand: frame.merchantFrame?.brand ?? null, imageUrl: frame.merchantFrame?.imageUrl ?? null, productUrl: frame.merchantFrame?.productUrl ?? null, price: frame.merchantFrame?.price ?? null, currency: frame.merchantFrame?.currency ?? null, shape: frame.merchantFrame?.shape ?? null, status: frame.merchantFrame?.status ?? null, valid: Boolean(frame.merchantFrame && frameChecks[index].valid), issues: frame.merchantFrame ? frameChecks[index].issues : ['FRAME_NOT_FOUND'] })),
   }
 }
@@ -170,7 +190,7 @@ function jsonObject(value: unknown): Record<string, unknown> | null {
 async function fetchCampaign(merchantId: string, campaignId: string, sharedMerchant?: Row): Promise<{ row: CampaignRow; merchant: Row }> {
   const sql = getCloudflareSql()
   const [merchantRows, rows] = await Promise.all([
-    sharedMerchant ? Promise.resolve([sharedMerchant]) : sql`SELECT "id", "slug", "referenceData", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
+    sharedMerchant ? Promise.resolve([sharedMerchant]) : sql`SELECT "id", "slug", "referenceData", "name", "status", "websiteUrl", "sponsoredUsagePolicyKey", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
     sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."journeyPolicy", e."deliveryPolicy", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."brand" AS "frameBrand", mf."price" AS "framePrice", mf."currency" AS "frameCurrency", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
   ])
   const merchant = merchantRows[0]
@@ -214,7 +234,7 @@ function compatibleDraft(row: CampaignRow, input: { name: string; objective: Cam
 export async function listCampaigns(input: { merchantId: string; cursor?: string; limit?: number }) {
   const limit = Math.min(Math.max(input.limit ?? 50, 1), 100)
   const sql = getCloudflareSql()
-  const merchantRows = await sql`SELECT "slug", "referenceData", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
+  const merchantRows = await sql`SELECT "slug", "referenceData", "name", "status", "websiteUrl", "sponsoredUsagePolicyKey", "classification", "pilotType", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "commercialAddOns", "createdAt", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
   const merchant = merchantRows[0]
   if (!merchant) throw new MerchantAccessError()
   const rows = input.cursor
@@ -255,7 +275,7 @@ export async function createCampaignDraft(input: {
   validateDateRange(startAt, endAt)
   for (const [field, url] of [['primaryCtaUrl', input.primaryCtaUrl], ['secondaryCtaUrl', input.secondaryCtaUrl] as const]) if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must be an https URL or internal path.`)
   const sql = getCloudflareSql()
-  const merchantRows = await sql`SELECT "id", "slug", "referenceData", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
+  const merchantRows = await sql`SELECT "id", "slug", "referenceData", "name", "status", "websiteUrl", "sponsoredUsagePolicyKey", "pilotType", "tryOnEnabled", "compareEnabled" FROM "Merchant" WHERE "id" = ${input.merchantId} LIMIT 1`
   const merchant = merchantRows[0]
   if (!merchant) throw new MerchantAccessError()
   const commercial = await getMerchantCommercialCapabilityCloudflare({ merchantId: input.merchantId, includeResourceUsage: false }).catch(() => null)

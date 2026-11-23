@@ -13,6 +13,7 @@ import { DEFAULT_EXPERIENCE_CONFIGURATION, MerchantExperienceConfiguration, type
 import { normalizeMerchantHandoffAction, resolveMerchantHandoff } from "@/modules/store/domain/merchant-handoff";
 import type { MerchantStorePreview, MerchantStoreWorkspace as MerchantStoreWorkspaceData } from "@/modules/merchant/application/merchant-store-workspace";
 import { merchantStoreEligibilityMessage, resolveMerchantStoreWorkspacePresentation } from "@/modules/merchant/application/merchant-store-workspace-presentation";
+import { MerchantSearchVisibility } from './MerchantSearchVisibility';
 
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
 const EMPTY_CATALOG: MerchantStoreWorkspaceData["catalog"] = [];
@@ -363,6 +364,8 @@ export function MerchantStoreWorkspace({ merchantId, locale }: { merchantId: str
           <p className="mt-0.5 text-sm leading-5 text-slate-600">{live ? "Saved product and Store detail changes become visible immediately." : store ? "Saved changes stay private. Preview is private too; publishing remains a separate approval." : "Create a private draft, choose products, and preview the shopper experience before publishing."}</p>
         </div>
       </section>
+
+      {store?.searchVisibility ? <MerchantSearchVisibility status={store.searchVisibility} /> : null}
 
       <dl aria-label="Store operating summary" className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
         <div className="flex min-h-[76px] items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-3">
