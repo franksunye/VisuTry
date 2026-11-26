@@ -1,49 +1,7 @@
 {
-  "framework": "nextjs",
-  "ignoreCommand": "bash scripts/vercel-ignore-build.sh",
-  "functions": {
-    "src/app/api/try-on/route.ts": {
-      "maxDuration": 60
-    },
-    "src/app/api/cron/cleanup-expired-tasks/route.ts": {
-      "maxDuration": 300
-    },
-    "src/app/api/cron/cleanup-store-assets/route.ts": {
-      "maxDuration": 300
-    },
-    "src/app/api/cron/retention-notifications/route.ts": {
-      "maxDuration": 300
-    },
-    "src/app/api/cron/sync-pending-tasks/route.ts": {
-      "maxDuration": 300
-    },
-    "src/app/api/cron/sync-pending-consumer-tasks/route.ts": {
-      "maxDuration": 300
-    },
-    "src/app/api/cron/sync-pending-store-tasks/route.ts": {
-      "maxDuration": 300
-    }
-  },
-  "crons": [
-    {
-      "path": "/api/cron/retention-notifications",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/cleanup-expired-tasks",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/cron/cleanup-store-assets",
-      "schedule": "30 2 * * *"
-    },
-    {
-      "path": "/api/cron/sync-pending-consumer-tasks",
-      "schedule": "15 3 * * *"
-    },
-    {
-      "path": "/api/cron/sync-pending-store-tasks",
-      "schedule": "45 3 * * *"
-    }
-  ]
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "node scripts/preview-r2-qa.mjs",
+  "ignoreCommand": "if [ \"$VERCEL_ENV\" = preview ] && [ \"${VERCEL_TARGET_ENV:-preview}\" = preview ] && [ \"$VERCEL_GIT_COMMIT_REF\" = codex/consumer-media-r2 ]; then exit 1; fi; exit 0",
+  "outputDirectory": "qa-build-intentionally-no-output"
 }
