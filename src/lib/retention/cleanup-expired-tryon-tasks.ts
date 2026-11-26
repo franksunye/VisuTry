@@ -15,7 +15,11 @@ import {
   shouldMarkDeleteBlocked,
 } from './backoff'
 import { collectTryOnRetentionDeleteTargets } from './tryon-retention-targets'
-import type { TryOnOrigin } from '@prisma/client'
+import type { Prisma, TryOnOrigin } from '@prisma/client'
+import { pinnedTryOnResultStorage, r2Key, r2TryOnResultReference } from '@/lib/consumer-media-reference'
+import { deleteR2Media } from '@/lib/consumer-r2-media'
+import { trackConsumerMedia } from '@/lib/consumer-media-staging'
+import { queueDeletionNotice } from './deletion-notices'
 
 export type CleanupExpiredTryOnTasksResult = {
   scanned: number
@@ -32,29 +36,81 @@ export type CleanupExpiredTryOnTasksInput = {
   maxRounds?: number
   /** When set, only tasks with these origins are processed (failure-domain isolation). */
   origins?: TryOnOrigin[]
+  notify?: boolean
 }
 
-/** Shared by automatic retention and manual admin deletion. */
-export async function deleteTryOnBlobFirst(task: {
+type TryOnDeletionTask = {
   id: string
+  userId?: string | null
+  origin?: TryOnOrigin
   userImageUrl: string
   itemImageUrl: string
   glassesImageUrl?: string | null
   resultImageUrl?: string | null
+  resultPersistLeaseUntil?: Date | null
   metadata?: unknown
-}): Promise<number> {
-  const targets = collectTryOnRetentionDeleteTargets({
-    userImageUrl: task.userImageUrl,
-    itemImageUrl: task.itemImageUrl,
-    glassesImageUrl: task.glassesImageUrl,
-    resultImageUrl: task.resultImageUrl,
-    metadata: (task.metadata ?? {}) as Record<string, unknown>,
+}
+
+/** A fenced result writer is still active. Cron retries after its lease. */
+class TryOnDeletionPending extends Error {}
+
+export async function deleteTryOnBlobFirst(task: TryOnDeletionTask, notifyAt?: Date): Promise<number> {
+  const metadata = (task.metadata ?? {}) as Record<string, unknown>
+  const deletionFields = [
+    [task.userImageUrl, 'user'],
+    [task.itemImageUrl, 'item'],
+    [task.glassesImageUrl, 'item'],
+    [task.resultImageUrl, 'result'],
+  ] as const
+  const r2Targets = new Set<string>()
+  for (const [reference, kind] of deletionFields) {
+    if (reference && r2Key(reference, kind)) r2Targets.add(reference)
+  }
+  const r2Result = pinnedTryOnResultStorage(metadata) === 'r2' ? r2TryOnResultReference(task.id) : null
+  if (r2Result) {
+    if (task.resultPersistLeaseUntil && task.resultPersistLeaseUntil.getTime() > Date.now()) {
+      throw new TryOnDeletionPending()
+    }
+    r2Targets.add(r2Result)
+  }
+
+  const blobTargets = collectTryOnRetentionDeleteTargets({
+    ...task,
+    metadata: r2Result ? { ...metadata, resultPathname: null } : metadata,
   })
   if (!isMockMode) {
-    for (const target of targets) await deleteOwnedBlob(target, resolveTryOnBlobAccessMode())
+    if (r2Result && !task.resultImageUrl) {
+      // An aborted PUT can commit after the lease. Keep a delayed idempotent
+      // delete even after removing the task, now that publication is fenced.
+      await trackConsumerMedia([r2Result])
+    }
+    for (const target of r2Targets) await deleteR2Media(target)
+    for (const target of blobTargets) await deleteOwnedBlob(target, resolveTryOnBlobAccessMode())
   }
-  await prisma.tryOnTask.delete({ where: { id: task.id } })
-  return targets.length
+
+  const remove = async (db: Prisma.TransactionClient) => {
+    await db.tryOnTask.delete({ where: { id: task.id } })
+    if (notifyAt && task.userId) await queueDeletionNotice(db, task.userId, notifyAt)
+  }
+  if (notifyAt && task.userId) await prisma.$transaction(remove)
+  else await remove(prisma)
+  return r2Targets.size + blobTargets.length
+}
+
+export async function requestTryOnDeletion(task: TryOnDeletionTask): Promise<number | null> {
+  const now = new Date()
+  await prisma.tryOnTask.updateMany({
+    where: { id: task.id, origin: 'CONSUMER', retentionStatus: 'ACTIVE' },
+    data: { retentionStatus: 'PENDING_DELETE', expiresAt: now },
+  })
+  const current = await prisma.tryOnTask.findUnique({ where: { id: task.id } })
+  if (!current) return 0
+  try {
+    return await deleteTryOnBlobFirst(current)
+  } catch (error) {
+    if (error instanceof TryOnDeletionPending) return null
+    throw error
+  }
 }
 
 export async function cleanupExpiredTryOnTasks(
@@ -94,6 +150,8 @@ export async function cleanupExpiredTryOnTasks(
       select: {
         id: true,
         userId: true,
+        origin: true,
+        resultPersistLeaseUntil: true,
         userImageUrl: true,
         itemImageUrl: true,
         glassesImageUrl: true,
@@ -122,8 +180,15 @@ export async function cleanupExpiredTryOnTasks(
       let lastError: string | undefined
 
       try {
-        await deleteTryOnBlobFirst(task)
+        // Re-read after fencing to include a concurrent result that won before
+        // the retention transition. Store cleanup retains its existing flow.
+        const current = task.origin === 'CONSUMER'
+          ? await prisma.tryOnTask.findUnique({ where: { id: task.id } })
+          : task
+        if (!current) continue
+        await deleteTryOnBlobFirst(current, input?.notify ? now : undefined)
       } catch (error) {
+        if (error instanceof TryOnDeletionPending) continue
         blobOk = false
         lastError = retentionDeleteErrorMessage(error)
       }

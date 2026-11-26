@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api-auth';
 import { prisma } from '@/lib/prisma';
 import { adminFaceAnalysisPhotoPath } from '@/lib/face-analysis-source-photo';
-import { deleteFaceAnalysisBlobFirst } from '@/lib/retention/cleanup-expired-face-analysis';
+import { requestFaceAnalysisDeletion } from '@/lib/retention/cleanup-expired-face-analysis';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,10 +32,14 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 });
     }
 
+    const metadata = { ...task.metadata as Record<string, unknown> }
+    delete metadata.blobPathname
+    delete metadata.mediaProvider
     return NextResponse.json({
       success: true,
       data: {
         ...task,
+        metadata,
         userImageUrl: adminFaceAnalysisPhotoPath(task.id),
       },
     });
@@ -64,7 +68,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 });
     }
 
-    const deletedFiles = await deleteFaceAnalysisBlobFirst(task);
+    const deletedFiles = await requestFaceAnalysisDeletion(task);
 
     return NextResponse.json({
       success: true,

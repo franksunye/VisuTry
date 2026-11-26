@@ -2,11 +2,11 @@
 /**
  * 🧹 Comprehensive Storage Cleanup Script (V2 - Perfected)
  * 
- * 此脚本根据用户当前的订阅状态，精准清理过期的 Try-on 任务及其关联的 Vercel Blob 文件。
+ * 此脚本根据用户当前的订阅状态，精准清理过期的 Try-on 任务及其关联的 存储对象。
  * 
  * 完善点：
  * 1. 自动识别降级用户（Premium -> Free）并修正其任务过期时间。
- * 2. 批量物理删除 Vercel Blob 存储中的图片。
+ * 2. 按存储提供方删除图片。
  * 3. 批量删除数据库记录。
  * 4. 给受影响的用户发送删除通知邮件（基于 Resend）。
  * 5. 详细的 Dry Run 预览模式。
@@ -22,7 +22,7 @@ import path from 'path';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 import { prisma } from '../src/lib/prisma';
-import { del } from '@vercel/blob';
+import { deleteTryOnBlobFirst, requestTryOnDeletion } from '../src/lib/retention/cleanup-expired-tryon-tasks';
 import { RETENTION_CONFIG } from '../src/config/retention';
 import { getDeletionEmailContent } from '../src/templates/deletion-email';
 import { sendMail } from './mail';
@@ -205,37 +205,25 @@ async function main() {
 
       console.log(`\nStep 2/3: Deleting ${finalTasksToDelete.length} tasks and files...`);
       
-      const batchSize = 25;
-      for (let i = 0; i < finalTasksToDelete.length; i += batchSize) {
-        const batch = finalTasksToDelete.slice(i, i + batchSize);
-        const blobUrls: string[] = [];
-        const taskIds: string[] = [];
-
-        batch.forEach(task => {
-          taskIds.push(task.id);
-          if (task.userImageUrl) blobUrls.push(task.userImageUrl);
-          if (task.itemImageUrl) blobUrls.push(task.itemImageUrl);
-          if (task.glassesImageUrl) blobUrls.push(task.glassesImageUrl);
-          if (task.resultImageUrl) blobUrls.push(task.resultImageUrl);
-        });
-
-        // 删除 Vercel Blob
-        if (blobUrls.length > 0) {
-          try {
-            await del(blobUrls);
-          } catch (err) {
-            console.error(`  ⚠️ Blob deletion skip/error: ${err}`);
-          }
+      const confirmedUsers = new Set<string>();
+      let deleted = 0;
+      for (const task of finalTasksToDelete) {
+        try {
+          const result = task.origin === 'CONSUMER'
+            ? await requestTryOnDeletion(task)
+            : await deleteTryOnBlobFirst(task);
+          if (result === null) continue;
+          deleted++;
+          if (task.userId) confirmedUsers.add(task.userId);
+        } catch {
+          console.error(`Task ${task.id} could not be deleted. The record remains for retry.`);
+          process.exitCode = 1;
         }
-
-        // 删除 Prisma 记录
-        await prisma.tryOnTask.deleteMany({
-          where: { id: { in: taskIds } }
-        });
-        
-        process.stdout.write(`  Progress: ${Math.min(i + batchSize, tasksToDelete.length)}/${tasksToDelete.length}\r`);
       }
-      console.log('\n✅ File and DB cleanup finished.');
+      for (const userId of userNotificationMap.keys()) {
+        if (!confirmedUsers.has(userId)) userNotificationMap.delete(userId);
+      }
+      console.log(`Confirmed object and record deletion for ${deleted} tasks.`);
     }
 
     // 4.3 发送通知邮件

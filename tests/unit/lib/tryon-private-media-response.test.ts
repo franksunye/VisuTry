@@ -76,9 +76,9 @@ describe('Try-On private source media delivery', () => {
   })
 
   it('preserves legacy public provider URLs without proxying them', async () => {
-    const input = await tryOnProviderMediaInput('https://public.example.com/tryon/user/source.jpg')
+    const input = await tryOnProviderMediaInput('https://historical.public.blob.vercel-storage.com/tryon/user/source.jpg')
 
-    expect(input).toBe('https://public.example.com/tryon/user/source.jpg')
+    expect(input).toBe('https://historical.public.blob.vercel-storage.com/tryon/user/source.jpg')
     expect(mockGet).not.toHaveBeenCalled()
   })
 
@@ -105,7 +105,7 @@ describe('Try-On private source media delivery', () => {
   })
 
   it('keeps legacy HTTP media compatible through a redirect', async () => {
-    const legacyUrl = 'https://legacy.example.com/tryon/result.jpg'
+    const legacyUrl = 'https://file65.grsai.com/tryon/result.jpg'
     const response = await serveLegacyTryOnMedia(legacyUrl)
 
     expect(response.status).toBe(307)

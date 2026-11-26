@@ -63,7 +63,7 @@ describe('GET /api/admin/try-on/[id]/media/[kind]', () => {
     expect(mockFindFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'task-1', origin: 'CONSUMER' },
     }))
-    expect(mockServeLegacyTryOnMedia).toHaveBeenCalledWith('https://public.blob.vercel-storage.com/result.png')
+    expect(mockServeLegacyTryOnMedia).toHaveBeenCalledWith('https://public.blob.vercel-storage.com/result.png', 'result')
   })
 
   it('returns 404 for unsupported media kinds', async () => {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
-import { sendRetentionDeletedEmail } from '@/lib/resend'
+import { sendPendingDeletionNotices } from '@/lib/retention/deletion-notices'
+import { cleanupConsumerMediaStaging } from '@/lib/consumer-media-staging'
 import { cleanupExpiredTryOnTasks } from '@/lib/retention'
 import { cleanupExpiredFaceAnalysis } from '@/lib/retention/cleanup-expired-face-analysis'
 import { withFunctionObservation } from '@/lib/function-observability'
@@ -41,6 +41,8 @@ async function getHandler(request: NextRequest) {
     faceAnalysisDeleted: 0,
     faceAnalysisFailed: 0,
     faceAnalysisBlockedRetried: 0,
+    stagingScanned: 0,
+    stagingFailed: 0,
     consumerError: null as string | null,
     storeError: null as string | null,
     faceAnalysisError: null as string | null,
@@ -56,6 +58,7 @@ async function getHandler(request: NextRequest) {
         now,
         limit: 100,
         maxRounds: 5,
+        notify: true,
         origins: ['CONSUMER'],
       })
     } catch (error) {
@@ -73,6 +76,7 @@ async function getHandler(request: NextRequest) {
         now,
         limit: 100,
         maxRounds: 5,
+        notify: true,
         origins: ['STORE_DEMO', 'STORE_PILOT'],
       })
     } catch (error) {
@@ -94,7 +98,7 @@ async function getHandler(request: NextRequest) {
     }
 
     try {
-      faceCleanup = await cleanupExpiredFaceAnalysis({ now, limit: 100, maxRounds: 3 })
+      faceCleanup = await cleanupExpiredFaceAnalysis({ now, limit: 100, maxRounds: 3, notify: true })
       results.faceAnalysisScanned = faceCleanup.scanned
       results.faceAnalysisDeleted = faceCleanup.deleted
       results.faceAnalysisFailed = faceCleanup.failed
@@ -106,48 +110,22 @@ async function getHandler(request: NextRequest) {
         error instanceof Error ? error : new Error(String(error)))
     }
 
-    const confirmedUserIds = Array.from(
-      new Set([
-        ...(consumerCleanup?.deletedUserIds ?? []),
-        ...(storeCleanup?.deletedUserIds ?? []),
-        ...(faceCleanup?.deletedUserIds ?? []),
-      ]),
-    )
-    if (confirmedUserIds.length > 0) {
-      const users = await prisma.user.findMany({
-        where: { id: { in: confirmedUserIds } },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          lastRetentionDeletedEmailSent: true,
-        },
-      })
+    try {
+      const staging = await cleanupConsumerMediaStaging(now)
+      results.stagingScanned = staging.scanned
+      results.stagingFailed = staging.failed
+    } catch (error) {
+      results.stagingFailed++
+      logger.error('api', 'Consumer media staging cleanup failed', error as Error)
+    }
 
-      for (const user of users) {
-        if (!user.email) continue
-        const lastSent = user.lastRetentionDeletedEmailSent
-        if (lastSent && now.getTime() - lastSent.getTime() < 24 * 60 * 60 * 1000) {
-          continue
-        }
-
-        const emailResult = await sendRetentionDeletedEmail({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          expiryDate: now,
-        })
-
-        if (emailResult.success) {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastRetentionDeletedEmailSent: now },
-          })
-          results.emailsSent++
-        } else {
-          results.emailsFailed++
-        }
-      }
+    try {
+      const notices = await sendPendingDeletionNotices(now)
+      results.emailsSent = notices.sent
+      results.emailsFailed = notices.failed
+    } catch (error) {
+      results.emailsFailed++
+      logger.error('api', 'Retention deletion notifications failed', error as Error)
     }
 
     logger.info('api', 'Cleanup expired tasks cron completed', results)
@@ -158,6 +136,7 @@ async function getHandler(request: NextRequest) {
       results.faceAnalysisOk &&
       results.tasksFailed === 0 &&
       results.faceAnalysisFailed === 0 &&
+      results.stagingFailed === 0 &&
       results.emailsFailed === 0
     recordCronRun('cleanup-expired-tasks', success ? 'success' : 'partial_failure', startedAt)
     return NextResponse.json(

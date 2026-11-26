@@ -1,4 +1,9 @@
-import { get, put } from '@vercel/blob'
+import { put } from '@vercel/blob'
+import { randomUUID } from 'node:crypto'
+import { consumerMediaWriteProvider, r2Reference, requirePrivateConsumerBlob } from '@/lib/consumer-media-reference'
+import { writeR2Media } from '@/lib/consumer-r2-media'
+import { commitConsumerMedia, trackConsumerMedia } from '@/lib/consumer-media-staging'
+import { loadFaceAnalysisSourcePhoto } from '@/lib/face-analysis-source-photo'
 import { Prisma, TaskStatus, User } from '@prisma/client'
 import { calculateExpiresAt } from '@/config/retention'
 import { FACE_ANALYSIS_MODEL } from '@/config/face-analysis'
@@ -9,11 +14,7 @@ import { analyzeFaceWithGrsAi } from '@/lib/grsai-face-analysis'
 import { analyzeFaceWithKie, KIE_FACE_ANALYSIS_MODEL } from '@/lib/kie-face-analysis'
 import { selectFaceAnalysisProvider } from '@/lib/generation/ai-provider-routing'
 import { normalizeGeometryAnalysis } from '@/lib/face-landmark-metrics'
-import {
-  getFaceAnalysisBlobOptions,
-  getFaceAnalysisBlobStoreId,
-  resolveFaceAnalysisBlobAccessMode,
-} from '@/lib/face-analysis-blob-access'
+import { getFaceAnalysisBlobOptions } from '@/lib/face-analysis-blob-access'
 import {
   buildAlgorithmOnlyFaceAnalysis,
   buildBasicResult,
@@ -104,31 +105,32 @@ export async function submitFaceAnalysis(
     geometry,
   }
   const prompt = buildFaceAnalysisPrompt(geometry)
-  const blobAccess = resolveFaceAnalysisBlobAccessMode()
-  const blobOptions = getFaceAnalysisBlobOptions()
+  const sourceRef = consumerMediaWriteProvider(user.id) === 'r2' ? r2Reference(`face-analysis/${randomUUID()}`) : null
+  let userImageUrl: string
+  let photoMetadata: Record<string, string>
+  if (sourceRef) {
+    await trackConsumerMedia([sourceRef])
+    await writeR2Media(sourceRef, userImageFile, 'face')
+    userImageUrl = sourceRef
+    photoMetadata = { mediaProvider: 'r2' }
+  } else {
+    const blobOptions = requirePrivateConsumerBlob(getFaceAnalysisBlobOptions())
+    const blob = await put(`face-analysis/${user.id}/${Date.now()}-${userImageFile.name}`, userImageFile, blobOptions)
+    userImageUrl = blob.url
+    photoMetadata = { mediaProvider: 'vercel-blob', blobAccess: blobOptions.access, blobPathname: blob.pathname }
+  }
 
-  const blob = await put(
-    `face-analysis/${user.id}/${Date.now()}-${userImageFile.name}`,
-    userImageFile,
-    blobOptions
-  )
-
-  const createMetadata = toJsonSafe({
-    ...baseMetadata,
-    blobAccess,
-    blobPathname: blob.pathname,
-  }) as Prisma.InputJsonValue
-
-  const task = await prisma.faceAnalysisTask.create({
+  const createTask = (db: Prisma.TransactionClient) => db.faceAnalysisTask.create({
     data: {
       userId: user.id,
-      userImageUrl: blob.url,
+      userImageUrl,
       status: TaskStatus.PROCESSING,
       prompt,
       expiresAt: calculateExpiresAt(user),
-      metadata: createMetadata,
+      metadata: toJsonSafe({ ...baseMetadata, ...photoMetadata }) as Prisma.InputJsonValue,
     },
   })
+  const task = sourceRef ? await commitConsumerMedia([sourceRef], createTask) : await createTask(prisma)
 
   try {
     // Inline data URI (same as try-on GrsAi). Blob URL forces GrsAi to fetch Vercel
@@ -174,8 +176,7 @@ export async function submitFaceAnalysis(
       completionTimeMs: Date.now() - startTime,
       analysisSource,
       geometry,
-      blobAccess,
-      blobPathname: blob.pathname,
+      ...photoMetadata,
     }) as Prisma.InputJsonValue
 
     await prisma.faceAnalysisTask.update({
@@ -256,41 +257,9 @@ export async function readFaceAnalysisUserImageFile(input: {
   userImageUrl: string
   metadata: unknown
 }): Promise<File> {
-  const metadata = input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)
-    ? input.metadata as Record<string, unknown>
-    : {}
-  const blobAccess = metadata.blobAccess
-  const blobPathname = typeof metadata.blobPathname === 'string' ? metadata.blobPathname : null
-
-  let contentType = 'image/jpeg'
-  let bytes: Buffer
-
-  if (blobAccess === 'private') {
-    if (!blobPathname) throw new Error('Private face analysis photo is missing its Blob pathname')
-    const result = await get(blobPathname, {
-      access: 'private',
-      storeId: getFaceAnalysisBlobStoreId(),
-    })
-    if (!result?.stream) throw new Error('Failed to load private face analysis photo')
-    const reader = result.stream.getReader()
-    const chunks: Uint8Array[] = []
-    for (;;) {
-      const { done, value } = await reader.read()
-      if (done) break
-      if (value) chunks.push(value)
-    }
-    bytes = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)))
-    contentType = result.blob.contentType || contentType
-  } else {
-    const response = await fetch(input.userImageUrl, { cache: 'no-store' })
-    if (!response.ok) throw new Error(`Failed to load face analysis photo: ${response.status}`)
-    const blob = await response.blob()
-    contentType = blob.type || response.headers.get('content-type')?.split(';')[0].trim() || contentType
-    bytes = Buffer.from(await blob.arrayBuffer())
-  }
-
+  const { bytes, contentType } = await loadFaceAnalysisSourcePhoto(input)
   const extension = contentType.split('/')[1] || 'jpg'
-  return new File([new Uint8Array(bytes)], `face-analysis-${input.taskId}.${extension}`, {
+  return new File([bytes], `face-analysis-${input.taskId}.${extension}`, {
     type: contentType,
   })
 }

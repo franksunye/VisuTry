@@ -24,10 +24,15 @@ import {
   STALE_CONSUMER_DISPATCH_ERROR,
 } from '@/lib/generation/reconcile-stale-consumer-dispatch'
 import {
-  getTryOnResultBlobOptions,
+  getTryOnBlobStoreId,
   getTryOnSourceBlobOptions,
 } from '@/lib/tryon-blob-access'
 import { tryOnProviderMediaInput } from '@/lib/tryon-media-loader'
+import { consumerMediaWriteProvider, pinnedTryOnResultStorage, r2Reference, r2TryOnResultReference, requirePrivateConsumerBlob } from '@/lib/consumer-media-reference'
+import { hasR2Result, writeR2Media } from '@/lib/consumer-r2-media'
+import { commitConsumerMedia, trackConsumerMedia } from '@/lib/consumer-media-staging'
+import { parseConsumerProviderResultUrl } from '@/lib/consumer-media-url'
+import { decodeLegacyTryOnDataUrl, isTryOnMediaAvailable } from '@/lib/tryon-media'
 import {
   startGenerationRequest,
   startGenerationAttempt,
@@ -274,23 +279,35 @@ export async function submitTryOnTask(
     isPremium: isPremiumActive,
   })
 
-  // 1. Upload images to Vercel Blob for persistence. New user/item source media
-  // follows the configured protected source-media access policy.
-  const sourceBlobOptions = getTryOnSourceBlobOptions()
-  let userBlob, itemBlob
+  const useR2 = consumerMediaWriteProvider(user.id) === 'r2'
+  const sourceBlobOptions = useR2 ? null : requirePrivateConsumerBlob(getTryOnSourceBlobOptions())
+  const resultStorage = sourceBlobOptions?.access ?? 'r2'
+  const sourceRefs = useR2 ? [r2Reference(`tryon/user/${randomUUID()}`), r2Reference(`tryon/item/${randomUUID()}`)] : []
+  let userBlob: { url: string }, itemBlob: { url: string }
   try {
-    [userBlob, itemBlob] = await Promise.all([
-      put(`tryon/user/${user.id}/${Date.now()}-${userImageFile.name}`, userImageFile, sourceBlobOptions),
-      put(`tryon/item/${user.id}/${Date.now()}-${itemImageFile.name}`, itemImageFile, sourceBlobOptions)
-    ])
+    if (sourceBlobOptions) {
+      [userBlob, itemBlob] = await Promise.all([
+        put(`tryon/user/${user.id}/${Date.now()}-${userImageFile.name}`, userImageFile, sourceBlobOptions),
+        put(`tryon/item/${user.id}/${Date.now()}-${itemImageFile.name}`, itemImageFile, sourceBlobOptions),
+      ])
+    } else {
+      const [userRef, itemRef] = sourceRefs
+      await trackConsumerMedia(sourceRefs)
+      await Promise.all([
+        writeR2Media(userRef, userImageFile, 'user'),
+        writeR2Media(itemRef, itemImageFile, 'item'),
+      ])
+      userBlob = { url: userRef }
+      itemBlob = { url: itemRef }
+    }
   } catch (error) {
-    logger.error('tryon-service', 'Failed to upload images to blob storage', error as Error, {
+    logger.error('tryon-service', 'Failed to upload Try-On source images', error as Error, {
       userId: user.id,
       clientSubmissionId,
       type,
-      sourceAccess: sourceBlobOptions.access,
+      provider: resultStorage,
     })
-    throw new Error("Failed to upload images")
+    throw new Error('Failed to upload images')
   }
 
   // 2. Use the already-pinned service type for this new task.
@@ -298,7 +315,7 @@ export async function submitTryOnTask(
     userImageUrl: userBlob.url,
     itemImageUrl: itemBlob.url,
     identicalUploadUrls: userBlob.url === itemBlob.url,
-    sourceBlobAccess: sourceBlobOptions.access,
+    sourceBlobAccess: resultStorage,
   }
 
   logger.debug('tryon-service', 'Try-on upload diagnostics collected', {
@@ -306,7 +323,7 @@ export async function submitTryOnTask(
     clientSubmissionId,
     type,
     identicalUploadUrls: uploadDiagnostics.identicalUploadUrls,
-    sourceBlobAccess: sourceBlobOptions.access,
+    sourceBlobAccess: resultStorage,
   })
 
   if (uploadDiagnostics.identicalUploadUrls) {
@@ -319,7 +336,7 @@ export async function submitTryOnTask(
         clientSubmissionId,
         type,
         identicalUploadUrls: true,
-        sourceBlobAccess: sourceBlobOptions.access,
+        sourceBlobAccess: resultStorage,
       }
     )
   }
@@ -327,7 +344,7 @@ export async function submitTryOnTask(
   // 3. Create Task in DB
   let task
   try {
-    task = await prisma.tryOnTask.create({
+    const createTask = (db: Prisma.TransactionClient) => db.tryOnTask.create({
       data: {
         userId: user.id,
         type: type,
@@ -340,6 +357,7 @@ export async function submitTryOnTask(
         retentionStatus: 'ACTIVE',
         metadata: {
           ...(options?.metadata || {}),
+          consumerResultStorage: useR2 ? 'r2' : `vercel-blob-${resultStorage}`,
           serviceType,
           isAsync,
           effectivePrompt,
@@ -356,6 +374,7 @@ export async function submitTryOnTask(
     }
       }
     })
+    task = useR2 ? await commitConsumerMedia(sourceRefs, createTask) : await createTask(prisma)
   } catch (error) {
     if (!clientSubmissionId || !isUniqueConstraintError(error)) throw error
 
@@ -430,53 +449,55 @@ export async function submitTryOnTask(
 
       if (result.success && result.imageUrl) {
         let finalResultUrl = result.imageUrl
-        const resultBlobOptions = getTryOnResultBlobOptions()
-
-        // Persist the result behind the same storage boundary as source media.
-        // If this upload fails, the in-memory data URL remains app-owned and does
-        // not weaken the public Share/storage boundary.
-        try {
-          const response = await fetch(result.imageUrl)
-          const blob = await response.blob()
-          const file = new File([blob], `result-${task.id}.png`, { type: blob.type })
-          const resultOwnerKey = task.userId ?? task.id
-          const uploadedBlob = await put(
-            `tryon/result/${resultOwnerKey}/${task.id}.png`,
-            file,
-            resultBlobOptions,
-          )
-          finalResultUrl = uploadedBlob.url
-          logger.info('tryon-service', 'Gemini result uploaded to blob', {
-            taskId: task.id,
-            clientSubmissionId,
-            access: resultBlobOptions.access,
-            ...geminiLog,
+        const resultBlobOptions = sourceBlobOptions
+        const resultFence = useR2 ? {
+          resultPersistLeaseOwner: randomUUID(),
+          resultPersistVersion: (task.resultPersistVersion ?? 0) + 1,
+        } : null
+        if (resultFence) {
+          const claimed = await prisma.tryOnTask.updateMany({
+            where: { id: task.id, retentionStatus: 'ACTIVE', resultPersistVersion: resultFence.resultPersistVersion - 1 },
+            data: { ...resultFence, resultPersistLeaseUntil: new Date(Date.now() + RESULT_PERSIST_LEASE_MS) },
           })
-        } catch (uploadError) {
-          logger.error('tryon-service', 'Failed to upload Gemini result to blob', uploadError as Error, {
-            taskId: task.id,
-            clientSubmissionId,
-            access: resultBlobOptions.access,
-          })
-          // Fallback to the generated Data URL, which is still served only through
-          // app-owned owner/share endpoints.
+          if (!claimed.count) throw new Error('Try-On task is no longer available')
+          const data = decodeLegacyTryOnDataUrl(result.imageUrl)
+          if (!data) throw new Error('Gemini returned an unsupported image')
+          finalResultUrl = r2TryOnResultReference(task.id)
+          await writeR2Media(finalResultUrl, new Blob([data.bytes], { type: data.contentType }), 'result')
+        } else if (resultBlobOptions) {
+          try {
+            const data = decodeLegacyTryOnDataUrl(result.imageUrl)
+            if (!data) throw new Error('Gemini returned an unsupported image')
+            const file = new File([data.bytes], `result-${task.id}.png`, { type: data.contentType })
+            const uploaded = await put(`tryon/result/${task.userId ?? task.id}/${task.id}.png`, file, resultBlobOptions)
+            finalResultUrl = uploaded.url
+          } catch (error) {
+            // Keep the existing Blob-mode fallback for safe inline results.
+            if (!decodeLegacyTryOnDataUrl(result.imageUrl)) throw error
+            logger.error('tryon-service', 'Failed to upload Gemini result to Blob', error as Error, { taskId: task.id })
+          }
         }
 
-        // Update task as COMPLETED
-        await prisma.tryOnTask.update({
-          where: { id: task.id },
-          data: {
-            status: TaskStatus.COMPLETED,
-            resultImageUrl: finalResultUrl,
-            metadata: {
-              ...(result.metadata || {}), // Save Gemini text/metadata
-              ...(task.metadata as any),
-              originalResultUrl: result.imageUrl, // Keep original URL in metadata
-              resultBlobAccess: finalResultUrl.startsWith('data:') ? 'inline' : resultBlobOptions.access,
-              generationTime: Date.now() - startTime
-            }
-          }
-        })
+        const data: Prisma.TryOnTaskUpdateManyMutationInput = {
+          status: TaskStatus.COMPLETED,
+          resultImageUrl: finalResultUrl,
+          metadata: {
+            ...(result.metadata || {}),
+            ...(task.metadata as Prisma.JsonObject),
+            ...(!useR2 ? { originalResultUrl: result.imageUrl } : {}),
+            resultBlobAccess: finalResultUrl.startsWith('data:') ? 'inline' : resultStorage,
+            generationTime: Date.now() - startTime,
+          },
+        }
+        if (resultFence) {
+          const complete = await prisma.tryOnTask.updateMany({
+            where: { id: task.id, retentionStatus: 'ACTIVE', ...resultFence },
+            data: { ...data, resultPersistLeaseOwner: null, resultPersistLeaseUntil: null },
+          })
+          if (!complete.count) throw new Error('Try-On task is no longer available')
+        } else {
+          await prisma.tryOnTask.update({ where: { id: task.id }, data })
+        }
 
         await recordUsableGenerationSuccess(task.id)
 
@@ -498,13 +519,14 @@ export async function submitTryOnTask(
         ...geminiLog,
       })
       
-      await prisma.tryOnTask.update({
-        where: { id: task.id },
-        data: {
-          status: TaskStatus.FAILED,
-          errorMessage
-        }
-      })
+      const failure = { status: TaskStatus.FAILED, errorMessage }
+      if (useR2) {
+        // Keep an uncertain R2 write fenced until its lease expires. Its
+        // deterministic key remains discoverable for retention.
+        await prisma.tryOnTask.updateMany({ where: { id: task.id, retentionStatus: 'ACTIVE' }, data: failure })
+      } else {
+        await prisma.tryOnTask.update({ where: { id: task.id }, data: failure })
+      }
 
       await recordGenerationFailure(task.id, errorMessage, {
         source: 'submit',
@@ -685,6 +707,9 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
   }
 
   // If already completed or failed, return immediately
+  if (task.origin === 'CONSUMER' && !isTryOnMediaAvailable(task)) {
+    return { status: TaskStatus.FAILED, error: 'Try-On task is no longer available' }
+  }
   if (task.status === TaskStatus.COMPLETED) {
     return {
       status: task.status,
@@ -695,7 +720,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
 
   const metadata = task.metadata as any
   const consumerDispatchFence = task.origin === 'CONSUMER'
-    ? { dispatchVersion: task.dispatchVersion ?? 0 }
+    ? { dispatchVersion: task.dispatchVersion ?? 0, retentionStatus: 'ACTIVE' as const }
     : {}
 
   // A non-idempotent submit is in flight or has an unknown acceptance outcome.
@@ -905,41 +930,53 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       // .jpg merely because it came from the backup aggregator.
       let resultExtension = polledProvider === 'kie' ? 'jpg' : 'png'
       let resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.${resultExtension}`
-      const resultBlobOptions = getTryOnResultBlobOptions()
+      const pinnedStorage = pinnedTryOnResultStorage(metadata)
+      const resultBlobOptions = pinnedStorage === 'r2' ? null : pinnedStorage === 'private'
+        ? { access: 'private' as const, storeId: getTryOnBlobStoreId() }
+        : pinnedStorage === 'public' ? { access: 'public' as const } : getTryOnSourceBlobOptions()
+      const resultRef = resultBlobOptions ? null : r2TryOnResultReference(taskId)
+      const protectedResult = resultBlobOptions?.access !== 'public'
+      let reconciledR2 = false
 
       let persistedUrl: string | null = null
+      let safeProviderUrl: URL | null = null
       try {
-        const response = await fetch(
-          pollResult.imageUrl,
-          polledProvider === 'kie' ? { redirect: 'error', cache: 'no-store' } : undefined,
-        )
-        if (!response.ok) {
-          throw new Error(`Failed to fetch provider result (${response.status})`)
+        if (resultRef && expectedPersistVersion > 0 && await hasR2Result(resultRef)) {
+          persistedUrl = resultRef
+          reconciledR2 = true
+        } else {
+          safeProviderUrl = parseConsumerProviderResultUrl(pollResult.imageUrl, polledProvider)
+          const response = await fetch(safeProviderUrl.href, {
+            redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(15_000),
+          })
+          if (!response.ok) throw new Error(`Failed to fetch provider result (${response.status})`)
+          const blob = await readBoundedKieResult(response)
+          if (polledProvider === 'kie') {
+            resultExtension = kieResultExtension(blob.type)
+            resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.${resultExtension}`
+          }
+          if (resultRef) {
+            await writeR2Media(resultRef, blob, 'result')
+            persistedUrl = resultRef
+          } else if (resultBlobOptions) {
+            const file = new File([blob], `result-${taskId}.${resultExtension}`, { type: blob.type })
+            persistedUrl = (await put(resultPathname, file, resultBlobOptions)).url
+          }
         }
-        const blob = polledProvider === 'kie'
-          ? await readBoundedKieResult(response)
-          : await response.blob()
-        if (polledProvider === 'kie') {
-          resultExtension = kieResultExtension(blob.type)
-          resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.${resultExtension}`
-        }
-        const file = new File([blob], `result-${taskId}.${resultExtension}`, { type: blob.type || 'image/png' })
-        const uploadedBlob = await put(resultPathname, file, resultBlobOptions)
-        persistedUrl = uploadedBlob.url
         logger.info('tryon-service', 'Try-On result uploaded to blob', {
           taskId,
-          access: resultBlobOptions.access,
+          access: resultBlobOptions?.access ?? 'r2',
           ...pollLog,
         })
       } catch (uploadError) {
         const persistError = uploadError instanceof Error ? uploadError.message : String(uploadError)
         logger.error('tryon-service', 'Failed to persist Try-On result to blob', uploadError as Error, {
           taskId,
-          access: resultBlobOptions.access,
+          access: resultBlobOptions?.access ?? 'r2',
         })
 
-        if (resultBlobOptions.access === 'private') {
-          if (isBlobAlreadyExistsError(uploadError)) {
+        if (protectedResult || !safeProviderUrl) {
+          if (resultBlobOptions?.access === 'private' && isBlobAlreadyExistsError(uploadError)) {
             try {
               const existing = await head(resultPathname, { storeId: resultBlobOptions.storeId })
               const reconciled = await prisma.tryOnTask.updateMany({
@@ -1013,7 +1050,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
               errorMessage: null,
               metadata: {
                 ...externalPollMetadata,
-                resultPathname,
+                ...(!resultRef ? { resultPathname } : {}),
                 privateBlob: true,
                 privatePersistPending: true,
                 privatePersistError: persistError,
@@ -1044,7 +1081,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         }
 
         // Legacy public mode retains the historical provider-URL fallback.
-        persistedUrl = pollResult.imageUrl
+        persistedUrl = safeProviderUrl.href
       }
 
       if (!persistedUrl) {
@@ -1071,12 +1108,13 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           metadata: {
             ...(pollResult.metadata || {}),
             ...externalPollMetadata,
-            resultPathname,
-            privateBlob: resultBlobOptions.access === 'private',
+            ...(!resultRef ? { resultPathname } : {}),
+            privateBlob: protectedResult,
+            ...(reconciledR2 ? { resultReconciledFromExistingBlob: true } : {}),
             privatePersistPending: false,
             privatePersistError: null,
             completionTime: Date.now(),
-            originalResultUrl: pollResult.imageUrl,
+            ...(!resultRef ? { originalResultUrl: pollResult.imageUrl } : {}),
           },
         },
       })
@@ -1246,8 +1284,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           // Preserve legacy public provider inputs exactly, while private Blob
           // sources are resolved server-side into short-lived in-memory data URIs.
           const [retryUserInput, retryItemInput] = await Promise.all([
-            tryOnProviderMediaInput(task.userImageUrl),
-            tryOnProviderMediaInput(task.itemImageUrl),
+            tryOnProviderMediaInput(task.userImageUrl, 'user'),
+            tryOnProviderMediaInput(task.itemImageUrl, 'item'),
           ])
           const retryAttempt = await startGenerationAttempt({
             tryOnTaskId: taskId,

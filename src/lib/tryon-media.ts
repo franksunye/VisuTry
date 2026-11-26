@@ -23,6 +23,11 @@ export function tryOnMediaPath(taskId: string, kind: TryOnMediaKind): string {
   return `/api/try-on/${encodeURIComponent(taskId)}/media/${kind}`
 }
 
+export function isTryOnMediaAvailable(task: { expiresAt?: Date | null; retentionStatus?: string }, now = Date.now()): boolean {
+  return (!task.retentionStatus || task.retentionStatus === 'ACTIVE') &&
+    (!task.expiresAt || task.expiresAt.getTime() > now)
+}
+
 export function adminTryOnMediaPath(taskId: string, kind: TryOnMediaKind): string {
   return `/api/admin/try-on/${encodeURIComponent(taskId)}/media/${kind}`
 }

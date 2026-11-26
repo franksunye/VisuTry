@@ -22,6 +22,7 @@ function makeUser(overrides: Partial<User> = {}): User {
     role: 'USER',
     lastRetention3DayEmailSent: null,
     lastRetention24HEmailSent: null,
+    retentionDeletedEmailPendingAt: null,
     lastRetentionDeletedEmailSent: null,
     ...overrides,
   }

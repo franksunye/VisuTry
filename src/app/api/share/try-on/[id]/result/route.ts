@@ -1,6 +1,8 @@
+import { isTryOnMediaAvailable } from '@/lib/tryon-media'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { serveLegacyTryOnMedia } from '@/lib/tryon-media-response'
+import { ConsumerMediaNotFound } from '@/lib/consumer-r2-media'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -21,15 +23,20 @@ export async function GET(_request: Request, { params }: RouteParams) {
       select: {
         status: true,
         resultImageUrl: true,
+        retentionStatus: true,
+        expiresAt: true,
       },
     })
 
-    if (!task || task.status !== 'COMPLETED' || !task.resultImageUrl) {
+    if (!task || !isTryOnMediaAvailable(task) || task.status !== 'COMPLETED' || !task.resultImageUrl) {
       return NextResponse.json({ success: false, error: 'Result not found' }, { status: 404 })
     }
 
     return await serveLegacyTryOnMedia(task.resultImageUrl)
   } catch (error) {
+    if (error instanceof ConsumerMediaNotFound) {
+      return NextResponse.json({ success: false, error: 'Media not found' }, { status: 404 })
+    }
     console.error('[Try-On Share Result] Failed to serve result', error)
     return NextResponse.json({ success: false, error: 'Result unavailable' }, { status: 502 })
   }

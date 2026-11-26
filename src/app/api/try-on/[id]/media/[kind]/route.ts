@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
-import { parseLegacyTryOnHttpUrl, type TryOnMediaKind } from '@/lib/tryon-media'
+import { isTryOnMediaAvailable, parseLegacyTryOnHttpUrl, type TryOnMediaKind } from '@/lib/tryon-media'
 import { getRequestContext, logger } from '@/lib/logger'
 import { serveLegacyTryOnMedia } from '@/lib/tryon-media-response'
+import { ConsumerMediaNotFound } from '@/lib/consumer-r2-media'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -18,6 +19,7 @@ const MEDIA_CREDENTIAL_PATTERN = /\b(?:authorization|bearer|token|access[_-]?tok
 function mediaSourceClass(sourceUrl: string | null | undefined) {
   if (!sourceUrl) return 'missing'
   if (sourceUrl.startsWith('data:')) return 'data'
+  if (sourceUrl.startsWith('r2:')) return 'r2'
   try {
     const parsed = parseLegacyTryOnHttpUrl(sourceUrl)
     if (parsed.hostname.endsWith('.private.blob.vercel-storage.com')) return 'private_blob'
@@ -90,6 +92,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         itemImageUrl: true,
         glassesImageUrl: true,
         resultImageUrl: true,
+        retentionStatus: true,
+        expiresAt: true,
       },
     })
 
@@ -128,7 +132,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         : task.resultImageUrl
     sourceClass = mediaSourceClass(sourceUrl)
 
-    if (!sourceUrl) {
+    if (!sourceUrl || !isTryOnMediaAvailable(task)) {
       logger.warn('api', 'Consumer Try-On media request failed', {
         taskId: params.id,
         type: params.kind,
@@ -140,8 +144,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: 'Media not found' }, { status: 404 })
     }
 
-    return await serveLegacyTryOnMedia(sourceUrl)
+    return await serveLegacyTryOnMedia(sourceUrl, kind)
   } catch (error) {
+    if (error instanceof ConsumerMediaNotFound) {
+      return NextResponse.json({ success: false, error: 'Media not found' }, { status: 404 })
+    }
     logger.error('api', 'Consumer Try-On media delivery failed', normalizeMediaDeliveryError(error), {
       userId: authenticatedUserId,
       taskId: params.id,

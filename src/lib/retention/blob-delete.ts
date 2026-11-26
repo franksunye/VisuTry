@@ -1,4 +1,4 @@
-import { del } from '@vercel/blob'
+import { BlobNotFoundError, del } from '@vercel/blob'
 import { getPrivateBlobReadWriteToken } from '@/lib/tryon-blob-access'
 
 /** Resolve the store from the immutable Blob URL, not today's upload setting. */
@@ -21,14 +21,17 @@ export function getRetentionBlobDeleteToken(reference: string, pathnameAccess: '
 }
 
 export function isBlobNotFoundError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
+  if (typeof BlobNotFoundError === 'function' && error instanceof BlobNotFoundError) return true
   const name = error instanceof Error ? error.name : ''
-  return name === 'BlobNotFoundError' || message.includes('not found') || message.includes('404')
+  if (name === 'BlobAccessError' || name === 'BlobUnknownError') return false
+  const message = error instanceof Error ? error.message : ''
+  return name === 'BlobNotFoundError' || /^(?:Vercel Blob: )?(?:Blob not found|Not found|404 Not Found)\.?$/i.test(message)
 }
 
 export function retentionDeleteErrorMessage(error: unknown): string {
   let message = error instanceof Error ? error.message : 'blob_delete_failed'
-  for (const secret of [getPrivateBlobReadWriteToken(), process.env.BLOB_READ_WRITE_TOKEN?.trim()]) {
+  for (const secret of [getPrivateBlobReadWriteToken(), process.env.BLOB_READ_WRITE_TOKEN?.trim(),
+    process.env.CONSUMER_MEDIA_R2_ACCESS_KEY_ID, process.env.CONSUMER_MEDIA_R2_SECRET_ACCESS_KEY]) {
     if (secret) message = message.split(secret).join('[REDACTED]')
   }
   return message.slice(0, 500)

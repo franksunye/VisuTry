@@ -12,6 +12,18 @@ const mockKie = jest.fn()
 const mockGrsai = jest.fn()
 const mockSelectProvider = jest.fn()
 
+const mockStage = jest.fn()
+const mockWriteR2 = jest.fn()
+const mockCommit = jest.fn()
+
+jest.mock('@/lib/consumer-media-staging', () => ({
+  trackConsumerMedia: (...args: unknown[]) => mockStage(...args),
+  commitConsumerMedia: (...args: unknown[]) => mockCommit(...args),
+}))
+jest.mock('@/lib/consumer-r2-media', () => ({
+  writeR2Media: (...args: unknown[]) => mockWriteR2(...args),
+}))
+
 jest.mock('@vercel/blob', () => ({ put: (...args: unknown[]) => mockPut(...args), get: jest.fn() }))
 jest.mock('@/lib/prisma', () => ({
   prisma: { faceAnalysisTask: {
@@ -64,6 +76,22 @@ describe('Face Analysis algorithm-only service fallback', () => {
     mockPut.mockResolvedValue({ url: 'https://example.com/blob.jpg', pathname: 'face-analysis/test-user/blob.jpg' })
     mockCreate.mockResolvedValue({ id: 'task-1' })
     mockUpdate.mockResolvedValue({ id: 'task-1' })
+  })
+
+  it('stages the R2 reference before a failed upload and never creates a task or invokes AI', async () => {
+    process.env.CONSUMER_MEDIA_WRITE_PROVIDER = 'r2'
+    mockWriteR2.mockRejectedValueOnce(new Error('R2 denied'))
+    try {
+      await expect(submitFaceAnalysis(user, image())).rejects.toThrow('R2 denied')
+      expect(mockStage).toHaveBeenCalledWith([expect.stringMatching(/^r2:face-analysis\//)])
+      expect(mockStage.mock.invocationCallOrder[0]).toBeLessThan(mockWriteR2.mock.invocationCallOrder[0])
+      expect(mockCommit).not.toHaveBeenCalled()
+      expect(mockCreate).not.toHaveBeenCalled()
+      expect(mockKie).not.toHaveBeenCalled()
+      expect(mockPut).not.toHaveBeenCalled()
+    } finally {
+      delete process.env.CONSUMER_MEDIA_WRITE_PROVIDER
+    }
   })
 
   it('completes Kie 503 with measured shape and a single provider attempt', async () => {

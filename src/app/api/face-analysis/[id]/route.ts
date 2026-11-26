@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
 import { getFaceAnalysisTaskForUser } from '@/lib/face-analysis-service'
+import { requestFaceAnalysisDeletion } from '@/lib/retention/cleanup-expired-face-analysis'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,14 +38,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (!auth.ok) return auth.response
     const userId = auth.userId
 
-    const deleted = await prisma.faceAnalysisTask.deleteMany({
-      where: { id: params.id, userId: userId },
-    })
-
-    if (deleted.count === 0) {
+    const task = await prisma.faceAnalysisTask.findFirst({ where: { id: params.id, userId } })
+    if (!task) {
       return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
     }
 
+    await requestFaceAnalysisDeletion(task)
     return NextResponse.json({ success: true })
   } catch (error) {
     logger.error('face-analysis', 'DELETE task error', error as Error, ctx)

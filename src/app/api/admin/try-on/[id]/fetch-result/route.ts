@@ -1,3 +1,4 @@
+import { adminTryOnMediaPath } from '@/lib/tryon-media'
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api-auth';
 import { prisma } from '@/lib/prisma';
@@ -190,9 +191,9 @@ export async function POST(
                 previousStatus: task.status,
                 currentStatus: updatedTask?.status,
                 statusChanged,
-                resultImageUrl: updatedTask?.resultImageUrl,
+                resultImageUrl: updatedTask?.resultImageUrl ? adminTryOnMediaPath(taskId, 'result') : undefined,
                 error: updatedTask?.errorMessage,
-                pollResult: result,
+                pollResult: { ...result, resultImageUrl: result.resultImageUrl ? adminTryOnMediaPath(taskId, 'result') : undefined },
                 timing: {
                     totalDuration: `${totalDuration}ms`,
                     pollDuration: `${pollDuration}ms`,

@@ -87,7 +87,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
     })
 
     expect(result.status).toBe(200)
-    expect(mockServeLegacyTryOnMedia).toHaveBeenCalledWith('https://storage.example.test/result.png')
+    expect(mockServeLegacyTryOnMedia).toHaveBeenCalledWith('https://storage.example.test/result.png', 'result')
   })
 
   it('passes through an image response from the shared private-media reader', async () => {

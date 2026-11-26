@@ -50,6 +50,8 @@ describe('GET /api/share/try-on/[id]/result', () => {
       select: {
         status: true,
         resultImageUrl: true,
+        retentionStatus: true,
+        expiresAt: true,
       },
     })
     expect(mockServeLegacyTryOnMedia).toHaveBeenCalledWith(privateResultUrl)

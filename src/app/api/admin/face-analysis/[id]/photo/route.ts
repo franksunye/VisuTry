@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
 import { serveFaceAnalysisSourcePhoto } from '@/lib/face-analysis-source-photo'
+import { ConsumerMediaNotFound } from '@/lib/consumer-r2-media'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const task = await prisma.faceAnalysisTask.findUnique({
       where: { id: params.id },
-      select: { userImageUrl: true, metadata: true, expiresAt: true },
+      select: { userImageUrl: true, metadata: true, expiresAt: true, retentionStatus: true },
     })
 
     if (!task?.userImageUrl) {
@@ -27,6 +28,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return await serveFaceAnalysisSourcePhoto(task, { respectBusinessExpiry: false })
   } catch (error) {
+    if (error instanceof ConsumerMediaNotFound) {
+      return NextResponse.json({ success: false, error: 'Photo not found' }, { status: 404 })
+    }
     const err = error instanceof Error ? error : new Error(String(error))
     logger.error('face-analysis', 'Failed to restore admin source photo', err, ctx)
     return NextResponse.json(

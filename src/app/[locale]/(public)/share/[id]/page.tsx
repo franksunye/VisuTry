@@ -6,7 +6,7 @@ import type { Metadata } from "next"
 import { TryOnResultImage } from "@/components/OptimizedImage"
 import { getTryOnConfig, type TryOnType } from "@/config/try-on-types"
 import { localizedPath } from "@/lib/localized-path"
-import { publicTryOnShareResultPath } from "@/lib/tryon-media"
+import { isTryOnMediaAvailable, publicTryOnShareResultPath } from "@/lib/tryon-media"
 
 interface SharePageProps {
   params: {
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
     }
   })
 
-  if (!task || task.status !== "COMPLETED" || !task.resultImageUrl) {
+  if (!task || !isTryOnMediaAvailable(task) || task.status !== "COMPLETED" || !task.resultImageUrl) {
     return {
       title: "VisuTry - AI Glasses Try-On",
       description: "Experience virtual glasses try-on with AI technology",
@@ -91,7 +91,7 @@ export default async function SharePage({ params }: SharePageProps) {
     }
   })
 
-  if (!task || task.status !== "COMPLETED" || !task.resultImageUrl) {
+  if (!task || !isTryOnMediaAvailable(task) || task.status !== "COMPLETED" || !task.resultImageUrl) {
     notFound()
   }
 

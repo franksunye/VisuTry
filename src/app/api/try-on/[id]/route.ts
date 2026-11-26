@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 import { tryOnMediaUrls } from '@/lib/tryon-media'
+import { requestTryOnDeletion } from '@/lib/retention/cleanup-expired-tryon-tasks'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -92,7 +93,7 @@ export async function DELETE(
       where: { id: taskId }
     })
 
-    if (!task) {
+    if (!task || (task.origin && task.origin !== 'CONSUMER')) {
       return NextResponse.json(
         { success: false, error: "试戴任务不存在" },
         { status: 404 }
@@ -108,9 +109,8 @@ export async function DELETE(
     }
 
     // 删除任务
-    await prisma.tryOnTask.delete({
-      where: { id: taskId }
-    })
+    const deleted = await requestTryOnDeletion(task)
+    if (deleted === null) return NextResponse.json({ success: true, pending: true }, { status: 202 })
 
     return NextResponse.json({
       success: true,

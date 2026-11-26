@@ -38,7 +38,7 @@ describe('GET /api/face-analysis/[id]/photo', () => {
 
   it('returns the original photo only for an owned, completed, unlocked analysis', async () => {
     ;(prisma.faceAnalysisTask.findFirst as jest.Mock).mockResolvedValue({
-      userImageUrl: 'https://blob.example.com/face.jpg',
+      userImageUrl: 'https://historical.public.blob.vercel-storage.com/face.jpg',
     })
     global.fetch = jest.fn().mockResolvedValue(new Response(
       new Uint8Array([1, 2, 3]),

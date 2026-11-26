@@ -1,9 +1,11 @@
+/** @jest-environment node */
 import { del } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { cleanupExpiredTryOnTasks } from '@/lib/retention/cleanup-expired-tryon-tasks'
 
 jest.mock('@vercel/blob', () => ({
+  ...jest.requireActual('@vercel/blob'),
   del: jest.fn(),
 }))
 
@@ -59,6 +61,14 @@ function queueTasks(active: unknown[] = [], blocked: unknown[] = []) {
     where.retentionStatus === 'DELETE_BLOCKED' ? blocked : active,
   )
 }
+
+it('accepts the SDK missing-object error and rejects a missing-store or access error', async () => {
+  const { BlobNotFoundError, BlobStoreNotFoundError, BlobAccessError } = jest.requireActual('@vercel/blob')
+  const { isBlobNotFoundError } = await import('@/lib/retention/blob-delete')
+  expect(isBlobNotFoundError(new BlobNotFoundError())).toBe(true)
+  expect(isBlobNotFoundError(new BlobStoreNotFoundError())).toBe(false)
+  expect(isBlobNotFoundError(new BlobAccessError())).toBe(false)
+})
 
 describe('cleanupExpiredTryOnTasks Blob credential binding', () => {
   beforeEach(() => {

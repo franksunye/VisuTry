@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { buildTryOnPrompt } from '@/lib/prompt-builder'
 import type { GrsAiResult } from '@/lib/grsai'
 import { KIE_TRY_ON_MODEL } from '@/lib/generation/providers'
+import { isKieResultHost } from '@/lib/consumer-media-url'
 
 // Fixed endpoints: credentials and user photographs must never be forwarded
 // through client-controlled provider URLs.
@@ -48,15 +49,6 @@ function safeHttpsUrl(value: unknown, allowedHost: (hostname: string) => boolean
 
 function allowedKieUpload(hostname: string): boolean {
   return hostname === 'tempfile.redpandaai.co'
-}
-
-function allowedKieOutput(hostname: string): boolean {
-  // One synthetic live task and Kie's download docs confirm this exact output
-  // hostname. Do not allow its subdomains or broaden upload host policy.
-  return hostname === 'tempfile.aiquickdraw.com' ||
-    hostname === 'tempfile.redpandaai.co' ||
-    hostname === 'kie.ai' || hostname.endsWith('.kie.ai') ||
-    hostname === 'redpandaai.co' || hostname.endsWith('.redpandaai.co')
 }
 
 async function parseEnvelope(response: Response): Promise<JsonObject | null> {
@@ -227,7 +219,7 @@ export async function pollKieTask(externalTaskId: string): Promise<GrsAiResult> 
       }
       const urls = result?.resultUrls
       const imageUrl = Array.isArray(urls) && urls.length === 1
-        ? safeHttpsUrl(urls[0], allowedKieOutput) : null
+        ? safeHttpsUrl(urls[0], isKieResultHost) : null
       if (!imageUrl) {
         return { status: 'failed', progress, error: 'Kie result requires reconciliation', diagnostics: { code: 503 } }
       }

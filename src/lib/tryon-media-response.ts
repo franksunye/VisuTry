@@ -1,9 +1,11 @@
 import { loadPrivateTryOnMedia, loadTryOnMediaFile } from '@/lib/tryon-media-loader'
 import {
   decodeLegacyTryOnDataUrl,
-  parseLegacyTryOnHttpUrl,
+  type TryOnMediaKind,
   TRY_ON_MEDIA_MAX_BYTES,
 } from '@/lib/tryon-media'
+
+import { parseLegacyPublicConsumerMediaUrl } from '@/lib/consumer-media-url'
 
 export { loadTryOnMediaFile }
 
@@ -23,18 +25,18 @@ function mediaResponse(bytes: ArrayBuffer, contentType: string): Response {
   })
 }
 
-export async function serveLegacyTryOnMedia(sourceUrl: string): Promise<Response> {
+export async function serveLegacyTryOnMedia(sourceUrl: string, kind: TryOnMediaKind = 'result'): Promise<Response> {
   const dataUrl = decodeLegacyTryOnDataUrl(sourceUrl)
   if (dataUrl) return mediaResponse(dataUrl.bytes, dataUrl.contentType)
 
-  const privateBlob = await loadPrivateTryOnMedia(sourceUrl)
+  const privateBlob = await loadPrivateTryOnMedia(sourceUrl, kind)
   if (privateBlob) {
     // Private source media must stay same-origin after authorization. This keeps
     // authenticated rendering/download behavior independent of Blob credentials.
     return mediaResponse(privateBlob.bytes, privateBlob.contentType)
   }
 
-  const url = parseLegacyTryOnHttpUrl(sourceUrl)
+  const url = parseLegacyPublicConsumerMediaUrl(sourceUrl, kind)
 
   // Legacy public HTTP(S) objects remain redirectable after the auth check. This
   // preserves 2A bandwidth behavior while new private source media is proxied.

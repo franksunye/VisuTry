@@ -198,6 +198,8 @@ async function getOwnedCompletedAnalysis(userId: string, faceAnalysisTaskId: str
       userId,
       status: TaskStatus.COMPLETED,
       reportUnlocked: true,
+      retentionStatus: 'ACTIVE',
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
     },
     select: {
       id: true,

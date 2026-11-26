@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { publicTryOnShareResultPath } from "@/lib/tryon-media"
+import { isTryOnMediaAvailable, publicTryOnShareResultPath } from "@/lib/tryon-media"
 
 export async function GET(
   request: NextRequest,
@@ -17,6 +17,8 @@ export async function GET(
         type: true,
         status: true,
         resultImageUrl: true,
+        expiresAt: true,
+        retentionStatus: true,
         createdAt: true,
         user: {
           select: {
@@ -27,7 +29,7 @@ export async function GET(
       }
     })
 
-    if (!task) {
+    if (!task || !isTryOnMediaAvailable(task)) {
       return NextResponse.json(
         { success: false, error: "试戴任务不存在" },
         { status: 404 }

@@ -1,9 +1,17 @@
+/** @jest-environment node */
 const mockFindUnique = jest.fn()
 const mockUpdate = jest.fn()
 const mockUpdateMany = jest.fn()
 const mockPut = jest.fn()
 const mockHead = jest.fn()
 const mockPollTaskResult = jest.fn()
+const mockWriteR2 = jest.fn()
+const mockHasR2 = jest.fn()
+
+jest.mock('@/lib/consumer-r2-media', () => ({
+  writeR2Media: (...args: unknown[]) => mockWriteR2(...args),
+  hasR2Result: (...args: unknown[]) => mockHasR2(...args),
+}))
 
 jest.mock('@prisma/client', () => ({
   TaskStatus: {
@@ -68,6 +76,7 @@ jest.mock('@/lib/tryon-media-loader', () => ({
 import { getTryOnResult } from '@/lib/tryon-service'
 
 const PRIVATE_ENV_KEYS = [
+  'CONSUMER_MEDIA_WRITE_PROVIDER',
   'TRY_ON_BLOB_ACCESS_MODE',
   'TRY_ON_BLOB_STORE_ID',
   'FACE_ANALYSIS_BLOB_ACCESS_MODE',
@@ -85,11 +94,10 @@ describe('Try-On result privacy persistence', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockHead.mockReset()
+    mockHasR2.mockReset().mockResolvedValue(false)
+    mockWriteR2.mockReset().mockResolvedValue(undefined)
     for (const key of PRIVATE_ENV_KEYS) delete process.env[key]
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      blob: jest.fn().mockResolvedValue(new Blob(['result'], { type: 'image/png' })),
-    }) as any
+    global.fetch = jest.fn(async () => new Response('result', { headers: { 'content-type': 'image/png' } }))
   })
 
   afterAll(() => {
@@ -101,7 +109,7 @@ describe('Try-On result privacy persistence', () => {
     }
   })
 
-  function prepareSucceededPoll() {
+  function prepareSucceededPoll(consumerResultStorage?: string, version = 0) {
     const task = {
       id: 'task-private-result',
       userId: 'user-1',
@@ -115,6 +123,7 @@ describe('Try-On result privacy persistence', () => {
         serviceType: 'grsai',
         externalTaskId: 'external-1',
         retryCount: 0,
+        consumerResultStorage,
       },
     }
 
@@ -126,16 +135,73 @@ describe('Try-On result privacy persistence', () => {
         metadata: task.metadata,
         resultPersistLeaseOwner: null,
         resultPersistLeaseUntil: null,
-        resultPersistVersion: 0,
+        resultPersistVersion: version,
       })
     mockPollTaskResult.mockResolvedValue({
       status: 'succeeded',
       progress: 100,
-      imageUrl: 'https://provider.example.com/result.png',
+      imageUrl: 'https://file65.grsai.com/result.png',
       metadata: { description: 'done' },
     })
     mockUpdateMany.mockResolvedValue({ count: 1 })
   }
+
+  it('keeps an accepted R2 task pinned after rollback and ignores repeat completion', async () => {
+    process.env.CONSUMER_MEDIA_WRITE_PROVIDER = 'vercel-blob'
+    prepareSucceededPoll('r2')
+    expect(await getTryOnResult('task-private-result')).toMatchObject({
+      status: 'COMPLETED', isNewCompletion: true, resultImageUrl: 'r2:tryon/result/task-private-result',
+    })
+    mockFindUnique.mockResolvedValueOnce({
+      id: 'task-private-result', origin: 'CONSUMER', status: 'COMPLETED',
+      resultImageUrl: 'r2:tryon/result/task-private-result',
+    })
+    expect(await getTryOnResult('task-private-result')).toMatchObject({
+      status: 'COMPLETED', resultImageUrl: 'r2:tryon/result/task-private-result',
+    })
+    expect(mockWriteR2).toHaveBeenCalledTimes(1)
+    expect(mockPut).not.toHaveBeenCalled()
+    expect(mockPollTaskResult).toHaveBeenCalledTimes(1)
+  })
+
+  it('reconciles a prior R2 put after a lost DB acknowledgement without downloading the provider image again', async () => {
+    prepareSucceededPoll('r2', 1)
+    mockHasR2.mockResolvedValue(true)
+    expect(await getTryOnResult('task-private-result')).toMatchObject({
+      status: 'COMPLETED', resultImageUrl: 'r2:tryon/result/task-private-result',
+    })
+    expect(global.fetch).not.toHaveBeenCalled()
+    expect(mockWriteR2).not.toHaveBeenCalled()
+  })
+
+  it('does not fetch or persist a late result when the retention fence wins', async () => {
+    prepareSucceededPoll('r2')
+    mockUpdateMany.mockResolvedValue({ count: 0 })
+    mockFindUnique.mockResolvedValueOnce(null)
+    expect(await getTryOnResult('task-private-result')).toMatchObject({ status: 'PROCESSING', isNewCompletion: false })
+    expect(global.fetch).not.toHaveBeenCalled()
+    expect(mockWriteR2).not.toHaveBeenCalled()
+  })
+
+  it('never marks an R2 result completed or falls back to another provider on R2 failure', async () => {
+    prepareSucceededPoll('r2')
+    mockWriteR2.mockRejectedValue(new Error('R2 unavailable'))
+    expect(await getTryOnResult('task-private-result')).toMatchObject({ status: 'PROCESSING', isNewCompletion: false })
+    expect(mockPut).not.toHaveBeenCalled()
+    expect(mockUpdateMany).not.toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ status: 'COMPLETED' }),
+    }))
+  })
+
+  it('keeps a previously pinned private Blob task on Blob when R2 writes are enabled', async () => {
+    process.env.CONSUMER_MEDIA_WRITE_PROVIDER = 'r2'
+    process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
+    prepareSucceededPoll('vercel-blob-private')
+    mockPut.mockResolvedValue({ url: 'https://store.private.blob.vercel-storage.com/tryon/result/task.png' })
+    expect(await getTryOnResult('task-private-result')).toMatchObject({ status: 'COMPLETED' })
+    expect(mockWriteR2).not.toHaveBeenCalled()
+    expect(mockPut).toHaveBeenCalledTimes(1)
+  })
 
   it('persists a new consumer result privately when private policy is enabled', async () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
@@ -242,7 +308,7 @@ describe('Try-On result privacy persistence', () => {
       }),
     }))
     const serializedCalls = JSON.stringify(mockUpdateMany.mock.calls)
-    expect(serializedCalls).not.toContain('https://provider.example.com/result.png\"')
+    expect(serializedCalls).not.toContain('https://file65.grsai.com/result.png\"')
   })
 
   it('reconciles a private deterministic Blob already-exists conflict via head', async () => {
@@ -316,7 +382,7 @@ describe('Try-On result privacy persistence', () => {
       }),
       data: expect.objectContaining({
         status: 'COMPLETED',
-        resultImageUrl: 'https://provider.example.com/result.png',
+        resultImageUrl: 'https://file65.grsai.com/result.png',
         resultPersistLeaseOwner: null,
         resultPersistLeaseUntil: null,
         metadata: expect.objectContaining({
@@ -327,7 +393,7 @@ describe('Try-On result privacy persistence', () => {
     }))
     expect(result).toMatchObject({
       status: 'COMPLETED',
-      resultImageUrl: 'https://provider.example.com/result.png',
+      resultImageUrl: 'https://file65.grsai.com/result.png',
     })
   })
 })

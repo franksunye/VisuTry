@@ -1,3 +1,17 @@
+/** @jest-environment node */
+const mockWriteR2Source = jest.fn()
+const mockTrackConsumerMedia = jest.fn()
+const mockCommitConsumerMedia = jest.fn()
+
+jest.mock('@/lib/consumer-r2-media', () => ({
+  writeR2Media: (...args: unknown[]) => mockWriteR2Source(...args),
+  hasR2Result: jest.fn(),
+}))
+jest.mock('@/lib/consumer-media-staging', () => ({
+  trackConsumerMedia: (...args: unknown[]) => mockTrackConsumerMedia(...args),
+  commitConsumerMedia: (...args: unknown[]) => mockCommitConsumerMedia(...args),
+}))
+
 import { submitTryOnTask, getTryOnResult } from '@/lib/tryon-service'
 import { prisma } from '@/lib/prisma'
 import { submitAsyncTask, pollTaskResult } from '@/lib/grsai'
@@ -108,6 +122,28 @@ describe('TryOnService', () => {
   })
 
   describe('submitTryOnTask', () => {
+    it('tracks both R2 source uploads before a partial failure and leaves task creation and provider dispatch untouched', async () => {
+      process.env.CONSUMER_MEDIA_WRITE_PROVIDER = 'r2'
+      mockWriteR2Source.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('Synthetic storage denial'))
+      try {
+        const user = { id: 'test-r2-user', isPremium: false } as Parameters<typeof submitTryOnTask>[0]
+        const photo = new File(['fixture photo'], 'photo.png', { type: 'image/png' })
+        const item = new File(['fixture item'], 'item.png', { type: 'image/png' })
+        await expect(submitTryOnTask(user, photo, item, 'GLASSES')).rejects.toThrow('Failed to upload images')
+        expect(mockTrackConsumerMedia).toHaveBeenCalledWith([
+          expect.stringMatching(/^r2:tryon\/user\//),
+          expect.stringMatching(/^r2:tryon\/item\//),
+        ])
+        expect(mockTrackConsumerMedia.mock.invocationCallOrder[0]).toBeLessThan(mockWriteR2Source.mock.invocationCallOrder[0])
+        expect(mockCommitConsumerMedia).not.toHaveBeenCalled()
+        expect(prisma.tryOnTask.create).not.toHaveBeenCalled()
+        expect(submitAsyncTask).not.toHaveBeenCalled()
+        expect(submitKieTask).not.toHaveBeenCalled()
+      } finally {
+        delete process.env.CONSUMER_MEDIA_WRITE_PROVIDER
+      }
+    })
+
     it('rejects Kie cutover without a secret before writing source blobs or creating tasks', async () => {
       process.env.AI_PROVIDER = 'kie'
       await expect(submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES'))
@@ -653,7 +689,7 @@ describe('TryOnService', () => {
       expect(result).toMatchObject({ status: TaskStatus.COMPLETED, isNewCompletion: true })
       expect(global.fetch).toHaveBeenCalledWith(
         'https://tempfile.redpandaai.co/output/photo.jpg',
-        { redirect: 'error', cache: 'no-store' },
+        { redirect: 'error', cache: 'no-store', signal: expect.any(AbortSignal) },
       )
       expect(put).toHaveBeenCalledWith(
         expect.stringContaining(`tryon/result/user-1/kie-success.${extension}`),
@@ -746,14 +782,15 @@ describe('TryOnService', () => {
       ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(mockTask)
       ;(pollTaskResult as jest.Mock).mockResolvedValue({
         status: 'succeeded',
-        imageUrl: 'http://result.jpg',
+        imageUrl: 'https://file65.grsai.com/result.jpg',
         metadata: { description: 'Test Description' }
       })
       
       // Mock fetch for image upload
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
-        blob: jest.fn().mockResolvedValue(new Blob(['fake-image'], { type: 'image/png' }))
+        headers: { get: (key: string) => key === 'content-type' ? 'image/png' : null },
+        body: new Blob(['fake-image']).stream(),
       })
       
       // Mock updateMany to return count: 1
@@ -786,7 +823,7 @@ describe('TryOnService', () => {
              serviceType: 'grsai',
              externalTaskId: 'grsai-task-id',
              description: 'Test Description',
-             originalResultUrl: 'http://result.jpg'
+             originalResultUrl: 'https://file65.grsai.com/result.jpg'
           })
         })
       })
@@ -845,9 +882,10 @@ describe('TryOnService', () => {
           status: TaskStatus.COMPLETED,
           resultImageUrl: 'https://blob/repeat.png',
         })
+      global.fetch = jest.fn().mockImplementation(async () => new Response('image', { headers: { 'content-type': 'image/png' } }))
       ;(pollTaskResult as jest.Mock).mockResolvedValue({
         status: 'succeeded',
-        imageUrl: 'https://provider/repeat.png',
+        imageUrl: 'https://file65.grsai.com/repeat.png',
       })
       ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
 
@@ -881,9 +919,10 @@ describe('TryOnService', () => {
           status: TaskStatus.COMPLETED,
           resultImageUrl: 'https://blob/race.png',
         })
+      global.fetch = jest.fn().mockImplementation(async () => new Response('image', { headers: { 'content-type': 'image/png' } }))
       ;(pollTaskResult as jest.Mock).mockResolvedValue({
         status: 'succeeded',
-        imageUrl: 'https://provider/race.png',
+        imageUrl: 'https://file65.grsai.com/race.png',
       })
       ;(prisma.tryOnTask.updateMany as jest.Mock)
         .mockResolvedValueOnce({ count: 1 })
@@ -922,9 +961,10 @@ describe('TryOnService', () => {
           resultPersistVersion: 0,
           resultPersistLeaseUntil: null,
         })
+      global.fetch = jest.fn().mockImplementation(async () => new Response('image', { headers: { 'content-type': 'image/png' } }))
       ;(pollTaskResult as jest.Mock).mockResolvedValue({
         status: 'succeeded',
-        imageUrl: 'https://provider/duplicate.png',
+        imageUrl: 'https://file65.grsai.com/duplicate.png',
       })
       const conflict = new Error('This blob already exists, use allowOverwrite: true')
       conflict.name = 'BlobPreconditionFailedError'
@@ -1038,6 +1078,7 @@ describe('TryOnService', () => {
           id: 'consumer-poll-backoff',
           status: { not: TaskStatus.COMPLETED },
           dispatchVersion: 0,
+          retentionStatus: 'ACTIVE',
         },
         data: expect.objectContaining({
           metadata: expect.objectContaining({
@@ -1090,6 +1131,7 @@ describe('TryOnService', () => {
           id: 'consumer-poll-recovered',
           status: { not: TaskStatus.COMPLETED },
           dispatchVersion: 0,
+          retentionStatus: 'ACTIVE',
         },
         data: {
           metadata: expect.objectContaining({
@@ -1245,8 +1287,8 @@ describe('TryOnService', () => {
       const mockTask = {
         id: 'task-3',
         userId: 'user-1',
-        userImageUrl: 'http://blob/user.jpg',
-        itemImageUrl: 'http://blob/item.jpg',
+        userImageUrl: 'https://blob.public.blob.vercel-storage.com/user.jpg',
+        itemImageUrl: 'https://blob.public.blob.vercel-storage.com/item.jpg',
         type: 'GLASSES',
         status: TaskStatus.PROCESSING,
         metadata: {
@@ -1274,8 +1316,8 @@ describe('TryOnService', () => {
       const result = await getTryOnResult('task-3')
 
       expect(submitAsyncTask).toHaveBeenCalledWith(
-        'http://blob/user.jpg',
-        'http://blob/item.jpg',
+        'https://blob.public.blob.vercel-storage.com/user.jpg',
+        'https://blob.public.blob.vercel-storage.com/item.jpg',
         'retry prompt',
         'tryon-v1',
         expect.objectContaining({
@@ -1330,8 +1372,8 @@ describe('TryOnService', () => {
         origin: 'CONSUMER',
         userId: 'user-1',
         dispatchVersion: 0,
-        userImageUrl: 'http://blob/user.jpg',
-        itemImageUrl: 'http://blob/item.jpg',
+        userImageUrl: 'https://blob.public.blob.vercel-storage.com/user.jpg',
+        itemImageUrl: 'https://blob.public.blob.vercel-storage.com/item.jpg',
         type: 'GLASSES',
         status: TaskStatus.PROCESSING,
         metadata: {
@@ -1397,8 +1439,8 @@ describe('TryOnService', () => {
         origin: 'CONSUMER',
         dispatchVersion: 0,
         userId: 'user-1',
-        userImageUrl: 'http://blob/user.jpg',
-        itemImageUrl: 'http://blob/item.jpg',
+        userImageUrl: 'https://blob.public.blob.vercel-storage.com/user.jpg',
+        itemImageUrl: 'https://blob.public.blob.vercel-storage.com/item.jpg',
         type: 'GLASSES',
         status: TaskStatus.PROCESSING,
         metadata: { serviceType: 'grsai', externalTaskId: 'old-id', retryCount: 0 },
@@ -1444,13 +1486,15 @@ describe('TryOnService', () => {
       }
 
       ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(mockTask)
+      global.fetch = jest.fn().mockImplementation(async () => new Response('image', { headers: { 'content-type': 'image/png' } }))
       ;(pollTaskResult as jest.Mock).mockResolvedValue({
         status: 'succeeded',
-        imageUrl: 'http://result-recover.jpg',
+        imageUrl: 'https://file65.grsai.com/result-recover.jpg',
       })
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
-        blob: jest.fn().mockResolvedValue(new Blob(['fake-image'], { type: 'image/png' }))
+        headers: { get: (key: string) => key === 'content-type' ? 'image/png' : null },
+        body: new Blob(['fake-image']).stream(),
       })
       ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
 

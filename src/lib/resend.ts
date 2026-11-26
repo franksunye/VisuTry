@@ -52,6 +52,7 @@ async function sendEmailWithTemplate(params: {
   to: string
   templateId: string
   variables: Record<string, string | number>
+  idempotencyKey?: string
 }): Promise<{ success: boolean; emailId?: string; error?: string }> {
   if (!RESEND_API_KEY) {
     return { success: false, error: 'Resend API key not configured' }
@@ -74,6 +75,7 @@ async function sendEmailWithTemplate(params: {
         headers: {
           'Authorization': `Bearer ${RESEND_API_KEY}`,
           'Content-Type': 'application/json',
+          ...(params.idempotencyKey ? { 'Idempotency-Key': params.idempotencyKey } : {}),
         },
         body,
       })
@@ -242,7 +244,7 @@ export async function sendRetentionDeletedEmail(user: {
   email: string | null
   name: string | null
   expiryDate: Date
-}): Promise<{ success: boolean; emailId?: string; error?: string }> {
+}, idempotencyKey?: string): Promise<{ success: boolean; emailId?: string; error?: string }> {
   if (!user.email) {
     logger.warn('email', 'User has no email', { userId: user.id })
     return { success: false, error: 'User has no email address' }
@@ -252,6 +254,7 @@ export async function sendRetentionDeletedEmail(user: {
     from: 'VisuTry <support@visutry.com>',
     to: user.email,
     templateId: TEMPLATES.RETENTION_DELETED,
+    idempotencyKey,
     variables: {
       FIRST_NAME: extractFirstName(user.name, user.email),
       EXPIRY_DATE: formatDateForEmail(user.expiryDate),

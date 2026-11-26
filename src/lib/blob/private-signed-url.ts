@@ -45,7 +45,8 @@ export async function createPrivateBlobGetUrl(input: {
 export function pathnameFromPrivateBlobUrl(value: string): string | null {
   try {
     const url = new URL(value)
-    if (!url.hostname.endsWith('.private.blob.vercel-storage.com')) return null
+    if (url.protocol !== 'https:' || url.port || url.username || url.password ||
+        !/^[a-z0-9-]+\.private\.blob\.vercel-storage\.com$/.test(url.hostname)) return null
     const pathname = decodeURIComponent(url.pathname.replace(/^\//, ''))
     return pathname && !pathname.includes('*') ? pathname : null
   } catch {

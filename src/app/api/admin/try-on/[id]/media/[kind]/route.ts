@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { type TryOnMediaKind } from '@/lib/tryon-media'
 import { serveLegacyTryOnMedia } from '@/lib/tryon-media-response'
+import { ConsumerMediaNotFound } from '@/lib/consumer-r2-media'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -27,6 +28,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         itemImageUrl: true,
         glassesImageUrl: true,
         resultImageUrl: true,
+        retentionStatus: true,
+        expiresAt: true,
       },
     })
     if (!task) {
@@ -40,12 +43,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         ? task.itemImageUrl || task.glassesImageUrl
         : task.resultImageUrl
 
-    if (!sourceUrl) {
+    if (!sourceUrl || (task.retentionStatus && task.retentionStatus !== 'ACTIVE')) {
       return NextResponse.json({ success: false, error: 'Media not found' }, { status: 404 })
     }
 
-    return await serveLegacyTryOnMedia(sourceUrl)
+    return await serveLegacyTryOnMedia(sourceUrl, kind)
   } catch (error) {
+    if (error instanceof ConsumerMediaNotFound) {
+      return NextResponse.json({ success: false, error: 'Media not found' }, { status: 404 })
+    }
     console.error('[Admin Try-On Media] Failed to serve media', error)
     return NextResponse.json({ success: false, error: 'Media unavailable' }, { status: 502 })
   }

@@ -6,6 +6,10 @@ import { resolveFaceAnalysisBlobAccessMode } from '@/lib/face-analysis-blob-acce
 import { retentionBackoffMs, shouldMarkDeleteBlocked } from './backoff'
 import { deleteOwnedBlob, retentionDeleteErrorMessage } from './blob-delete'
 import { isOwnedBlobReference } from './blob-reference'
+import { r2Key } from '@/lib/consumer-media-reference'
+import { deleteR2Media } from '@/lib/consumer-r2-media'
+import { queueDeletionNotice } from './deletion-notices'
+import type { Prisma } from '@prisma/client'
 
 type FaceTask = {
   id: string
@@ -15,20 +19,43 @@ type FaceTask = {
 }
 
 /** Throws on unknown nonempty URLs: never lose the only durable Blob reference. */
-export async function deleteFaceAnalysisBlobFirst(task: FaceTask): Promise<number> {
+export async function deleteFaceAnalysisBlobFirst(task: FaceTask, notifyAt?: Date): Promise<number> {
   const metadata = (task.metadata ?? {}) as Record<string, unknown>
+  const isR2 = !!r2Key(task.userImageUrl, 'face')
+  if (isR2 ? metadata.mediaProvider !== 'r2'
+    : metadata.mediaProvider !== undefined && metadata.mediaProvider !== 'vercel-blob') {
+    throw new Error('Unknown Face Analysis media provider')
+  }
   const pathname = typeof metadata.blobPathname === 'string' ? metadata.blobPathname : null
-  const target = isOwnedBlobReference(task.userImageUrl, 'face-analysis/')
+  const target = isR2 || isOwnedBlobReference(task.userImageUrl, 'face-analysis/')
     ? task.userImageUrl
     : isOwnedBlobReference(pathname, 'face-analysis/') ? pathname : null
   if (task.userImageUrl && !target) throw new Error('Unrecognized Face Analysis media; refusing record deletion')
 
-  const access = metadata.blobAccess === 'public' || metadata.blobAccess === 'private'
-    ? metadata.blobAccess
-    : resolveFaceAnalysisBlobAccessMode()
-  if (target && !isMockMode) await deleteOwnedBlob(target, access)
-  await prisma.faceAnalysisTask.delete({ where: { id: task.id } })
+  if (target && !isMockMode) {
+    if (isR2) await deleteR2Media(target)
+    else {
+      const access = metadata.blobAccess === 'public' || metadata.blobAccess === 'private'
+        ? metadata.blobAccess
+        : resolveFaceAnalysisBlobAccessMode()
+      await deleteOwnedBlob(target, access)
+    }
+  }
+  const remove = async (db: Prisma.TransactionClient) => {
+    await db.faceAnalysisTask.delete({ where: { id: task.id } })
+    if (notifyAt) await queueDeletionNotice(db, task.userId, notifyAt)
+  }
+  if (notifyAt) await prisma.$transaction(remove)
+  else await remove(prisma)
   return target ? 1 : 0
+}
+
+export async function requestFaceAnalysisDeletion(task: FaceTask): Promise<number> {
+  await prisma.faceAnalysisTask.updateMany({
+    where: { id: task.id, userId: task.userId, retentionStatus: 'ACTIVE' },
+    data: { retentionStatus: 'PENDING_DELETE', expiresAt: new Date() },
+  })
+  return deleteFaceAnalysisBlobFirst(task)
 }
 
 export type CleanupExpiredFaceAnalysisResult = {
@@ -43,6 +70,7 @@ export async function cleanupExpiredFaceAnalysis(input?: {
   now?: Date
   limit?: number
   maxRounds?: number
+  notify?: boolean
 }): Promise<CleanupExpiredFaceAnalysisResult> {
   const now = input?.now ?? new Date()
   const limit = input?.limit ?? 100
@@ -79,7 +107,7 @@ export async function cleanupExpiredFaceAnalysis(input?: {
         },
       })
       try {
-        await deleteFaceAnalysisBlobFirst(task)
+        await deleteFaceAnalysisBlobFirst(task, input?.notify ? now : undefined)
         result.deleted++
         result.deletedUserIds.push(task.userId)
       } catch (error) {

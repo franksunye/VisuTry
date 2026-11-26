@@ -1,9 +1,12 @@
 import { get } from '@vercel/blob'
+import { readR2Media, ConsumerMediaNotFound } from '@/lib/consumer-r2-media'
+import { r2Key } from '@/lib/consumer-media-reference'
+import { parseLegacyPublicConsumerMediaUrl } from '@/lib/consumer-media-url'
+import type { TryOnMediaKind } from '@/lib/tryon-media'
 import { pathnameFromPrivateBlobUrl } from '@/lib/blob/private-signed-url'
 import { getTryOnBlobStoreId } from '@/lib/tryon-blob-access'
 import {
   decodeLegacyTryOnDataUrl,
-  parseLegacyTryOnHttpUrl,
   TRY_ON_MEDIA_ALLOWED_IMAGE_TYPES,
   TRY_ON_MEDIA_MAX_BYTES,
 } from '@/lib/tryon-media'
@@ -21,7 +24,7 @@ function normalizeContentType(value: string | null | undefined): string {
   return contentType
 }
 
-async function readStream(stream: ReadableStream<Uint8Array>): Promise<ArrayBuffer> {
+export async function readConsumerMediaStream(stream: ReadableStream<Uint8Array>): Promise<ArrayBuffer> {
   const reader = stream.getReader()
   const chunks: Uint8Array[] = []
   let totalBytes = 0
@@ -54,7 +57,8 @@ async function readStream(stream: ReadableStream<Uint8Array>): Promise<ArrayBuff
   return bytes.buffer
 }
 
-export async function loadPrivateTryOnMedia(sourceUrl: string): Promise<LoadedTryOnMedia | null> {
+export async function loadPrivateTryOnMedia(sourceUrl: string, kind: TryOnMediaKind = 'result'): Promise<LoadedTryOnMedia | null> {
+  if (r2Key(sourceUrl, kind)) return readR2Media(sourceUrl, kind)
   const pathname = pathnameFromPrivateBlobUrl(sourceUrl)
   if (!pathname) return null
 
@@ -62,18 +66,19 @@ export async function loadPrivateTryOnMedia(sourceUrl: string): Promise<LoadedTr
     access: 'private',
     storeId: getTryOnBlobStoreId(),
   })
-  if (!result?.stream) throw new Error('Failed to load private Try-On media')
+  if (!result?.stream) throw new ConsumerMediaNotFound()
 
   return {
-    bytes: await readStream(result.stream),
+    bytes: await readConsumerMediaStream(result.stream),
     contentType: normalizeContentType(result.blob.contentType),
   }
 }
 
 async function fetchLegacyHttpMedia(sourceUrl: string): Promise<LoadedTryOnMedia> {
-  const url = parseLegacyTryOnHttpUrl(sourceUrl)
+  const url = parseLegacyPublicConsumerMediaUrl(sourceUrl, 'result')
   const response = await fetch(url, {
     cache: 'no-store',
+    redirect: 'error',
     signal: AbortSignal.timeout(15_000),
   })
   if (!response.ok) throw new Error(`Try-On media fetch failed: ${response.status}`)
@@ -83,10 +88,8 @@ async function fetchLegacyHttpMedia(sourceUrl: string): Promise<LoadedTryOnMedia
     throw new Error('Try-On media exceeds the size limit')
   }
 
-  const bytes = await response.arrayBuffer()
-  if (bytes.byteLength === 0 || bytes.byteLength > TRY_ON_MEDIA_MAX_BYTES) {
-    throw new Error('Try-On media is empty or exceeds the size limit')
-  }
+  if (!response.body) throw new Error('Try-On media response has no body')
+  const bytes = await readConsumerMediaStream(response.body)
 
   return {
     bytes,
@@ -113,12 +116,12 @@ function mediaToDataUri(media: LoadedTryOnMedia): string {
  * keep their existing behavior; new private Blob sources are read server-side
  * and converted to an ephemeral data URI.
  */
-export async function tryOnProviderMediaInput(sourceUrl: string): Promise<string> {
+export async function tryOnProviderMediaInput(sourceUrl: string, kind: 'user' | 'item' = 'user'): Promise<string> {
   const dataUrl = decodeLegacyTryOnDataUrl(sourceUrl)
   if (dataUrl) return sourceUrl
 
-  const privateMedia = await loadPrivateTryOnMedia(sourceUrl)
+  const privateMedia = await loadPrivateTryOnMedia(sourceUrl, kind)
   if (privateMedia) return mediaToDataUri(privateMedia)
 
-  return parseLegacyTryOnHttpUrl(sourceUrl).href
+  return parseLegacyPublicConsumerMediaUrl(sourceUrl, kind).href
 }

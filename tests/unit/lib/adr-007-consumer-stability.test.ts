@@ -1,3 +1,4 @@
+/** @jest-environment node */
 /**
  * ADR-007 Consumer stability regression suite.
  * Required evidence for Store PRs that touch shared generation/poll/retention/quota/cron.
@@ -238,12 +239,13 @@ describe('ADR-007 Consumer stability boundary', () => {
       })
     ;(pollTaskResult as jest.Mock).mockResolvedValue({
       status: 'succeeded',
-      imageUrl: 'https://provider/result.png',
+      imageUrl: 'https://file65.grsai.com/result.png',
       progress: 100,
       metadata: {},
     })
     ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
 
+    global.fetch = jest.fn(async () => new Response('result', { headers: { 'content-type': 'image/png' } }))
     const result = await getTryOnResult('task-1')
 
     expect(result.status).toBe(TaskStatus.COMPLETED)
@@ -275,11 +277,12 @@ describe('ADR-007 Consumer stability boundary', () => {
       })
     ;(pollTaskResult as jest.Mock).mockResolvedValue({
       status: 'succeeded',
-      imageUrl: 'https://provider/result.png',
+      imageUrl: 'https://file65.grsai.com/result.png',
       progress: 100,
     })
     ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
 
+    global.fetch = jest.fn(async () => new Response('result', { headers: { 'content-type': 'image/png' } }))
     const result = await getTryOnResult('task-consumer')
     expect(result.status).toBe(TaskStatus.COMPLETED)
 
@@ -341,10 +344,11 @@ describe('ADR-007 Consumer stability boundary', () => {
       })
     ;(pollTaskResult as jest.Mock).mockResolvedValue({
       status: 'succeeded',
-      imageUrl: 'https://provider/result.png',
+      imageUrl: 'https://file65.grsai.com/result.png',
       progress: 100,
     })
 
+    global.fetch = jest.fn(async () => new Response('result', { headers: { 'content-type': 'image/png' } }))
     const result = await getTryOnResult('task-store-2')
     expect(result.status).toBe(TaskStatus.COMPLETED)
     expect(prisma.user.update).not.toHaveBeenCalled()
@@ -377,15 +381,16 @@ describe('ADR-007 Consumer stability boundary', () => {
       })
     ;(pollTaskResult as jest.Mock).mockResolvedValue({
       status: 'succeeded',
-      imageUrl: 'https://provider/fallback.png',
+      imageUrl: 'https://file65.grsai.com/fallback.png',
       progress: 100,
     })
     ;(put as jest.Mock).mockRejectedValue(new Error('blob unavailable'))
     ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
 
+    global.fetch = jest.fn(async () => new Response('result', { headers: { 'content-type': 'image/png' } }))
     const result = await getTryOnResult('task-fallback')
     expect(result.status).toBe(TaskStatus.COMPLETED)
-    expect(result.resultImageUrl).toBe('https://provider/fallback.png')
+    expect(result.resultImageUrl).toBe('https://file65.grsai.com/fallback.png')
   })
 
   it('shared retention targets collect Consumer and Store blob refs without Store imports', () => {

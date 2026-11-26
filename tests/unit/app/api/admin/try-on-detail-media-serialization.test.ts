@@ -19,6 +19,8 @@ jest.mock('@/lib/prisma', () => ({
     tryOnTask: {
       findFirst: (...args: unknown[]) => mockFindFirst(...args),
       delete: jest.fn(),
+      findUnique: (...args: unknown[]) => mockFindFirst(...args),
+      updateMany: jest.fn(),
     },
   },
 }))

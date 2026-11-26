@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api-auth';
 import { prisma } from '@/lib/prisma';
-import { deleteTryOnBlobFirst } from '@/lib/retention/cleanup-expired-tryon-tasks';
+import { requestTryOnDeletion } from '@/lib/retention/cleanup-expired-tryon-tasks';
 import { adminTryOnMediaUrls } from '@/lib/tryon-media';
 
 export const dynamic = 'force-dynamic'
@@ -17,6 +17,8 @@ function serializeAdminMetadata(
 
   // Never send the original provider/data URL to the browser.
   delete serialized.originalResultUrl
+  delete serialized.consumerResultStorage
+  delete serialized.resultPathname
 
   if (source.uploadDiagnostics && typeof source.uploadDiagnostics === 'object' && !Array.isArray(source.uploadDiagnostics)) {
     const uploadDiagnostics = source.uploadDiagnostics as Record<string, unknown>
@@ -104,7 +106,8 @@ export async function DELETE(
 
     console.log(`[Admin Try-On Delete] Deleting task ${taskId}...`);
 
-    const deletedFiles = await deleteTryOnBlobFirst(task);
+    const deletedFiles = await requestTryOnDeletion(task);
+    if (deletedFiles === null) return NextResponse.json({ success: true, pending: true }, { status: 202 });
 
     console.log(`[Admin Try-On Delete] Successfully deleted task ${taskId}`);
 

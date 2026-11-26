@@ -69,7 +69,7 @@ describe('/api/face-analysis/top-picks-try-on', () => {
     })
     ;(prisma.faceAnalysisTask.findFirst as jest.Mock).mockResolvedValue({
       id: 'analysis-1',
-      userImageUrl: 'https://example.com/user.jpg',
+      userImageUrl: 'https://historical.public.blob.vercel-storage.com/user.jpg',
       detectedShape: 'square',
     })
     ;(getRemainingQuotaCount as jest.Mock).mockReturnValue(30)
@@ -199,11 +199,7 @@ describe('/api/face-analysis/top-picks-try-on', () => {
       serviceType: 'grsai',
       isAsync: true,
     })
-    global.fetch = jest.fn(async () => ({
-      ok: true,
-      status: 200,
-      blob: async () => new Blob(['photo'], { type: 'image/jpeg' }),
-    })) as jest.Mock
+    global.fetch = jest.fn(async () => new Response('photo', { headers: { 'content-type': 'image/jpeg' } }))
 
     const response = await POST(new NextRequest(
       'http://localhost/api/face-analysis/top-picks-try-on',

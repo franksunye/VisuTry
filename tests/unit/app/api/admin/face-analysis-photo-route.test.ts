@@ -12,7 +12,7 @@ jest.mock('@/lib/api-auth', () => ({ requireAdmin: jest.fn() }))
 jest.mock('@/lib/mocks', () => ({ isMockMode: false }))
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    faceAnalysisTask: { findUnique: jest.fn(), delete: jest.fn() },
+    faceAnalysisTask: { findUnique: jest.fn(), delete: jest.fn(), updateMany: jest.fn() },
   },
 }))
 jest.mock('@/lib/logger', () => ({
@@ -57,7 +57,7 @@ describe('GET /api/admin/face-analysis/[id]/photo', () => {
     expect(serveFaceAnalysisSourcePhoto).toHaveBeenCalledWith(task, { respectBusinessExpiry: false })
     expect(prisma.faceAnalysisTask.findUnique).toHaveBeenCalledWith({
       where: { id: 'analysis-private' },
-      select: { userImageUrl: true, metadata: true, expiresAt: true },
+      select: { userImageUrl: true, metadata: true, expiresAt: true, retentionStatus: true },
     })
   })
 
