@@ -139,6 +139,11 @@ describe('FaceAnalysisResult', () => {
     )
 
     expect(screen.getByText('Unlock your complete report')).toBeInTheDocument()
+    expect(screen.getByTestId('advisor-trustworthy-preview')).toBeInTheDocument()
+    expect(screen.queryByText('Face length')).not.toBeInTheDocument()
+    const personalized = screen.getByTestId('advisor-personalized-unlock-preview')
+    expect(personalized).toHaveTextContent('square face')
+    expect(personalized).toHaveTextContent('Round frames · Aviator frames')
     const earlyOffer = screen.getByTestId('face-analysis-primary-unlock')
     expect(earlyOffer).toBeInTheDocument()
     // One genuine paywall entry, above the lengthy photo and teaser panels.
@@ -148,6 +153,18 @@ describe('FaceAnalysisResult', () => {
     expect(screen.getByText('Preview: best frame directions')).toBeInTheDocument()
     expect(screen.getAllByText('Complete Your Personalized Frame Decision').length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: /unlock to download/i })).not.toBeInTheDocument()
+  })
+
+  it('does not fabricate frame directions when the locked teaser is empty', () => {
+    render(<FaceAnalysisResult task={makeTask({
+      fullResult: null,
+      reportUnlocked: false,
+      lockedTeaser: { bestFrames: [], framesToAvoid: [] },
+    })} onUnlock={jest.fn()} />)
+    expect(screen.queryByTestId('advisor-personalized-unlock-preview')).not.toBeInTheDocument()
+    expect(screen.getByText('No individual frame preview is available yet.')).toBeInTheDocument()
+    expect(screen.getByText('Detailed avoid-first advice is in the full report.')).toBeInTheDocument()
+    expect(screen.getByTestId('advisor-trustworthy-preview')).not.toHaveTextContent('Round frames')
   })
 
   it('keeps the locked result focused on unlocking personalized recommendations', () => {

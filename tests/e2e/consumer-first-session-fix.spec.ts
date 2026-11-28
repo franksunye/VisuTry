@@ -259,6 +259,13 @@ for (const viewport of [
 
     await page.goto(`/en/face-analysis?taskId=${TASK_ID}`, { waitUntil: 'domcontentloaded' })
     const earlyOffer = page.getByTestId('face-analysis-primary-unlock')
+    const personalized = earlyOffer.getByTestId('advisor-personalized-unlock-preview')
+    await expect(personalized).toBeVisible()
+    await expect(personalized).toContainText('oval face')
+    await expect(personalized).toContainText('Round · Aviator')
+    const honestPreview = page.getByTestId('advisor-trustworthy-preview')
+    await expect(honestPreview).toBeVisible()
+    await expect(page.getByText('Face length')).toHaveCount(0)
     await expect(earlyOffer).toBeVisible()
     const unlock = earlyOffer.getByRole('link', { name: /Unlock This Report/ })
     await expect(unlock).toBeVisible()
